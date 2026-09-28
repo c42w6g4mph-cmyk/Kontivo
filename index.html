@@ -618,6 +618,13 @@ details.logodet>summary{display:none}
 .logopanel{background:var(--sunken);border-radius:12px;padding:12px;margin:-2px 0 14px}
 .logobtns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .logobtns .mini{margin:0}
+.lcands{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 12px}
+.lcands:empty{display:none}
+.lcand{display:flex;flex-direction:column;align-items:center;gap:4px;width:64px;padding:0}
+.lcand img{width:52px;height:52px;border-radius:12px;object-fit:cover;background:#fff;box-shadow:0 0 0 1px var(--line)}
+.lcand span{font-size:10.5px;line-height:1.2;color:var(--ink2);text-align:center;max-width:64px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.lcand.weak img{opacity:.55}
+.lcmsg{font-size:12.5px;color:var(--ink3);width:100%}
 .lpnote{display:block;font-size:12px;color:var(--ink3);margin-top:8px}
 details.inl{margin:-4px 0 6px}
 details.inl summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--teal);padding:4px 0}
@@ -718,7 +725,12 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <div class="field"><label for="sHome">Hauptwährung für alle Summen</label>
       <select id="sHome"><option>CHF</option><option>EUR</option></select></div>
     <div class="field" style="margin-bottom:4px"><label for="sRate">Kurs: 1 EUR entspricht … CHF</label><input id="sRate" type="text" inputmode="decimal"></div>
-    <p class="note" id="rateStamp" style="margin:4px 0 0"></p></div>
+    <p class="note" id="rateStamp" style="margin:4px 0 10px"></p>
+    <label class="chkrow"><input type="checkbox" id="sRateAuto"><span>Kurs automatisch aktualisieren<em>Einmal täglich, Referenzkurs der Europäischen Zentralbank. Wer den Kurs von Hand ändert, schaltet das aus.</em></span></label>
+    <button class="mini" id="sRateNow" type="button" style="padding-top:0">Jetzt aktualisieren</button></div>
+  <div class="sgroup"><div class="sgh">Logos</div>
+    <p class="note" style="margin:0 0 6px">Sucht für Verträge und Einnahmen ohne Logo das App-Symbol des Anbieters im App Store. Übernommen wird nur, was eindeutig passt und scharf genug ist.</p>
+    <button class="srowbtn" id="logoBulk"><span>Fehlende Logos automatisch suchen</span><em>App-Store-Symbole</em></button></div>
   <div class="sgroup"><div class="sgh">Kündigungsschreiben</div>
     <div class="field" style="margin:0"><label for="sSender">Absender — Name und Adresse</label>
     <textarea id="sSender" placeholder="Vorname Name&#10;Strasse Nr.&#10;8280 Kreuzlingen" style="min-height:84px"></textarea></div>
@@ -729,7 +741,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <div class="chips" id="sHolderList"></div>
     <div class="addrow"><input id="sHolderNew" type="text" placeholder="Name hinzufügen" autocomplete="off"><button type="button" id="sHolderAdd">Hinzufügen</button></div></div>
   <div class="sgroup"><div class="sgh">Backup</div>
-    <p class="note" style="margin:0 0 6px">Ein Backup ist eine Datei mit allem: Verträge, Einnahmen, Kategorien und Einstellungen. Leg sie zum Beispiel in iCloud Drive ab.</p>
+    <p class="note" style="margin:0 0 6px">Ein Backup ist eine Datei mit allem: Verträge, Einnahmen, Kategorien, Einstellungen sowie Logos und Dokumente. Leg sie zum Beispiel in iCloud Drive ab.</p>
     <button class="srowbtn" id="bkSave"><span>Backup speichern</span><em>als Datei</em></button>
     <button class="srowbtn" id="bkLoad"><span>Backup einspielen</span><em>ersetzt die aktuellen Daten</em></button>
     <input type="file" id="bkFile" accept=".json,application/json">
@@ -787,10 +799,12 @@ details.opt.moreact{margin-top:9px;background:transparent}
   </div>
   <details class="logodet" id="oLogo"><summary>Logo &amp; Farbe</summary><div class="logopanel">
     <div class="logobtns">
+      <button class="mini" id="logoAuto" type="button">Logo automatisch finden</button>
       <button class="mini" id="logoUp">Bild hochladen</button>
       <button class="mini" id="logoSearch" type="button">Logo im Web suchen</button>
       <button class="mini" id="logoDel" hidden>Bild entfernen</button>
     </div>
+    <div class="lcands" id="logoCands"></div>
     <div class="swatches" id="swatches"></div>
     <span class="lpnote">Ohne Bild: Symbol der Kategorie in der gewählten Farbe.</span>
     <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml">
@@ -903,7 +917,9 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <button type="button" class="catfield" id="iCats"><span class="cfi" id="iCatIcon"></span><span class="cfn" id="iCatName"></span><span class="chev">›</span></button>
   <div class="logorow"><div class="mark" id="iLogoPrev"></div><div style="flex:1">
     <button class="mini" id="iLogoUp" type="button">Logo hochladen, z.B. vom Arbeitgeber</button>
+    <button class="mini" id="iLogoAuto" type="button">Logo automatisch finden</button>
     <button class="mini" id="iLogoSearch" type="button">Logo im Web suchen</button>
+    <div class="lcands" id="iLogoCands"></div>
     <button class="mini" id="iLogoDel" type="button" hidden>Logo entfernen</button>
     <span style="font-size:12.5px;color:var(--ink3)">Ohne Bild: Symbol der Art.</span></div></div>
   <h3>Betrag</h3>
@@ -1817,6 +1833,7 @@ function paintSwatches(){
     b.setAttribute("aria-pressed",!!(b.style.background&&draft.color&&rgbEq(b.style.background,draft.color)));});
 }
 function rgbEq(a,b){var t=document.createElement("i");t.style.background=b;return a===t.style.background;}
+function clearCands(){["logoCands","iLogoCands"].forEach(function(id){var b=document.getElementById(id);if(b){b.innerHTML="";b.onclick=null;}});}
 function paintLogo(){
   var p=document.getElementById("logoPrev"),name=document.getElementById("fPartner").value||document.getElementById("fLabel").value;
   if(draft.logoId&&KBlob.has(draft.logoId)){p.style.background=draft.logoBg||"#fff";p.innerHTML='<img src="'+esc(KBlob.url(draft.logoId))+'" alt="">';
@@ -1847,7 +1864,7 @@ function paintHolders(){
     el.appendChild(b);
   });
 }
-function openForm(c,asCopy){
+function openForm(c,asCopy){clearCands();
   editId=(c&&!asCopy)?c._id:null;
   draft={cat:(c&&c.cat)||"",color:(c&&c.color)||"",logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",
     docs:(c&&c.docs&&!asCopy?c.docs.slice():[]),prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),holders:c?holdersOf(c).slice():[(state.settings.holders||["Ich"])[0]]};
@@ -2166,8 +2183,9 @@ document.getElementById("saveForm").addEventListener("click",function(){
     cancelledAt:(prev&&prev.cancelledAt)||"",
     t:(prev&&prev.t)||Date.now()
   };
-  putContract(editId||uid(),c);
+  var cid=editId||uid();putContract(cid,c);
   closeSheets();render();toast(editId?"Aktualisiert":"Vertrag angelegt");
+  if(!editId&&!c.logoId&&c.partner)autoAttach("c",cid,c.partner,c.cur);
 });
 document.getElementById("cancelForm").addEventListener("click",closeSheets);
 
@@ -2705,7 +2723,7 @@ document.getElementById("iPAdd").addEventListener("click",function(){
   document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iPaintPrices();});
 document.getElementById("iAmt").addEventListener("input",iPaintPrices);
 document.getElementById("iCur").addEventListener("change",iPaintPrices);
-function openIncome(idv){
+function openIncome(idv){clearCands();
   var c=idv?state.incomes[idv]:null;incId=idv||null;
   idraft={logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",cat:(c&&c.cat)||"Lohn",prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),
     holders:c?holdersOf(c).slice():[(state.settings.holders||["Ich"])[0]]};
@@ -2732,7 +2750,8 @@ document.getElementById("iSave").addEventListener("click",function(){
     due:document.getElementById("iDue").value||iso(today()),start:document.getElementById("iStart").value||"",
     end:document.getElementById("iEnd").value||"",holders:idraft.holders.slice(),prices:idraft.prices.slice(),
     note:document.getElementById("iNote").value.trim(),logoId:idraft.logoId||"",logoBg:idraft.logoBg||"",color:(prev&&prev.color)||"",status:"active",t:(prev&&prev.t)||Date.now()};
-  putIncome(incId||uid(),c);closeSheets();render();toast(incId?"Aktualisiert":"Einnahme erfasst");
+  var nid=incId||uid();putIncome(nid,c);closeSheets();render();toast(incId?"Aktualisiert":"Einnahme erfasst");
+  if(!incId&&!c.logoId&&c.name)autoAttach("i",nid,c.name,c.cur);
 });
 document.getElementById("iCancel").addEventListener("click",closeSheets);
 document.getElementById("iDel").addEventListener("click",function(){
@@ -2783,8 +2802,9 @@ function addSetHolder(){
 }
 document.getElementById("sHolderAdd").addEventListener("click",addSetHolder);
 document.getElementById("sHolderNew").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addSetHolder();}});
-function paintRateStamp(){var d=state.settings.rateDate;
-  document.getElementById("rateStamp").textContent=d?"Stand: "+fmtD(d):"Noch nie angepasst";}
+function paintRateStamp(){var s=state.settings,d=s.rateDate,auto=s.rateAuto!==false;
+  document.getElementById("rateStamp").textContent=d?"Stand: "+fmtD(d)+(s.rateSrc==="auto"?" · automatisch (EZB)":" · von Hand eingetragen"):"Noch nie angepasst";
+  var cb=document.getElementById("sRateAuto");if(cb)cb.checked=auto;}
 function commitHolders(){state.settings.holders=setHolders.length?setHolders.slice():["Ich"];saveSettings();render();}
 document.getElementById("sSender").addEventListener("change",function(){state.settings.sender=this.value.trim();saveSettings();toast("Absender gespeichert");});
 document.getElementById("sHome").addEventListener("change",function(){
@@ -2792,8 +2812,166 @@ document.getElementById("sHome").addEventListener("change",function(){
 document.getElementById("sRate").addEventListener("change",function(){
   var r=parseNum(this.value);
   if(!(r>0)){this.value=state.settings.rate;toast("Kurs prüfen");return;}
-  state.settings.rate=Math.round(r*10000)/10000;state.settings.rateDate=iso(today());
-  this.value=state.settings.rate;saveSettings();render();paintRateStamp();toast("Kurs gespeichert");});
+  var wasAuto=state.settings.rateAuto!==false;
+  state.settings.rate=Math.round(r*10000)/10000;state.settings.rateDate=iso(today());state.settings.rateSrc="manual";state.settings.rateAuto=false;
+  this.value=state.settings.rate;saveSettings();render();paintRateStamp();toast(wasAuto?"Kurs gespeichert – automatische Aktualisierung aus":"Kurs gespeichert");});
+document.getElementById("sRateAuto").addEventListener("change",function(){
+  state.settings.rateAuto=this.checked;saveSettings();paintRateStamp();
+  if(this.checked)autoRate(true);else toast("Automatische Aktualisierung aus");});
+document.getElementById("sRateNow").addEventListener("click",function(){autoRate(true);});
+
+/* ---------- Wechselkurs automatisch ---------- */
+function rateJson(u){var ctl=typeof AbortController==="function"?new AbortController():null,t=ctl?setTimeout(function(){ctl.abort();},8000):0;
+  return fetch(u,ctl?{signal:ctl.signal,cache:"no-store"}:{cache:"no-store"}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error("http");return r.json();});}
+async function fetchRate(){
+  var pickA=function(d){return d&&d.rates&&+d.rates.CHF>0?{r:+d.rates.CHF,d:d.date||""}:null;};
+  var src=[["https://api.frankfurter.dev/v1/latest?base=EUR&symbols=CHF",pickA],
+           ["https://api.frankfurter.app/latest?from=EUR&to=CHF",pickA],
+           ["https://open.er-api.com/v6/latest/EUR",function(d){return d&&d.rates&&+d.rates.CHF>0?{r:+d.rates.CHF,d:d.time_last_update_unix?iso(new Date(d.time_last_update_unix*1000)):""}:null;}]];
+  for(var i=0;i<src.length;i++){
+    try{var x=src[i][1](await rateJson(src[i][0]));if(x&&x.r>0.5&&x.r<2)return x;}catch(e){}
+  }
+  return null;
+}
+var rateBusy=false;
+async function autoRate(force){
+  var s=state.settings;if(rateBusy)return;
+  if(!force&&(s.rateAuto===false||s.rateChecked===iso(today())))return;
+  if(navigator.onLine===false){if(force)toast("Keine Internetverbindung");return;}
+  rateBusy=true;if(force)toast("Lade Kurs…");
+  var x=null;try{x=await fetchRate();}catch(e){x=null;}
+  rateBusy=false;
+  if(!x){if(force)toast("Kurs konnte nicht geladen werden");return;}
+  var old=s.rate;
+  s.rate=Math.round(x.r*10000)/10000;s.rateDate=/^\d{4}-\d{2}-\d{2}$/.test(x.d)?x.d:iso(today());s.rateChecked=iso(today());s.rateSrc="auto";
+  if(force){s.rateAuto=true;}
+  saveSettings();
+  var ri=document.getElementById("sRate");if(ri&&document.activeElement!==ri)ri.value=s.rate;
+  paintRateStamp();if(old!==s.rate)render();
+  if(force)toast("Kurs aktualisiert: 1 EUR = "+s.rate+" CHF");
+}
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")autoRate(false);});
+/* ---------- Logos automatisch finden (App-Store-Symbole) ---------- */
+/* Rechtsform- und Füllwörter zählen nicht; Ortsbegriffe (Stadt, Gemeinde …) müssen passen, reichen allein aber nicht */
+var LSTOP=["ag","gmbh","sa","se","kg","co","ltd","inc","llc","die","der","das","the","und","and","schweiz","suisse","svizzera","switzerland",
+  "deutschland","germany","gruppe","group","holding","app","apps","mobile","versicherung","versicherungen","versicherungsgesellschaft",
+  "bank","krankenkasse","energie","strom","werke","services","service","online","digital","genossenschaft","gesellschaft"];
+var LPLACE=["stadt","gemeinde","kanton","verwaltung","landkreis","kreis","bezirk","verein","club"];
+function lnorm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g," ").trim();}
+function ltok(s){return lnorm(s).split(" ").filter(function(t){return t.length>=3&&LSTOP.indexOf(t)<0;});}
+function lusable(name){return ltok(name).some(function(t){return LPLACE.indexOf(t)<0;});}
+function lscore(name,r){
+  var want=ltok(name);if(!lusable(name))return 0;
+  if(/game|spiel/i.test(r.primaryGenreName||""))return 0;
+  var seller=ltok(r.sellerName||r.artistName),track=ltok(r.trackName);
+  function hit(list){return want.every(function(w){return list.some(function(t){return t===w||(w.length>=5&&t.indexOf(w)===0)||(t.length>=5&&w.indexOf(t)===0);});});}
+  var sc=0;if(hit(seller))sc+=3;if(hit(track))sc+=2;
+  if(sc&&lnorm(r.trackName).indexOf(lnorm(name))===0)sc+=1;
+  return sc;
+}
+function jsonp(url){return new Promise(function(res,rej){
+  var cb="kjp"+Date.now().toString(36)+Math.floor(Math.random()*1e6),sc=document.createElement("script"),done=false;
+  function end(){done=true;clearTimeout(t);try{delete window[cb];}catch(e){window[cb]=undefined;}sc.remove();}
+  var t=setTimeout(function(){if(!done){end();rej(new Error("timeout"));}},9000);
+  window[cb]=function(d){if(!done){end();res(d);}};
+  sc.onerror=function(){if(!done){end();rej(new Error("net"));}};
+  sc.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+cb;document.head.appendChild(sc);});}
+async function logoCands(name,cur){
+  var cs=cur==="EUR"?["de","ch"]:["ch","de"],seen={},out=[],term=ltok(name).join(" ")||String(name).trim();
+  for(var i=0;i<cs.length;i++){
+    var d=null;try{d=await jsonp("https://itunes.apple.com/search?entity=software&limit=15&country="+cs[i]+"&term="+encodeURIComponent(term));}catch(e){d=null;}
+    ((d&&d.results)||[]).forEach(function(r){var u=r.artworkUrl512||r.artworkUrl100;if(!u||seen[r.trackId])return;seen[r.trackId]=1;
+      out.push({url:u,thumb:r.artworkUrl100||u,title:r.trackName||"",seller:r.sellerName||r.artistName||"",score:lscore(name,r)});});
+    if(out.some(function(o){return o.score>=3;}))break;
+  }
+  out.sort(function(a,b){return b.score-a.score;});return out;
+}
+function loadImg(src){return new Promise(function(res,rej){var im=new Image();im.crossOrigin="anonymous";
+  im.onload=function(){res(im);};im.onerror=function(){rej(new Error("img"));};im.src=src;});}
+/* Prüft Grösse, Seitenverhältnis und dass das Bild nicht leer/einfarbig ist; liefert ein 512er-PNG */
+async function logoBlob(url){
+  var big=url.replace(/\/\d+x\d+bb\.(jpg|jpeg|png|webp)$/i,"/512x512bb.png");
+  var srcs=[big,url,"https://images.weserv.nl/?url="+encodeURIComponent(big.replace(/^https?:\/\//,""))+"&w=512&h=512&fit=cover&output=png"];
+  for(var i=0;i<srcs.length;i++){
+    var im;try{im=await loadImg(srcs[i]);}catch(e){continue;}
+    var w=im.naturalWidth,h=im.naturalHeight;
+    if(w<256||h<256||w/h<0.8||w/h>1.25)return {err:"klein"};
+    try{
+      var sm=document.createElement("canvas");sm.width=sm.height=32;var g=sm.getContext("2d");g.drawImage(im,0,0,32,32);
+      var px=g.getImageData(0,0,32,32).data,n=0,sum=0,sq=0,op=0;
+      for(var k=0;k<px.length;k+=4){var l=0.2126*px[k]+0.7152*px[k+1]+0.0722*px[k+2];sum+=l;sq+=l*l;n++;if(px[k+3]>200)op++;}
+      var sd=Math.sqrt(Math.max(0,sq/n-(sum/n)*(sum/n)));
+      if(sd<6||op/n<0.6)return {err:"leer"};
+      var cv=document.createElement("canvas");cv.width=cv.height=512;var c2=cv.getContext("2d");
+      c2.fillStyle="#FFFFFF";c2.fillRect(0,0,512,512);c2.imageSmoothingQuality="high";c2.drawImage(im,0,0,512,512);
+      var bl=await new Promise(function(r){cv.toBlob(r,"image/png");});if(bl)return {blob:bl};
+    }catch(e){/* Bild ohne Freigabe (CORS) – nächste Quelle */}
+  }
+  return {err:"laden"};
+}
+async function takeLogo(url){var r=await logoBlob(url);if(!r.blob)return r;
+  if(!assets)return {err:"speicher"};var up=await assets.upload(r.blob);return {id:up.id,bg:"#FFFFFF"};}
+async function autoLogo(name,cur){
+  if(!lusable(name))return null;
+  var cs=await logoCands(name,cur),good=cs.filter(function(c){return c.score>=3;}).slice(0,3);
+  for(var i=0;i<good.length;i++){var r=await takeLogo(good[i].url);if(r&&r.id)return r;}
+  return null;
+}
+var LERR={klein:"Bild zu klein oder nicht quadratisch",leer:"Bild wirkt leer oder einfarbig",laden:"Bild konnte nicht geladen werden",speicher:"Speichern nicht möglich"};
+function paintCands(box,cs,onPick){
+  if(!cs.length){box.innerHTML='<div class="lcmsg">Nichts gefunden. Tipp: Vertragspartner so schreiben, wie die Firma heisst, oder «Logo im Web suchen».</div>';return;}
+  var list=cs.slice(0,8);
+  box.innerHTML='<div class="lcmsg">'+(list[0].score>=3?"Tippe auf das passende Logo:":"Keine eindeutige Übereinstimmung – passt eines davon?")+"</div>"+
+    list.map(function(c,i){return '<button type="button" class="lcand'+(c.score>=3?"":" weak")+'" data-i="'+i+'"><img src="'+esc(c.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer"><span>'+esc(c.title)+"</span></button>";}).join("");
+  box.onclick=async function(ev){var b=ev.target.closest(".lcand");if(!b)return;
+    toast("Übernehme Logo…");var r=await takeLogo(list[+b.dataset.i].url);
+    if(!r||!r.id){toast(LERR[r&&r.err]||"Übernahme fehlgeschlagen");return;}
+    box.innerHTML="";box.onclick=null;onPick(r);toast("Logo übernommen");};
+}
+async function runCands(boxId,name,cur,onPick){
+  var box=document.getElementById(boxId);name=String(name||"").trim();
+  if(!name){toast("Zuerst den Namen eintragen");return;}
+  if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
+  box.innerHTML='<div class="lcmsg">Suche im App Store…</div>';
+  var cs=[];try{cs=await logoCands(name,cur);}catch(e){cs=[];}
+  paintCands(box,cs,onPick);
+}
+document.getElementById("logoAuto").addEventListener("click",function(){
+  runCands("logoCands",document.getElementById("fPartner").value,document.getElementById("fCur")?document.getElementById("fCur").value:"CHF",
+    function(r){draft.logoId=r.id;draft.logoBg=r.bg;paintLogo();});});
+document.getElementById("iLogoAuto").addEventListener("click",function(){
+  runCands("iLogoCands",document.getElementById("iName").value,document.getElementById("iCur").value,
+    function(r){idraft.logoId=r.id;idraft.logoBg=r.bg;iPaintLogo();});});
+/* Neuer Vertrag ohne Logo: im Hintergrund nachziehen */
+async function autoAttach(kind,idv,name,cur){
+  if(navigator.onLine===false||!assets)return;
+  var r=null;try{r=await autoLogo(name,cur);}catch(e){r=null;}
+  if(!r)return;
+  var m=kind==="i"?state.incomes:state.contracts,c=m[idv];if(!c||c.logoId)return;
+  var n=Object.assign({},c,{logoId:r.id,logoBg:r.bg});
+  if(kind==="i")putIncome(idv,n);else putContract(idv,n);
+  render();toast("Logo für «"+name+"» ergänzt");
+}
+document.getElementById("logoBulk").addEventListener("click",async function(){
+  if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
+  var todo=[];
+  Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(!(c.logoId&&KBlob.has(c.logoId))&&lusable(c.partner))todo.push({k:"c",id:k,name:c.partner,cur:c.cur});});
+  Object.keys(state.incomes).forEach(function(k){var c=state.incomes[k];if(!(c.logoId&&KBlob.has(c.logoId))&&lusable(c.name))todo.push({k:"i",id:k,name:c.name,cur:c.cur});});
+  if(!todo.length){await ask({title:"Alles erledigt",text:"Alle Einträge mit Vertragspartner haben bereits ein Logo.",ok:"OK",alert:true});return;}
+  var names={};todo.forEach(function(t){names[lnorm(t.name)]=t.name;});var nn=Object.keys(names).length;
+  if(!(await ask({title:"Logos suchen?",text:todo.length+" Einträge ohne Logo ("+nn+" verschiedene Anbieter). Übernommen wird nur, was eindeutig passt. Das dauert etwa "+Math.max(1,Math.round(nn*1.5))+" Sekunden bis wenige Minuten.",ok:"Suchen"})))return;
+  var cache={},found=[],miss=[],i=0;
+  for(var key in names){i++;toast("Suche Logos… "+i+"/"+nn);
+    var r=null;try{r=await autoLogo(names[key],"CHF");}catch(e){r=null;}
+    cache[key]=r;(r?found:miss).push(names[key]);}
+  todo.forEach(function(t){var r=cache[lnorm(t.name)];if(!r)return;
+    var m=t.k==="i"?state.incomes:state.contracts,c=m[t.id];if(!c)return;
+    var n=Object.assign({},c,{logoId:r.id,logoBg:r.bg});if(t.k==="i")putIncome(t.id,n);else putContract(t.id,n);});
+  render();
+  await ask({title:found.length+" von "+nn+" Logos gefunden",alert:true,ok:"OK",
+    text:(found.length?"Übernommen: "+found.join(", ")+".":"")+(miss.length?"\n\nOhne eindeutigen Treffer: "+miss.join(", ")+". Diese im Vertrag über «Logo automatisch finden» oder «Logo im Web suchen» ergänzen.":"")});
+});
+
 /* ---------- Sicherung ---------- */
 document.getElementById("bkSave").addEventListener("click",async function(){
   var used={};[state.contracts,state.incomes].forEach(function(m){Object.keys(m).forEach(function(k){var c=m[k];
@@ -3101,6 +3279,7 @@ async function boot(){
     },function(){});
   }
   render();
+  autoRate(false);
 }
 boot();
 })();
