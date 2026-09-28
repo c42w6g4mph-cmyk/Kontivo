@@ -736,8 +736,10 @@ details.opt.moreact{margin-top:9px;background:transparent}
 .xcat summary b{font-size:14.5px;font-variant-numeric:tabular-nums}
 .xcat summary::after{content:"";width:6px;height:6px;border-right:1.5px solid var(--ink3);border-bottom:1.5px solid var(--ink3);transform:rotate(45deg);margin:-3px 2px 0 2px;transition:transform .15s}
 .xcat[open] summary::after{transform:rotate(-135deg);margin-top:3px}
-.xrow{display:flex;justify-content:space-between;align-items:center;width:100%;padding:8px 13px 8px 54px;text-align:left;font-size:13.5px;border-top:1px dashed var(--line)}
-.xrow span{display:flex;flex-direction:column;min-width:0}.xrow em{font-style:normal;font-size:11.5px;color:var(--ink3)}
+.xrow{display:flex;align-items:center;gap:10px;width:100%;padding:8px 13px 8px 54px;text-align:left;font-size:13.5px;border-top:1px dashed var(--line)}
+.xrow .mark{width:30px;height:30px;border-radius:8px;font-size:12px}
+.xrow .mark svg{width:16px;height:16px}
+.xrow .xt{flex:1;display:flex;flex-direction:column;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow em{font-style:normal;font-size:11.5px;color:var(--ink3)}
 .xrow b{font-weight:500;font-variant-numeric:tabular-nums}
 .xall{display:block;margin:6px 0 0 auto;padding:6px 2px;font-size:13px;font-weight:600;color:var(--teal)}
 .xsum{margin-top:4px;background:var(--surface);border-radius:var(--r);padding:10px 13px;font-size:14px}
@@ -1837,12 +1839,12 @@ function renderBudget(v){
     var eF=new Date(Y,sel,1),eT=new Date(Y,sel+1,0),byCat={},eTot=0;
     Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k],f=shr(c);if(!f)return;
       occurrences(c,eF,eT).forEach(function(d){var a=conv(priceAt(c,d),c.cur)*f,ct=c.cat||"Sonstiges";
-        (byCat[ct]=byCat[ct]||{sum:0,items:[]}).sum+=a;byCat[ct].items.push({c:c,d:d,a:a});eTot+=a;});});
+        (byCat[ct]=byCat[ct]||{sum:0,items:[]}).sum+=a;byCat[ct].items.push({c:c,id:k,d:d,a:a});eTot+=a;});});
     var cats=Object.keys(byCat).sort(function(x,y){return byCat[y].sum-byCat[x].sum;});
     o+='<div class="grp"><div class="grphead"><span>Ausgaben '+MON[sel]+'</span><span>'+money(eTot)+" "+H+"</span></div><div class=\"xcats\">";
     cats.forEach(function(ct,ci){var g=byCat[ct];
       o+='<details class="xcat"'+(state._xAll?" open":"")+'><summary><span class="pci" style="background:'+catColor(ct)+'">'+catIcon(ct)+'</span><span class="xn">'+esc(ct)+'<em>'+g.items.length+(g.items.length===1?" Zahlung":" Zahlungen")+'</em></span><b>'+money(g.sum)+'</b></summary>'+
-        g.items.sort(function(x,y){return y.a-x.a;}).map(function(it){return '<button class="xrow" data-open="'+it.c._id+'"><span>'+esc(titleOf(it.c))+'<em>'+fmtD(iso(it.d))+'</em></span><b>'+money(it.a)+'</b></button>';}).join("")+"</details>";});
+        g.items.sort(function(x,y){return y.a-x.a;}).map(function(it){return '<button class="xrow" data-open="'+it.id+'">'+markHtml(it.c)+'<span class="xt">'+esc(titleOf(it.c))+'<em>'+fmtD(iso(it.d))+'</em></span><b>'+money(it.a)+'</b></button>';}).join("")+"</details>";});
     o+='</div><button class="xall" id="xAll" type="button">'+(state._xAll?"Alle ausblenden":"Alle einblenden")+'</button><div class="xsum"><div><span>Einnahmen</span><b>'+money(sm.inc)+'</b></div><div><span>− Ausgaben</span><b>'+money(sm.fix)+'</b></div><div class="t"><span>= Verfügbar</span><b>'+money(sm.free)+" "+H+"</b></div></div></div>";
   }
   v.innerHTML=o;
