@@ -152,7 +152,6 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .mlabels span{flex:1;text-align:center;font-size:11px;color:var(--ink3)}
 .mlabels span{position:relative;padding-bottom:4px}
 .mlabels span.on{color:var(--ink);font-weight:700}
-.mlabels span.on::before{content:"";position:absolute;left:12%;right:12%;bottom:0;height:3px;border-radius:2px;background:var(--ink)}
 
 /* Monatsanzeige */
 .readout{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;background:var(--surface);
@@ -740,7 +739,8 @@ details.opt.moreact{margin-top:9px;background:transparent}
 .xrow{display:flex;justify-content:space-between;align-items:center;width:100%;padding:8px 13px 8px 54px;text-align:left;font-size:13.5px;border-top:1px dashed var(--line)}
 .xrow span{display:flex;flex-direction:column;min-width:0}.xrow em{font-style:normal;font-size:11.5px;color:var(--ink3)}
 .xrow b{font-weight:500;font-variant-numeric:tabular-nums}
-.xsum{margin-top:8px;background:var(--surface);border-radius:var(--r);padding:10px 13px;font-size:14px}
+.xall{display:block;margin:6px 0 0 auto;padding:6px 2px;font-size:13px;font-weight:600;color:var(--teal)}
+.xsum{margin-top:4px;background:var(--surface);border-radius:var(--r);padding:10px 13px;font-size:14px}
 .xsum div{display:flex;justify-content:space-between;padding:3px 0;color:var(--ink2)}
 .xsum b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
 .xsum .t{border-top:1px solid var(--line);margin-top:4px;padding-top:7px;color:var(--ink);font-weight:600}
@@ -1841,14 +1841,17 @@ function renderBudget(v){
     var cats=Object.keys(byCat).sort(function(x,y){return byCat[y].sum-byCat[x].sum;});
     o+='<div class="grp"><div class="grphead"><span>Ausgaben '+MON[sel]+'</span><span>'+money(eTot)+" "+H+"</span></div><div class=\"xcats\">";
     cats.forEach(function(ct,ci){var g=byCat[ct];
-      o+='<details class="xcat"'+(ci===0?" open":"")+'><summary><span class="pci" style="background:'+catColor(ct)+'">'+catIcon(ct)+'</span><span class="xn">'+esc(ct)+'<em>'+g.items.length+(g.items.length===1?" Zahlung":" Zahlungen")+'</em></span><b>'+money(g.sum)+'</b></summary>'+
+      o+='<details class="xcat"'+(state._xAll?" open":"")+'><summary><span class="pci" style="background:'+catColor(ct)+'">'+catIcon(ct)+'</span><span class="xn">'+esc(ct)+'<em>'+g.items.length+(g.items.length===1?" Zahlung":" Zahlungen")+'</em></span><b>'+money(g.sum)+'</b></summary>'+
         g.items.sort(function(x,y){return y.a-x.a;}).map(function(it){return '<button class="xrow" data-open="'+it.c._id+'"><span>'+esc(titleOf(it.c))+'<em>'+fmtD(iso(it.d))+'</em></span><b>'+money(it.a)+'</b></button>';}).join("")+"</details>";});
-    o+='</div><div class="xsum"><div><span>Einnahmen</span><b>'+money(sm.inc)+'</b></div><div><span>− Ausgaben</span><b>'+money(sm.fix)+'</b></div><div class="t"><span>= Verfügbar</span><b>'+money(sm.free)+" "+H+"</b></div></div></div>";
+    o+='</div><button class="xall" id="xAll" type="button">'+(state._xAll?"Alle ausblenden":"Alle einblenden")+'</button><div class="xsum"><div><span>Einnahmen</span><b>'+money(sm.inc)+'</b></div><div><span>− Ausgaben</span><b>'+money(sm.fix)+'</b></div><div class="t"><span>= Verfügbar</span><b>'+money(sm.free)+" "+H+"</b></div></div></div>";
   }
   v.innerHTML=o;
 }
 
 /* ---------- Formular ---------- */
+document.addEventListener("click",function(ev){if(!ev.target.closest("#xAll"))return;
+  state._xAll=!state._xAll;document.querySelectorAll(".xcat").forEach(function(d){d.open=state._xAll;});
+  ev.target.closest("#xAll").textContent=state._xAll?"Alle ausblenden":"Alle einblenden";});
 function openSheet(el){document.getElementById("scrim").classList.add("on");el.classList.add("on");el.scrollTop=0;}
 function closeSheets(){
   document.getElementById("scrim").classList.remove("on");
