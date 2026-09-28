@@ -616,20 +616,20 @@ body{display:flex;flex-direction:column}
 .sw{width:30px;height:30px;border-radius:8px;border:2px solid transparent}
 .sw[aria-pressed="true"]{border-color:var(--ink)}
 .logorow{display:flex;align-items:center;gap:13px;margin-bottom:13px}
-.logotap{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px 8px 8px;margin:-4px 0 12px;border-radius:12px;background:var(--field);text-align:left}
-.logotap .mark{width:38px;height:38px;border-radius:10px;font-size:15px;flex:none}
-.logotap span{font-size:15px;color:var(--ink);font-weight:500;line-height:1;flex:1}
-.logotap .chev{font-style:normal;color:var(--ink3);font-size:20px;line-height:1;transition:transform .15s}
-.logotap[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.logotap{display:flex;flex-direction:column;align-items:center;gap:4px;width:max-content;margin:0 0 12px;padding:0}
+.logotap .mark{width:56px;height:56px;border-radius:14px;font-size:20px}
+.logotap span{font-size:11.5px;color:var(--teal);font-weight:600;line-height:1}
+.logotap[aria-expanded="true"] .mark{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--teal)}
 details.logodet>summary{display:none}
 .logopanel{background:var(--sunken);border-radius:12px;padding:12px;margin:-2px 0 14px}
 .lbtn{display:flex;align-items:center;justify-content:center;width:100%;padding:10px 12px;border-radius:10px;font-size:13.5px;font-weight:600;
   background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
-.lbtn.main{background:var(--teal);color:#fff;box-shadow:none;font-size:14px;padding:12px}
+.lbtn.main{background:var(--teal);color:#fff;box-shadow:none;font-size:13.5px;padding:10px}
+.lbtn.share{background:none;box-shadow:none;color:var(--teal);font-size:13px;padding:9px 6px;margin-top:6px;text-align:center;line-height:1.25}
 .lbtn.del{background:none;box-shadow:none;color:var(--alert);font-size:13px;padding:8px;margin-top:4px}
 .lbtn[hidden]{display:none}
 .lbtns2{display:flex;gap:8px;margin-top:8px}
-.lbtns2 .lbtn{flex:1;min-width:0;padding:10px 4px;font-size:13px;white-space:nowrap}
+.lbtns2 .lbtn{flex:1;min-width:0;padding:8px 4px;font-size:13px;white-space:nowrap}
 .lsec{font-size:11.5px;color:var(--ink3);margin:12px 0 7px}
 .lcands:not(:empty){margin-top:12px}
 .lcands{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 12px}
@@ -813,8 +813,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <div class="shbar"><button class="shx" id="cancelForm">Abbrechen</button><h2 id="formTitle">Neuer Vertrag</h2><button class="shok" id="saveForm">Sichern</button></div>
 
   <h3 class="step"><span>1</span>Grunddaten</h3>
-  <div class="field"><label for="fLabel">Bezeichnung</label><input id="fLabel" type="text" placeholder="z.B. Handy-Abo" autocomplete="off"></div>
-  <button type="button" class="logotap" id="logoTap" aria-label="Logo und Farbe ändern" aria-expanded="false"><div class="mark" id="logoPrev">?</div><span>Logo &amp; Farbe</span><i class="chev">›</i></button>
+  <button type="button" class="logotap" id="logoTap" aria-label="Logo und Farbe ändern" aria-expanded="false"><div class="mark" id="logoPrev">?</div><span>Logo</span></button>
   <details class="logodet" id="oLogo"><summary>Logo &amp; Farbe</summary><div class="logopanel">
     <button class="lbtn main" id="logoAuto" type="button">Logo automatisch finden</button>
     <div class="lcands" id="logoCands"></div>
@@ -823,11 +822,13 @@ details.opt.moreact{margin-top:9px;background:transparent}
       <button class="lbtn" id="logoUp" type="button">Hochladen</button>
       <button class="lbtn" id="logoSearch" type="button">Im Web</button>
     </div>
+    <button class="lbtn share" id="logoAll" type="button" hidden></button>
     <button class="lbtn del" id="logoDel" type="button" hidden>Bild entfernen</button>
     <div class="lsec">Farbe, wenn kein Bild</div>
     <div class="swatches" id="swatches"></div>
     <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml">
   </div></details>
+  <div class="field"><label for="fLabel">Bezeichnung</label><input id="fLabel" type="text" placeholder="z.B. Handy-Abo" autocomplete="off"></div>
   <div class="field"><label for="fPartner">Vertragspartner</label><input id="fPartner" type="text" placeholder="z.B. Swisscom" autocomplete="off"></div>
   <div class="sugg" id="fSugg"></div>
   <div class="flabel">Kategorie</div>
@@ -930,11 +931,8 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <div class="grab"></div>
   <div class="shbar"><button class="shx" id="iCancel">Abbrechen</button><h2 id="incTitle">Neue Einnahme</h2><button class="shok" id="iSave">Sichern</button></div>
   <h3>Grunddaten</h3>
-  <div class="field"><label for="iLabel">Bezeichnung</label><input id="iLabel" type="text" placeholder="z.B. Lohn" autocomplete="off"></div>
-  <div class="field"><label for="iName">Quelle</label><input id="iName" type="text" placeholder="z.B. Arbeitgeber AG" autocomplete="off"></div>
-  <div class="flabel">Art</div>
-  <button type="button" class="catfield" id="iCats"><span class="cfi" id="iCatIcon"></span><span class="cfn" id="iCatName"></span><span class="chev">›</span></button>
-  <div class="logorow" style="flex-direction:column;align-items:stretch;gap:0"><div class="logopanel" style="margin:0"><div class="ilogohead"><div class="mark" id="iLogoPrev"></div><div class="ilogotxt">Logo</div></div>
+  <button type="button" class="logotap" id="iLogoTap" aria-label="Logo ändern" aria-expanded="false"><div class="mark" id="iLogoPrev"></div><span>Logo</span></button>
+  <details class="logodet" id="oILogo"><summary>Logo</summary><div class="logopanel">
     <button class="lbtn main" id="iLogoAuto" type="button">Logo automatisch finden</button>
     <div class="lcands" id="iLogoCands"></div>
     <div class="lbtns2">
@@ -943,7 +941,11 @@ details.opt.moreact{margin-top:9px;background:transparent}
       <button class="lbtn" id="iLogoSearch" type="button">Im Web</button>
     </div>
     <button class="lbtn del" id="iLogoDel" type="button" hidden>Logo entfernen</button>
-    <div class="lsec" style="margin-bottom:0">Ohne Bild: Symbol der Art</div></div></div>
+    <div class="lsec" style="margin-bottom:0">Ohne Bild: Symbol der Art</div></div></details>
+  <div class="field"><label for="iLabel">Bezeichnung</label><input id="iLabel" type="text" placeholder="z.B. Lohn" autocomplete="off"></div>
+  <div class="field"><label for="iName">Quelle</label><input id="iName" type="text" placeholder="z.B. Arbeitgeber AG" autocomplete="off"></div>
+  <div class="flabel">Art</div>
+  <button type="button" class="catfield" id="iCats"><span class="cfi" id="iCatIcon"></span><span class="cfn" id="iCatName"></span><span class="chev">›</span></button>
   <h3>Betrag</h3>
   <div class="two">
     <div class="field"><label for="iAmt" id="iAmtL">Betrag netto</label><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="6500.00"></div>
@@ -1874,7 +1876,17 @@ function paintLogo(){
     document.getElementById("logoDel").hidden=false;}
   else{p.style.background=draft.color||colorFor({partner:name,cat:draft.cat});p.innerHTML=catIcon(draft.cat);
     document.getElementById("logoDel").hidden=true;}
+  paintLogoAll();
 }
+function pkey(x){return ltok(x).join(" ")||lnorm(x);}
+function samePartner(pn){var key=pkey(pn);return Object.keys(state.contracts).filter(function(k){var c=state.contracts[k];return k!==editId&&key&&pkey(c.partner)===key;});}
+function paintLogoAll(){var b=document.getElementById("logoAll"),pn=document.getElementById("fPartner").value.trim();
+  var ids=(draft.logoId&&pn)?samePartner(pn).filter(function(k){return state.contracts[k].logoId!==draft.logoId;}):[];
+  b.hidden=!ids.length;if(ids.length)b.textContent="Logo für "+ids.length+" weitere"+(ids.length>1?" Verträge":"n Vertrag")+" von «"+pn+"» übernehmen";}
+document.getElementById("logoAll").addEventListener("click",function(){
+  var pn=document.getElementById("fPartner").value.trim(),ids=samePartner(pn).filter(function(k){return state.contracts[k].logoId!==draft.logoId;});
+  ids.forEach(function(k){putContract(k,Object.assign({},state.contracts[k],{logoId:draft.logoId,logoBg:draft.logoBg||"#FFFFFF"}));});
+  render();paintLogoAll();toast("Logo bei "+ids.length+(ids.length>1?" Verträgen":" Vertrag")+" übernommen");});
 function paintDocs(){paintOptCounts();
   var l=document.getElementById("docList");l.innerHTML="";
   (draft.docs||[]).forEach(function(d,i){
@@ -2140,6 +2152,7 @@ function syncWatch(){var m=document.getElementById("fMand").checked,n=document.g
   document.getElementById("fWatch").value=m?"mand":(n?"nowatch":"");}
 document.getElementById("fWatch").addEventListener("change",function(){var v=this.value;
   document.getElementById("fMand").checked=v==="mand";document.getElementById("fNoWatch").checked=v==="nowatch";});
+document.getElementById("iLogoTap").addEventListener("click",function(){var d=document.getElementById("oILogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 document.getElementById("logoTap").addEventListener("click",function(){var d=document.getElementById("oLogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 function paintOptCounts(){
   var n=(draft.prices||[]).length,d=(draft.docs||[]).length;
@@ -2217,6 +2230,8 @@ document.getElementById("saveForm").addEventListener("click",function(){
     cancelledAt:(prev&&prev.cancelledAt)||"",
     t:(prev&&prev.t)||Date.now()
   };
+  if(!editId&&!c.logoId&&c.partner){var sib=samePartner(c.partner).filter(function(k){var o=state.contracts[k];return o.logoId&&KBlob.has(o.logoId);})[0];
+    if(sib){c.logoId=state.contracts[sib].logoId;c.logoBg=state.contracts[sib].logoBg||"#FFFFFF";}}
   var cid=editId||uid();putContract(cid,c);
   closeSheets();render();toast(editId?"Aktualisiert":"Vertrag angelegt");
   if(!editId&&!c.logoId&&(c.partner||c.label))autoAttach("c",cid,c.partner,c.cur,c.label,c.web);
@@ -2778,7 +2793,7 @@ document.getElementById("iPAdd").addEventListener("click",function(){
   document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iPaintPrices();});
 document.getElementById("iAmt").addEventListener("input",iPaintPrices);
 document.getElementById("iCur").addEventListener("change",iPaintPrices);
-function openIncome(idv){clearCands();
+function openIncome(idv){clearCands();document.getElementById("oILogo").open=false;document.getElementById("iLogoTap").setAttribute("aria-expanded","false");
   var c=idv?state.incomes[idv]:null;incId=idv||null;
   idraft={logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",cat:(c&&c.cat)||"Lohn",prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),
     holders:c?holdersOf(c).slice():[(state.settings.holders||["Ich"])[0]]};
