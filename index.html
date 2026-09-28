@@ -101,7 +101,7 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .cmain .m{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card{gap:13px}
 .card .mark{width:50px;height:50px;border-radius:12px;font-size:18px}
-.card .cmain .n{font-size:14.5px;line-height:1.25;margin-bottom:1px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .cmain .n{font-size:16px;line-height:1.25;margin-bottom:1px}
 .camt{text-align:right;flex:none}
 .camt .a{font-size:16px;font-weight:600}
 .camt .c{font-size:11px;color:var(--ink2)}
@@ -291,6 +291,13 @@ details.opt summary em{font-style:normal;font-weight:500;font-size:12.5px;color:
 
 /* Einstellungen gruppiert */
 .sgroup{background:var(--surface);border-radius:var(--r);padding:13px 15px 15px;margin-bottom:12px}
+.rateline{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px;color:var(--ink2);margin-top:2px}
+.rateline b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+details.ratedet summary{list-style:none;cursor:pointer;font-size:13px;color:var(--teal);font-weight:600;padding:2px 0;display:inline-flex;align-items:center;gap:6px}
+details.ratedet summary::-webkit-details-marker{display:none}
+details.ratedet summary::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin-top:-3px;transition:transform .15s}
+details.ratedet[open] summary::after{transform:rotate(-135deg);margin-top:3px}
+.ratebody{padding-top:12px}
 .sgh{font-size:12.5px;font-weight:600;color:var(--ink3);margin-bottom:10px}
 .sgroup .field:last-child{margin-bottom:0}
 .sgroup .chips{margin-bottom:10px}
@@ -624,6 +631,8 @@ details.logodet>summary{display:none}
 .lcand img{width:52px;height:52px;border-radius:12px;object-fit:cover;background:#fff;box-shadow:0 0 0 1px var(--line)}
 .lcand span{font-size:10.5px;line-height:1.2;color:var(--ink2);text-align:center;max-width:64px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .lcand.weak img{opacity:.55}
+.lcand.wide img{object-fit:contain;padding:6px;background:#fff}
+.lcand em{font-style:normal;font-size:9.5px;line-height:1.1;color:var(--ink3);margin-top:-2px}
 .lcmsg{font-size:12.5px;color:var(--ink3);width:100%}
 .lpnote{display:block;font-size:12px;color:var(--ink3);margin-top:8px}
 details.inl{margin:-4px 0 6px}
@@ -724,13 +733,15 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <div class="sgroup"><div class="sgh">Währung</div>
     <div class="field"><label for="sHome">Hauptwährung für alle Summen</label>
       <select id="sHome"><option>CHF</option><option>EUR</option></select></div>
-    <div class="field" style="margin-bottom:4px"><label for="sRate">Kurs: 1 EUR entspricht … CHF</label><input id="sRate" type="text" inputmode="decimal"></div>
-    <p class="note" id="rateStamp" style="margin:4px 0 10px"></p>
+    <div class="rateline"><span>Kurs</span><b id="rateShow">–</b></div>
+    <p class="note" id="rateStamp" style="margin:2px 0 8px"></p>
+    <details class="ratedet" id="oRate"><summary>Kurs von Hand anpassen</summary><div class="ratebody">
+    <div class="field" style="margin-bottom:8px"><label for="sRate">1 EUR entspricht … CHF</label><input id="sRate" type="text" inputmode="decimal"></div>
     <label class="chkrow"><input type="checkbox" id="sRateAuto"><span>Kurs automatisch aktualisieren<em>Einmal täglich, Referenzkurs der Europäischen Zentralbank. Wer den Kurs von Hand ändert, schaltet das aus.</em></span></label>
-    <button class="mini" id="sRateNow" type="button" style="padding-top:0">Jetzt aktualisieren</button></div>
+    <button class="mini" id="sRateNow" type="button" style="padding-top:0">Jetzt aktualisieren</button></div></details></div>
   <div class="sgroup"><div class="sgh">Logos</div>
-    <p class="note" style="margin:0 0 6px">Sucht für Verträge und Einnahmen ohne Logo das App-Symbol des Anbieters im App Store. Übernommen wird nur, was eindeutig passt und scharf genug ist.</p>
-    <button class="srowbtn" id="logoBulk"><span>Fehlende Logos automatisch suchen</span><em>App-Store-Symbole</em></button></div>
+    <p class="note" style="margin:0 0 6px">Sucht für Verträge und Einnahmen ohne Logo zuerst das offizielle Logo auf Wikipedia, sonst das App-Symbol im App Store. Übernommen wird nur, was eindeutig passt und scharf genug ist.</p>
+    <button class="srowbtn" id="logoBulk"><span>Fehlende Logos automatisch suchen</span><em>Wikipedia · App Store</em></button></div>
   <div class="sgroup"><div class="sgh">Kündigungsschreiben</div>
     <div class="field" style="margin:0"><label for="sSender">Absender — Name und Adresse</label>
     <textarea id="sSender" placeholder="Vorname Name&#10;Strasse Nr.&#10;8280 Kreuzlingen" style="min-height:84px"></textarea></div>
@@ -763,7 +774,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
   </section>
 </div>
 
-<nav class="tabbar" role="tablist" aria-label="Bereiche"><button role="tab" data-tab="list" aria-selected="true"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h5"/></svg><span class="cnt" id="cList" hidden></span><span class="cnt" id="cArch" hidden></span></span><span class="tl">Verträge</span></button><button role="tab" data-tab="stat" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/></svg></span><span class="tl">Kosten</span></button><button role="tab" data-tab="budget" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><path d="M15.5 14.5h2.5"/></svg></span><span class="tl">Budget</span></button><button role="tab" data-tab="term" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12.5" r="8"/><path d="M12 8.5v4l2.8 1.8"/><path d="M9.5 2.8h5"/></svg><span class="badge" id="cTerm"></span></span><span class="tl">Fristen</span></button><button role="tab" data-tab="set" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z"/><path d="M19.4 13.5c.1-.5.1-1 .1-1.5s0-1-.1-1.5l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-2.6-1.5L14.2 2.6h-4l-.4 2.5a7.6 7.6 0 0 0-2.6 1.5l-2.3-1-2 3.4 2 1.5c-.1.5-.1 1-.1 1.5s0 1 .1 1.5l-2 1.5 2 3.4 2.3-1c.8.7 1.6 1.2 2.6 1.5l.4 2.5h4l.4-2.5c1-.3 1.8-.8 2.6-1.5l2.3 1 2-3.4z"/></svg></span><span class="tl">Einstellungen</span></button></nav>
+<nav class="tabbar" role="tablist" aria-label="Bereiche"><button role="tab" data-tab="list" aria-selected="true"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h5"/></svg><span class="cnt" id="cList" hidden></span><span class="cnt" id="cArch" hidden></span></span><span class="tl">Verträge</span></button><button role="tab" data-tab="stat" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/></svg></span><span class="tl">Kosten</span></button><button role="tab" data-tab="budget" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><path d="M15.5 14.5h2.5"/></svg></span><span class="tl">Budget</span></button><button role="tab" data-tab="term" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12.5" r="8"/><path d="M12 8.5v4l2.8 1.8"/><path d="M9.5 2.8h5"/></svg><span class="badge" id="cTerm"></span></span><span class="tl">Fristen</span></button><button role="tab" data-tab="set" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z"/><path d="M19.4 13.5c.1-.5.1-1 .1-1.5s0-1-.1-1.5l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-2.6-1.5L14.2 2.6h-4l-.4 2.5a7.6 7.6 0 0 0-2.6 1.5l-2.3-1-2 3.4 2 1.5c-.1.5-.1 1-.1 1.5s0 1 .1 1.5l-2 1.5 2 3.4 2.3-1c.8.7 1.6 1.2 2.6 1.5l.4 2.5h4l.4-2.5c1-.3 1.8-.8 2.6-1.5l2.3 1 2-3.4z"/></svg></span><span class="tl">Mehr</span></button></nav>
 
 <div class="scrim" id="scrim"></div>
 
@@ -1492,6 +1503,17 @@ document.getElementById("themeSeg").addEventListener("click",function(ev){
   state.settings.theme=b.dataset.th;applyTheme();saveSettings();
 });
 function render(){applyTheme();renderHero();renderView();syncLine();paintFab();}
+/* Lange Titel in Karten einzeilig halten: Schrift leicht verkleinern (min. 13px), danach «…» */
+var fitQ=0;
+function fitTitles(){fitQ=0;
+  document.querySelectorAll(".card .cmain .n").forEach(function(el){el.style.fontSize="";
+    var w=el.clientWidth,s=el.scrollWidth;if(!w||s<=w+1)return;
+    var base=parseFloat(getComputedStyle(el).fontSize)||16;
+    el.style.fontSize=Math.max(13,Math.floor(base*w/s*10)/10)+"px";});}
+function fitSoon(){if(!fitQ)fitQ=requestAnimationFrame(fitTitles);}
+try{new MutationObserver(fitSoon).observe(document.body,{childList:true,subtree:true});}catch(e){}
+window.addEventListener("resize",fitSoon);
+try{document.fonts&&document.fonts.ready.then(fitSoon);}catch(e){}
 state.flt={cat:null,partner:null,holder:null};
 function fltMatch(c,skip){
   var f=state.flt;
@@ -2805,6 +2827,7 @@ document.getElementById("sHolderAdd").addEventListener("click",addSetHolder);
 document.getElementById("sHolderNew").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addSetHolder();}});
 function paintRateStamp(){var s=state.settings,d=s.rateDate,auto=s.rateAuto!==false;
   document.getElementById("rateStamp").textContent=d?"Stand: "+fmtD(d)+(s.rateSrc==="auto"?" · automatisch (EZB)":" · von Hand eingetragen"):"Noch nie angepasst";
+  var rs=document.getElementById("rateShow");if(rs)rs.textContent=s.rate>0?"1 EUR = "+(+s.rate).toFixed(4)+" CHF":"–";
   var cb=document.getElementById("sRateAuto");if(cb)cb.checked=auto;}
 function commitHolders(){state.settings.holders=setHolders.length?setHolders.slice():["Ich"];saveSettings();render();}
 document.getElementById("sSender").addEventListener("change",function(){state.settings.sender=this.value.trim();saveSettings();toast("Absender gespeichert");});
@@ -2852,7 +2875,7 @@ async function autoRate(force){
   if(force)toast("Kurs aktualisiert: 1 EUR = "+s.rate+" CHF");
 }
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")autoRate(false);});
-/* ---------- Logos automatisch finden (App-Store-Symbole) ---------- */
+/* ---------- Logos automatisch finden (Wikipedia, App Store) ---------- */
 /* Rechtsform- und Füllwörter zählen nicht; Ortsbegriffe (Stadt, Gemeinde …) müssen passen, reichen allein aber nicht */
 var LSTOP=["ag","gmbh","sa","se","kg","co","ltd","inc","llc","die","der","das","the","und","and","schweiz","suisse","svizzera","switzerland",
   "deutschland","germany","gruppe","group","holding","app","apps","mobile","versicherung","versicherungen","versicherungsgesellschaft",
@@ -2919,14 +2942,84 @@ async function logoBlob(url){
   }
   return {err:"laden"};
 }
-async function takeLogo(url){var r=await logoBlob(url);if(!r.blob)return r;
-  if(!assets)return {err:"speicher"};var up=await assets.upload(r.blob);return {id:up.id,bg:"#FFFFFF"};}
+/* ---------- Wikipedia/Wikidata: offizielles Logo (Eigenschaft P154) ---------- */
+function lhit(want,text){var have=ltok(text);return want.length&&want.every(function(w){return have.some(function(t){return t===w||(w.length>=5&&t.indexOf(w)===0)||(t.length>=5&&w.indexOf(t)===0);});});}
+var WD="https://www.wikidata.org/w/api.php?format=json&origin=*";
+async function wikiCands(name){
+  name=String(name||"").trim();if(!lusable(name))return [];
+  var want=ltok(name),terms=[name],tk=want.join(" ");if(tk&&lnorm(tk)!==lnorm(name))terms.push(tk);
+  var hits=[],seen={};
+  for(var ti=0;ti<terms.length;ti++){
+    var s=null;try{s=await rateJson(WD+"&action=wbsearchentities&type=item&limit=8&language=de&uselang=de&search="+encodeURIComponent(terms[ti]));}catch(e){s=null;}
+    ((s&&s.search)||[]).forEach(function(h){if(!seen[h.id]){seen[h.id]=1;hits.push(h);}});
+    if(hits.length>=4)break;
+  }
+  if(!hits.length)return [];
+  var e=null;try{e=await rateJson(WD+"&action=wbgetentities&props=claims|labels|aliases&languages=de|en|fr|it&ids="+hits.slice(0,12).map(function(h){return h.id;}).join("|"));}catch(x){e=null;}
+  var ents=(e&&e.entities)||{},out=[];
+  hits.slice(0,12).forEach(function(h,rank){var en=ents[h.id];if(!en||!en.claims)return;
+    var cl=(en.claims.P154||[]).concat(en.claims.P8972||[]),file=null;
+    cl.forEach(function(c){if(file||c.rank==="deprecated")return;var v=c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;if(typeof v==="string")file=v;});
+    if(!file)return;
+    var names=[h.label||""];["labels","aliases"].forEach(function(k){var m=en[k]||{};Object.keys(m).forEach(function(l){[].concat(m[l]).forEach(function(x){if(x&&x.value)names.push(x.value);});});});
+    var ok=names.some(function(n){return lhit(want,n);});
+    out.push({file:file,title:h.label||file,desc:h.description||"",score:ok?4-rank*0.01:1,src:"wiki"});});
+  if(!out.length)return [];
+  var q=null;try{q=await rateJson("https://commons.wikimedia.org/w/api.php?format=json&origin=*&action=query&prop=imageinfo&iiprop=url|size&iiurlwidth=512&titles="+
+    encodeURIComponent(out.map(function(o){return "File:"+o.file;}).join("|")));}catch(x){q=null;}
+  var norm={},pages=(q&&q.query&&q.query.pages)||{},byT={};
+  ((q&&q.query&&q.query.normalized)||[]).forEach(function(n){norm[n.from]=n.to;});
+  Object.keys(pages).forEach(function(k){var pg=pages[k];if(pg&&pg.imageinfo&&pg.imageinfo[0])byT[pg.title]=pg.imageinfo[0];});
+  return out.map(function(o){var t="File:"+o.file,ii=byT[norm[t]||t]||byT[t.replace(/_/g," ")];if(!ii)return null;
+      var w=ii.thumbwidth||ii.width,h=ii.thumbheight||ii.height,u=ii.thumburl||ii.url;if(!u)return null;
+      var sc=o.score;if(w&&h&&(w/h>3.2||h/w>3.2))sc=Math.min(sc,2); /* sehr breite Schriftzüge: nur zur Auswahl */
+      return {url:u,thumb:u,title:o.title,seller:o.desc,score:sc,src:"wiki"};})
+    .filter(Boolean);
+}
+/* Wikipedia-Logos sind selten quadratisch: zentriert mit Rand auf ein Quadrat setzen; helle Logos auf dunklem Grund */
+async function padBlob(url){
+  var srcs=[url,"https://images.weserv.nl/?url="+encodeURIComponent(url.replace(/^https?:\/\//,""))+"&w=512&output=png"];
+  for(var i=0;i<srcs.length;i++){
+    var im;try{im=await loadImg(srcs[i]);}catch(e){continue;}
+    var w=im.naturalWidth,h=im.naturalHeight;if(Math.max(w,h)<200)return {err:"klein"};
+    try{
+      var tries=["#FFFFFF","#1C1C1E"];
+      for(var j=0;j<tries.length;j++){
+        var cv=document.createElement("canvas");cv.width=cv.height=512;var g=cv.getContext("2d");
+        g.fillStyle=tries[j];g.fillRect(0,0,512,512);g.imageSmoothingQuality="high";
+        var k=Math.min(420/w,420/h),dw=w*k,dh=h*k;g.drawImage(im,(512-dw)/2,(512-dh)/2,dw,dh);
+        var sm=document.createElement("canvas");sm.width=sm.height=48;var g2=sm.getContext("2d");g2.drawImage(cv,0,0,48,48);
+        var px=g2.getImageData(0,0,48,48).data,n=0,sum=0,sq=0;
+        for(var q=0;q<px.length;q+=4){var l=0.2126*px[q]+0.7152*px[q+1]+0.0722*px[q+2];sum+=l;sq+=l*l;n++;}
+        var sd=Math.sqrt(Math.max(0,sq/n-(sum/n)*(sum/n)));
+        if(sd<8)continue;
+        var bl=await new Promise(function(r){cv.toBlob(r,"image/png");});if(bl)return {blob:bl,bg:tries[j]};
+      }
+      return {err:"leer"};
+    }catch(e){/* ohne CORS-Freigabe: nächste Quelle */}
+  }
+  return {err:"laden"};
+}
+async function takeLogo(c){if(typeof c==="string")c={url:c};
+  var r=c.src==="wiki"?await padBlob(c.url):await logoBlob(c.url);if(!r.blob)return r;
+  if(!assets)return {err:"speicher"};var up=await assets.upload(r.blob);return {id:up.id,bg:r.bg||"#FFFFFF"};}
+/* Reihenfolge: eindeutige Treffer zuerst, darin Wikipedia vor App Store */
+function candSort(a,b){var ca=a.score>=3?1:0,cb=b.score>=3?1:0;if(ca!==cb)return cb-ca;
+  var wa=a.src==="wiki"?1:0,wb=b.src==="wiki"?1:0;if(wa!==wb)return wb-wa;return b.score-a.score;}
+async function allCands(name,cur,alt){
+  var jobs=[wikiCands(name).catch(function(){return [];}),logoCands(name,cur,alt).catch(function(){return [];})];
+  var r=await Promise.all(jobs),wiki=r[0],store=r[1];
+  if(!wiki.some(function(c){return c.score>=3;})&&alt&&lusable(alt)&&lnorm(alt)!==lnorm(name)){
+    var w2=[];try{w2=await wikiCands(alt);}catch(e){w2=[];}
+    var have={};wiki.forEach(function(c){have[c.url]=1;});w2.forEach(function(c){if(!have[c.url])wiki.push(c);});}
+  return wiki.concat(store).sort(candSort);
+}
 async function autoLogo(name,cur,alt){
   var primary=lusable(name)?name:(alt&&lusable(alt)?alt:null);
   if(!primary)return null;
   var secondary=primary===name?alt:null;
-  var cs=await logoCands(primary,cur,secondary),good=cs.filter(function(c){return c.score>=3;}).slice(0,3);
-  for(var i=0;i<good.length;i++){var r=await takeLogo(good[i].url);if(r&&r.id)return r;}
+  var cs=await allCands(primary,cur,secondary),good=cs.filter(function(c){return c.score>=3;}).slice(0,3);
+  for(var i=0;i<good.length;i++){var r=await takeLogo(good[i]);if(r&&r.id)return r;}
   return null;
 }
 /* Zusätzliche, manuelle Quelle: Website-Symbol der Domain (nur als Auswahl-Kandidat, nie automatisch übernommen –
@@ -2934,16 +3027,17 @@ async function autoLogo(name,cur,alt){
 function faviconCand(domain){
   if(!domain)return null;
   var u="https://images.weserv.nl/?url="+encodeURIComponent("www.google.com/s2/favicons?sz=256&domain="+domain)+"&w=256&h=256&fit=cover&output=png";
-  return {url:u,thumb:u,title:"Website-Symbol ("+domain+")",seller:"",score:0};
+  return {url:u,thumb:u,title:domain,seller:"",score:0,src:"web"};
 }
+var LSRC={wiki:"Wikipedia",web:"Website"};
 var LERR={klein:"Bild zu klein oder nicht quadratisch",leer:"Bild wirkt leer oder einfarbig",laden:"Bild konnte nicht geladen werden",speicher:"Speichern nicht möglich"};
 function paintCands(box,cs,onPick){
   if(!cs.length){box.innerHTML='<div class="lcmsg">Nichts gefunden. Tipp: Vertragspartner oder Bezeichnung so schreiben, wie die Firma heisst, eine Website eintragen, oder «Logo im Web suchen».</div>';return;}
-  var list=cs.slice(0,8);
+  var list=cs.slice(0,10);
   box.innerHTML='<div class="lcmsg">'+(list[0].score>=3?"Tippe auf das passende Logo:":"Keine eindeutige Übereinstimmung – passt eines davon?")+"</div>"+
-    list.map(function(c,i){return '<button type="button" class="lcand'+(c.score>=3?"":" weak")+'" data-i="'+i+'"><img src="'+esc(c.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer"><span>'+esc(c.title)+"</span></button>";}).join("");
+    list.map(function(c,i){return '<button type="button" class="lcand'+(c.score>=3?"":" weak")+(c.src==="wiki"?" wide":"")+'" data-i="'+i+'"><img src="'+esc(c.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer"><span>'+esc(c.title)+"</span><em>"+(LSRC[c.src]||"App Store")+"</em></button>";}).join("");
   box.onclick=async function(ev){var b=ev.target.closest(".lcand");if(!b)return;
-    toast("Übernehme Logo…");var r=await takeLogo(list[+b.dataset.i].url);
+    toast("Übernehme Logo…");var r=await takeLogo(list[+b.dataset.i]);
     if(!r||!r.id){toast(LERR[r&&r.err]||"Übernahme fehlgeschlagen");return;}
     box.innerHTML="";box.onclick=null;onPick(r);toast("Logo übernommen");};
 }
@@ -2952,8 +3046,8 @@ async function runCands(boxId,name,cur,onPick,alt,web){
   var primary=name||alt,secondary=name?alt:null,dom=domainOf(web);
   if(!primary&&!dom){toast("Zuerst den Namen eintragen");return;}
   if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
-  box.innerHTML='<div class="lcmsg">Suche im App Store…</div>';
-  var cs=[];try{cs=primary?await logoCands(primary,cur,secondary):[];}catch(e){cs=[];}
+  box.innerHTML='<div class="lcmsg">Suche in Wikipedia und im App Store…</div>';
+  var cs=[];try{cs=primary?await allCands(primary,cur,secondary):[];}catch(e){cs=[];}
   var fc=faviconCand(dom);if(fc)cs=cs.concat([fc]);
   paintCands(box,cs,onPick);
 }
