@@ -2923,21 +2923,35 @@ async function autoRate(force){
 }
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")autoRate(false);});
 /* ---------- Logos automatisch finden (Wikipedia, App Store) ---------- */
-/* Rechtsform- und Füllwörter zählen nicht; Ortsbegriffe (Stadt, Gemeinde …) müssen passen, reichen allein aber nicht */
-var LSTOP=["ag","gmbh","sa","se","kg","co","ltd","inc","llc","die","der","das","the","und","and","schweiz","suisse","svizzera","switzerland",
-  "deutschland","germany","gruppe","group","holding","app","apps","mobile","versicherung","versicherungen","versicherungsgesellschaft",
-  "bank","krankenkasse","energie","strom","werke","services","service","online","digital","genossenschaft","gesellschaft"];
-var LPLACE=["stadt","gemeinde","kanton","verwaltung","landkreis","kreis","bezirk","verein","club"];
-function lnorm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g," ").trim();}
-function ltok(s){return lnorm(s).split(" ").filter(function(t){return t.length>=3&&LSTOP.indexOf(t)<0;});}
-function lusable(name){return ltok(name).some(function(t){return LPLACE.indexOf(t)<0;});}
-function lscore(name,r){
+/* Namensvergleich: Rechtsformen/Artikel/Länder zählen nie; generische Wörter (Versicherung, Energie …) müssen passen,
+   wenn man sie eingibt, dürfen beim Treffer aber zusätzlich stehen; Ortsbegriffe allein reichen nie */
+var LSTOP=["ag","gmbh","sa","se","kg","co","ltd","inc","llc","plc","nv","bv","spa","sarl","sagl","ug","ev","mbh","die","der","das","the","und","and","de","la","le","les","des","of","von","fur","fuer",
+  "schweiz","suisse","svizzera","switzerland","swiss","deutschland","germany","ch","international"];
+var LGEN=["gruppe","group","holding","app","apps","mobile","versicherung","versicherungen","versicherungsgesellschaft","insurance","assurance","assurances",
+  "bank","krankenkasse","krankenversicherung","energie","strom","werke","services","service","online","digital","genossenschaft","gesellschaft","official","offiziell"];
+var LADJ=["schweizerische","schweizerischen","schweizer","deutsche","deutscher","allgemeine","erste","neue","grand"];
+var LPLACE=["stadt","gemeinde","kanton","verwaltung","landkreis","kreis","bezirk","verein","club","amt"];
+function lnorm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/ß/g,"ss").replace(/&/g," und ").replace(/[^a-z0-9]+/g," ").trim();}
+function ltok(s){return lnorm(s).split(" ").filter(function(t){return t.length>=2&&LSTOP.indexOf(t)<0;});}
+function lusable(name){return ltok(name).some(function(t){return t.length>=3&&LGEN.indexOf(t)<0&&LPLACE.indexOf(t)<0;});}
+function teq(a,b){return a===b||(a.length>=6&&b.length>=6&&(a+"s"===b||b+"s"===a||a+"en"===b||b+"en"===a));}
+/* Name eines Treffers entspricht genau dem gesuchten: alle Suchwörter vorhanden, keine fremden (nicht-generischen) Wörter */
+function nameEq(want,text){var have=ltok(text);if(!want.length||!have.length)return false;
+  return want.every(function(w){return have.some(function(t){return teq(t,w);});})&&
+    have.every(function(t){return LGEN.indexOf(t)>=0||LADJ.indexOf(t)>=0||want.some(function(w){return teq(t,w);});});}
+/* Treffer beginnt mit dem gesuchten Namen, z.B. «Swisscom» → «My Swisscom»/«Swisscom blue TV» (nur als Zusatzpunkt) */
+function nameHas(want,text){var have=ltok(text);return want.length&&want.every(function(w){return have.some(function(t){return teq(t,w);});});}
+function regDom(d){d=String(d||"").toLowerCase().replace(/^www\./,"");var p=d.split(".");return p.length>2?p.slice(-2).join("."):d;}
+function lscore(name,r,dom){
   var want=ltok(name);if(!lusable(name))return 0;
   if(/game|spiel/i.test(r.primaryGenreName||""))return 0;
-  var seller=ltok(r.sellerName||r.artistName),track=ltok(r.trackName);
-  function hit(list){return want.every(function(w){return list.some(function(t){return t===w||(w.length>=5&&t.indexOf(w)===0)||(t.length>=5&&w.indexOf(t)===0);});});}
-  var sc=0;if(hit(seller))sc+=3;if(hit(track))sc+=2;
-  if(sc&&lnorm(r.trackName).indexOf(lnorm(name))===0)sc+=1;
+  var seller=r.sellerName||r.artistName||"",sc=0;
+  var byDom=dom&&r.sellerUrl&&regDom(domainOf(r.sellerUrl))===regDom(dom);
+  if(nameEq(want,seller)||byDom){sc=3;
+    if(nameEq(want,r.trackName))sc+=2;else if(nameHas(want,r.trackName))sc+=1;
+    if(byDom)sc+=2;}
+  else if(nameEq(want,r.trackName))sc=2;   /* App heisst so, stammt aber von anderem Anbieter: nur Vorschlag */
+  else if(nameHas(want,r.trackName)||nameHas(want,seller))sc=1;
   return sc;
 }
 function jsonp(url){return new Promise(function(res,rej){
@@ -2947,22 +2961,14 @@ function jsonp(url){return new Promise(function(res,rej){
   window[cb]=function(d){if(!done){end();res(d);}};
   sc.onerror=function(){if(!done){end();rej(new Error("net"));}};
   sc.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+cb;document.head.appendChild(sc);});}
-async function logoCands(name,cur,alt){
+async function logoCands(name,cur,dom){
   var cs=cur==="EUR"?["de","ch"]:["ch","de"],seen={},out=[];
-  async function search(term,scoreName){
-    for(var i=0;i<cs.length;i++){
-      var d=null;try{d=await jsonp("https://itunes.apple.com/search?entity=software&limit=15&country="+cs[i]+"&term="+encodeURIComponent(term));}catch(e){d=null;}
-      ((d&&d.results)||[]).forEach(function(r){var u=r.artworkUrl512||r.artworkUrl100;if(!u||seen[r.trackId])return;seen[r.trackId]=1;
-        out.push({url:u,thumb:r.artworkUrl100||u,title:r.trackName||"",seller:r.sellerName||r.artistName||"",score:lscore(scoreName,r)});});
-      if(out.some(function(o){return o.score>=3;}))break;
-    }
-  }
   var term=ltok(name).join(" ")||String(name).trim();
-  await search(term,name);
-  /* Kein eindeutiger Treffer über den Hauptbegriff: Bezeichnung als zweiten Suchbegriff probieren */
-  if(!out.some(function(o){return o.score>=3;})&&alt&&lusable(alt)&&lnorm(alt)!==lnorm(name)){
-    var term2=ltok(alt).join(" ")||String(alt).trim();
-    await search(term2,alt);
+  for(var i=0;i<cs.length;i++){
+    var d=null;try{d=await jsonp("https://itunes.apple.com/search?entity=software&limit=20&country="+cs[i]+"&term="+encodeURIComponent(term));}catch(e){d=null;}
+    ((d&&d.results)||[]).forEach(function(r){var u=r.artworkUrl512||r.artworkUrl100;if(!u||seen[r.trackId])return;seen[r.trackId]=1;
+      var sc=lscore(name,r,dom);if(sc>0)out.push({url:u,thumb:r.artworkUrl100||u,title:r.trackName||"",seller:r.sellerName||r.artistName||"",score:sc,src:"store"});});
+    if(out.some(function(o){return o.score>=3;}))break;
   }
   out.sort(function(a,b){return b.score-a.score;});return out;
 }
@@ -2990,43 +2996,60 @@ async function logoBlob(url){
   return {err:"laden"};
 }
 /* ---------- Wikipedia/Wikidata: offizielles Logo (Eigenschaft P154) ---------- */
-function lhit(want,text){var have=ltok(text);return want.length&&want.every(function(w){return have.some(function(t){return t===w||(w.length>=5&&t.indexOf(w)===0)||(t.length>=5&&w.indexOf(t)===0);});});}
+function lhit(want,text){return nameHas(want,text);}
 var WD="https://www.wikidata.org/w/api.php?format=json&origin=*";
-async function wikiCands(name){
+/* Keine Firmen: Personen, Figuren, Werke, Orte, Sportereignisse … */
+var WNOT=["Q5","Q95074","Q15632617","Q15773317","Q11424","Q5398426","Q7889","Q482994","Q134556","Q7725634","Q571","Q515","Q70208","Q262166","Q1549591","Q5119",
+  "Q42744322","Q486972","Q3957","Q532","Q15284","Q747074","Q4022","Q23397","Q8502","Q1656682","Q13406463","Q4167410","Q17537576","Q3305213","Q1004","Q11032"];
+function wclaims(en,p){return ((en.claims&&en.claims[p])||[]).filter(function(c){return c.rank!=="deprecated";}).map(function(c){var v=c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;return v&&typeof v==="object"&&v.id?v.id:v;}).filter(Boolean);}
+async function wikiCands(name,dom){
   name=String(name||"").trim();if(!lusable(name))return [];
-  var want=ltok(name),terms=[name],tk=want.join(" ");if(tk&&lnorm(tk)!==lnorm(name))terms.push(tk);
-  var hits=[],seen={};
-  for(var ti=0;ti<terms.length;ti++){
-    var s=null;try{s=await rateJson(WD+"&action=wbsearchentities&type=item&limit=8&language=de&uselang=de&search="+encodeURIComponent(terms[ti]));}catch(e){s=null;}
-    ((s&&s.search)||[]).forEach(function(h){if(!seen[h.id]){seen[h.id]=1;hits.push(h);}});
-    if(hits.length>=4)break;
-  }
-  if(!hits.length)return [];
-  var e=null;try{e=await rateJson(WD+"&action=wbgetentities&props=claims|labels|aliases&languages=de|en|fr|it&ids="+hits.slice(0,12).map(function(h){return h.id;}).join("|"));}catch(x){e=null;}
-  var ents=(e&&e.entities)||{},out=[],doms=[],wantS=want.join(" ");
-  hits.slice(0,12).forEach(function(h,rank){var en=ents[h.id];if(!en||!en.claims)return;
-    var cl=(en.claims.P154||[]).concat(en.claims.P8972||[]),file=null;
-    cl.forEach(function(c){if(file||c.rank==="deprecated")return;var v=c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;if(typeof v==="string")file=v;});
-    var names=[h.label||""];["labels","aliases"].forEach(function(k){var m=en[k]||{};Object.keys(m).forEach(function(l){[].concat(m[l]).forEach(function(x){if(x&&x.value)names.push(x.value);});});});
-    var ok=names.some(function(n){return lhit(want,n);});
-    /* «exakt»: der Name ist genau der gesuchte (nicht nur enthalten) */
-    var exact=names.some(function(n){return ltok(n).join(" ")===wantS;});
-    if(exact){var site=null;(en.claims.P856||[]).forEach(function(c){var v=c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;if(!site&&typeof v==="string")site=domainOf(v);});if(site)doms.push(site);}
-    if(!file)return;
-    out.push({file:file,title:h.label||file,desc:h.description||"",score:ok?4-rank*0.01:1,src:"wiki",exact:exact});});
-  /* Mehrdeutig (z.B. mehrere Einträge mit exakt gleichem Namen und Logo): nur zur Auswahl anbieten, nie automatisch */
-  var ambiguous=out.filter(function(o){return o.exact;}).length>1||doms.filter(function(d,i){return doms.indexOf(d)===i;}).length>1;
+  var want=ltok(name),ids=[],seen={};
+  function add(id){if(id&&!seen[id]){seen[id]=1;ids.push(id);}}
+  /* 1) Volltextsuche nur über Einträge MIT Logo, 2) Namenssuche (Label/Alias) */
+  var q1=WD+"&action=query&list=search&srnamespace=0&srlimit=10&srsearch="+encodeURIComponent(name+" haswbstatement:P154");
+  var q2=WD+"&action=wbsearchentities&type=item&limit=10&language=de&uselang=de&search="+encodeURIComponent(name);
+  var r=await Promise.all([rateJson(q1).catch(function(){return null;}),rateJson(q2).catch(function(){return null;})]);
+  (((r[0]||{}).query||{}).search||[]).forEach(function(h){add(h.title);});
+  ((r[1]||{}).search||[]).forEach(function(h){add(h.id);});
+  if(!ids.length)return [];
+  var e=null;try{e=await rateJson(WD+"&action=wbgetentities&props=claims|labels|aliases|descriptions&languages=de|en|fr|it&ids="+ids.slice(0,20).join("|"));}catch(x){e=null;}
+  var ents=(e&&e.entities)||{},out=[],orgSites=[];
+  ids.slice(0,20).forEach(function(id,rank){var en=ents[id];if(!en||!en.claims)return;
+    /* Symbol/Icon bevorzugt (passt besser in die Kachel), sonst Logo */
+    var file=wclaims(en,"P8972")[0]||wclaims(en,"P2910")[0]||wclaims(en,"P154")[0];
+    var names=[];["labels","aliases"].forEach(function(k){var m=en[k]||{};Object.keys(m).forEach(function(l){[].concat(m[l]).forEach(function(x){if(x&&x.value)names.push(x.value);});});});
+    var exact=names.some(function(n){return nameEq(want,n);}),part=!exact&&names.some(function(n){return nameHas(want,n);});
+    if(!exact&&!part)return;
+    var kinds=wclaims(en,"P31"),notOrg=kinds.some(function(k){return WNOT.indexOf(k)>=0;});
+    var isOrg=!notOrg&&(wclaims(en,"P856").length||wclaims(en,"P452").length||wclaims(en,"P159").length||wclaims(en,"P1454").length||wclaims(en,"P749").length);
+    var sites=wclaims(en,"P856").map(domainOf).filter(Boolean);
+    if(exact&&isOrg&&sites[0]&&orgSites.indexOf(regDom(sites[0]))<0)orgSites.push(regDom(sites[0]));
+    if(!file||typeof file!=="string")return;
+    var domOk=dom&&sites.some(function(d){return regDom(d)===regDom(dom);}),domBad=dom&&sites.length&&!domOk;
+    var sc=exact&&isOrg?3:(exact?1.5:1);
+    if(domOk)sc=Math.max(sc,3)+2;else if(domBad)sc=Math.min(sc,2);
+    var desc=(en.descriptions&&((en.descriptions.de||en.descriptions.en||{}).value))||"";
+    var lab=(en.labels&&((en.labels.de||en.labels.en||{}).value))||file;
+    out.push({file:file,title:lab,desc:desc,score:sc-rank*0.001,src:"wiki",exact:exact&&isOrg,domOk:domOk,site:sites[0]||""});});
+  /* Mehrdeutig: mehrere passende Firmen mit verschiedenen Websites und keine Website im Vertrag */
+  var ex=out.filter(function(o){return o.exact;}),exSites=ex.map(function(o){return regDom(o.site);}).filter(function(d,i,a){return d&&a.indexOf(d)===i;});
+  var ambiguous=!out.some(function(o){return o.domOk;})&&(ex.length>1&&exSites.length!==1);
   if(ambiguous)out.forEach(function(o){o.score=Math.min(o.score,2.5);});
-  var domain=ambiguous?"":(doms[0]||"");
+  var best=out.filter(function(o){return o.score>=3;})[0];
+  /* Website für das Icon: vom besten Treffer, sonst von genau einer passenden Firma ohne Logo */
+  var domain=best&&best.site?best.site:(orgSites.length===1&&!ambiguous?orgSites[0]:"");
   if(!out.length){var e0=[];e0.dom=domain;return e0;}
   var q=null;try{q=await rateJson("https://commons.wikimedia.org/w/api.php?format=json&origin=*&action=query&prop=imageinfo&iiprop=url|size&iiurlwidth=512&titles="+
-    encodeURIComponent(out.map(function(o){return "File:"+o.file;}).join("|")));}catch(x){q=null;}
+    encodeURIComponent(out.slice(0,12).map(function(o){return "File:"+o.file;}).join("|")));}catch(x){q=null;}
   var norm={},pages=(q&&q.query&&q.query.pages)||{},byT={};
   ((q&&q.query&&q.query.normalized)||[]).forEach(function(n){norm[n.from]=n.to;});
   Object.keys(pages).forEach(function(k){var pg=pages[k];if(pg&&pg.imageinfo&&pg.imageinfo[0])byT[pg.title]=pg.imageinfo[0];});
-  var res=out.map(function(o){var t="File:"+o.file,ii=byT[norm[t]||t]||byT[t.replace(/_/g," ")];if(!ii)return null;
+  var res=out.slice(0,12).map(function(o){var t="File:"+o.file,ii=byT[norm[t]||t]||byT[t.replace(/_/g," ")];if(!ii)return null;
       var w=ii.thumbwidth||ii.width,h=ii.thumbheight||ii.height,u=ii.thumburl||ii.url;if(!u)return null;
-      var sc=o.score;if(w&&h&&(w/h>3.2||h/w>3.2))sc=Math.min(sc,2); /* sehr breite Schriftzüge: nur zur Auswahl */
+      var sc=o.score,ar=w&&h?Math.max(w/h,h/w):1;
+      if(ar>3.2)sc=Math.min(sc,2);          /* sehr breiter Schriftzug: in der Kachel unlesbar */
+      else if(sc>=3&&ar<=1.6)sc+=1;         /* quadratisches Logo passt gut */
       return {url:u,thumb:u,title:o.title,seller:o.desc,score:sc,src:"wiki"};})
     .filter(Boolean);
   res.dom=domain;return res;
@@ -3058,33 +3081,36 @@ async function padBlob(url,minPx,full){
 async function takeLogo(c){if(typeof c==="string")c={url:c};
   var r=c.src==="wiki"?await padBlob(c.url):c.src==="icon"?await padBlob(c.url,140,true):await logoBlob(c.url);if(!r.blob)return r;
   if(!assets)return {err:"speicher"};var up=await assets.upload(r.blob);return {id:up.id,bg:r.bg||"#FFFFFF"};}
-/* Reihenfolge: eindeutige Treffer zuerst, darin Wikipedia vor App Store */
-function candSort(a,b){var ca=a.score>=3?1:0,cb=b.score>=3?1:0;if(ca!==cb)return cb-ca;
-  var wa=a.src==="wiki"?1:0,wb=b.src==="wiki"?1:0;if(wa!==wb)return wb-wa;return b.score-a.score;}
+/* Reihenfolge nach Punkten; bei Gleichstand Wikipedia vor App Store */
+function candSort(a,b){if(b.score!==a.score)return b.score-a.score;var wa=a.src==="wiki"?1:0,wb=b.src==="wiki"?1:0;return wb-wa;}
 /* Website-Icon (apple-touch-icon, meist 180 px, quadratisch): brauchbar, wenn die Domain sicher ist */
-async function iconCand(domain){
+async function iconCand(domain,sc){
   if(!domain)return null;
   var u="https://images.weserv.nl/?url="+encodeURIComponent(domain+"/apple-touch-icon.png")+"&output=png";
   try{var im=await loadImg(u),w=im.naturalWidth,h=im.naturalHeight;
-    if(w>=140&&h>=140&&w/h>0.9&&w/h<1.1)return {url:u,thumb:u,title:domain,seller:"",score:3,src:"icon"};}catch(e){}
+    if(w>=140&&h>=140&&w/h>0.9&&w/h<1.1)return {url:u,thumb:u,title:domain,seller:"",score:sc||3,src:"icon"};}catch(e){}
   return null;
 }
+/* name = Vertragspartner, alt = Bezeichnung (nur Vorschläge, nie automatisch – z.B. «Steuern Audi» ≠ Audi) */
 async function allCands(name,cur,alt,web){
-  var jobs=[wikiCands(name).catch(function(){return [];}),logoCands(name,cur,alt).catch(function(){return [];})];
-  var r=await Promise.all(jobs),wiki=r[0],store=r[1];
-  if(!wiki.some(function(c){return c.score>=3;})&&alt&&lusable(alt)&&lnorm(alt)!==lnorm(name)){
-    var w2=[];try{w2=await wikiCands(alt);}catch(e){w2=[];}
-    var have={};wiki.forEach(function(c){have[c.url]=1;});w2.forEach(function(c){if(!have[c.url])wiki.push(c);});}
-  var dom=domainOf(web)||wiki.dom||"",all=wiki.concat(store);
-  var ic=null;try{ic=await iconCand(dom);}catch(e){ic=null;}
+  var dom=domainOf(web);
+  var r=await Promise.all([wikiCands(name,dom).catch(function(){return [];}),logoCands(name,cur,dom).catch(function(){return [];})]);
+  var all=r[0].concat(r[1]);
+  if(!all.some(function(c){return c.score>=3;})&&alt&&lusable(alt)&&lnorm(alt)!==lnorm(name)){
+    var r2=await Promise.all([wikiCands(alt).catch(function(){return [];}),logoCands(alt,cur).catch(function(){return [];})]);
+    r2[0].concat(r2[1]).forEach(function(c){c.score=Math.min(c.score,2.5);all.push(c);});}
+  var d2=dom||r[0].dom||"";
+  /* Icon der Website: aus dem Vertrag sicher, aus Wikipedia nur bei eindeutigem Firmentreffer */
+  var ic=null;try{ic=await iconCand(d2,dom?3.5:3);}catch(e){ic=null;}
   if(ic)all.push(ic);
-  all.sort(candSort);all.dom=dom;return all;
+  var seen={};all=all.filter(function(c){if(seen[c.url])return false;seen[c.url]=1;return true;});
+  all.sort(candSort);all.dom=d2;return all;
 }
 async function autoLogo(name,cur,alt,web){
-  var primary=lusable(name)?name:(alt&&lusable(alt)?alt:null);
-  if(!primary)return null;
-  var secondary=primary===name?alt:null;
-  var cs=await allCands(primary,cur,secondary,web),good=cs.filter(function(c){return c.score>=3;}).slice(0,3);
+  /* Bezeichnung nur, wenn kein Vertragspartner eingetragen ist (z.B. «Podimo») */
+  var primary=String(name||"").trim()?name:alt;
+  if(!primary||!lusable(primary))return null;
+  var cs=await allCands(primary,cur,null,web),good=cs.filter(function(c){return c.score>=3;}).slice(0,3);
   for(var i=0;i<good.length;i++){var r=await takeLogo(good[i]);if(r&&r.id)return r;}
   return null;
 }
