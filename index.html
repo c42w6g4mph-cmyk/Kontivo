@@ -125,7 +125,7 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .col i.pd{background:color-mix(in srgb,var(--teal) 38%,var(--surface))}
 .col.on i.pd{background:var(--teal)}
 .col i.op{background:color-mix(in srgb,var(--ink) 20%,var(--surface))}
-.col.on i.op{background:color-mix(in srgb,var(--ink) 32%,var(--surface))}
+.col.on i.op{background:color-mix(in srgb,var(--ink) 62%,var(--surface))}
 .col.zero i{height:0!important}
 .col .val{position:absolute;left:50%;transform:translateX(-50%);margin-bottom:5px;font-size:11px;font-weight:600;color:var(--ink);white-space:nowrap;pointer-events:none}
 .col.on i{opacity:1}
@@ -150,7 +150,9 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .dpill.down{background:color-mix(in srgb,var(--ok) 13%,transparent);color:var(--ok)}
 .mlabels{display:flex;gap:3px;margin-top:7px}
 .mlabels span{flex:1;text-align:center;font-size:11px;color:var(--ink3)}
-.mlabels span.on{color:var(--ink);font-weight:600}
+.mlabels span{position:relative;padding-bottom:4px}
+.mlabels span.on{color:var(--ink);font-weight:700}
+.mlabels span.on::before{content:"";position:absolute;left:12%;right:12%;bottom:0;height:3px;border-radius:2px;background:var(--ink)}
 
 /* Monatsanzeige */
 .readout{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;background:var(--surface);
@@ -169,12 +171,12 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .bcol i.bp{background:color-mix(in srgb,var(--teal) 38%,var(--surface))}
 .bcol.on i.bp{background:var(--teal)}
 .bcol i.bo{background:color-mix(in srgb,var(--ink) 20%,var(--surface))}
-.bcol.on i.bo{background:color-mix(in srgb,var(--ink) 32%,var(--surface))}
+.bcol.on i.bo{background:color-mix(in srgb,var(--ink) 62%,var(--surface))}
 .bcol i.neg{border-radius:0 0 4px 4px}
 .bcol i.bp.neg{background:color-mix(in srgb,var(--alert) 45%,var(--surface))}
 .bcol.on i.bp.neg{background:var(--alert)}
 .bcol i.bo.neg{background:color-mix(in srgb,var(--alert) 22%,var(--surface))}
-.bcol.on i.bo.neg{background:color-mix(in srgb,var(--alert) 40%,var(--surface))}
+.bcol.on i.bo.neg{background:color-mix(in srgb,var(--alert) 62%,var(--surface))}
 .clegend .lng{background:color-mix(in srgb,var(--alert) 45%,var(--surface))}
 .addline{display:block;width:100%;padding:12px;border:1px dashed var(--line);border-radius:var(--r);color:var(--ink2);font-size:14px;margin-top:2px}
 /* Sortierung */
