@@ -616,11 +616,11 @@ body{display:flex;flex-direction:column}
 .sw{width:30px;height:30px;border-radius:8px;border:2px solid transparent}
 .sw[aria-pressed="true"]{border-color:var(--ink)}
 .logorow{display:flex;align-items:center;gap:13px;margin-bottom:13px}
-.identrow{display:flex;align-items:flex-end;gap:12px}
-.logotap{flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;margin-bottom:13px;padding:0}
-.logotap .mark{width:50px;height:50px;border-radius:13px;font-size:18px}
-.logotap span{font-size:11px;color:var(--teal);font-weight:600;line-height:1}
-.logotap[aria-expanded="true"] .mark{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--teal)}
+.logotap{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px 8px 8px;margin:-4px 0 12px;border-radius:12px;background:var(--field);text-align:left}
+.logotap .mark{width:38px;height:38px;border-radius:10px;font-size:15px;flex:none}
+.logotap span{font-size:15px;color:var(--ink);font-weight:500;line-height:1;flex:1}
+.logotap .chev{font-style:normal;color:var(--ink3);font-size:20px;line-height:1;transition:transform .15s}
+.logotap[aria-expanded="true"] .chev{transform:rotate(90deg)}
 details.logodet>summary{display:none}
 .logopanel{background:var(--sunken);border-radius:12px;padding:12px;margin:-2px 0 14px}
 .lbtn{display:flex;align-items:center;justify-content:center;width:100%;padding:10px 12px;border-radius:10px;font-size:13.5px;font-weight:600;
@@ -813,10 +813,8 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <div class="shbar"><button class="shx" id="cancelForm">Abbrechen</button><h2 id="formTitle">Neuer Vertrag</h2><button class="shok" id="saveForm">Sichern</button></div>
 
   <h3 class="step"><span>1</span>Grunddaten</h3>
-  <div class="identrow">
-    <button type="button" class="logotap" id="logoTap" aria-label="Logo und Farbe ändern" aria-expanded="false"><div class="mark" id="logoPrev">?</div><span>Logo</span></button>
-    <div class="field" style="flex:1;min-width:0"><label for="fLabel">Bezeichnung</label><input id="fLabel" type="text" placeholder="z.B. Handy-Abo" autocomplete="off"></div>
-  </div>
+  <div class="field"><label for="fLabel">Bezeichnung</label><input id="fLabel" type="text" placeholder="z.B. Handy-Abo" autocomplete="off"></div>
+  <button type="button" class="logotap" id="logoTap" aria-label="Logo und Farbe ändern" aria-expanded="false"><div class="mark" id="logoPrev">?</div><span>Logo &amp; Farbe</span><i class="chev">›</i></button>
   <details class="logodet" id="oLogo"><summary>Logo &amp; Farbe</summary><div class="logopanel">
     <button class="lbtn main" id="logoAuto" type="button">Logo automatisch finden</button>
     <div class="lcands" id="logoCands"></div>
