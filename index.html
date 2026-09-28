@@ -101,7 +101,7 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .cmain .m{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card{gap:13px}
 .card .mark{width:50px;height:50px;border-radius:12px;font-size:18px}
-.card .cmain .n{font-size:16px;line-height:1.25;margin-bottom:1px}
+.card .cmain .n{font-size:14.5px;line-height:1.25;margin-bottom:1px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .camt{text-align:right;flex:none}
 .camt .a{font-size:16px;font-weight:600}
 .camt .c{font-size:11px;color:var(--ink2)}
@@ -1129,6 +1129,7 @@ function initials(n){
 function titleOf(c){return c.label||c.partner||c.name||"Ohne Namen";}
 function holdersOf(c){return (c.holders&&c.holders.length)?c.holders:(c.holder?[c.holder]:[]);}
 function normUrl(u){u=String(u||"").trim();if(!u)return "";return /^https?:\/\//i.test(u)?u:"https://"+u;}
+function domainOf(u){u=String(u||"").trim();if(!u)return "";try{return new URL(normUrl(u)).hostname.replace(/^www\./i,"");}catch(e){return "";}}
 function colorFor(c){
   if(c.color)return c.color;
   if(c.cat)return catColor(c.cat);
@@ -2185,7 +2186,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   };
   var cid=editId||uid();putContract(cid,c);
   closeSheets();render();toast(editId?"Aktualisiert":"Vertrag angelegt");
-  if(!editId&&!c.logoId&&c.partner)autoAttach("c",cid,c.partner,c.cur);
+  if(!editId&&!c.logoId&&(c.partner||c.label))autoAttach("c",cid,c.partner,c.cur,c.label);
 });
 document.getElementById("cancelForm").addEventListener("click",closeSheets);
 
@@ -2751,7 +2752,7 @@ document.getElementById("iSave").addEventListener("click",function(){
     end:document.getElementById("iEnd").value||"",holders:idraft.holders.slice(),prices:idraft.prices.slice(),
     note:document.getElementById("iNote").value.trim(),logoId:idraft.logoId||"",logoBg:idraft.logoBg||"",color:(prev&&prev.color)||"",status:"active",t:(prev&&prev.t)||Date.now()};
   var nid=incId||uid();putIncome(nid,c);closeSheets();render();toast(incId?"Aktualisiert":"Einnahme erfasst");
-  if(!incId&&!c.logoId&&c.name)autoAttach("i",nid,c.name,c.cur);
+  if(!incId&&!c.logoId&&(c.name||c.label))autoAttach("i",nid,c.name,c.cur,c.label);
 });
 document.getElementById("iCancel").addEventListener("click",closeSheets);
 document.getElementById("iDel").addEventListener("click",function(){
@@ -2876,13 +2877,22 @@ function jsonp(url){return new Promise(function(res,rej){
   window[cb]=function(d){if(!done){end();res(d);}};
   sc.onerror=function(){if(!done){end();rej(new Error("net"));}};
   sc.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+cb;document.head.appendChild(sc);});}
-async function logoCands(name,cur){
-  var cs=cur==="EUR"?["de","ch"]:["ch","de"],seen={},out=[],term=ltok(name).join(" ")||String(name).trim();
-  for(var i=0;i<cs.length;i++){
-    var d=null;try{d=await jsonp("https://itunes.apple.com/search?entity=software&limit=15&country="+cs[i]+"&term="+encodeURIComponent(term));}catch(e){d=null;}
-    ((d&&d.results)||[]).forEach(function(r){var u=r.artworkUrl512||r.artworkUrl100;if(!u||seen[r.trackId])return;seen[r.trackId]=1;
-      out.push({url:u,thumb:r.artworkUrl100||u,title:r.trackName||"",seller:r.sellerName||r.artistName||"",score:lscore(name,r)});});
-    if(out.some(function(o){return o.score>=3;}))break;
+async function logoCands(name,cur,alt){
+  var cs=cur==="EUR"?["de","ch"]:["ch","de"],seen={},out=[];
+  async function search(term,scoreName){
+    for(var i=0;i<cs.length;i++){
+      var d=null;try{d=await jsonp("https://itunes.apple.com/search?entity=software&limit=15&country="+cs[i]+"&term="+encodeURIComponent(term));}catch(e){d=null;}
+      ((d&&d.results)||[]).forEach(function(r){var u=r.artworkUrl512||r.artworkUrl100;if(!u||seen[r.trackId])return;seen[r.trackId]=1;
+        out.push({url:u,thumb:r.artworkUrl100||u,title:r.trackName||"",seller:r.sellerName||r.artistName||"",score:lscore(scoreName,r)});});
+      if(out.some(function(o){return o.score>=3;}))break;
+    }
+  }
+  var term=ltok(name).join(" ")||String(name).trim();
+  await search(term,name);
+  /* Kein eindeutiger Treffer über den Hauptbegriff: Bezeichnung als zweiten Suchbegriff probieren */
+  if(!out.some(function(o){return o.score>=3;})&&alt&&lusable(alt)&&lnorm(alt)!==lnorm(name)){
+    var term2=ltok(alt).join(" ")||String(alt).trim();
+    await search(term2,alt);
   }
   out.sort(function(a,b){return b.score-a.score;});return out;
 }
@@ -2911,15 +2921,24 @@ async function logoBlob(url){
 }
 async function takeLogo(url){var r=await logoBlob(url);if(!r.blob)return r;
   if(!assets)return {err:"speicher"};var up=await assets.upload(r.blob);return {id:up.id,bg:"#FFFFFF"};}
-async function autoLogo(name,cur){
-  if(!lusable(name))return null;
-  var cs=await logoCands(name,cur),good=cs.filter(function(c){return c.score>=3;}).slice(0,3);
+async function autoLogo(name,cur,alt){
+  var primary=lusable(name)?name:(alt&&lusable(alt)?alt:null);
+  if(!primary)return null;
+  var secondary=primary===name?alt:null;
+  var cs=await logoCands(primary,cur,secondary),good=cs.filter(function(c){return c.score>=3;}).slice(0,3);
   for(var i=0;i<good.length;i++){var r=await takeLogo(good[i].url);if(r&&r.id)return r;}
   return null;
 }
+/* Zusätzliche, manuelle Quelle: Website-Symbol der Domain (nur als Auswahl-Kandidat, nie automatisch übernommen –
+   Favicons sind oft zu klein oder nur ein generisches Platzhaltersymbol, das lässt sich technisch nicht zuverlässig prüfen) */
+function faviconCand(domain){
+  if(!domain)return null;
+  var u="https://images.weserv.nl/?url="+encodeURIComponent("www.google.com/s2/favicons?sz=256&domain="+domain)+"&w=256&h=256&fit=cover&output=png";
+  return {url:u,thumb:u,title:"Website-Symbol ("+domain+")",seller:"",score:0};
+}
 var LERR={klein:"Bild zu klein oder nicht quadratisch",leer:"Bild wirkt leer oder einfarbig",laden:"Bild konnte nicht geladen werden",speicher:"Speichern nicht möglich"};
 function paintCands(box,cs,onPick){
-  if(!cs.length){box.innerHTML='<div class="lcmsg">Nichts gefunden. Tipp: Vertragspartner so schreiben, wie die Firma heisst, oder «Logo im Web suchen».</div>';return;}
+  if(!cs.length){box.innerHTML='<div class="lcmsg">Nichts gefunden. Tipp: Vertragspartner oder Bezeichnung so schreiben, wie die Firma heisst, eine Website eintragen, oder «Logo im Web suchen».</div>';return;}
   var list=cs.slice(0,8);
   box.innerHTML='<div class="lcmsg">'+(list[0].score>=3?"Tippe auf das passende Logo:":"Keine eindeutige Übereinstimmung – passt eines davon?")+"</div>"+
     list.map(function(c,i){return '<button type="button" class="lcand'+(c.score>=3?"":" weak")+'" data-i="'+i+'"><img src="'+esc(c.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer"><span>'+esc(c.title)+"</span></button>";}).join("");
@@ -2928,48 +2947,54 @@ function paintCands(box,cs,onPick){
     if(!r||!r.id){toast(LERR[r&&r.err]||"Übernahme fehlgeschlagen");return;}
     box.innerHTML="";box.onclick=null;onPick(r);toast("Logo übernommen");};
 }
-async function runCands(boxId,name,cur,onPick){
-  var box=document.getElementById(boxId);name=String(name||"").trim();
-  if(!name){toast("Zuerst den Namen eintragen");return;}
+async function runCands(boxId,name,cur,onPick,alt,web){
+  var box=document.getElementById(boxId);name=String(name||"").trim();alt=String(alt||"").trim();
+  var primary=name||alt,secondary=name?alt:null,dom=domainOf(web);
+  if(!primary&&!dom){toast("Zuerst den Namen eintragen");return;}
   if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
   box.innerHTML='<div class="lcmsg">Suche im App Store…</div>';
-  var cs=[];try{cs=await logoCands(name,cur);}catch(e){cs=[];}
+  var cs=[];try{cs=primary?await logoCands(primary,cur,secondary):[];}catch(e){cs=[];}
+  var fc=faviconCand(dom);if(fc)cs=cs.concat([fc]);
   paintCands(box,cs,onPick);
 }
 document.getElementById("logoAuto").addEventListener("click",function(){
   runCands("logoCands",document.getElementById("fPartner").value,document.getElementById("fCur")?document.getElementById("fCur").value:"CHF",
-    function(r){draft.logoId=r.id;draft.logoBg=r.bg;paintLogo();});});
+    function(r){draft.logoId=r.id;draft.logoBg=r.bg;paintLogo();},document.getElementById("fLabel").value,document.getElementById("fWeb").value);});
 document.getElementById("iLogoAuto").addEventListener("click",function(){
   runCands("iLogoCands",document.getElementById("iName").value,document.getElementById("iCur").value,
-    function(r){idraft.logoId=r.id;idraft.logoBg=r.bg;iPaintLogo();});});
+    function(r){idraft.logoId=r.id;idraft.logoBg=r.bg;iPaintLogo();},document.getElementById("iLabel").value);});
 /* Neuer Vertrag ohne Logo: im Hintergrund nachziehen */
-async function autoAttach(kind,idv,name,cur){
+async function autoAttach(kind,idv,name,cur,alt){
   if(navigator.onLine===false||!assets)return;
-  var r=null;try{r=await autoLogo(name,cur);}catch(e){r=null;}
+  var r=null;try{r=await autoLogo(name,cur,alt);}catch(e){r=null;}
   if(!r)return;
   var m=kind==="i"?state.incomes:state.contracts,c=m[idv];if(!c||c.logoId)return;
   var n=Object.assign({},c,{logoId:r.id,logoBg:r.bg});
   if(kind==="i")putIncome(idv,n);else putContract(idv,n);
-  render();toast("Logo für «"+name+"» ergänzt");
+  render();toast("Logo für «"+(name||alt)+"» ergänzt");
 }
 document.getElementById("logoBulk").addEventListener("click",async function(){
   if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
   var todo=[];
-  Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(!(c.logoId&&KBlob.has(c.logoId))&&lusable(c.partner))todo.push({k:"c",id:k,name:c.partner,cur:c.cur});});
-  Object.keys(state.incomes).forEach(function(k){var c=state.incomes[k];if(!(c.logoId&&KBlob.has(c.logoId))&&lusable(c.name))todo.push({k:"i",id:k,name:c.name,cur:c.cur});});
-  if(!todo.length){await ask({title:"Alles erledigt",text:"Alle Einträge mit Vertragspartner haben bereits ein Logo.",ok:"OK",alert:true});return;}
-  var names={};todo.forEach(function(t){names[lnorm(t.name)]=t.name;});var nn=Object.keys(names).length;
+  Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(c.logoId&&KBlob.has(c.logoId))return;
+    if(!lusable(c.partner)&&!lusable(c.label))return;todo.push({k:"c",id:k,name:c.partner,alt:c.label,cur:c.cur});});
+  Object.keys(state.incomes).forEach(function(k){var c=state.incomes[k];if(c.logoId&&KBlob.has(c.logoId))return;
+    if(!lusable(c.name)&&!lusable(c.label))return;todo.push({k:"i",id:k,name:c.name,alt:c.label,cur:c.cur});});
+  if(!todo.length){await ask({title:"Alles erledigt",text:"Alle Einträge mit Vertragspartner oder Bezeichnung haben bereits ein Logo.",ok:"OK",alert:true});return;}
+  var groups={},order=[];todo.forEach(function(t){var key=lnorm(t.name)+"|"+lnorm(t.alt||"");
+    if(!groups[key]){groups[key]={name:t.name,alt:t.alt,label:t.name||t.alt};order.push(key);}});
+  var nn=order.length;
   if(!(await ask({title:"Logos suchen?",text:todo.length+" Einträge ohne Logo ("+nn+" verschiedene Anbieter). Übernommen wird nur, was eindeutig passt. Das dauert etwa "+Math.max(1,Math.round(nn*1.5))+" Sekunden bis wenige Minuten.",ok:"Suchen"})))return;
   var cache={},found=[],miss=[],i=0;
-  for(var key in names){i++;toast("Suche Logos… "+i+"/"+nn);
-    var r=null;try{r=await autoLogo(names[key],"CHF");}catch(e){r=null;}
-    cache[key]=r;(r?found:miss).push(names[key]);}
-  todo.forEach(function(t){var r=cache[lnorm(t.name)];if(!r)return;
+  for(var gi=0;gi<order.length;gi++){var key=order[gi],g=groups[key];i++;toast("Suche Logos… "+i+"/"+nn);
+    var r=null;try{r=await autoLogo(g.name,"CHF",g.alt);}catch(e){r=null;}
+    cache[key]=r;(r?found:miss).push(g.label);}
+  todo.forEach(function(t){var r=cache[lnorm(t.name)+"|"+lnorm(t.alt||"")];if(!r)return;
     var m=t.k==="i"?state.incomes:state.contracts,c=m[t.id];if(!c)return;
     var n=Object.assign({},c,{logoId:r.id,logoBg:r.bg});if(t.k==="i")putIncome(t.id,n);else putContract(t.id,n);});
   render();
   await ask({title:found.length+" von "+nn+" Logos gefunden",alert:true,ok:"OK",
-    text:(found.length?"Übernommen: "+found.join(", ")+".":"")+(miss.length?"\n\nOhne eindeutigen Treffer: "+miss.join(", ")+". Diese im Vertrag über «Logo automatisch finden» oder «Logo im Web suchen» ergänzen.":"")});
+    text:(found.length?"Übernommen: "+found.join(", ")+".":"")+(miss.length?"\n\nOhne eindeutigen Treffer: "+miss.join(", ")+". Diese im Vertrag über «Logo automatisch finden» ergänzen (dort auch das Website-Symbol als Option).":"")});
 });
 
 /* ---------- Sicherung ---------- */
