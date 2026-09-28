@@ -630,6 +630,10 @@ details.logodet>summary{display:none}
 .lbtn[hidden]{display:none}
 .lbtns2{display:flex;gap:8px;margin-top:8px}
 .lbtns2 .lbtn{flex:1;min-width:0;padding:8px 4px;font-size:13px;white-space:nowrap}
+.lbtn.pulse{box-shadow:0 0 0 2px var(--teal);color:var(--teal);animation:lpulse 1.4s ease-in-out infinite}
+@keyframes lpulse{50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--teal) 25%,transparent)}}
+.webhint{background:var(--surface);border-radius:10px;padding:10px 12px;color:var(--ink2);line-height:1.4}
+.webhint b{color:var(--ink)}
 .lsec{font-size:11.5px;color:var(--ink3);margin:12px 0 7px}
 .lcands:not(:empty){margin-top:12px}
 .lcands{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 12px}
@@ -820,7 +824,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <div class="lbtns2">
       <button class="lbtn" id="logoPaste" type="button">Einfügen</button>
       <button class="lbtn" id="logoUp" type="button">Hochladen</button>
-      <button class="lbtn" id="logoSearch" type="button">Im Web</button>
+      <button class="lbtn" id="logoSearch" type="button">Google</button>
     </div>
     <button class="lbtn share" id="logoAll" type="button" hidden></button>
     <button class="lbtn del" id="logoDel" type="button" hidden>Bild entfernen</button>
@@ -938,7 +942,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <div class="lbtns2">
       <button class="lbtn" id="iLogoPaste" type="button">Einfügen</button>
       <button class="lbtn" id="iLogoUp" type="button">Hochladen</button>
-      <button class="lbtn" id="iLogoSearch" type="button">Im Web</button>
+      <button class="lbtn" id="iLogoSearch" type="button">Google</button>
     </div>
     <button class="lbtn del" id="iLogoDel" type="button" hidden>Logo entfernen</button>
     <div class="lsec" style="margin-bottom:0">Ohne Bild: Symbol der Art</div></div></details>
@@ -2431,14 +2435,24 @@ document.getElementById("vSave").addEventListener("click",async function(){
     await dl.save({filename:name,data:blob});
   }catch(e){if(!e||e.code!=="declined")toast("Sichern fehlgeschlagen");}
 });
-function logoSearch(name){
+var webWait=null;
+function logoSearch(name,target){
   name=String(name||"").trim();
-  if(!name){toast("Zuerst den Namen eintragen");return;}
+  if(!name){toast("Zuerst den Firmennamen eintragen");return;}
+  webWait=target||"c";
+  var box=document.getElementById(webWait==="i"?"iLogoCands":"logoCands");
+  if(box)box.innerHTML='<div class="lcmsg webhint"><b>So geht’s:</b> In Google das passende Bild lange drücken → «Kopieren». Dann zurück in die App und «Einfügen» tippen.</div>';
+  document.getElementById(webWait==="i"?"iLogoPaste":"logoPaste").classList.add("pulse");
   openLink("https://www.google.com/search?tbm=isch&q="+encodeURIComponent(name+" logo"),name+" logo");
-  setTimeout(function(){toast("Bild lange drücken → «Kopieren». Zurück in der App: «Einfügen» tippen.");},600);
 }
+/* Zurück aus Google: Einfügen hervorheben */
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState!=="visible"||!webWait)return;
+  toast("Bild kopiert? Jetzt «Einfügen» tippen");});
 async function pasteLogo(target){
-  cropTarget=target;
+  cropTarget=target;webWait=null;
+  ["logoPaste","iLogoPaste"].forEach(function(id){document.getElementById(id).classList.remove("pulse");});
+  ["logoCands","iLogoCands"].forEach(function(id){var b=document.getElementById(id);if(b&&b.querySelector(".webhint"))b.innerHTML="";});
   if(!(navigator.clipboard&&navigator.clipboard.read)){toast("Einfügen wird hier nicht unterstützt – bitte hochladen");return;}
   try{
     var items=await navigator.clipboard.read(),txt="";
@@ -2459,9 +2473,9 @@ async function pasteLogo(target){
 document.getElementById("logoPaste").addEventListener("click",function(){pasteLogo("c");});
 document.getElementById("iLogoPaste").addEventListener("click",function(){pasteLogo("i");});
 document.getElementById("logoSearch").addEventListener("click",function(){
-  logoSearch(document.getElementById("fPartner").value||document.getElementById("fLabel").value);});
+  logoSearch(document.getElementById("fPartner").value||document.getElementById("fLabel").value,"c");});
 document.getElementById("iLogoSearch").addEventListener("click",function(){
-  logoSearch(document.getElementById("iName").value||document.getElementById("iLabel").value);});
+  logoSearch(document.getElementById("iName").value||document.getElementById("iLabel").value,"i");});
 function openLink(url,copy){
   var w=null;try{w=window.open(url,"_blank","noopener");}catch(e){w=null;}
   if(w)return;
@@ -3156,7 +3170,7 @@ function paintCands(box,cs,onPick){
 }
 async function runCands(boxId,name,cur,onPick,alt,web){
   var box=document.getElementById(boxId);name=String(name||"").trim();alt=String(alt||"").trim();
-  var primary=name||alt,secondary=name?alt:null,dom=domainOf(web);
+  var primary=name||alt,secondary=null,dom=domainOf(web);  /* Bezeichnung (z.B. «Lohn») nur, wenn kein Firmenname */
   if(!primary&&!dom){toast("Zuerst den Namen eintragen");return;}
   if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
   box.innerHTML='<div class="lcmsg">Suche Logos…</div>';
