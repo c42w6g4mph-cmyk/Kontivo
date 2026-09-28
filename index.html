@@ -2219,7 +2219,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   };
   var cid=editId||uid();putContract(cid,c);
   closeSheets();render();toast(editId?"Aktualisiert":"Vertrag angelegt");
-  if(!editId&&!c.logoId&&(c.partner||c.label))autoAttach("c",cid,c.partner,c.cur,c.label);
+  if(!editId&&!c.logoId&&(c.partner||c.label))autoAttach("c",cid,c.partner,c.cur,c.label,c.web);
 });
 document.getElementById("cancelForm").addEventListener("click",closeSheets);
 
@@ -2978,7 +2978,7 @@ async function logoBlob(url){
 function lhit(want,text){var have=ltok(text);return want.length&&want.every(function(w){return have.some(function(t){return t===w||(w.length>=5&&t.indexOf(w)===0)||(t.length>=5&&w.indexOf(t)===0);});});}
 var WD="https://www.wikidata.org/w/api.php?format=json&origin=*";
 async function wikiCands(name){
-  name=String(name||"").trim();wikiCands.dom="";if(!lusable(name))return [];
+  name=String(name||"").trim();if(!lusable(name))return [];
   var want=ltok(name),terms=[name],tk=want.join(" ");if(tk&&lnorm(tk)!==lnorm(name))terms.push(tk);
   var hits=[],seen={};
   for(var ti=0;ti<terms.length;ti++){
@@ -2988,39 +2988,46 @@ async function wikiCands(name){
   }
   if(!hits.length)return [];
   var e=null;try{e=await rateJson(WD+"&action=wbgetentities&props=claims|labels|aliases&languages=de|en|fr|it&ids="+hits.slice(0,12).map(function(h){return h.id;}).join("|"));}catch(x){e=null;}
-  var ents=(e&&e.entities)||{},out=[];
+  var ents=(e&&e.entities)||{},out=[],doms=[],wantS=want.join(" ");
   hits.slice(0,12).forEach(function(h,rank){var en=ents[h.id];if(!en||!en.claims)return;
     var cl=(en.claims.P154||[]).concat(en.claims.P8972||[]),file=null;
     cl.forEach(function(c){if(file||c.rank==="deprecated")return;var v=c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;if(typeof v==="string")file=v;});
     var names=[h.label||""];["labels","aliases"].forEach(function(k){var m=en[k]||{};Object.keys(m).forEach(function(l){[].concat(m[l]).forEach(function(x){if(x&&x.value)names.push(x.value);});});});
     var ok=names.some(function(n){return lhit(want,n);});
-    if(ok&&!wikiCands.dom){(en.claims.P856||[]).forEach(function(c){var v=c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;if(!wikiCands.dom&&typeof v==="string")wikiCands.dom=domainOf(v);});}
+    /* «exakt»: der Name ist genau der gesuchte (nicht nur enthalten) */
+    var exact=names.some(function(n){return ltok(n).join(" ")===wantS;});
+    if(exact){var site=null;(en.claims.P856||[]).forEach(function(c){var v=c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;if(!site&&typeof v==="string")site=domainOf(v);});if(site)doms.push(site);}
     if(!file)return;
-    out.push({file:file,title:h.label||file,desc:h.description||"",score:ok?4-rank*0.01:1,src:"wiki"});});
-  if(!out.length)return [];
+    out.push({file:file,title:h.label||file,desc:h.description||"",score:ok?4-rank*0.01:1,src:"wiki",exact:exact});});
+  /* Mehrdeutig (z.B. mehrere Einträge mit exakt gleichem Namen und Logo): nur zur Auswahl anbieten, nie automatisch */
+  var ambiguous=out.filter(function(o){return o.exact;}).length>1||doms.filter(function(d,i){return doms.indexOf(d)===i;}).length>1;
+  if(ambiguous)out.forEach(function(o){o.score=Math.min(o.score,2.5);});
+  var domain=ambiguous?"":(doms[0]||"");
+  if(!out.length){var e0=[];e0.dom=domain;return e0;}
   var q=null;try{q=await rateJson("https://commons.wikimedia.org/w/api.php?format=json&origin=*&action=query&prop=imageinfo&iiprop=url|size&iiurlwidth=512&titles="+
     encodeURIComponent(out.map(function(o){return "File:"+o.file;}).join("|")));}catch(x){q=null;}
   var norm={},pages=(q&&q.query&&q.query.pages)||{},byT={};
   ((q&&q.query&&q.query.normalized)||[]).forEach(function(n){norm[n.from]=n.to;});
   Object.keys(pages).forEach(function(k){var pg=pages[k];if(pg&&pg.imageinfo&&pg.imageinfo[0])byT[pg.title]=pg.imageinfo[0];});
-  return out.map(function(o){var t="File:"+o.file,ii=byT[norm[t]||t]||byT[t.replace(/_/g," ")];if(!ii)return null;
+  var res=out.map(function(o){var t="File:"+o.file,ii=byT[norm[t]||t]||byT[t.replace(/_/g," ")];if(!ii)return null;
       var w=ii.thumbwidth||ii.width,h=ii.thumbheight||ii.height,u=ii.thumburl||ii.url;if(!u)return null;
       var sc=o.score;if(w&&h&&(w/h>3.2||h/w>3.2))sc=Math.min(sc,2); /* sehr breite Schriftzüge: nur zur Auswahl */
       return {url:u,thumb:u,title:o.title,seller:o.desc,score:sc,src:"wiki"};})
     .filter(Boolean);
+  res.dom=domain;return res;
 }
 /* Wikipedia-Logos sind selten quadratisch: zentriert mit Rand auf ein Quadrat setzen; helle Logos auf dunklem Grund */
-async function padBlob(url){
+async function padBlob(url,minPx,full){
   var srcs=[url,"https://images.weserv.nl/?url="+encodeURIComponent(url.replace(/^https?:\/\//,""))+"&w=512&output=png"];
   for(var i=0;i<srcs.length;i++){
     var im;try{im=await loadImg(srcs[i]);}catch(e){continue;}
-    var w=im.naturalWidth,h=im.naturalHeight;if(Math.max(w,h)<200)return {err:"klein"};
+    var w=im.naturalWidth,h=im.naturalHeight;if(Math.max(w,h)<(minPx||200))return {err:"klein"};
     try{
       var tries=["#FFFFFF","#1C1C1E"];
       for(var j=0;j<tries.length;j++){
         var cv=document.createElement("canvas");cv.width=cv.height=512;var g=cv.getContext("2d");
         g.fillStyle=tries[j];g.fillRect(0,0,512,512);g.imageSmoothingQuality="high";
-        var k=Math.min(420/w,420/h),dw=w*k,dh=h*k;g.drawImage(im,(512-dw)/2,(512-dh)/2,dw,dh);
+        var k=full?Math.max(512/w,512/h):Math.min(420/w,420/h),dw=w*k,dh=h*k;g.drawImage(im,(512-dw)/2,(512-dh)/2,dw,dh);
         var sm=document.createElement("canvas");sm.width=sm.height=48;var g2=sm.getContext("2d");g2.drawImage(cv,0,0,48,48);
         var px=g2.getImageData(0,0,48,48).data,n=0,sum=0,sq=0;
         for(var q=0;q<px.length;q+=4){var l=0.2126*px[q]+0.7152*px[q+1]+0.0722*px[q+2];sum+=l;sq+=l*l;n++;}
@@ -3034,24 +3041,35 @@ async function padBlob(url){
   return {err:"laden"};
 }
 async function takeLogo(c){if(typeof c==="string")c={url:c};
-  var r=c.src==="wiki"?await padBlob(c.url):await logoBlob(c.url);if(!r.blob)return r;
+  var r=c.src==="wiki"?await padBlob(c.url):c.src==="icon"?await padBlob(c.url,140,true):await logoBlob(c.url);if(!r.blob)return r;
   if(!assets)return {err:"speicher"};var up=await assets.upload(r.blob);return {id:up.id,bg:r.bg||"#FFFFFF"};}
 /* Reihenfolge: eindeutige Treffer zuerst, darin Wikipedia vor App Store */
 function candSort(a,b){var ca=a.score>=3?1:0,cb=b.score>=3?1:0;if(ca!==cb)return cb-ca;
   var wa=a.src==="wiki"?1:0,wb=b.src==="wiki"?1:0;if(wa!==wb)return wb-wa;return b.score-a.score;}
-async function allCands(name,cur,alt){
+/* Website-Icon (apple-touch-icon, meist 180 px, quadratisch): brauchbar, wenn die Domain sicher ist */
+async function iconCand(domain){
+  if(!domain)return null;
+  var u="https://images.weserv.nl/?url="+encodeURIComponent(domain+"/apple-touch-icon.png")+"&output=png";
+  try{var im=await loadImg(u),w=im.naturalWidth,h=im.naturalHeight;
+    if(w>=140&&h>=140&&w/h>0.9&&w/h<1.1)return {url:u,thumb:u,title:domain,seller:"",score:3,src:"icon"};}catch(e){}
+  return null;
+}
+async function allCands(name,cur,alt,web){
   var jobs=[wikiCands(name).catch(function(){return [];}),logoCands(name,cur,alt).catch(function(){return [];})];
   var r=await Promise.all(jobs),wiki=r[0],store=r[1];
   if(!wiki.some(function(c){return c.score>=3;})&&alt&&lusable(alt)&&lnorm(alt)!==lnorm(name)){
     var w2=[];try{w2=await wikiCands(alt);}catch(e){w2=[];}
     var have={};wiki.forEach(function(c){have[c.url]=1;});w2.forEach(function(c){if(!have[c.url])wiki.push(c);});}
-  return wiki.concat(store).sort(candSort);
+  var dom=domainOf(web)||wiki.dom||"",all=wiki.concat(store);
+  var ic=null;try{ic=await iconCand(dom);}catch(e){ic=null;}
+  if(ic)all.push(ic);
+  all.sort(candSort);all.dom=dom;return all;
 }
-async function autoLogo(name,cur,alt){
+async function autoLogo(name,cur,alt,web){
   var primary=lusable(name)?name:(alt&&lusable(alt)?alt:null);
   if(!primary)return null;
   var secondary=primary===name?alt:null;
-  var cs=await allCands(primary,cur,secondary),good=cs.filter(function(c){return c.score>=3;}).slice(0,3);
+  var cs=await allCands(primary,cur,secondary,web),good=cs.filter(function(c){return c.score>=3;}).slice(0,3);
   for(var i=0;i<good.length;i++){var r=await takeLogo(good[i]);if(r&&r.id)return r;}
   return null;
 }
@@ -3062,7 +3080,7 @@ function faviconCand(domain){
   var u="https://images.weserv.nl/?url="+encodeURIComponent("www.google.com/s2/favicons?sz=256&domain="+domain)+"&w=256&h=256&fit=cover&output=png";
   return {url:u,thumb:u,title:domain,seller:"",score:0,src:"web"};
 }
-var LSRC={wiki:"Wikipedia",web:"Website"};
+var LSRC={wiki:"Wikipedia",web:"Website",icon:"Website-Icon"};
 var LERR={klein:"Bild zu klein oder nicht quadratisch",leer:"Bild wirkt leer oder einfarbig",laden:"Bild konnte nicht geladen werden",speicher:"Speichern nicht möglich"};
 function paintCands(box,cs,onPick){
   if(!cs.length){box.innerHTML='<div class="lcmsg">Nichts gefunden. Tipp: Vertragspartner oder Bezeichnung so schreiben, wie die Firma heisst, eine Website eintragen, oder «Logo im Web suchen».</div>';return;}
@@ -3080,8 +3098,8 @@ async function runCands(boxId,name,cur,onPick,alt,web){
   if(!primary&&!dom){toast("Zuerst den Namen eintragen");return;}
   if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
   box.innerHTML='<div class="lcmsg">Suche in Wikipedia und im App Store…</div>';
-  var cs=[];try{cs=primary?await allCands(primary,cur,secondary):[];}catch(e){cs=[];}
-  var fc=faviconCand(dom||wikiCands.dom);if(fc)cs=cs.concat([fc]);
+  var cs=[];try{cs=primary?await allCands(primary,cur,secondary,web):[];}catch(e){cs=[];}
+  var d2=dom||cs.dom||"",fc=cs.some(function(c){return c.src==="icon";})?null:faviconCand(d2);if(fc)cs=cs.concat([fc]);
   paintCands(box,cs,onPick);
 }
 document.getElementById("logoAuto").addEventListener("click",function(){
@@ -3091,9 +3109,9 @@ document.getElementById("iLogoAuto").addEventListener("click",function(){
   runCands("iLogoCands",document.getElementById("iName").value,document.getElementById("iCur").value,
     function(r){idraft.logoId=r.id;idraft.logoBg=r.bg;iPaintLogo();},document.getElementById("iLabel").value);});
 /* Neuer Vertrag ohne Logo: im Hintergrund nachziehen */
-async function autoAttach(kind,idv,name,cur,alt){
+async function autoAttach(kind,idv,name,cur,alt,web){
   if(navigator.onLine===false||!assets)return;
-  var r=null;try{r=await autoLogo(name,cur,alt);}catch(e){r=null;}
+  var r=null;try{r=await autoLogo(name,cur,alt,web);}catch(e){r=null;}
   if(!r)return;
   var m=kind==="i"?state.incomes:state.contracts,c=m[idv];if(!c||c.logoId)return;
   var n=Object.assign({},c,{logoId:r.id,logoBg:r.bg});
@@ -3104,19 +3122,19 @@ document.getElementById("logoBulk").addEventListener("click",async function(){
   if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
   var todo=[];
   Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(c.logoId&&KBlob.has(c.logoId))return;
-    if(!lusable(c.partner)&&!lusable(c.label))return;todo.push({k:"c",id:k,name:c.partner,alt:c.label,cur:c.cur});});
+    if(!lusable(c.partner)&&!lusable(c.label))return;todo.push({k:"c",id:k,name:c.partner,alt:c.label,web:c.web,cur:c.cur});});
   Object.keys(state.incomes).forEach(function(k){var c=state.incomes[k];if(c.logoId&&KBlob.has(c.logoId))return;
     if(!lusable(c.name)&&!lusable(c.label))return;todo.push({k:"i",id:k,name:c.name,alt:c.label,cur:c.cur});});
   if(!todo.length){await ask({title:"Alles erledigt",text:"Alle Einträge mit Vertragspartner oder Bezeichnung haben bereits ein Logo.",ok:"OK",alert:true});return;}
-  var groups={},order=[];todo.forEach(function(t){var key=lnorm(t.name)+"|"+lnorm(t.alt||"");
-    if(!groups[key]){groups[key]={name:t.name,alt:t.alt,label:t.name||t.alt};order.push(key);}});
+  var groups={},order=[];todo.forEach(function(t){var key=lnorm(t.name)+"|"+lnorm(t.alt||"")+"|"+domainOf(t.web);
+    if(!groups[key]){groups[key]={name:t.name,alt:t.alt,web:t.web,label:t.name||t.alt};order.push(key);}});
   var nn=order.length;
   if(!(await ask({title:"Logos suchen?",text:todo.length+" Einträge ohne Logo ("+nn+" verschiedene Anbieter). Übernommen wird nur, was eindeutig passt. Das dauert etwa "+Math.max(1,Math.round(nn*1.5))+" Sekunden bis wenige Minuten.",ok:"Suchen"})))return;
   var cache={},found=[],miss=[],i=0;
   for(var gi=0;gi<order.length;gi++){var key=order[gi],g=groups[key];i++;toast("Suche Logos… "+i+"/"+nn);
-    var r=null;try{r=await autoLogo(g.name,"CHF",g.alt);}catch(e){r=null;}
+    var r=null;try{r=await autoLogo(g.name,"CHF",g.alt,g.web);}catch(e){r=null;}
     cache[key]=r;(r?found:miss).push(g.label);}
-  todo.forEach(function(t){var r=cache[lnorm(t.name)+"|"+lnorm(t.alt||"")];if(!r)return;
+  todo.forEach(function(t){var r=cache[lnorm(t.name)+"|"+lnorm(t.alt||"")+"|"+domainOf(t.web)];if(!r)return;
     var m=t.k==="i"?state.incomes:state.contracts,c=m[t.id];if(!c)return;
     var n=Object.assign({},c,{logoId:r.id,logoBg:r.bg});if(t.k==="i")putIncome(t.id,n);else putContract(t.id,n);});
   render();
