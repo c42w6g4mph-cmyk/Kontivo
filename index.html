@@ -629,7 +629,7 @@ details.logodet>summary{display:none}
 .lbtn.del{background:none;box-shadow:none;color:var(--alert);font-size:13px;padding:8px;margin-top:4px}
 .lbtn[hidden]{display:none}
 .lbtns2{display:flex;gap:8px;margin-top:8px}
-.lbtns2 .lbtn{flex:1;min-width:0}
+.lbtns2 .lbtn{flex:1;min-width:0;padding:10px 4px;font-size:13px;white-space:nowrap}
 .lsec{font-size:11.5px;color:var(--ink3);margin:12px 0 7px}
 .lcands:not(:empty){margin-top:12px}
 .lcands{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 12px}
@@ -819,8 +819,9 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <button class="lbtn main" id="logoAuto" type="button">Logo automatisch finden</button>
     <div class="lcands" id="logoCands"></div>
     <div class="lbtns2">
-      <button class="lbtn" id="logoUp" type="button">Bild hochladen</button>
-      <button class="lbtn" id="logoSearch" type="button">Im Web suchen</button>
+      <button class="lbtn" id="logoPaste" type="button">Einfügen</button>
+      <button class="lbtn" id="logoUp" type="button">Hochladen</button>
+      <button class="lbtn" id="logoSearch" type="button">Im Web</button>
     </div>
     <button class="lbtn del" id="logoDel" type="button" hidden>Bild entfernen</button>
     <div class="lsec">Farbe, wenn kein Bild</div>
@@ -937,8 +938,9 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <button class="lbtn main" id="iLogoAuto" type="button">Logo automatisch finden</button>
     <div class="lcands" id="iLogoCands"></div>
     <div class="lbtns2">
-      <button class="lbtn" id="iLogoUp" type="button">Bild hochladen</button>
-      <button class="lbtn" id="iLogoSearch" type="button">Im Web suchen</button>
+      <button class="lbtn" id="iLogoPaste" type="button">Einfügen</button>
+      <button class="lbtn" id="iLogoUp" type="button">Hochladen</button>
+      <button class="lbtn" id="iLogoSearch" type="button">Im Web</button>
     </div>
     <button class="lbtn del" id="iLogoDel" type="button" hidden>Logo entfernen</button>
     <div class="lsec" style="margin-bottom:0">Ohne Bild: Symbol der Art</div></div></div>
@@ -2418,8 +2420,29 @@ function logoSearch(name){
   name=String(name||"").trim();
   if(!name){toast("Zuerst den Namen eintragen");return;}
   openLink("https://www.google.com/search?tbm=isch&q="+encodeURIComponent(name+" logo"),name+" logo");
-  setTimeout(function(){toast("Bild lange drücken → «Zu Fotos hinzufügen», dann hier hochladen");},600);
+  setTimeout(function(){toast("Bild lange drücken → «Kopieren». Zurück in der App: «Einfügen» tippen.");},600);
 }
+async function pasteLogo(target){
+  cropTarget=target;
+  if(!(navigator.clipboard&&navigator.clipboard.read)){toast("Einfügen wird hier nicht unterstützt – bitte hochladen");return;}
+  try{
+    var items=await navigator.clipboard.read(),txt="";
+    for(var i=0;i<items.length;i++){
+      var t=items[i].types.filter(function(x){return /^image\//.test(x);})[0];
+      if(t){openCrop(await items[i].getType(t));return;}
+      if(!txt&&items[i].types.indexOf("text/plain")>=0)txt=(await (await items[i].getType("text/plain")).text()).trim();
+    }
+    if(/^https?:\/\/\S+$/.test(txt)){
+      toast("Lade Bild…");
+      var r=await fetch("https://images.weserv.nl/?url="+encodeURIComponent(txt.replace(/^https?:\/\//,""))+"&w=1200&output=png");
+      if(r.ok){openCrop(await r.blob());return;}
+      toast("Bild-Link konnte nicht geladen werden");return;
+    }
+    toast("Kein Bild in der Zwischenablage. In Google Bild lange drücken → «Kopieren».");
+  }catch(e){toast("Zugriff auf die Zwischenablage nicht erlaubt – bitte «Einfügen» bestätigen oder hochladen");}
+}
+document.getElementById("logoPaste").addEventListener("click",function(){pasteLogo("c");});
+document.getElementById("iLogoPaste").addEventListener("click",function(){pasteLogo("i");});
 document.getElementById("logoSearch").addEventListener("click",function(){
   logoSearch(document.getElementById("fPartner").value||document.getElementById("fLabel").value);});
 document.getElementById("iLogoSearch").addEventListener("click",function(){
@@ -2955,7 +2978,7 @@ async function logoBlob(url){
 function lhit(want,text){var have=ltok(text);return want.length&&want.every(function(w){return have.some(function(t){return t===w||(w.length>=5&&t.indexOf(w)===0)||(t.length>=5&&w.indexOf(t)===0);});});}
 var WD="https://www.wikidata.org/w/api.php?format=json&origin=*";
 async function wikiCands(name){
-  name=String(name||"").trim();if(!lusable(name))return [];
+  name=String(name||"").trim();wikiCands.dom="";if(!lusable(name))return [];
   var want=ltok(name),terms=[name],tk=want.join(" ");if(tk&&lnorm(tk)!==lnorm(name))terms.push(tk);
   var hits=[],seen={};
   for(var ti=0;ti<terms.length;ti++){
@@ -2969,9 +2992,10 @@ async function wikiCands(name){
   hits.slice(0,12).forEach(function(h,rank){var en=ents[h.id];if(!en||!en.claims)return;
     var cl=(en.claims.P154||[]).concat(en.claims.P8972||[]),file=null;
     cl.forEach(function(c){if(file||c.rank==="deprecated")return;var v=c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;if(typeof v==="string")file=v;});
-    if(!file)return;
     var names=[h.label||""];["labels","aliases"].forEach(function(k){var m=en[k]||{};Object.keys(m).forEach(function(l){[].concat(m[l]).forEach(function(x){if(x&&x.value)names.push(x.value);});});});
     var ok=names.some(function(n){return lhit(want,n);});
+    if(ok&&!wikiCands.dom){(en.claims.P856||[]).forEach(function(c){var v=c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;if(!wikiCands.dom&&typeof v==="string")wikiCands.dom=domainOf(v);});}
+    if(!file)return;
     out.push({file:file,title:h.label||file,desc:h.description||"",score:ok?4-rank*0.01:1,src:"wiki"});});
   if(!out.length)return [];
   var q=null;try{q=await rateJson("https://commons.wikimedia.org/w/api.php?format=json&origin=*&action=query&prop=imageinfo&iiprop=url|size&iiurlwidth=512&titles="+
@@ -3057,7 +3081,7 @@ async function runCands(boxId,name,cur,onPick,alt,web){
   if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
   box.innerHTML='<div class="lcmsg">Suche in Wikipedia und im App Store…</div>';
   var cs=[];try{cs=primary?await allCands(primary,cur,secondary):[];}catch(e){cs=[];}
-  var fc=faviconCand(dom);if(fc)cs=cs.concat([fc]);
+  var fc=faviconCand(dom||wikiCands.dom);if(fc)cs=cs.concat([fc]);
   paintCands(box,cs,onPick);
 }
 document.getElementById("logoAuto").addEventListener("click",function(){
