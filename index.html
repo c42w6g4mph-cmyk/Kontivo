@@ -1092,7 +1092,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
 
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
   if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){
-    window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});
+    window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(function(){});});
   }
 })();
 </script>

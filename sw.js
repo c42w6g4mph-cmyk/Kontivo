@@ -1,5 +1,5 @@
 /* Kontivo – Offline-Cache. Bei jeder neuen Version VERSION erhöhen. */
-var VERSION="kontivo-v1";
+var VERSION="kontivo-v2";
 var CORE=["./","index.html","manifest.webmanifest","apple-touch-icon.png","icon-192.png","icon-512.png"];
 self.addEventListener("install",function(e){
   e.waitUntil(caches.open(VERSION).then(function(c){return c.addAll(CORE);}).then(function(){return self.skipWaiting();}));
@@ -13,7 +13,8 @@ self.addEventListener("fetch",function(e){
   var url=new URL(req.url);
   /* App selbst: zuerst Netz (Updates sofort), offline aus dem Cache */
   if(url.origin===self.location.origin){
-    e.respondWith(fetch(req).then(function(r){
+    /* no-cache: immer beim Server nachfragen (GitHub Pages erlaubt sonst 10 Min. alten Stand) */
+    e.respondWith(fetch(url.href,{cache:"no-cache",credentials:"same-origin"}).then(function(r){
       if(r&&r.ok){var cp=r.clone();caches.open(VERSION).then(function(c){c.put(req,cp);});}
       return r;
     }).catch(function(){return caches.match(req,{ignoreSearch:true}).then(function(m){return m||caches.match("index.html");});}));
