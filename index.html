@@ -294,6 +294,15 @@ details.opt summary em{font-style:normal;font-weight:500;font-size:12.5px;color:
 
 /* Einstellungen gruppiert */
 .sgroup{background:var(--surface);border-radius:var(--r);padding:13px 15px 15px;margin-bottom:12px}
+.ratelist{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin:4px 0 8px}
+.ratelist div{display:flex;justify-content:space-between;gap:6px;font-size:13.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.ratelist b{color:var(--ink);font-weight:600}
+.ratefoot{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ratefoot .mini{padding:4px 0;white-space:nowrap}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:12px;border-radius:12px;background:var(--field);text-align:left}
+.tile svg{width:22px;height:22px;fill:none;stroke:var(--teal);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tile b{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.2}
 .rateline{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px;color:var(--ink2);margin-top:2px}
 .rateline b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
 details.ratedet summary{list-style:none;cursor:pointer;font-size:13px;color:var(--teal);font-weight:600;padding:2px 0;display:inline-flex;align-items:center;gap:6px}
@@ -748,16 +757,11 @@ details.opt.moreact{margin-top:9px;background:transparent}
     </div></div>
   <div class="sgroup"><div class="sgh">Währung</div>
     <div class="field"><label for="sHome">Hauptwährung für alle Summen</label>
-      <select id="sHome"><option>CHF</option><option>EUR</option></select></div>
-    <div class="rateline"><span>Kurs</span><b id="rateShow">–</b></div>
-    <p class="note" id="rateStamp" style="margin:2px 0 8px"></p>
-    <details class="ratedet" id="oRate"><summary>Kurs von Hand anpassen</summary><div class="ratebody">
-    <div class="field" style="margin-bottom:8px"><label for="sRate">1 EUR entspricht … CHF</label><input id="sRate" type="text" inputmode="decimal"></div>
-    <label class="chkrow"><input type="checkbox" id="sRateAuto"><span>Kurs automatisch aktualisieren<em>Einmal täglich, Referenzkurs der Europäischen Zentralbank. Wer den Kurs von Hand ändert, schaltet das aus.</em></span></label>
-    <button class="mini" id="sRateNow" type="button" style="padding-top:0">Jetzt aktualisieren</button></div></details></div>
+      <select id="sHome"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></div>
+    <div class="ratelist" id="rateShow"></div>
+    <div class="ratefoot"><span class="note" id="rateStamp"></span><button class="mini" id="sRateNow" type="button">Jetzt aktualisieren</button></div></div>
   <div class="sgroup"><div class="sgh">Logos</div>
-    <p class="note" style="margin:0 0 6px">Sucht für Verträge und Einnahmen ohne Logo zuerst das offizielle Logo auf Wikipedia, sonst das App-Symbol im App Store. Übernommen wird nur, was eindeutig passt und scharf genug ist.</p>
-    <button class="srowbtn" id="logoBulk"><span>Fehlende Logos automatisch suchen</span><em>Wikipedia · App Store</em></button></div>
+    <button class="lbtn main" id="logoBulk" type="button">Fehlende Logos jetzt suchen</button></div>
   <div class="sgroup"><div class="sgh">Kündigungsschreiben</div>
     <div class="field" style="margin:0"><label for="sSender">Absender — Name und Adresse</label>
     <textarea id="sSender" placeholder="Vorname Name&#10;Strasse Nr.&#10;8280 Kreuzlingen" style="min-height:84px"></textarea></div>
@@ -767,22 +771,21 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <div class="sgroup"><div class="sgh">Vertragsinhaber</div>
     <div class="chips" id="sHolderList"></div>
     <div class="addrow"><input id="sHolderNew" type="text" placeholder="Name hinzufügen" autocomplete="off"><button type="button" id="sHolderAdd">Hinzufügen</button></div></div>
-  <div class="sgroup"><div class="sgh">Backup</div>
-    <p class="note" style="margin:0 0 6px">Ein Backup ist eine Datei mit allem: Verträge, Einnahmen, Kategorien, Einstellungen sowie Logos und Dokumente. Leg sie zum Beispiel in iCloud Drive ab.</p>
-    <button class="srowbtn" id="bkSave"><span>Backup speichern</span><em>als Datei</em></button>
-    <button class="srowbtn" id="bkLoad"><span>Backup einspielen</span><em>ersetzt die aktuellen Daten</em></button>
+  <div class="sgroup"><div class="sgh">Daten</div>
+    <div class="tiles">
+      <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
+      <button class="tile" id="bkLoad" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup laden</b></button>
+      <button class="tile" id="csvImp" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg><b>CSV importieren</b></button>
+      <button class="tile" id="csvBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg><b>CSV exportieren</b></button>
+    </div>
     <input type="file" id="bkFile" accept=".json,application/json">
-    <p class="note" id="syncNote" style="margin:8px 0 0"></p></div>
-  <div class="sgroup"><div class="sgh">Tabelle (CSV)</div>
-    <button class="srowbtn" id="csvImp"><span>Verträge importieren</span><em>z.B. aus Contract oder Excel</em></button>
-    <button class="srowbtn" id="csvBtn"><span>Verträge exportieren</span><em>für Excel oder Numbers</em></button>
     <input type="file" id="csvFile" accept=".csv,text/csv,text/plain,text/comma-separated-values">
-    <div id="csvOut"></div></div>
-  <div class="sgroup"><div class="sgh">Zurücksetzen</div>
-    <button class="srowbtn wipe" id="wipeAll"><span>Alle Daten löschen</span><em>Verträge, Einnahmen, Dateien</em></button>
-    <p class="note" id="reviewStamp" style="margin:8px 0 0"></p></div>
+    <div id="csvOut"></div>
+    <p class="note" id="syncNote" hidden></p>
+    <button class="lbtn del" id="wipeAll" type="button" style="margin-top:10px">Alle Daten löschen</button>
+    <p class="note" id="reviewStamp" hidden></p></div>
   <div class="sgroup"><div class="sgh">Hinweise</div>
-    <p class="note" style="margin:0">Den Wechselkurs pflegst du selbst. An Kündigungsfristen erinnert die App nur beim Öffnen, nicht per Mitteilung.</p></div>
+    <p class="note" style="margin:0">Wechselkurse werden täglich automatisch aktualisiert (Referenzkurse der EZB). An Fristen erinnert die App beim Öffnen.</p></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b>Kontivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
   <div class="bver">Version 1.0</div>
@@ -844,7 +847,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <h3 class="step"><span>2</span>Kosten</h3>
   <div class="two">
     <div class="field"><label for="fAmt" id="fAmtL">Betrag</label><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="59.90"></div>
-    <div class="field"><label for="fCur">Währung</label><select id="fCur"><option>CHF</option><option>EUR</option></select></div>
+    <div class="field"><label for="fCur">Währung</label><select id="fCur"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></div>
   </div>
   <div class="two">
     <div class="field"><label for="fCycle">Turnus</label><select id="fCycle">
@@ -956,7 +959,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <h3>Betrag</h3>
   <div class="two">
     <div class="field"><label for="iAmt" id="iAmtL">Betrag netto</label><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="6500.00"></div>
-    <div class="field"><label for="iCur">Währung</label><select id="iCur"><option>CHF</option><option>EUR</option></select></div>
+    <div class="field"><label for="iCur">Währung</label><select id="iCur"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></div>
   </div>
   <div class="two">
     <div class="field"><label for="iCycle">Turnus</label><select id="iCycle">
@@ -1151,7 +1154,11 @@ function addMonths(d,n){var y=d.getFullYear(),m=d.getMonth()+n,day=d.getDate();
   var last=new Date(y,m+1,0).getDate();return new Date(y,m,Math.min(day,last));}
 function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
 function daysBetween(a,b){return Math.round((b-a)/86400000);}
-function conv(a,c){var s=state.settings;if(c===s.home)return a;return s.home==="CHF"?a*(s.rate||1):a/(s.rate||1);}
+/* Kurse in CHF pro Einheit; EUR liegt aus Kompatibilitätsgründen in settings.rate, die übrigen in settings.rates.
+   RATE0 sind nur grobe Startwerte bis zum ersten automatischen Abruf. */
+var CURS=["CHF","EUR","USD","GBP","TRY"],RATE0={EUR:0.94,USD:0.80,GBP:1.07,TRY:0.02};
+function rateOf(c){var s=state.settings;if(!c||c==="CHF")return 1;if(c==="EUR")return +s.rate>0?+s.rate:RATE0.EUR;var r=s.rates&&+s.rates[c];return r>0?r:(RATE0[c]||1);}
+function conv(a,c){var s=state.settings;c=c||"CHF";if(c===s.home)return a;return a*rateOf(c)/rateOf(s.home);}
 function initials(n){
   var p=String(n||"?").trim().split(/[\s\-&]+/).filter(Boolean);
   if(!p.length)return "?";
@@ -2866,7 +2873,6 @@ function fillSettings(){
   paintSetCats();document.getElementById("sSender").value=state.settings.sender||"";
   var lr=state.settings.lastReview;document.getElementById("reviewStamp").textContent=lr?"Letzter Quartals-Check: "+fmtD(lr):"Noch kein Quartals-Check durchgeführt";
   document.getElementById("sHome").value=state.settings.home;
-  document.getElementById("sRate").value=state.settings.rate;
   setHolders=(state.settings.holders||["Ich"]).slice();paintSetHolders();
   document.getElementById("csvOut").innerHTML="";paintRateStamp();
 }
@@ -2889,54 +2895,45 @@ function addSetHolder(){
 }
 document.getElementById("sHolderAdd").addEventListener("click",addSetHolder);
 document.getElementById("sHolderNew").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addSetHolder();}});
-function paintRateStamp(){var s=state.settings,d=s.rateDate,auto=s.rateAuto!==false;
-  document.getElementById("rateStamp").textContent=d?"Stand: "+fmtD(d)+(s.rateSrc==="auto"?" · automatisch (EZB)":" · von Hand eingetragen"):"Noch nie angepasst";
-  var rs=document.getElementById("rateShow");if(rs)rs.textContent=s.rate>0?"1 EUR = "+(+s.rate).toFixed(4)+" CHF":"–";
-  var cb=document.getElementById("sRateAuto");if(cb)cb.checked=auto;}
+function paintRateStamp(){var s=state.settings,d=s.rateDate,H=s.home||"CHF";
+  document.getElementById("rateStamp").textContent=d?"Stand "+fmtD(d)+" · täglich automatisch":"Noch nicht geladen";
+  var el=document.getElementById("rateShow");if(!el)return;
+  el.innerHTML=CURS.filter(function(c){return c!==H;}).map(function(c){var v=rateOf(c)/rateOf(H);
+    return "<div><span>1 "+c+"</span><b>"+v.toFixed(v<0.1?4:4)+" "+H+"</b></div>";}).join("");}
 function commitHolders(){state.settings.holders=setHolders.length?setHolders.slice():["Ich"];saveSettings();render();}
 document.getElementById("sSender").addEventListener("change",function(){state.settings.sender=this.value.trim();saveSettings();toast("Absender gespeichert");});
 document.getElementById("sHome").addEventListener("change",function(){
-  state.settings.home=this.value;saveSettings();render();toast("Hauptwährung: "+this.value);});
-document.getElementById("sRate").addEventListener("change",function(){
-  var r=parseNum(this.value);
-  if(!(r>0)){this.value=state.settings.rate;toast("Kurs prüfen");return;}
-  var wasAuto=state.settings.rateAuto!==false;
-  state.settings.rate=Math.round(r*10000)/10000;state.settings.rateDate=iso(today());state.settings.rateSrc="manual";state.settings.rateAuto=false;
-  this.value=state.settings.rate;saveSettings();render();paintRateStamp();toast(wasAuto?"Kurs gespeichert – automatische Aktualisierung aus":"Kurs gespeichert");});
-document.getElementById("sRateAuto").addEventListener("change",function(){
-  state.settings.rateAuto=this.checked;saveSettings();paintRateStamp();
-  if(this.checked)autoRate(true);else toast("Automatische Aktualisierung aus");});
+  state.settings.home=this.value;saveSettings();render();paintRateStamp();toast("Hauptwährung: "+this.value);});
 document.getElementById("sRateNow").addEventListener("click",function(){autoRate(true);});
 
 /* ---------- Wechselkurs automatisch ---------- */
 function rateJson(u){var ctl=typeof AbortController==="function"?new AbortController():null,t=ctl?setTimeout(function(){ctl.abort();},8000):0;
   return fetch(u,ctl?{signal:ctl.signal,cache:"no-store"}:{cache:"no-store"}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error("http");return r.json();});}
 async function fetchRate(){
-  var pickA=function(d){return d&&d.rates&&+d.rates.CHF>0?{r:+d.rates.CHF,d:d.date||""}:null;};
-  var src=[["https://api.frankfurter.dev/v1/latest?base=EUR&symbols=CHF",pickA],
-           ["https://api.frankfurter.app/latest?from=EUR&to=CHF",pickA],
-           ["https://open.er-api.com/v6/latest/EUR",function(d){return d&&d.rates&&+d.rates.CHF>0?{r:+d.rates.CHF,d:d.time_last_update_unix?iso(new Date(d.time_last_update_unix*1000)):""}:null;}]];
+  function inv(r){var o={};["EUR","USD","GBP","TRY"].forEach(function(c){if(r&&+r[c]>0)o[c]=1/(+r[c]);});return o;}
+  var src=[["https://api.frankfurter.dev/v1/latest?base=CHF&symbols=EUR,USD,GBP,TRY",function(d){return d&&d.rates?{rates:inv(d.rates),d:d.date||""}:null;}],
+           ["https://api.frankfurter.app/latest?from=CHF&to=EUR,USD,GBP,TRY",function(d){return d&&d.rates?{rates:inv(d.rates),d:d.date||""}:null;}],
+           ["https://open.er-api.com/v6/latest/CHF",function(d){return d&&d.rates?{rates:inv(d.rates),d:d.time_last_update_unix?iso(new Date(d.time_last_update_unix*1000)):""}:null;}]];
   for(var i=0;i<src.length;i++){
-    try{var x=src[i][1](await rateJson(src[i][0]));if(x&&x.r>0.5&&x.r<2)return x;}catch(e){}
+    try{var x=src[i][1](await rateJson(src[i][0]));if(x&&x.rates.EUR>0.5&&x.rates.EUR<2)return x;}catch(e){}
   }
   return null;
 }
 var rateBusy=false;
 async function autoRate(force){
   var s=state.settings;if(rateBusy)return;
-  if(!force&&(s.rateAuto===false||s.rateChecked===iso(today())))return;
+  if(!force&&s.rateChecked===iso(today())&&s.rates&&s.rates.USD)return;
   if(navigator.onLine===false){if(force)toast("Keine Internetverbindung");return;}
-  rateBusy=true;if(force)toast("Lade Kurs…");
+  rateBusy=true;if(force)toast("Lade Kurse…");
   var x=null;try{x=await fetchRate();}catch(e){x=null;}
   rateBusy=false;
-  if(!x){if(force)toast("Kurs konnte nicht geladen werden");return;}
-  var old=s.rate;
-  s.rate=Math.round(x.r*10000)/10000;s.rateDate=/^\d{4}-\d{2}-\d{2}$/.test(x.d)?x.d:iso(today());s.rateChecked=iso(today());s.rateSrc="auto";
-  if(force){s.rateAuto=true;}
-  saveSettings();
-  var ri=document.getElementById("sRate");if(ri&&document.activeElement!==ri)ri.value=s.rate;
-  paintRateStamp();if(old!==s.rate)render();
-  if(force)toast("Kurs aktualisiert: 1 EUR = "+s.rate+" CHF");
+  if(!x){if(force)toast("Kurse konnten nicht geladen werden");return;}
+  var old=JSON.stringify([s.rate,s.rates]);
+  s.rate=Math.round(x.rates.EUR*10000)/10000;s.rates={};
+  ["USD","GBP","TRY"].forEach(function(c){if(x.rates[c])s.rates[c]=Math.round(x.rates[c]*1e6)/1e6;});
+  s.rateDate=/^\d{4}-\d{2}-\d{2}$/.test(x.d)?x.d:iso(today());s.rateChecked=iso(today());s.rateSrc="auto";s.rateAuto=true;
+  saveSettings();paintRateStamp();if(old!==JSON.stringify([s.rate,s.rates]))render();
+  if(force)toast("Kurse aktualisiert");
 }
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")autoRate(false);});
 /* ---------- Logos automatisch finden (Wikipedia, App Store) ---------- */
@@ -2979,7 +2976,7 @@ function jsonp(url){return new Promise(function(res,rej){
   sc.onerror=function(){if(!done){end();rej(new Error("net"));}};
   sc.src=url+(url.indexOf("?")<0?"?":"&")+"callback="+cb;document.head.appendChild(sc);});}
 async function logoCands(name,cur,dom){
-  var cs=cur==="EUR"?["de","ch"]:["ch","de"],seen={},out=[];
+  var cs=({EUR:["de","ch"],USD:["us","ch"],GBP:["gb","ch"],TRY:["tr","de"]})[cur]||["ch","de"],seen={},out=[];
   var term=ltok(name).join(" ")||String(name).trim();
   for(var i=0;i<cs.length;i++){
     var d=null;try{d=await jsonp("https://itunes.apple.com/search?entity=software&limit=20&country="+cs[i]+"&term="+encodeURIComponent(term));}catch(e){d=null;}
@@ -3311,7 +3308,7 @@ document.getElementById("wipeAll").addEventListener("click",async function(){
          for(var b=0;b<ik.length;b++){try{await db.doc(P.i+"/"+ik[b]).delete();}catch(e){}}}
   if(assets){try{var al=await assets.list();var list=(al&&al.assets)||[];for(var x=0;x<list.length;x++){try{await assets.delete(list[x].id);}catch(e){}}}catch(e){}}
   state.contracts={};state.incomes={};state.budget={items:[]};
-  var keep={home:state.settings.home,rate:state.settings.rate,rateDate:state.settings.rateDate,theme:state.settings.theme,sort:state.settings.sort};
+  var keep={home:state.settings.home,rate:state.settings.rate,rates:state.settings.rates,rateDate:state.settings.rateDate,theme:state.settings.theme,sort:state.settings.sort};
   state.settings=Object.assign({holders:["Ich"]},keep);state.bHolder="";state.flt={cat:null,partner:null,holder:null};
   saveLocal();saveSettings();state._busy=false;
   fillSettings();goTab("list");render();toast("Alle Daten gelöscht");
@@ -3399,7 +3396,7 @@ function csvToContracts(rows){
     if(amt==null)amt=0;
     var tpl=tplFind(partner)||tplFind(label),cy=csvCycle(g(r,"cycle"));
     if(cy==="w"){amt=Math.round(amt*52/12*100)/100;cy=1;}
-    var curRaw=(g(r,"cur")+" "+g(r,"amount")).toUpperCase(),cur=/EUR|€/.test(curRaw)?"EUR":(/CHF|FR/.test(curRaw)?"CHF":H);
+    var curRaw=(g(r,"cur")+" "+g(r,"amount")).toUpperCase(),cur=/EUR|€/.test(curRaw)?"EUR":/USD|US\$|\$/.test(curRaw)?"USD":/GBP|£/.test(curRaw)?"GBP":/TRY|₺|\bTL\b/.test(curRaw)?"TRY":(/CHF|FR/.test(curRaw)?"CHF":H);
     var catRaw=g(r,"cat"),cat=allCats().filter(function(k){return k.toLowerCase()===catRaw.toLowerCase();})[0]||csvCat(catRaw)||(tpl?tpl[2]:"");
     if(!cat&&catRaw){var cs=customCats();if(!cs.some(function(x){return x.n.toLowerCase()===catRaw.toLowerCase();})){cs.push({n:catRaw,c:COLORS[(cs.length+3)%COLORS.length]});state.settings.cats=cs;newCats=true;}cat=catRaw;}
     cat=cat||"Sonstiges";
