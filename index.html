@@ -852,7 +852,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <textarea id="sSender" placeholder="Vorname Name&#10;Strasse Nr.&#10;8280 Kreuzlingen" style="min-height:84px"></textarea></div>
     <p class="note" style="margin:6px 0 0">Erscheint oben im Kündigungstext, Ort und Datum werden ergänzt.</p></div>
   <div class="sgroup"><div class="sgh">Stammdaten</div>
-    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Umbenennen, zusammenführen, Logo &amp; Website</small></span><em id="mdSumP"></em></button>
+    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Umbenennen, zusammenführen, Logo</small></span><em id="mdSumP"></em></button>
     <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Umbenennen, zusammenführen, löschen</small></span><em id="mdSumH"></em></button>
     <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Name, Farbe, Symbol, Reihenfolge</small></span><em id="mdSumC"></em></button>
     <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small>Fehlende Angaben in Verträgen und Vertragspartnern</small></span><em id="mdSumQ"></em></button></div>
@@ -3123,14 +3123,13 @@ function qualItems(){
   partnerGroups().forEach(function(o){var c=o.logoC||state.contracts[o.ids[0]];
     if(!o.ids.some(function(k){return state.contracts[k].status!=="cancelled";}))return;
     var ks=[],ws=[];
-    if(!o.web){if(ig["p:"+o.key+":web"])nIg++;else{ks.push("p:"+o.key+":web");ws.push("keine Website");}}
     if(!o.logoC){if(ig["p:"+o.key+":logo"])nIg++;else{ks.push("p:"+o.key+":logo");ws.push("kein Logo");}}
-    if(ks.length)out.C.push({kind:"p",pk:o.key,c:c,name:o.name,n:o.ids.length,keys:ks,key:ks.join("|"),needWeb:!o.web&&!ig["p:"+o.key+":web"],needLogo:!o.logoC&&!ig["p:"+o.key+":logo"],
+    if(ks.length)out.C.push({kind:"p",pk:o.key,c:c,name:o.name,n:o.ids.length,keys:ks,key:ks.join("|"),needWeb:false,needLogo:!o.logoC&&!ig["p:"+o.key+":logo"],
       why:ws.join(", ").replace(/^./,function(m){return m.toUpperCase();})});
   });
   out.ign=nIg;return out;
 }
-/* ---------- Automatische Suche (Website + Logo) mit Bestätigung ---------- */
+/* ---------- Automatische Logo-Suche mit Bestätigung ---------- */
 var qsr={items:[],miss:[],busy:false};
 async function qFindOne(o){
   var g=partnerGroups().filter(function(x){return x.key===o.pk;})[0];if(!g)return null;
@@ -3160,7 +3159,7 @@ function paintQs(){
     h+='<p class="note" style="margin:0 0 8px">Tippe auf einen Eintrag, um ihn an- oder abzuwählen. Unsichere Treffer sind nicht vorausgewählt.</p>';
     h+=it.map(function(x,i){var w=x.cand,img=w.file?"https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.file)+"?width=96":"https://www.google.com/s2/favicons?sz=64&domain="+encodeURIComponent(w.dom);
       return '<button class="mdopt qsopt" data-qsel="'+i+'" aria-pressed="'+!!x.on+'" type="button"><span class="rad"></span><span class="t" style="flex:1;min-width:0"><b>'+esc(x.name)+'</b><br><small>'+(x.sure?"":"Unsicher: «"+esc(w.name)+"» · ")+esc(w.dom)+
-        ((x.needWeb&&x.needLogo)?" · Website + Logo":x.needWeb?" · Website":" · Logo")+'</small></span><img src="'+esc(img)+'" alt="" width="32" height="32" style="border-radius:6px;background:#fff;object-fit:contain" onerror="this.remove()"></button>';}).join("");
+        " · Logo"+'</small></span><img src="'+esc(img)+'" alt="" width="32" height="32" style="border-radius:6px;background:#fff;object-fit:contain" onerror="this.remove()"></button>';}).join("");
     h+='<button class="lbtn main" id="qsGo" type="button" style="margin-top:12px"'+(n?"":" disabled")+'>'+(n?n+(n===1?" Vorschlag übernehmen":" Vorschläge übernehmen"):"Nichts ausgewählt")+'</button>';
   }
   if(qsr.miss.length)h+='<p class="note" style="margin:12px 0 0">Nichts gefunden: '+esc(qsr.miss.join(", "))+'. Diese über die Vertragspartner-Pflege oder «Logo automatisch finden» im Vertrag ergänzen.</p>';
@@ -3184,12 +3183,11 @@ async function qApply(){
     var g=partnerGroups().filter(function(o){return o.key===x.pk;})[0];if(!g)continue;
     var lg=await qLogoFor(x.cand,x.needLogo&&!g.logoC);
     g.ids.forEach(function(k){var c=state.contracts[k];if(!c)return;var nc=Object.assign({},c),ch=false;
-      if(x.needWeb&&!c.web){nc.web=x.cand.dom;ch=true;nW++;}
       if(lg&&!(c.logoId&&KBlob.has(c.logoId))){nc.logoId=lg.id;nc.logoBg=lg.bg||"#FFFFFF";ch=true;nL++;}
       if(ch)putContract(k,nc);});
   }
   qsr.busy=false;closeMe();paintMd();render();
-  toast(nW+" Websites, "+nL+" Logos übernommen");
+  toast(nL+(nL===1?" Logo":" Logos")+" übernommen");
 }
 var qOpen=false;
 function paintMdQual(){
@@ -3239,7 +3237,7 @@ function paintMdPartners(){
   var pg=partnerGroups().filter(function(o){return !q||o.name.toLowerCase().indexOf(q)>=0;});
   if(!pg.length){el.innerHTML='<p class="note" style="margin:10px 0">'+(q?"Kein Vertragspartner gefunden.":"Noch keine Verträge mit Vertragspartner.")+"</p>";return;}
   el.innerHTML=pg.map(function(o){var c=o.logoC||state.contracts[o.ids[0]];
-    var badge=o.dup?'<span class="mdbadge">Dublette?</span>':(!o.web?'<span class="mdbadge q">ohne Website</span>':"");
+    var badge=o.dup?'<span class="mdbadge">Dublette?</span>':"";
     return '<button class="mdrow" data-pe="'+esc(o.key)+'" type="button">'+markHtml(c)+'<span class="t"><b>'+esc(o.name)+'</b><small>'+o.ids.length+(o.ids.length===1?" Vertrag":" Verträge")+
       (o.cost?" · "+nf0.format(o.cost)+" "+esc(state.settings.home)+"/J.":"")+"</small></span>"+badge+"</button>";}).join("");
 }
@@ -3272,7 +3270,6 @@ function openPe(key){
   pe={key:key,ids:g.ids.slice(),orig:g.name,name:g.name,web:g.web||"",origWeb:g.web||"",logoId:(g.logoC&&g.logoC.logoId)||"",logoBg:(g.logoC&&g.logoC.logoBg)||"",logoChanged:false,cur:(c0&&c0.cur)||"CHF"};
   var labs=g.ids.map(function(k){return state.contracts[k].label||state.contracts[k].partner;});
   openMe(g.name,'<div class="mdlogo"><div id="peMark"></div><div style="flex:1;min-width:0"><div class="field" style="margin:0"><label for="peName">Name</label><input id="peName" type="text" autocomplete="off" value="'+esc(g.name)+'"></div></div></div>'+
-    '<div class="field"><label for="peWeb">Website</label><input id="peWeb" type="text" inputmode="url" autocapitalize="off" placeholder="z.B. mobiliar.ch" value="'+esc(g.web||"")+'"></div>'+
     '<div class="logopanel" style="margin:0 0 12px">'+
     '<button class="lbtn main" id="peAuto" type="button">Logo automatisch finden</button><div class="lcands" id="peCands"></div>'+
     '<div class="lbtns2"><button class="lbtn" id="pePaste" type="button">Einfügen</button><button class="lbtn" id="peUp" type="button">Hochladen</button><button class="lbtn" id="peGoogle" type="button">Google</button></div>'+
@@ -3281,7 +3278,6 @@ function openPe(key){
     '<button class="lbtn main" id="peSave" type="button" style="margin-top:14px">Speichern für '+(g.ids.length===1?"den Vertrag":"alle "+g.ids.length+" Verträge")+'</button>'+
     '<button class="lbtn" id="peMerge" type="button" style="margin-top:8px">Mit anderem Vertragspartner zusammenführen …</button>');
   document.getElementById("peName").addEventListener("input",function(){pe.name=this.value;paintPeMark();});
-  document.getElementById("peWeb").addEventListener("input",function(){pe.web=this.value;});
   document.getElementById("peUp").hidden=!assets;
   paintPeMark();
 }
@@ -3294,7 +3290,6 @@ function paintPeMark(){
 async function savePe(){
   var name=(pe.name||"").trim().replace(/\s+/g," ");
   if(!name){toast("Bitte einen Namen eingeben");return;}
-  var web=String(pe.web||"").trim();
   var other=partnerGroups().filter(function(o){return o.key!==pe.key&&o.name.toLowerCase()===name.toLowerCase();})[0];
   if(other){
     var ok=await ask({title:"«"+other.name+"» gibt es schon",text:"Deine "+pe.ids.length+(pe.ids.length===1?" Vertrag wird":" Verträge werden")+" mit den "+other.ids.length+" bestehenden zusammengeführt.",ok:"Zusammenführen"});
@@ -3303,7 +3298,6 @@ async function savePe(){
   var n=0;
   pe.ids.forEach(function(k){var c=state.contracts[k];if(!c)return;var nc=Object.assign({},c),ch=false;
     if(c.partner!==name){nc.partner=name;ch=true;}
-    if(web!==(pe.origWeb||"")&&(c.web||"")!==web){nc.web=web;ch=true;}
     if(pe.logoChanged&&(c.logoId||"")!==(pe.logoId||"")){nc.logoId=pe.logoId||"";nc.logoBg=pe.logoId?(pe.logoBg||"#FFFFFF"):"";ch=true;}
     if(ch){putContract(k,nc);n++;}});
   closeMe();paintMd();render();reopenDetail();
@@ -3324,7 +3318,7 @@ function paintPeMerge(pg){
     return '<button class="mdopt" data-mt="'+esc(o.key)+'" aria-pressed="'+(pe.mergeTo===o.key)+'" type="button"><span class="rad"></span><span>'+esc(o.name)+'</span><small>'+o.ids.length+(o.ids.length===1?" Vertrag":" Verträge")+'</small></button>';}).join("");
   var t=pg.filter(function(o){return o.key===pe.mergeTo;})[0],go=document.getElementById("peMergeGo");
   go.disabled=!t;
-  document.getElementById("mergeNote").innerHTML=t?'<b>'+(pe.ids.length+t.ids.length)+' Verträge</b> laufen danach unter «'+esc(t.name)+'». Logo und Website des Ziels bleiben, fehlende werden ergänzt. Das lässt sich nicht automatisch rückgängig machen.':"";
+  document.getElementById("mergeNote").innerHTML=t?'<b>'+(pe.ids.length+t.ids.length)+' Verträge</b> laufen danach unter «'+esc(t.name)+'». Das Logo des Ziels bleibt, ein fehlendes wird ergänzt. Das lässt sich nicht automatisch rückgängig machen.':"";
   go.textContent=t?(pe.ids.length+t.ids.length)+" Verträge zusammenführen":"Zusammenführen";
 }
 function doPeMerge(){
@@ -3471,7 +3465,7 @@ document.addEventListener("click",function(ev){
   if(t.closest("#heMergeGo")){if(he.mergeTo)doHeMerge(he.orig,he.mergeTo);return;}
   if(t.closest("#peAuto")){
     var nm=(document.getElementById("peName").value||"").trim();
-    runCands("peCands",nm,pe.cur,function(r){pe.logoId=r.id;pe.logoBg=r.bg;pe.logoChanged=true;paintPeMark();},"",document.getElementById("peWeb").value);return;}
+    runCands("peCands",nm,pe.cur,function(r){pe.logoId=r.id;pe.logoBg=r.bg;pe.logoChanged=true;paintPeMark();},"",pe.web);return;}
   if(t.closest("#pePaste")){document.getElementById("pePaste").classList.remove("pulse");document.getElementById("peCands").innerHTML="";pasteLogo("p");return;}
   if(t.closest("#peUp")){cropTarget="p";document.getElementById("logoFile").click();return;}
   if(t.closest("#peGoogle")){
