@@ -159,6 +159,9 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .kfoot{margin-top:16px}
 .kcard .chartwrap,.kcard .mlabels{margin-right:16px}
 .kcard .avg span{left:calc(100% + 5px);top:-7px;font-size:10px;font-weight:650;line-height:12px;color:var(--ink3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.kcard .ksub{font-size:12.5px;color:var(--ink3);margin-top:6px}
+.kcard .kbig.neg{color:var(--alert)}
+.kcard .bchart{margin-top:34px;height:140px;margin-right:16px}
 .kcard .chart{margin-top:34px;height:140px}
 .kcard .col i.pd{background:color-mix(in srgb,var(--teal) 45%,var(--surface))}
 .kcard .col.on i.pd{background:var(--teal)}
@@ -1957,16 +1960,21 @@ function renderBudget(v){
     Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k],f=shr(c);if(!f)return;
       occurrences(c,bpmF,bpmT).forEach(function(d){bpmFix+=conv(priceAt(c,d),c.cur)*f;});});
     var bpmFree=bpmInc-bpmFix,bpmHas=bpmInc>0.005||bpmFix>0.005,bpmD=sm.free-bpmFree;
-    var bvsV,bvsC="";
-    if(!bpmHas)bvsV="neu";else if(Math.abs(bpmD)<0.005)bvsV="±"+money(0)+" <u>"+H+"</u>";
-    else{bvsV=(bpmD>0?"+":"−")+money(Math.abs(bpmD))+" <u>"+H+"</u>";bvsC=(bpmD>0?" down":" up")+(Math.abs(bpmD)>=1000?" lng":"");}
-    var bkpiH='<div class="mkpis"><div class="mkp"><div class="k">Einnahmen</div><div class="v">'+money(sm.inc)+" <u>"+H+"</u></div></div>"+
-      '<div class="mkp"><div class="k">Fixkosten</div><div class="v">'+money(sm.fix)+" <u>"+H+"</u></div></div>"+
-      '<div class="mkp"><div class="k">vs. '+MS[sel]+" "+(Y-1)+'</div><div class="v'+bvsC+'">'+bvsV+"</div></div></div>";
-    o+='<div class="readout mcard" style="display:block"><div class="rm">'+MON[sel]+" "+Y+' · verfügbar</div>'+
-       '<div class="rv'+(sm.free<0?" neg":"")+'">'+money(sm.free)+'<span class="ru">'+H+"</span></div>"+
-       bkpiH+bc+
-       '<div class="ckpi ckpi3"><span><em>Verfügbar '+Y+'</em><b>'+nf0.format(tFree)+" "+H+'</b></span><span><em>Ø verfügbar</em><b>'+nf0.format(bav)+" "+H+'</b></span><span><em>Fixkostenquote</em><b>'+(tInc>0?(tFix/tInc*100).toFixed(1)+" %":"—")+"</b></span></div></div>";
+    var bvT="",bvC="";
+    if(bpmHas){var br=Math.round(Math.abs(bpmD));
+      if(br<1)bvT="gleich wie "+MON[sel]+" "+(Y-1);
+      else{bvT=nf0.format(br)+" "+H+(bpmD>0?" mehr":" weniger")+" als "+MON[sel]+" "+(Y-1);bvC=bpmD>0?" down":" up";}}
+    var bBig=function(v){var t=money(Math.abs(v)),k=t.lastIndexOf(".");t=k<0?t:t.slice(0,k)+"<small>"+t.slice(k)+"</small>";return (v<0?"−":"")+t;};
+    var bq=sm.inc>0.005?Math.round(sm.free/sm.inc*100):null;
+    var bh='<div class="kh"><div class="keb"><span class="kmo">'+MON[sel]+" "+Y+'</span><span class="kcnt">'+(BH?esc(dn(BH)):"")+'</span></div>'+
+      '<div class="kbig'+(sm.free<0?" neg":"")+'">'+bBig(sm.free)+'<span class="ru">'+H+'</span></div>'+
+      '<div class="ksub">verfügbar nach Fixkosten'+(bq!=null&&bq>0?" · "+bq+" % der Einnahmen":"")+'</div>'+
+      (bvT?'<div class="kvs'+bvC+'"><i>'+(bpmD>0?"↑":"↓")+"</i>"+bvT+"</div>":"")+"</div>";
+    var brow='<div class="krow"><div class="kc'+(sm.inc<0.005?" nil":"")+'"><em>Einnahmen</em><b>'+money(sm.inc)+'</b></div>'+
+      '<div class="kc r'+(sm.fix<0.005?" nil":"")+'"><em>Fixkosten</em><b>'+money(sm.fix)+'</b>'+"</div></div>";
+    var bfoot='<div class="krow kfoot"><div class="kc"><em>Verfügbar '+Y+'</em><b class="'+(tFree<0?"up":"")+'">'+(tFree<0?"−":"")+nf0.format(Math.abs(tFree))+'</b></div>'+
+      '<div class="kc r"><em>Ø pro Monat</em><b class="'+(bav<0?"up":"")+'">'+(bav<0?"−":"")+nf0.format(Math.abs(bav))+"</b></div></div>";
+    o+='<div class="readout mcard kcard" style="display:block">'+bh+brow+bc+bfoot+"</div>";
   }
   o+='<div class="grp"><div class="grphead"><span>Einnahmen</span><span>'+(incs.length?"Ø "+nf0.format(tInc/12)+" "+H+"/Mt.":"")+"</span></div>";
   incs.forEach(function(c){
