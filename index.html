@@ -1368,7 +1368,9 @@ function nextTerm(c,base){
   return null;
 }
 function termEnd(c){return effEnd(c)||nextTerm(c);}
-function noticeDeadline(c){var e=termEnd(c);return e?nDl(c,e):null;}
+/* Steuern lassen sich nicht kündigen: keine Frist, nicht in «Fristen» */
+function isTax(c){return /^Steuern/i.test(String(c.cat||""));}
+function noticeDeadline(c){if(isTax(c))return null;var e=termEnd(c);return e?nDl(c,e):null;}
 function urgency(c){
   var d=noticeDeadline(c);if(!d)return {lvl:"",days:null,date:null};
   var days=daysBetween(today(),d);
@@ -1572,7 +1574,7 @@ function renderView(){
     v.innerHTML=lfbar+out+ab;return;
   }
   if(state.tab==="term"){
-    a=ar;
+    a=ar.filter(function(c){return !isTax(c);});
     var H=esc(state.settings.home),t1=today(),o="";
     var isP=isAnytime;
     var ddmm=function(d){return ("0"+d.getDate()).slice(-2)+"."+("0"+(d.getMonth()+1)).slice(-2)+"."+(d.getFullYear()===t1.getFullYear()?"":String(d.getFullYear()).slice(-2));};
