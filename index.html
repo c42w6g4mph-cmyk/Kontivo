@@ -191,8 +191,9 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .fbar{display:flex;align-items:center;gap:6px;overflow-x:auto;margin:12px -17px 0;padding:2px 17px;scrollbar-width:none}
 .fbar::-webkit-scrollbar{display:none}
 .fbar3{display:flex;gap:6px;margin:12px 0 0}
-.fbar3 .fsel{flex:1 1 0;max-width:none;min-width:0;justify-content:center;padding:8px 10px 8px 12px}
-.fbar3 .fsel.on{flex-grow:2.2}
+.fbar3 .fsel{flex:1 1 auto;max-width:none;min-width:0;justify-content:center;gap:5px;padding:8px 9px 8px 11px}
+.fbar3 .fsel.on{flex-grow:2}
+.fclr{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink2);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0 0 2px}
 .fsel{flex:none;display:inline-flex;align-items:center;gap:7px;max-width:170px;padding:7px 11px 7px 13px;border-radius:999px;
   border:1px solid var(--line);background:var(--surface);font-size:12.5px;color:var(--ink2)}
 .fsel span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1661,7 +1662,7 @@ function renderStat(v){
     if(!months[sel].sum&&tot){var nx=-1;for(var j=0;j<12;j++){var q=(sel+j)%12;if(months[q].sum){nx=q;break;}}if(nx>=0){sel=nx;state.sel=nx;}}}
   setTopYear(Y,nowY);var o='';
   var fn=fltCount();
-  o+='<div class="fbar3" role="group" aria-label="Filter">'+fselHtml("cat","Kategorie")+fselHtml("partner","Partner")+fselHtml("holder","Inhaber")+"</div>";
+  o+='<div class="fbar3" role="group" aria-label="Filter">'+fselHtml("cat","Kategorie")+fselHtml("partner","Partner")+fselHtml("holder","Inhaber")+(fn?'<button class="fclr" data-fclear type="button" aria-label="Alle Filter zurücksetzen">×</button>':"")+"</div>";
   var noStart=pool.filter(function(c){return !c.start&&c.status!=="cancelled";}).length;
   var hint=(Y<nowY&&noStart)?'<p class="note" style="margin:8px 0 0">'+noStart+(noStart===1?" Vertrag hat":" Verträge haben")+
     ' keinen Vertragsbeginn und '+(noStart===1?"wird":"werden")+' deshalb rückwirkend voll gezählt.</p>':"";
@@ -1818,7 +1819,7 @@ function renderBudget(v){
   incList().forEach(function(c){var f=shr(c);if(f)occurrences(c,from,to).forEach(function(d){M[d.getMonth()].inc+=conv(priceAt(c,d),c.cur)*f;});});
   Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k],f=shr(c);if(!f)return;
     occurrences(c,from,to).forEach(function(d){M[d.getMonth()].fix+=conv(priceAt(c,d),c.cur)*f;});});
-  var bhf='<div class="fbar3 one" role="group" aria-label="Filter"><button class="fsel'+(BH?" on":"")+'" data-bsheet><span>'+esc(BH||"Inhaber")+"</span></button></div>";
+  var bhf='<div class="fbar3 one" role="group" aria-label="Filter"><button class="fsel'+(BH?" on":"")+'" data-bsheet><span>'+esc(BH||"Inhaber")+"</span></button>"+(BH?'<button class="fclr" data-bhdel type="button" aria-label="Filter zurücksetzen">×</button>':"")+"</div>";
   state._bHL=HL;
   var tInc=0,tFix=0;
   M.forEach(function(m){m.free=m.inc-m.fix;tInc+=m.inc;tFix+=m.fix;});
