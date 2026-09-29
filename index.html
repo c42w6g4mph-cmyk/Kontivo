@@ -932,6 +932,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <div class="sugg" id="fSugg"></div>
   <div class="flabel">Kategorie</div>
   <button type="button" class="catfield" id="fCats"><span class="cfi" id="fCatIcon"></span><span class="cfn" id="fCatName">Kategorie wählen</span><span class="chev">›</span></button>
+  <div id="fHoldWrap" hidden><div class="flabel" style="margin-top:14px">Inhaber — mehrere möglich</div><div class="chips" id="fHolders"></div></div>
 
   <h3 class="step"><span>2</span>Kosten</h3>
   <div class="two">
@@ -980,7 +981,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
 
   <div class="optdiv">Weitere Angaben — optional</div>
 
-  <details class="opt" id="oTerm"><summary>Kündigung &amp; Fristen</summary><div class="optbody">
+  <details class="opt" id="oTerm"><summary>Verlängerung &amp; Kündigungsweg</summary><div class="optbody">
     <div class="field"><label for="fWatch">In «Fristen» anzeigen</label><select id="fWatch">
       <option value="">Ja</option>
       <option value="mand">Nein – Pflichtvertrag</option>
@@ -994,9 +995,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
     </div>
   </div></details>
 
-  <details class="opt" id="oAssign"><summary>Inhaber &amp; Zahlung</summary><div class="optbody">
-    <div class="flabel">Vertragsinhaber — mehrere möglich</div>
-    <div class="chips" id="fHolders"></div>
+  <details class="opt" id="oAssign"><summary>Kundennummer &amp; Zahlung</summary><div class="optbody">
     <div class="two">
       <div class="field"><label for="fCustNo">Kundennummer</label><input id="fCustNo" type="text" autocomplete="off"></div>
       <div class="field"><label for="fContrNo">Vertragsnummer</label><input id="fContrNo" type="text" autocomplete="off"></div>
@@ -2060,6 +2059,7 @@ function paintHolders(){
   var el=document.getElementById("fHolders");el.innerHTML="";
   var all=(state.settings.holders||["Ich"]).slice();
   (draft.holders||[]).forEach(function(h){if(all.indexOf(h)<0)all.push(h);});
+  document.getElementById("fHoldWrap").hidden=all.length<2;
   all.forEach(function(h){
     var b=document.createElement("button");b.type="button";b.className="chip";b.textContent=h;
     b.setAttribute("aria-pressed",(draft.holders||[]).indexOf(h)>=0);
@@ -2071,7 +2071,7 @@ function paintHolders(){
 function openForm(c,asCopy){clearCands();
   editId=(c&&!asCopy)?c._id:null;
   draft={cat:(c&&c.cat)||"",color:(c&&c.color)||"",logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",
-    docs:(c&&c.docs&&!asCopy?c.docs.slice():[]),prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),holders:c?holdersOf(c).slice():[(state.settings.holders||["Ich"])[0]]};
+    docs:(c&&c.docs&&!asCopy?c.docs.slice():[]),prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),holders:c?holdersOf(c).slice():(function(){var HL=state.settings.holders||["Ich"],lh=(state.settings.lastHolders||[]).filter(function(h){return HL.indexOf(h)>=0;});return lh.length?lh:[HL[0]];})()};
   document.getElementById("formTitle").textContent=asCopy?"Duplizieren":(c?"Bearbeiten":"Neuer Vertrag");
   document.getElementById("fPartner").value=(c&&c.partner)||"";
   document.getElementById("fLabel").value=(c&&c.label)||"";
@@ -2100,11 +2100,10 @@ function openForm(c,asCopy){clearCands();
   paintHolders();
   document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";
   paintPrices();
-  var holdersChanged=draft.holders.length!==1||draft.holders[0]!==(state.settings.holders||["Ich"])[0];
   document.getElementById("oPrice").open=draft.prices.length>0;
   document.getElementById("oTerm").open=!!(c&&(c.cancF||c.trial||c.mand||c.noWatch));
   setTermMode((c&&(c.end||c.renew))?"fixed":"open");
-  document.getElementById("oAssign").open=!!(c&&(c.custNo||c.contrNo||c.payM||c.payA))||(!!c&&holdersChanged);
+  document.getElementById("oAssign").open=!!(c&&(c.custNo||c.contrNo||c.payM||c.payA));
   document.getElementById("oLogo").open=false;document.getElementById("logoTap").setAttribute("aria-expanded","false");
   document.getElementById("oContact").open=!!(c&&(c.web||c.tel||c.mail||c.note))||draft.docs.length>0;
   paintCats();paintSwatches();paintLogo();paintDocs();
@@ -2392,6 +2391,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   if(!editId&&!c.logoId&&c.partner){var sib=samePartner(c.partner).filter(function(k){var o=state.contracts[k];return o.logoId&&KBlob.has(o.logoId);})[0];
     if(sib){c.logoId=state.contracts[sib].logoId;c.logoBg=state.contracts[sib].logoBg||"#FFFFFF";}}
   var cid=editId||uid();putContract(cid,c);
+  if(!editId&&(state.settings.holders||[]).length>1&&(c.holders||[]).length&&(c.holders||[]).join("|")!==(state.settings.lastHolders||[]).join("|")){state.settings.lastHolders=c.holders.slice();saveSettings();}
   closeSheets();render();toast(editId?"Aktualisiert":"Vertrag angelegt");
   if(!editId&&!c.logoId&&(c.partner||c.label))autoAttach("c",cid,c.partner,c.cur,c.label,c.web);
 });
@@ -3210,7 +3210,7 @@ function paintMdSummary(){
   var e1=document.getElementById("mdSumP");if(!e1)return;
   e1.textContent=d?d+(d===1?" Dublette":" Dubletten"):pg.length+" Partner";
   e1.style.color=d?"var(--warn)":"";e1.style.fontWeight=d?"600":"";
-  document.getElementById("mdSumH").textContent=(state.settings.holders||["Ich"]).length+"";
+  document.getElementById("mdSumH").textContent=holderStats().length+"";
   document.getElementById("mdSumC").textContent=allCats().length+"";
   var eq=document.getElementById("mdSumQ");if(eq){var qq=qualItems(),nq=qq.A.length+qq.B.length;
     eq.textContent=nq?nq+(nq===1?" Hinweis":" Hinweise"):"gut ✓";eq.style.color=nq?"var(--warn)":"var(--ok)";eq.style.fontWeight="600";}
