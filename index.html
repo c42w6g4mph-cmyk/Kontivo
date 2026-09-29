@@ -14,9 +14,6 @@
 <meta name="theme-color" id="themeColor" content="#F3F1EC">
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221024%22 height=%221024%22 viewBox=%220 0 1024 1024%22%3E%3Cdefs%3E%3C/defs%3E%3Cg%3E%3Crect width=%221024%22 height=%221024%22 rx=%22228%22 fill=%22#0E5A5E%22/%3E%3CclipPath id=%22cu1%22%3E%3Crect x=%220%22 y=%22292%22 width=%221024%22 height=%22440%22/%3E%3C/clipPath%3E%3Cpolygon points=%22339.78,292.00 393.78,292.00 439.78,349.50 439.78,732.00 339.78,732.00%22 fill=%22#F3F1EC%22/%3E%3Cg clip-path=%22url(#cu1)%22%3E%3Cpath d=%22M693.00,792 L469.00,512 L693.00,232%22 fill=%22none%22 stroke=%22#0E5A5E%22 stroke-width=%22144%22 stroke-linejoin=%22miter%22 stroke-miterlimit=%2210%22/%3E%3Cpath d=%22M693.00,792 L469.00,512 L693.00,232%22 fill=%22none%22 stroke=%22#F3F1EC%22 stroke-width=%2280%22 stroke-linejoin=%22miter%22 stroke-miterlimit=%2210%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --paper:#F3F1EC;
@@ -540,6 +537,7 @@ body.hasplus .topadd{display:inline-flex}
 .qh{margin:18px 0 2px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
 .qh.w{color:var(--warn)}
 .qhr{display:flex;align-items:flex-end;justify-content:space-between}.qhr .qh{margin-bottom:0}.qhr .qig{padding-bottom:2px}
+.qsrow{display:flex;align-items:center;gap:4px}.qsrow .qsopt{flex:1;min-width:0;margin-bottom:7px}
 .qig.qsr{color:var(--teal);font-weight:600}
 .qok{padding:18px 0;color:var(--ink2);font-size:14px}
 .chk{flex:none;width:22px;height:22px;border-radius:50%;border:1.6px solid var(--ink3);position:relative}
@@ -875,7 +873,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <details class="legal"><summary>Datenschutz</summary>
     <p class="note">Kontivo hat kein Benutzerkonto, keine Werbung, kein Tracking und keine Analyse. Deine Verträge, Logos und Dokumente werden nur lokal auf diesem Gerät gespeichert und nicht an Kontivo übermittelt.</p>
     <p class="note">Für einzelne Funktionen ruft die App externe Dienste auf. Dabei wird technisch bedingt deine IP-Adresse übertragen:</p>
-    <p class="note">• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.<br>• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst), images.weserv.nl und unavatar.io.<br>• Schriftart: Google Fonts.<br>• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.</p>
+    <p class="note">• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.<br>• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst), images.weserv.nl und unavatar.io.<br>• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.</p>
     <p class="note">Backups und CSV-Dateien erstellst und speicherst du selbst. Ohne Backup gehen deine Daten beim Löschen der App oder der Website-Daten verloren. Mit «Alle Daten löschen» entfernst du alles vom Gerät.</p></details>
     <details class="legal"><summary>Marken und Logos</summary>
     <p class="note">Logos, Marken und Firmennamen gehören ihren jeweiligen Inhabern. Sie werden nur zur Wiedererkennung deiner eigenen Verträge angezeigt. Kontivo steht in keiner Verbindung zu den genannten Anbietern und wird von ihnen weder unterstützt noch gesponsert.</p></details></div>
@@ -3143,11 +3141,10 @@ function qualItems(){
 var qsr={items:[],miss:[],busy:false};
 async function qFindOne(o){
   var g=partnerGroups().filter(function(x){return x.key===o.pk;})[0];if(!g)return null;
-  if(g.web){var dm=regDom(domainOf(g.web));return dm?{pk:o.pk,name:g.name,cand:{name:g.name,dom:dm,file:""},sure:true,needWeb:false,needLogo:o.needLogo}:null;}
-  var ws=[];try{ws=await webPartners(g.name);}catch(e){ws=[];}
-  if(!ws.length)return null;
-  var ex=ws.filter(function(w){return pkey(w.name)===pkey(g.name);})[0];
-  return {pk:o.pk,name:g.name,cand:ex||ws[0],sure:!!ex,needWeb:o.needWeb,needLogo:o.needLogo};
+  var c0=state.contracts[g.ids[0]]||{},cs=[];
+  try{cs=await allCands(g.name,c0.cur||"CHF",null,g.web||"",false);}catch(e){cs=[];}
+  if(!cs.length)return null;
+  return {pk:o.pk,name:g.name,cand:cs[0],sure:cs[0].score>=3,needLogo:o.needLogo};
 }
 async function qSearch(which){
   if(qsr.busy)return;
@@ -3166,32 +3163,22 @@ async function qSearch(which){
 function paintQs(){
   var it=qsr.items,n=it.filter(function(x){return x.on;}).length,h="";
   if(it.length){
-    h+='<p class="note" style="margin:0 0 8px">Tippe auf einen Eintrag, um ihn an- oder abzuwählen. Unsichere Treffer sind nicht vorausgewählt.</p>';
-    h+=it.map(function(x,i){var w=x.cand,img=w.file?"https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.file)+"?width=96":"https://www.google.com/s2/favicons?sz=64&domain="+encodeURIComponent(w.dom);
-      return '<button class="mdopt qsopt" data-qsel="'+i+'" aria-pressed="'+!!x.on+'" type="button"><span class="rad"></span><span class="t" style="flex:1;min-width:0"><b>'+esc(x.name)+'</b><br><small>'+(x.sure?"":"Unsicher: «"+esc(w.name)+"» · ")+esc(w.dom)+
-        " · Logo"+'</small></span><img src="'+esc(img)+'" alt="" width="32" height="32" style="border-radius:6px;background:#fff;object-fit:contain" onerror="this.remove()"></button>';}).join("");
+    h+='<p class="note" style="margin:0 0 8px">Tippe auf einen Eintrag, um ihn an- oder abzuwählen. Unsichere Treffer sind nicht vorausgewählt. «Andere …» zeigt alle Vorschläge wie im Vertrag.</p>';
+    h+=it.map(function(x,i){var w=x.cand,img=w.thumb||w.url;
+      return '<div class="qsrow"><button class="mdopt qsopt" data-qsel="'+i+'" aria-pressed="'+!!x.on+'" type="button"><span class="rad"></span><span class="t" style="flex:1;min-width:0"><b>'+esc(x.name)+'</b><br><small>'+(x.sure?"Guter Treffer":"Unsicher")+(w.src&&LSRC[w.src]?" · "+LSRC[w.src]:"")+'</small></span><img src="'+esc(img)+'" alt="" width="40" height="40" style="border-radius:9px;background:#fff;object-fit:contain" onerror="this.remove()"></button>'+
+        '<button class="qig qsr" type="button" data-qmore="'+esc(x.pk)+'">Andere …</button></div>';}).join("");
     h+='<button class="lbtn main" id="qsGo" type="button" style="margin-top:12px"'+(n?"":" disabled")+'>'+(n?n+(n===1?" Vorschlag übernehmen":" Vorschläge übernehmen"):"Nichts ausgewählt")+'</button>';
   }
   if(qsr.miss.length)h+='<p class="note" style="margin:12px 0 0">Nichts gefunden: '+esc(qsr.miss.join(", "))+'. Diese über die Vertragspartner-Pflege oder «Logo automatisch finden» im Vertrag ergänzen.</p>';
   if(!it.length&&!qsr.miss.length)h='<p class="note">Kein Ergebnis.</p>';
   openMe(it.length?"Vorschläge":"Keine Treffer",h);
 }
-async function qLogoFor(w,needLogo){
-  if(!needLogo||!assets)return null;
-  try{
-    if(w.file){var q=await rateJson("https://commons.wikimedia.org/w/api.php?format=json&origin=*&action=query&prop=imageinfo&iiprop=url|size&iiurlwidth=512&titles="+encodeURIComponent("File:"+w.file)).catch(function(){return null;});
-      var pg=q&&q.query&&q.query.pages,ii=pg&&Object.keys(pg).map(function(k){return pg[k].imageinfo&&pg[k].imageinfo[0];}).filter(Boolean)[0];
-      if(ii&&(ii.thumburl||ii.url)){var t=await takeLogo({url:ii.thumburl||ii.url,src:"wiki"});if(t&&t.id)return t;}}
-    var sc=await siteCand(regDom(w.dom),3);if(sc){var t2=await takeLogo(sc);if(t2&&t2.id)return t2;}
-  }catch(e){}
-  return null;
-}
 async function qApply(){
   var sel=qsr.items.filter(function(x){return x.on;});if(!sel.length||qsr.busy)return;
   qsr.busy=true;var nW=0,nL=0,i=0;
   for(var a=0;a<sel.length;a++){var x=sel[a];i++;toast("Übernehme "+i+"/"+sel.length+" …");
     var g=partnerGroups().filter(function(o){return o.key===x.pk;})[0];if(!g)continue;
-    var lg=await qLogoFor(x.cand,x.needLogo&&!g.logoC);
+    var lg=null;if(!g.logoC&&assets){try{lg=await takeLogo(x.cand);}catch(e){lg=null;}if(lg&&!lg.id)lg=null;}
     g.ids.forEach(function(k){var c=state.contracts[k];if(!c)return;var nc=Object.assign({},c),ch=false;
       if(lg&&!(c.logoId&&KBlob.has(c.logoId))){nc.logoId=lg.id;nc.logoBg=lg.bg||"#FFFFFF";ch=true;nL++;}
       if(ch)putContract(k,nc);});
@@ -3273,6 +3260,7 @@ function closeMe(){closeSheetEl("sheetMe");}
 function closeMd(){closeSheetEl("sheetMd");closeSheetEl("sheetMe");}
 
 /* --- Vertragspartner bearbeiten --- */
+function openPeSearch(pk){openPe(pk);setTimeout(function(){var b=document.getElementById("peAuto");if(b)b.click();},250);}
 function reopenDetail(){var id=peFrom;peFrom="";if(id&&state.contracts[id]&&document.getElementById("sheetDetail").classList.contains("on"))openDetail(id);}
 function openPe(key){
   var g=partnerGroups().filter(function(o){return o.key===key;})[0];if(!g)return;
@@ -3446,7 +3434,8 @@ document.addEventListener("click",function(ev){
   if(t.closest("#qReset")){state.settings.qIgn={};saveSettings();paintMd();return;}
   if((x=t.closest("[data-qc]"))){var qid=x.dataset.qc,qc=state.contracts[qid];if(qc){var qo=Object.assign({},qc);qo._id=qid;closeMd();setTimeout(function(){openForm(qo);},200);}return;}
   if((x=t.closest("[data-qp]"))){openPe(x.dataset.qp);return;}
-  if((x=t.closest("[data-qs]"))){qSearch(x.dataset.qs);return;}
+  if((x=t.closest("[data-qmore]"))){openPeSearch(x.dataset.qmore);return;}
+  if((x=t.closest("[data-qs]"))){if(x.dataset.qs==="*")qSearch("*");else openPeSearch(x.dataset.qs);return;}
   if((x=t.closest("[data-qsel]"))){var qi=qsr.items[+x.dataset.qsel];if(qi){qi.on=!qi.on;paintQs();}return;}
   if(t.closest("#qsGo")){qApply();return;}
   if((x=t.closest("[data-pe]"))){openPe(x.dataset.pe);return;}
