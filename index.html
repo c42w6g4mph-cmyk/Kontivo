@@ -2601,7 +2601,23 @@ function logoSearch(name,target){
 /* Zurück aus Google: Einfügen hervorheben */
 document.addEventListener("visibilitychange",function(){
   if(document.visibilityState!=="visible"||!webWait)return;
-  toast("Bild kopiert? Jetzt «Einfügen» tippen");});
+  var tg=webWait;
+  /* Automatisch einfügen versuchen; iOS erlaubt das nur mit Bestätigung, dann bleibt der Hinweis */
+  (async function(){
+    try{
+      if(!(navigator.clipboard&&navigator.clipboard.read))throw 0;
+      var items=await navigator.clipboard.read();
+      for(var i=0;i<items.length;i++){
+        var t=items[i].types.filter(function(x){return /^image\//.test(x);})[0];
+        if(t&&webWait===tg){var bl=await items[i].getType(t);
+          cropTarget=tg;webWait=null;
+          ["logoPaste","iLogoPaste"].forEach(function(id){document.getElementById(id).classList.remove("pulse");});
+          ["logoCands","iLogoCands"].forEach(function(id){var b=document.getElementById(id);if(b&&b.querySelector(".webhint"))b.innerHTML="";});
+          openCrop(bl);return;}
+      }
+      throw 0;
+    }catch(e){if(webWait)toast("Bild kopiert? Jetzt «Einfügen» tippen");}
+  })();});
 async function pasteLogo(target){
   cropTarget=target;webWait=null;
   ["logoPaste","iLogoPaste"].forEach(function(id){document.getElementById(id).classList.remove("pulse");});
