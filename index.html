@@ -3149,7 +3149,7 @@ function paintMdSummary(){
   document.getElementById("mdSumH").textContent=(state.settings.holders||["Ich"]).length+"";
   document.getElementById("mdSumC").textContent=allCats().length+"";
   var eq=document.getElementById("mdSumQ");if(eq){var qq=qualItems(),nq=qq.A.length+qq.B.length;
-    eq.textContent=nq?nq+(nq===1?" Hinweis":" Hinweise"):"✓ gut";eq.style.color=nq?"var(--warn)":"var(--ok)";eq.style.fontWeight="600";}
+    eq.textContent=nq?nq+(nq===1?" Hinweis":" Hinweise"):"gut ✓";eq.style.color=nq?"var(--warn)":"var(--ok)";eq.style.fontWeight="600";}
 }
 function openMd(which){
   mdCur=which;
