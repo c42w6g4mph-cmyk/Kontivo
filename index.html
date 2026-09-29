@@ -538,6 +538,7 @@ body.hasplus .topadd{display:inline-flex}
 .qig{flex:none;font-size:12px;color:var(--ink3);padding:10px 6px}
 .qh{margin:18px 0 2px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
 .qh.w{color:var(--warn)}
+.qhr{display:flex;align-items:flex-end;justify-content:space-between}.qhr .qh{margin-bottom:0}.qhr .qig{padding-bottom:2px}
 .qok{padding:18px 0;color:var(--ink2);font-size:14px}
 .chk{flex:none;width:22px;height:22px;border-radius:50%;border:1.6px solid var(--ink3);position:relative}
 .chk.on{background:var(--teal);border-color:var(--teal)}
@@ -3126,16 +3127,17 @@ function qualItems(){
   });
   out.ign=nIg;return out;
 }
+var qOpen=false;
 function paintMdQual(){
-  var b=document.getElementById("mdBody"),q=qualItems();
+  var b=document.getElementById("mdBody"),q=qualItems(),od=b.querySelector(".qdet");if(od)qOpen=od.open;
   function rows(a){return a.map(function(o){
     return '<div class="qrow"><button class="mdrow" type="button" '+(o.kind==="c"?'data-qc="'+esc(o.id)+'"':'data-qp="'+esc(o.pk)+'"')+'>'+markHtml(o.c)+'<span class="t"><b>'+esc(o.name)+'</b><small>'+esc(o.why)+(o.sub?" · "+esc(o.sub):"")+'</small></span></button>'+
       '<button class="qig" type="button" data-qig="'+esc(o.key)+'">Ignorieren</button></div>';}).join("");}
-  function sec(t,a,w){return a.length?'<h4 class="qh'+(w?" w":"")+'">'+t+" · "+a.length+"</h4>"+rows(a):"";}
+  function sec(t,a,w,g){return a.length?'<div class="qhr"><h4 class="qh'+(w?" w":"")+'">'+t+" · "+a.length+'</h4><button class="qig" type="button" data-qall="'+g+'">Alle ignorieren</button></div>'+rows(a):"";}
   var n=q.A.length+q.B.length;
-  var h=sec("Beeinflusst die Zahlen",q.A,1)+sec("Fristen",q.B,1);
+  var h=sec("Beeinflusst die Zahlen",q.A,1,"A")+sec("Fristen",q.B,1,"B");
   if(!n)h='<p class="qok">Bei Zahlen und Fristen ist alles vollständig.</p>';
-  if(q.C.length)h+='<details class="qdet"><summary class="qh" style="cursor:pointer">Kosmetik · '+q.C.length+"</summary>"+rows(q.C)+"</details>";
+  if(q.C.length)h+='<details class="qdet"'+(qOpen?" open":"")+'><summary class="qh" style="cursor:pointer">Kosmetik · '+q.C.length+'</summary><div style="text-align:right"><button class="qig" type="button" data-qall="C">Alle ignorieren</button></div>'+rows(q.C)+"</details>";
   if(q.ign)h+='<p class="note" style="margin:16px 0 0">'+q.ign+" ignoriert · <button class=\"dlink\" style=\"font-weight:500\" type=\"button\" id=\"qReset\">Zurücksetzen</button></p>";
   b.innerHTML=h;
 }
@@ -3372,6 +3374,7 @@ document.addEventListener("click",function(ev){
   if(t.closest("#mdClose")){closeMd();return;}
   if(t.closest("#meClose")){closeMe();return;}
   if((x=t.closest("[data-qig]"))){var ob=Object.assign({},qIgn());ob[x.dataset.qig]=1;state.settings.qIgn=ob;saveSettings();paintMd();return;}
+  if((x=t.closest("[data-qall]"))){var ob2=Object.assign({},qIgn()),g2=x.dataset.qall;qualItems()[g2].forEach(function(o){ob2[o.key]=1;});state.settings.qIgn=ob2;saveSettings();paintMd();return;}
   if(t.closest("#qReset")){state.settings.qIgn={};saveSettings();paintMd();return;}
   if((x=t.closest("[data-qc]"))){var qid=x.dataset.qc,qc=state.contracts[qid];if(qc){var qo=Object.assign({},qc);qo._id=qid;closeMd();setTimeout(function(){openForm(qo);},200);}return;}
   if((x=t.closest("[data-qp]"))){openPe(x.dataset.qp);return;}
