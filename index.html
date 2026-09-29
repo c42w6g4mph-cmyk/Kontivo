@@ -517,6 +517,7 @@ body.hasplus .topadd{display:inline-flex}
 .catchip .pci{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
 .catchip .cicon{width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .catchip .pci{display:flex;align-items:center;justify-content:center;flex:none}
+.dupnote{margin-top:6px;font-size:12.5px;color:var(--warn)}
 .legal{margin-top:8px}.legal summary{font-size:13px;color:var(--ink3);cursor:pointer}.legal .note{margin:8px 0 0;font-size:12.5px}
 .ceic .cicon{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ceic{display:inline-flex;align-items:center;justify-content:center}
@@ -881,7 +882,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml">
   </div></details>
   <div class="field"><label for="fLabel">Bezeichnung</label><input id="fLabel" type="text" placeholder="z.B. Handy-Abo" autocomplete="off"></div>
-  <div class="field"><label for="fPartner">Vertragspartner</label><input id="fPartner" type="text" placeholder="z.B. Swisscom" autocomplete="off"></div>
+  <div class="field"><label for="fPartner">Vertragspartner</label><input id="fPartner" type="text" placeholder="z.B. Swisscom" autocomplete="off"><div class="dupnote" id="dupHint" hidden></div></div>
   <div class="sugg" id="fSugg"></div>
   <div class="flabel">Kategorie</div>
   <button type="button" class="catfield" id="fCats"><span class="cfi" id="fCatIcon"></span><span class="cfn" id="fCatName">Kategorie wählen</span><span class="chev">›</span></button>
@@ -1957,7 +1958,17 @@ function paintSwatches(){
 }
 function rgbEq(a,b){var t=document.createElement("i");t.style.background=b;return a===t.style.background;}
 function clearCands(){["logoCands","iLogoCands"].forEach(function(id){var b=document.getElementById(id);if(b){b.innerHTML="";b.onclick=null;}});}
-function paintLogo(){
+function paintDup(){
+  var el=document.getElementById("dupHint");if(!el)return;
+  var pn=document.getElementById("fPartner").value,lb=lnorm(document.getElementById("fLabel").value),
+    am=parseNum(document.getElementById("fAmt").value),cu=document.getElementById("fCur").value;
+  var hit=null;
+  if(pkey(pn)){hit=samePartner(pn).map(function(k){return state.contracts[k];}).filter(function(c){
+    return (lb&&lnorm(c.label)===lb)||(am!=null&&am>0&&curPrice(c)===am&&(c.cur||"CHF")===cu);})[0];}
+  if(hit){el.textContent="Mögliches Duplikat: «"+(hit.label||hit.partner)+"» ("+money(curPrice(hit))+" "+(hit.cur||"CHF")+") existiert bereits. Du kannst trotzdem speichern.";el.hidden=false;}
+  else el.hidden=true;
+}
+function paintLogo(){paintDup();
   var p=document.getElementById("logoPrev"),name=document.getElementById("fPartner").value||document.getElementById("fLabel").value;
   if(draft.logoId&&KBlob.has(draft.logoId)){p.style.background=draft.logoBg||"#fff";p.innerHTML='<img src="'+esc(KBlob.url(draft.logoId))+'" alt="">';
     document.getElementById("logoDel").hidden=false;}
@@ -2043,6 +2054,7 @@ function openForm(c,asCopy){clearCands();
 }
 
 document.getElementById("fPartner").addEventListener("input",paintLogo);
+document.getElementById("fAmt").addEventListener("input",paintDup);document.getElementById("fCur").addEventListener("change",paintDup);
 /* ---------- Anbieterkatalog Schweiz / Deutschland ---------- */
 /* [Name, Land, Kategorie, Bezeichnung, Web, Frist, Einheit, Kündbar per, Kündigung per, Pflicht, Hinweis] */
 var H_KVG="Grundversicherung: per 31.12. kündbar, Kündigung muss bis 30.11. eingetroffen sein. Mit Mindestfranchise und Standardmodell (freie Arztwahl) zusätzlich per 30.06., Kündigung bis 31.03. Zusatzversicherungen haben eigene Fristen.";
