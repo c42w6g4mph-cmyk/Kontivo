@@ -508,9 +508,13 @@ body.hasplus .topadd{display:inline-flex}
 .pick.pickcat .pcn{flex:1;font-size:16px;color:var(--ink);white-space:normal}
 .pick.pickcat[aria-pressed="true"] .pcn{color:var(--ink)}
 .pick.pickcat[aria-pressed="true"]{background:color-mix(in srgb,var(--teal) 12%,var(--field));color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--teal)}
-.catrow .cr{display:flex;align-items:center;gap:12px}
-.catrow .pci{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none}
-.catrow .cicon,.ceic .cicon{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#sCatList{display:flex;flex-wrap:wrap;gap:7px}
+.catchip{display:inline-flex;align-items:center;gap:7px;padding:4px 11px 4px 4px;border:1px solid var(--line);border-radius:999px;font-size:14px;color:var(--ink)}
+.catchip .pci{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
+.catchip .cicon{width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.catchip .pci{display:flex;align-items:center;justify-content:center;flex:none}
+.legal{margin-top:8px}.legal summary{font-size:13px;color:var(--ink3);cursor:pointer}.legal .note{margin:8px 0 0;font-size:12.5px}
+.ceic .cicon{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ceic{display:inline-flex;align-items:center;justify-content:center}
 .lbtn[disabled]{opacity:.4}
 .catadd{display:flex;gap:8px;margin-top:8px}
@@ -815,7 +819,11 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <button class="lbtn del" id="wipeAll" type="button" style="margin-top:10px">Alle Daten löschen</button>
     <p class="note" id="reviewStamp" hidden></p></div>
   <div class="sgroup"><div class="sgh">Hinweise</div>
-    <p class="note" style="margin:0">Wechselkurse werden täglich automatisch aktualisiert (Referenzkurse der EZB). An Fristen erinnert die App beim Öffnen.</p></div>
+    <p class="note" style="margin:0">Wechselkurse werden täglich automatisch aktualisiert (Referenzkurse der EZB).</p>
+    <details class="legal"><summary>Rechtliches</summary>
+    <p class="note">Alle Angaben ohne Gewähr. Kündigungsfristen, Preise und Kündigungsschreiben ersetzen keine Rechtsberatung – massgebend sind dein Vertrag und die Angaben des Anbieters. Wechselkurse sind Richtwerte.</p>
+    <p class="note">Deine Daten liegen nur auf diesem Gerät. Backups und Dateien sicherst du selbst; ohne Backup gehen sie bei Löschung der App verloren.</p>
+    <p class="note">Für die Logosuche werden Firmennamen und Webadressen an Apple (iTunes), Wikidata/Wikimedia, Google (Favicons) und images.weserv.nl gesendet. Logos und Marken gehören ihren Inhabern und dienen nur der Erkennung. Kontivo steht in keiner Verbindung zu den genannten Anbietern.</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b>Kontivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
   <div class="bver">Version 1.0</div>
@@ -2931,15 +2939,15 @@ function catCount(n){return Object.keys(state.contracts).filter(function(k){retu
 function paintSetCats(){
   var el=document.getElementById("sCatList");
   el.innerHTML=catList().map(function(x,i){var n=catCount(x.n);
-    return '<button class="srowbtn catrow" data-ce="'+i+'" type="button"><span class="cr"><span class="pci" style="background:'+catColor(x.n)+'">'+catIcon(x.n)+'</span>'+esc(x.n)+'</span><em>'+n+(n===1?" Vertrag":" Verträge")+' ›</em></button>';}).join("");
+    return '<button class="catchip" data-ce="'+i+'" type="button"><span class="pci" style="background:'+catColor(x.n)+'">'+catIcon(x.n)+'</span>'+esc(x.n)+'</button>';}).join("");
 }
 function openCatEdit(i){
   var l=catList(),x=i==null?{n:"",c:COLORS[(l.length+3)%COLORS.length],i:"tag"}:l[i];
   ceD={idx:i,old:i==null?null:x.n,n:x.n,c:x.c||catColor(x.n),i:x.i||"tag"};
   document.getElementById("pickTitle").textContent=i==null?"Neue Kategorie":"Kategorie bearbeiten";
   var pl=document.getElementById("pickList");pl.dataset.dim="catedit";
-  var fixed=ceD.old==="Sonstiges";
-  pl.innerHTML='<div class="flabel" style="margin:0 0 6px">Name</div><div class="catadd" style="margin:0 0 14px"><input id="ceName" type="text" maxlength="30" autocomplete="off" value="'+esc(ceD.n)+'"'+(fixed?' disabled':'')+'></div>'+
+  var fixed=ceD.old==="Sonstiges",cn=ceD.old==null?0:catCount(ceD.old);
+  pl.innerHTML=(ceD.old==null?"":'<p class="note" style="margin:-4px 0 12px;font-size:12px">'+cn+(cn===1?" Vertrag":" Verträge")+' in dieser Kategorie</p>')+'<div class="flabel" style="margin:0 0 6px">Name</div><div class="catadd" style="margin:0 0 14px"><input id="ceName" type="text" maxlength="30" autocomplete="off" value="'+esc(ceD.n)+'"'+(fixed?' disabled':'')+'></div>'+
     '<div class="flabel" style="margin:0 0 6px">Farbe</div><div class="swatches" id="ceCols"></div>'+
     '<div class="flabel" style="margin:0 0 6px">Symbol</div><div class="swatches" id="ceIcons"></div>'+
     '<button class="lbtn main" id="ceSave" type="button">Speichern</button>'+
