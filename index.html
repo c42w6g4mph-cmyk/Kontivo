@@ -506,7 +506,13 @@ body.hasplus .topadd{display:inline-flex}
 .pickcat .pci{flex:none;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center}
 .pickcat .pci .cicon{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .pick.pickcat .pcn{flex:1;font-size:16px;color:var(--ink);white-space:normal}
+.pick.pickcat[aria-pressed="true"] .pcn{color:var(--ink)}
 .pick.pickcat[aria-pressed="true"]{background:color-mix(in srgb,var(--teal) 12%,var(--field));color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--teal)}
+.catrow .cr{display:flex;align-items:center;gap:12px}
+.catrow .pci{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none}
+.catrow .cicon,.ceic .cicon{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ceic{display:inline-flex;align-items:center;justify-content:center}
+.lbtn[disabled]{opacity:.4}
 .catadd{display:flex;gap:8px;margin-top:8px}
 .catadd input{flex:1;min-width:0;height:46px;border-radius:11px;border:1px solid var(--line);background:var(--surface);padding:0 12px;font-size:16px}
 .catadd button{flex:none;height:46px;padding:0 14px;border-radius:11px;background:var(--ink);color:var(--paper);font-weight:600;font-size:14px}
@@ -789,8 +795,9 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <div class="field" style="margin:0"><label for="sSender">Absender — Name und Adresse</label>
     <textarea id="sSender" placeholder="Vorname Name&#10;Strasse Nr.&#10;8280 Kreuzlingen" style="min-height:84px"></textarea></div>
     <p class="note" style="margin:6px 0 0">Erscheint oben im Kündigungstext, Ort und Datum werden ergänzt.</p></div>
-  <div class="sgroup"><div class="sgh">Eigene Kategorien</div>
-    <div class="chips" id="sCatList" style="margin:0"></div></div>
+  <div class="sgroup"><div class="sgh">Kategorien</div>
+    <div id="sCatList"></div>
+    <button class="lbtn main" id="sCatAdd" type="button" style="margin-top:10px">Kategorie hinzufügen</button></div>
   <div class="sgroup"><div class="sgh">Vertragsinhaber</div>
     <div class="chips" id="sHolderList"></div>
     <div class="addrow"><input id="sHolderNew" type="text" placeholder="Name hinzufügen" autocomplete="off"><button type="button" id="sHolderAdd">Hinzufügen</button></div></div>
@@ -1125,20 +1132,31 @@ var LOGO=document.querySelector('link[rel="apple-touch-icon"]').href;
 (function(){
 "use strict";
 
-var CATS=["Wohnen","Versicherung","Mobilfunk & Internet","Streaming & Software","Fitness & Freizeit","Mobilität","Finanzen","Energie","Sonstiges"];
+var CATS=["Wohnen","Energie & Wasser","Versicherung","Gesundheit","Mobilfunk & Internet","Abos & Medien","Mobilität","Familie & Bildung","Freizeit & Sport","Steuern & Gebühren","Finanzen","Sonstiges"];
 var COLORS=["#0E5A5E","#A93227","#1F4E8C","#6B4E9E","#8A6A1F","#2E6A4E","#B0562A","#3F4A55"];
-var CAT_COLOR={"Wohnen":"#6B4E9E","Versicherung":"#0E5A5E","Mobilfunk & Internet":"#1F4E8C","Streaming & Software":"#A93227",
-  "Fitness & Freizeit":"#2E6A4E","Mobilität":"#3F4A55","Finanzen":"#8A6A1F","Energie":"#B0562A","Sonstiges":"#5F666E",
+var CAT_COLOR={"Wohnen":"#6B4E9E","Energie & Wasser":"#B0562A","Versicherung":"#0E5A5E","Gesundheit":"#B03A5B","Mobilfunk & Internet":"#1F4E8C","Abos & Medien":"#A93227",
+  "Mobilität":"#3F4A55","Familie & Bildung":"#2F86A6","Freizeit & Sport":"#2E6A4E","Steuern & Gebühren":"#6E7B3A","Finanzen":"#8A6A1F","Sonstiges":"#5F666E",
   "Lohn":"#2E6A4E","Nebeneinkommen":"#0E5A5E","Bonus":"#8A6A1F","Kapitalerträge":"#1F4E8C","Vermietung":"#6B4E9E","Rente":"#B0562A"};
+var CAT_MIG={"Energie":"Energie & Wasser","Streaming & Software":"Abos & Medien","Fitness & Freizeit":"Freizeit & Sport","Steuern":"Steuern & Gebühren","Kinderbetreuung":"Familie & Bildung"};
+function migCats(){var ch=false;
+  Object.keys(state.contracts||{}).forEach(function(k){var c=state.contracts[k];if(c&&CAT_MIG[c.cat]){c.cat=CAT_MIG[c.cat];ch=true;}});
+  var s=state.settings;
+  if(Array.isArray(s.catList)){var seen={};s.catList=s.catList.map(function(x){if(CAT_MIG[x.n]){ch=true;var y=Object.assign({},x);y.n=CAT_MIG[x.n];if(y.i&&CAT_MIG[y.i])y.i=CAT_MIG[y.i];return y;}
+    if(x.i&&CAT_MIG[x.i]){ch=true;return {n:x.n,c:x.c,i:CAT_MIG[x.i]};}return x;}).filter(function(x){if(seen[x.n])return false;seen[x.n]=1;return true;});}
+  if(Array.isArray(s.cats)&&s.cats.some(function(x){return CAT_MIG[x.n];})){s.cats=s.cats.filter(function(x){return !CAT_MIG[x.n];});ch=true;}
+  if(ch)saveLocal();}
 var CAT_ICON={
  "Wohnen":'<path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9h11v-9"/><path d="M10.5 19v-5h3v5"/>',
+ "Energie & Wasser":'<path d="M13 3.5 6.5 13h5l-1 7.5L17.5 11h-5z"/>',
  "Versicherung":'<path d="M12 3.5 5.5 6v5.5c0 4 2.8 7.2 6.5 8.8 3.7-1.6 6.5-4.8 6.5-8.8V6z"/><path d="m9.3 12 2 2 3.6-3.8"/>',
+ "Gesundheit":'<path d="M12 20s-7-4.4-7-9.6A4 4 0 0 1 12 8a4 4 0 0 1 7 2.4C19 15.6 12 20 12 20z"/><path d="M12 11v4M10 13h4"/>',
  "Mobilfunk & Internet":'<rect x="7.5" y="3.5" width="9" height="17" rx="2"/><path d="M11 17.5h2"/>',
- "Streaming & Software":'<rect x="3.5" y="5.5" width="17" height="11" rx="2"/><path d="m10.5 8.8 4 2.2-4 2.2z"/><path d="M9 20h6"/>',
- "Fitness & Freizeit":'<path d="M6.5 9v6M17.5 9v6M4 10.5v3M20 10.5v3M6.5 12h11"/>',
+ "Abos & Medien":'<rect x="3.5" y="5.5" width="17" height="11" rx="2"/><path d="m10.5 8.8 4 2.2-4 2.2z"/><path d="M9 20h6"/>',
  "Mobilität":'<path d="M5 16.5V12l1.8-4.2A2 2 0 0 1 8.6 6.5h6.8a2 2 0 0 1 1.8 1.3L19 12v4.5"/><path d="M4 16.5h16"/><path d="M5 12h14"/><circle cx="8" cy="16.5" r="1.8"/><circle cx="16" cy="16.5" r="1.8"/>',
+ "Familie & Bildung":'<circle cx="9" cy="8" r="2.5"/><circle cx="16.5" cy="9.5" r="2"/><path d="M4.5 19v-1.5A3.5 3.5 0 0 1 8 14h2a3.5 3.5 0 0 1 3.5 3.5V19M14.5 14.3a3 3 0 0 1 5 2.2V19"/>',
+ "Freizeit & Sport":'<path d="M6.5 9v6M17.5 9v6M4 10.5v3M20 10.5v3M6.5 12h11"/>',
+ "Steuern & Gebühren":'<path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4"/><path d="M9.5 16.5l5-5M10 12h.01M14 16h.01"/>',
  "Finanzen":'<path d="M4 9.5 12 5l8 4.5"/><path d="M5 19.5h14"/><path d="M7 10.5v6.5M12 10.5v6.5M17 10.5v6.5"/>',
- "Energie":'<path d="M13 3.5 6.5 13h5l-1 7.5L17.5 11h-5z"/>',
  "Sonstiges":'<rect x="4.5" y="4.5" width="15" height="15" rx="3"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/>',
  "Lohn":'<rect x="3.5" y="7.5" width="17" height="11.5" rx="2"/><path d="M9 7.5V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v1.5"/><path d="M3.5 12.5h17"/>',
  "Nebeneinkommen":'<circle cx="12" cy="12" r="7.5"/><path d="M12 8.5v7M8.5 12h7"/>',
@@ -1147,10 +1165,15 @@ var CAT_ICON={
  "Vermietung":'<circle cx="8.5" cy="12" r="3.5"/><path d="M12 12h8.5M17 12v3M19.5 12v2.5"/>',
  "Rente":'<path d="M7 3.5h10M7 20.5h10"/><path d="M8 3.5c0 4.5 8 4.5 8 8.5s-8 4-8 8.5M16 3.5c0 4.5-8 4.5-8 8.5s8 4 8 8.5"/>'};
 var TAG_ICON='<path d="M4 12.6V5h7.6l8.4 8.4-7.6 7.6z"/><circle cx="8.2" cy="9.2" r="1.3"/>';
-function customCats(){return (state.settings.cats||[]).filter(function(x){return x&&x.n;});}
-function allCats(){return CATS.concat(customCats().map(function(x){return x.n;}).filter(function(n){return CATS.indexOf(n)<0;}));}
-function catColor(k){if(CAT_COLOR[k])return CAT_COLOR[k];var f=customCats().filter(function(x){return x.n===k;})[0];return f?f.c:"#5F666E";}
-function catIcon(cat){var i=CAT_ICON[cat]||(cat&&CATS.indexOf(cat)<0&&INC_CATS.indexOf(cat)<0?TAG_ICON:CAT_ICON["Sonstiges"]);
+function catList(){var l=state.settings.catList;if(Array.isArray(l)&&l.length)return l;
+  return CATS.map(function(n){return {n:n,c:CAT_COLOR[n],i:n};}).concat((state.settings.cats||[]).filter(function(x){return x&&x.n&&CATS.indexOf(x.n)<0;}).map(function(x){return {n:x.n,c:x.c,i:"tag"};}));}
+function saveCatList(l){state.settings.catList=l;delete state.settings.cats;saveSettings();}
+function catEntry(k){return catList().filter(function(x){return x.n===k;})[0];}
+function allCats(){return catList().map(function(x){return x.n;});}
+function catColor(k){var e=catEntry(k);if(e&&e.c)return e.c;return CAT_COLOR[k]||"#5F666E";}
+function catIcon(cat){var e=catEntry(cat),i;
+  if(e)i=e.i==="tag"?TAG_ICON:(CAT_ICON[e.i]||TAG_ICON);
+  else i=CAT_ICON[cat]||(cat&&INC_CATS.indexOf(cat)<0?TAG_ICON:CAT_ICON["Sonstiges"]);
   return '<svg class="cicon" viewBox="0 0 24 24" aria-hidden="true">'+i+"</svg>";}
 var CYCLE={1:"monatlich",2:"alle 2 Monate",3:"quartalsweise",6:"halbjährlich",12:"jährlich",24:"alle 2 Jahre"};
 var LS="vertraege.v1";
@@ -1302,7 +1325,7 @@ function loadLocal(){try{var r=localStorage.getItem(LS);if(!r)return;var o=JSON.
   if(o.settings)state.settings=Object.assign(state.settings,o.settings);
   if(o.contracts)state.contracts=o.contracts;
   if(o.incomes)state.incomes=o.incomes;
-  if(o.budget&&o.budget.items)state.budget=o.budget;}catch(e){}}
+  if(o.budget&&o.budget.items)state.budget=o.budget;migCats();}catch(e){}}
 function putIncome(idv,c){state.incomes[idv]=c;saveLocal();
   if(db)db.doc(P.i+"/"+idv).set(c).catch(function(){toast("Nicht synchronisiert — lokal gespeichert.");});}
 function dropIncome(idv){delete state.incomes[idv];saveLocal();if(db)db.doc(P.i+"/"+idv).delete().catch(function(){});}
@@ -1473,7 +1496,7 @@ function renderView(){
       ho.sort(function(x,y){return x.localeCompare(y,"de-CH");}).forEach(function(k){group(k,byH[k]);});
     } else {
       var byCat={};a.forEach(function(c){(byCat[c.cat||"Sonstiges"]=byCat[c.cat||"Sonstiges"]||[]).push(c);});
-      CATS.concat(Object.keys(byCat).filter(function(k){return CATS.indexOf(k)<0;})).forEach(function(k){
+      allCats().concat(Object.keys(byCat).filter(function(k){return allCats().indexOf(k)<0;})).forEach(function(k){
         if(byCat[k])group(k,byCat[k].sort(byCost));});
     }
     v.innerHTML=lfbar+out+ab;return;
@@ -1590,7 +1613,7 @@ function openPick(dim){
     ks.forEach(function(k){if(k)cnt[k]=(cnt[k]||0)+1;});
   });
   var keys=Object.keys(cnt);
-  if(dim==="cat")keys.sort(function(a,b){var ia=CATS.indexOf(a),ib=CATS.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+  if(dim==="cat")keys.sort(function(a,b){var AC=allCats(),ia=AC.indexOf(a),ib=AC.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
   else keys.sort(function(a,b){return a.localeCompare(b,"de-CH",{sensitivity:"base"});});
   var title={cat:"Kategorie",partner:"Vertragspartner",holder:"Inhaber"}[dim],allTxt={cat:"Alle Kategorien",partner:"Alle Vertragspartner",holder:"Alle Inhaber"}[dim];
   document.getElementById("pickTitle").textContent=title;
@@ -1901,7 +1924,7 @@ function closePick(){document.getElementById("sheetPick").classList.remove("on",
 function addCustomCat(){
   var i=document.getElementById("newCat"),n=(i.value||"").trim().replace(/\s+/g," ");if(!n)return;
   var ex=allCats().filter(function(k){return k.toLowerCase()===n.toLowerCase();})[0];
-  if(!ex){var cs=customCats();cs.push({n:n,c:COLORS[(cs.length+3)%COLORS.length]});state.settings.cats=cs;saveSettings();}
+  if(!ex){var cs=catList().slice();cs.push({n:n,c:COLORS[(cs.length+3)%COLORS.length],i:"tag"});saveCatList(cs);}
   draft.cat=ex||n;paintCats();paintLogo();paintSwatches();closePick();toast(ex?"Kategorie gewählt":"Kategorie «"+n+"» angelegt");
 }
 function buildSwatches(){
@@ -2059,11 +2082,11 @@ var TPL=[
  ["SBB GA","CH","Mobilität","Generalabonnement","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung über swisspass.ch; Frist prüfen."],
  ["Mobility","CH","Mobilität","Carsharing","mobility.ch",0,"m","p","Online / Kundenkonto",0,H_PRF],
  ["Serafe","CH","Sonstiges","Radio- und TV-Abgabe","serafe.ch",0,"m","",0,1,"Gesetzliche Abgabe pro Haushalt, nicht kündbar."],
- ["EKZ","CH","Energie","Strom","ekz.ch",0,"m","","",1,H_ECH],
- ["EKT","CH","Energie","Strom","ekt.ch",0,"m","","",1,H_ECH],
- ["BKW","CH","Energie","Strom","bkw.ch",0,"m","","",1,H_ECH],
- ["CKW","CH","Energie","Strom","ckw.ch",0,"m","","",1,H_ECH],
- ["ewz","CH","Energie","Strom","ewz.ch",0,"m","","",1,H_ECH],
+ ["EKZ","CH","Energie & Wasser","Strom","ekz.ch",0,"m","","",1,H_ECH],
+ ["EKT","CH","Energie & Wasser","Strom","ekt.ch",0,"m","","",1,H_ECH],
+ ["BKW","CH","Energie & Wasser","Strom","bkw.ch",0,"m","","",1,H_ECH],
+ ["CKW","CH","Energie & Wasser","Strom","ckw.ch",0,"m","","",1,H_ECH],
+ ["ewz","CH","Energie & Wasser","Strom","ewz.ch",0,"m","","",1,H_ECH],
  ["PostFinance","CH","Finanzen","Konto","postfinance.ch",0,"m","","",0,H_BNK],
  ["UBS","CH","Finanzen","Konto","ubs.com",0,"m","","",0,H_BNK],
  ["Raiffeisen","CH","Finanzen","Konto","raiffeisen.ch",0,"m","","",0,H_BNK],
@@ -2071,27 +2094,27 @@ var TPL=[
  ["TKB","CH","Finanzen","Konto","tkb.ch",0,"m","","",0,H_BNK],
  ["Neon","CH","Finanzen","Konto","neon-free.ch",0,"m","","",0,H_BNK],
  ["Yuh","CH","Finanzen","Konto","yuh.com",0,"m","","",0,H_BNK],
- ["Migros Fitness","CH","Fitness & Freizeit","Fitnessabo","migros-fitness.ch",0,"m","a","",0,H_FIT],
- ["Update Fitness","CH","Fitness & Freizeit","Fitnessabo","update-fitness.ch",0,"m","a","",0,H_FIT],
- ["Activ Fitness","CH","Fitness & Freizeit","Fitnessabo","activfitness.ch",0,"m","a","",0,H_FIT],
+ ["Migros Fitness","CH","Freizeit & Sport","Fitnessabo","migros-fitness.ch",0,"m","a","",0,H_FIT],
+ ["Update Fitness","CH","Freizeit & Sport","Fitnessabo","update-fitness.ch",0,"m","a","",0,H_FIT],
+ ["Activ Fitness","CH","Freizeit & Sport","Fitnessabo","activfitness.ch",0,"m","a","",0,H_FIT],
  ["NZZ","CH","Sonstiges","Zeitung","nzz.ch",0,"m","a","",0,H_PRF],
  ["Tages-Anzeiger","CH","Sonstiges","Zeitung","tagesanzeiger.ch",0,"m","a","",0,H_PRF],
- ["Teleboy","CH","Streaming & Software","TV","teleboy.ch",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Zattoo","CH","Streaming & Software","TV","zattoo.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Netflix","","Streaming & Software","Streaming","netflix.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Spotify","","Streaming & Software","Musik","spotify.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Disney+","","Streaming & Software","Streaming","disneyplus.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Apple One","","Streaming & Software","Apple-Abo","apple.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Apple Music","","Streaming & Software","Musik","apple.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Apple TV+","","Streaming & Software","Streaming","apple.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["iCloud+","","Streaming & Software","Speicher","apple.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["YouTube Premium","","Streaming & Software","Streaming","youtube.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Google One","","Streaming & Software","Speicher","one.google.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Microsoft 365","","Streaming & Software","Office","microsoft.com",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Adobe","","Streaming & Software","Software","adobe.com",0,"m","a","Online / Kundenkonto",0,"Jahresabo mit Monatszahlung: vorzeitige Kündigung kostet eine Gebühr."],
- ["Amazon Prime","","Streaming & Software","Prime","amazon.de",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["DAZN","","Streaming & Software","Sport","dazn.com",0,"m","p","Online / Kundenkonto",0,"Jahresabos laufen 12 Monate. "+H_PRF],
- ["Audible","","Streaming & Software","Hörbücher","audible.de",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Teleboy","CH","Abos & Medien","TV","teleboy.ch",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Zattoo","CH","Abos & Medien","TV","zattoo.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Netflix","","Abos & Medien","Streaming","netflix.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Spotify","","Abos & Medien","Musik","spotify.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Disney+","","Abos & Medien","Streaming","disneyplus.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Apple One","","Abos & Medien","Apple-Abo","apple.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Apple Music","","Abos & Medien","Musik","apple.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Apple TV+","","Abos & Medien","Streaming","apple.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["iCloud+","","Abos & Medien","Speicher","apple.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["YouTube Premium","","Abos & Medien","Streaming","youtube.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Google One","","Abos & Medien","Speicher","one.google.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Microsoft 365","","Abos & Medien","Office","microsoft.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["Adobe","","Abos & Medien","Software","adobe.com",0,"m","a","Online / Kundenkonto",0,"Jahresabo mit Monatszahlung: vorzeitige Kündigung kostet eine Gebühr."],
+ ["Amazon Prime","","Abos & Medien","Prime","amazon.de",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["DAZN","","Abos & Medien","Sport","dazn.com",0,"m","p","Online / Kundenkonto",0,"Jahresabos laufen 12 Monate. "+H_PRF],
+ ["Audible","","Abos & Medien","Hörbücher","audible.de",0,"m","p","Online / Kundenkonto",0,H_STR],
  ["Revolut","","Finanzen","Konto","revolut.com",0,"m","","",0,H_BNK],
  ["Telekom","DE","Mobilfunk & Internet","Handy / Internet","telekom.de",1,"m","","Online / Kundenkonto",0,H_TDE],
  ["Vodafone","DE","Mobilfunk & Internet","Handy / Internet","vodafone.de",1,"m","","Online / Kundenkonto",0,H_TDE],
@@ -2109,17 +2132,17 @@ var TPL=[
  ["Deutschlandticket","DE","Mobilität","Deutschlandticket","",10,"k","m","Online / Kundenkonto",0,"Kündigung bis zum 10. des Monats zum Monatsende. Je nach Verkaufsstelle leicht anders."],
  ["BahnCard","DE","Mobilität","BahnCard","bahn.de",0,"m","a","Online / Kundenkonto",0,"Verlängert sich automatisch. Frist vor Ablauf im Kundenkonto prüfen."],
  ["Rundfunkbeitrag","DE","Sonstiges","Rundfunkbeitrag","rundfunkbeitrag.de",0,"m","",0,1,"Gesetzlicher Beitrag pro Wohnung, nicht kündbar. Abmeldung nur bei Umzug."],
- ["EnBW","DE","Energie","Strom","enbw.com",1,"m","","Online / Kundenkonto",0,H_EDE],
- ["E.ON","DE","Energie","Strom","eon.de",1,"m","","Online / Kundenkonto",0,H_EDE],
- ["Vattenfall","DE","Energie","Strom","vattenfall.de",1,"m","","Online / Kundenkonto",0,H_EDE],
- ["Stadtwerke Konstanz","DE","Energie","Strom","stadtwerke-konstanz.de",1,"m","","Brief",0,H_EDE],
+ ["EnBW","DE","Energie & Wasser","Strom","enbw.com",1,"m","","Online / Kundenkonto",0,H_EDE],
+ ["E.ON","DE","Energie & Wasser","Strom","eon.de",1,"m","","Online / Kundenkonto",0,H_EDE],
+ ["Vattenfall","DE","Energie & Wasser","Strom","vattenfall.de",1,"m","","Online / Kundenkonto",0,H_EDE],
+ ["Stadtwerke Konstanz","DE","Energie & Wasser","Strom","stadtwerke-konstanz.de",1,"m","","Brief",0,H_EDE],
  ["Sparkasse","DE","Finanzen","Konto","sparkasse.de",0,"m","","",0,H_BNK],
  ["DKB","DE","Finanzen","Konto","dkb.de",0,"m","","",0,H_BNK],
  ["ING","DE","Finanzen","Konto","ing.de",0,"m","","",0,H_BNK],
  ["N26","DE","Finanzen","Konto","n26.com",0,"m","","",0,H_BNK],
  ["Commerzbank","DE","Finanzen","Konto","commerzbank.de",0,"m","","",0,H_BNK],
- ["McFit","DE","Fitness & Freizeit","Fitnessabo","mcfit.com",0,"m","a","",0,H_FIT],
- ["Urban Sports Club","DE","Fitness & Freizeit","Sportabo","urbansportsclub.com",0,"m","p","Online / Kundenkonto",0,H_PRF],
+ ["McFit","DE","Freizeit & Sport","Fitnessabo","mcfit.com",0,"m","a","",0,H_FIT],
+ ["Urban Sports Club","DE","Freizeit & Sport","Sportabo","urbansportsclub.com",0,"m","p","Online / Kundenkonto",0,H_PRF],
  ["Südkurier","DE","Sonstiges","Zeitung","suedkurier.de",0,"m","a","",0,H_PRF]
 ];
 var TPLI={n:0,cc:1,cat:2,lab:3,web:4,no:5,nu:6,tm:7,cf:8,md:9,h:10};
@@ -2788,6 +2811,13 @@ document.getElementById("pickList").addEventListener("click",function(ev){
     var pp=ev.target.closest("[data-pv]");if(!pp)return;
     applyPause(pid,pp.dataset.pv==="none"?"":iso(addMonths(today(),+pp.dataset.pv)));return;
   }
+  if(pd==="catedit"){
+    var q=ev.target.closest("[data-cc],[data-ci],#ceSave,#ceUp,#ceDn,#ceDel");if(!q)return;
+    ceD.n=document.getElementById("ceName").value;
+    if(q.dataset.cc){ceD.c=q.dataset.cc;paintCe();}else if(q.dataset.ci){ceD.i=q.dataset.ci;paintCe();}
+    else if(q.id==="ceSave")ceSave();else if(q.id==="ceUp")ceMove(-1);else if(q.id==="ceDn")ceMove(1);else if(q.id==="ceDel")ceDelete();
+    return;
+  }
   if(pd==="bholder"){var hb=ev.target.closest("[data-pv]");if(!hb)return;state.bHolder=hb.dataset.pv;closeSheets();renderView();return;}
   if(pd==="tplpick"){
     var tc=ev.target.closest("[data-tcc]");
@@ -2896,17 +2926,61 @@ document.getElementById("scrim").addEventListener("click",function(){
   if(document.getElementById("sheetCrop").classList.contains("on")){closeCrop();return;}
   if(document.getElementById("sheetPick").classList.contains("over")){closePick();return;}closeSheets();});
 document.getElementById("pickList").addEventListener("keydown",function(ev){if(ev.target.id==="newCat"&&ev.key==="Enter"){ev.preventDefault();addCustomCat();}});
+var ceD=null,CE_COL=COLORS.concat(["#B03A5B","#2F86A6","#6E7B3A","#5F666E"]),CE_ICONS=CATS.concat(["tag"]);
+function catCount(n){return Object.keys(state.contracts).filter(function(k){return (state.contracts[k].cat||"Sonstiges")===n;}).length;}
 function paintSetCats(){
-  var el=document.getElementById("sCatList"),cs=customCats();
-  if(!cs.length){el.innerHTML='<p class="note" style="margin:0">Noch keine. Eigene Kategorien legst du direkt beim Vertrag in der Kategorie-Auswahl an.</p>';return;}
-  el.innerHTML=cs.map(function(x,i){return '<button class="chip" data-cdel="'+i+'" aria-label="'+esc(x.n)+' entfernen" aria-pressed="true" style="background:'+x.c+';border-color:'+x.c+'">'+esc(x.n)+'<span class="x">×</span></button>';}).join("");
+  var el=document.getElementById("sCatList");
+  el.innerHTML=catList().map(function(x,i){var n=catCount(x.n);
+    return '<button class="srowbtn catrow" data-ce="'+i+'" type="button"><span class="cr"><span class="pci" style="background:'+catColor(x.n)+'">'+catIcon(x.n)+'</span>'+esc(x.n)+'</span><em>'+n+(n===1?" Vertrag":" Verträge")+' ›</em></button>';}).join("");
 }
-document.getElementById("sCatList").addEventListener("click",function(ev){
-  var b=ev.target.closest("[data-cdel]");if(!b)return;var cs=customCats(),x=cs[+b.dataset.cdel];
-  var used=Object.keys(state.contracts).filter(function(k){return state.contracts[k].cat===x.n;}).length;
-  cs.splice(+b.dataset.cdel,1);state.settings.cats=cs;saveSettings();paintSetCats();render();
-  toast(used?"Entfernt — "+used+(used===1?" Vertrag behält":" Verträge behalten")+" die Kategorie":"Kategorie entfernt");
-});
+function openCatEdit(i){
+  var l=catList(),x=i==null?{n:"",c:COLORS[(l.length+3)%COLORS.length],i:"tag"}:l[i];
+  ceD={idx:i,old:i==null?null:x.n,n:x.n,c:x.c||catColor(x.n),i:x.i||"tag"};
+  document.getElementById("pickTitle").textContent=i==null?"Neue Kategorie":"Kategorie bearbeiten";
+  var pl=document.getElementById("pickList");pl.dataset.dim="catedit";
+  var fixed=ceD.old==="Sonstiges";
+  pl.innerHTML='<div class="flabel" style="margin:0 0 6px">Name</div><div class="catadd" style="margin:0 0 14px"><input id="ceName" type="text" maxlength="30" autocomplete="off" value="'+esc(ceD.n)+'"'+(fixed?' disabled':'')+'></div>'+
+    '<div class="flabel" style="margin:0 0 6px">Farbe</div><div class="swatches" id="ceCols"></div>'+
+    '<div class="flabel" style="margin:0 0 6px">Symbol</div><div class="swatches" id="ceIcons"></div>'+
+    '<button class="lbtn main" id="ceSave" type="button">Speichern</button>'+
+    (i!=null?'<div class="lbtns2" style="margin-top:8px"><button class="lbtn" id="ceUp" type="button"'+(i===0?' disabled':'')+'>↑ Nach oben</button><button class="lbtn" id="ceDn" type="button"'+(i===l.length-1?' disabled':'')+'>↓ Nach unten</button></div>':"")+
+    (i!=null&&!fixed?'<button class="lbtn del" id="ceDel" type="button">Kategorie löschen</button>':"")+
+    (fixed?'<p class="note" style="margin:10px 0 0">«Sonstiges» ist der Auffangbehälter und kann weder umbenannt noch gelöscht werden.</p>':"");
+  paintCe();var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
+}
+function paintCe(){
+  document.getElementById("ceCols").innerHTML=CE_COL.map(function(c){return '<button type="button" class="sw" data-cc="'+c+'" style="background:'+c+'" aria-pressed="'+(ceD.c===c)+'" aria-label="Farbe"></button>';}).join("");
+  document.getElementById("ceIcons").innerHTML=CE_ICONS.map(function(k){var p=k==="tag"?TAG_ICON:CAT_ICON[k];
+    return '<button type="button" class="sw ceic" data-ci="'+esc(k)+'" style="background:'+ceD.c+'" aria-pressed="'+(ceD.i===k)+'" aria-label="Symbol"><svg class="cicon" viewBox="0 0 24 24" aria-hidden="true">'+p+'</svg></button>';}).join("");
+}
+function ceSave(){
+  var l=catList().map(function(x){return {n:x.n,c:x.c,i:x.i};});
+  var n=(document.getElementById("ceName").value||"").trim().replace(/\s+/g," ");
+  if(!n){toast("Bitte einen Namen eingeben");return;}
+  var dup=l.some(function(x,j){return x.n.toLowerCase()===n.toLowerCase()&&j!==ceD.idx;});
+  if(dup){toast("Diese Kategorie gibt es schon");return;}
+  if(ceD.idx==null)l.push({n:n,c:ceD.c,i:ceD.i});
+  else{l[ceD.idx]={n:n,c:ceD.c,i:ceD.i};
+    if(n!==ceD.old){Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(c.cat===ceD.old){var nc=Object.assign({},c);nc.cat=n;putContract(k,nc);}});
+      if(state.flt&&state.flt.cat===ceD.old)state.flt.cat=n;}}
+  saveCatList(l);closePick();paintSetCats();render();toast("Gespeichert");
+}
+function ceMove(d){
+  var l=catList().map(function(x){return {n:x.n,c:x.c,i:x.i};}),i=ceD.idx,j=i+d;if(j<0||j>=l.length)return;
+  var t=l[i];l[i]=l[j];l[j]=t;saveCatList(l);ceD.idx=j;closePick();paintSetCats();render();openCatEdit(j);
+}
+function ceDelete(){
+  var n=ceD.old,cnt=catCount(n);
+  closePick();
+  ask({title:"Kategorie «"+n+"» löschen?",text:cnt?cnt+(cnt===1?" Vertrag wird":" Verträge werden")+" nach «Sonstiges» verschoben.":"Die Kategorie wird entfernt.",ok:"Löschen",danger:true}).then(function(y){
+    if(!y)return;
+    Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(c.cat===n){var nc=Object.assign({},c);nc.cat="Sonstiges";putContract(k,nc);}});
+    saveCatList(catList().filter(function(x){return x.n!==n;}).map(function(x){return {n:x.n,c:x.c,i:x.i};}));
+    if(state.flt&&state.flt.cat===n)state.flt.cat=null;
+    paintSetCats();render();toast("Kategorie gelöscht");});
+}
+document.getElementById("sCatList").addEventListener("click",function(ev){var b=ev.target.closest("[data-ce]");if(b)openCatEdit(+b.dataset.ce);});
+document.getElementById("sCatAdd").addEventListener("click",function(){openCatEdit(null);});
 function fillSettings(){
   paintSetCats();document.getElementById("sSender").value=state.settings.sender||"";
   var lr=state.settings.lastReview;document.getElementById("reviewStamp").textContent=lr?"Letzter Quartals-Check: "+fmtD(lr):"Noch kein Quartals-Check durchgeführt";
@@ -3287,7 +3361,7 @@ document.getElementById("bkFile").addEventListener("change",function(ev){
 async function restoreAll(o){
   var oldC=Object.keys(state.contracts),oldI=Object.keys(state.incomes);
   state.contracts=o.contracts||{};state.incomes=o.incomes||{};
-  state.settings=Object.assign(state.settings,o.settings||{});if(o.budget&&typeof o.budget==="object")state.budget=o.budget;saveLocal();
+  state.settings=Object.assign(state.settings,o.settings||{});if(o.budget&&typeof o.budget==="object")state.budget=o.budget;migCats();saveLocal();
   if(db){
     try{
       for(var k in state.contracts)await db.doc(P.c+"/"+k).set(state.contracts[k]);
@@ -3398,10 +3472,11 @@ function csvTerm(x){var t=csvNorm(x);if(!t)return "";if(["p","m","q","h","y","a"
   if(/periode/.test(t))return "p";if(/monatsende|monat/.test(t))return "m";if(/quartal/.test(t))return "q";
   if(/halbjahr/.test(t))return "h";if(/vertragsjahr/.test(t))return "a";if(/jahresende|jahr/.test(t))return "y";return "";}
 function csvCat(x){var t=csvNorm(x);if(!t)return "";
-  var R=[["Versicherung",/versich|police|haftpflicht|krankenkass|insurance/],["Streaming & Software",/stream|entertain|musik|music|video|software|app|cloud|zeitschrift|zeitung|abo/],
-    ["Mobilfunk & Internet",/handy|mobil|internet|telefon|dsl|glasfaser|phone|tv/],["Energie",/strom|gas|energie|heiz|wasser|energy/],
-    ["Wohnen",/miete|wohn|haus|immobil|nebenkost|rent/],["Fitness & Freizeit",/fitness|sport|verein|freizeit|gym/],
-    ["Mobilität",/auto|kfz|bahn|mobilit|leasing|oev|transport|car/],["Finanzen",/bank|konto|kredit|finanz|spar|depot|finance/]];
+  var R=[["Gesundheit",/gesund|arzt|zahn|apothek|optik|brille|health/],["Versicherung",/versich|police|haftpflicht|krankenkass|insurance/],["Abos & Medien",/stream|entertain|musik|music|video|software|app|cloud|zeitschrift|zeitung|abo|medien/],
+    ["Mobilfunk & Internet",/handy|mobilfunk|internet|telefon|dsl|glasfaser|phone|tv/],["Energie & Wasser",/strom|gas|energie|heiz|wasser|energy/],
+    ["Wohnen",/miete|wohn|haus|immobil|nebenkost|rent/],["Freizeit & Sport",/fitness|sport|verein|freizeit|gym/],
+    ["Familie & Bildung",/kind|kita|hort|schule|bildung|familie|betreuung|kurs|studium/],["Steuern & Gebühren",/steuer|gebühr|gebuehr|abgabe|serafe|billag|tax/],
+    ["Mobilität",/auto|kfz|bahn|mobilit|leasing|oev|transport|car|parkplatz/],["Finanzen",/bank|konto|kredit|finanz|spar|depot|vorsorge|säule|finance/]];
   for(var i=0;i<R.length;i++)if(R[i][1].test(t))return R[i][0];
   if(/^(andere|sonstig|other|misc)/.test(t))return "Sonstiges";return "";}
 var newCats=false;
@@ -3435,8 +3510,8 @@ function csvToContracts(rows){
     var tpl=tplFind(partner)||tplFind(label),cy=csvCycle(g(r,"cycle"));
     if(cy==="w"){amt=Math.round(amt*52/12*100)/100;cy=1;}
     var curRaw=(g(r,"cur")+" "+g(r,"amount")).toUpperCase(),cur=/EUR|€/.test(curRaw)?"EUR":/USD|US\$|\$/.test(curRaw)?"USD":/GBP|£/.test(curRaw)?"GBP":/TRY|₺|\bTL\b/.test(curRaw)?"TRY":(/CHF|FR/.test(curRaw)?"CHF":H);
-    var catRaw=g(r,"cat"),cat=allCats().filter(function(k){return k.toLowerCase()===catRaw.toLowerCase();})[0]||csvCat(catRaw)||(tpl?tpl[2]:"");
-    if(!cat&&catRaw){var cs=customCats();if(!cs.some(function(x){return x.n.toLowerCase()===catRaw.toLowerCase();})){cs.push({n:catRaw,c:COLORS[(cs.length+3)%COLORS.length]});state.settings.cats=cs;newCats=true;}cat=catRaw;}
+    var catRaw=g(r,"cat"),cat=allCats().filter(function(k){return k.toLowerCase()===catRaw.toLowerCase();})[0]||csvCat(catRaw)||(tpl?tpl[2]:"");if(cat&&allCats().indexOf(cat)<0){catRaw=cat;cat="";}
+    if(!cat&&catRaw){var cs=catList().slice();var ex2=cs.filter(function(x){return x.n.toLowerCase()===catRaw.toLowerCase();})[0];if(!ex2){cs.push({n:catRaw,c:COLORS[(cs.length+3)%COLORS.length],i:"tag"});state.settings.catList=cs;delete state.settings.cats;newCats=true;}cat=ex2?ex2.n:catRaw;}
     cat=cat||"Sonstiges";
     // Kündigungsfrist: "3 Monate", "1 Jahr", "1 Woche", "1 Tag"
     var nRaw=g(r,"notice"),nNum=csvNum(nRaw),uRaw=csvNorm(g(r,"noticeU")||nRaw.replace(/[\d\s.,]/g,""));
@@ -3558,7 +3633,7 @@ async function boot(){
     unsub=db.collection(P.c).limit(1000).onSnapshot(function(snap){
       if(state._busy)return;
       var m={};(snap.docs||[]).forEach(function(d){if(d.exists)m[d.id]=d.data();});
-      if(Object.keys(m).length||Object.keys(state.contracts).length===0){state.contracts=m;saveLocal();}
+      if(Object.keys(m).length||Object.keys(state.contracts).length===0){state.contracts=m;migCats();saveLocal();}
       render();
     },function(){});
   }
