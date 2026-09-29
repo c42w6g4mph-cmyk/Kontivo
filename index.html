@@ -511,6 +511,28 @@ body.hasplus .topadd{display:inline-flex}
 .catfield .cfn.ph{color:var(--ink3)}
 .catfield .chev{font-size:22px;color:var(--ink3)}
 .sheet.over{z-index:64}
+.sheet.md{z-index:62}.sheet.me{z-index:65}
+.srowbtn em[id^="mdSum"]{white-space:nowrap;max-width:none;flex:none}
+.srowbtn .mdt b{display:block;font-weight:600;font-size:15.5px}
+.srowbtn small{display:block;font-size:12px;color:var(--ink3);font-weight:400;margin-top:1px}
+.mdsearch{width:100%;height:42px;border-radius:11px;border:1px solid var(--line);background:var(--field);padding:0 12px;font-size:16px;margin:4px 0 8px}
+.mdrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 0;border-top:1px solid var(--line);text-align:left}
+.mdrow:first-of-type{border-top:0}
+.mdrow .mark{width:40px;height:40px;border-radius:10px;font-size:14px;flex:none}
+.mdrow .t{flex:1;min-width:0}.mdrow .t b{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mdrow .t small{font-size:12px;color:var(--ink2)}
+.mdrow::after{content:"›";color:var(--ink3);font-size:18px;flex:none}
+.mdbadge{flex:none;font-size:11px;font-weight:600;color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent);padding:3px 8px;border-radius:999px}
+.mdbadge.q{color:var(--ink3);background:transparent;font-weight:500}
+.mdav{width:38px;height:38px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.mdopt{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border-radius:12px;background:var(--field);border:1.5px solid transparent;margin-bottom:7px;font-size:15px;text-align:left}
+.mdopt .rad{flex:none;width:18px;height:18px;border-radius:50%;border:1.6px solid var(--ink3)}
+.mdopt[aria-pressed="true"]{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 10%,var(--field))}
+.mdopt[aria-pressed="true"] .rad{border:5px solid var(--teal)}
+.mdopt small{margin-left:auto;font-size:12px;color:var(--ink3)}
+.mdlogo{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.mdlogo .mark{width:56px;height:56px;border-radius:14px;font-size:20px}
+.mdvl{font-size:12.5px;color:var(--ink2);margin:10px 0 0;line-height:1.4}
 .pickcat{justify-content:flex-start;gap:12px;padding:9px 12px}
 .pickcat .pci{flex:none;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center}
 .pickcat .pci .cicon{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -730,7 +752,6 @@ input[type=file]{display:none}
 #sheetDetail .shbar h2{visibility:hidden}
 details.opt.moreact{margin-top:9px;background:transparent}
 .moreact .optbody .ghost:first-child{margin-top:0}
-#sHolderList .chip[aria-pressed="true"],#sCatList .chip{background:var(--teal);border-color:var(--teal);color:#fff}
 .bhf{display:flex;margin:4px 0 12px;overflow-x:auto;scrollbar-width:none}
 .bhf .pseg button{padding:6px 14px;font-size:12.5px}
 .grphead.ghs{align-items:center}
@@ -809,12 +830,10 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <div class="field" style="margin:0"><label for="sSender">Absender — Name und Adresse</label>
     <textarea id="sSender" placeholder="Vorname Name&#10;Strasse Nr.&#10;8280 Kreuzlingen" style="min-height:84px"></textarea></div>
     <p class="note" style="margin:6px 0 0">Erscheint oben im Kündigungstext, Ort und Datum werden ergänzt.</p></div>
-  <div class="sgroup"><div class="sgh">Kategorien</div>
-    <div id="sCatList"></div>
-    <button class="lbtn main" id="sCatAdd" type="button" style="margin-top:10px">Kategorie hinzufügen</button></div>
-  <div class="sgroup"><div class="sgh">Vertragsinhaber</div>
-    <div class="chips" id="sHolderList"></div>
-    <div class="addrow"><input id="sHolderNew" type="text" placeholder="Name hinzufügen" autocomplete="off"><button type="button" id="sHolderAdd">Hinzufügen</button></div></div>
+  <div class="sgroup"><div class="sgh">Stammdaten</div>
+    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Partner</b><small>Umbenennen, zusammenführen, Logo &amp; Website</small></span><em id="mdSumP"></em></button>
+    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Umbenennen, zusammenführen, löschen</small></span><em id="mdSumH"></em></button>
+    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Name, Farbe, Symbol, Reihenfolge</small></span><em id="mdSumC"></em></button></div>
   <div class="sgroup"><div class="sgh">Daten</div>
     <div class="tiles">
       <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
@@ -1036,6 +1055,18 @@ details.opt.moreact{margin-top:9px;background:transparent}
 </div>
 
 <!-- Filterauswahl -->
+<div class="sheet md" id="sheetMd" role="dialog" aria-modal="true" aria-label="Stammdaten">
+  <div class="grab"></div>
+  <h2 id="mdTitle"></h2>
+  <div id="mdBody"></div>
+  <button class="ghost" id="mdClose" type="button">Schliessen</button>
+</div>
+<div class="sheet me" id="sheetMe" role="dialog" aria-modal="true" aria-label="Bearbeiten">
+  <div class="grab"></div>
+  <h2 id="meTitle"></h2>
+  <div id="meBody"></div>
+  <button class="ghost" id="meClose" type="button">Zurück</button>
+</div>
 <div class="sheet" id="sheetPick" role="dialog" aria-modal="true" aria-label="Filter">
   <div class="grab"></div>
   <h2 id="pickTitle">Filter</h2>
@@ -1900,7 +1931,7 @@ document.addEventListener("click",function(ev){if(!ev.target.closest("#xAll"))re
 function openSheet(el){document.getElementById("scrim").classList.add("on");el.classList.add("on");el.scrollTop=0;}
 function closeSheets(){
   document.getElementById("scrim").classList.remove("on");
-  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick"].forEach(function(i){document.getElementById(i).classList.remove("on");});
+  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetMe"].forEach(function(i){document.getElementById(i).classList.remove("on");});
   document.getElementById("csvOut").innerHTML="";
 }
 function buildCatChips(){
@@ -2464,7 +2495,7 @@ document.getElementById("cropOk").addEventListener("click",function(){
   out.toBlob(async function(bl){
     if(!bl){toast("Bild konnte nicht erzeugt werden");return;}
     try{var r=await assets.upload(bl);
-      if(cropTarget==="i"){idraft.logoId=r.id;idraft.logoBg=bg;iPaintLogo();}else{draft.logoId=r.id;draft.logoBg=bg;paintLogo();}
+      if(cropTarget==="p"){pe.logoId=r.id;pe.logoBg=bg;pe.logoChanged=true;paintPeMark();}else if(cropTarget==="i"){idraft.logoId=r.id;idraft.logoBg=bg;iPaintLogo();}else{draft.logoId=r.id;draft.logoBg=bg;paintLogo();}
       closeCrop();toast("Logo gesetzt");}
     catch(e){toast("Upload fehlgeschlagen");}
   },"image/png");
@@ -2956,12 +2987,14 @@ document.getElementById("iDel").addEventListener("click",function(){
 document.getElementById("scrim").addEventListener("click",function(){
   if(document.getElementById("sheetAsk").classList.contains("on")){askDone(false);return;}
   if(document.getElementById("sheetCrop").classList.contains("on")){closeCrop();return;}
-  if(document.getElementById("sheetPick").classList.contains("over")){closePick();return;}closeSheets();});
+  if(document.getElementById("sheetPick").classList.contains("over")){closePick();return;}
+  if(document.getElementById("sheetMe").classList.contains("on")){closeMe();return;}
+  if(document.getElementById("sheetMd").classList.contains("on")){closeMd();return;}closeSheets();});
 document.getElementById("pickList").addEventListener("keydown",function(ev){if(ev.target.id==="newCat"&&ev.key==="Enter"){ev.preventDefault();addCustomCat();}});
 var ceD=null,CE_COL=COLORS.concat(["#B03A5B","#2F86A6","#6E7B3A","#5F666E"]),CE_ICONS=CATS.concat(["tag"]);
 function catCount(n){return Object.keys(state.contracts).filter(function(k){return (state.contracts[k].cat||"Sonstiges")===n;}).length;}
 function paintSetCats(){
-  var el=document.getElementById("sCatList");
+  var el=document.getElementById("sCatList");if(!el)return;
   el.innerHTML=catList().map(function(x,i){var n=catCount(x.n);
     return '<button class="catchip" data-ce="'+i+'" type="button"><span class="pci" style="background:'+catColor(x.n)+'">'+catIcon(x.n)+'</span>'+esc(x.n)+'</button>';}).join("");
 }
@@ -3011,40 +3044,262 @@ function ceDelete(){
     if(state.flt&&state.flt.cat===n)state.flt.cat=null;
     paintSetCats();render();toast("Kategorie gelöscht");});
 }
-document.getElementById("sCatList").addEventListener("click",function(ev){var b=ev.target.closest("[data-ce]");if(b)openCatEdit(+b.dataset.ce);});
-document.getElementById("sCatAdd").addEventListener("click",function(){openCatEdit(null);});
+/* ---------- Stammdaten: Partner, Inhaber, Kategorien ---------- */
+var mdCur="",pe=null,he=null;
+function partnerGroups(){
+  var g={},order=[];
+  Object.keys(state.contracts).forEach(function(k){
+    var c=state.contracts[k],n=String(c.partner||"").trim();if(!n)return;
+    var kk=n.toLowerCase();
+    if(!g[kk]){g[kk]={key:kk,names:{},ids:[],web:"",logoC:null,cost:0};order.push(kk);}
+    var o=g[kk];o.names[n]=(o.names[n]||0)+1;o.ids.push(k);
+    if(!o.web&&c.web)o.web=c.web;
+    if(!o.logoC&&c.logoId&&KBlob.has(c.logoId))o.logoC=c;
+    if(c.status!=="cancelled"&&!c.cancelPer){try{o.cost+=monthlyCost(c)*12;}catch(e){}}
+  });
+  var list=order.map(function(kk){var o=g[kk];
+    o.name=Object.keys(o.names).sort(function(a,b){return o.names[b]-o.names[a];})[0];
+    o.pk=pkey(o.name);return o;});
+  var cnt={};list.forEach(function(o){if(o.pk)cnt[o.pk]=(cnt[o.pk]||0)+1;});
+  list.forEach(function(o){o.dup=!!(o.pk&&cnt[o.pk]>1);});
+  return list.sort(function(a,b){return a.name.localeCompare(b.name,"de-CH",{sensitivity:"base"});});
+}
+function paintMdSummary(){
+  var pg=partnerGroups(),d=pg.filter(function(o){return o.dup;}).length;
+  var e1=document.getElementById("mdSumP");if(!e1)return;
+  e1.textContent=d?d+(d===1?" Dublette":" Dubletten"):pg.length+" Partner";
+  e1.style.color=d?"var(--warn)":"";e1.style.fontWeight=d?"600":"";
+  document.getElementById("mdSumH").textContent=(state.settings.holders||["Ich"]).length+"";
+  document.getElementById("mdSumC").textContent=allCats().length+"";
+}
+function openMd(which){
+  mdCur=which;
+  document.getElementById("mdTitle").textContent={partner:"Partner",holder:"Inhaber",cat:"Kategorien"}[which];
+  paintMd();openSheet(document.getElementById("sheetMd"));
+}
+function paintMd(){
+  var b=document.getElementById("mdBody");
+  if(mdCur==="partner"){
+    var q=document.getElementById("mdQ"),qv=q?q.value:"";
+    if(!q){b.innerHTML='<input id="mdQ" class="mdsearch" type="search" placeholder="Partner suchen" autocomplete="off"><div id="mdList"></div>';}
+    paintMdPartners();
+  } else if(mdCur==="holder"){paintMdHolders();}
+  else if(mdCur==="cat"){
+    b.innerHTML='<div id="sCatList"></div><button class="lbtn main" id="sCatAdd" type="button" style="margin-top:12px">Kategorie hinzufügen</button>';
+    paintSetCats();
+  }
+  paintMdSummary();
+}
+function paintMdPartners(){
+  var q=(document.getElementById("mdQ").value||"").trim().toLowerCase(),el=document.getElementById("mdList");
+  var pg=partnerGroups().filter(function(o){return !q||o.name.toLowerCase().indexOf(q)>=0;});
+  if(!pg.length){el.innerHTML='<p class="note" style="margin:10px 0">'+(q?"Kein Partner gefunden.":"Noch keine Verträge mit Partner.")+"</p>";return;}
+  el.innerHTML=pg.map(function(o){var c=o.logoC||state.contracts[o.ids[0]];
+    var badge=o.dup?'<span class="mdbadge">Dublette?</span>':(!o.web?'<span class="mdbadge q">ohne Website</span>':"");
+    return '<button class="mdrow" data-pe="'+esc(o.key)+'" type="button">'+markHtml(c)+'<span class="t"><b>'+esc(o.name)+'</b><small>'+o.ids.length+(o.ids.length===1?" Vertrag":" Verträge")+
+      (o.cost?" · "+nf0.format(o.cost)+" "+esc(state.settings.home)+"/J.":"")+"</small></span>"+badge+"</button>";}).join("");
+}
+function holderStats(){
+  var H=(state.settings.holders||["Ich"]).slice(),n={};
+  function add(h){if(H.indexOf(h)<0)H.push(h);}
+  Object.keys(state.contracts).forEach(function(k){holdersOf(state.contracts[k]).forEach(function(h){add(h);n[h]=n[h]||{c:0,i:0};n[h].c++;});});
+  Object.keys(state.incomes).forEach(function(k){holdersOf(state.incomes[k]).forEach(function(h){add(h);n[h]=n[h]||{c:0,i:0};n[h].i++;});});
+  return H.map(function(h){return {name:h,c:(n[h]||{}).c||0,i:(n[h]||{}).i||0};});
+}
+function paintMdHolders(){
+  var b=document.getElementById("mdBody");
+  b.innerHTML=holderStats().map(function(h){
+    return '<button class="mdrow" data-he="'+esc(h.name)+'" type="button"><span class="mdav">'+esc((h.name||"?").charAt(0).toUpperCase())+'</span><span class="t"><b>'+esc(h.name)+'</b><small>'+
+      h.c+(h.c===1?" Vertrag":" Verträge")+(h.i?" · "+h.i+(h.i===1?" Einnahme":" Einnahmen"):"")+"</small></span></button>";}).join("")+
+    '<button class="lbtn main" id="heAdd" type="button" style="margin-top:12px">Inhaber hinzufügen</button>';
+}
+function openMe(title,html){document.getElementById("meTitle").textContent=title;document.getElementById("meBody").innerHTML=html;
+  var sh=document.getElementById("sheetMe");if(!sh.classList.contains("on"))openSheet(sh);else sh.scrollTop=0;}
+function closeSheetEl(id){document.getElementById(id).classList.remove("on");
+  if(!document.querySelector(".sheet.on"))document.getElementById("scrim").classList.remove("on");}
+function closeMe(){closeSheetEl("sheetMe");}
+function closeMd(){closeSheetEl("sheetMd");closeSheetEl("sheetMe");}
+
+/* --- Partner bearbeiten --- */
+function openPe(key){
+  var g=partnerGroups().filter(function(o){return o.key===key;})[0];if(!g)return;
+  var c0=g.logoC||state.contracts[g.ids[0]];
+  pe={key:key,ids:g.ids.slice(),orig:g.name,name:g.name,web:g.web||"",origWeb:g.web||"",logoId:(g.logoC&&g.logoC.logoId)||"",logoBg:(g.logoC&&g.logoC.logoBg)||"",logoChanged:false,cur:(c0&&c0.cur)||"CHF"};
+  var labs=g.ids.map(function(k){return state.contracts[k].label||state.contracts[k].partner;});
+  openMe(g.name,'<div class="mdlogo"><div id="peMark"></div><div style="flex:1;min-width:0"><div class="field" style="margin:0"><label for="peName">Name</label><input id="peName" type="text" autocomplete="off" value="'+esc(g.name)+'"></div></div></div>'+
+    '<div class="field"><label for="peWeb">Website</label><input id="peWeb" type="text" inputmode="url" autocapitalize="off" placeholder="z.B. mobiliar.ch" value="'+esc(g.web||"")+'"></div>'+
+    '<div class="logopanel" style="margin:0 0 12px">'+
+    '<button class="lbtn main" id="peAuto" type="button">Logo automatisch finden</button><div class="lcands" id="peCands"></div>'+
+    '<div class="lbtns2"><button class="lbtn" id="pePaste" type="button">Einfügen</button><button class="lbtn" id="peUp" type="button">Hochladen</button><button class="lbtn" id="peGoogle" type="button">Google</button></div>'+
+    '<button class="lbtn del" id="peLogoDel" type="button">Bild entfernen</button></div>'+
+    '<p class="mdvl"><b>'+g.ids.length+(g.ids.length===1?" Vertrag":" Verträge")+':</b> '+esc(labs.slice(0,6).join(" · "))+(labs.length>6?" …":"")+'</p>'+
+    '<button class="lbtn main" id="peSave" type="button" style="margin-top:14px">Speichern für '+(g.ids.length===1?"den Vertrag":"alle "+g.ids.length+" Verträge")+'</button>'+
+    '<button class="lbtn" id="peMerge" type="button" style="margin-top:8px">Mit anderem Partner zusammenführen …</button>');
+  document.getElementById("peName").addEventListener("input",function(){pe.name=this.value;paintPeMark();});
+  document.getElementById("peWeb").addEventListener("input",function(){pe.web=this.value;});
+  document.getElementById("peUp").hidden=!assets;
+  paintPeMark();
+}
+function paintPeMark(){
+  var el=document.getElementById("peMark");if(!el||!pe)return;
+  var c0=state.contracts[pe.ids[0]]||{};
+  el.innerHTML=markHtml({partner:pe.name,cat:c0.cat,color:c0.color,label:c0.label,logoId:pe.logoId,logoBg:pe.logoBg});
+  document.getElementById("peLogoDel").hidden=!(pe.logoId&&KBlob.has(pe.logoId));
+}
+async function savePe(){
+  var name=(pe.name||"").trim().replace(/\s+/g," ");
+  if(!name){toast("Bitte einen Namen eingeben");return;}
+  var web=String(pe.web||"").trim();
+  var other=partnerGroups().filter(function(o){return o.key!==pe.key&&o.name.toLowerCase()===name.toLowerCase();})[0];
+  if(other){
+    var ok=await ask({title:"«"+other.name+"» gibt es schon",text:"Deine "+pe.ids.length+(pe.ids.length===1?" Vertrag wird":" Verträge werden")+" mit den "+other.ids.length+" bestehenden zusammengeführt.",ok:"Zusammenführen"});
+    if(!ok)return;name=other.name;
+  }
+  var n=0;
+  pe.ids.forEach(function(k){var c=state.contracts[k];if(!c)return;var nc=Object.assign({},c),ch=false;
+    if(c.partner!==name){nc.partner=name;ch=true;}
+    if(web!==(pe.origWeb||"")&&(c.web||"")!==web){nc.web=web;ch=true;}
+    if(pe.logoChanged&&(c.logoId||"")!==(pe.logoId||"")){nc.logoId=pe.logoId||"";nc.logoBg=pe.logoId?(pe.logoBg||"#FFFFFF"):"";ch=true;}
+    if(ch){putContract(k,nc);n++;}});
+  closeMe();paintMd();render();
+  toast(n?n+(n===1?" Vertrag aktualisiert":" Verträge aktualisiert"):"Keine Änderung");
+}
+function openPeMerge(){
+  var pg=partnerGroups().filter(function(o){return o.key!==pe.key;});
+  if(!pg.length){toast("Es gibt keinen anderen Partner");return;}
+  var mine=pkey(pe.orig),sug=pg.filter(function(o){return mine&&o.pk===mine;})[0];
+  pe.mergeTo=sug?sug.key:"";
+  openMe("Zusammenführen",'<p class="note" style="margin:0 0 10px">«'+esc(pe.orig)+'» ('+pe.ids.length+(pe.ids.length===1?" Vertrag":" Verträge")+') zusammenführen mit:</p><div id="mergeList"></div><p class="note" id="mergeNote" style="color:var(--ink);margin-top:10px"></p>'+
+    '<button class="lbtn main" id="peMergeGo" type="button" style="margin-top:10px" disabled>Zusammenführen</button>');
+  paintPeMerge(pg);
+}
+function paintPeMerge(pg){
+  pg=pg||partnerGroups().filter(function(o){return o.key!==pe.key;});
+  document.getElementById("mergeList").innerHTML=pg.map(function(o){
+    return '<button class="mdopt" data-mt="'+esc(o.key)+'" aria-pressed="'+(pe.mergeTo===o.key)+'" type="button"><span class="rad"></span><span>'+esc(o.name)+'</span><small>'+o.ids.length+(o.ids.length===1?" Vertrag":" Verträge")+'</small></button>';}).join("");
+  var t=pg.filter(function(o){return o.key===pe.mergeTo;})[0],go=document.getElementById("peMergeGo");
+  go.disabled=!t;
+  document.getElementById("mergeNote").innerHTML=t?'<b>'+(pe.ids.length+t.ids.length)+' Verträge</b> laufen danach unter «'+esc(t.name)+'». Logo und Website des Ziels bleiben, fehlende werden ergänzt. Das lässt sich nicht automatisch rückgängig machen.':"";
+  go.textContent=t?(pe.ids.length+t.ids.length)+" Verträge zusammenführen":"Zusammenführen";
+}
+function doPeMerge(){
+  var t=partnerGroups().filter(function(o){return o.key===pe.mergeTo;})[0];if(!t)return;
+  var tc=t.logoC,web=t.web||"";
+  pe.ids.forEach(function(k){var c=state.contracts[k];if(!c)return;var nc=Object.assign({},c);nc.partner=t.name;
+    if(!nc.web&&web)nc.web=web;
+    if(!(nc.logoId&&KBlob.has(nc.logoId))&&tc){nc.logoId=tc.logoId;nc.logoBg=tc.logoBg||"#FFFFFF";}
+    putContract(k,nc);});
+  var cnt=pe.ids.length;closeMe();paintMd();render();toast(cnt+(cnt===1?" Vertrag":" Verträge")+" zu «"+t.name+"» verschoben");
+}
+
+/* --- Inhaber bearbeiten --- */
+function mapHolders(fn){
+  var n=0;
+  function one(c){var old=holdersOf(c),arr=[];old.forEach(function(h){var r=fn(h);if(r&&arr.indexOf(r)<0)arr.push(r);});
+    if(arr.join("|")===old.join("|"))return null;var nc=Object.assign({},c);nc.holders=arr;delete nc.holder;return nc;}
+  Object.keys(state.contracts).forEach(function(k){var nc=one(state.contracts[k]);if(nc){putContract(k,nc);n++;}});
+  Object.keys(state.incomes).forEach(function(k){var nc=one(state.incomes[k]);if(nc){putIncome(k,nc);n++;}});
+  return n;
+}
+function openHe(name){
+  var st=holderStats().filter(function(h){return h.name===name;})[0];
+  he={orig:name,name:name,isNew:name==null,c:st?st.c:0,i:st?st.i:0};
+  if(he.isNew){openMe("Neuer Inhaber",'<div class="field"><label for="heName">Name</label><input id="heName" type="text" autocomplete="off" maxlength="30" placeholder="z.B. Lara"></div><button class="lbtn main" id="heSave" type="button">Hinzufügen</button>');return;}
+  openMe(name,'<div class="field"><label for="heName">Name</label><input id="heName" type="text" autocomplete="off" maxlength="30" value="'+esc(name)+'"></div>'+
+    '<p class="mdvl" style="margin:-4px 0 12px">'+he.c+(he.c===1?" Vertrag":" Verträge")+(he.i?" · "+he.i+(he.i===1?" Einnahme":" Einnahmen"):"")+' folgen dem neuen Namen.</p>'+
+    '<button class="lbtn main" id="heSave" type="button">Speichern</button>'+
+    '<button class="lbtn" id="heMerge" type="button" style="margin-top:8px">Mit anderem Inhaber zusammenführen …</button>'+
+    '<button class="lbtn del" id="heDel" type="button">Inhaber löschen</button>');
+}
+function saveHe(){
+  var v=(document.getElementById("heName").value||"").trim().replace(/\s+/g," ");if(!v){toast("Bitte einen Namen eingeben");return;}
+  var H=(state.settings.holders||["Ich"]).slice();
+  if(he.isNew){if(H.some(function(h){return h.toLowerCase()===v.toLowerCase();})){toast("Diesen Inhaber gibt es schon");return;}
+    H.push(v);state.settings.holders=H;saveSettings();closeMe();paintMd();render();toast("Inhaber angelegt");return;}
+  if(v===he.orig){closeMe();return;}
+  var ex=H.filter(function(h){return h!==he.orig&&h.toLowerCase()===v.toLowerCase();})[0];
+  if(ex){ask({title:"«"+ex+"» gibt es schon",text:"«"+he.orig+"» wird mit «"+ex+"» zusammengeführt.",ok:"Zusammenführen"}).then(function(y){if(y)doHeMerge(he.orig,ex);});return;}
+  var o=he.orig;
+  state.settings.holders=H.map(function(h){return h===o?v:h;});saveSettings();
+  if(state.bHolder===o)state.bHolder=v;
+  mapHolders(function(h){return h===o?v:h;});
+  closeMe();paintMd();render();toast("Umbenannt");
+}
+function openHeMerge(){
+  var H=holderStats().filter(function(h){return h.name!==he.orig;});
+  if(!H.length){toast("Es gibt keinen anderen Inhaber");return;}
+  he.mergeTo="";
+  openMe("Zusammenführen",'<p class="note" style="margin:0 0 10px">«'+esc(he.orig)+'» zusammenführen mit:</p><div id="hmList">'+H.map(function(h){
+    return '<button class="mdopt" data-hmt="'+esc(h.name)+'" aria-pressed="false" type="button"><span class="rad"></span><span>'+esc(h.name)+'</span><small>'+h.c+(h.c===1?" Vertrag":" Verträge")+'</small></button>';}).join("")+'</div>'+
+    '<p class="note" id="hmNote" style="color:var(--ink);margin-top:10px"></p><button class="lbtn main" id="heMergeGo" type="button" disabled style="margin-top:10px">Zusammenführen</button>');
+}
+function doHeMerge(from,to){
+  var H=(state.settings.holders||["Ich"]).filter(function(h){return h!==from;});if(H.indexOf(to)<0)H.push(to);
+  state.settings.holders=H;saveSettings();if(state.bHolder===from)state.bHolder=to;
+  mapHolders(function(h){return h===from?to:h;});
+  closeMe();paintMd();render();toast("Zusammengeführt mit «"+to+"»");
+}
+function deleteHe(){
+  var H=(state.settings.holders||["Ich"]);
+  if(H.length<=1&&H[0]===he.orig){toast("Mindestens ein Inhaber nötig");return;}
+  var o=he.orig;
+  ask({title:"Inhaber «"+o+"» löschen?",text:(he.c||he.i)?"Die "+he.c+(he.c===1?" Vertrag":" Verträge")+(he.i?" und "+he.i+(he.i===1?" Einnahme":" Einnahmen"):"")+" bleiben erhalten, haben dann aber keinen Inhaber.":"Der Inhaber wird entfernt.",ok:"Löschen",danger:true}).then(function(y){
+    if(!y)return;
+    state.settings.holders=H.filter(function(h){return h!==o;});if(!state.settings.holders.length)state.settings.holders=["Ich"];saveSettings();
+    if(state.bHolder===o)state.bHolder="";
+    mapHolders(function(h){return h===o?null:h;});
+    closeMe();paintMd();render();toast("Inhaber gelöscht");});
+}
+
+/* --- Ereignisse --- */
+document.addEventListener("click",function(ev){
+  var t=ev.target,x;
+  if((x=t.closest("[data-md]"))){openMd(x.dataset.md);return;}
+  if(!t.closest("#sheetMd,#sheetMe"))return;
+  if(t.closest("#mdClose")){closeMd();return;}
+  if(t.closest("#meClose")){closeMe();return;}
+  if((x=t.closest("[data-pe]"))){openPe(x.dataset.pe);return;}
+  if((x=t.closest("[data-he]"))){openHe(x.dataset.he);return;}
+  if(t.closest("#heAdd")){openHe(null);return;}
+  if(t.closest("#sCatAdd")){openCatEdit(null);return;}
+  if((x=t.closest("[data-ce]"))){openCatEdit(+x.dataset.ce);return;}
+  if(t.closest("#peSave")){savePe();return;}
+  if(t.closest("#peMerge")){openPeMerge();return;}
+  if((x=t.closest("[data-mt]"))){pe.mergeTo=x.dataset.mt;paintPeMerge();return;}
+  if(t.closest("#peMergeGo")){doPeMerge();return;}
+  if(t.closest("#heSave")){saveHe();return;}
+  if(t.closest("#heMerge")){openHeMerge();return;}
+  if(t.closest("#heDel")){deleteHe();return;}
+  if((x=t.closest("[data-hmt]"))){he.mergeTo=x.dataset.hmt;
+    document.querySelectorAll("#hmList .mdopt").forEach(function(b){b.setAttribute("aria-pressed",b===x);});
+    document.getElementById("heMergeGo").disabled=false;
+    document.getElementById("hmNote").innerHTML='<b>'+esc(he.orig)+'</b> wird in allen Verträgen und Einnahmen durch <b>'+esc(he.mergeTo)+'</b> ersetzt.';return;}
+  if(t.closest("#heMergeGo")){if(he.mergeTo)doHeMerge(he.orig,he.mergeTo);return;}
+  if(t.closest("#peAuto")){
+    var nm=(document.getElementById("peName").value||"").trim();
+    runCands("peCands",nm,pe.cur,function(r){pe.logoId=r.id;pe.logoBg=r.bg;pe.logoChanged=true;paintPeMark();},"",document.getElementById("peWeb").value);return;}
+  if(t.closest("#pePaste")){document.getElementById("pePaste").classList.remove("pulse");document.getElementById("peCands").innerHTML="";pasteLogo("p");return;}
+  if(t.closest("#peUp")){cropTarget="p";document.getElementById("logoFile").click();return;}
+  if(t.closest("#peGoogle")){
+    var n2=(document.getElementById("peName").value||"").trim();if(!n2){toast("Zuerst den Namen eintragen");return;}logoSearch(n2,"p");webWait="p";
+    document.getElementById("peCands").innerHTML='<div class="lcmsg webhint"><b>So geht’s:</b> In Google das passende Bild lange drücken → «Kopieren». Dann zurück in die App und «Einfügen» tippen.</div>';
+    document.getElementById("pePaste").classList.add("pulse");return;}
+  if(t.closest("#peLogoDel")){pe.logoId="";pe.logoBg="";pe.logoChanged=true;paintPeMark();return;}
+});
+document.addEventListener("input",function(ev){if(ev.target&&ev.target.id==="mdQ")paintMdPartners();});
+document.addEventListener("keydown",function(ev){if(ev.key==="Enter"&&ev.target&&(ev.target.id==="heName"||ev.target.id==="peName")){ev.preventDefault();var b=document.getElementById(ev.target.id==="heName"?"heSave":"peSave");if(b)b.click();}});
+
 function fillSettings(){
-  paintSetCats();document.getElementById("sSender").value=state.settings.sender||"";
+  paintMdSummary();document.getElementById("sSender").value=state.settings.sender||"";
   var lr=state.settings.lastReview;document.getElementById("reviewStamp").textContent=lr?"Letzter Quartals-Check: "+fmtD(lr):"Noch kein Quartals-Check durchgeführt";
   document.getElementById("sHome").value=state.settings.home;
-  setHolders=(state.settings.holders||["Ich"]).slice();paintSetHolders();
   document.getElementById("csvOut").innerHTML="";paintRateStamp();
 }
-var setHolders=[];
-function paintSetHolders(){
-  var el=document.getElementById("sHolderList");el.innerHTML="";
-  setHolders.forEach(function(h,i){
-    var b=document.createElement("button");b.type="button";b.className="chip";b.setAttribute("aria-pressed","true");
-    b.setAttribute("aria-label",h+" entfernen");
-    b.innerHTML=esc(h)+'<span class="x">×</span>';
-    b.addEventListener("click",function(){
-      if(setHolders.length<=1){toast("Mindestens ein Inhaber nötig");return;}
-      setHolders.splice(i,1);paintSetHolders();commitHolders();});
-    el.appendChild(b);
-  });
-}
-function addSetHolder(){
-  var i=document.getElementById("sHolderNew"),v=i.value.trim();if(!v)return;
-  if(setHolders.indexOf(v)<0)setHolders.push(v);i.value="";paintSetHolders();commitHolders();
-}
-document.getElementById("sHolderAdd").addEventListener("click",addSetHolder);
-document.getElementById("sHolderNew").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addSetHolder();}});
 function paintRateStamp(){var s=state.settings,d=s.rateDate,H=s.home||"CHF";
   document.getElementById("rateStamp").textContent=d?"Stand "+fmtD(d)+" · täglich automatisch":"Noch nicht geladen";
   var el=document.getElementById("rateShow");if(!el)return;
   el.innerHTML=CURS.filter(function(c){return c!==H;}).map(function(c){var v=rateOf(c)/rateOf(H);
     return "<div><span>1 "+c+"</span><b>"+v.toFixed(v<0.1?4:4)+" "+H+"</b></div>";}).join("");}
-function commitHolders(){state.settings.holders=setHolders.length?setHolders.slice():["Ich"];saveSettings();render();}
 document.getElementById("sSender").addEventListener("change",function(){state.settings.sender=this.value.trim();saveSettings();toast("Absender gespeichert");});
 document.getElementById("sHome").addEventListener("change",function(){
   state.settings.home=this.value;saveSettings();render();paintRateStamp();toast("Hauptwährung: "+this.value);});
