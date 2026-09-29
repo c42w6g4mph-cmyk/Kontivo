@@ -548,6 +548,12 @@ body.hasplus .topadd{display:inline-flex}
 .catchip .pci{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
 .catchip .cicon{width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .catchip .pci{display:flex;align-items:center;justify-content:center;flex:none}
+.psug{margin-top:6px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:2px 10px 4px;overflow:hidden}
+.psug .ph{font-size:11.5px;font-weight:600;color:var(--ink3);margin:8px 0 2px}
+.psug .mdrow{padding:7px 0}.psug .mdrow::after{display:none}
+.psug .mdrow .mark{width:34px;height:34px;border-radius:9px;font-size:12px}
+.psug .mdrow .t b{font-size:14.5px}.psug .mdrow .t small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.psug .pmsg{font-size:12.5px;color:var(--ink3);padding:8px 0}
 .dupnote{margin-top:6px;font-size:12.5px;color:var(--warn)}
 .legal{margin-top:8px}.legal summary{font-size:13px;color:var(--ink3);cursor:pointer}.legal .note{margin:8px 0 0;font-size:12.5px}
 .ceic .cicon{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -910,7 +916,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml">
   </div></details>
   <div class="field"><label for="fLabel">Bezeichnung</label><input id="fLabel" type="text" placeholder="z.B. Handy-Abo" autocomplete="off"></div>
-  <div class="field"><label for="fPartner">Vertragspartner</label><input id="fPartner" type="text" placeholder="z.B. Swisscom" autocomplete="off"><div class="dupnote" id="dupHint" hidden></div></div>
+  <div class="field"><label for="fPartner">Vertragspartner</label><input id="fPartner" type="text" placeholder="z.B. Swisscom" autocomplete="off"><div class="psug" id="pSug" hidden></div><div class="dupnote" id="dupHint" hidden></div></div>
   <div class="sugg" id="fSugg"></div>
   <div class="flabel">Kategorie</div>
   <button type="button" class="catfield" id="fCats"><span class="cfi" id="fCatIcon"></span><span class="cfn" id="fCatName">Kategorie wählen</span><span class="chev">›</span></button>
@@ -2074,7 +2080,7 @@ function openForm(c,asCopy){clearCands();
   document.getElementById("fCancF").value=(c&&c.cancF)||"";
   document.getElementById("fTrial").value=(c&&c.trial)||"";
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
-  document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);syncWatch();draft.tplHint="";
+  document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
   document.getElementById("fSugg").innerHTML='<button type="button" class="chip tplcat" data-tplcat>Aus Katalog wählen</button>';
   document.getElementById("fWeb").value=(c&&c.web)||"";
   document.getElementById("fTel").value=(c&&c.tel)||"";
@@ -3332,6 +3338,92 @@ document.addEventListener("click",function(ev){
 document.addEventListener("input",function(ev){if(ev.target&&ev.target.id==="mdQ")paintMdPartners();});
 document.addEventListener("keydown",function(ev){if(ev.key==="Enter"&&ev.target&&(ev.target.id==="heName"||ev.target.id==="peName")){ev.preventDefault();var b=document.getElementById(ev.target.id==="heName"?"heSave":"peSave");if(b)b.click();}});
 
+/* ---------- Partner-Vorschläge beim Erfassen ---------- */
+var pSugTok=0,pSugTimer=0,pSugSel="",pSugWeb=[];
+function hidePSug(){var el=document.getElementById("pSug");if(el){el.hidden=true;el.innerHTML="";}pSugTok++;}
+async function webPartners(q){
+  q=String(q||"").trim();if(q.length<3||!lusable(q)||navigator.onLine===false)return [];
+  var r=await rateJson(WD+"&action=wbsearchentities&type=item&limit=8&language=de&uselang=de&search="+encodeURIComponent(q)).catch(function(){return null;});
+  var ids=((r||{}).search||[]).map(function(h){return h.id;});if(!ids.length)return [];
+  var e=await rateJson(WD+"&action=wbgetentities&props=claims|labels|descriptions&languages=de|en&ids="+ids.join("|")).catch(function(){return null;});
+  var ents=(e&&e.entities)||{},out=[],seen={};
+  ids.forEach(function(id){var en=ents[id];if(!en||!en.claims)return;
+    var kinds=wclaims(en,"P31");if(kinds.some(function(k){return WNOT.indexOf(k)>=0;}))return;
+    var sites=wclaims(en,"P856").map(domainOf).filter(Boolean);
+    var isOrg=sites.length||wclaims(en,"P452").length||wclaims(en,"P159").length||wclaims(en,"P1454").length;
+    if(!isOrg||!sites.length)return;
+    var lab=(en.labels&&((en.labels.de||en.labels.en||{}).value))||"";if(!lab)return;
+    if(lnorm(lab).indexOf(lnorm(q))<0)return;
+    var dom=sites[0],k=regDom(dom);if(seen[k])return;seen[k]=1;
+    var file=wclaims(en,"P8972")[0]||wclaims(en,"P2910")[0]||wclaims(en,"P154")[0];
+    out.push({name:lab,desc:(en.descriptions&&((en.descriptions.de||en.descriptions.en||{}).value))||"",dom:dom,file:typeof file==="string"?file:""});});
+  return out.slice(0,4);
+}
+function ownPartnerMatches(q){
+  q=q.toLowerCase();return partnerGroups().filter(function(o){return o.name.toLowerCase().indexOf(q)>=0;}).slice(0,3);
+}
+function paintPSug(web,loading){
+  var el=document.getElementById("pSug"),q=(document.getElementById("fPartner").value||"").trim();
+  if(!el)return;
+  if(q.length<2||q===pSugSel){hidePSug();return;}
+  var own=ownPartnerMatches(q),h="";
+  if(own.length){h+='<div class="ph">Deine Partner</div>'+own.map(function(o,i){var c=o.logoC||state.contracts[o.ids[0]];
+    return '<button type="button" class="mdrow" data-po="'+i+'">'+markHtml(c)+'<span class="t"><b>'+esc(o.name)+'</b><small>'+o.ids.length+(o.ids.length===1?" Vertrag":" Verträge")+(o.web?" · "+esc(domainOf(o.web)):"")+'</small></span></button>';}).join("");}
+  var ownNames=own.map(function(o){return o.name.toLowerCase();});
+  var wl=(web||[]).filter(function(w){return ownNames.indexOf(w.name.toLowerCase())<0;});
+  if(wl.length){h+='<div class="ph">Aus dem Internet</div>'+wl.map(function(w){var i=(web||[]).indexOf(w);
+    var img=w.file?"https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.file)+"?width=96":"https://www.google.com/s2/favicons?sz=64&domain="+encodeURIComponent(w.dom);
+    return '<button type="button" class="mdrow" data-pw="'+i+'"><div class="mark" style="background:#fff"><img src="'+esc(img)+'" alt="" onerror="this.remove()"></div><span class="t"><b>'+esc(w.name)+'</b><small>'+esc(w.dom)+(w.desc?" · "+esc(w.desc):"")+'</small></span></button>';}).join("");}
+  else if(loading)h+='<div class="pmsg">Suche im Internet …</div>';
+  pSugWeb=web||[];
+  if(!h){hidePSug();return;}
+  el.innerHTML=h;el.hidden=false;el._own=own;
+}
+function schedulePSug(){
+  clearTimeout(pSugTimer);
+  var q=(document.getElementById("fPartner").value||"").trim();
+  if(q.length<2||q===pSugSel){hidePSug();return;}
+  var tok=++pSugTok;paintPSug([],q.length>=3);
+  pSugTimer=setTimeout(async function(){
+    var w=[];try{w=await webPartners(q);}catch(e){w=[];}
+    if(tok!==pSugTok)return;paintPSug(w,false);
+  },350);
+}
+async function pickWebPartner(w){
+  document.getElementById("fPartner").value=w.name;pSugSel=w.name;
+  var wf=document.getElementById("fWeb");if(!wf.value.trim())wf.value=w.dom;
+  hidePSug();paintLogo();paintSugg();
+  if(draft.logoId&&KBlob.has(draft.logoId))return;
+  if(!assets||navigator.onLine===false)return;
+  toast("Lade Logo …");
+  var r=null;
+  try{
+    if(w.file){var q=await rateJson("https://commons.wikimedia.org/w/api.php?format=json&origin=*&action=query&prop=imageinfo&iiprop=url|size&iiurlwidth=512&titles="+encodeURIComponent("File:"+w.file)).catch(function(){return null;});
+      var pg=q&&q.query&&q.query.pages,ii=pg&&Object.keys(pg).map(function(k){return pg[k].imageinfo&&pg[k].imageinfo[0];}).filter(Boolean)[0];
+      if(ii&&(ii.thumburl||ii.url)){var t=await takeLogo({url:ii.thumburl||ii.url,src:"wiki"});if(t&&t.id)r=t;}}
+    if(!r){var sc=await siteCand(regDom(w.dom),3);if(sc){var t2=await takeLogo(sc);if(t2&&t2.id)r=t2;}}
+  }catch(e){r=null;}
+  if(r&&!(draft.logoId&&KBlob.has(draft.logoId))){draft.logoId=r.id;draft.logoBg=r.bg;paintLogo();toast("Logo und Website übernommen");}
+  else toast(r?"Website übernommen":"Website übernommen, kein Logo gefunden");
+}
+function pickOwnPartner(o){
+  document.getElementById("fPartner").value=o.name;pSugSel=o.name;
+  var wf=document.getElementById("fWeb");if(!wf.value.trim()&&o.web)wf.value=o.web;
+  var c=o.logoC;if(c&&!(draft.logoId&&KBlob.has(draft.logoId))){draft.logoId=c.logoId;draft.logoBg=c.logoBg||"#FFFFFF";}
+  var c0=state.contracts[o.ids[0]];if(c0&&!draft.cat&&c0.cat){draft.cat=c0.cat;paintCats();}
+  hidePSug();paintLogo();paintSwatches();paintSugg();
+}
+(function(){
+  var inp=document.getElementById("fPartner"),box=document.getElementById("pSug");
+  inp.addEventListener("input",function(){if(pSugSel&&inp.value.trim()!==pSugSel)pSugSel="";schedulePSug();});
+  inp.addEventListener("focus",function(){schedulePSug();});
+  inp.addEventListener("blur",function(){setTimeout(hidePSug,220);});
+  box.addEventListener("mousedown",function(ev){ev.preventDefault();});
+  box.addEventListener("click",function(ev){
+    var o=ev.target.closest("[data-po]");if(o){pickOwnPartner(box._own[+o.dataset.po]);return;}
+    var w=ev.target.closest("[data-pw]");if(w)pickWebPartner(pSugWeb[+w.dataset.pw]);
+  });
+})();
 function fillSettings(){
   paintMdSummary();document.getElementById("sSender").value=state.settings.sender||"";
   var lr=state.settings.lastReview;document.getElementById("reviewStamp").textContent=lr?"Letzter Quartals-Check: "+fmtD(lr):"Noch kein Quartals-Check durchgeführt";
