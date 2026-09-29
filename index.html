@@ -1426,7 +1426,7 @@ function cardHtml(c,mode,dd){
     right='<div class="a">'+money(monthlyCost(c))+'<span class="cu">'+esc(state.settings.home)+"/Mt.</span></div>"+
       '<div class="c">'+(same?"monatlich":money(curPrice(c))+" "+esc(c.cur)+" "+esc(CYCLE[c.cycle]||"monatlich"))+"</div>";
   } else {
-    var cuL=(c.cur||"CHF")===state.settings.home?"":'<span class="cu">'+esc(c.cur)+'</span>';
+    var cuL='<span class="cu">'+esc(c.cur||"CHF")+'</span>';
     right='<div class="a">'+money(curPrice(c))+cuL+'</div>'+((+c.cycle||1)!==1?'<div class="c">'+esc(CYCLE[c.cycle]||"")+'</div>':"");
   }
   var srt=state.settings.sort||"cat",inList=state.tab==="list";
