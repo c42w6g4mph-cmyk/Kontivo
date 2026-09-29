@@ -84,9 +84,9 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 
 /* Liste */
 .grp{padding:20px 0 2px}
-.grphead{font-size:12.5px;color:var(--ink2);padding-bottom:6px;display:flex;justify-content:space-between}
+.grphead{font-size:12px;color:var(--ink2);padding-bottom:6px;display:flex;justify-content:space-between}
 .card{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
-  background:var(--surface);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;
+  background:var(--surface);border-radius:var(--r);padding:9px 12px;margin-bottom:6px;
   border-left:3px solid transparent}
 .card.u-alert{border-left-color:var(--alert)}
 .card.u-warn{border-left-color:var(--warn)}
@@ -100,8 +100,12 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
 .cmain .m{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card{gap:13px}
-.card .mark{width:50px;height:50px;border-radius:12px;font-size:18px}
-.card .cmain .n{font-size:15px;line-height:1.25;margin-bottom:1px}
+.card .mark{width:44px;height:44px;border-radius:11px;font-size:16px}
+.card .cmain .n{font-size:14px;line-height:1.25;margin-bottom:1px}
+.card .cmain .m{font-size:12px}
+.card .camt .a{font-size:15px}
+.card .camt .a .cu{font-size:10.5px}
+.card .camt .c,.card .camt .due{font-size:10.5px}
 .camt{text-align:right;flex:none}
 .camt .a{font-size:16px;font-weight:600}
 .camt .c{font-size:11px;color:var(--ink2)}
@@ -1590,7 +1594,7 @@ function fitTitles(){fitQ=0;
   document.querySelectorAll(".card .cmain .n").forEach(function(el){el.style.fontSize="";
     var w=el.clientWidth,s=el.scrollWidth;if(!w||s<=w+1)return;
     var base=parseFloat(getComputedStyle(el).fontSize)||16;
-    el.style.fontSize=Math.max(12.5,Math.floor(base*w/s*10)/10)+"px";});}
+    el.style.fontSize=Math.max(12,Math.floor(base*w/s*10)/10)+"px";});}
 function fitSoon(){if(!fitQ)fitQ=requestAnimationFrame(fitTitles);}
 try{new MutationObserver(fitSoon).observe(document.body,{childList:true,subtree:true});}catch(e){}
 window.addEventListener("resize",fitSoon);
