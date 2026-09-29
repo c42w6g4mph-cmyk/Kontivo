@@ -193,6 +193,7 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .fbar3{display:flex;gap:6px;margin:12px 0 0}
 .fbar3 .fsel{flex:1 1 auto;max-width:none;min-width:0;justify-content:center;gap:5px;padding:8px 9px 8px 11px}
 .fbar3 .fsel.on{flex-grow:2}
+.fbar3 .fsel[data-bh]{flex:1 1 0}.fbar3 .fsel[data-bh]::after{display:none}
 .fclr{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink2);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0 0 2px}
 .fsel{flex:none;display:inline-flex;align-items:center;gap:7px;max-width:170px;padding:7px 11px 7px 13px;border-radius:999px;
   border:1px solid var(--line);background:var(--surface);font-size:12.5px;color:var(--ink2)}
@@ -1819,7 +1820,12 @@ function renderBudget(v){
   incList().forEach(function(c){var f=shr(c);if(f)occurrences(c,from,to).forEach(function(d){M[d.getMonth()].inc+=conv(priceAt(c,d),c.cur)*f;});});
   Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k],f=shr(c);if(!f)return;
     occurrences(c,from,to).forEach(function(d){M[d.getMonth()].fix+=conv(priceAt(c,d),c.cur)*f;});});
-  var bhf='<div class="fbar3 one" role="group" aria-label="Filter"><button class="fsel'+(BH?" on":"")+'" data-bsheet><span>'+esc(BH||"Inhaber")+"</span></button>"+(BH?'<button class="fclr" data-bhdel type="button" aria-label="Filter zurücksetzen">×</button>':"")+"</div>";
+  var bhf;
+  if(HL.length>1&&HL.length<=4&&HL.join("").length<=28){
+    bhf='<div class="fbar3" role="group" aria-label="Inhaber">'+[''].concat(HL).map(function(h){var on=(h===BH);
+      return '<button class="fsel'+(on?" on":"")+'" data-bh="'+esc(h)+'" aria-pressed="'+on+'" type="button"><span>'+esc(h||"Alle")+"</span></button>";}).join("")+"</div>";
+  } else if(HL.length<=1)bhf="";
+  else bhf='<div class="fbar3 one" role="group" aria-label="Filter"><button class="fsel'+(BH?" on":"")+'" data-bsheet><span>'+esc(BH||"Inhaber")+"</span></button>"+(BH?'<button class="fclr" data-bhdel type="button" aria-label="Filter zurücksetzen">×</button>':"")+"</div>";
   state._bHL=HL;
   var tInc=0,tFix=0;
   M.forEach(function(m){m.free=m.inc-m.fix;tInc+=m.inc;tFix+=m.fix;});
@@ -2758,6 +2764,7 @@ document.getElementById("view").addEventListener("click",function(ev){
   var rvb=ev.target.closest("[data-rv]");
   if(rvb){if(rvb.dataset.rv==="ok"){state.settings.lastReview=iso(today());state.settings.reviewSnooze="";toast("Geprüft — nächste Erinnerung in drei Monaten");}
     else state.settings.reviewSnooze=iso(addDays(today(),7));saveSettings();render();return;}
+  var bhb=ev.target.closest("[data-bh]");if(bhb){state.bHolder=bhb.dataset.bh;renderView();return;}
   if(ev.target.closest("[data-bhdel]")){state.bHolder="";renderView();return;}
   if(ev.target.closest("[data-bsheet]")){var hl=state._bHL||[],cur=state.bHolder||"";
     document.getElementById("pickTitle").textContent="Inhaber";
