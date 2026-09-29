@@ -2630,8 +2630,8 @@ document.getElementById("logoSearch").addEventListener("click",function(){
 document.getElementById("iLogoSearch").addEventListener("click",function(){
   logoSearch(document.getElementById("iName").value||document.getElementById("iLabel").value,"i");});
 function openLink(url,copy){
-  var w=null;try{w=window.open(url,"_blank","noopener");}catch(e){w=null;}
-  if(w)return;
+  var ok=false;try{var an=document.createElement("a");an.href=url;an.target="_blank";an.rel="noopener noreferrer";an.style.display="none";document.body.appendChild(an);an.click();setTimeout(function(){an.remove();},0);ok=true;}catch(e){ok=false;}
+  if(ok)return;
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(copy||url).then(function(){toast("Kopiert: "+(copy||url));},function(){toast(copy||url);});
   }else toast(copy||url);
