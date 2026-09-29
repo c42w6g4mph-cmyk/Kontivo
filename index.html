@@ -835,6 +835,11 @@ details.opt.moreact{margin-top:9px;background:transparent}
 
   <div id="view"></div>
   <section class="setpage" id="setPage" hidden aria-label="Einstellungen">
+  <div class="sgroup"><div class="sgh">Stammdaten</div>
+    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Umbenennen, zusammenführen, Logo</small></span><em id="mdSumP"></em></button>
+    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Umbenennen, zusammenführen, löschen</small></span><em id="mdSumH"></em></button>
+    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Name, Farbe, Symbol, Reihenfolge</small></span><em id="mdSumC"></em></button>
+    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small>Fehlende Angaben in Verträgen und Vertragspartnern</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Darstellung</div>
     <div class="seg2" id="themeSeg" role="group" aria-label="Darstellung" style="margin:0">
       <button type="button" data-th="auto" aria-pressed="true">Automatisch</button>
@@ -844,19 +849,11 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <div class="sgroup"><div class="sgh">Währung</div>
     <div class="field"><label for="sHome">Hauptwährung für alle Summen</label>
       <select id="sHome"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></div>
-    <div class="ratelist" id="rateShow"></div>
-    <div class="ratefoot"><span class="note" id="rateStamp"></span><button class="mini" id="sRateNow" type="button">Jetzt aktualisieren</button></div></div>
-  <div class="sgroup"><div class="sgh">Logos</div>
-    <button class="lbtn main" id="logoBulk" type="button">Fehlende Logos jetzt suchen</button></div>
+    <div class="ratefoot"><span class="note" id="rateStamp"></span><button class="mini" id="sRateNow" type="button">Aktualisieren</button></div></div>
   <div class="sgroup"><div class="sgh">Kündigungsschreiben</div>
     <div class="field" style="margin:0"><label for="sSender">Absender — Name und Adresse</label>
     <textarea id="sSender" placeholder="Vorname Name&#10;Strasse Nr.&#10;8280 Kreuzlingen" style="min-height:84px"></textarea></div>
     <p class="note" style="margin:6px 0 0">Erscheint oben im Kündigungstext, Ort und Datum werden ergänzt.</p></div>
-  <div class="sgroup"><div class="sgh">Stammdaten</div>
-    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Umbenennen, zusammenführen, Logo</small></span><em id="mdSumP"></em></button>
-    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Umbenennen, zusammenführen, löschen</small></span><em id="mdSumH"></em></button>
-    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Name, Farbe, Symbol, Reihenfolge</small></span><em id="mdSumC"></em></button>
-    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small>Fehlende Angaben in Verträgen und Vertragspartnern</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Daten</div>
     <div class="tiles">
       <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
@@ -864,6 +861,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
       <button class="tile" id="csvImp" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg><b>CSV importieren</b></button>
       <button class="tile" id="csvBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg><b>CSV exportieren</b></button>
     </div>
+    <p class="note" style="margin:10px 0 0"><b>Backup</b> sichert alles: Verträge, Einnahmen, Einstellungen, Logos und Dokumente.<br><b>CSV</b> enthält nur die Tabellendaten, ohne Logos und Dokumente. Der Import erkennt gängige Spaltennamen (z.B. Anbieter, Betrag, Turnus), auch aus Excel oder anderen Apps. Am sichersten klappt es mit einer CSV aus Kontivo.</p>
     <input type="file" id="bkFile" accept=".json,application/json">
     <input type="file" id="csvFile" accept=".csv,text/csv,text/plain,text/comma-separated-values">
     <div id="csvOut"></div>
@@ -871,7 +869,6 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <button class="lbtn del" id="wipeAll" type="button" style="margin-top:10px">Alle Daten löschen</button>
     <p class="note" id="reviewStamp" hidden></p></div>
   <div class="sgroup"><div class="sgh">Hinweise</div>
-    <p class="note" style="margin:0">Wechselkurse werden täglich automatisch aktualisiert (Referenzkurse der EZB).</p>
     <details class="legal"><summary>Rechtliches</summary>
     <p class="note">Alle Angaben ohne Gewähr. Kündigungsfristen, Preise und Kündigungsschreiben ersetzen keine Rechtsberatung – massgebend sind dein Vertrag und die Angaben des Anbieters. Wechselkurse sind Richtwerte.</p>
     <p class="note">Deine Daten liegen nur auf diesem Gerät. Backups und Dateien sicherst du selbst; ohne Backup gehen sie bei Löschung der App verloren.</p>
@@ -3577,7 +3574,7 @@ function fillSettings(){
   document.getElementById("csvOut").innerHTML="";paintRateStamp();
 }
 function paintRateStamp(){var s=state.settings,d=s.rateDate,H=s.home||"CHF";
-  document.getElementById("rateStamp").textContent=d?"Stand "+fmtD(d)+" · täglich automatisch":"Noch nicht geladen";
+  document.getElementById("rateStamp").textContent=d?"Kurse der EZB, täglich automatisch · Stand "+fmtD(d):"Kurse der EZB, täglich automatisch";
   var el=document.getElementById("rateShow");if(!el)return;
   el.innerHTML=CURS.filter(function(c){return c!==H;}).map(function(c){var v=rateOf(c)/rateOf(H);
     return "<div><span>1 "+c+"</span><b>"+v.toFixed(v<0.1?4:4)+" "+H+"</b></div>";}).join("");}
@@ -3874,7 +3871,7 @@ async function autoAttach(kind,idv,name,cur,alt,web){
   if(kind==="i")putIncome(idv,n);else putContract(idv,n);
   render();toast("Logo für «"+(name||alt)+"» ergänzt");
 }
-document.getElementById("logoBulk").addEventListener("click",async function(){
+document.getElementById("logoBulk")&&document.getElementById("logoBulk").addEventListener("click",async function(){
   if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
   var todo=[];
   Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(c.logoId&&KBlob.has(c.logoId))return;
