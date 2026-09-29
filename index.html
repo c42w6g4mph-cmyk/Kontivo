@@ -532,6 +532,13 @@ body.hasplus .topadd{display:inline-flex}
 .mdopt small{margin-left:auto;font-size:12px;color:var(--ink3)}
 .dlink{color:var(--teal);font-weight:600;text-align:right}
 .mdrow.hrow::after{display:none}
+.qrow{display:flex;align-items:center;gap:4px;border-top:1px solid var(--line)}
+.qrow .mdrow::after{display:none}
+.qrow .mdrow{border-top:0;flex:1;min-width:0;width:auto}
+.qig{flex:none;font-size:12px;color:var(--ink3);padding:10px 6px}
+.qh{margin:18px 0 2px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
+.qh.w{color:var(--warn)}
+.qok{padding:18px 0;color:var(--ink2);font-size:14px}
 .chk{flex:none;width:22px;height:22px;border-radius:50%;border:1.6px solid var(--ink3);position:relative}
 .chk.on{background:var(--teal);border-color:var(--teal)}
 .chk.on::after{content:"";position:absolute;left:6px;top:3px;width:6px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(40deg)}
@@ -845,7 +852,8 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <div class="sgroup"><div class="sgh">Stammdaten</div>
     <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Partner</b><small>Umbenennen, zusammenführen, Logo &amp; Website</small></span><em id="mdSumP"></em></button>
     <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Umbenennen, zusammenführen, löschen</small></span><em id="mdSumH"></em></button>
-    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Name, Farbe, Symbol, Reihenfolge</small></span><em id="mdSumC"></em></button></div>
+    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Name, Farbe, Symbol, Reihenfolge</small></span><em id="mdSumC"></em></button>
+    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small>Fehlende Angaben in Verträgen und Partnern</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Daten</div>
     <div class="tiles">
       <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
@@ -3077,6 +3085,44 @@ function partnerGroups(){
   list.forEach(function(o){o.dup=!!(o.pk&&cnt[o.pk]>1);});
   return list.sort(function(a,b){return a.name.localeCompare(b.name,"de-CH",{sensitivity:"base"});});
 }
+/* ---------- Datenqualität ---------- */
+function qIgn(){var o=state.settings.qIgn;return (o&&typeof o==="object")?o:{};}
+function qualItems(){
+  var ig=qIgn(),out={A:[],B:[],C:[]},nIg=0,cats=allCats();
+  function add(g,key,o){if(ig[key]){nIg++;return;}o.key=key;out[g].push(o);}
+  Object.keys(state.contracts).forEach(function(k){
+    var c=Object.assign({},state.contracts[k]);c._id=k;
+    if(c.status==="cancelled")return;
+    var nm=c.label||c.partner||"Ohne Namen",sub=c.partner&&c.label?c.partner:"";
+    var base={kind:"c",id:k,c:c,name:nm,sub:sub};
+    if(!holdersOf(c).length)add("A","c:"+k+":holder",Object.assign({why:"Kein Inhaber"},base));
+    if(!(+c.amount>0))add("A","c:"+k+":amount",Object.assign({why:"Betrag fehlt oder ist 0"},base));
+    if(!c.cat||c.cat==="Sonstiges"||cats.indexOf(c.cat)<0)add("A","c:"+k+":cat",Object.assign({why:!c.cat?"Keine Kategorie":(c.cat==="Sonstiges"?"Kategorie «Sonstiges»":"Kategorie «"+c.cat+"» gibt es nicht mehr")},base));
+    if(!(+c.cycle>0))add("A","c:"+k+":cycle",Object.assign({why:"Zahlungsweise fehlt"},base));
+    if(!parseD(c.due))add("B","c:"+k+":due",Object.assign({why:"Kein Fälligkeitsdatum"},base));
+    if(!c.cancelPer&&!c.noWatch&&!c.mand&&!noticeDeadline(c)&&!(+c.notice||0))add("B","c:"+k+":notice",Object.assign({why:"Keine Kündigungsfrist"},base));
+  });
+  partnerGroups().forEach(function(o){var c=o.logoC||state.contracts[o.ids[0]];
+    if(!o.ids.some(function(k){return state.contracts[k].status!=="cancelled";}))return;
+    var base={kind:"p",pk:o.key,c:c,name:o.name,n:o.ids.length};
+    if(!o.web)add("C","p:"+o.key+":web",Object.assign({why:"Keine Website"},base));
+    if(!o.logoC)add("C","p:"+o.key+":logo",Object.assign({why:"Kein Logo"},base));
+  });
+  out.ign=nIg;return out;
+}
+function paintMdQual(){
+  var b=document.getElementById("mdBody"),q=qualItems();
+  function rows(a){return a.map(function(o){
+    return '<div class="qrow"><button class="mdrow" type="button" '+(o.kind==="c"?'data-qc="'+esc(o.id)+'"':'data-qp="'+esc(o.pk)+'"')+'>'+markHtml(o.c)+'<span class="t"><b>'+esc(o.name)+'</b><small>'+esc(o.why)+(o.sub?" · "+esc(o.sub):"")+'</small></span></button>'+
+      '<button class="qig" type="button" data-qig="'+esc(o.key)+'">Ignorieren</button></div>';}).join("");}
+  function sec(t,a,w){return a.length?'<h4 class="qh'+(w?" w":"")+'">'+t+" · "+a.length+"</h4>"+rows(a):"";}
+  var n=q.A.length+q.B.length;
+  var h=sec("Beeinflusst die Zahlen",q.A,1)+sec("Fristen",q.B,1);
+  if(!n)h='<p class="qok">Bei Zahlen und Fristen ist alles vollständig.</p>';
+  if(q.C.length)h+='<details class="qdet"><summary class="qh" style="cursor:pointer">Kosmetik · '+q.C.length+"</summary>"+rows(q.C)+"</details>";
+  if(q.ign)h+='<p class="note" style="margin:16px 0 0">'+q.ign+" ignoriert · <button class=\"dlink\" style=\"font-weight:500\" type=\"button\" id=\"qReset\">Zurücksetzen</button></p>";
+  b.innerHTML=h;
+}
 function paintMdSummary(){
   var pg=partnerGroups(),d=pg.filter(function(o){return o.dup;}).length;
   var e1=document.getElementById("mdSumP");if(!e1)return;
@@ -3084,10 +3130,12 @@ function paintMdSummary(){
   e1.style.color=d?"var(--warn)":"";e1.style.fontWeight=d?"600":"";
   document.getElementById("mdSumH").textContent=(state.settings.holders||["Ich"]).length+"";
   document.getElementById("mdSumC").textContent=allCats().length+"";
+  var eq=document.getElementById("mdSumQ");if(eq){var qq=qualItems(),nq=qq.A.length+qq.B.length;
+    eq.textContent=nq?nq+(nq===1?" Hinweis":" Hinweise"):"in Ordnung";eq.style.color=nq?"var(--warn)":"";eq.style.fontWeight=nq?"600":"";}
 }
 function openMd(which){
   mdCur=which;
-  document.getElementById("mdTitle").textContent={partner:"Partner",holder:"Inhaber",cat:"Kategorien"}[which];
+  document.getElementById("mdTitle").textContent={partner:"Partner",holder:"Inhaber",cat:"Kategorien",qual:"Datenqualität"}[which];
   paintMd();openSheet(document.getElementById("sheetMd"));
 }
 function paintMd(){
@@ -3097,6 +3145,7 @@ function paintMd(){
     if(!q){b.innerHTML='<input id="mdQ" class="mdsearch" type="search" placeholder="Partner suchen" autocomplete="off"><div id="mdList"></div>';}
     paintMdPartners();
   } else if(mdCur==="holder"){paintMdHolders();}
+  else if(mdCur==="qual"){paintMdQual();}
   else if(mdCur==="cat"){
     b.innerHTML='<div id="sCatList"></div><button class="lbtn main" id="sCatAdd" type="button" style="margin-top:12px">Kategorie hinzufügen</button>';
     paintSetCats();
@@ -3306,6 +3355,10 @@ document.addEventListener("click",function(ev){
   if(!t.closest("#sheetMd,#sheetMe"))return;
   if(t.closest("#mdClose")){closeMd();return;}
   if(t.closest("#meClose")){closeMe();return;}
+  if((x=t.closest("[data-qig]"))){var ob=Object.assign({},qIgn());ob[x.dataset.qig]=1;state.settings.qIgn=ob;saveSettings();paintMd();return;}
+  if(t.closest("#qReset")){state.settings.qIgn={};saveSettings();paintMd();return;}
+  if((x=t.closest("[data-qc]"))){var qid=x.dataset.qc,qc=state.contracts[qid];if(qc){var qo=Object.assign({},qc);qo._id=qid;closeMd();setTimeout(function(){openForm(qo);},200);}return;}
+  if((x=t.closest("[data-qp]"))){openPe(x.dataset.qp);return;}
   if((x=t.closest("[data-pe]"))){openPe(x.dataset.pe);return;}
   if((x=t.closest("[data-he]"))){openHe(x.dataset.he);return;}
   if(t.closest("#heAdd")){openHe(null);return;}
