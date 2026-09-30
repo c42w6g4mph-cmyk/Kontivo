@@ -658,6 +658,21 @@ body.hasplus .topadd{display:inline-flex}
 .tag{font-size:11px;font-weight:600;margin-left:6px;color:var(--teal)}
 .tag.fut{color:var(--warn)}
 .pills{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px}
+/* Preisverlauf-Diagramm (Stufenlinie; SwiftUI: Charts LineMark .interpolationMethod(.stepEnd)) */
+.pchart{background:var(--field);border-radius:12px;padding:12px 12px 8px;margin:0 0 8px}
+.pchead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--ink2)}
+.pchead b{font-size:14px;font-weight:650;color:var(--ink);white-space:nowrap}
+.pchead b.up{color:var(--warn)}.pchead b.down{color:var(--ok)}
+.pchart svg{display:block;width:100%;height:auto;margin-top:6px;overflow:visible}
+.pchart .pl{fill:none;stroke:var(--teal);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.pchart .pl.fut{stroke-dasharray:4 4;opacity:.7}
+.pchart .pa2{fill:color-mix(in srgb,var(--teal) 12%,transparent);stroke:none}
+.pchart .pdt{fill:var(--field);stroke:var(--teal);stroke-width:2}
+.pchart .pdt.now{fill:var(--teal)}
+.pchart .pdt.fut{stroke:var(--warn)}
+.pchart .pg{stroke:var(--line);stroke-width:1}
+.pchart .pt{fill:var(--ink3);font-size:10.5px;font-family:inherit}
+.pchart .pv{fill:var(--ink);font-size:11px;font-weight:600;font-family:inherit}
 
 /* Zuschneiden */
 .sheet.cropsheet{z-index:66}
@@ -1472,6 +1487,51 @@ function pricesOf(c){return (c.prices||[]).filter(function(p){return p&&p.from&&
   .slice().sort(function(a,b){return a.from<b.from?-1:(a.from>b.from?1:0);});}
 function priceAt(c,d){var p=+c.amount||0;pricesOf(c).forEach(function(e){var f=parseD(e.from);if(f&&f<=d)p=+e.amount;});return p;}
 function curPrice(c){return priceAt(c,today());}
+/* Preisverlauf als kleines Stufen-Diagramm (nur bei mind. 1 Preisänderung) */
+function priceChart(c){
+  var ps=pricesOf(c);if(!ps.length)return "";
+  var t=today(),DAY=864e5;
+  var pts=[{d:null,a:+c.amount||0}].concat(ps.map(function(p){return {d:parseD(p.from),a:+p.amount};}));
+  var first=pts[1].d,last=pts[pts.length-1].d;
+  var st=parseD(c.start);
+  if(!st||st>=first){var span=Math.max(180*DAY,(last-first)*.25);st=new Date(first.getTime()-span);}
+  pts[0].d=st;
+  var end=new Date(Math.max(t.getTime(),last.getTime()+Math.max(60*DAY,(last-st)*.08)));
+  var W=320,H=96,L=4,R=W-4,T=16,B=H-18;
+  var vals=pts.map(function(p){return p.a;}),mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+  if(mx===mn){mx+=1;mn-=1;}var pad=(mx-mn)*.18;mn-=pad;mx+=pad;
+  function X(d){return L+(R-L)*(d-st)/(end-st||1);}
+  function Y(v){return B-(B-T)*(v-mn)/(mx-mn);}
+  var area="",dots="",ni=0;
+  pts.forEach(function(p,i){if(p.d<=t)ni=i;});
+  // Linie bis heute (durchgezogen), danach geplant (gestrichelt)
+  var cut=t<end?t:end,pathP="M"+X(st).toFixed(1)+","+Y(pts[0].a).toFixed(1),pathF="";
+  for(var i=1;i<pts.length;i++){
+    var x=X(pts[i].d).toFixed(1),yPrev=Y(pts[i-1].a).toFixed(1),y=Y(pts[i].a).toFixed(1);
+    if(pts[i].d<=t)pathP+=" H"+x+" V"+y;
+    else{if(!pathF){pathP+=" H"+X(cut).toFixed(1);pathF="M"+X(cut).toFixed(1)+","+yPrev;}pathF+=" H"+x+" V"+y;}
+  }
+  if(!pathF)pathP+=" H"+X(end).toFixed(1);else pathF+=" H"+X(end).toFixed(1);
+  area=pathP+" V"+B+" H"+X(st).toFixed(1)+" Z";
+  pts.forEach(function(p,i){if(!i)return;var cl=p.d>t?"pdt fut":(i===ni?"pdt now":"pdt");
+    dots+='<circle class="'+cl+'" cx="'+X(p.d).toFixed(1)+'" cy="'+Y(p.a).toFixed(1)+'" r="3.5"/>';});
+  var yr=function(d){return d.getFullYear();};
+  var sy=yr(st),ey=yr(end);
+  var planned=ni===0,cur=planned?pts[1].a:pts[ni].a,base=pts[0].a,diff=cur-base,pct=base?diff/base*100:0;
+  var cls=diff>0?"up":(diff<0?"down":"");
+  var sign=diff>0?"+":(diff<0?"−":"±");
+  var head='<div class="pchead"><span>'+(planned?"Geplant ab "+fmtD(ps[0].from):"Veränderung bis heute")+'</span><b class="'+cls+'">'+sign+money(Math.abs(diff))+" "+esc(c.cur)+
+    (base?' ('+sign+Math.abs(pct).toLocaleString("de-CH",{maximumFractionDigits:1})+' %)':"")+"</b></div>";
+  var lbl='<text class="pv" x="'+L+'" y="'+(Y(base)-6).toFixed(1)+'">'+money(base)+"</text>"+
+    '<text class="pv" x="'+R+'" y="'+(Y(pts[pts.length-1].a)-6).toFixed(1)+'" text-anchor="end">'+money(pts[pts.length-1].a)+"</text>";
+  var ax='<line class="pg" x1="'+L+'" x2="'+R+'" y1="'+B+'" y2="'+B+'"/>'+
+    '<text class="pt" x="'+L+'" y="'+(H-4)+'">'+(c.start&&parseD(c.start)<first?sy:"Anfang")+"</text>"+
+    '<text class="pt" x="'+R+'" y="'+(H-4)+'" text-anchor="end">'+(end.getTime()===t.getTime()?"heute":ey)+"</text>";
+  if(t>st&&t<end&&X(t)<R-58&&X(t)>L+44)ax+='<text class="pt" x="'+X(t).toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle">heute</text>';
+  return '<div class="pchart" role="img" aria-label="Preisverlauf von '+money(base)+" auf "+money(pts[pts.length-1].a)+" "+esc(c.cur)+'">'+head+
+    '<svg viewBox="0 0 '+W+" "+H+'" aria-hidden="true">'+ax+'<path class="pa2" d="'+area+'"/><path class="pl" d="'+pathP+'"/>'+
+    (pathF?'<path class="pl fut" d="'+pathF+'"/>':"")+dots+lbl+"</svg></div>";
+}
 function nextChange(c){var t=today(),n=null;pricesOf(c).forEach(function(e){var f=parseD(e.from);if(!n&&f&&f>t)n=e;});return n;}
 function monthlyCost(c){var m=+c.cycle||1;return conv(curPrice(c),c.cur||"CHF")/m;}
 function nextDue(c){
@@ -2899,7 +2959,7 @@ function openDetail(idv){
   var ps=pricesOf(c),hist="";
   if(ps.length){
     var t=today(),ni=-1;ps.forEach(function(p,i){if(parseD(p.from)<=t)ni=i;});
-    hist='<h3 class="dsec">Preisverlauf</h3><div class="plist"><div class="prow'+(ni<0?" now":"")+'"><span class="pd">'+(c.start?"ab "+fmtD(c.start):"Anfangspreis")+
+    hist='<h3 class="dsec">Preisverlauf</h3>'+priceChart(c)+'<div class="plist"><div class="prow'+(ni<0?" now":"")+'"><span class="pd">'+(c.start?"ab "+fmtD(c.start):"Anfangspreis")+
       (ni<0?'<span class="tag">aktuell</span>':"")+'</span><span class="pa">'+money(c.amount)+" "+esc(c.cur)+"</span></div>";
     ps.forEach(function(p,i){var fut=parseD(p.from)>t;
       hist+='<div class="prow'+(i===ni?" now":"")+'"><span class="pd">ab '+fmtD(p.from)+
