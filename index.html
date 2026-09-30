@@ -935,15 +935,15 @@ details.opt.moreact{margin-top:9px;background:transparent}
 #onb .obchip[aria-pressed="true"]{border-color:var(--teal)}
 
 #onb .oblist{flex:1;min-height:0;overflow-y:auto;background:var(--surface);border-radius:16px;padding:2px 14px}
-#onb .obli{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+#onb .obli{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
 #onb .obli:first-child{border-top:0}
 #onb .obli .mk{width:32px;height:32px;border-radius:9px;flex:none;display:grid;place-items:center}
 #onb .obli .mk svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 #onb .obli .tx{display:grid;gap:1px;min-width:0}
-#onb .obli b{font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px}
+#onb .obli b{font-size:14.5px;line-height:1.25;font-weight:600;display:flex;align-items:center;gap:6px}
 #onb .obli em{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--teal);background:color-mix(in srgb,var(--teal) 13%,transparent);padding:2px 6px;border-radius:99px}
-#onb .obli small{font-size:13px;color:var(--ink2);line-height:1.35}
-#onb .obcard{background:var(--surface);border-radius:16px;padding:14px;display:grid;gap:10px;flex:none}
+#onb .obli small{font-size:12.5px;color:var(--ink2);line-height:1.35}
+#onb .obcard{background:var(--surface);border-radius:16px;padding:12px 13px;display:grid;gap:9px;flex:none}
 #onb .obch{font-size:13px;font-weight:600;color:var(--ink3)}
 #onb .obcurs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 #onb .obcurs.sm{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -4360,7 +4360,7 @@ function obPage(p){
       '<div class="obshot"><img class="obimgL" src="onb/'+p.tab+'-light.webp" alt=""><img class="obimgD" src="onb/'+p.tab+'-dark.webp" alt="">'+
       '<div class="obfade"></div><div class="obbar" aria-hidden="true">'+bar+'</div></div>'+obNext()+'</div>';}
   if(p.k==="tips"){
-    return '<div class="obscr">'+obTop('<span class="obtab">'+obSvg(OB_ICON.set)+'Gut zu wissen</span>')+'<p class="obt">Clever bis ins Detail.</p>'+
+    return '<div class="obscr">'+obTop('<span class="obtab">'+obSvg(OB_ICON.set)+'Gut zu wissen</span>')+'<p class="obt">Clever bis ins Detail</p>'+
       '<div class="oblist">'+OB_TIPS.map(function(t){return '<div class="obli"><span class="mk" style="background:'+t[0]+'">'+obSvg(t[1])+'</span><span class="tx"><b>'+esc(t[2])+(t[4]?'<em>Bald</em>':'')+'</b><small>'+esc(t[3])+'</small></span></div>';}).join("")+'</div>'+
       obNext(last?"Fertig":"Weiter")+'</div>';}
   if(p.k==="setup"){
@@ -4372,7 +4372,7 @@ function obPage(p){
       '<div class="obcard"><div class="obch">Hauptwährung</div><div class="obcurs">'+main.map(function(c){return cur(c,true);}).join("")+'</div>'+
       '<button type="button" class="obmorebtn" data-obmore aria-expanded="'+isMore+'">Weitere Währungen<i></i></button>'+
       '<div class="obcurs sm"'+(isMore?'':' hidden')+'>'+more.map(function(c){return cur(c,false);}).join("")+'</div>'+
-      '<p class="obhint">Alle Summen erscheinen in dieser Währung. Verträge in anderen Währungen rechnet Kontivo automatisch um.</p></div>'+
+      '<p class="obhint">Andere Währungen rechnet Kontivo automatisch um.</p></div>'+
       '<div class="obcard"><div class="obch">Wie heisst du?</div><input id="obName" class="obinp" type="text" placeholder="Vorname" autocomplete="given-name" enterkeyhint="done" value="'+esc(nm)+'">'+
       '<p class="obhint">So ordnest du Verträge dir oder anderen im Haushalt zu.</p></div>'+
       '<div class="obgrow"></div>'+obNext()+'<button type="button" class="obghost" data-ob="backup">Backup einspielen</button></div>';}
