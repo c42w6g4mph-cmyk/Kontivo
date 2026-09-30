@@ -993,12 +993,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
   <div class="searchrow" id="searchWrap"><div class="searchwrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="Suchen" autocomplete="off" enterkeyhint="search" aria-label="Verträge durchsuchen"></div><button class="sortbtn" id="filterBtn" aria-label="Filter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span id="filterLbl">Filter</span></button><button class="sortbtn" id="sortBtn" aria-label="Sortierung ändern"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M4.5 15.5 8 19l3.5-3.5M16 19V5M12.5 8.5 16 5l3.5 3.5"/></svg><span id="sortLbl">Kategorie</span></button></div>
 
   <div id="view"></div>
-  <section class="setpage" id="setPage" hidden aria-label="Einstellungen">
-  <div class="sgroup"><div class="sgh">Stammdaten</div>
-    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Umbenennen, zusammenführen, Logo</small></span><em id="mdSumP"></em></button>
-    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Umbenennen, zusammenführen, löschen</small></span><em id="mdSumH"></em></button>
-    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Name, Farbe, Symbol, Reihenfolge</small></span><em id="mdSumC"></em></button>
-    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small>Fehlende Angaben in Verträgen und Vertragspartnern</small></span><em id="mdSumQ"></em></button></div>
+  <section class="setpage" id="setPage" hidden aria-label="Mehr">
   <div class="sgroup"><div class="sgh">Darstellung</div>
     <div class="seg2" id="themeSeg" role="group" aria-label="Darstellung" style="margin:0">
       <button type="button" data-th="auto" aria-pressed="true">Automatisch</button>
@@ -1009,9 +1004,14 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <div class="field"><label for="sHome">Hauptwährung für alle Summen</label>
       <select id="sHome"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></div>
     <div class="ratefoot"><span class="note" id="rateStamp"></span><button class="mini" id="sRateNow" type="button">Aktualisieren</button></div></div>
+  <div class="sgroup"><div class="sgh">Stammdaten</div>
+    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Umbenennen, zusammenführen, Logo</small></span><em id="mdSumP"></em></button>
+    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Umbenennen, zusammenführen, löschen</small></span><em id="mdSumH"></em></button>
+    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Name, Farbe, Symbol, Reihenfolge</small></span><em id="mdSumC"></em></button>
+    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small>Fehlende Angaben in Verträgen und Vertragspartnern</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Kündigungsschreiben</div>
     <div class="field" style="margin:0"><label for="sSender">Absender — Name und Adresse</label>
-    <textarea id="sSender" placeholder="Vorname Name&#10;Strasse Nr.&#10;8280 Kreuzlingen" style="min-height:84px"></textarea></div>
+    <textarea id="sSender" placeholder="Vorname Name&#10;Strasse Nr.&#10;PLZ Ort" style="min-height:84px"></textarea></div>
     <p class="note" style="margin:6px 0 0">Erscheint oben im Kündigungstext, Ort und Datum werden ergänzt.</p></div>
   <div class="sgroup"><div class="sgh">Daten</div>
     <div class="tiles">
@@ -1020,7 +1020,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
       <button class="tile" id="csvImp" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg><b>CSV importieren</b></button>
       <button class="tile" id="csvBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg><b>CSV exportieren</b></button>
     </div>
-    <p class="note" style="margin:10px 0 0"><b>Backup</b> sichert alles: Verträge, Einnahmen, Einstellungen, Logos und Dokumente.<br><b>CSV</b> enthält nur die Tabellendaten, ohne Logos und Dokumente. Der Import erkennt gängige Spaltennamen (z.B. Anbieter, Betrag, Turnus), auch aus Excel oder anderen Apps. Am sichersten klappt es mit einer CSV aus Kontivo.</p>
+    <p class="note" style="margin:10px 0 0"><b>Backup:</b> alles inkl. Logos und Dokumente, auch für den Gerätewechsel.<br><b>CSV:</b> nur Tabellendaten, z.B. für Excel. Der Import erkennt gängige Spaltennamen.</p>
     <input type="file" id="bkFile" accept=".json,application/json">
     <input type="file" id="csvFile" accept=".csv,text/csv,text/plain,text/comma-separated-values">
     <div id="csvOut"></div>
@@ -1997,7 +1997,7 @@ function renderStat(v){
   o+="</div>";
   v.innerHTML=o+"</div>";
 }
-var TITLES={list:"Verträge",stat:"Kosten",budget:"Budget",term:"Fristen",arch:"Archiv",set:"Einstellungen"};
+var TITLES={list:"Verträge",stat:"Kosten",budget:"Budget",term:"Fristen",arch:"Archiv",set:"Mehr"};
 function goTab(t){state.tab=t;renderView();paintFab();window.scrollTo({top:0});}
 function paintFab(){
   document.body.classList.toggle("hasplus",state.tab==="list");
@@ -4368,7 +4368,7 @@ function obPage(p){
     var nm=(state.settings.holders||[]).filter(function(h){return h!=="Ich";})[0]||"";
     var cur=function(c,big){var f=OB_CUR[c];return '<button type="button" class="obcur'+(big?' big':'')+'" data-obcur="'+c+'" aria-pressed="'+(ob.home===c)+'"><span class="fl">'+f[0]+'</span><span class="cx"><b>'+c+'</b><small>'+f[1]+'</small></span><i>'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</i></button>';};
     return '<div class="obscr">'+obTop('<span class="obtab">Fast geschafft</span>')+'<p class="obt">Noch zwei Angaben</p>'+
-      '<p class="obs">Beides kannst du später jederzeit in den Einstellungen ändern.</p>'+
+      '<p class="obs">Beides kannst du später jederzeit unter «Mehr» ändern.</p>'+
       '<div class="obcard"><div class="obch">Hauptwährung</div><div class="obcurs">'+main.map(function(c){return cur(c,true);}).join("")+'</div>'+
       '<button type="button" class="obmorebtn" data-obmore aria-expanded="'+isMore+'">Weitere Währungen<i></i></button>'+
       '<div class="obcurs sm"'+(isMore?'':' hidden')+'>'+more.map(function(c){return cur(c,false);}).join("")+'</div>'+
