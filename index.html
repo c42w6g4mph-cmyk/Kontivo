@@ -4282,20 +4282,20 @@ var OB_ICON={
   set:'<g class="dots"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></g>'};
 var OB_PAGES=[
   {k:"welcome"},
-  {k:"tab",tab:"list",t:"Alles an einem Ort.",b:["Betrag, Turnus und Frist pro Vertrag","In EUR, CHF, USD und mehr","Deine Fixkosten pro Monat ganz oben"]},
-  {k:"tab",tab:"stat",t:"Jeden Monat im Voraus geplant.",b:["Was fällig ist und was noch kommt","Bezahlt und offen auf einen Blick","Keine Überraschungen mehr im Briefkasten"]},
-  {k:"tab",tab:"budget",t:"So viel hast du jeden Monat.",b:["Einnahmen minus alle Fixkosten","Was dir monatlich zur Verfügung steht","Vergleich mit dem Vorjahresmonat"]},
-  {k:"tab",tab:"term",t:"Nie mehr ungewollt verlängern.",b:["Jede Kündigungsfrist automatisch berechnet","Markiert, sobald eine Frist näher rückt","Behalten oder kündigen mit einem Tipp"]},
+  {k:"tab",tab:"list",t:"Alle Verträge im Blick.",b:["Betrag, Zahlungsrhythmus und Kündigungsfrist","In EUR, CHF, USD und mehr","Deine monatlichen Fixkosten auf einen Blick"]},
+  {k:"tab",tab:"stat",t:"Jeden Monat im Voraus geplant.",b:["Jede Abbuchung, Monat für Monat","Bezahlt und offen auf einen Blick","Keine Überraschungen mehr im Briefkasten"]},
+  {k:"tab",tab:"budget",t:"So viel bleibt dir jeden Monat.",b:["Einnahmen minus alle Fixkosten","Pro Monat und aufs ganze Jahr"]},
+  {k:"tab",tab:"term",t:"Kein Vertrag verlängert sich mehr ungewollt.",b:["Jede Kündigungsfrist automatisch berechnet","Rechtzeitig informiert, bevor die Frist abläuft","Behalten oder kündigen mit einem Tipp"]},
   {k:"tips"},
   {k:"setup",first:true},
   {k:"start",first:true}];
 var OB_TIPS=[
-  ["#0E5A5E",'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>',"Logos per Tipp","Kontivo schlägt das Logo vor, du bestätigst."],
+  ["#0E5A5E",'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>',"Logos automatisch","Vorschlag prüfen, fertig."],
   ["#B0562A",'<path d="M4 18l5-5 4 3 7-8"/><path d="M15 8h5v5"/>',"Preise im Blick","Der Preisverlauf zeigt, wer teurer wurde."],
   ["#A93227",'<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8v12M3 12h18"/><path d="M12 8c-2-4-6-4-6-1s4 1 6 1c2 0 6 2 6-1s-4-3-6 1"/>',"Probeabos","Erinnerung, bevor es etwas kostet."],
-  ["#1F4E8C",'<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',"Schnell kündigen","Fertiger Brief mit allen Nummern."],
+  ["#1F4E8C",'<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',"Schnell kündigen","Fertiger Brief mit Kunden- und Vertragsnummer."],
   ["#2E6A4E",'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M15 14.2c2.6-.3 4.6 1.3 5.3 4.3"/>',"Ganzer Haushalt","Verträge pro Person, sauber getrennt."],
-  ["#6B4E9E",'<path d="M4 7h16M4 12h10M4 17h7"/><path d="M17 14l3 3-3 3"/>',"Schnell aufgeräumt","Vertragspartner zusammenführen und pflegen."]];
+  ["#6B4E9E",'<path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/>',"Dokumente dabei","Vertrag als PDF direkt am Eintrag."]];
 /* Schnellstart: Bezeichnung → Kategorie (fällt auf «Sonstiges» zurück, falls umbenannt/gelöscht) */
 var OB_QUICK=[["Miete","Wohnen"],["Strom","Energie & Wasser"],["Handy","Mobilfunk & Internet"],["Internet","Mobilfunk & Internet"],
   ["Streaming","Abos & Medien"],["Fitness","Freizeit & Sport"],["Kfz-Versicherung","Versicherung"],["Rundfunkbeitrag","Steuern & Gebühren"]];
@@ -4309,10 +4309,10 @@ function obPage(p){
   var last=ob.i===ob.pages.length-1;
   if(p.k==="welcome"){var ck='<i>'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</i>';
     return '<div class="obscr obwel"><img class="oblogo" src="'+esc(LOGO)+'" alt="">'+
-      '<p class="obhello">Für alle, die wissen wollen,<br>wohin ihr Geld fliesst.</p>'+
+      '<p class="obhello">Für alle, die wissen wollen,<br>was jeden Monat fix weggeht.</p>'+
       '<p class="obt">Willkommen bei Kontivo</p><p class="obslogan">Deine Verträge, ganz entspannt.</p>'+
-      '<p class="obs">Verträge, Kosten, Budget und Fristen.<br>Alles an einem Ort.<br>Durchdacht, übersichtlich, nur für dich.</p>'+
-      '<div class="obprom"><span>'+ck+'Kein Konto nötig</span><span>'+ck+'Keine Bankanbindung</span><span>'+ck+'Deine Daten bleiben bei dir</span></div>'+
+      '<p class="obs">Verträge, Kosten, Budget und Fristen.<br>Durchdacht, übersichtlich und privat.</p>'+
+      '<div class="obprom"><span>'+ck+'Kein Konto nötig</span><span>'+ck+'Kein Bankzugang nötig</span><span>'+ck+'Deine Daten bleiben bei dir</span></div>'+
       '<div class="obgrow"></div>'+obNext("Los geht’s")+
       (ob.first?'<button type="button" class="obghost" data-ob="backup">Ich habe schon ein Backup</button>':'<button type="button" class="obghost" data-ob="close">Schliessen</button>')+'</div>';}
   if(p.k==="tab"){
@@ -4321,7 +4321,7 @@ function obPage(p){
       '<div class="obshot"><img class="obimgL" src="onb/'+p.tab+'-light.webp" alt=""><img class="obimgD" src="onb/'+p.tab+'-dark.webp" alt="">'+
       '<div class="obfade"></div><div class="obbar" aria-hidden="true">'+bar+'</div></div>'+obNext()+'</div>';}
   if(p.k==="tips"){
-    return '<div class="obscr">'+obTop('<span class="obtab">'+obSvg(OB_ICON.set)+'Quicktipps</span>')+'<p class="obt">Clever bis ins Detail.</p>'+
+    return '<div class="obscr">'+obTop('<span class="obtab">'+obSvg(OB_ICON.set)+'Gut zu wissen</span>')+'<p class="obt">Clever bis ins Detail.</p>'+
       '<div class="obtiles">'+OB_TIPS.map(function(t){return '<div class="obtile"><span class="mk" style="background:'+t[0]+'">'+obSvg(t[1])+'</span><b>'+esc(t[2])+'</b><span>'+esc(t[3])+'</span></div>';}).join("")+'</div>'+
       obNext(last?"Fertig":"Weiter")+'</div>';}
   if(p.k==="setup"){
@@ -4339,7 +4339,7 @@ function obPage(p){
       '<div class="obgrow"></div>'+obNext()+'<button type="button" class="obghost" data-ob="backup">Backup einspielen</button></div>';}
   if(p.k==="start"){
     return '<div class="obscr">'+obTop('<span class="obtab">Letzter Schritt</span>')+'<p class="obt">Womit fangen wir an?</p>'+
-      '<p class="obs">Die Kategorie ist schon gesetzt.</p><div class="obchips">'+
+      '<p class="obs">Tipp eine Vorlage an, den Rest ergänzt du.</p><div class="obchips">'+
       OB_QUICK.map(function(q,j){var cat=obCat(q[1]),e=catEntry(cat);
         return '<button type="button" class="obchip" data-obq="'+j+'" aria-pressed="'+(ob.quick===j)+'"><span class="mk" style="background:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span>'+
           '<span class="tx"><b>'+esc(q[0])+'</b><small>'+esc(cat)+'</small></span></button>';}).join("")+'</div>'+
