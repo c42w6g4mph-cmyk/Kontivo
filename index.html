@@ -1243,7 +1243,13 @@ var CAT_COLOR={"Wohnen":"#6B4E9E","Energie & Wasser":"#B0562A","Versicherung":"#
   "Mobilität":"#3F4A55","Familie & Bildung":"#2F86A6","Freizeit & Sport":"#2E6A4E","Steuern & Gebühren":"#6E7B3A","Finanzen":"#8A6A1F","Sonstiges":"#5F666E",
   "Lohn":"#2E6A4E","Nebeneinkommen":"#0E5A5E","Bonus":"#8A6A1F","Kapitalerträge":"#1F4E8C","Vermietung":"#6B4E9E","Rente":"#B0562A"};
 var CAT_MIG={"Energie":"Energie & Wasser","Streaming & Software":"Abos & Medien","Fitness & Freizeit":"Freizeit & Sport","Steuern":"Steuern & Gebühren","Kinderbetreuung":"Familie & Bildung"};
-function migCats(){var ch=false;
+/* Altfelder umstellen: settings.rate → settings.rates.EUR, holder → holders[] */
+function migModel(){var ch=false,s=state.settings;
+  if("rate" in s){s.rates=s.rates||{};if(!(+s.rates.EUR>0)&&+s.rate>0)s.rates.EUR=+s.rate;delete s.rate;ch=true;}
+  [state.contracts,state.incomes].forEach(function(m){Object.keys(m||{}).forEach(function(k){var c=m[k];if(!c||!("holder" in c))return;
+    if((!c.holders||!c.holders.length)&&c.holder)c.holders=[c.holder];delete c.holder;ch=true;});});
+  return ch;}
+function migCats(){var ch=migModel();
   Object.keys(state.contracts||{}).forEach(function(k){var c=state.contracts[k];if(c&&CAT_MIG[c.cat]){c.cat=CAT_MIG[c.cat];ch=true;}});
   var s=state.settings;
   if(Array.isArray(s.catList)){var seen={};s.catList=s.catList.map(function(x){if(CAT_MIG[x.n]){ch=true;var y=Object.assign({},x);y.n=CAT_MIG[x.n];if(y.i&&CAT_MIG[y.i])y.i=CAT_MIG[y.i];return y;}
@@ -1287,7 +1293,7 @@ var nf0=new Intl.NumberFormat("de-CH",{maximumFractionDigits:0});
 var MS=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 var MON=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 
-var state={settings:{home:"CHF",rate:0.93,holders:["Ich"]},contracts:{},incomes:{},budget:{items:[]},tab:"list",sel:new Date().getMonth(),year:new Date().getFullYear()};
+var state={settings:{home:"CHF",rates:{},holders:["Ich"]},contracts:{},incomes:{},budget:{items:[]},tab:"list",sel:new Date().getMonth(),year:new Date().getFullYear()};
 var assets=null,editId=null,draft={};
 
 /* ---------- Helfer ---------- */
@@ -1305,10 +1311,10 @@ function addMonths(d,n){var y=d.getFullYear(),m=d.getMonth()+n,day=d.getDate();
   var last=new Date(y,m+1,0).getDate();return new Date(y,m,Math.min(day,last));}
 function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
 function daysBetween(a,b){return Math.round((b-a)/86400000);}
-/* Kurse in CHF pro Einheit; EUR liegt aus Kompatibilitätsgründen in settings.rate, die übrigen in settings.rates.
+/* Kurse in CHF pro Einheit, alle Fremdwährungen in settings.rates (z.B. rates.EUR).
    RATE0 sind nur grobe Startwerte bis zum ersten automatischen Abruf. */
 var CURS=["CHF","EUR","USD","GBP","TRY"],RATE0={EUR:0.94,USD:0.80,GBP:1.07,TRY:0.02};
-function rateOf(c){var s=state.settings;if(!c||c==="CHF")return 1;if(c==="EUR")return +s.rate>0?+s.rate:RATE0.EUR;var r=s.rates&&+s.rates[c];return r>0?r:(RATE0[c]||1);}
+function rateOf(c){var s=state.settings;if(!c||c==="CHF")return 1;var r=s.rates&&+s.rates[c];return r>0?r:(RATE0[c]||1);}
 function conv(a,c){var s=state.settings;c=c||"CHF";if(c===s.home)return a;return a*rateOf(c)/rateOf(s.home);}
 function initials(n){
   var p=String(n||"?").trim().split(/[\s\-&]+/).filter(Boolean);
@@ -1316,7 +1322,7 @@ function initials(n){
   return (p.length>1?(p[0][0]+p[1][0]):p[0].slice(0,2)).toUpperCase();
 }
 function titleOf(c){return c.label||c.partner||c.name||"Ohne Namen";}
-function holdersOf(c){return (c.holders&&c.holders.length)?c.holders:(c.holder?[c.holder]:[]);}
+function holdersOf(c){return (c.holders&&c.holders.length)?c.holders:[];}
 function normUrl(u){u=String(u||"").trim();if(!u)return "";return /^https?:\/\//i.test(u)?u:"https://"+u;}
 function domainOf(u){u=String(u||"").trim();if(!u)return "";try{return new URL(normUrl(u)).hostname.replace(/^www\./i,"");}catch(e){return "";}}
 function colorFor(c){
@@ -2420,7 +2426,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
     noWatch:document.getElementById("fNoWatch").checked,
     custNo:document.getElementById("fCustNo").value.trim(),
     contrNo:document.getElementById("fContrNo").value.trim(),
-    holders:(draft.holders||[]).slice(),holder:"",
+    holders:(draft.holders||[]).slice(),
     payM:document.getElementById("fPayM").value,
     payA:document.getElementById("fPayA").value.trim(),
     cancF:document.getElementById("fCancF").value,
@@ -3371,7 +3377,7 @@ function doPeMerge(){
 function mapHolders(fn){
   var n=0;
   function one(c){var old=holdersOf(c),arr=[];old.forEach(function(h){var r=fn(h);if(r&&arr.indexOf(r)<0)arr.push(r);});
-    if(arr.join("|")===old.join("|"))return null;var nc=Object.assign({},c);nc.holders=arr;delete nc.holder;return nc;}
+    if(arr.join("|")===old.join("|"))return null;var nc=Object.assign({},c);nc.holders=arr;return nc;}
   Object.keys(state.contracts).forEach(function(k){var nc=one(state.contracts[k]);if(nc){putContract(k,nc);n++;}});
   Object.keys(state.incomes).forEach(function(k){var nc=one(state.incomes[k]);if(nc){putIncome(k,nc);n++;}});
   return n;
@@ -3416,7 +3422,7 @@ function doHeMove(){
   var to=he.moveTo,from=he.orig,n=0;if(!to)return;
   Object.keys(he.sel).forEach(function(key){var kind=key.charAt(0),id=key.slice(2),m=kind==="c"?state.contracts:state.incomes,c=m[id];if(!c)return;
     var arr=[];holdersOf(c).forEach(function(h){var r=h===from?to:h;if(arr.indexOf(r)<0)arr.push(r);});
-    var nc=Object.assign({},c);nc.holders=arr;delete nc.holder;if(kind==="c")putContract(id,nc);else putIncome(id,nc);n++;});
+    var nc=Object.assign({},c);nc.holders=arr;if(kind==="c")putContract(id,nc);else putIncome(id,nc);n++;});
   closeMe();paintMd();render();toast(n+(n===1?" Eintrag":" Einträge")+" an «"+to+"» zugewiesen");
 }
 function saveHe(){
@@ -3638,11 +3644,11 @@ async function autoRate(force){
   var x=null;try{x=await fetchRate();}catch(e){x=null;}
   rateBusy=false;
   if(!x){if(force)toast("Kurse konnten nicht geladen werden");return;}
-  var old=JSON.stringify([s.rate,s.rates]);
-  s.rate=Math.round(x.rates.EUR*10000)/10000;s.rates={};
+  var old=JSON.stringify(s.rates);
+  s.rates={EUR:Math.round(x.rates.EUR*10000)/10000};
   ["USD","GBP","TRY"].forEach(function(c){if(x.rates[c])s.rates[c]=Math.round(x.rates[c]*1e6)/1e6;});
   s.rateDate=/^\d{4}-\d{2}-\d{2}$/.test(x.d)?x.d:iso(today());s.rateChecked=iso(today());s.rateSrc="auto";s.rateAuto=true;
-  saveSettings();paintRateStamp();if(old!==JSON.stringify([s.rate,s.rates]))render();
+  saveSettings();paintRateStamp();if(old!==JSON.stringify(s.rates))render();
   if(force)toast("Kurse aktualisiert");
 }
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")autoRate(false);});
@@ -4005,7 +4011,7 @@ document.getElementById("wipeAll").addEventListener("click",async function(){
   toast("Lösche …");
   if(assets){try{var al=await assets.list();var list=(al&&al.assets)||[];for(var x=0;x<list.length;x++){try{await assets.delete(list[x].id);}catch(e){}}}catch(e){}}
   state.contracts={};state.incomes={};state.budget={items:[]};
-  var keep={home:state.settings.home,rate:state.settings.rate,rates:state.settings.rates,rateDate:state.settings.rateDate,theme:state.settings.theme,sort:state.settings.sort};
+  var keep={home:state.settings.home,rates:state.settings.rates,rateDate:state.settings.rateDate,theme:state.settings.theme,sort:state.settings.sort};
   state.settings=Object.assign({holders:["Ich"]},keep);state.bHolder="";state.flt={cat:null,partner:null,holder:null};
   saveLocal();
   fillSettings();goTab("list");render();toast("Alle Daten gelöscht");
@@ -4123,7 +4129,7 @@ function csvToContracts(rows){
       due:csvDate(g(r,"due")),start:csvDate(g(r,"start")),end:csvDate(g(r,"end")),
       notice:nNum!=null?nNum:(tpl&&!nRaw?tpl[5]:0),noticeU:nNum!=null?nu:(tpl&&!nRaw?tpl[6]:"m"),
       renew:String(csvNum(g(r,"renew"))||""),cancTerm:csvTerm(g(r,"cancTerm"))||(tpl&&!g(r,"end")?tpl[7]||"":""),
-      mand:mand,custNo:g(r,"custNo"),contrNo:g(r,"contrNo"),holders:hs,holder:"",
+      mand:mand,custNo:g(r,"custNo"),contrNo:g(r,"contrNo"),holders:hs,
       payM:g(r,"payM"),payA:g(r,"payA"),cancF:g(r,"cancF")||(tpl?tpl[8]||"":""),trial:"",
       web:g(r,"web")||(tpl?tpl[4]:""),tel:g(r,"tel"),mail:g(r,"mail"),
       note:[g(r,"note"),g(r,"addr")?"Kündigungsadresse: "+g(r,"addr"):"",g(r,"contact")?"Kontakt: "+g(r,"contact"):"",restTags?"Tags: "+restTags:"",amt===0&&!g(r,"amount")?"Kein Betrag im Import":""].filter(Boolean).join("\n"),
