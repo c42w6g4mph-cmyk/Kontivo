@@ -897,7 +897,6 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <input type="file" id="bkFile" accept=".json,application/json">
     <input type="file" id="csvFile" accept=".csv,text/csv,text/plain,text/comma-separated-values">
     <div id="csvOut"></div>
-    <p class="note" id="syncNote" hidden></p>
     <button class="lbtn del" id="wipeAll" type="button" style="margin-top:10px">Alle Daten löschen</button>
     <p class="note" id="reviewStamp" hidden></p></div>
   <div class="sgroup legalg"><div class="sgh">Rechtliches</div>
@@ -1289,7 +1288,7 @@ var MS=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"
 var MON=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 
 var state={settings:{home:"CHF",rate:0.93,holders:["Ich"]},contracts:{},incomes:{},budget:{items:[]},tab:"list",sel:new Date().getMonth(),year:new Date().getFullYear()};
-var db=null,assets=null,unsub=null,dbReady=false,editId=null,draft={};
+var assets=null,editId=null,draft={};
 
 /* ---------- Helfer ---------- */
 function money(v){return nf.format(v||0);}
@@ -1434,25 +1433,18 @@ function loadLocal(){try{var r=localStorage.getItem(LS);if(!r)return;var o=JSON.
   if(o.contracts)state.contracts=o.contracts;
   if(o.incomes)state.incomes=o.incomes;
   if(o.budget&&o.budget.items)state.budget=o.budget;migCats();}catch(e){}}
-function putIncome(idv,c){state.incomes[idv]=c;saveLocal();
-  if(db)db.doc(P.i+"/"+idv).set(c).catch(function(){toast("Nicht synchronisiert — lokal gespeichert.");});}
-function dropIncome(idv){delete state.incomes[idv];saveLocal();if(db)db.doc(P.i+"/"+idv).delete().catch(function(){});}
-function saveBudget(){saveLocal();if(db)db.doc("budget/app").set(state.budget).catch(function(){});}
+function putIncome(idv,c){state.incomes[idv]=c;saveLocal();}
+function dropIncome(idv){delete state.incomes[idv];saveLocal();}
+function saveBudget(){saveLocal();}
 function putContract(idv,c){
   state.contracts[idv]=c;saveLocal();
-  if(db)db.doc(P.c+"/"+idv).set(c).catch(function(){toast("Nicht synchronisiert — lokal gespeichert.");});
 }
 function dropContract(idv){
   delete state.contracts[idv];saveLocal();
-  if(db)db.doc(P.c+"/"+idv).delete().catch(function(){});
 }
-var P={c:"contracts",i:"incomes",s:"settings/app"},scoped=false;
-function saveSettings(){saveLocal();if(db)db.doc(P.s).set(state.settings).catch(function(){});}
+function saveSettings(){saveLocal();}
 function syncLine(){
   var bl=document.getElementById("brandLogo");if(bl&&!bl.src)bl.src=LOGO;
-  document.getElementById("syncNote").textContent = dbReady
-    ? (scoped?"Privat in deinem Konto gespeichert und zwischen iPhone und iPad synchronisiert.":"Synchronisiert — dieselben Daten auf iPhone und iPad.")
-    : "Auf diesem Gerät gespeichert. Für iPhone ↔ iPad: Backup speichern und auf dem anderen Gerät einspielen.";
 }
 
 /* ---------- Rendern ---------- */
@@ -3965,18 +3957,8 @@ document.getElementById("bkFile").addEventListener("change",function(ev){
   rd.readAsText(f);
 });
 async function restoreAll(o){
-  var oldC=Object.keys(state.contracts),oldI=Object.keys(state.incomes);
   state.contracts=o.contracts||{};state.incomes=o.incomes||{};
   state.settings=Object.assign(state.settings,o.settings||{});if(o.budget&&typeof o.budget==="object")state.budget=o.budget;migCats();saveLocal();
-  if(db){
-    try{
-      for(var k in state.contracts)await db.doc(P.c+"/"+k).set(state.contracts[k]);
-      for(var i=0;i<oldC.length;i++)if(!state.contracts[oldC[i]])await db.doc(P.c+"/"+oldC[i]).delete();
-      for(var j in state.incomes)await db.doc(P.i+"/"+j).set(state.incomes[j]);
-      for(var m=0;m<oldI.length;m++)if(!state.incomes[oldI[m]])await db.doc(P.i+"/"+oldI[m]).delete();
-      await db.doc(P.s).set(state.settings);
-    }catch(e){toast("Nur teilweise synchronisiert — bitte erneut versuchen");}
-  }
   fillSettings();render();toast("Backup eingespielt");
 }
 document.getElementById("csvBtn").addEventListener("click",async function(){
@@ -4020,15 +4002,12 @@ document.getElementById("wipeAll").addEventListener("click",async function(){
   if(!(await ask({title:"Alle Daten löschen?",ok:"Weiter",danger:true,
     text:"Gelöscht werden "+nc+" Verträge, "+ni+" Einnahmen, eigene Kategorien, Inhaber, Absender sowie hochgeladene Logos und Dokumente.\n\nDarstellung und Währung bleiben erhalten.\n\nTipp: Speichere vorher ein Backup."})))return;
   if(!(await ask({title:"Wirklich endgültig löschen?",ok:"Endgültig löschen",danger:true,text:"Das lässt sich nicht rückgängig machen."})))return;
-  state._busy=true;toast("Lösche …");
-  var ck=Object.keys(state.contracts),ik=Object.keys(state.incomes);
-  if(db){for(var a=0;a<ck.length;a++){try{await db.doc(P.c+"/"+ck[a]).delete();}catch(e){}}
-         for(var b=0;b<ik.length;b++){try{await db.doc(P.i+"/"+ik[b]).delete();}catch(e){}}}
+  toast("Lösche …");
   if(assets){try{var al=await assets.list();var list=(al&&al.assets)||[];for(var x=0;x<list.length;x++){try{await assets.delete(list[x].id);}catch(e){}}}catch(e){}}
   state.contracts={};state.incomes={};state.budget={items:[]};
   var keep={home:state.settings.home,rate:state.settings.rate,rates:state.settings.rates,rateDate:state.settings.rateDate,theme:state.settings.theme,sort:state.settings.sort};
   state.settings=Object.assign({holders:["Ich"]},keep);state.bHolder="";state.flt={cat:null,partner:null,holder:null};
-  saveLocal();saveSettings();state._busy=false;
+  saveLocal();
   fillSettings();goTab("list");render();toast("Alle Daten gelöscht");
 });
 /* ---------- CSV-Import ---------- */
@@ -4180,12 +4159,10 @@ document.getElementById("csvFile").addEventListener("change",function(ev){
     if(!ok)return;
     if(res.newHolders.length){state.settings.holders=(state.settings.holders||[]).concat(res.newHolders);newCats=true;}
     if(newCats){saveSettings();newCats=false;}
-    state._busy=true;toast("Importiere "+n+" Verträge …");var fail=0;
-    for(var k=0;k<res.items.length;k++){var c=res.items[k],id=uid()+k;state.contracts[id]=c;
-      if(db){try{await db.doc(P.c+"/"+id).set(c);}catch(e){fail++;}}}
-    saveLocal();state._busy=false;
+    for(var k=0;k<res.items.length;k++){state.contracts[uid()+k]=res.items[k];}
+    saveLocal();
     goTab("list");render();
-    toast(fail?(n-fail)+" importiert, "+fail+" nur lokal gespeichert":n+(n===1?" Vertrag":" Verträge")+" importiert — bitte kurz prüfen");
+    toast(n+(n===1?" Vertrag":" Verträge")+" importiert — bitte kurz prüfen");
   };
   rd.readAsText(f);
 });
@@ -4193,56 +4170,9 @@ document.getElementById("csvFile").addEventListener("change",function(ev){
 async function boot(){
   try{await KBlob.ready;}catch(e){}
   loadLocal();buildCatChips();buildSwatches();render();
-  try{db=await claude.use("db");}catch(e){db=null;}
   try{assets=await claude.use("assets");}catch(e){assets=null;}
   document.getElementById("logoUp").hidden=!assets;
   document.getElementById("docUp").hidden=!assets;
-  if(db){
-    dbReady=true;
-    var usr=null,uid=null;
-    try{usr=await claude.use("user");}catch(e){usr=null;}
-    try{uid=usr?await usr.id():null;}catch(e){uid=null;}
-    if(uid){
-      var base="data/users/"+uid,UP={c:base+"/app/contracts",i:base+"/app/incomes",s:base+"/settings"};
-      try{
-        var owner=false;try{owner=await usr.isOwner();}catch(e){}
-        var mine=await db.collection(UP.c).limit(1).get();
-        if(owner&&!(mine.docs||[]).length){
-          var oc=await db.collection("contracts").limit(1000).get(),oi=await db.collection("incomes").limit(500).get();
-          var ocd=(oc.docs||[]).filter(function(d){return d.exists;}),oid=(oi.docs||[]).filter(function(d){return d.exists;});
-          if(ocd.length||oid.length){
-            toast("Daten werden in deinen privaten Bereich verschoben …");
-            for(var a=0;a<ocd.length;a++)await db.doc(UP.c+"/"+ocd[a].id).set(ocd[a].data());
-            for(var b2=0;b2<oid.length;b2++)await db.doc(UP.i+"/"+oid[b2].id).set(oid[b2].data());
-            var os=await db.doc("settings/app").get();if(os.exists)await db.doc(UP.s).set(os.data());
-            var chk=await db.collection(UP.c).limit(1000).get();
-            if((chk.docs||[]).length>=ocd.length){
-              for(var x=0;x<ocd.length;x++)await db.doc("contracts/"+ocd[x].id).delete();
-              for(var y=0;y<oid.length;y++)await db.doc("incomes/"+oid[y].id).delete();
-              await db.doc("settings/app").delete().catch(function(){});
-              await db.doc("budget/app").delete().catch(function(){});
-              toast("Daten sind jetzt privat");
-            }
-          }
-        }
-        P=UP;scoped=true;
-      }catch(e){/* bleibt beim bisherigen Speicherort */}
-    }
-    try{var s=await db.doc(P.s).get();
-      if(s.exists)state.settings=Object.assign(state.settings,s.data());
-      else db.doc(P.s).set(state.settings).catch(function(){});}catch(e){}
-    db.collection(P.i).limit(500).onSnapshot(function(snap){
-      var m={};(snap.docs||[]).forEach(function(d){if(d.exists)m[d.id]=d.data();});
-      if(Object.keys(m).length||Object.keys(state.incomes).length===0){state.incomes=m;saveLocal();}
-      render();
-    },function(){});
-    unsub=db.collection(P.c).limit(1000).onSnapshot(function(snap){
-      if(state._busy)return;
-      var m={};(snap.docs||[]).forEach(function(d){if(d.exists)m[d.id]=d.data();});
-      if(Object.keys(m).length||Object.keys(state.contracts).length===0){state.contracts=m;migCats();saveLocal();}
-      render();
-    },function(){});
-  }
   render();
   autoRate(false);
 }
