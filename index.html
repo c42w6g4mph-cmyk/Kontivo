@@ -2479,6 +2479,9 @@ function tplFind(n){n=String(n||"").trim().toLowerCase();return TPL.filter(funct
 function tplFlag(t){return t[1]||"CH · DE";}
 function paintSugg(){
   var el=document.getElementById("fSugg"),q=(document.getElementById("fPartner").value||document.getElementById("fLabel").value).trim().toLowerCase();
+  var st=draft.stdTpl;
+  if(st&&st[0]===document.getElementById("fPartner").value.trim()){
+    el.innerHTML='<span class="sl tplh">'+esc(st[10])+"</span>"+(draft.stdDone||!(st[5]||st[9])?"":'<button type="button" class="chip" data-std>Übliche Frist übernehmen</button>');return;}
   var cur=tplFind(document.getElementById("fPartner").value);
   if(cur&&draft.tplHint===cur[0]){el.innerHTML='<span class="sl tplh">'+esc(cur[10])+"</span>";return;}
   if(q.length<2||cur){el.innerHTML='<button type="button" class="chip tplcat" data-tplcat>Aus Katalog wählen</button>';return;}
@@ -2486,10 +2489,10 @@ function paintSugg(){
   el.innerHTML=(hits.length?'<span class="sl">Vorlage</span>'+hits.map(function(t){return '<button type="button" class="chip" data-tpl="'+TPL.indexOf(t)+'">'+esc(t[0])+"</button>";}).join(""):"")+
     '<button type="button" class="chip tplcat" data-tplcat>Katalog</button>';
 }
-function applyTpl(t){
-  document.getElementById("fPartner").value=t[0];
+function applyTpl(t,keepName){
+  if(!keepName)document.getElementById("fPartner").value=t[0];
   var lb=document.getElementById("fLabel");if(!lb.value.trim())lb.value=t[3];
-  draft.cat=t[2];paintCats();
+  if(t[2]){draft.cat=t[2];paintCats();}
   if(t[5]){document.getElementById("fNotice").value=t[5];document.getElementById("fNoticeU").value=t[6];}
   if(termMode==="open")document.getElementById("fTermP").value=t[7]||"";
   if(t[8])document.getElementById("fCancF").value=t[8];
@@ -2500,10 +2503,11 @@ function applyTpl(t){
   draft.tplHint=t[0];
   paintLogo();paintSwatches();paintSugg();updTermHint();toast("Vorlage übernommen — bitte prüfen");
 }
-document.getElementById("fPartner").addEventListener("input",function(){draft.tplHint="";paintSugg();});
+document.getElementById("fPartner").addEventListener("input",function(){draft.tplHint="";draft.stdTpl=null;paintSugg();});
 document.getElementById("fLabel").addEventListener("input",paintSugg);
 document.getElementById("fSugg").addEventListener("click",function(ev){
   if(ev.target.closest("[data-tplcat]")){openTplPick();return;}
+  if(ev.target.closest("[data-std]")&&draft.stdTpl){var st=draft.stdTpl;applyTpl(st,true);draft.stdTpl=st;draft.stdDone=true;paintSugg();return;}
   var b=ev.target.closest("[data-tpl]");if(!b)return;applyTpl(TPL[+b.dataset.tpl]);
 });
 var tplCC="",tplQ="";
@@ -3732,8 +3736,32 @@ async function webPartners(q){
     if(lnorm(lab).indexOf(lnorm(q))<0)return;
     var dom=sites[0],k=regDom(dom);if(seen[k])return;seen[k]=1;
     var file=wclaims(en,"P8972")[0]||wclaims(en,"P2910")[0]||wclaims(en,"P154")[0];
-    out.push({name:lab,desc:(en.descriptions&&((en.descriptions.de||en.descriptions.en||{}).value))||"",dom:dom,file:typeof file==="string"?file:""});});
+    var tel=wclaims(en,"P1329").filter(function(x){return typeof x==="string";})[0]||"";
+    var mail=(wclaims(en,"P968").filter(function(x){return typeof x==="string";})[0]||"").replace(/^mailto:/i,"");
+    var cc=wclaims(en,"P17").indexOf("Q39")>=0?"CH":(wclaims(en,"P17").indexOf("Q183")>=0?"DE":(/\.ch$/.test(dom)?"CH":(/\.de$/.test(dom)?"DE":"")));
+    var dsc=function(l){return (en.descriptions&&en.descriptions[l]&&en.descriptions[l].value)||"";};
+    out.push({name:lab,desc:dsc("de")||dsc("en"),descAll:dsc("de")+" "+dsc("en"),dom:dom,file:typeof file==="string"?file:"",tel:tel,mail:mail,cc:cc});});
   return out.slice(0,4);
+}
+/* Übliche Frist für beliebige Vertragspartner: Branche (aus der Beschreibung) + Land → gesetzlicher/üblicher Standard.
+   Rückgabe im Katalogformat (TPLI). Nur Vorschlag, Übernahme per Tipp. */
+var STD_RULES=[
+ {re:/krankenkasse|krankenversicher|health insur/,cat:"Versicherung",lab:"Krankenkasse",CH:[1,"m","y","Einschreiben",1,H_KVG],DE:[2,"m","m","",1,H_GKV],de:/gesetzlich|krankenkasse/},
+ {re:/versicher|insurance/,cat:"Versicherung",lab:"Versicherung",CH:[3,"m","a","Brief",0,H_VVG],DE:[3,"m","a","Brief",0,H_VDE]},
+ {re:/telekom|telecom|mobilfunk|mobile (network|operator)|internetdienst|internet service|kabelnetz/,cat:"Mobilfunk & Internet",lab:"Handy / Internet",CH:[60,"d","m","",0,H_TCH],DE:[1,"m","","",0,H_TDE]},
+ {re:/energieversorg|stromanbieter|stadtwerk|elektrizit|electric utility|energy (company|supplier)/,cat:"Energie & Wasser",lab:"Strom",CH:[0,"m","","",1,H_ECH],DE:[1,"m","","",0,H_EDE]},
+ {re:/streaming|video.on.demand|musikdienst|music service/,cat:"Abos & Medien",lab:"Streaming",any:[0,"m","p","Online / Kundenkonto",0,H_STR]},
+ {re:/fitness/,cat:"Freizeit & Sport",lab:"Fitnessabo",any:[0,"m","a","",0,H_FIT]},
+ {re:/\bbank\b|kreditinstitut|neobank|sparkasse/,cat:"Finanzen",lab:"Konto",any:[0,"m","","",0,H_BNK]}
+];
+function stdFor(w){
+  var d=lnorm(w.descAll||w.desc||"")+" "+lnorm(w.name);
+  for(var i=0;i<STD_RULES.length;i++){var r=STD_RULES[i];if(!r.re.test(d))continue;
+    var v=r.any||(w.cc&&r[w.cc]);if(r.de&&w.cc==="DE"&&!r.de.test(d))continue;
+    var cat=catList().some(function(x){return x.n===r.cat;})?r.cat:"";
+    if(!v)return cat?[w.name,w.cc,cat,r.lab,w.dom,0,"m","","",0,""]:null;
+    return [w.name,w.cc,cat,r.lab,w.dom].concat(v);}
+  return null;
 }
 function ownPartnerMatches(q){
   q=q.toLowerCase();return partnerGroups().filter(function(o){return o.name.toLowerCase().indexOf(q)>=0;}).slice(0,3);
@@ -3767,10 +3795,20 @@ function schedulePSug(){
 }
 async function pickWebPartner(w){
   document.getElementById("fPartner").value=w.name;pSugSel=w.name;
-  var wf=document.getElementById("fWeb");if(!wf.value.trim())wf.value=w.dom;
-  hidePSug();paintLogo();paintSugg();
-  if(draft.logoId&&KBlob.has(draft.logoId))return;
-  if(!assets||navigator.onLine===false)return;
+  var got=[],fill=function(id,v,l){var f=document.getElementById(id);if(v&&!f.value.trim()){f.value=v;got.push(l);}};
+  fill("fWeb",w.dom,"Website");fill("fTel",w.tel,"Telefon");fill("fMail",w.mail,"E-Mail");
+  if(got.length)document.getElementById("oContact").open=true;
+  var kt=TPL.filter(function(t){return t[4]&&regDom(t[4])===regDom(w.dom);})[0];
+  draft.stdTpl=kt?[w.name].concat(kt.slice(1)):stdFor(w);draft.stdDone=false;
+  if(draft.stdTpl&&draft.stdTpl[2]&&!draft.cat){draft.cat=draft.stdTpl[2];paintCats();got.push("Kategorie");}
+  var lb=document.getElementById("fLabel");if(draft.stdTpl&&draft.stdTpl[3]&&!lb.value.trim())lb.value=draft.stdTpl[3];
+  if(draft.stdTpl&&!draft.stdTpl[10])draft.stdTpl=null;
+  var cc=(draft.stdTpl&&draft.stdTpl[1])||w.cc;
+  if(cc&&!document.getElementById("fAmt").value)document.getElementById("fCur").value=cc==="DE"?"EUR":"CHF";
+  hidePSug();paintLogo();paintSwatches();paintSugg();
+  var msg=function(extra){var a=got.concat(extra||[]);return a.length?"Übernommen: "+a.join(", "):"Nichts Weiteres gefunden";};
+  if(draft.logoId&&KBlob.has(draft.logoId)){toast(msg());return;}
+  if(!assets||navigator.onLine===false){toast(msg());return;}
   toast("Lade Logo …");
   var r=null;
   try{
@@ -3779,14 +3817,15 @@ async function pickWebPartner(w){
       if(ii&&(ii.thumburl||ii.url)){var t=await takeLogo({url:ii.thumburl||ii.url,src:"wiki"});if(t&&t.id)r=t;}}
     if(!r){var sc=await siteCand(regDom(w.dom),3);if(sc){var t2=await takeLogo(sc);if(t2&&t2.id)r=t2;}}
   }catch(e){r=null;}
-  if(r&&!(draft.logoId&&KBlob.has(draft.logoId))){draft.logoId=r.id;draft.logoBg=r.bg;paintLogo();toast("Logo und Website übernommen");}
-  else toast(r?"Website übernommen":"Website übernommen, kein Logo gefunden");
+  if(r&&!(draft.logoId&&KBlob.has(draft.logoId))){draft.logoId=r.id;draft.logoBg=r.bg;paintLogo();toast(msg(["Logo"]));}
+  else toast(msg());
 }
 function pickOwnPartner(o){
   document.getElementById("fPartner").value=o.name;pSugSel=o.name;
   var wf=document.getElementById("fWeb");if(!wf.value.trim()&&o.web)wf.value=o.web;
   var c=o.logoC;if(c&&!(draft.logoId&&KBlob.has(draft.logoId))){draft.logoId=c.logoId;draft.logoBg=c.logoBg||"#FFFFFF";}
   var c0=state.contracts[o.ids[0]];if(c0&&!draft.cat&&c0.cat){draft.cat=c0.cat;paintCats();}
+  if(c0){[["fTel","tel"],["fMail","mail"]].forEach(function(p){var f=document.getElementById(p[0]);if(c0[p[1]]&&!f.value.trim())f.value=c0[p[1]];});}
   hidePSug();paintLogo();paintSwatches();paintSugg();
 }
 (function(){
