@@ -897,7 +897,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
 @keyframes obPop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
 #onb .obhello{color:var(--teal);font-size:15px;font-weight:600;line-height:1.35;margin:6px 0 0}
 #onb .obwel .obt{font-size:clamp(28px,8.5vw,34px)}
-#onb .obslogan{font-family:var(--ob-r);font-size:18px;font-weight:600;color:var(--ink2);margin:0}
+#onb .obslogan{font-family:var(--ob-r);font-size:17px;font-weight:600;color:var(--teal);margin:8px 0 0}
 #onb .obwel .obs{margin-top:max(14px,3.5vh)}
 #onb .obprom{display:grid;gap:10px;margin-top:max(12px,2.5vh);text-align:left;width:max-content;max-width:100%;font-size:min(15px,calc((100cqi - 30px) / 21))}
 #onb .obprom span{display:flex;align-items:center;gap:8px;font-size:inherit;font-weight:600;line-height:1.35;color:var(--teal);white-space:nowrap}
@@ -4309,9 +4309,9 @@ function obPage(p){
   var last=ob.i===ob.pages.length-1;
   if(p.k==="welcome"){var ck='<i>'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</i>';
     return '<div class="obscr obwel"><img class="oblogo" src="'+esc(LOGO)+'" alt="">'+
-      '<p class="obhello">Für alle, die wissen wollen,<br>was jeden Monat fix weggeht.</p>'+
-      '<p class="obt">Willkommen bei Kontivo</p><p class="obslogan">Deine Verträge, ganz entspannt.</p>'+
-      '<p class="obs">Maximale Transparenz:<br>Verträge, Kosten, Budget und Fristen<br>auf einen Blick.</p>'+
+      '<p class="obslogan">Deine Verträge, ganz entspannt.</p>'+
+      '<p class="obt">Willkommen bei Kontivo</p>'+
+      '<p class="obs">Maximale Transparenz über alles,<br>was jeden Monat fix weggeht.</p>'+
       '<div class="obprom"><span>'+ck+'Fixkosten, Budget &amp; Fristen im Blick</span><span>'+ck+'Smart gedacht – einfach gemacht</span><span>'+ck+'Ohne Bankanbindung – ganz privat</span><span>'+ck+'Für dich, deine Familie oder deine WG</span></div>'+
       '<div class="obgrow"></div>'+obNext("Los geht’s")+
       (ob.first?'<button type="button" class="obghost" data-ob="backup">Ich habe schon ein Backup</button>':'<button type="button" class="obghost" data-ob="close">Schliessen</button>')+'</div>';}
