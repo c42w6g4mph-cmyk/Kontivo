@@ -892,14 +892,14 @@ details.opt.moreact{margin-top:9px;background:transparent}
 #onb .obghost{flex:none;width:100%;color:var(--teal);font-size:15px;font-weight:500;padding:8px 0 2px}
 #onb .obgrow{flex:1}
 /* Willkommen */
-#onb .obwel{align-items:center;text-align:center;gap:9px;padding-top:4vh}
+#onb .obwel{align-items:center;text-align:center;gap:9px;padding-top:4vh;container-type:inline-size}
 #onb .oblogo{width:84px;height:84px;border-radius:19px;box-shadow:0 12px 30px rgba(14,90,94,.3);animation:obPop .6s cubic-bezier(.2,1.4,.4,1)}
 @keyframes obPop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
 #onb .obhello{color:var(--teal);font-size:15px;font-weight:600;line-height:1.35;margin:6px 0 0}
 #onb .obwel .obt{font-size:clamp(28px,8.5vw,34px)}
 #onb .obslogan{font-family:var(--ob-r);font-size:18px;font-weight:600;color:var(--ink2);margin:0}
 #onb .obwel .obs{margin-top:2px}
-#onb .obprom{display:grid;gap:9px;margin-top:10px;text-align:left;width:max-content;max-width:100%;font-size:14px;overflow:hidden}
+#onb .obprom{display:grid;gap:9px;margin-top:10px;text-align:left;width:max-content;max-width:100%;font-size:min(14px,calc((100cqi - 30px) / 26))}
 #onb .obprom span{display:flex;align-items:center;gap:8px;font-size:inherit;font-weight:600;line-height:1.35;color:var(--teal);white-space:nowrap}
 #onb .obprom i{flex:none;width:19px;height:19px;border-radius:50%;background:var(--ok);display:grid;place-items:center}
 #onb .obprom i svg{width:11px;height:11px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
@@ -4352,7 +4352,7 @@ function obPaint(dir){
   var host=document.getElementById("obHost");host.innerHTML=obPage(ob.pages[ob.i]);
   var sc=host.firstChild;if(sc&&dir<0)sc.classList.add("back");
   /* USP-Zeilen einzeilig halten: Schrift verkleinern, bis alles passt (SwiftUI: minimumScaleFactor) */
-  var pr=host.querySelector(".obprom");if(pr){var fs=14;pr.style.fontSize=fs+"px";while(pr.scrollWidth>pr.clientWidth+1&&fs>10.5){fs-=.5;pr.style.fontSize=fs+"px";}}
+  var pr=host.querySelector(".obprom");if(pr){pr.style.fontSize="";var fs=parseFloat(getComputedStyle(pr).fontSize)||14;while(pr.scrollWidth>pr.clientWidth+1&&fs>9){fs-=.5;pr.style.fontSize=fs+"px";}}
   document.getElementById("obProg").innerHTML=ob.pages.map(function(p,j){return '<i class="'+(j<=ob.i?'on':'')+'"></i>';}).join("");
 }
 function obGo(n){if(n<0||n>=ob.pages.length)return;
