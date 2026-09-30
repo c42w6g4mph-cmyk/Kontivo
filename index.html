@@ -896,7 +896,9 @@ details.opt.moreact{margin-top:9px;background:transparent}
 #onb .oblogo{width:84px;height:84px;border-radius:19px;box-shadow:0 12px 30px rgba(14,90,94,.3);animation:obPop .6s cubic-bezier(.2,1.4,.4,1)}
 @keyframes obPop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
 #onb .obhello{color:var(--teal);font-size:15px;font-weight:600;line-height:1.35;margin:6px 0 0}
-#onb .obwel .obwt{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:max(22px,4.5vh);font-size:clamp(40px,12vw,50px);font-weight:800;letter-spacing:-.025em;line-height:1}
+#onb .obwel .obwt{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:max(22px,4.5vh);font-size:clamp(30px,9vw,36px);font-weight:700;letter-spacing:-.01em;line-height:1.1}
+#onb .obwm{font-weight:700;display:inline-flex;align-items:baseline}
+#onb .obK{height:.72em;width:auto;margin-right:.03em;overflow:visible}
 #onb .obwel .obwt span{font-size:clamp(17px,5vw,20px);font-weight:600;letter-spacing:0;color:var(--ink2)}
 #onb .obslogan{font-family:var(--ob-r);font-size:17px;font-weight:600;color:var(--teal);margin:8px 0 0}
 #onb .obwel .obs{margin-top:max(14px,3.5vh)}
@@ -4311,7 +4313,7 @@ function obPage(p){
   if(p.k==="welcome"){var ck='<i>'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</i>';
     return '<div class="obscr obwel"><img class="oblogo" src="'+esc(LOGO)+'" alt="">'+
       '<p class="obslogan">Deine Verträge, ganz entspannt.</p>'+
-      '<p class="obt obwt"><span>Willkommen bei</span>Kontivo</p>'+
+      '<p class="obt obwt"><span>Willkommen bei</span><b class="obwm" aria-label="Kontivo"><svg class="obK" viewBox="339 292 362 440" aria-hidden="true"><defs><mask id="obKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="obKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#obKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#obKc)"/></svg>ontivo</b></p>'+
       '<p class="obs">Maximale Transparenz über alles,<br>was jeden Monat fix weggeht.</p>'+
       '<div class="obprom"><span>'+ck+'Fixkosten, Budget &amp; Fristen im Blick</span><span>'+ck+'Smart gedacht – einfach gemacht</span><span>'+ck+'Ohne Bankanbindung – ganz privat</span><span>'+ck+'Für dich, deine Familie oder deine WG</span></div>'+
       '<div class="obgrow"></div>'+obNext("Los geht’s")+
