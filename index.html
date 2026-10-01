@@ -162,10 +162,10 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:0;position:relative;z-index:1}
 .col i{display:block;width:100%;padding:0;transition:background-color .15s}
 .col i.cap{border-radius:4px 4px 0 0}
-.col i.pd{background:color-mix(in srgb,var(--teal) 38%,var(--surface))}
+.col i.pd{background:color-mix(in srgb,var(--teal) 30%,var(--surface))}
 .col.on i.pd{background:var(--teal)}
-.col i.op{background:color-mix(in srgb,var(--ink) 20%,var(--surface))}
-.col.on i.op{background:color-mix(in srgb,var(--ink) 62%,var(--surface))}
+.col i.op{background:color-mix(in srgb,var(--ink) 14%,var(--surface))}
+.col.on i.op{background:color-mix(in srgb,var(--ink) 78%,var(--surface))}
 .col.zero i{height:0!important}
 .col .val{position:absolute;left:50%;transform:translateX(-50%);margin-bottom:5px;font-size:11px;font-weight:600;color:var(--ink);white-space:nowrap;pointer-events:none}
 .col.on i{opacity:1}
@@ -200,10 +200,10 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .kcard .kbig.neg{color:var(--alert)}
 .kcard .bchart{margin-top:34px;height:140px;margin-right:16px}
 .kcard .chart{margin-top:34px;height:140px}
-.kcard .col i.pd{background:color-mix(in srgb,var(--teal) 45%,var(--surface))}
+.kcard .col i.pd{background:color-mix(in srgb,var(--teal) 34%,var(--surface))}
 .kcard .col.on i.pd{background:var(--teal)}
-.kcard .col i.op{background:color-mix(in srgb,var(--ink) 16%,var(--surface))}
-.kcard .col.on i.op{background:color-mix(in srgb,var(--ink) 38%,var(--surface))}
+.kcard .col i.op{background:color-mix(in srgb,var(--ink) 12%,var(--surface))}
+.kcard .col.on i.op{background:color-mix(in srgb,var(--ink) 72%,var(--surface))}
 .kcard .pdot.op{background:color-mix(in srgb,var(--ink) 38%,var(--surface))}
 .mkpis>.mkp:nth-child(3) .k{justify-content:flex-end}
 .mkp .k{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink3);white-space:nowrap}
@@ -235,10 +235,10 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .bzero{position:absolute;left:0;right:0;border-top:1px solid var(--line);z-index:2;pointer-events:none}
 .bcol{flex:1;position:relative;height:100%;padding:0;z-index:1;border-bottom:0!important}
 .bcol i{position:absolute;left:0;right:0;border-radius:4px 4px 0 0;transition:background-color .15s}
-.bcol i.bp{background:color-mix(in srgb,var(--teal) 38%,var(--surface))}
+.bcol i.bp{background:color-mix(in srgb,var(--teal) 30%,var(--surface))}
 .bcol.on i.bp{background:var(--teal)}
-.bcol i.bo{background:color-mix(in srgb,var(--ink) 20%,var(--surface))}
-.bcol.on i.bo{background:color-mix(in srgb,var(--ink) 62%,var(--surface))}
+.bcol i.bo{background:color-mix(in srgb,var(--ink) 12%,var(--surface))}
+.bcol.on i.bo{background:color-mix(in srgb,var(--ink) 72%,var(--surface))}
 .bcol i.neg{border-radius:0 0 4px 4px}
 .bcol i.bp.neg{background:color-mix(in srgb,var(--alert) 45%,var(--surface))}
 .bcol.on i.bp.neg{background:var(--alert)}
@@ -295,7 +295,7 @@ details.opt summary em{font-style:normal;font-weight:500;font-size:12.5px;color:
 .clegend span{display:flex;align-items:center;gap:6px}
 .clegend i{display:block;width:10px;height:10px;border-radius:2px}
 .clegend .lpd{background:var(--teal)}
-.clegend .lop{background:color-mix(in srgb,var(--ink) 20%,var(--surface))}
+.clegend .lop{background:color-mix(in srgb,var(--ink) 30%,var(--surface))}
 .pbar{height:6px;border-radius:999px;margin-top:14px;overflow:hidden;
   background:color-mix(in srgb,var(--teal) 14%,var(--surface))}
 .card.paid{background:color-mix(in srgb,var(--surface) 55%,transparent)}
@@ -635,7 +635,7 @@ body.hasplus .topadd{display:inline-flex}
 .mcard .pbar{background:color-mix(in srgb,var(--ink) 20%,var(--surface));margin-top:14px}
 .pdot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-.5px}
 .pdot.pd{background:var(--teal)}
-.pdot.op{background:color-mix(in srgb,var(--ink) 20%,var(--surface))}
+.pdot.op{background:color-mix(in srgb,var(--ink) 30%,var(--surface))}
 .pdot.binc{background:#2E6A4E}
 .pdot.bfix{background:#B0562A}
 .mcard .clegend{margin-top:8px}
@@ -808,6 +808,9 @@ details.inl summary em{font-style:normal;font-weight:500;font-size:12.5px;color:
   opacity:0;transition:opacity .2s;pointer-events:none;max-width:88%;text-align:center}
 .status.on{opacity:1}
 textarea.out{width:100%;height:170px;background:var(--field);border:0;border-radius:10px;padding:11px;font-size:12.5px;margin-top:10px}
+textarea.out.lt{height:min(56vh,520px);margin:0;font-size:15px;line-height:1.45;padding:14px;resize:none;font-family:inherit}
+.sheet.letter{z-index:63}
+.vbar .vedit{margin-right:auto}
 input[type=file]{display:none}
 /* Darstellung: Wahl in den Einstellungen übersteuert System und Viewer */
 :root[data-appearance="light"]{color-scheme:light;--paper:#F3F1EC;--surface:#FBFAF7;--sunken:#E9E6DF;--field:#EFEDE7;--ink:#1B1E23;--ink2:#5F666E;--ink3:#687077;--line:#E1DED6;--teal:#0E5A5E;--ok:#2E6A4E;--warn:#9A6710;--alert:#A93227;--glass:rgba(251,250,247,.66);--glassEdge:rgba(255,255,255,.75);--glassShade:rgba(20,30,35,.14)}
@@ -1111,7 +1114,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 
 <!-- Dokument-Betrachter -->
 <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Dokument">
-  <div class="vbar"><span class="vt" id="vTitle"></span><button id="vSave">Sichern</button><button class="vclose" id="vClose">Schliessen</button></div>
+  <div class="vbar"><span class="vt" id="vTitle"></span><button id="vEdit" class="vedit" hidden>Text ändern</button><button id="vSave">Teilen</button><button class="vclose" id="vClose">Schliessen</button></div>
   <div class="vbody" id="vBody"></div>
 </div>
 
@@ -1309,6 +1312,14 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <button class="ghost" id="pickClose">Schliessen</button>
 </div>
 
+<!-- Kündigungsschreiben -->
+<div class="sheet letter" id="sheetLetter" role="dialog" aria-modal="true" aria-label="Kündigungsschreiben">
+  <div class="grab"></div>
+  <div class="shbar"><button class="shx" id="ltClose">Schliessen</button><h2>Kündigung</h2><button class="shok" id="ltPdf">PDF</button></div>
+  <p class="note" style="margin:4px 0 10px">Text prüfen und bei Bedarf anpassen. «PDF» zeigt den Brief; von dort kannst du ihn teilen, drucken oder sichern.</p>
+  <textarea id="ltText" class="out lt" spellcheck="true"></textarea>
+  <p class="note" id="ltHint" style="margin:8px 0 0"></p>
+</div>
 <!-- Detail -->
 <div class="sheet" id="sheetDetail" role="dialog" aria-modal="true" aria-label="Vertragsdetails">
   <div class="grab"></div>
@@ -2318,7 +2329,7 @@ document.addEventListener("click",function(ev){if(!ev.target.closest("#xAll"))re
 function openSheet(el){document.getElementById("scrim").classList.add("on");el.classList.add("on");el.scrollTop=0;}
 function closeSheets(){
   document.getElementById("scrim").classList.remove("on");
-  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd"].forEach(function(i){document.getElementById(i).classList.remove("on");});
+  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetLetter"].forEach(function(i){document.getElementById(i).classList.remove("on");});
   document.getElementById("csvOut").innerHTML="";
 }
 function buildCatChips(){
@@ -2939,10 +2950,11 @@ function loadPdfJs(){
 function vMsg(t){document.getElementById("vBody").innerHTML='<div class="vmsg">'+t+"</div>";}
 async function openDoc(d){
   if(!d)return;
-  curDoc=d;var tok=++docToken,url=KBlob.url(d.id),type=d.type||guessType(d.name);
-  document.getElementById("vTitle").textContent=d.name||"Dokument";
+  curDoc=d;var tok=++docToken,url=d.blob?URL.createObjectURL(d.blob):KBlob.url(d.id),type=d.type||guessType(d.name);
+  document.getElementById("vTitle").textContent=d.title||d.name||"Dokument";
+  document.getElementById("vEdit").hidden=!d.blob;
   document.getElementById("viewer").classList.add("on");vMsg("Wird geladen…");
-  if(!KBlob.has(d.id)){vMsg("Diese Datei ist auf diesem Gerät nicht vorhanden. Spiele ein Backup mit Dateien ein oder hänge sie neu an.");return;}
+  if(!d.blob&&!KBlob.has(d.id)){vMsg("Diese Datei ist auf diesem Gerät nicht vorhanden. Spiele ein Backup mit Dateien ein oder hänge sie neu an.");return;}
   if(type.indexOf("image/")===0){
     var img=new Image();img.alt=d.name||"";
     img.onload=function(){if(tok!==docToken)return;var b=document.getElementById("vBody");b.innerHTML="";b.appendChild(img);};
@@ -2965,13 +2977,13 @@ async function openDoc(d){
         cv.style.width=w+"px";body.appendChild(cv);
         await page.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
       }
-      if(pdf.numPages>n)body.insertAdjacentHTML("beforeend",'<div class="vmsg">Weitere '+(pdf.numPages-n)+" Seiten — mit «Sichern» vollständig öffnen.</div>");
+      if(pdf.numPages>n)body.insertAdjacentHTML("beforeend",'<div class="vmsg">Weitere '+(pdf.numPages-n)+" Seiten — mit «Teilen» vollständig öffnen.</div>");
     }catch(e){
-      if(tok===docToken)vMsg("Das PDF lässt sich hier nicht anzeigen. Tippe auf «Sichern», dann öffnet es sich in der Dateien-App.");
+      if(tok===docToken)vMsg(d.blob?"Die Vorschau braucht beim ersten Mal eine Internetverbindung. Mit «Teilen» kannst du das PDF trotzdem per Mail senden, drucken oder sichern.":"Das PDF lässt sich hier nicht anzeigen. Tippe auf «Teilen», dann öffnet es sich in der Dateien-App.");
     }
     return;
   }
-  vMsg("Für diesen Dateityp gibt es keine Vorschau. Tippe auf «Sichern».");
+  vMsg("Für diesen Dateityp gibt es keine Vorschau. Tippe auf «Teilen».");
 }
 document.getElementById("vClose").addEventListener("click",function(){
   docToken++;curDoc=null;document.getElementById("viewer").classList.remove("on");document.getElementById("vBody").innerHTML="";});
@@ -2980,10 +2992,64 @@ document.getElementById("vSave").addEventListener("click",async function(){
   var dl=null;try{dl=await claude.use("downloads");}catch(e){}
   if(!dl){toast("Sichern ist in dieser Ansicht nicht verfügbar");return;}
   try{
-    var blob=KBlob.get(curDoc.id);if(!blob)throw new Error("fehlt");var name=curDoc.name||"dokument";
+    var blob=curDoc.blob||KBlob.get(curDoc.id);if(!blob)throw new Error("fehlt");var name=curDoc.name||"dokument";
     if(!/\.[a-z0-9]{2,5}$/i.test(name))name+=isPdf(curDoc)?".pdf":".jpg";
     await dl.save({filename:name,data:blob});
   }catch(e){if(!e||e.code!=="declined")toast("Sichern fehlgeschlagen");}
+});
+document.getElementById("vEdit").addEventListener("click",function(){document.getElementById("vClose").click();});
+/* ---------- Kündigungsschreiben: Text bearbeiten → PDF (jsPDF, A4) → Vorschau → Teilen (Mail, Drucken, Dateien) ----------
+   SwiftUI: TextEditor + UIGraphicsPDFRenderer + ShareLink */
+var ltC=null;
+function openLetter(c){ltC=c;var ta=document.getElementById("ltText");ta.value=cancelText(c);
+  var d=noticeDeadline(c);document.getElementById("ltHint").textContent=(d?"Spätester Absendetermin nach hinterlegter Frist: "+fmtD(iso(d))+". ":"")+"Vorlage ohne Gewähr. Prüf Adresse, Frist und Kündigungsart — viele Verträge verlangen Schriftform.";
+  var sh=document.getElementById("sheetLetter");sh.classList.add("on");sh.scrollTop=0;}
+function closeLetter(){document.getElementById("sheetLetter").classList.remove("on");ltC=null;
+  if(!document.querySelector(".sheet.on"))document.getElementById("scrim").classList.remove("on");}
+document.getElementById("ltClose").addEventListener("click",closeLetter);
+/* Minimaler PDF-Schreiber (Text, Helvetica, WinAnsi) – ohne Fremdbibliothek, funktioniert offline.
+   Breiten aus der Helvetica-AFM (1/1000 em) für Zeilenumbruch. */
+var HW=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+var HWB=[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
+var WINX={8364:128,8218:130,402:131,8222:132,8230:133,8224:134,8225:135,710:136,8240:137,352:138,8249:139,338:140,381:142,8216:145,8217:146,8220:147,8221:148,8226:149,8211:150,8212:151,732:152,8482:153,353:154,8250:155,339:156,382:158,376:159};
+function pdfByte(ch){var c=ch.charCodeAt(0);if(c<128)return c;if(c>=160&&c<256)return c;if(WINX[c])return WINX[c];return 63;}
+function pdfWidth(str,bold,pt){var t=bold?HWB:HW,w=0;for(var i=0;i<str.length;i++){var b=pdfByte(str[i]);w+=(b>=32&&b<=126)?t[b-32]:556;}return w/1000*pt;}
+function pdfWrap(str,bold,pt,maxPt){var words=str.split(" "),lines=[],cur="";
+  words.forEach(function(w){var t=cur?cur+" "+w:w;if(pdfWidth(t,bold,pt)<=maxPt||!cur)cur=t;else{lines.push(cur);cur=w;}});
+  if(cur||!lines.length)lines.push(cur);return lines;}
+function pdfEsc(str){var o="";for(var i=0;i<str.length;i++){var b=pdfByte(str[i]);if(b===40||b===41||b===92)o+="\\"+String.fromCharCode(b);else if(b<32||b>126)o+="\\"+("00"+b.toString(8)).slice(-3);else o+=String.fromCharCode(b);}return o;}
+/* Brief: A4 (595×842 pt), Rand 70 pt, 11 pt, Betreffzeile fett; Absätze durch Leerzeilen getrennt */
+function letterPdf(text){
+  var PT=11,LH=15.5,L=70,TOP=842-80,BOT=70,W=595-2*L,pages=[],ops=[],y=TOP,subjDone=false;
+  function line(str,bold){if(y<BOT){pages.push(ops);ops=[];y=TOP;}
+    ops.push("BT /"+(bold?"F2":"F1")+" "+PT+" Tf "+L+" "+y.toFixed(1)+" Td ("+pdfEsc(str)+") Tj ET");y-=LH;}
+  String(text).replace(/\r/g,"").split(/\n{2,}/).forEach(function(block){
+    var ls=block.split("\n"),isSubj=!subjDone&&/^Kündigung /.test(ls[0]);if(isSubj){subjDone=true;y-=4;}
+    ls.forEach(function(ln){pdfWrap(ln,isSubj,PT,W).forEach(function(w){line(w,isSubj);});});
+    if(isSubj)y-=4;y-=LH*0.8;});
+  pages.push(ops);
+  var objs=[],add=function(o){objs.push(o);return objs.length;};
+  var fontN=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
+  var fontB=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
+  var pagesIdx=objs.length+1;objs.push(null);
+  var kids=[];
+  pages.forEach(function(ps){var stream=ps.join("\n"),len=stream.length;
+    var cn=add("<< /Length "+len+" >>\nstream\n"+stream+"\nendstream");
+    kids.push(add("<< /Type /Page /Parent "+pagesIdx+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+fontN+" 0 R /F2 "+fontB+" 0 R >> >> /Contents "+cn+" 0 R >>"));});
+  objs[pagesIdx-1]="<< /Type /Pages /Kids ["+kids.map(function(k){return k+" 0 R";}).join(" ")+"] /Count "+kids.length+" >>";
+  var cat=add("<< /Type /Catalog /Pages "+pagesIdx+" 0 R >>");
+  var out="%PDF-1.4\n%âãÏÓ\n",offs=[];
+  objs.forEach(function(o,i){offs.push(out.length);out+=(i+1)+" 0 obj\n"+o+"\nendobj\n";});
+  var xref=out.length;out+="xref\n0 "+(objs.length+1)+"\n0000000000 65535 f \n";
+  offs.forEach(function(o){out+=("0000000000"+o).slice(-10)+" 00000 n \n";});
+  out+="trailer\n<< /Size "+(objs.length+1)+" /Root "+cat+" 0 R >>\nstartxref\n"+xref+"\n%%EOF";
+  var bytes=new Uint8Array(out.length);for(var i=0;i<out.length;i++)bytes[i]=out.charCodeAt(i)&255;
+  return new Blob([bytes],{type:"application/pdf"});}
+document.getElementById("ltPdf").addEventListener("click",function(){
+  if(!ltC)return;var t=document.getElementById("ltText").value.trim();if(!t){toast("Der Text ist leer");return;}
+  var blob;try{blob=letterPdf(t);}catch(e){toast("PDF konnte nicht erstellt werden");return;}
+  var nm="Kuendigung-"+String(ltC.partner||ltC.label||"Vertrag").replace(/[^\w\-]+/g,"_")+"-"+iso(today())+".pdf";
+  openDoc({blob:blob,name:nm,title:"Kündigung · "+(ltC.partner||ltC.label||"Vertrag"),type:"application/pdf"});
 });
 var webWait=null;
 function logoSearch(name,target){
@@ -3140,8 +3206,7 @@ function openDetail(idv){
     '<div style="height:14px"></div>'+
     (c.cancelPer?'<button class="ghost" data-act="uncancel">Kündigung zurücknehmen</button>':"")+
     (isKept(c)?'<button class="ghost" data-act="unkeep">Entscheid «Behalten» zurücksetzen</button>':"")+
-    '<button class="ghost" data-act="ktext">Kündigungstext erzeugen</button>'+
-    '<div id="ktextOut"></div>'+
+    '<button class="ghost" data-act="ktext">Kündigungsschreiben</button>'+
     (c.status!=="cancelled"?'<button class="ghost" data-act="pause">'+(isPaused(c)?"Fortsetzen":"Pausieren")+"</button>":"")+
     '<details class="opt moreact"><summary>Weitere Aktionen</summary><div class="optbody">'+
     '<button class="ghost" data-act="dup">Duplizieren</button>'+
@@ -3169,18 +3234,7 @@ function openDetail(idv){
       else if(a==="reactivate"){c.status="active";c.cancelledAt="";putContract(idv,stripId(c));closeSheets();render();toast("Wieder aktiv");}
       else if(a==="delete"){ask({title:"Vertrag löschen?",text:"«"+titleOf(c)+"» wird endgültig gelöscht. Angehängte Dateien bleiben erhalten.",ok:"Löschen",danger:true})
         .then(function(y){if(y){dropContract(idv);closeSheets();render();toast("Gelöscht");}});}
-      else if(a==="ktext"){
-        var o=document.getElementById("ktextOut");
-        if(o.innerHTML){o.innerHTML="";return;}
-        o.innerHTML='<div class="ktext"><textarea class="out" readonly></textarea><button class="mini" data-kcopy>Text kopieren</button>'+
-          '<p class="note" style="margin-top:4px">Vorlage ohne Gewähr. Prüf Adresse, Frist und Kündigungsart — viele Verträge verlangen Schriftform.</p></div>';
-        var ta=o.querySelector("textarea");ta.value=cancelText(c);
-        o.querySelector("[data-kcopy]").addEventListener("click",function(){
-          var t=ta.value;
-          if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){toast("Kopiert");},function(){ta.focus();ta.select();toast("Text markiert — jetzt kopieren");});
-          else{ta.focus();ta.select();toast("Text markiert — jetzt kopieren");}
-        });
-      }
+      else if(a==="ktext"){openLetter(c);}
     });
   });
   openSheet(document.getElementById("sheetDetail"));
@@ -3480,6 +3534,7 @@ document.getElementById("iDel").addEventListener("click",function(){
 document.getElementById("scrim").addEventListener("click",function(){
   if(document.getElementById("sheetAsk").classList.contains("on")){askDone(false);return;}
   if(document.getElementById("sheetCrop").classList.contains("on")){closeCrop();return;}
+  if(document.getElementById("sheetLetter").classList.contains("on")){closeLetter();return;}
   if(document.getElementById("sheetPick").classList.contains("over")){closePick();return;}
   if(document.getElementById("sheetMd").classList.contains("on")){closeMd();return;}closeSheets();});
 document.getElementById("pickList").addEventListener("keydown",function(ev){if(ev.target.id==="newCat"&&ev.key==="Enter"){ev.preventDefault();addCustomCat();}});
