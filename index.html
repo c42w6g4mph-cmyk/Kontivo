@@ -263,6 +263,13 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .fbar3 .fsel{flex:1 1 auto;max-width:none;min-width:0;justify-content:center;gap:5px;padding:8px 9px 8px 11px}
 .fbar3 .fsel.on{flex-grow:2}
 .fbar3 .fsel[data-bh]{flex:1 1 0}.fbar3 .fsel[data-bh]::after{display:none}
+.fbar3 .fsel.fh{flex:1 1 0}.fbar3 .fsel.fh::after{display:none}
+.fbar3.frow2{margin-top:6px}
+.fmore{flex:none;position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink2);display:grid;place-items:center}
+.fmore svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round}
+.fmore[aria-expanded="true"]{border-color:var(--teal);color:var(--teal)}
+.fmore.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.fmore b{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:var(--alert);color:#fff;font-size:10.5px;line-height:16px;font-weight:700;padding:0 4px;box-shadow:0 0 0 2px var(--paper)}
 .fclr{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink2);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0 0 2px}
 .fsel{flex:none;display:inline-flex;align-items:center;gap:7px;max-width:170px;padding:7px 11px 7px 13px;border-radius:999px;
   border:1px solid var(--line);background:var(--surface);font-size:12.5px;color:var(--ink2)}
@@ -2038,6 +2045,30 @@ function fltLabel(){var f=state.flt;return [f.cat,f.partner,f.holder].filter(Boo
 function firstName(h){return String(h||"").trim().split(/\s+/)[0]||h;}
 function fselHtml(dim,allTxt){var v=state.flt[dim],shown=(dim==="holder"&&v&&v.length>12)?firstName(v):v;
   return '<button class="fsel'+(v?" on":"")+'" data-fdim="'+dim+'"><span>'+esc(shown||allTxt)+"</span></button>";}
+/* Personen-Chips: Namen kürzen, bis sie in die Zeile passen (auch im Budget; SwiftUI: ViewThatFits) */
+function holderNamer(HL,width){
+  var fit=Math.floor((width/(HL.length+1)-28)/8.2),useFirst=HL.some(function(h){return h.length>fit;}),fn=HL.map(firstName);
+  var clash=fn.some(function(n,i){return fn.indexOf(n)!==i;});
+  var dn=function(h){if(!useFirst)return h;var w=String(h).trim().split(/\s+/);return (clash&&w.length>1)?w[0]+" "+w[w.length-1].charAt(0)+".":w[0];};
+  return {dn:dn,ok:HL.length>1&&HL.length<=4&&HL.map(dn).join("").length<=Math.floor(28*width/361)};}
+/* Kosten: Inhaber als Chips direkt sichtbar, Kategorie/Vertragspartner hinter «Mehr» (SwiftUI: Picker .segmented + DisclosureGroup) */
+function statFilterBar(){
+  var f=state.flt,HL=holderStats().filter(function(h){return h.c>0;}).map(function(h){return h.name;});
+  if(f.holder&&HL.indexOf(f.holder)<0)HL.push(f.holder);
+  var nOther=(f.cat?1:0)+(f.partner?1:0),open=!!(state.fMore||nOther),hn=holderNamer(HL,318);
+  var moreBtn='<button class="fmore'+(nOther?" on":"")+'" data-fmore type="button" aria-expanded="'+open+'" aria-label="Weitere Filter">'+
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>'+(nOther?'<b>'+nOther+"</b>":"")+"</button>";
+  var row1;
+  if(HL.length<=1){/* Nur eine Person: keine Inhaber-Wahl nötig, übrige Filter direkt */
+    return '<div class="fbar3" role="group" aria-label="Filter">'+fselHtml("cat","Kategorie")+fselHtml("partner","Vertragspartner")+
+      (nOther?'<button class="fclr" data-fclear type="button" aria-label="Filter zurücksetzen">×</button>':"")+"</div>";}
+  if(hn.ok)row1='<div class="fbar3" role="group" aria-label="Inhaber">'+[""].concat(HL).map(function(h){var on=h?f.holder===h:!f.holder;
+      return '<button class="fsel fh'+(on?" on":"")+'" data-fh="'+esc(h)+'" aria-pressed="'+on+'" type="button"><span>'+esc(h?hn.dn(h):"Alle")+"</span></button>";}).join("")+moreBtn+"</div>";
+  else row1='<div class="fbar3" role="group" aria-label="Filter">'+fselHtml("holder","Alle Inhaber")+moreBtn+"</div>";
+  var row2=open?'<div class="fbar3 frow2" role="group" aria-label="Weitere Filter">'+fselHtml("cat","Kategorie")+fselHtml("partner","Vertragspartner")+
+    (nOther?'<button class="fclr" data-fclear2 type="button" aria-label="Kategorie und Vertragspartner zurücksetzen">×</button>':"")+"</div>":"";
+  return row1+row2;
+}
 function openPick(dim){
   if(dim==="sort"){
     var so=[["due","Fälligkeit"],["cost","Kosten, höchste zuerst"],["partner","Vertragspartner, A–Z"],["cat","Kategorie"],["holder","Inhaber"]],cs=state.settings.sort||"cat";
@@ -2119,7 +2150,7 @@ function renderStat(v){
     if(!months[sel].sum&&tot){var nx=-1;for(var j=0;j<12;j++){var q=(sel+j)%12;if(months[q].sum){nx=q;break;}}if(nx>=0){sel=nx;state.sel=nx;}}}
   setTopYear(Y,nowY);var o='';
   var fn=fltCount();
-  o+='<div class="fbar3" role="group" aria-label="Filter">'+fselHtml("cat","Kategorie")+fselHtml("partner","Vertragspartner")+fselHtml("holder","Inhaber")+(fn?'<button class="fclr" data-fclear type="button" aria-label="Alle Filter zurücksetzen">×</button>':"")+"</div>";
+  o+=statFilterBar();
   var noStart=pool.filter(function(c){return !c.start&&c.status!=="cancelled";}).length;
   var hint=(Y<nowY&&noStart)?'<p class="note" style="margin:8px 0 0">'+noStart+(noStart===1?" Vertrag hat":" Verträge haben")+
     ' keinen Vertragsbeginn und '+(noStart===1?"wird":"werden")+' deshalb rückwirkend voll gezählt.</p>':"";
@@ -2296,10 +2327,8 @@ function renderBudget(v){
   Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k],f=shr(c);if(!f)return;
     payments(c,from,to).forEach(function(p){M[p.d.getMonth()].fix+=conv(p.a,c.cur)*f;});});
   var bhf;
-  var fit=Math.floor((361/(HL.length+1)-28)/8.2),useFirst=HL.some(function(h){return h.length>fit;}),fn=HL.map(firstName);
-  var clash=fn.some(function(n,i){return fn.indexOf(n)!==i;});
-  var dn=function(h){if(!useFirst)return h;var w=String(h).trim().split(/\s+/);return (clash&&w.length>1)?w[0]+" "+w[w.length-1].charAt(0)+".":w[0];};
-  if(HL.length>1&&HL.length<=4&&HL.map(dn).join("").length<=28){
+  var hn=holderNamer(HL,361),dn=hn.dn;
+  if(hn.ok){
     bhf='<div class="fbar3" role="group" aria-label="Inhaber">'+[''].concat(HL).map(function(h){var on=(h===BH);
       return '<button class="fsel'+(on?" on":"")+'" data-bh="'+esc(h)+'" aria-pressed="'+on+'" type="button"><span>'+esc(h?dn(h):"Alle")+"</span></button>";}).join("")+"</div>";
   } else if(HL.length<=1)bhf="";
@@ -3377,6 +3406,9 @@ document.getElementById("view").addEventListener("click",function(ev){
   if(fdl){state.flt[fdl.dataset.fdel]=null;state.autoSel=true;renderView();return;}
   var fd=ev.target.closest("[data-fdim]");
   if(fd){openPick(fd.dataset.fdim);return;}
+  var fhb=ev.target.closest("[data-fh]");if(fhb){state.flt.holder=fhb.dataset.fh||null;state.autoSel=true;renderView();return;}
+  if(ev.target.closest("[data-fmore]")){var f0=state.flt;if(f0.cat||f0.partner){toast("Erst Kategorie und Vertragspartner zurücksetzen");return;}state.fMore=!state.fMore;renderView();return;}
+  if(ev.target.closest("[data-fclear2]")){state.flt.cat=null;state.flt.partner=null;state.fMore=false;state.autoSel=true;renderView();return;}
   if(ev.target.closest("[data-fclear]")){state.flt={cat:null,partner:null,holder:null};state.autoSel=true;renderView();return;}
   var sfb=ev.target.closest("[data-sf]");
   if(sfb){var raw=sfb.dataset.sf,val=raw.slice(raw.indexOf("|")+1);
