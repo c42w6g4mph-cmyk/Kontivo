@@ -144,7 +144,10 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
   background:var(--surface);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.28),0 0 0 .5px var(--line);padding:12px 12px 10px;animation:lpin .16s ease-out}
 @keyframes lpin{from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:translateX(-50%)}}
 .lpop h4{margin:2px 4px 8px;font-size:15px;display:flex;justify-content:space-between;gap:10px}
-.lpop h4 span{font-weight:500;color:var(--ink3);font-size:13px;white-space:nowrap}
+.lpop h4 span{font-weight:500;color:var(--ink3);font-size:13px;white-space:nowrap;margin-left:auto}
+.lpop{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.lpop h4{align-items:center}.lpop .lpx{flex:none;width:28px;height:28px;border-radius:50%;background:var(--sunken);color:var(--ink2);font-size:18px;line-height:1;margin:-4px -2px 0 4px}
+#sheetPick h2,.picklist .lphint,.pick span{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .lpop .lr{display:flex;align-items:center;gap:10px;padding:6px 4px;font-size:14px}
 .lpop .lr .mark{width:30px;height:30px;border-radius:8px;font-size:12px}.lpop .lr .mark svg{width:16px;height:16px}
 .lpop .lr .lt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1995,7 +1998,7 @@ function showLpop(dim,key){
   var rows=act.map(function(c){var off=isPaused(c);if(!off)sum+=monthlyCost(c);
     return '<div class="lr'+(off?" off":"")+'">'+markHtml(c)+'<span class="lt">'+esc(titleOf(c))+(off?" · pausiert":"")+'</span><b>'+money(monthlyCost(c))+"</b></div>";}).join("");
   var p=document.createElement("div");p.id="lpop";p.className="lpop";p.setAttribute("role","dialog");p.setAttribute("aria-label",key);
-  p.innerHTML='<h4>'+esc(key)+'<span>'+H+"/Mt.</span></h4>"+(rows||'<p class="lx">Keine aktiven Verträge.</p>')+
+  p.innerHTML='<h4>'+esc(key)+'<span>'+H+'/Mt.</span><button type="button" class="lpx" data-lpx aria-label="Schliessen">×</button></h4>'+(rows||'<p class="lx">Keine aktiven Verträge.</p>')+
     (act.length?'<div class="lf"><span>Total pro Monat</span><span>'+money(sum)+" "+H+"</span></div>":"")+
     (nOld?'<p class="lx">'+nOld+(nOld===1?" beendeter Vertrag":" beendete Verträge")+" nicht mitgezählt</p>":"");
   document.body.appendChild(p);
@@ -2008,14 +2011,15 @@ function showLpop(dim,key){
     fired=false;clear();st={x:e.clientX,y:e.clientY,el:b};b.classList.add("lpress");
     tm=setTimeout(function(){var dm=L.dataset.dim;fired=true;b.classList.remove("lpress");st=null;showLpop(dm,b.dataset.lp);},450);});
   L.addEventListener("pointermove",function(e){if(st&&(Math.abs(e.clientX-st.x)>10||Math.abs(e.clientY-st.y)>10))clear();});
-  ["pointerup","pointercancel","pointerleave"].forEach(function(t){L.addEventListener(t,function(){if(tm)clear();});});
+  ["pointerup","pointercancel","pointerleave"].forEach(function(t){L.addEventListener(t,function(){if(tm)clear();if(fired)setTimeout(function(){fired=false;},450);});});
   L.addEventListener("contextmenu",function(e){if(e.target.closest("[data-lp]"))e.preventDefault();});
-  L.addEventListener("click",function(e){if(fired){fired=false;e.stopPropagation();e.preventDefault();}},true);
   var eat=0;
-  document.addEventListener("pointerdown",function(e){var p=document.getElementById("lpop");if(p&&!e.target.closest("#lpop")){closeLpop();eat=Date.now();}},true);
+  /* Nach dem langen Drücken: den Klick beim Loslassen schlucken, egal wo der Finger landet (auch auf dem Pop-up) */
   document.addEventListener("click",function(e){
-    if(eat&&Date.now()-eat<800){eat=0;e.stopPropagation();e.preventDefault();return;}eat=0;
-    var p=document.getElementById("lpop");if(p&&e.target.closest("#lpop"))closeLpop();},true);
+    if(fired||(eat&&Date.now()-eat<800)){fired=false;eat=0;e.stopPropagation();e.preventDefault();return;}
+    if(e.target.closest("[data-lpx]")){closeLpop();e.stopPropagation();}},true);
+  /* Tippen ausserhalb schliesst; im Pop-up scrollen bleibt möglich */
+  document.addEventListener("pointerdown",function(e){var p=document.getElementById("lpop");if(p&&!e.target.closest("#lpop")){closeLpop();eat=Date.now();}},true);
 })();
 function statKey(c,t){return t==="cat"?(c.cat||"Sonstiges"):(String(c.partner||"Ohne Namen").trim()||"Ohne Namen");}
 function renderStat(v){
@@ -2076,7 +2080,7 @@ function renderStat(v){
   var mrow=function(it){var c=it.c,d=it.d,past=d<T0,dn=daysBetween(T0,d);
     var st=past?"am "+fmtShort(d):(dn===0?"heute fällig":(dn<=7?"in "+dn+(dn===1?" Tag":" Tagen"):"fällig "+fmtShort(d)));
     return '<button class="mrow'+(past?" past":"")+'" data-open="'+c._id+'">'+markHtml(c)+
-      '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span>'+(it.ex?'<span class="mm">'+esc(exLabel(it.ex))+"</span>":(metaOf(c)?'<span class="mm">'+esc(metaOf(c))+"</span>":""))+"</span>"+
+      '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span>'+(it.ex?'<span class="mm">'+esc([metaOf(c),exLabel(it.ex)].filter(Boolean).join(" · "))+"</span>":(metaOf(c)?'<span class="mm">'+esc(metaOf(c))+"</span>":""))+"</span>"+
       '<span class="ma"><span><b>'+(it.ex&&it.a<0?"−"+money(-it.a):money(it.ex?it.a:priceAt(c,d)))+'</b> <u>'+esc(c.cur)+'</u></span><span class="ms'+(!past&&dn<=7?" warn":"")+'">'+st+"</span></span></button>";};
   var isNow=sm.sum>0.004&&Y===nowY&&sel===T0.getMonth();
   // Vorjahresmonat: ganze Franken reichen für den Vergleich
@@ -2094,8 +2098,8 @@ function renderStat(v){
     '<div class="krow">'+
     '<div class="kc'+(sm.paid<0.005?" nil":"")+'"><em><i class="pdot pd"></i>Bezahlt'+(sm.open<0.005?'<span class="kok">✓</span>':"")+'</em><b>'+money(sm.paid)+'</b></div>'+
     '<div class="kc r'+(sm.open<0.005?" nil":"")+'"><em><i class="pdot op"></i>Offen</em><b>'+money(sm.open)+'</b></div></div>';
-  var foot='<div class="krow kfoot"><div class="kc"><em>Total '+Y+'</em><b>'+nf0.format(tot)+'</b></div>'+
-    '<div class="kc r"><em>Ø pro Monat</em><b>'+nf0.format(avg)+"</b></div></div>";
+  var foot='<div class="krow kfoot"><div class="kc"><em>Ø pro Monat</em><b>'+nf0.format(avg)+'</b></div>'+
+    '<div class="kc r"><em>Total '+Y+'</em><b>'+nf0.format(tot)+"</b></div></div>";
   o+='<div class="readout mcard kcard" style="display:block">'+hdr+split+chartH+foot+"</div>"+hint;
   var MSO=state.mSort==="amt"?"amt":"date";
   o+='<div class="grp"><div class="grphead ghs"><span>Fällig im '+MON[sel]+'</span>'+(sm.items.length>1?'<span class="pseg msort" role="group" aria-label="Sortierung">'+
@@ -2270,8 +2274,8 @@ function renderBudget(v){
       (bvT?'<div class="kvs'+bvC+'"><i>'+(bpmD>0?"↑":"↓")+"</i>"+bvT+"</div>":"")+"</div>";
     var brow='<div class="krow"><div class="kc'+(sm.inc<0.005?" nil":"")+'"><em>Einnahmen</em><b>'+money(sm.inc)+'</b></div>'+
       '<div class="kc r'+(sm.fix<0.005?" nil":"")+'"><em>Fixkosten</em><b>'+money(sm.fix)+'</b>'+"</div></div>";
-    var bfoot='<div class="krow kfoot"><div class="kc"><em>Verfügbar '+Y+'</em><b class="'+(tFree<0?"up":"")+'">'+(tFree<0?"−":"")+nf0.format(Math.abs(tFree))+'</b></div>'+
-      '<div class="kc r"><em>Ø pro Monat</em><b class="'+(bav<0?"up":"")+'">'+(bav<0?"−":"")+nf0.format(Math.abs(bav))+"</b></div></div>";
+    var bfoot='<div class="krow kfoot"><div class="kc"><em>Ø pro Monat</em><b class="'+(bav<0?"up":"")+'">'+(bav<0?"−":"")+nf0.format(Math.abs(bav))+'</b></div>'+
+      '<div class="kc r"><em>Verfügbar '+Y+'</em><b class="'+(tFree<0?"up":"")+'">'+(tFree<0?"−":"")+nf0.format(Math.abs(tFree))+"</b></div></div>";
     o+='<div class="readout mcard kcard" style="display:block">'+bh+brow+bc+bfoot+"</div>";
   }
   // Einnahmen des gewählten Monats: kompakte Liste wie die Ausgaben; Verwaltung aller Einnahmen im Fenster «Alle»
