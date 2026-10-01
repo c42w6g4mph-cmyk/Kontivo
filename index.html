@@ -278,17 +278,6 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .pick[aria-pressed="true"] span:last-child{color:rgba(255,255,255,.8)}
 
 /* Formular-Schritte */
-.sheet h3.step{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--ink);border-bottom:0;padding-bottom:0;margin:24px 0 12px}
-.sheet h3.step span{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--paper);font-size:12.5px;align-items:center;justify-content:center}
-.optdiv{font-size:12.5px;color:var(--ink3);margin:28px 0 8px;display:flex;align-items:center;gap:10px}
-.optdiv::after{content:"";flex:1;border-top:1px solid var(--line)}
-details.opt{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--surface)}
-details.opt summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:13px 14px;font-size:14px;font-weight:600}
-details.opt summary::-webkit-details-marker{display:none}
-details.opt summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:1.6px solid var(--ink3);border-bottom:1.6px solid var(--ink3);transform:rotate(45deg);transition:transform .15s;margin-top:-4px}
-details.opt[open] summary::after{transform:rotate(-135deg);margin-top:4px}
-details.opt summary em{font-style:normal;font-weight:500;font-size:12.5px;color:var(--teal)}
-.optbody{padding:2px 14px 12px}
 
 /* bis heute / anstehend */
 .clegend{display:flex;justify-content:flex-end;gap:14px;font-size:11px;color:var(--ink3);margin-top:8px}
@@ -423,7 +412,6 @@ body.hasplus .topadd{display:inline-flex}
 .tfold i{width:8px;height:8px;border-right:1.6px solid var(--ink3);border-bottom:1.6px solid var(--ink3);transform:rotate(45deg);margin:-4px 6px 0 0;transition:transform .15s}
 .tfold[aria-expanded="true"] i{transform:rotate(-135deg);margin-top:4px}
 /* Katalog + Kündigungstermin */
-.sugg .chip.tplcat{color:var(--ink2);border-color:var(--line);font-weight:500}
 .sugg .tplh{flex:1 1 100%;font-size:12.5px;color:var(--ink2);line-height:1.4;background:var(--sunken);border-radius:9px;padding:8px 10px}
 #tplRows{display:flex;flex-direction:column;gap:6px}
 .tplhead{display:flex;gap:8px;align-items:center;margin:0 0 8px;position:sticky;top:0;z-index:2;background:var(--surface);padding:2px 0 8px}
@@ -723,6 +711,24 @@ body.hasplus .topadd{display:inline-flex}
 .field input[type=date]::-webkit-date-and-time-value{text-align:left}
 .field input.num{text-align:right}
 .flabel{font-size:12.5px;color:var(--ink2);margin:0 0 6px}
+/* Formular: Gruppen statt Schritte, «Weitere Angaben» als Unterseite (SwiftUI: Form-Sections + NavigationLink) */
+#sheetForm h3{display:flex;align-items:baseline;gap:8px;font-size:13px;color:var(--ink);font-weight:650;border-bottom:0;padding-bottom:0;margin:22px 0 10px}
+#sheetForm h3:first-child{margin-top:4px}
+#sheetForm h3 em{font-style:normal;font-weight:500;font-size:12px;color:var(--teal)}
+#sheetForm h3 em:empty{display:none}
+#sheetForm .shbar .shx.back{display:flex;align-items:center;gap:4px}
+#sheetForm .shbar .shx.back::before{content:"";width:9px;height:9px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-left:3px}
+.fwb{position:relative}
+.fwb input{padding-right:46px}
+.fib{position:absolute;right:4px;top:4px;width:38px;height:38px;border-radius:8px;display:grid;place-items:center;color:var(--teal)}
+.fib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.morerow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:22px;padding:12px 14px;border-radius:12px;background:var(--field);text-align:left}
+.morerow .t{display:grid;gap:2px;min-width:0}
+.morerow b{font-size:15.5px;font-weight:600}
+.morerow small{font-size:12.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.morerow small.on{color:var(--teal)}
+.morerow em{font-style:normal;font-size:22px;color:var(--ink3);flex:none}
+#fMore.in{animation:mdIn .22s ease}#fMain.in{animation:mdOut .22s ease}
 .hlabel{font-size:14px;color:var(--ink2);margin-bottom:8px}
 .chflag{width:13px;height:13px;vertical-align:-1px;margin-left:2px}
 .foot{text-align:center;font-size:12.5px;color:var(--ink3);padding:32px 0 4px;margin-top:auto}
@@ -773,11 +779,6 @@ details.logodet>summary{display:none}
 .lcand em{font-style:normal;font-size:9.5px;line-height:1.1;color:var(--ink3);margin-top:-2px}
 .lcmsg{font-size:12.5px;color:var(--ink3);width:100%}
 .lpnote{display:block;font-size:12px;color:var(--ink3);margin-top:8px}
-details.inl{margin:-4px 0 6px}
-details.inl summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--teal);padding:4px 0}
-details.inl summary::-webkit-details-marker{display:none}
-details.inl summary em{font-style:normal;font-weight:500;font-size:12.5px;color:var(--ink3)}
-.inlbody{border-left:2px solid var(--line);padding:8px 0 4px 12px;margin-top:6px}
 .two.auto{display:flex}
 .two.auto>.field{flex:1;min-width:0}
 .nrow{display:flex;gap:7px}
@@ -822,7 +823,12 @@ input[type=file]{display:none}
 .mrows2 .tfold.pfold{border-top:1px solid var(--line);padding:12px 0}
 #sheetDetail .shbar h2{opacity:0;transition:opacity .15s}
 #sheetDetail.scrolled .shbar h2{opacity:1}
-details.opt.moreact{margin-top:9px;background:transparent}
+details.moreact{border:1px solid var(--line);border-radius:12px;margin-top:9px}
+details.moreact summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:13px 14px;font-size:14px;font-weight:600}
+details.moreact summary::-webkit-details-marker{display:none}
+details.moreact summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:1.6px solid var(--ink3);border-bottom:1.6px solid var(--ink3);transform:rotate(45deg);transition:transform .15s;margin-top:-4px}
+details.moreact[open] summary::after{transform:rotate(-135deg);margin-top:4px}
+.optbody{padding:2px 14px 12px}
 .moreact .optbody .ghost:first-child{margin-top:0}
 .bhf{display:flex;margin:4px 0 12px;overflow-x:auto;scrollbar-width:none}
 .bhf .pseg button{padding:6px 14px;font-size:12.5px}
@@ -1123,7 +1129,8 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <div class="grab"></div>
   <div class="shbar"><button class="shx" id="cancelForm">Abbrechen</button><h2 id="formTitle">Neuer Vertrag</h2><button class="shok" id="saveForm">Sichern</button></div>
 
-  <h3 class="step"><span>1</span>Grunddaten</h3>
+  <div id="fMain">
+  <h3>Vertrag</h3>
   <button type="button" class="logotap" id="logoTap" aria-label="Logo und Farbe ändern" aria-expanded="false"><div class="mark" id="logoPrev">?</div><span>Logo</span></button>
   <details class="logodet" id="oLogo"><summary>Logo &amp; Farbe</summary><div class="logopanel">
     <button class="lbtn main" id="logoAuto" type="button">Logo automatisch finden</button>
@@ -1140,13 +1147,13 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml">
   </div></details>
   <div class="field"><label for="fLabel">Bezeichnung</label><input id="fLabel" type="text" placeholder="z.B. Handy-Abo" autocomplete="off"></div>
-  <div class="field"><label for="fPartner">Vertragspartner</label><input id="fPartner" type="text" placeholder="z.B. Swisscom" autocomplete="off"><div class="psug" id="pSug" hidden></div><div class="dupnote" id="dupHint" hidden></div></div>
+  <div class="field"><label for="fPartner">Vertragspartner</label><div class="fwb"><input id="fPartner" type="text" placeholder="z.B. Swisscom" autocomplete="off"><button type="button" class="fib" data-tplcat aria-label="Aus Katalog wählen" title="Aus Katalog wählen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 18V5.5M8 7h8M8 10.5h6"/></svg></button></div><div class="psug" id="pSug" hidden></div><div class="dupnote" id="dupHint" hidden></div></div>
   <div class="sugg" id="fSugg"></div>
   <div class="flabel">Kategorie</div>
   <button type="button" class="catfield" id="fCats"><span class="cfi" id="fCatIcon"></span><span class="cfn" id="fCatName">Kategorie wählen</span><span class="chev">›</span></button>
   <div id="fHoldWrap" hidden><div class="flabel" style="margin-top:14px">Inhaber — mehrere möglich</div><div class="chips" id="fHolders"></div></div>
 
-  <h3 class="step"><span>2</span>Kosten</h3>
+  <h3>Kosten</h3>
   <div class="two">
     <div class="field"><label for="fAmt" id="fAmtL">Betrag</label><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="59.90"></div>
     <div class="field"><label for="fCur">Währung</label><select id="fCur"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></div>
@@ -1157,29 +1164,8 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
       <option value="6">halbjährlich</option><option value="12">jährlich</option><option value="24">alle 2 Jahre</option></select></div>
     <div class="field"><label for="fDue">Nächste Zahlung am</label><input id="fDue" type="date"></div>
   </div>
-  <details class="inl" id="oPrice"><summary>Preis ändert sich …<em id="oPriceN"></em></summary><div class="inlbody">
-    <p class="note" style="margin:0 0 10px">Der Betrag oben ist dann der Anfangspreis. Jede Änderung gilt ab ihrem Datum.</p>
-    <div class="plist" id="pList"></div>
-    <div class="two">
-      <div class="field"><label for="pFrom">Gültig ab</label><input id="pFrom" type="date"></div>
-      <div class="field"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="74.90"></div>
-    </div>
-    <button class="mini" id="pAdd" style="margin:-6px 0 4px">Preisänderung hinzufügen</button>
-  </div></details>
 
-  <details class="inl" id="oExtra"><summary>Einmalige Sonderzahlung …<em id="oExtraN"></em></summary><div class="inlbody">
-    <p class="note" style="margin:0 0 10px">Zum Beispiel Nebenkostenabrechnung oder Aktivierungsgebühr. Zählt in «Kosten» und «Budget» im jeweiligen Monat, nicht in den monatlichen Fixkosten.</p>
-    <div class="plist" id="xList"></div>
-    <div class="seg2" id="xKind" role="group" aria-label="Art" style="margin:0 0 12px"><button type="button" data-xk="pay" aria-pressed="true">Zahlung</button><button type="button" data-xk="cr" aria-pressed="false">Gutschrift</button></div>
-    <div class="two">
-      <div class="field"><label for="xDate">Datum</label><input id="xDate" type="date"></div>
-      <div class="field"><label for="xAmt">Betrag</label><input id="xAmt" class="num" type="text" inputmode="decimal" placeholder="120.00"></div>
-    </div>
-    <div class="field"><label for="xNote">Bezeichnung (optional)</label><input id="xNote" type="text" placeholder="z.B. Nebenkostenabrechnung" autocomplete="off" maxlength="60"></div>
-    <button class="mini" id="xAdd" style="margin:-6px 0 4px">Sonderzahlung hinzufügen</button>
-  </div></details>
-
-  <h3 class="step"><span>3</span>Laufzeit &amp; Kündigung</h3>
+  <h3>Laufzeit &amp; Kündigung</h3>
   <div class="seg2" id="termSeg" role="group" aria-label="Laufzeit" style="margin:0 0 14px">
     <button type="button" data-tm="open" aria-pressed="true">Jederzeit kündbar</button>
     <button type="button" data-tm="fixed" aria-pressed="false">Feste Laufzeit</button>
@@ -1203,49 +1189,70 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   </div>
   <p class="note" id="tmHint" style="margin:-4px 0 0"></p>
 
-  <div class="optdiv">Weitere Angaben — optional</div>
-
-  <details class="opt" id="oTerm"><summary>Verlängerung &amp; Kündigungsweg</summary><div class="optbody">
-    <div class="field"><label for="fWatch">In «Fristen» anzeigen</label><select id="fWatch">
-      <option value="">Ja</option>
-      <option value="mand">Nein – Pflichtvertrag</option>
-      <option value="nowatch">Nein – z.B. Miete</option></select>
-      <p class="note" style="margin:6px 0 0">Pflichtvertrag: nur Wechsel möglich, z.B. Grundversicherung.</p></div>
-    <div hidden><input type="checkbox" id="fMand"><input type="checkbox" id="fNoWatch"></div>
-    <div class="two">
-      <div class="field"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
-        <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
-      <div class="field"><label for="fTrial">Probeabo endet</label><input id="fTrial" type="date"></div>
-    </div>
-  </div></details>
-
-  <details class="opt" id="oAssign"><summary>Kundennummer &amp; Zahlung</summary><div class="optbody">
-    <div class="two">
-      <div class="field"><label for="fCustNo">Kundennummer</label><input id="fCustNo" type="text" autocomplete="off"></div>
-      <div class="field"><label for="fContrNo">Vertragsnummer</label><input id="fContrNo" type="text" autocomplete="off"></div>
-    </div>
-    <div class="two">
-      <div class="field"><label for="fPayM">Zahlungsart</label><select id="fPayM">
-        <option value="">—</option><option>Lastschrift (LSV/SEPA)</option><option>eBill</option><option>Kreditkarte</option>
-        <option>QR-Rechnung</option><option>Dauerauftrag</option><option>TWINT</option><option>PayPal</option><option>Sonstiges</option></select></div>
-      <div class="field"><label for="fPayA">Belastet über</label><input id="fPayA" type="text" placeholder="z.B. Visa …4417" autocomplete="off"></div>
-    </div>
-  </div></details>
-
-  <details class="opt" id="oContact"><summary>Kontakt, Notiz &amp; Dateien<em id="oDocsN"></em></summary><div class="optbody">
-    <div class="field"><label for="fWeb">Website oder Kundenportal</label><input id="fWeb" type="url" inputmode="url" placeholder="swisscom.ch/login" autocomplete="off"></div>
-    <div class="two">
-      <div class="field"><label for="fTel">Telefon</label><input id="fTel" type="tel" autocomplete="off"></div>
-      <div class="field"><label for="fMail">E-Mail</label><input id="fMail" type="email" autocomplete="off"></div>
-    </div>
-    <div class="field"><label for="fNote">Notiz</label><textarea id="fNote" placeholder="Zugangsweg, Ansprechpartner, Besonderheiten"></textarea></div>
-    <div class="flabel">Dokumente</div>
-    <div class="docs" id="docList"></div>
-    <button class="mini" id="docUp">Datei anhängen — PDF oder Bild</button>
-    <input type="file" id="docFile" accept="application/pdf,image/png,image/jpeg,image/webp">
-  </div></details>
-
+  <button type="button" class="morerow" id="fMoreBtn"><span class="t"><b>Weitere Angaben</b><small id="fMoreN">Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …</small></span><em>›</em></button>
   <div style="height:8px"></div>
+  </div>
+
+  <div id="fMore" hidden>
+  <h3>Preisänderungen<em id="oPriceN"></em></h3>
+  <p class="note" style="margin:0 0 10px">Der Betrag unter «Kosten» ist der Anfangspreis. Jede Änderung gilt ab ihrem Datum.</p>
+  <div class="plist" id="pList"></div>
+  <div class="two">
+    <div class="field"><label for="pFrom">Gültig ab</label><input id="pFrom" type="date"></div>
+    <div class="field"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="74.90"></div>
+  </div>
+  <button class="mini" id="pAdd" style="margin:-6px 0 4px">Preisänderung hinzufügen</button>
+
+  <h3>Sonderzahlungen<em id="oExtraN"></em></h3>
+  <p class="note" style="margin:0 0 10px">Zum Beispiel Nebenkostenabrechnung oder Aktivierungsgebühr. Zählt in «Kosten» und «Budget» im jeweiligen Monat, nicht in den monatlichen Fixkosten.</p>
+  <div class="plist" id="xList"></div>
+  <div class="seg2" id="xKind" role="group" aria-label="Art" style="margin:0 0 12px"><button type="button" data-xk="pay" aria-pressed="true">Zahlung</button><button type="button" data-xk="cr" aria-pressed="false">Gutschrift</button></div>
+  <div class="two">
+    <div class="field"><label for="xDate">Datum</label><input id="xDate" type="date"></div>
+    <div class="field"><label for="xAmt">Betrag</label><input id="xAmt" class="num" type="text" inputmode="decimal" placeholder="120.00"></div>
+  </div>
+  <div class="field"><label for="xNote">Bezeichnung (optional)</label><input id="xNote" type="text" placeholder="z.B. Nebenkostenabrechnung" autocomplete="off" maxlength="60"></div>
+  <button class="mini" id="xAdd" style="margin:-6px 0 4px">Sonderzahlung hinzufügen</button>
+
+  <h3>Fristen</h3>
+  <div class="field"><label for="fWatch">In «Fristen» anzeigen</label><select id="fWatch">
+    <option value="">Ja</option>
+    <option value="mand">Nein – Pflichtvertrag</option>
+    <option value="nowatch">Nein – z.B. Miete</option></select>
+    <p class="note" style="margin:6px 0 0">Pflichtvertrag: nur Wechsel möglich, z.B. Grundversicherung.</p></div>
+  <div hidden><input type="checkbox" id="fMand"><input type="checkbox" id="fNoWatch"></div>
+  <div class="two">
+    <div class="field"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
+      <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
+    <div class="field"><label for="fTrial">Probeabo endet</label><input id="fTrial" type="date"></div>
+  </div>
+
+  <h3>Kundendaten</h3>
+  <div class="two">
+    <div class="field"><label for="fCustNo">Kundennummer</label><input id="fCustNo" type="text" autocomplete="off"></div>
+    <div class="field"><label for="fContrNo">Vertragsnummer</label><input id="fContrNo" type="text" autocomplete="off"></div>
+  </div>
+  <div class="two">
+    <div class="field"><label for="fPayM">Zahlungsart</label><select id="fPayM">
+      <option value="">—</option><option>Lastschrift (LSV/SEPA)</option><option>eBill</option><option>Kreditkarte</option>
+      <option>QR-Rechnung</option><option>Dauerauftrag</option><option>TWINT</option><option>PayPal</option><option>Sonstiges</option></select></div>
+    <div class="field"><label for="fPayA">Belastet über</label><input id="fPayA" type="text" placeholder="z.B. Visa …4417" autocomplete="off"></div>
+  </div>
+
+  <h3>Kontakt &amp; Notiz</h3>
+  <div class="field"><label for="fWeb">Website oder Kundenportal</label><input id="fWeb" type="url" inputmode="url" placeholder="swisscom.ch/login" autocomplete="off"></div>
+  <div class="two">
+    <div class="field"><label for="fTel">Telefon</label><input id="fTel" type="tel" autocomplete="off"></div>
+    <div class="field"><label for="fMail">E-Mail</label><input id="fMail" type="email" autocomplete="off"></div>
+  </div>
+  <div class="field"><label for="fNote">Notiz</label><textarea id="fNote" placeholder="Zugangsweg, Ansprechpartner, Besonderheiten"></textarea></div>
+
+  <h3>Dokumente<em id="oDocsN"></em></h3>
+  <div class="docs" id="docList"></div>
+  <button class="mini" id="docUp">Datei anhängen — PDF oder Bild</button>
+  <input type="file" id="docFile" accept="application/pdf,image/png,image/jpeg,image/webp">
+  <div style="height:8px"></div>
+  </div>
 </div>
 
 <!-- Einnahme -->
@@ -2449,7 +2456,7 @@ function openForm(c,asCopy){clearCands();
   editId=(c&&!asCopy)?c._id:null;
   draft={cat:(c&&c.cat)||"",color:(c&&c.color)||"",logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",
     docs:(c&&c.docs&&!asCopy?c.docs.slice():[]),extras:(c&&!asCopy?extrasOf(c):[]),prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),holders:c?holdersOf(c).slice():(function(){var HL=state.settings.holders||["Ich"],lh=(state.settings.lastHolders||[]).filter(function(h){return HL.indexOf(h)>=0;});return lh.length?lh:[HL[0]];})()};
-  document.getElementById("formTitle").textContent=asCopy?"Duplizieren":(c?"Bearbeiten":"Neuer Vertrag");
+  var ft=document.getElementById("formTitle");ft.textContent=asCopy?"Duplizieren":(c?"Bearbeiten":"Neuer Vertrag");ft.dataset.t=ft.textContent;
   document.getElementById("fPartner").value=(c&&c.partner)||"";
   document.getElementById("fLabel").value=(c&&c.label)||"";
   document.getElementById("fAmt").value=c?(+c.amount||0).toFixed(2):"";
@@ -2470,26 +2477,30 @@ function openForm(c,asCopy){clearCands();
   document.getElementById("fTrial").value=(c&&c.trial)||"";
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
   document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
-  document.getElementById("fSugg").innerHTML='<button type="button" class="chip tplcat" data-tplcat>Aus Katalog wählen</button>';
+  document.getElementById("fSugg").innerHTML="";
   document.getElementById("fWeb").value=(c&&c.web)||"";
   document.getElementById("fTel").value=(c&&c.tel)||"";
   document.getElementById("fMail").value=(c&&c.mail)||"";
   paintHolders();
   document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";
   paintPrices();
-  document.getElementById("oPrice").open=draft.prices.length>0;
   ["xDate","xAmt","xNote"].forEach(function(i){document.getElementById(i).value="";});setXKind("pay");paintExtras();
-  document.getElementById("oExtra").open=draft.extras.length>0;
-  document.getElementById("oTerm").open=!!(c&&(c.cancF||c.trial||c.mand||c.noWatch));
   setTermMode((c&&(c.end||c.renew))?"fixed":"open");
-  document.getElementById("oAssign").open=!!(c&&(c.custNo||c.contrNo||c.payM||c.payA));
   document.getElementById("oLogo").open=false;document.getElementById("logoTap").setAttribute("aria-expanded","false");
-  document.getElementById("oContact").open=!!(c&&(c.web||c.tel||c.mail||c.note))||draft.docs.length>0;
   paintCats();paintSwatches();paintLogo();paintDocs();
   document.getElementById("logoUp").hidden=!assets;
   document.getElementById("docUp").hidden=!assets;
-  openSheet(document.getElementById("sheetForm"));
+  formPage(false);openSheet(document.getElementById("sheetForm"));
 }
+/* Hauptseite ↔ «Weitere Angaben» im selben Fenster */
+function formPage(more){var sh=document.getElementById("sheetForm"),mn=document.getElementById("fMain"),mo=document.getElementById("fMore"),cb=document.getElementById("cancelForm");
+  mn.hidden=!!more;mo.hidden=!more;(more?mo:mn).classList.remove("in");void sh.offsetWidth;(more?mo:mn).classList.add("in");
+  cb.textContent=more?"Zurück":"Abbrechen";cb.classList.toggle("back",!!more);
+  document.getElementById("formTitle").textContent=more?"Weitere Angaben":(editId?"Bearbeiten":(document.getElementById("formTitle").dataset.t||"Neuer Vertrag"));
+  sh.scrollTop=0;paintOptCounts();}
+document.getElementById("fMoreBtn").addEventListener("click",function(){formPage(true);});
+document.getElementById("fMore").addEventListener("input",paintOptCounts);
+document.getElementById("fMore").addEventListener("change",paintOptCounts);
 
 document.getElementById("fPartner").addEventListener("input",paintLogo);
 document.getElementById("fAmt").addEventListener("input",paintDup);document.getElementById("fCur").addEventListener("change",paintDup);
@@ -2617,10 +2628,9 @@ function paintSugg(){
     el.innerHTML='<span class="sl tplh">'+esc(st[10])+"</span>"+(draft.stdDone||!(st[5]||st[9])?"":'<button type="button" class="chip" data-std>Übliche Frist übernehmen</button>');return;}
   var cur=tplFind(document.getElementById("fPartner").value);
   if(cur&&draft.tplHint===cur[0]){el.innerHTML='<span class="sl tplh">'+esc(cur[10])+"</span>";return;}
-  if(q.length<2||cur){el.innerHTML='<button type="button" class="chip tplcat" data-tplcat>Aus Katalog wählen</button>';return;}
+  if(q.length<2||cur){el.innerHTML="";return;}
   var hits=TPL.filter(function(t){return (t[0]+" "+t[3]).toLowerCase().indexOf(q)>=0;}).slice(0,5);
-  el.innerHTML=(hits.length?'<span class="sl">Vorlage</span>'+hits.map(function(t){return '<button type="button" class="chip" data-tpl="'+TPL.indexOf(t)+'">'+esc(t[0])+"</button>";}).join(""):"")+
-    '<button type="button" class="chip tplcat" data-tplcat>Katalog</button>';
+  el.innerHTML=hits.length?'<span class="sl">Vorlage</span>'+hits.map(function(t){return '<button type="button" class="chip" data-tpl="'+TPL.indexOf(t)+'">'+esc(t[0])+"</button>";}).join(""):"";
 }
 function applyTpl(t,keepName){
   if(!keepName)document.getElementById("fPartner").value=t[0];
@@ -2638,8 +2648,8 @@ function applyTpl(t,keepName){
 }
 document.getElementById("fPartner").addEventListener("input",function(){draft.tplHint="";draft.stdTpl=null;paintSugg();});
 document.getElementById("fLabel").addEventListener("input",paintSugg);
+document.getElementById("sheetForm").addEventListener("click",function(ev){if(ev.target.closest("[data-tplcat]"))openTplPick();});
 document.getElementById("fSugg").addEventListener("click",function(ev){
-  if(ev.target.closest("[data-tplcat]")){openTplPick();return;}
   if(ev.target.closest("[data-std]")&&draft.stdTpl){var st=draft.stdTpl;applyTpl(st,true);draft.stdTpl=st;draft.stdDone=true;paintSugg();return;}
   var b=ev.target.closest("[data-tpl]");if(!b)return;applyTpl(TPL[+b.dataset.tpl]);
 });
@@ -2696,10 +2706,15 @@ document.getElementById("fWatch").addEventListener("change",function(){var v=thi
 document.getElementById("iLogoTap").addEventListener("click",function(){var d=document.getElementById("oILogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 document.getElementById("logoTap").addEventListener("click",function(){var d=document.getElementById("oLogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 function paintOptCounts(){
-  var n=(draft.prices||[]).length,d=(draft.docs||[]).length,xn=(draft.extras||[]).length;
+  var n=(draft.prices||[]).length,d=(draft.docs||[]).length,xn=(draft.extras||[]).length,g=function(id){return (document.getElementById(id).value||"").trim();};
   document.getElementById("oExtraN").textContent=xn?xn+" erfasst":"";
   document.getElementById("oPriceN").textContent=n?n+(n===1?" Änderung":" Änderungen"):"";
   document.getElementById("oDocsN").textContent=d?d+(d===1?" Datei":" Dateien"):"";
+  var parts=[n?n+(n===1?" Preisänderung":" Preisänderungen"):"",xn?xn+(xn===1?" Sonderzahlung":" Sonderzahlungen"):"",
+    g("fWatch")==="mand"?"Pflichtvertrag":(g("fWatch")==="nowatch"?"nicht in Fristen":""),g("fCancF")?"Kündigungsweg":"",g("fTrial")?"Probeabo":"",
+    g("fCustNo")?"Kundennummer":"",g("fContrNo")?"Vertragsnummer":"",g("fPayM")?"Zahlungsart":"",g("fPayA")?"Belastet über":"",
+    g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",d?d+(d===1?" Datei":" Dateien"):""].filter(Boolean);
+  var el=document.getElementById("fMoreN");el.textContent=parts.length?parts.join(" · "):"Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …";el.classList.toggle("on",!!parts.length);
 }
 function paintPrices(){paintOptCounts();
   var l=document.getElementById("pList"),ps=pricesOf({prices:draft.prices}),cur=document.getElementById("fCur").value;
@@ -2801,7 +2816,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   closeSheets();render();toast(editId?"Aktualisiert":"Vertrag angelegt");
   if(!editId&&!c.logoId&&(c.partner||c.label))autoAttach("c",cid,c.partner,c.cur,c.label,c.web);
 });
-document.getElementById("cancelForm").addEventListener("click",closeSheets);
+document.getElementById("cancelForm").addEventListener("click",function(){if(!document.getElementById("fMore").hidden)formPage(false);else closeSheets();});
 
 /* Uploads */
 var cropTarget="c";
@@ -4105,7 +4120,6 @@ async function pickWebPartner(w){
   document.getElementById("fPartner").value=w.name;pSugSel=w.name;
   var got=[],fill=function(id,v,l){var f=document.getElementById(id);if(v&&!f.value.trim()){f.value=v;got.push(l);}};
   fill("fWeb",w.dom,"Website");fill("fTel",w.tel,"Telefon");fill("fMail",w.mail,"E-Mail");
-  if(got.length)document.getElementById("oContact").open=true;
   var kt=TPL.filter(function(t){return t[4]&&regDom(t[4])===regDom(w.dom);})[0];
   draft.stdTpl=kt?[w.name].concat(kt.slice(1)):stdFor(w);draft.stdDone=false;
   if(draft.stdTpl&&draft.stdTpl[2]&&!draft.cat){draft.cat=draft.stdTpl[2];paintCats();got.push("Kategorie");}
