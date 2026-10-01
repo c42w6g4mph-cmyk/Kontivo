@@ -668,16 +668,22 @@ body.hasplus .topadd{display:inline-flex}
 .bgdot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;box-shadow:0 0 0 1px var(--line)}
 
 /* Betrachter */
-.viewer{position:fixed;inset:0;z-index:80;background:var(--paper);display:none;flex-direction:column;
-  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.viewer{position:fixed;inset:0;z-index:80;background:var(--sunken);display:none;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px)}
 .viewer.on{display:flex}
-.vbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--surface)}
-.vbar .vt{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vbar button{font-size:14px;padding:7px 13px;border-radius:999px;border:1px solid var(--line)}
-.vbar .vclose{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
-.vbody{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:14px;display:flex;flex-direction:column;align-items:center;gap:12px}
-.vbody img,.vbody canvas{max-width:100%;height:auto;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.14)}
+.vbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--line)}
+.vbar .vback{display:flex;align-items:center;gap:4px;color:var(--teal);font-size:16px;justify-self:start;min-width:0}
+.vbar .vback i{flex:none;width:9px;height:9px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-left:3px}
+.vbar .vt{font-size:16px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.vbody{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:18px 14px 24px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.vbody img,.vbody canvas{max-width:100%;height:auto;background:#fff;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.14),0 0 0 1px rgba(0,0,0,.05)}
 .vmsg{color:var(--ink2);font-size:14px;text-align:center;padding:40px 10px;line-height:1.6;max-width:360px}
+.vacts{display:flex;gap:8px;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line)}
+.vact{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 6px;border-radius:14px;background:var(--field);font-size:12.5px;font-weight:600;color:var(--ink)}
+.vact svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.vact.main{background:var(--teal);color:#fff}
+.vact:active{transform:scale(.97)}
+@media print{body>*:not(#viewer){display:none!important}#viewer{position:static;display:block!important;background:#fff;padding:0}.vbar,.vacts{display:none!important}.vbody{display:block;padding:0}.vbody canvas{box-shadow:none;border-radius:0;width:100%!important;page-break-after:always}}
 .doc button.open{flex:1;min-width:0;text-align:left;font-size:14px;color:var(--ink);padding:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .links button{display:flex;justify-content:space-between;gap:12px;width:100%;background:var(--field);border-radius:10px;padding:11px 12px;font-size:14px;text-align:left}
@@ -810,13 +816,18 @@ details.logodet>summary{display:none}
 textarea.out{width:100%;height:170px;background:var(--field);border:0;border-radius:10px;padding:11px;font-size:12.5px;margin-top:10px}
 textarea.lt{min-height:260px;font-size:15px;line-height:1.45;resize:none;font-family:inherit}
 .sheet.letter{z-index:63}.sheet.sig{z-index:66}
+.ltrow{display:flex;align-items:center;gap:10px;margin-top:4px}
+.ltrow .note{margin:0;font-size:12px}
 .sigbox{position:relative;height:96px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);display:grid;place-items:center;overflow:hidden}
 .sigbox img{max-height:84px;max-width:90%;object-fit:contain}
 .sigbox span{font-size:13px;color:var(--ink3)}
+.sigopts{display:grid;gap:8px}
+.sigopt{display:flex;align-items:center;justify-content:space-between;gap:12px;height:84px;padding:0 14px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.sigopt img{max-height:64px;max-width:72%;object-fit:contain}
+.sigopt small{font-size:11px;color:var(--ink3);text-align:right;white-space:nowrap}
 .sigpad{position:relative;height:200px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);overflow:hidden;touch-action:none;margin-bottom:12px}
 .sigpad canvas{width:100%;height:100%;display:block}
 .sigpad i{position:absolute;left:24px;right:24px;bottom:48px;border-top:1px dashed #b9b9b9;pointer-events:none}
-.vbar .vedit{margin-right:auto}
 input[type=file]{display:none}
 /* Darstellung: Wahl in den Einstellungen übersteuert System und Viewer */
 :root[data-appearance="light"]{color-scheme:light;--paper:#F3F1EC;--surface:#FBFAF7;--sunken:#E9E6DF;--field:#EFEDE7;--ink:#1B1E23;--ink2:#5F666E;--ink3:#687077;--line:#E1DED6;--teal:#0E5A5E;--ok:#2E6A4E;--warn:#9A6710;--alert:#A93227;--glass:rgba(251,250,247,.66);--glassEdge:rgba(255,255,255,.75);--glassShade:rgba(20,30,35,.14)}
@@ -1125,8 +1136,14 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 
 <!-- Dokument-Betrachter -->
 <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Dokument">
-  <div class="vbar"><span class="vt" id="vTitle"></span><button id="vEdit" class="vedit" hidden>Text ändern</button><button id="vSave">Teilen</button><button class="vclose" id="vClose">Schliessen</button></div>
+  <div class="vbar"><button class="vback" id="vClose" type="button"><i></i><span id="vBackL">Schliessen</span></button><span class="vt" id="vTitle"></span><span class="vsp"></span></div>
   <div class="vbody" id="vBody"></div>
+  <div class="vacts" id="vActs">
+    <button class="vact" id="vEdit" type="button" hidden><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M13.5 6.5l3 3"/></svg><span>Text ändern</span></button>
+    <button class="vact" id="vPrint" type="button" hidden><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/></svg><span>Drucken</span></button>
+    <button class="vact main" id="vMail" type="button" hidden><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg><span>E-Mail</span></button>
+    <button class="vact main" id="vSave" type="button"><svg viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><span>Teilen</span></button>
+  </div>
 </div>
 
 <!-- Formular -->
@@ -1330,13 +1347,23 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <div class="grab"></div>
   <div class="shbar"><button class="shx" id="ltClose">Schliessen</button><h2>Kündigung</h2><button class="shok" id="ltPdf">PDF</button></div>
   <p class="note" id="ltSender" style="margin:4px 0 12px"></p>
-  <div class="field"><label for="ltTo">Empfänger</label><textarea id="ltTo" style="min-height:92px" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort"></textarea></div>
+  <div class="field"><label for="ltTo">Empfänger</label><textarea id="ltTo" style="min-height:92px" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort"></textarea>
+    <div class="ltrow"><button type="button" class="mini" id="ltAddr">Adresse suchen</button><span class="note" id="ltAddrMsg"></span></div></div>
+  <div id="ltMiss" hidden><div class="flabel">Fehlt noch — wird beim Vertrag gespeichert</div>
+    <div class="two"><div class="field" id="ltMissC"><label for="ltCust">Kundennummer</label><input id="ltCust" type="text" autocomplete="off"></div>
+    <div class="field" id="ltMissV"><label for="ltContr">Vertragsnummer</label><input id="ltContr" type="text" autocomplete="off"></div></div></div>
   <div class="field"><label for="ltSubj">Betreff</label><input id="ltSubj" type="text" autocomplete="off"></div>
   <div class="field"><label for="ltBody">Text</label><textarea id="ltBody" class="lt" spellcheck="true"></textarea></div>
   <div class="flabel">Unterschrift</div>
   <div class="sigbox" id="sigBox"><img id="sigImg" alt="" hidden><span id="sigNone">Noch keine Unterschrift</span></div>
-  <div class="lbtns2" style="margin-top:8px"><button class="lbtn" id="sigDraw" type="button">Zeichnen</button><button class="lbtn" id="sigType" type="button">Namenszug</button><button class="lbtn" id="sigDel" type="button" hidden>Entfernen</button></div>
+  <div class="lbtns2" style="margin-top:8px"><button class="lbtn" id="sigDraw" type="button">Zeichnen</button><button class="lbtn" id="sigType" type="button">Vorschläge</button><button class="lbtn" id="sigDel" type="button" hidden>Entfernen</button></div>
   <p class="note" id="ltHint" style="margin:12px 0 0"></p>
+</div>
+<div class="sheet sig" id="sheetSigPick" role="dialog" aria-modal="true" aria-label="Namenszug wählen">
+  <div class="grab"></div>
+  <div class="shbar"><button class="shx" id="sigPickClose">Abbrechen</button><h2>Namenszug</h2><span class="shok" style="visibility:hidden">·</span></div>
+  <p class="note" style="margin:4px 0 10px">Tippe auf einen Vorschlag. Üblich sind voller Name, Initial mit Nachname oder nur der Nachname.</p>
+  <div class="sigopts" id="sigOpts"></div>
 </div>
 <div class="sheet sig" id="sheetSig" role="dialog" aria-modal="true" aria-label="Unterschrift zeichnen">
   <div class="grab"></div>
@@ -2354,7 +2381,7 @@ document.addEventListener("click",function(ev){if(!ev.target.closest("#xAll"))re
 function openSheet(el){document.getElementById("scrim").classList.add("on");el.classList.add("on");el.scrollTop=0;}
 function closeSheets(){
   document.getElementById("scrim").classList.remove("on");
-  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetLetter","sheetSig"].forEach(function(i){document.getElementById(i).classList.remove("on");});
+  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetLetter","sheetSig","sheetSigPick"].forEach(function(i){document.getElementById(i).classList.remove("on");});
   document.getElementById("csvOut").innerHTML="";
 }
 function buildCatChips(){
@@ -2988,7 +3015,9 @@ async function openDoc(d){
   if(!d)return;
   curDoc=d;var tok=++docToken,url=d.blob?URL.createObjectURL(d.blob):KBlob.url(d.id),type=d.type||guessType(d.name);
   document.getElementById("vTitle").textContent=d.title||d.name||"Dokument";
-  document.getElementById("vEdit").hidden=!d.blob;
+  document.getElementById("vEdit").hidden=!d.blob;document.getElementById("vPrint").hidden=!d.blob;document.getElementById("vMail").hidden=!d.blob;
+  document.getElementById("vSave").classList.toggle("main",!d.blob);document.getElementById("vSave").querySelector("span").textContent=d.blob?"Sichern":"Teilen";
+  document.getElementById("vBackL").textContent=d.blob?"Zurück":"Schliessen";
   document.getElementById("viewer").classList.add("on");vMsg("Wird geladen…");
   if(!d.blob&&!KBlob.has(d.id)){vMsg("Diese Datei ist auf diesem Gerät nicht vorhanden. Spiele ein Backup mit Dateien ein oder hänge sie neu an.");return;}
   if(type.indexOf("image/")===0){
@@ -3015,7 +3044,7 @@ async function openDoc(d){
       }
       if(pdf.numPages>n)body.insertAdjacentHTML("beforeend",'<div class="vmsg">Weitere '+(pdf.numPages-n)+" Seiten — mit «Teilen» vollständig öffnen.</div>");
     }catch(e){
-      if(tok===docToken)vMsg(d.blob?"Die Vorschau braucht beim ersten Mal eine Internetverbindung. Mit «Teilen» kannst du das PDF trotzdem per Mail senden, drucken oder sichern.":"Das PDF lässt sich hier nicht anzeigen. Tippe auf «Teilen», dann öffnet es sich in der Dateien-App.");
+      if(tok===docToken)vMsg(d.blob?"Die Vorschau braucht beim ersten Mal eine Internetverbindung. Senden, Drucken und Sichern funktionieren trotzdem über die Knöpfe unten.":"Das PDF lässt sich hier nicht anzeigen. Tippe auf «Teilen», dann öffnet es sich in der Dateien-App.");
     }
     return;
   }
@@ -3023,16 +3052,24 @@ async function openDoc(d){
 }
 document.getElementById("vClose").addEventListener("click",function(){
   docToken++;curDoc=null;document.getElementById("viewer").classList.remove("on");document.getElementById("vBody").innerHTML="";});
-document.getElementById("vSave").addEventListener("click",async function(){
+/* Teilen über das iOS-Menü; die Knöpfe «E-Mail» und «Drucken» öffnen dasselbe Menü mit passendem Hinweis,
+   weil eine Web-App weder Mail mit Anhang noch den Drucker direkt ansteuern darf (nativ: MFMailCompose / UIPrintInteractionController) */
+async function shareCur(hint){
   if(!curDoc)return;
   var dl=null;try{dl=await claude.use("downloads");}catch(e){}
-  if(!dl){toast("Sichern ist in dieser Ansicht nicht verfügbar");return;}
+  if(!dl){toast("Teilen ist in dieser Ansicht nicht verfügbar");return;}
   try{
     var blob=curDoc.blob||KBlob.get(curDoc.id);if(!blob)throw new Error("fehlt");var name=curDoc.name||"dokument";
     if(!/\.[a-z0-9]{2,5}$/i.test(name))name+=isPdf(curDoc)?".pdf":".jpg";
+    if(hint)toast(hint);
     await dl.save({filename:name,data:blob});
-  }catch(e){if(!e||e.code!=="declined")toast("Sichern fehlgeschlagen");}
-});
+  }catch(e){if(!e||e.code!=="declined")toast("Teilen fehlgeschlagen");}
+}
+document.getElementById("vSave").addEventListener("click",function(){shareCur(curDoc&&curDoc.blob?"Im Menü «In Dateien sichern» wählen":"");});
+document.getElementById("vMail").addEventListener("click",function(){shareCur("Im Menü «Mail» wählen — das PDF hängt an");});
+document.getElementById("vPrint").addEventListener("click",function(){
+  if(document.querySelectorAll("#vBody canvas").length&&typeof window.print==="function"){try{window.print();return;}catch(e){}}
+  shareCur("Im Menü «Drucken» wählen");});
 document.getElementById("vEdit").addEventListener("click",function(){document.getElementById("vClose").click();});
 /* ---------- Kündigungsschreiben: Text bearbeiten → PDF (jsPDF, A4) → Vorschau → Teilen (Mail, Drucken, Dateien) ----------
    SwiftUI: TextEditor + UIGraphicsPDFRenderer + ShareLink */
@@ -3061,6 +3098,10 @@ function openLetter(c){ltC=c;var L=letterParts(c);
   document.getElementById("ltTo").value=L.to.join("\n");
   document.getElementById("ltSubj").value=L.subject;
   document.getElementById("ltBody").value=(L.ref.length?L.ref.join("\n")+"\n\n":"")+L.body;
+  /* Fehlende Angaben direkt hier nachtragen */
+  var mC=!c.custNo,mV=!c.contrNo;document.getElementById("ltMiss").hidden=!(mC||mV);
+  document.getElementById("ltMissC").hidden=!mC;document.getElementById("ltMissV").hidden=!mV;document.getElementById("ltCust").value="";document.getElementById("ltContr").value="";
+  document.getElementById("ltAddrMsg").textContent=L.to.length<=1?"Keine Adresse hinterlegt":"";
   document.getElementById("ltHint").textContent=(L.deadline?"Spätester Absendetermin nach hinterlegter Frist: "+fmtD(iso(L.deadline))+". ":"")+"Vorlage ohne Gewähr. Prüf Adresse, Frist und Kündigungsart — viele Verträge verlangen Schriftform.";
   paintSig();var sh=document.getElementById("sheetLetter");sh.classList.add("on");sh.scrollTop=0;}
 function closeLetter(){document.getElementById("sheetLetter").classList.remove("on");ltC=null;
@@ -3090,15 +3131,57 @@ function sigFromCanvas(cv){var g=cv.getContext("2d"),w=cv.width,h=cv.height,d=g.
 document.getElementById("sigOk").addEventListener("click",function(){if(!sigD.dirty){toast("Bitte zuerst unterschreiben");return;}
   var url=sigFromCanvas(sigCanvas());if(!url){toast("Nichts gezeichnet");return;}state.settings.sig=url;saveSettings();paintSig();closeSig();toast("Unterschrift gespeichert");});
 document.getElementById("sigDraw").addEventListener("click",openSig);
-document.getElementById("sigType").addEventListener("click",function(){
-  var sf=state.settings.senderF||{},nm=[sf.first,sf.last].map(function(x){return String(x||"").trim();}).filter(Boolean).join(" ")||(ltC?holdersOf(ltC)[0]:"");
-  if(!nm){toast("Zuerst den Absender unter «Mehr» erfassen");return;}
-  var cv=document.createElement("canvas");cv.width=900;cv.height=240;var g=cv.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,900,240);
-  g.fillStyle="#1b1e23";g.textBaseline="middle";g.font="italic 400 96px 'Snell Roundhand','Savoye LET','Zapfino','Brush Script MT','Segoe Script',cursive";
-  while(g.measureText(nm).width>820&&parseInt(g.font,10)>40)g.font=g.font.replace(/\d+px/,function(m){return (parseInt(m,10)-6)+"px";});
-  g.fillText(nm,40,130);var url=sigFromCanvas(cv);if(!url){toast("Namenszug konnte nicht erzeugt werden");return;}
-  state.settings.sig=url;saveSettings();paintSig();toast("Namenszug übernommen");});
+/* Namenszug-Vorschläge: übliche Formen × Schreibschriften (iOS: Snell Roundhand, Savoye LET, Zapfino, Bradley Hand, Noteworthy) */
+function sigVariants(first,last){
+  var fi=first?first.charAt(0)+".":"",v=[];
+  var forms=[[first+" "+last,"Voller Name"],[fi+" "+last,"Initial + Nachname"],[last,"Nur Nachname"],[first+" "+last,"Voller Name"],[fi+" "+last,"Initial + Nachname"],[first.charAt(0)+last.charAt(0),"Initialen"]];
+  var fonts=["'Snell Roundhand','Apple Chancery',cursive","'Savoye LET','Snell Roundhand',cursive","'Zapfino','Snell Roundhand',cursive","'Bradley Hand','Segoe Script',cursive","'Noteworthy','Marker Felt',cursive","'Snell Roundhand',cursive"];
+  var sizes=[96,96,104,72,80,110];
+  forms.forEach(function(f,i){var t=f[0].trim();if(!t||(i===2&&!last))return;v.push({text:t,label:f[1],font:fonts[i],size:sizes[i]});});
+  return v;}
+function renderSig(text,font,size){var cv=document.createElement("canvas");cv.width=900;cv.height=260;var g=cv.getContext("2d");
+  g.fillStyle="#fff";g.fillRect(0,0,900,260);g.fillStyle="#1b1e23";g.textBaseline="middle";var px=size;
+  g.font="italic 400 "+px+"px "+font;while(g.measureText(text).width>820&&px>36){px-=6;g.font="italic 400 "+px+"px "+font;}
+  g.fillText(text,40,140);return sigFromCanvas(cv);}
+function openSigPick(){
+  var sf=state.settings.senderF||{},first=String(sf.first||"").trim(),last=String(sf.last||"").trim();
+  if(!first&&!last){var h=(ltC?holdersOf(ltC)[0]:"")||"";var w=h.split(/\s+/);first=w[0]||"";last=w.slice(1).join(" ");}
+  if(!first&&!last){toast("Zuerst den Absender unter «Mehr» erfassen");return;}
+  var vs=sigVariants(first,last),box=document.getElementById("sigOpts");
+  box.innerHTML=vs.map(function(v,i){var u=renderSig(v.text,v.font,v.size);v.url=u;return u?'<button type="button" class="sigopt" data-sig="'+i+'"><img src="'+u+'" alt="'+esc(v.text)+'"><small>'+esc(v.label)+'</small></button>':"";}).join("");
+  box._vs=vs;var sh=document.getElementById("sheetSigPick");sh.classList.add("on");sh.scrollTop=0;document.getElementById("scrim").classList.add("on");}
+function closeSigPick(){document.getElementById("sheetSigPick").classList.remove("on");if(!document.querySelector(".sheet.on"))document.getElementById("scrim").classList.remove("on");}
+document.getElementById("sigPickClose").addEventListener("click",closeSigPick);
+document.getElementById("sigOpts").addEventListener("click",function(ev){var b=ev.target.closest("[data-sig]");if(!b)return;var v=this._vs[+b.dataset.sig];
+  if(!v||!v.url)return;state.settings.sig=v.url;saveSettings();paintSig();closeSigPick();toast("Namenszug übernommen");});
+document.getElementById("sigType").addEventListener("click",openSigPick);
 document.getElementById("sigDel").addEventListener("click",function(){delete state.settings.sig;saveSettings();paintSig();});
+/* Postadresse aus Wikidata (P6375 Strasse, P281 PLZ, P159 Sitz → Label); nur Vorschlag mit Bestätigung */
+async function findAddress(name,dom){
+  name=String(name||"").trim();if(!name||navigator.onLine===false)return null;
+  var r=await rateJson(WD+"&action=wbsearchentities&type=item&limit=6&language=de&uselang=de&search="+encodeURIComponent(name)).catch(function(){return null;});
+  var ids=((r||{}).search||[]).map(function(h){return h.id;});if(!ids.length)return null;
+  var e=await rateJson(WD+"&action=wbgetentities&props=claims|labels&languages=de|en&ids="+ids.join("|")).catch(function(){return null;});
+  var ents=(e&&e.entities)||{},best=null;
+  ids.forEach(function(id){var en=ents[id];if(!en||best)return;
+    var sites=wclaims(en,"P856").map(domainOf).filter(Boolean),domOk=dom&&sites.some(function(d){return regDom(d)===regDom(dom);});
+    var street=wclaims(en,"P6375").map(function(v){return v&&v.text?v.text:v;}).filter(function(v){return typeof v==="string";})[0];
+    var zip=wclaims(en,"P281").filter(function(v){return typeof v==="string";})[0],hq=wclaims(en,"P159")[0];
+    if(!street&&!hq)return;
+    if(dom&&sites.length&&!domOk)return;
+    best={label:(en.labels&&((en.labels.de||en.labels.en||{}).value))||name,street:street||"",zip:zip||"",hq:typeof hq==="string"?hq:""};});
+  if(!best)return null;
+  if(best.hq){var l=await rateJson(WD+"&action=wbgetentities&props=labels&languages=de|en&ids="+best.hq).catch(function(){return null;});
+    var le=l&&l.entities&&l.entities[best.hq];best.city=(le&&le.labels&&((le.labels.de||le.labels.en||{}).value))||"";}
+  return [best.label,best.street,[best.zip,best.city].filter(Boolean).join(" ")].filter(Boolean);
+}
+document.getElementById("ltAddr").addEventListener("click",async function(){
+  if(!ltC)return;var m=document.getElementById("ltAddrMsg");m.textContent="Suche …";
+  var lines=null;try{lines=await findAddress(ltC.partner||ltC.label,domainOf(ltC.web));}catch(e){lines=null;}
+  if(!lines||lines.length<2){m.textContent="Keine Adresse gefunden — bitte von der Website oder Rechnung übernehmen.";return;}
+  m.textContent="";
+  if(await ask({title:"Adresse übernehmen?",text:lines.join("\n")+"\n\nQuelle: Wikidata, ohne Gewähr.",ok:"Übernehmen"})){document.getElementById("ltTo").value=lines.join("\n");toast("Adresse eingesetzt — bitte prüfen");}
+});
 function dataUrlBytes(u){var b=atob(u.split(",")[1]),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
 function jpegSize(a){for(var i=2;i<a.length;){if(a[i]!==0xFF){i++;continue;}var m=a[i+1];if(m>=0xC0&&m<=0xCF&&m!==0xC4&&m!==0xC8&&m!==0xCC)return {h:(a[i+5]<<8)|a[i+6],w:(a[i+7]<<8)|a[i+8]};i+=2+((a[i+2]<<8)|a[i+3]);}return null;}
 /* Minimaler PDF-Schreiber (Text, Helvetica, WinAnsi) – ohne Fremdbibliothek, funktioniert offline.
@@ -3155,7 +3238,7 @@ function letterPdf(L){
   out+="trailer\n<< /Size "+(objs.length+1)+" /Root "+cat+" 0 R >>\nstartxref\n"+xref+"\n%%EOF";
   var bytes=new Uint8Array(out.length);for(var k=0;k<out.length;k++)bytes[k]=out.charCodeAt(k)&255;
   return new Blob([bytes],{type:"application/pdf"});}
-document.getElementById("ltPdf").addEventListener("click",function(){
+document.getElementById("ltPdf").addEventListener("click",async function(){
   if(!ltC)return;var base=letterParts(ltC);
   var to=document.getElementById("ltTo").value.split(/\n/).map(function(x){return x.trim();}).filter(Boolean);
   var subj=document.getElementById("ltSubj").value.trim()||base.subject,body=document.getElementById("ltBody").value.trim();
@@ -3165,6 +3248,10 @@ document.getElementById("ltPdf").addEventListener("click",function(){
   var c0=state.contracts[ltC._id];if(c0){var pn0=String(c0.partner||"").trim().toLowerCase(),addr=to.slice(to[0].toLowerCase()===pn0?1:0).join("\n");
     if(addr!==(c0.addr||""))putContract(ltC._id,Object.assign({},c0,{addr:addr}));}
   var refRe=/^(Kundennummer|Vertragsnummer): /,blines=body.split(/\n/),ref=[];while(blines.length&&refRe.test(blines[0]))ref.push(blines.shift());
+  var nC=document.getElementById("ltCust").value.trim(),nV=document.getElementById("ltContr").value.trim(),c1=state.contracts[ltC._id];
+  if(c1&&(nC||nV)){var patch={};if(nC&&!c1.custNo){patch.custNo=nC;ref.push("Kundennummer: "+nC);}if(nV&&!c1.contrNo){patch.contrNo=nV;ref.push("Vertragsnummer: "+nV);}
+    putContract(ltC._id,Object.assign({},c1,patch));ltC=Object.assign({},ltC,patch);}
+  if(to.length<=1&&!(await ask({title:"Ohne Empfängeradresse?",text:"Im Anschriftfeld steht nur der Name. Für den Postversand fehlt die Adresse.",ok:"Trotzdem erstellen"})))return;
   var L={sender:base.sender,to:to,city:base.city,subject:subj,ref:ref,body:blines.join("\n").trim(),name:base.name,sig:state.settings.sig||""};
   var blob;try{blob=letterPdf(L);}catch(e){toast("PDF konnte nicht erstellt werden");return;}
   var nm="Kuendigung-"+String(ltC.partner||ltC.label||"Vertrag").replace(/[^\w\-]+/g,"_")+"-"+iso(today())+".pdf";
@@ -3637,6 +3724,7 @@ document.getElementById("scrim").addEventListener("click",function(){
   if(document.getElementById("sheetAsk").classList.contains("on")){askDone(false);return;}
   if(document.getElementById("sheetCrop").classList.contains("on")){closeCrop();return;}
   if(document.getElementById("sheetSig").classList.contains("on")){closeSig();return;}
+  if(document.getElementById("sheetSigPick").classList.contains("on")){closeSigPick();return;}
   if(document.getElementById("sheetLetter").classList.contains("on")){closeLetter();return;}
   if(document.getElementById("sheetPick").classList.contains("over")){closePick();return;}
   if(document.getElementById("sheetMd").classList.contains("on")){closeMd();return;}closeSheets();});
