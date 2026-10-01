@@ -794,8 +794,7 @@ details.logodet>summary{display:none}
 .dl{border-top:1px solid var(--line);padding:11px 0;display:flex;justify-content:space-between;gap:16px;font-size:14px}
 .dl dt{color:var(--ink2);font-size:12.5px;flex:none}
 .dl dd{margin:0;text-align:right;min-width:0;word-break:break-word}
-.detailhead{display:flex;align-items:center;gap:13px;margin-bottom:6px}
-.detailhead{gap:15px}
+.detailhead{display:flex;align-items:center;gap:15px;margin:14px 0 6px}
 .detailhead .mark{width:76px;height:76px;border-radius:17px;font-size:28px}
 .pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:999px;background:var(--sunken);color:var(--ink2)}
 .pill.alert{background:color-mix(in srgb,var(--alert) 16%,transparent);color:var(--alert);font-weight:600}
@@ -809,8 +808,14 @@ details.logodet>summary{display:none}
   opacity:0;transition:opacity .2s;pointer-events:none;max-width:88%;text-align:center}
 .status.on{opacity:1}
 textarea.out{width:100%;height:170px;background:var(--field);border:0;border-radius:10px;padding:11px;font-size:12.5px;margin-top:10px}
-textarea.out.lt{height:min(56vh,520px);margin:0;font-size:15px;line-height:1.45;padding:14px;resize:none;font-family:inherit}
-.sheet.letter{z-index:63}
+textarea.lt{min-height:260px;font-size:15px;line-height:1.45;resize:none;font-family:inherit}
+.sheet.letter{z-index:63}.sheet.sig{z-index:66}
+.sigbox{position:relative;height:96px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);display:grid;place-items:center;overflow:hidden}
+.sigbox img{max-height:84px;max-width:90%;object-fit:contain}
+.sigbox span{font-size:13px;color:var(--ink3)}
+.sigpad{position:relative;height:200px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);overflow:hidden;touch-action:none;margin-bottom:12px}
+.sigpad canvas{width:100%;height:100%;display:block}
+.sigpad i{position:absolute;left:24px;right:24px;bottom:48px;border-top:1px dashed #b9b9b9;pointer-events:none}
 .vbar .vedit{margin-right:auto}
 input[type=file]{display:none}
 /* Darstellung: Wahl in den Einstellungen übersteuert System und Viewer */
@@ -1240,6 +1245,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   </div>
 
   <h3>Kontakt &amp; Notiz</h3>
+  <div class="field"><label for="fAddr">Adresse des Vertragspartners — für das Kündigungsschreiben</label><textarea id="fAddr" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort" style="min-height:72px"></textarea></div>
   <div class="field"><label for="fWeb">Website oder Kundenportal</label><input id="fWeb" type="url" inputmode="url" placeholder="swisscom.ch/login" autocomplete="off"></div>
   <div class="two">
     <div class="field"><label for="fTel">Telefon</label><input id="fTel" type="tel" autocomplete="off"></div>
@@ -1323,9 +1329,21 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 <div class="sheet letter" id="sheetLetter" role="dialog" aria-modal="true" aria-label="Kündigungsschreiben">
   <div class="grab"></div>
   <div class="shbar"><button class="shx" id="ltClose">Schliessen</button><h2>Kündigung</h2><button class="shok" id="ltPdf">PDF</button></div>
-  <p class="note" style="margin:4px 0 10px">Text prüfen und bei Bedarf anpassen. «PDF» zeigt den Brief; von dort kannst du ihn teilen, drucken oder sichern.</p>
-  <textarea id="ltText" class="out lt" spellcheck="true"></textarea>
-  <p class="note" id="ltHint" style="margin:8px 0 0"></p>
+  <p class="note" id="ltSender" style="margin:4px 0 12px"></p>
+  <div class="field"><label for="ltTo">Empfänger</label><textarea id="ltTo" style="min-height:92px" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort"></textarea></div>
+  <div class="field"><label for="ltSubj">Betreff</label><input id="ltSubj" type="text" autocomplete="off"></div>
+  <div class="field"><label for="ltBody">Text</label><textarea id="ltBody" class="lt" spellcheck="true"></textarea></div>
+  <div class="flabel">Unterschrift</div>
+  <div class="sigbox" id="sigBox"><img id="sigImg" alt="" hidden><span id="sigNone">Noch keine Unterschrift</span></div>
+  <div class="lbtns2" style="margin-top:8px"><button class="lbtn" id="sigDraw" type="button">Zeichnen</button><button class="lbtn" id="sigType" type="button">Namenszug</button><button class="lbtn" id="sigDel" type="button" hidden>Entfernen</button></div>
+  <p class="note" id="ltHint" style="margin:12px 0 0"></p>
+</div>
+<div class="sheet sig" id="sheetSig" role="dialog" aria-modal="true" aria-label="Unterschrift zeichnen">
+  <div class="grab"></div>
+  <div class="shbar"><button class="shx" id="sigCancel">Abbrechen</button><h2>Unterschrift</h2><button class="shok" id="sigOk">Übernehmen</button></div>
+  <p class="note" style="margin:4px 0 10px">Mit dem Finger auf der Linie unterschreiben, am besten im Querformat.</p>
+  <div class="sigpad"><canvas id="sigCv"></canvas><i></i></div>
+  <button class="ghost" id="sigClear" type="button">Löschen</button>
 </div>
 <!-- Detail -->
 <div class="sheet" id="sheetDetail" role="dialog" aria-modal="true" aria-label="Vertragsdetails">
@@ -2336,7 +2354,7 @@ document.addEventListener("click",function(ev){if(!ev.target.closest("#xAll"))re
 function openSheet(el){document.getElementById("scrim").classList.add("on");el.classList.add("on");el.scrollTop=0;}
 function closeSheets(){
   document.getElementById("scrim").classList.remove("on");
-  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetLetter"].forEach(function(i){document.getElementById(i).classList.remove("on");});
+  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetLetter","sheetSig"].forEach(function(i){document.getElementById(i).classList.remove("on");});
   document.getElementById("csvOut").innerHTML="";
 }
 function buildCatChips(){
@@ -2478,7 +2496,7 @@ function openForm(c,asCopy){clearCands();
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
   document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
   document.getElementById("fSugg").innerHTML="";
-  document.getElementById("fWeb").value=(c&&c.web)||"";
+  document.getElementById("fWeb").value=(c&&c.web)||"";document.getElementById("fAddr").value=(c&&c.addr)||"";
   document.getElementById("fTel").value=(c&&c.tel)||"";
   document.getElementById("fMail").value=(c&&c.mail)||"";
   paintHolders();
@@ -2632,7 +2650,7 @@ function paintSugg(){
   var hits=TPL.filter(function(t){return (t[0]+" "+t[3]).toLowerCase().indexOf(q)>=0;}).slice(0,5);
   el.innerHTML=hits.length?'<span class="sl">Vorlage</span>'+hits.map(function(t){return '<button type="button" class="chip" data-tpl="'+TPL.indexOf(t)+'">'+esc(t[0])+"</button>";}).join(""):"";
 }
-function applyTpl(t,keepName){
+function applyTpl(t,keepName,quiet){
   if(!keepName)document.getElementById("fPartner").value=t[0];
   var lb=document.getElementById("fLabel");if(!lb.value.trim())lb.value=t[3];
   if(t[2]){draft.cat=t[2];paintCats();}
@@ -2644,7 +2662,7 @@ function applyTpl(t,keepName){
   if(t[1]==="DE"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="EUR";
   if(t[1]==="CH"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="CHF";
   draft.tplHint=t[0];
-  paintLogo();paintSwatches();paintSugg();updTermHint();toast("Vorlage übernommen — bitte prüfen");
+  paintLogo();paintSwatches();paintSugg();updTermHint();if(!quiet)toast("Vorlage übernommen — bitte prüfen");
 }
 document.getElementById("fPartner").addEventListener("input",function(){draft.tplHint="";draft.stdTpl=null;paintSugg();});
 document.getElementById("fLabel").addEventListener("input",paintSugg);
@@ -2689,14 +2707,17 @@ function updTermHint(){
     if(!E){h.textContent="Vertragsende angeben, dann rechnet die App den Kündigungstermin aus.";return;}
     var rn=+fx.renew||0;
     h.textContent="Kündigen bis "+fmtD(iso(nDl(fx,E)))+(rn?", sonst +"+rn+(rn===1?" Monat":" Monate")+".":", Vertrag endet dann.");return;}
-  var tp=document.getElementById("fTermP").value;
-  if(!tp){h.textContent="Unbefristet — du kannst mit der angegebenen Frist jederzeit kündigen.";return;}
+  var tp=document.getElementById("fTermP").value,cyc=+document.getElementById("fCycle").value||1;
+  if(!tp){h.textContent=cyc>=3?"Achtung: Bei "+(CYCLE[cyc]||"")+"er Zahlung ist ein Abo meist nur auf Ende der bezahlten Periode kündbar. Dann «Kündbar per: Ende Periode» wählen.":"Unbefristet — du kannst mit der angegebenen Frist jederzeit kündigen.";return;}
   var tmp={cancTerm:tp,notice:parseNum(document.getElementById("fNotice").value)||0,noticeU:document.getElementById("fNoticeU").value,
     start:document.getElementById("fStart").value,due:document.getElementById("fDue").value,cycle:+document.getElementById("fCycle").value||1,prices:[],amount:1};
   var T=null;try{T=nextTerm(tmp);}catch(e){}
   if(!T){h.textContent=tp==="a"?"Für «Ende Vertragsjahr» bitte den Vertragsbeginn angeben.":"";return;}
-  h.textContent="Nächster Termin: per "+fmtD(iso(T))+" · kündigen bis "+fmtD(iso(nDl(tmp,T)))+".";
+  var per=tp==="p"&&cyc>1?(cyc===12?"Abo-Jahr":"bezahlte Periode")+" endet ":"per ";
+  h.textContent=(tp==="p"&&cyc>1?"Das "+per:"Nächster Termin: "+per)+fmtD(iso(T))+" · kündigen bis "+fmtD(iso(nDl(tmp,T)))+(tmp.notice?"":" (keine Frist erfasst)")+".";
 }
+/* Turnus auf jährlich/halbjährlich gestellt und noch kein Kündigungstermin: «Ende Periode» vorschlagen */
+document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if(termMode==="open"&&!tp.value&&+this.value>=6){tp.value="p";updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}});
 ["fTermP","fNotice","fNoticeU","fStart","fDue","fCycle","fEnd","fRenew"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updTermHint);el.addEventListener("change",updTermHint);});
 document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(b)setTermMode(b.dataset.tm);});
 function syncWatch(){var m=document.getElementById("fMand").checked,n=document.getElementById("fNoWatch").checked;
@@ -2713,7 +2734,7 @@ function paintOptCounts(){
   var parts=[n?n+(n===1?" Preisänderung":" Preisänderungen"):"",xn?xn+(xn===1?" Sonderzahlung":" Sonderzahlungen"):"",
     g("fWatch")==="mand"?"Pflichtvertrag":(g("fWatch")==="nowatch"?"nicht in Fristen":""),g("fCancF")?"Kündigungsweg":"",g("fTrial")?"Probeabo":"",
     g("fCustNo")?"Kundennummer":"",g("fContrNo")?"Vertragsnummer":"",g("fPayM")?"Zahlungsart":"",g("fPayA")?"Belastet über":"",
-    g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",d?d+(d===1?" Datei":" Dateien"):""].filter(Boolean);
+    g("fAddr")?"Adresse":"",g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",d?d+(d===1?" Datei":" Dateien"):""].filter(Boolean);
   var el=document.getElementById("fMoreN");el.textContent=parts.length?parts.join(" · "):"Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …";el.classList.toggle("on",!!parts.length);
 }
 function paintPrices(){paintOptCounts();
@@ -2800,7 +2821,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
     payA:document.getElementById("fPayA").value.trim(),
     cancF:document.getElementById("fCancF").value,
     trial:document.getElementById("fTrial").value||"",
-    web:document.getElementById("fWeb").value.trim(),
+    web:document.getElementById("fWeb").value.trim(),addr:document.getElementById("fAddr").value.trim(),
     tel:document.getElementById("fTel").value.trim(),
     mail:document.getElementById("fMail").value.trim(),
     note:document.getElementById("fNote").value.trim(),
@@ -3016,12 +3037,70 @@ document.getElementById("vEdit").addEventListener("click",function(){document.ge
 /* ---------- Kündigungsschreiben: Text bearbeiten → PDF (jsPDF, A4) → Vorschau → Teilen (Mail, Drucken, Dateien) ----------
    SwiftUI: TextEditor + UIGraphicsPDFRenderer + ShareLink */
 var ltC=null;
-function openLetter(c){ltC=c;var ta=document.getElementById("ltText");ta.value=cancelText(c);
-  var d=noticeDeadline(c);document.getElementById("ltHint").textContent=(d?"Spätester Absendetermin nach hinterlegter Frist: "+fmtD(iso(d))+". ":"")+"Vorlage ohne Gewähr. Prüf Adresse, Frist und Kündigungsart — viele Verträge verlangen Schriftform.";
-  var sh=document.getElementById("sheetLetter");sh.classList.add("on");sh.scrollTop=0;}
+/* Bausteine des Briefs (Absender aus den Einstellungen, Empfänger aus dem Vertrag) */
+function letterParts(c){
+  var sf=state.settings.senderF||{},t=function(k){return String(sf[k]||"").trim();};
+  var name=[t("first"),t("last")].filter(Boolean).join(" ");
+  var sender=[name,t("street"),[t("zip"),t("city")].filter(Boolean).join(" "),t("country")].filter(Boolean);
+  var al=String(c.addr||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean),pn=String(c.partner||"").trim();
+  /* Erste Adresszeile enthält den Namen (z.B. «Swisscom (Schweiz) AG») → nicht doppelt */
+  var to=(pn&&!(al[0]&&al[0].toLowerCase().indexOf(pn.toLowerCase())>=0)?[pn]:[]).concat(al);
+  var nr=[c.custNo?"Kundennummer: "+c.custNo:"",c.contrNo?"Vertragsnummer: "+c.contrNo:""].filter(Boolean);
+  var e=termEnd(c),d=noticeDeadline(c);
+  var body="Sehr geehrte Damen und Herren\n\nhiermit kündige ich den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"+(e?", nach meiner Berechnung zum "+fmtD(iso(e)):"")+".\n\n"+
+    "Bitte bestätigen Sie mir die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse";
+  return {name:name||holdersOf(c).join(" und "),sender:sender,to:to,city:t("city"),subject:"Kündigung "+(c.label||c.partner)+(c.label&&c.partner?" bei "+c.partner:""),ref:nr,body:body,deadline:d};
+}
+function cancelText(c){var L=letterParts(c);
+  return (L.sender.length?L.sender.join("\n")+"\n\n":"")+L.to.join("\n")+"\n\n"+(L.city?L.city+", ":"")+fmtD(iso(today()))+"\n\n"+L.subject+"\n\n"+(L.ref.length?L.ref.join("\n")+"\n\n":"")+L.body+"\n\n\n"+L.name;}
+function paintSig(){var sg=state.settings.sig,img=document.getElementById("sigImg"),no=document.getElementById("sigNone");
+  img.hidden=!sg;no.hidden=!!sg;document.getElementById("sigDel").hidden=!sg;if(sg)img.src=sg;}
+function openLetter(c){ltC=c;var L=letterParts(c);
+  var sEl=document.getElementById("ltSender");
+  sEl.innerHTML=L.sender.length?"<b>Absender:</b> "+esc(L.sender.join(", ")):'<b>Kein Absender hinterlegt.</b> Unter «Mehr → Kündigungsschreiben» Name und Adresse eintragen, sonst fehlt er im Brief.';
+  document.getElementById("ltTo").value=L.to.join("\n");
+  document.getElementById("ltSubj").value=L.subject;
+  document.getElementById("ltBody").value=(L.ref.length?L.ref.join("\n")+"\n\n":"")+L.body;
+  document.getElementById("ltHint").textContent=(L.deadline?"Spätester Absendetermin nach hinterlegter Frist: "+fmtD(iso(L.deadline))+". ":"")+"Vorlage ohne Gewähr. Prüf Adresse, Frist und Kündigungsart — viele Verträge verlangen Schriftform.";
+  paintSig();var sh=document.getElementById("sheetLetter");sh.classList.add("on");sh.scrollTop=0;}
 function closeLetter(){document.getElementById("sheetLetter").classList.remove("on");ltC=null;
   if(!document.querySelector(".sheet.on"))document.getElementById("scrim").classList.remove("on");}
 document.getElementById("ltClose").addEventListener("click",closeLetter);
+/* Unterschrift: zeichnen (Canvas) oder Namenszug; als JPEG (weisser Grund) in settings.sig */
+var sigD={drawing:false,last:null,dirty:false};
+function sigCanvas(){return document.getElementById("sigCv");}
+function openSig(){var sh=document.getElementById("sheetSig");sh.classList.add("on");sh.scrollTop=0;document.getElementById("scrim").classList.add("on");
+  requestAnimationFrame(function(){var cv=sigCanvas(),r=cv.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);
+    cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);var g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);
+    g.fillStyle="#fff";g.fillRect(0,0,r.width,r.height);g.lineWidth=2.4;g.lineCap="round";g.lineJoin="round";g.strokeStyle="#1b1e23";sigD.dirty=false;});}
+function closeSig(){document.getElementById("sheetSig").classList.remove("on");if(!document.querySelector(".sheet.on"))document.getElementById("scrim").classList.remove("on");}
+(function(){var cv=sigCanvas();function pos(e){var r=cv.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};}
+  cv.addEventListener("pointerdown",function(e){sigD.drawing=true;sigD.last=pos(e);cv.setPointerCapture(e.pointerId);e.preventDefault();});
+  cv.addEventListener("pointermove",function(e){if(!sigD.drawing)return;var p=pos(e),g=cv.getContext("2d");g.beginPath();g.moveTo(sigD.last.x,sigD.last.y);g.lineTo(p.x,p.y);g.stroke();sigD.last=p;sigD.dirty=true;e.preventDefault();});
+  ["pointerup","pointercancel"].forEach(function(t){cv.addEventListener(t,function(){sigD.drawing=false;});});
+})();
+document.getElementById("sigClear").addEventListener("click",function(){var cv=sigCanvas(),g=cv.getContext("2d");g.save();g.setTransform(1,0,0,1,0,0);g.fillStyle="#fff";g.fillRect(0,0,cv.width,cv.height);g.restore();sigD.dirty=false;});
+document.getElementById("sigCancel").addEventListener("click",closeSig);
+/* Zuschneiden auf den gezeichneten Bereich, dann als JPEG speichern */
+function sigFromCanvas(cv){var g=cv.getContext("2d"),w=cv.width,h=cv.height,d=g.getImageData(0,0,w,h).data,x0=w,y0=h,x1=-1,y1=-1;
+  for(var y=0;y<h;y++)for(var x=0;x<w;x++){var i=(y*w+x)*4;if(d[i]<200){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
+  if(x1<0)return null;var pad=12;x0=Math.max(0,x0-pad);y0=Math.max(0,y0-pad);x1=Math.min(w-1,x1+pad);y1=Math.min(h-1,y1+pad);
+  var o=document.createElement("canvas");o.width=x1-x0+1;o.height=y1-y0+1;var og=o.getContext("2d");og.fillStyle="#fff";og.fillRect(0,0,o.width,o.height);og.drawImage(cv,x0,y0,o.width,o.height,0,0,o.width,o.height);
+  return o.toDataURL("image/jpeg",0.85);}
+document.getElementById("sigOk").addEventListener("click",function(){if(!sigD.dirty){toast("Bitte zuerst unterschreiben");return;}
+  var url=sigFromCanvas(sigCanvas());if(!url){toast("Nichts gezeichnet");return;}state.settings.sig=url;saveSettings();paintSig();closeSig();toast("Unterschrift gespeichert");});
+document.getElementById("sigDraw").addEventListener("click",openSig);
+document.getElementById("sigType").addEventListener("click",function(){
+  var sf=state.settings.senderF||{},nm=[sf.first,sf.last].map(function(x){return String(x||"").trim();}).filter(Boolean).join(" ")||(ltC?holdersOf(ltC)[0]:"");
+  if(!nm){toast("Zuerst den Absender unter «Mehr» erfassen");return;}
+  var cv=document.createElement("canvas");cv.width=900;cv.height=240;var g=cv.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,900,240);
+  g.fillStyle="#1b1e23";g.textBaseline="middle";g.font="italic 400 96px 'Snell Roundhand','Savoye LET','Zapfino','Brush Script MT','Segoe Script',cursive";
+  while(g.measureText(nm).width>820&&parseInt(g.font,10)>40)g.font=g.font.replace(/\d+px/,function(m){return (parseInt(m,10)-6)+"px";});
+  g.fillText(nm,40,130);var url=sigFromCanvas(cv);if(!url){toast("Namenszug konnte nicht erzeugt werden");return;}
+  state.settings.sig=url;saveSettings();paintSig();toast("Namenszug übernommen");});
+document.getElementById("sigDel").addEventListener("click",function(){delete state.settings.sig;saveSettings();paintSig();});
+function dataUrlBytes(u){var b=atob(u.split(",")[1]),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+function jpegSize(a){for(var i=2;i<a.length;){if(a[i]!==0xFF){i++;continue;}var m=a[i+1];if(m>=0xC0&&m<=0xCF&&m!==0xC4&&m!==0xC8&&m!==0xCC)return {h:(a[i+5]<<8)|a[i+6],w:(a[i+7]<<8)|a[i+8]};i+=2+((a[i+2]<<8)|a[i+3]);}return null;}
 /* Minimaler PDF-Schreiber (Text, Helvetica, WinAnsi) – ohne Fremdbibliothek, funktioniert offline.
    Breiten aus der Helvetica-AFM (1/1000 em) für Zeilenumbruch. */
 var HW=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
@@ -3033,24 +3112,40 @@ function pdfWrap(str,bold,pt,maxPt){var words=str.split(" "),lines=[],cur="";
   words.forEach(function(w){var t=cur?cur+" "+w:w;if(pdfWidth(t,bold,pt)<=maxPt||!cur)cur=t;else{lines.push(cur);cur=w;}});
   if(cur||!lines.length)lines.push(cur);return lines;}
 function pdfEsc(str){var o="";for(var i=0;i<str.length;i++){var b=pdfByte(str[i]);if(b===40||b===41||b===92)o+="\\"+String.fromCharCode(b);else if(b<32||b>126)o+="\\"+("00"+b.toString(8)).slice(-3);else o+=String.fromCharCode(b);}return o;}
-/* Brief: A4 (595×842 pt), Rand 70 pt, 11 pt, Betreffzeile fett; Absätze durch Leerzeilen getrennt */
-function letterPdf(text){
-  var PT=11,LH=15.5,L=70,TOP=842-80,BOT=70,W=595-2*L,pages=[],ops=[],y=TOP,subjDone=false;
-  function line(str,bold){if(y<BOT){pages.push(ops);ops=[];y=TOP;}
-    ops.push("BT /"+(bold?"F2":"F1")+" "+PT+" Tf "+L+" "+y.toFixed(1)+" Td ("+pdfEsc(str)+") Tj ET");y-=LH;}
-  String(text).replace(/\r/g,"").split(/\n{2,}/).forEach(function(block){
-    var ls=block.split("\n"),isSubj=!subjDone&&/^Kündigung /.test(ls[0]);if(isSubj){subjDone=true;y-=4;}
-    ls.forEach(function(ln){pdfWrap(ln,isSubj,PT,W).forEach(function(w){line(w,isSubj);});});
-    if(isSubj)y-=4;y-=LH*0.8;});
+/* Brief nach DIN 5008 / Schweizer Geschäftsbrief: A4, linker Rand 25 mm, Absender oben, Anschriftfeld ab 50 mm
+   (Fensterkuvert), Ort/Datum rechts, Betreff fett, Text, Gruss, Unterschrift (Bild), Name. Mehrseitig. */
+function letterPdf(L){
+  var PT=11,LH=15.5,LFT=71,RGT=524,W=RGT-LFT,BOT=70,TOP=842-70,pages=[],ops=[],y=0,sig=null;
+  if(L.sig){try{var by=dataUrlBytes(L.sig),sz=jpegSize(by);if(sz)sig={bytes:by,w:sz.w,h:sz.h};}catch(e){sig=null;}}
+  function txt(str,x,yy,bold,pt){ops.push("BT /"+(bold?"F2":"F1")+" "+(pt||PT)+" Tf "+x.toFixed(1)+" "+yy.toFixed(1)+" Td ("+pdfEsc(str)+") Tj ET");}
+  function line(str,bold){if(y<BOT){pages.push(ops);ops=[];y=TOP;}txt(str,LFT,y,bold);y-=LH;}
+  function para(str,bold){str.split("\n").forEach(function(ln){pdfWrap(ln,bold,PT,W).forEach(function(w){line(w,bold);});});}
+  /* Absender (klein) ab 20 mm */
+  var yy=842-57;L.sender.forEach(function(ln){txt(ln,LFT,yy,false,9.5);yy-=12;});
+  /* Anschriftfeld ab 50 mm */
+  yy=842-142;L.to.forEach(function(ln){txt(ln,LFT,yy);yy-=LH;});
+  /* Ort und Datum rechts, 90 mm */
+  var dt=(L.city?L.city+", ":"")+fmtD(iso(today()));txt(dt,RGT-pdfWidth(dt,false,PT),842-255);
+  /* Betreff ab 105 mm */
+  y=842-298;pdfWrap(L.subject,true,PT,W).forEach(function(w){line(w,true);});y-=LH*0.6;
+  if(L.ref.length){L.ref.forEach(function(r){line(r);});y-=LH*0.6;}
+  /* Text: Absätze durch Leerzeilen */
+  String(L.body).replace(/\r/g,"").split(/\n{2,}/).forEach(function(b,i){para(b);y-=LH*0.8;});
+  /* Unterschrift + Name */
+  var sh=0,sw=0;if(sig){sh=46;sw=sh*sig.w/sig.h;if(sw>170){sw=170;sh=sw*sig.h/sig.w;}}
+  if(y-(sh+LH*2)<BOT){pages.push(ops);ops=[];y=TOP;}
+  if(sig){ops.push("q "+sw.toFixed(1)+" 0 0 "+sh.toFixed(1)+" "+LFT+" "+(y-sh+4).toFixed(1)+" cm /Im1 Do Q");y-=sh+6;}else y-=LH*2;
+  line(L.name);
   pages.push(ops);
   var objs=[],add=function(o){objs.push(o);return objs.length;};
   var fontN=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
   var fontB=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
-  var pagesIdx=objs.length+1;objs.push(null);
-  var kids=[];
-  pages.forEach(function(ps){var stream=ps.join("\n"),len=stream.length;
-    var cn=add("<< /Length "+len+" >>\nstream\n"+stream+"\nendstream");
-    kids.push(add("<< /Type /Page /Parent "+pagesIdx+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+fontN+" 0 R /F2 "+fontB+" 0 R >> >> /Contents "+cn+" 0 R >>"));});
+  var imgN=0;if(sig){var bin="";for(var i=0;i<sig.bytes.length;i++)bin+=String.fromCharCode(sig.bytes[i]);
+    imgN=add("<< /Type /XObject /Subtype /Image /Width "+sig.w+" /Height "+sig.h+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+bin.length+" >>\nstream\n"+bin+"\nendstream");}
+  var pagesIdx=objs.length+1;objs.push(null);var kids=[];
+  var res="<< /Font << /F1 "+fontN+" 0 R /F2 "+fontB+" 0 R >>"+(imgN?" /XObject << /Im1 "+imgN+" 0 R >>":"")+" >>";
+  pages.forEach(function(ps){var stream=ps.join("\n");var cn=add("<< /Length "+stream.length+" >>\nstream\n"+stream+"\nendstream");
+    kids.push(add("<< /Type /Page /Parent "+pagesIdx+" 0 R /MediaBox [0 0 595 842] /Resources "+res+" /Contents "+cn+" 0 R >>"));});
   objs[pagesIdx-1]="<< /Type /Pages /Kids ["+kids.map(function(k){return k+" 0 R";}).join(" ")+"] /Count "+kids.length+" >>";
   var cat=add("<< /Type /Catalog /Pages "+pagesIdx+" 0 R >>");
   var out="%PDF-1.4\n%âãÏÓ\n",offs=[];
@@ -3058,11 +3153,20 @@ function letterPdf(text){
   var xref=out.length;out+="xref\n0 "+(objs.length+1)+"\n0000000000 65535 f \n";
   offs.forEach(function(o){out+=("0000000000"+o).slice(-10)+" 00000 n \n";});
   out+="trailer\n<< /Size "+(objs.length+1)+" /Root "+cat+" 0 R >>\nstartxref\n"+xref+"\n%%EOF";
-  var bytes=new Uint8Array(out.length);for(var i=0;i<out.length;i++)bytes[i]=out.charCodeAt(i)&255;
+  var bytes=new Uint8Array(out.length);for(var k=0;k<out.length;k++)bytes[k]=out.charCodeAt(k)&255;
   return new Blob([bytes],{type:"application/pdf"});}
 document.getElementById("ltPdf").addEventListener("click",function(){
-  if(!ltC)return;var t=document.getElementById("ltText").value.trim();if(!t){toast("Der Text ist leer");return;}
-  var blob;try{blob=letterPdf(t);}catch(e){toast("PDF konnte nicht erstellt werden");return;}
+  if(!ltC)return;var base=letterParts(ltC);
+  var to=document.getElementById("ltTo").value.split(/\n/).map(function(x){return x.trim();}).filter(Boolean);
+  var subj=document.getElementById("ltSubj").value.trim()||base.subject,body=document.getElementById("ltBody").value.trim();
+  if(!to.length){toast("Empfänger fehlt");document.getElementById("ltTo").focus();return;}
+  if(!body){toast("Der Text ist leer");return;}
+  /* Empfängeradresse beim Vertrag merken (ohne die Namenszeile) */
+  var c0=state.contracts[ltC._id];if(c0){var pn0=String(c0.partner||"").trim().toLowerCase(),addr=to.slice(to[0].toLowerCase()===pn0?1:0).join("\n");
+    if(addr!==(c0.addr||""))putContract(ltC._id,Object.assign({},c0,{addr:addr}));}
+  var refRe=/^(Kundennummer|Vertragsnummer): /,blines=body.split(/\n/),ref=[];while(blines.length&&refRe.test(blines[0]))ref.push(blines.shift());
+  var L={sender:base.sender,to:to,city:base.city,subject:subj,ref:ref,body:blines.join("\n").trim(),name:base.name,sig:state.settings.sig||""};
+  var blob;try{blob=letterPdf(L);}catch(e){toast("PDF konnte nicht erstellt werden");return;}
   var nm="Kuendigung-"+String(ltC.partner||ltC.label||"Vertrag").replace(/[^\w\-]+/g,"_")+"-"+iso(today())+".pdf";
   openDoc({blob:blob,name:nm,title:"Kündigung · "+(ltC.partner||ltC.label||"Vertrag"),type:"application/pdf"});
 });
@@ -3132,23 +3236,6 @@ function openLink(url,copy){
 }
 
 /* ---------- Detail ---------- */
-function cancelText(c){
-  var nr=[c.custNo?"Kundennummer: "+c.custNo:"",c.contrNo?"Vertragsnummer: "+c.contrNo:""].filter(Boolean).join("\n");
-  var d=noticeDeadline(c),e=termEnd(c);
-  var sf=state.settings.senderF||{},sl=senderLines(),city=String(sf.city||"").trim();
-  var nm=[sf.first,sf.last].map(function(x){return String(x||"").trim();}).filter(Boolean).join(" ");
-  var signer=nm||holdersOf(c).join(" und ");
-  return (sl.length?sl.join("\n")+"\n\n":"")+(c.partner?c.partner+"\n[Adresse]\n\n":"")+
-    (city?city+", ":"")+fmtD(iso(today()))+"\n\n"+
-    "Kündigung "+(c.label||c.partner)+(c.label&&c.partner?" bei "+c.partner:"")+"\n\n"+
-    (nr?nr+"\n\n":"")+
-    "Sehr geehrte Damen und Herren\n\n"+
-    "hiermit kündige ich den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"+
-    (e?", nach meiner Berechnung zum "+fmtD(iso(e)):"")+".\n\n"+
-    "Bitte bestätigen Sie mir die Kündigung und das Vertragsende schriftlich.\n\n"+
-    "Freundliche Grüsse\n\n\n"+signer+
-    (d?"\n\n(Spätester Absendetermin nach hinterlegter Frist: "+fmtD(iso(d))+")":"");
-}
 function openDetail(idv){
   var c=Object.assign({},state.contracts[idv]);c._id=idv;
   var u=urgency(c),nd=nextDue(c),e=effEnd(c);
@@ -3549,6 +3636,7 @@ document.getElementById("iDel").addEventListener("click",function(){
 document.getElementById("scrim").addEventListener("click",function(){
   if(document.getElementById("sheetAsk").classList.contains("on")){askDone(false);return;}
   if(document.getElementById("sheetCrop").classList.contains("on")){closeCrop();return;}
+  if(document.getElementById("sheetSig").classList.contains("on")){closeSig();return;}
   if(document.getElementById("sheetLetter").classList.contains("on")){closeLetter();return;}
   if(document.getElementById("sheetPick").classList.contains("over")){closePick();return;}
   if(document.getElementById("sheetMd").classList.contains("on")){closeMd();return;}closeSheets();});
@@ -4101,7 +4189,7 @@ function paintPSug(web,loading){
   if(wl.length){h+='<div class="ph">Aus dem Internet</div>'+wl.map(function(w){var i=(web||[]).indexOf(w);
     var img=w.file?"https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.file)+"?width=96":"https://www.google.com/s2/favicons?sz=64&domain="+encodeURIComponent(w.dom);
     return '<button type="button" class="mdrow" data-pw="'+i+'"><div class="mark" style="background:#fff"><img src="'+esc(img)+'" alt="" onerror="this.remove()"></div><span class="t"><b>'+esc(w.name)+'</b><small>'+esc(w.dom)+(w.desc?" · "+esc(w.desc):"")+'</small></span></button>';}).join("");}
-  else if(loading)h+='<div class="pmsg">Suche im Internet …</div>';
+  else if(loading)h+='<div class="pmsg">Suche …</div>';
   pSugWeb=web||[];
   if(!h){hidePSug();return;}
   el.innerHTML=h;el.hidden=false;el._own=own;
@@ -4125,6 +4213,9 @@ async function pickWebPartner(w){
   if(draft.stdTpl&&draft.stdTpl[2]&&!draft.cat){draft.cat=draft.stdTpl[2];paintCats();got.push("Kategorie");}
   var lb=document.getElementById("fLabel");if(draft.stdTpl&&draft.stdTpl[3]&&!lb.value.trim())lb.value=draft.stdTpl[3];
   if(draft.stdTpl&&!draft.stdTpl[10])draft.stdTpl=null;
+  /* Übliche Frist direkt als Vorschlag eintragen (nur in leere Felder), Hinweis bleibt sichtbar */
+  if(draft.stdTpl&&(draft.stdTpl[5]||draft.stdTpl[7]||draft.stdTpl[9])&&!document.getElementById("fNotice").value.trim()&&!document.getElementById("fTermP").value){
+    var st0=draft.stdTpl;applyTpl(st0,true,true);draft.stdTpl=st0;draft.stdDone=true;got.push("übliche Frist");}
   var cc=(draft.stdTpl&&draft.stdTpl[1])||w.cc;
   if(cc&&!document.getElementById("fAmt").value)document.getElementById("fCur").value=cc==="DE"?"EUR":"CHF";
   hidePSug();paintLogo();paintSwatches();paintSugg();
