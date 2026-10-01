@@ -815,7 +815,8 @@ details.logodet>summary{display:none}
 .status.on{opacity:1}
 textarea.out{width:100%;height:170px;background:var(--field);border:0;border-radius:10px;padding:11px;font-size:12.5px;margin-top:10px}
 textarea.lt{min-height:260px;font-size:15px;line-height:1.45;resize:none;font-family:inherit}
-.sheet.letter{z-index:63}.sheet.sig{z-index:66}
+.sheet.letter{z-index:63}
+#sheetPick.over{z-index:67}.sheet.sig{z-index:66}
 .ltrow{display:flex;align-items:center;gap:10px;margin-top:4px}
 .ltrow .note{margin:0;font-size:12px}
 .sigbox{position:relative;height:96px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);display:grid;place-items:center;overflow:hidden}
@@ -1104,7 +1105,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <details class="legal"><summary>Datenschutz</summary>
     <p class="note">Kontivo hat kein Benutzerkonto, keine Werbung, kein Tracking und keine Analyse. Deine Verträge, Logos und Dokumente werden nur lokal auf diesem Gerät gespeichert und nicht an Kontivo übermittelt.</p>
     <p class="note">Für einzelne Funktionen ruft die App externe Dienste auf. Dabei wird technisch bedingt deine IP-Adresse übertragen:</p>
-    <p class="note">• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.<br>• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst), images.weserv.nl und unavatar.io.<br>• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.</p>
+    <p class="note">• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.<br>• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst), images.weserv.nl und unavatar.io.<br>• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).<br>• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.</p>
     <p class="note">Backups und CSV-Dateien erstellst und speicherst du selbst. Ohne Backup gehen deine Daten beim Löschen der App oder der Website-Daten verloren. Mit «Alle Daten löschen» entfernst du alles vom Gerät.</p></details>
     <details class="legal"><summary>Marken und Logos</summary>
     <p class="note">Logos, Marken und Firmennamen gehören ihren jeweiligen Inhabern. Sie werden nur zur Wiedererkennung deiner eigenen Verträge angezeigt. Kontivo steht in keiner Verbindung zu den genannten Anbietern und wird von ihnen weder unterstützt noch gesponsert.</p></details></div>
@@ -3068,7 +3069,11 @@ async function shareCur(hint){
 document.getElementById("vSave").addEventListener("click",function(){shareCur(curDoc&&curDoc.blob?"Im Menü «In Dateien sichern» wählen":"");});
 document.getElementById("vMail").addEventListener("click",function(){shareCur("Im Menü «Mail» wählen — das PDF hängt an");});
 document.getElementById("vPrint").addEventListener("click",function(){
-  if(document.querySelectorAll("#vBody canvas").length&&typeof window.print==="function"){try{window.print();return;}catch(e){}}
+  var standalone=!!(navigator.standalone||(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches));
+  if(!standalone&&document.querySelectorAll("#vBody canvas").length&&typeof window.print==="function"){
+    var done=false;window.addEventListener("afterprint",function h(){done=true;window.removeEventListener("afterprint",h);});
+    try{window.print();}catch(e){}
+    setTimeout(function(){if(!done)shareCur("Im Menü «Drucken» wählen");},600);return;}
   shareCur("Im Menü «Drucken» wählen");});
 document.getElementById("vEdit").addEventListener("click",function(){document.getElementById("vClose").click();});
 /* ---------- Kündigungsschreiben: Text bearbeiten → PDF (jsPDF, A4) → Vorschau → Teilen (Mail, Drucken, Dateien) ----------
@@ -3156,32 +3161,55 @@ document.getElementById("sigOpts").addEventListener("click",function(ev){var b=e
   if(!v||!v.url)return;state.settings.sig=v.url;saveSettings();paintSig();closeSigPick();toast("Namenszug übernommen");});
 document.getElementById("sigType").addEventListener("click",openSigPick);
 document.getElementById("sigDel").addEventListener("click",function(){delete state.settings.sig;saveSettings();paintSig();});
-/* Postadresse aus Wikidata (P6375 Strasse, P281 PLZ, P159 Sitz → Label); nur Vorschlag mit Bestätigung */
-async function findAddress(name,dom){
-  name=String(name||"").trim();if(!name||navigator.onLine===false)return null;
+/* Postadresse: Wikidata (Sitz) und OpenStreetMap/Nominatim (Firmenstandorte) parallel; Kandidaten zur Auswahl, nur Vorschlag */
+async function addrWikidata(name,dom){
   var r=await rateJson(WD+"&action=wbsearchentities&type=item&limit=6&language=de&uselang=de&search="+encodeURIComponent(name)).catch(function(){return null;});
-  var ids=((r||{}).search||[]).map(function(h){return h.id;});if(!ids.length)return null;
+  var ids=((r||{}).search||[]).map(function(h){return h.id;});if(!ids.length)return [];
   var e=await rateJson(WD+"&action=wbgetentities&props=claims|labels&languages=de|en&ids="+ids.join("|")).catch(function(){return null;});
-  var ents=(e&&e.entities)||{},best=null;
-  ids.forEach(function(id){var en=ents[id];if(!en||best)return;
+  var ents=(e&&e.entities)||{},out=[],hqIds=[];
+  ids.forEach(function(id){var en=ents[id];if(!en)return;
     var sites=wclaims(en,"P856").map(domainOf).filter(Boolean),domOk=dom&&sites.some(function(d){return regDom(d)===regDom(dom);});
+    if(dom&&sites.length&&!domOk)return;
     var street=wclaims(en,"P6375").map(function(v){return v&&v.text?v.text:v;}).filter(function(v){return typeof v==="string";})[0];
     var zip=wclaims(en,"P281").filter(function(v){return typeof v==="string";})[0],hq=wclaims(en,"P159")[0];
-    if(!street&&!hq)return;
-    if(dom&&sites.length&&!domOk)return;
-    best={label:(en.labels&&((en.labels.de||en.labels.en||{}).value))||name,street:street||"",zip:zip||"",hq:typeof hq==="string"?hq:""};});
-  if(!best)return null;
-  if(best.hq){var l=await rateJson(WD+"&action=wbgetentities&props=labels&languages=de|en&ids="+best.hq).catch(function(){return null;});
-    var le=l&&l.entities&&l.entities[best.hq];best.city=(le&&le.labels&&((le.labels.de||le.labels.en||{}).value))||"";}
-  return [best.label,best.street,[best.zip,best.city].filter(Boolean).join(" ")].filter(Boolean);
+    if(!street)return;
+    var lab=(en.labels&&((en.labels.de||en.labels.en||{}).value))||name;
+    out.push({label:lab,street:street,zip:zip||"",hq:typeof hq==="string"?hq:"",src:"Wikidata"});if(out[out.length-1].hq)hqIds.push(out[out.length-1].hq);});
+  if(hqIds.length){var l=await rateJson(WD+"&action=wbgetentities&props=labels&languages=de|en&ids="+hqIds.join("|")).catch(function(){return null;});
+    out.forEach(function(o){var le=l&&l.entities&&l.entities[o.hq];o.city=(le&&le.labels&&((le.labels.de||le.labels.en||{}).value))||"";});}
+  return out.map(function(o){return {lines:[o.label,o.street,[o.zip,o.city].filter(Boolean).join(" ")].filter(Boolean),src:o.src};});
+}
+async function addrOsm(name,cc){
+  var u="https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&accept-language=de&countrycodes="+(cc||"ch,de,at")+"&q="+encodeURIComponent(name);
+  var r=await rateJson(u).catch(function(){return null;});if(!Array.isArray(r))return [];
+  var want=ltok(name),out=[];
+  r.forEach(function(h){var a=h.address||{},nm=h.name||a.office||a.shop||a.amenity||"";
+    if(!nm||!nameHas(want,nm))return;
+    var street=[a.road,a.house_number].filter(Boolean).join(" "),city=a.city||a.town||a.village||a.municipality||"";
+    if(!street||!a.postcode)return;
+    out.push({lines:[nm,street,a.postcode+" "+city],src:"OpenStreetMap"+(h.type?" · "+h.type:"")});});
+  return out;
+}
+async function findAddresses(name,dom,cur){
+  name=String(name||"").trim();if(!name||navigator.onLine===false)return [];
+  var cc=cur==="EUR"?"de,at,ch":"ch,de,at";
+  var r=await Promise.all([addrWikidata(name,dom).catch(function(){return [];}),addrOsm(name,cc).catch(function(){return [];})]);
+  var all=r[0].concat(r[1]),seen={};
+  return all.filter(function(o){var k=o.lines.slice(1).join("|").toLowerCase();if(seen[k])return false;seen[k]=1;return true;}).slice(0,5);
 }
 document.getElementById("ltAddr").addEventListener("click",async function(){
   if(!ltC)return;var m=document.getElementById("ltAddrMsg");m.textContent="Suche …";
-  var lines=null;try{lines=await findAddress(ltC.partner||ltC.label,domainOf(ltC.web));}catch(e){lines=null;}
-  if(!lines||lines.length<2){m.textContent="Keine Adresse gefunden — bitte von der Website oder Rechnung übernehmen.";return;}
+  var cs=[];try{cs=await findAddresses(ltC.partner||ltC.label,domainOf(ltC.web),ltC.cur);}catch(e){cs=[];}
+  if(!cs.length){m.textContent="Keine Adresse gefunden — bitte von der Website oder Rechnung übernehmen.";return;}
   m.textContent="";
-  if(await ask({title:"Adresse übernehmen?",text:lines.join("\n")+"\n\nQuelle: Wikidata, ohne Gewähr.",ok:"Übernehmen"})){document.getElementById("ltTo").value=lines.join("\n");toast("Adresse eingesetzt — bitte prüfen");}
+  document.getElementById("pickTitle").textContent="Adresse wählen";
+  var l=document.getElementById("pickList");l.dataset.dim="addrpick";l._cands=cs;
+  l.innerHTML=cs.map(function(c,i){return '<button class="pick pickcat" data-ap="'+i+'" type="button"><span class="pcn">'+c.lines.map(esc).join("<br>")+'<em class="tsub">'+esc(c.src)+'</em></span></button>';}).join("")+
+    '<p class="note" style="margin:10px 2px 0">Quellen: Wikidata und OpenStreetMap, ohne Gewähr. Bei mehreren Standorten den Hauptsitz oder Kundendienst wählen.</p>';
+  var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
 });
+document.getElementById("pickList").addEventListener("click",function(ev){if(this.dataset.dim!=="addrpick")return;var b=ev.target.closest("[data-ap]");if(!b)return;
+  var c=this._cands[+b.dataset.ap];if(!c)return;document.getElementById("ltTo").value=c.lines.join("\n");closePick();toast("Adresse eingesetzt — bitte prüfen");});
 function dataUrlBytes(u){var b=atob(u.split(",")[1]),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
 function jpegSize(a){for(var i=2;i<a.length;){if(a[i]!==0xFF){i++;continue;}var m=a[i+1];if(m>=0xC0&&m<=0xCF&&m!==0xC4&&m!==0xC8&&m!==0xCC)return {h:(a[i+5]<<8)|a[i+6],w:(a[i+7]<<8)|a[i+8]};i+=2+((a[i+2]<<8)|a[i+3]);}return null;}
 /* Minimaler PDF-Schreiber (Text, Helvetica, WinAnsi) – ohne Fremdbibliothek, funktioniert offline.
