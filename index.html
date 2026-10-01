@@ -2095,6 +2095,9 @@ function openPick(dim){
   openSheet(document.getElementById("sheetPick"));
 }
 /* Lange drücken auf einen Filterwert → Pop-up mit Verträgen und Beträgen */
+/* Anteil einer Person an einem gemeinsamen Vertrag (gleich wie im Budget); ohne Personenfilter = 1 */
+function holderShare(c,h){if(h===undefined)h=state.flt&&state.flt.holder;if(!h)return 1;var hs=holdersOf(c);return hs.indexOf(h)<0?0:1/hs.length;}
+function shareTxt(f){return "Anteil "+Math.round(f*100)+" %";}
 function closeLpop(){var p=document.getElementById("lpop");if(p)p.remove();}
 function showLpop(dim,key){
   closeLpop();var H=state.settings.home;
@@ -2102,8 +2105,8 @@ function showLpop(dim,key){
     .filter(function(c){return dim==="holder"?holdersOf(c).indexOf(key)>=0:statKey(c,dim)===key;});
   var act=all.filter(function(c){return c.status!=="cancelled"&&!endedByNotice(c);}).sort(function(a,b){return monthlyCost(b)-monthlyCost(a);});
   var nOld=all.length-act.length,sum=0;
-  var rows=act.map(function(c){var off=isPaused(c);if(!off)sum+=monthlyCost(c);
-    return '<div class="lr'+(off?" off":"")+'">'+markHtml(c)+'<span class="lt">'+esc(titleOf(c))+(off?" · pausiert":"")+'</span><b>'+money(monthlyCost(c))+"</b></div>";}).join("");
+  var rows=act.map(function(c){var off=isPaused(c),f=dim==="holder"?holderShare(c,key):1,v=monthlyCost(c)*f;if(!off)sum+=v;
+    return '<div class="lr'+(off?" off":"")+'">'+markHtml(c)+'<span class="lt">'+esc(titleOf(c))+(f<1?" · "+shareTxt(f):"")+(off?" · pausiert":"")+'</span><b>'+money(v)+"</b></div>";}).join("");
   var p=document.createElement("div");p.id="lpop";p.className="lpop";p.setAttribute("role","dialog");p.setAttribute("aria-label",key);
   p.innerHTML='<h4>'+esc(key)+'<span>'+H+'/Mt.</span><button type="button" class="lpx" data-lpx aria-label="Schliessen">×</button></h4>'+(rows||'<p class="lx">Keine aktiven Verträge.</p>')+
     (act.length?'<div class="lf"><span>Total pro Monat</span><span>'+money(sum)+" "+H+"</span></div>":"")+
@@ -2138,10 +2141,11 @@ function renderStat(v){
   pool.forEach(function(c){
     var inF=fltMatch(c,null);
     var inG=fltMatch(c,G);
+    var sh=holderShare(c);
     payments(c,from,to).forEach(function(p){
-      var d=p.d,val=conv(p.a,c.cur);allTot+=val;allN++;
+      var d=p.d,val=conv(p.a,c.cur)*sh;allTot+=val;allN++;
       if(inG){var k=statKey(c,G),gm=gM[d.getMonth()];gY[k]=(gY[k]||0)+val;gm[k]=(gm[k]||0)+val;}
-      if(inF){var mo=months[d.getMonth()];mo.sum+=val;if(d<T0)mo.paid+=val;else mo.open+=val;mo.items.push({c:c,d:d,v:val,a:p.a,ex:p.ex});}
+      if(inF){var mo=months[d.getMonth()];mo.sum+=val;if(d<T0)mo.paid+=val;else mo.open+=val;mo.items.push({c:c,d:d,v:val,a:p.a*sh,sh:sh,ex:p.ex});}
     });
   });
   var tot=0,max=0;months.forEach(function(m){tot+=m.sum;if(m.sum>max)max=m.sum;});
@@ -2157,7 +2161,7 @@ function renderStat(v){
   if(!allN){v.innerHTML=o+'<div class="empty"><b>Keine Zahlungen in '+Y+'</b>Für dieses Jahr sind keine Zahlungen erfasst oder berechenbar.</div>'+hint;return;}
   var avg=tot/12,mx=max||1,ap=avg/mx*100;
   var pT=0,pf=new Date(Y-1,0,1),pt=new Date(Y-1,11,31);
-  pool.forEach(function(c){if(!fltMatch(c,null))return;payments(c,pf,pt).forEach(function(p){pT+=conv(p.a,c.cur);});});
+  pool.forEach(function(c){if(!fltMatch(c,null))return;var f1=holderShare(c);payments(c,pf,pt).forEach(function(p){pT+=conv(p.a,c.cur)*f1;});});
   var yd=pT>0?(tot-pT)/pT*100:null,ydV="—",ydC="";
   if(yd!=null&&!pool.some(function(c){return !c.start&&fltMatch(c,null);})){
     if(Math.abs(yd)<0.05)ydV="±0 %";else{ydV=(yd>0?"+":"−")+Math.abs(yd).toFixed(1)+" %";ydC=yd>0?"up":"down";}}
@@ -2174,7 +2178,7 @@ function renderStat(v){
   var pp=sm.sum?sm.paid/sm.sum*100:0;
   // Vergleich mit demselben Monat im Vorjahr
   var pmS=0,pmF=new Date(Y-1,sel,1),pmT=new Date(Y-1,sel+1,0),pmLbl=MS[sel]+". "+(Y-1);
-  pool.forEach(function(c){if(!fltMatch(c,null))return;payments(c,pmF,pmT).forEach(function(p){pmS+=conv(p.a,c.cur);});});
+  pool.forEach(function(c){if(!fltMatch(c,null))return;var f2=holderShare(c);payments(c,pmF,pmT).forEach(function(p){pmS+=conv(p.a,c.cur)*f2;});});
   var pmD=sm.sum-pmS,pmHtml;
   var vsL=" vs. "+MS[sel]+" "+String(Y-1).slice(2);
   if(pmS<0.005)pmHtml='<span class="dpill">neu'+vsL+'</span>';
@@ -2187,8 +2191,8 @@ function renderStat(v){
   var mrow=function(it){var c=it.c,d=it.d,past=d<T0,dn=daysBetween(T0,d);
     var st=past?"am "+fmtShort(d):(dn===0?"heute fällig":(dn<=7?"in "+dn+(dn===1?" Tag":" Tagen"):"fällig "+fmtShort(d)));
     return '<button class="mrow'+(past?" past":"")+'" data-open="'+c._id+'">'+markHtml(c)+
-      '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span>'+(it.ex?'<span class="mm">'+esc([metaOf(c),exLabel(it.ex)].filter(Boolean).join(" · "))+"</span>":(metaOf(c)?'<span class="mm">'+esc(metaOf(c))+"</span>":""))+"</span>"+
-      '<span class="ma"><span><b>'+(it.ex&&it.a<0?"−"+money(-it.a):money(it.ex?it.a:priceAt(c,d)))+'</b> <u>'+esc(c.cur)+'</u></span><span class="ms'+(!past&&dn<=7?" warn":"")+'">'+st+"</span></span></button>";};
+      '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span>'+(function(){var m=[it.sh<1?shareTxt(it.sh):"",metaOf(c),it.ex?exLabel(it.ex):""].filter(Boolean).join(" · ");return m?'<span class="mm">'+esc(m)+"</span>":"";})()+"</span>"+
+      '<span class="ma"><span><b>'+(it.a<0?"−"+money(-it.a):money(it.a))+'</b> <u>'+esc(c.cur)+'</u></span><span class="ms'+(!past&&dn<=7?" warn":"")+'">'+st+"</span></span></button>";};
   var isNow=sm.sum>0.004&&Y===nowY&&sel===T0.getMonth();
   // Vorjahresmonat: ganze Franken reichen für den Vergleich
   var pmTxt="",pmCls="";
