@@ -508,6 +508,16 @@ body.hasplus .topadd{display:inline-flex}
 .mrow.past .mark{opacity:.7}
 .mempty{padding:12px 0 2px;border-top:1px solid var(--line);font-size:14px;color:var(--ink2)}
 .mlabels span.now::after{content:"";display:block;width:4px;height:4px;border-radius:50%;background:var(--teal);margin:3px auto 0}
+/* Gewählter Monat deutlich: Streifen hinter dem Balken + Pille beim Kürzel; aktueller Monat farbig mit Punkt
+   (SwiftUI: RectangleMark als Hintergrund-Band + Capsule-Label) */
+.col.on::before,.bcol.on::before{content:"";position:absolute;left:-1.5px;right:-1.5px;top:-6px;bottom:0;border-radius:8px;z-index:-1;
+  background:color-mix(in srgb,var(--teal) 16%,transparent)}
+.col:not(.on) i,.bcol:not(.on) i{opacity:.62;transition:opacity .15s,background-color .15s}
+.mlabels{margin-bottom:6px}
+.mlabels span{padding:3px 0;border-radius:999px;line-height:1.2}
+.mlabels span.on{background:var(--teal);color:var(--paper);font-weight:700}
+.mlabels span.now:not(.on){color:var(--teal);font-weight:700}
+.mlabels span.now::after{position:absolute;left:50%;bottom:-7px;margin:0;transform:translateX(-50%);width:5px;height:5px}
 
 /* Kategorie-Symbole */
 .mark .cicon{width:56%;height:56%;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
