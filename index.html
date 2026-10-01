@@ -1967,10 +1967,10 @@ function openPick(dim){
     l.innerHTML=so.map(function(o){return '<button class="pick" data-pv="'+o[0]+'" aria-pressed="'+(cs===o[0])+'"><span>'+o[1]+"</span><span></span></button>";}).join("");
     openSheet(document.getElementById("sheetPick"));return;
   }
-  var pool=Object.keys(state.contracts).map(function(k){return state.contracts[k];}),cnt={};
+  var pool=Object.keys(state.contracts).map(function(k){return state.contracts[k];}),cnt={},act={};
   pool.forEach(function(c){
-    var ks=dim==="holder"?holdersOf(c):[statKey(c,dim)];
-    ks.forEach(function(k){if(k)cnt[k]=(cnt[k]||0)+1;});
+    var ks=dim==="holder"?holdersOf(c):[statKey(c,dim)],on=c.status!=="cancelled"&&!endedByNotice(c);
+    ks.forEach(function(k){if(k){cnt[k]=(cnt[k]||0)+1;if(on)act[k]=(act[k]||0)+1;}});
   });
   var keys=Object.keys(cnt);
   if(dim==="cat")keys.sort(function(a,b){var AC=allCats(),ia=AC.indexOf(a),ib=AC.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
@@ -1979,7 +1979,7 @@ function openPick(dim){
   document.getElementById("pickTitle").textContent=title;
   var cur=state.flt[dim];
   var h='<button class="pick" data-pv="" aria-pressed="'+(!cur)+'"><span>'+allTxt+"</span><span></span></button>";
-  keys.forEach(function(k){h+='<button class="pick" data-pv="'+esc(k)+'" data-lp="'+esc(k)+'" aria-pressed="'+(cur===k)+'"><span>'+esc(k)+"</span><span>"+cnt[k]+(cnt[k]===1?" Vertrag":" Verträge")+"</span></button>";});
+  keys.forEach(function(k){h+='<button class="pick" data-pv="'+esc(k)+'" data-lp="'+esc(k)+'" aria-pressed="'+(cur===k)+'"><span>'+esc(k)+"</span><span>"+(act[k]?act[k]+(act[k]===1?" aktiver Vertrag":" aktive Verträge"):"nur beendete")+"</span></button>";});
   if(keys.length)h+='<p class="lphint">Lange drücken zeigt die Beträge</p>';
   var l=document.getElementById("pickList");l.innerHTML=h;l.dataset.dim=dim;
   openSheet(document.getElementById("sheetPick"));
