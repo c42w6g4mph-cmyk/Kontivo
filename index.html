@@ -782,6 +782,8 @@ body{display:flex;flex-direction:column}
   font-size:14px;color:var(--ink);text-decoration:none}
 .links a span:last-child{color:var(--teal);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.two.zipcity{grid-template-columns:minmax(84px,1fr) 2.2fr}
+.sndform .flabel{margin-bottom:8px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px}
 .chip{padding:7px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;color:var(--ink2)}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
@@ -1068,9 +1070,20 @@ details.opt.moreact{margin-top:9px;background:transparent}
     <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Name, Farbe, Symbol, Reihenfolge</small></span><em id="mdSumC"></em></button>
     <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small>Fehlende Angaben in Verträgen und Vertragspartnern</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Kündigungsschreiben</div>
-    <div class="field" style="margin:0"><label for="sSender">Absender — Name und Adresse</label>
-    <textarea id="sSender" placeholder="Vorname Name&#10;Strasse Nr.&#10;PLZ Ort" style="min-height:84px"></textarea></div>
-    <p class="note" style="margin:6px 0 0">Erscheint oben im Kündigungstext, Ort und Datum werden ergänzt.</p></div>
+    <form id="sSender" class="sndform" autocomplete="on" novalidate>
+      <div class="flabel">Absender</div>
+      <div class="two">
+        <div class="field"><label for="sFirst">Vorname</label><input id="sFirst" name="given-name" type="text" autocomplete="given-name" autocapitalize="words" enterkeyhint="next"></div>
+        <div class="field"><label for="sLast">Nachname</label><input id="sLast" name="family-name" type="text" autocomplete="family-name" autocapitalize="words" enterkeyhint="next"></div>
+      </div>
+      <div class="field"><label for="sStreet">Strasse und Nr.</label><input id="sStreet" name="address-line1" type="text" autocomplete="address-line1" autocapitalize="words" enterkeyhint="next"></div>
+      <div class="two zipcity">
+        <div class="field"><label for="sZip">PLZ</label><input id="sZip" name="postal-code" type="text" inputmode="numeric" autocomplete="postal-code" enterkeyhint="next"></div>
+        <div class="field"><label for="sCity">Ort</label><input id="sCity" name="address-level2" type="text" autocomplete="address-level2" autocapitalize="words" enterkeyhint="next"></div>
+      </div>
+      <div class="field" style="margin:0"><label for="sCountry">Land (optional)</label><input id="sCountry" name="country-name" type="text" autocomplete="country-name" autocapitalize="words" enterkeyhint="done" placeholder="z.B. Schweiz"></div>
+    </form>
+    <p class="note" style="margin:6px 0 0">Erscheint oben im Kündigungstext, Ort und Datum werden ergänzt. Tipp: Über der Tastatur bietet das iPhone deine Kontaktdaten zum Ausfüllen an.</p></div>
   <div class="sgroup"><div class="sgh">Daten</div>
     <div class="tiles">
       <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
@@ -1448,7 +1461,20 @@ function migModel(){var ch=false,s=state.settings;
   if("rate" in s){s.rates=s.rates||{};if(!(+s.rates.EUR>0)&&+s.rate>0)s.rates.EUR=+s.rate;delete s.rate;ch=true;}
   [state.contracts,state.incomes].forEach(function(m){Object.keys(m||{}).forEach(function(k){var c=m[k];if(!c||!("holder" in c))return;
     if((!c.holders||!c.holders.length)&&c.holder)c.holders=[c.holder];delete c.holder;ch=true;});});
+  if("sender" in s){if(!s.senderF)s.senderF=senderParse(s.sender);delete s.sender;ch=true;}
   return ch;}
+/* Absender: Freitext (alt) → Felder {first, last, street, zip, city, country}. Zeile mit «PLZ Ort» wird erkannt. */
+var SND_KEYS=["first","last","street","zip","city","country"];
+function senderParse(t){var o={first:"",last:"",street:"",zip:"",city:"",country:""};
+  var L=String(t||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean),zi=-1;
+  L.forEach(function(x,i){if(zi<0&&/^(?:[A-Z]{1,2}-?)?\d{4,5}\s+\S/.test(x))zi=i;});
+  if(L[0]&&zi!==0){var w=L[0].split(/\s+/);o.last=w.length>1?w.pop():"";o.first=w.join(" ");}
+  if(zi>=0){var m=L[zi].match(/^(?:[A-Z]{1,2}-?)?(\d{4,5})\s+(.+)$/);o.zip=m[1];o.city=m[2];
+    o.street=L.slice(1,zi).join(", ");o.country=L.slice(zi+1).join(", ");}
+  else o.street=L.slice(1).join(", ");
+  return o;}
+function senderLines(){var f=state.settings.senderF||{},t=function(k){return String(f[k]||"").trim();};
+  return [[t("first"),t("last")].filter(Boolean).join(" "),t("street"),[t("zip"),t("city")].filter(Boolean).join(" "),t("country")].filter(Boolean);}
 function migCats(){var ch=migModel();
   Object.keys(state.contracts||{}).forEach(function(k){var c=state.contracts[k];if(c&&CAT_MIG[c.cat]){c.cat=CAT_MIG[c.cat];ch=true;}});
   var s=state.settings;
@@ -3049,9 +3075,9 @@ function openLink(url,copy){
 function cancelText(c){
   var nr=[c.custNo?"Kundennummer: "+c.custNo:"",c.contrNo?"Vertragsnummer: "+c.contrNo:""].filter(Boolean).join("\n");
   var d=noticeDeadline(c),e=termEnd(c);
-  var snd=String(state.settings.sender||"").trim(),sl=snd?snd.split(/\n/).map(function(x){return x.trim();}).filter(Boolean):[];
-  var city=(function(){for(var i=sl.length-1;i>=0;i--){var m=sl[i].match(/^(?:[A-Z]{1,2}-?)?\d{4,5}\s+(.+)$/);if(m)return m[1];}return "";})();
-  var signer=sl[0]||holdersOf(c).join(" und ");
+  var sf=state.settings.senderF||{},sl=senderLines(),city=String(sf.city||"").trim();
+  var nm=[sf.first,sf.last].map(function(x){return String(x||"").trim();}).filter(Boolean).join(" ");
+  var signer=nm||holdersOf(c).join(" und ");
   return (sl.length?sl.join("\n")+"\n\n":"")+(c.partner?c.partner+"\n[Adresse]\n\n":"")+
     (city?city+", ":"")+fmtD(iso(today()))+"\n\n"+
     "Kündigung "+(c.label||c.partner)+(c.label&&c.partner?" bei "+c.partner:"")+"\n\n"+
@@ -4042,7 +4068,7 @@ function pickOwnPartner(o){
   });
 })();
 function fillSettings(){
-  paintMdSummary();document.getElementById("sSender").value=state.settings.sender||"";
+  paintMdSummary();paintSender();
   var lr=state.settings.lastReview;document.getElementById("reviewStamp").textContent=lr?"Letzter Quartals-Check: "+fmtD(lr):"Noch kein Quartals-Check durchgeführt";
   paintHomePick();
   document.getElementById("csvOut").innerHTML="";paintRateStamp();
@@ -4052,7 +4078,19 @@ function paintRateStamp(){var s=state.settings,d=s.rateDate,H=s.home||"CHF";
   var el=document.getElementById("rateShow");if(!el)return;
   el.innerHTML=CURS.filter(function(c){return c!==H;}).map(function(c){var v=rateOf(c)/rateOf(H);
     return "<div><span>1 "+c+"</span><b>"+v.toFixed(v<0.1?4:4)+" "+H+"</b></div>";}).join("");}
-document.getElementById("sSender").addEventListener("change",function(){state.settings.sender=this.value.trim();saveSettings();toast("Absender gespeichert");});
+/* Absender als Formular mit Autofill-Feldern (SwiftUI: TextField + .textContentType) */
+var SND_IDS={first:"sFirst",last:"sLast",street:"sStreet",zip:"sZip",city:"sCity",country:"sCountry"};
+function paintSender(){var f=state.settings.senderF||{};SND_KEYS.forEach(function(k){document.getElementById(SND_IDS[k]).value=f[k]||"";});}
+(function(){var F=document.getElementById("sSender"),tm=0;
+  function save(){var o={};SND_KEYS.forEach(function(k){o[k]=document.getElementById(SND_IDS[k]).value.trim().replace(/\s+/g," ");});
+    if(JSON.stringify(o)===JSON.stringify(state.settings.senderF||{}))return;
+    state.settings.senderF=o;saveSettings();clearTimeout(tm);tm=setTimeout(function(){toast("Absender gespeichert");},300);}
+  F.addEventListener("change",save);
+  F.addEventListener("submit",function(e){e.preventDefault();save();if(document.activeElement)document.activeElement.blur();});
+  F.addEventListener("keydown",function(e){if(e.key!=="Enter")return;e.preventDefault();
+    var ids=SND_KEYS.map(function(k){return SND_IDS[k];}),i=ids.indexOf(e.target.id);
+    if(i>=0&&i<ids.length-1)document.getElementById(ids[i+1]).focus();else{save();e.target.blur();}});
+})();
 /* Hauptwährung als Kacheln mit Fahne, gleich wie in der Einführung (SwiftUI: LazyVGrid + DisclosureGroup) */
 var homeMore=false;
 function paintHomePick(){var H=state.settings.home||"EUR";if(CUR_MORE.indexOf(H)>=0)homeMore=true;
