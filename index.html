@@ -893,24 +893,7 @@ details.opt.moreact{margin-top:9px;background:transparent}
 #askOk.dangerbtn{background:var(--alert);color:#fff}
 .srowbtn.wipe span{color:var(--alert)}
 @media (max-width:370px){.tabbar .tl{font-size:9.5px;letter-spacing:-.02em}.tabbar button{padding-left:0;padding-right:0}}
-.xcats{background:var(--surface);border-radius:var(--r);overflow:hidden}
-.xcat+.xcat{border-top:1px solid var(--line)}
-.xcat summary{list-style:none;display:flex;align-items:center;gap:11px;padding:11px 13px;cursor:pointer}
-.xcat summary::-webkit-details-marker{display:none}
-.xcat .pci{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none}
-.xcat .pci svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.xn{flex:1;min-width:0;font-size:14.5px;font-weight:600;display:flex;flex-direction:column}
-.xn em{font-style:normal;font-weight:400;font-size:12px;color:var(--ink3)}
-.xcat summary b{font-size:14.5px;font-variant-numeric:tabular-nums}
-.xcat summary::after{content:"";width:6px;height:6px;border-right:1.5px solid var(--ink3);border-bottom:1.5px solid var(--ink3);transform:rotate(45deg);margin:-3px 2px 0 2px;transition:transform .15s}
-.xcat[open] summary::after{transform:rotate(-135deg);margin-top:3px}
-.xrow{display:flex;align-items:center;gap:10px;width:100%;padding:8px 13px 8px 54px;text-align:left;font-size:13.5px;border-top:1px dashed var(--line)}
-.xrow .mark{width:30px;height:30px;border-radius:8px;font-size:12px}
-.xrow .mark svg{width:16px;height:16px}
-.xrow .xt{flex:1;display:flex;flex-direction:column;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow em{font-style:normal;font-size:11.5px;color:var(--ink3)}
-.xrow b{font-weight:500;font-variant-numeric:tabular-nums}
-.xall{display:block;margin:6px 0 0 auto;padding:6px 2px;font-size:13px;font-weight:600;color:var(--teal)}
-.xsum{margin-top:4px;background:var(--surface);border-radius:var(--r);padding:10px 13px;font-size:14px}
+.xsum{margin-top:8px;background:var(--surface);border-radius:var(--r);padding:10px 13px;font-size:14px}
 .xsum div{display:flex;justify-content:space-between;padding:3px 0;color:var(--ink2)}
 .xsum b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
 .xsum .t{border-top:1px solid var(--line);margin-top:4px;padding-top:7px;color:var(--ink);font-weight:600}
@@ -2399,24 +2382,25 @@ function renderBudget(v){
       '<div class="ifoot"><button type="button" id="incAdd">+ Einnahme</button><button type="button" data-incall>Alle Einnahmen ('+incs.length+') ›</button></div></div></div>';
   } else o+='<div class="grp"><button class="addline" id="incAdd">+ Einnahme erfassen</button></div>';
   if(incs.length){
-    var eF=new Date(Y,sel,1),eT=new Date(Y,sel+1,0),byCat={},eTot=0;
+    /* Ausgaben des Monats: flache Liste wie in «Kosten», nach Betrag; die grössten 5, Rest hinter «Alle anzeigen» */
+    var eF=new Date(Y,sel,1),eT=new Date(Y,sel+1,0),xs=[],eTot=0;
     Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k],f=shr(c);if(!f)return;
-      payments(c,eF,eT).forEach(function(p){var d=p.d,a=conv(p.a,c.cur)*f,ct=c.cat||"Sonstiges";
-        (byCat[ct]=byCat[ct]||{sum:0,items:[]}).sum+=a;byCat[ct].items.push({c:c,id:k,d:d,a:a,ex:p.ex});eTot+=a;});});
-    var cats=Object.keys(byCat).sort(function(x,y){return byCat[y].sum-byCat[x].sum;});
-    o+='<div class="grp"><div class="grphead"><span>Ausgaben '+MON[sel]+'</span><span>'+money(eTot)+" "+H+"</span></div><div class=\"xcats\">";
-    cats.forEach(function(ct,ci){var g=byCat[ct];
-      o+='<details class="xcat"'+(state._xAll?" open":"")+'><summary><span class="pci" style="background:'+catColor(ct)+'">'+catIcon(ct)+'</span><span class="xn">'+esc(ct)+'<em>'+g.items.length+(g.items.length===1?" Zahlung":" Zahlungen")+'</em></span><b>'+money(g.sum)+'</b></summary>'+
-        g.items.sort(function(x,y){return y.a-x.a;}).map(function(it){return '<button class="xrow" data-open="'+it.id+'">'+markHtml(it.c)+'<span class="xt">'+esc(titleOf(it.c))+'<em>'+fmtD(iso(it.d))+(it.ex?" · "+esc(exLabel(it.ex)):"")+'</em></span><b>'+money(it.a)+'</b></button>';}).join("")+"</details>";});
-    o+='</div><button class="xall" id="xAll" type="button">'+(state._xAll?"Alle ausblenden":"Alle einblenden")+'</button><div class="xsum"><div><span>Einnahmen</span><b>'+money(sm.inc)+'</b></div><div><span>− Ausgaben</span><b>'+money(sm.fix)+'</b></div><div class="t"><span>= Verfügbar</span><b>'+money(sm.free)+" "+H+"</b></div></div></div>";
+      payments(c,eF,eT).forEach(function(p){var a=conv(p.a,c.cur)*f;xs.push({c:c,id:k,d:p.d,a:a,sh:f,ex:p.ex});eTot+=a;});});
+    xs.sort(function(x,y){return y.a-x.a;});
+    var LIM=5,more=xs.length-LIM,showAll=!!state._xAll||more<=1,list=showAll?xs:xs.slice(0,LIM);
+    var xrow=function(it){var c=it.c,sub=[metaOf(c),it.sh<1?shareTxt(it.sh):"",it.ex?exLabel(it.ex):""].filter(Boolean).join(" · ");
+      return '<button class="mrow" data-open="'+it.id+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span>'+(sub?'<span class="mm">'+esc(sub)+"</span>":"")+'</span>'+
+        '<span class="ma"><span><b>'+(it.a<0?"−"+money(-it.a):money(it.a))+'</b></span><span class="ms">'+esc(c.cat||"Sonstiges")+"</span></span></button>";};
+    o+='<div class="grp"><div class="grphead"><span>Ausgaben '+MON[sel]+'</span><span>'+money(eTot)+" "+H+'</span></div><div class="mrows mrows2">'+
+      (xs.length?list.map(xrow).join(""):'<div class="mempty">Keine Ausgaben im '+MON[sel]+'</div>')+
+      (xs.length>LIM&&more>1?'<button class="tfold pfold" id="xAll" aria-expanded="'+showAll+'"><span>'+(showAll?"Nur die grössten 5":"Alle "+xs.length+" anzeigen")+'</span><i></i></button>':"")+'</div>'+
+      '<div class="xsum"><div><span>Einnahmen</span><b>'+money(sm.inc)+'</b></div><div><span>− Ausgaben</span><b>'+money(sm.fix)+'</b></div><div class="t"><span>= Verfügbar</span><b>'+money(sm.free)+" "+H+"</b></div></div></div>";
   }
   v.innerHTML=o;
 }
 
 /* ---------- Formular ---------- */
-document.addEventListener("click",function(ev){if(!ev.target.closest("#xAll"))return;
-  state._xAll=!state._xAll;document.querySelectorAll(".xcat").forEach(function(d){d.open=state._xAll;});
-  ev.target.closest("#xAll").textContent=state._xAll?"Alle ausblenden":"Alle einblenden";});
+document.addEventListener("click",function(ev){if(!ev.target.closest("#xAll"))return;state._xAll=!state._xAll;renderView();});
 function openSheet(el){document.getElementById("scrim").classList.add("on");el.classList.add("on");el.scrollTop=0;}
 function closeSheets(){
   document.getElementById("scrim").classList.remove("on");
