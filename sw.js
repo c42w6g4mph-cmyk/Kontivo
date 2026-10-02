@@ -1,5 +1,5 @@
 /* Kontivo – Offline-Cache. Bei jeder neuen Version VERSION erhöhen. */
-var VERSION="kontivo-v55";
+var VERSION="kontivo-v56";
 var CORE=["./","index.html","manifest.webmanifest","apple-touch-icon.png","icon-192.png","icon-512.png",
   "onb/list-light.webp","onb/list-dark.webp","onb/stat-light.webp","onb/stat-dark.webp","onb/budget-light.webp","onb/budget-dark.webp","onb/term-light.webp","onb/term-dark.webp",
   "fonts/Hurricane-Regular.ttf","fonts/LaBelleAurore.ttf","fonts/Licorice-Regular.ttf","fonts/Zeyada.ttf","fonts/Qwigley-Regular.ttf","fonts/Bilbo-Regular.ttf"];
