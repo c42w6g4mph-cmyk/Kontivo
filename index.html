@@ -1133,7 +1133,12 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .qhr span{display:flex;gap:2px}
 .qcrit ul{list-style:none;margin:0;padding:0}
 .qcrit li{display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px;color:var(--ink2);border-top:1px solid var(--line)}
-.qcrit li.w{color:var(--ink)}
+.qcrit li.w{color:var(--ink);padding:0}
+.qcrit li button{display:flex;align-items:center;gap:6px;width:100%;padding:8px 0;text-align:left;font-size:13.5px;color:var(--ink)}
+.qcrit li button span{flex:1}.qcrit li button i{font-style:normal;color:var(--ink3);font-size:17px;line-height:1}
+.qcrit li button:active{opacity:.6}
+.qlist{background:var(--field);border-radius:12px;padding:0 4px 0 12px}
+.qlist .qrow:first-child{border-top:0}
 .qcrit li b{color:var(--ok);font-weight:600}.qcrit li.w b{color:var(--warn)}
 .crow .crowb{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:10px 0;text-align:left}
 .crow .drag{flex:none;width:44px;height:44px;display:grid;place-items:center;touch-action:none;cursor:grab;color:var(--ink3);margin-right:-8px}
@@ -4112,36 +4117,37 @@ async function qApply(){
 }
 /* Betroffene Verträge (nicht Hinweise) zählen */
 function qualOpenContracts(q){var m={};q.A.concat(q.B,q.C,q.D).forEach(function(o){m[o.kind+(o.id||o.pk)]=1;});return Object.keys(m).length;}
-var Q_GROUPS=[["A","Kosten und Budget"],["B","Fristen"],["D","Kündigen"],["C","Vertragspartner"]];
+/* Datenqualität: Übersicht als einzige Liste; «n offen» antippen öffnet die betroffenen Einträge (Seite qlist). SwiftUI: List mit NavigationLink */
+function qSel(q,g,f){return q[g].filter(function(o){if(f==="inc")return o.kind==="i";var last=o.key.split(":").pop();return last===f&&(g!=="A"||o.kind==="c");});}
+var Q_ROWS=[["A","Kosten und Budget",[["holder","Inhaber"],["amount","Betrag"],["cat","Kategorie"],["cycle","Zahlungsweise"],["inc","Einnahmen: Betrag, Inhaber"]]],
+  ["B","Fristen",[["due","Fälligkeit"],["notice","Kündigungsfrist und Laufzeit"]]],
+  ["D","Kündigen",[["via","Kündigungsweg gewählt"],["ref","Kunden- oder Vertragsnummer"],["link","Link (Online)"],["mail","E-Mail-Adresse (E-Mail)"],["addr","Adresse des Vertragspartners (Brief)"],["sender","Absender der Inhaber"]]],
+  ["C","Vertragspartner",[["logo","Logo"]]]];
 function qualChecklist(q){
   var N=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length,NI=Object.keys(state.incomes).length;
-  function cnt(g,f,kind){return q[g].filter(function(o){return o.key.split(":").pop()===f&&(!kind||o.kind===kind);}).length;}
-  function li(t,m){return '<li'+(m?' class="w"':"")+'><span>'+t+'</span><b>'+(m?m+" offen":"✓")+'</b></li>';}
-  function grp(g,t,rows){var n=q[g].length;return '<div class="qgrp"><div class="qgh"><span>'+t+'</span><em class="'+(n?"w":"ok")+'">'+(n?n+" offen":"vollständig")+'</em></div><ul>'+rows.join("")+'</ul></div>';}
-  var mi=q.A.filter(function(o){return o.kind==="i";}).length;
   return '<div class="qcrit"><div class="qch">Was geprüft wird <small>'+cntTxt(N,"Vertrag","Verträge")+(NI?", "+cntTxt(NI,"Einnahme","Einnahmen"):"")+'</small></div>'+
-    grp("A","Kosten und Budget",[li("Inhaber",cnt("A","holder","c")),li("Betrag",cnt("A","amount","c")),li("Kategorie",cnt("A","cat")),li("Zahlungsweise",cnt("A","cycle"))].concat(NI?[li("Einnahmen: Betrag, Inhaber",mi)]:[]))+
-    grp("B","Fristen",[li("Fälligkeit",cnt("B","due")),li("Kündigungsfrist und Laufzeit",cnt("B","notice"))])+
-    grp("D","Kündigen",[li("Kündigungsweg gewählt",cnt("D","via")),li("Kunden- oder Vertragsnummer",cnt("D","ref")),li("Link (Online)",cnt("D","link")),li("E-Mail-Adresse (E-Mail)",cnt("D","mail")),li("Adresse des Vertragspartners (Brief)",cnt("D","addr")),li("Absender der Inhaber",cnt("D","sender"))])+
-    grp("C","Vertragspartner",[li("Logo",cnt("C","logo"))])+
-    '<p class="mdhint" style="margin:10px 0 0">Gekündigte Verträge und ignorierte Hinweise zählen nicht. Nicht überwachte Verträge, Pflichtverträge und Steuern brauchen keine Frist. Adresse, E-Mail und Link werden nur für den gewählten Kündigungsweg verlangt.</p></div>';
+    Q_ROWS.map(function(G){var n=q[G[0]].length;
+      return '<div class="qgrp"><div class="qgh"><span>'+G[1]+'</span><em class="'+(n?"w":"ok")+'">'+(n?n+" offen":"vollständig")+'</em></div><ul>'+
+        G[2].filter(function(r){return r[0]!=="inc"||NI;}).map(function(r){var m=qSel(q,G[0],r[0]).length;
+          return m?'<li class="w"><button type="button" data-qf="'+G[0]+':'+r[0]+'" data-qt="'+esc(r[1])+'"><span>'+r[1]+'</span><b>'+m+' offen</b><i>›</i></button></li>'
+            :'<li><span>'+r[1]+'</span><b>✓</b></li>';}).join("")+'</ul></div>';}).join("")+
+    '<p class="mdhint" style="margin:10px 0 0">Tippe auf «offen», um die Einträge zu sehen. Gekündigte Verträge und ignorierte Hinweise zählen nicht. Nicht überwachte Verträge, Pflichtverträge und Steuern brauchen keine Frist. Adresse, E-Mail und Link werden nur für den gewählten Kündigungsweg verlangt.</p></div>';
+}
+function qRows(a){
+  function mark(o){if(o.kind==="i")return incMark(o.c);if(o.kind==="h")return '<span class="mdav">'+esc(o.name.charAt(0).toUpperCase())+'</span>';return markHtml(o.c);}
+  return a.map(function(o){
+    var attr=o.kind==="c"?'data-qc="'+esc(o.id)+'"':o.kind==="i"?'data-qi="'+esc(o.id)+'"':o.kind==="h"?'data-hsopen="'+esc(o.id)+'"':'data-qp="'+esc(o.pk)+'"';
+    return '<div class="qrow"><button class="mdrow" type="button" '+attr+'>'+mark(o)+'<span class="t"><b>'+esc(o.name)+'</b><small>'+esc(o.why)+(o.sub?" · "+esc(o.sub):"")+'</small></span></button>'+
+      (o.logo?'<button class="qig qsr" type="button" data-qs="'+esc(o.pk)+'">Suchen</button>':"")+'<button class="qig" type="button" data-qig="'+esc(o.key)+'">Ignorieren</button></div>';}).join("");
 }
 function paintMdQual(){
   var b=document.getElementById("mdBody"),q=qualItems();
-  function mark(o){if(o.kind==="i")return incMark(o.c);if(o.kind==="h")return '<span class="mdav">'+esc(o.name.charAt(0).toUpperCase())+'</span>';return markHtml(o.c);}
-  function rows(a){return a.map(function(o){
-    var attr=o.kind==="c"?'data-qc="'+esc(o.id)+'"':o.kind==="i"?'data-qi="'+esc(o.id)+'"':o.kind==="h"?'data-hsopen="'+esc(o.id)+'"':'data-qp="'+esc(o.pk)+'"';
-    return '<div class="qrow"><button class="mdrow" type="button" '+attr+'>'+mark(o)+'<span class="t"><b>'+esc(o.why)+'</b><small>'+esc(o.name)+(o.sub?" · "+esc(o.sub):"")+'</small></span></button>'+
-      (o.logo?'<button class="qig qsr" type="button" data-qs="'+esc(o.pk)+'">Suchen</button>':"")+'<button class="qig" type="button" data-qig="'+esc(o.key)+'">Ignorieren</button></div>';}).join("");}
-  function sec(g,t){var a=q[g];if(!a.length)return "";
-    return '<div class="qhr"><h4 class="qh w">'+t+" · "+a.length+'</h4><span>'+(g==="C"?'<button class="qig qsr" type="button" data-qs="*">Alle suchen</button>':"")+'<button class="qig" type="button" data-qall="'+g+'">Alle ignorieren</button></span></div>'+rows(a);}
-  var n=q.A.length+q.B.length+q.C.length+q.D.length,nc=qualOpenContracts(q),N=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length;
-  var h=N?(n?'<div class="qtop"><b>'+cntTxt(n,"offener Punkt","offene Punkte")+' bei '+cntTxt(nc,"Eintrag","Einträgen")+'.</b><span>Tippe auf einen Punkt, um ihn direkt zu erledigen.</span></div>'
-    :'<div class="qtop ok"><i>'+esIc('<path d="m5 12.5 4.2 4.2L19 7"/>')+'</i><b>Sauber gepflegt. '+(N===1?"Dein Vertrag ist":"Alle "+N+" Verträge sind")+' vollständig.</b><span>Kosten, Budget, Fristen und Kündigungsschreiben stimmen.</span></div>')
+  var n=q.A.length+q.B.length+q.C.length+q.D.length,N=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length;
+  var h=N?(n?'<div class="qtop"><b>'+cntTxt(n,"offener Punkt","offene Punkte")+'.</b><span>Tippe unten auf «offen», um sie zu erledigen.</span></div>'
+    :'<div class="qtop ok"><i>'+esIc('<path d="m5 12.5 4.2 4.2L19 7"/>')+'</i><b>Sauber gepflegt. '+(N===1?"Dein Vertrag ist":"Alle "+N+" Verträge sind")+' vollständig.</b><span>Kosten, Budget, Fristen und Kündigungen stimmen.</span></div>')
     :'<p class="qok">Noch keine laufenden Verträge. Sobald du welche erfasst, siehst du hier, was fehlt.</p>';
-  Q_GROUPS.forEach(function(g){h+=sec(g[0],g[1]);});
-  if(q.ign)h+='<p class="note" style="margin:16px 0 0">'+q.ign+" ignoriert · <button class=\"dlink\" style=\"font-weight:500\" type=\"button\" id=\"qReset\">Zurücksetzen</button></p>";
-  if(N)h+='<div style="height:16px"></div>'+qualChecklist(q);
+  if(N)h+=qualChecklist(q);
+  if(q.ign)h+='<p class="note" style="margin:14px 4px 0">'+q.ign+" ignoriert · <button class=\"dlink\" style=\"font-weight:500\" type=\"button\" id=\"qReset\">Zurücksetzen</button></p>";
   b.innerHTML=h;
 }
 function paintMdSummary(){
@@ -4513,6 +4519,14 @@ function ceDelete(src,to){
 
 /* --- Fehlende Angaben --- */
 MD_PAGES.qual=function(){paintMdQual();return null;};
+MD_PAGES.qlist=function(p){
+  var a=qSel(qualItems(),p.g,p.f);
+  if(!a.length)return '<div class="qtop ok"><i>'+esIc('<path d="m5 12.5 4.2 4.2L19 7"/>')+'</i><b>Erledigt.</b><span>Hier ist nichts mehr offen.</span></div>';
+  return '<div class="qhr"><h4 class="qh w">'+cntTxt(a.length,"Eintrag","Einträge")+'</h4><span>'+(p.f==="logo"?'<button class="qig qsr" type="button" data-qs="*">Alle suchen</button>':"")+
+    '<button class="qig" type="button" data-qallf="1">Alle ignorieren</button></span></div><div class="qlist">'+qRows(a)+'</div>'+
+    '<p class="mdhint" style="margin-top:12px">Tippe auf einen Eintrag, um die Angabe nachzutragen.</p>';
+};
+
 MD_PAGES.raw=function(p){return p.html;};
 function openPe(key){var t=mdTop();if(document.getElementById("sheetMd").classList.contains("on")&&t)mdPush({k:"pe",key:key});else openMdAt({k:"pe",key:key});}
 function openPeSearch(pk){openPe(pk);setTimeout(function(){var b=document.getElementById("peAuto");if(b)b.click();},250);}
@@ -4552,6 +4566,8 @@ document.addEventListener("click",function(ev){
   var p=mdTop();if(!p)return;
   /* Fehlende Angaben */
   if((x=t.closest("[data-qig]"))){var ob=Object.assign({},qIgn());x.dataset.qig.split("|").forEach(function(kk){ob[kk]=1;});state.settings.qIgn=ob;saveSettings();paintMd(0);return;}
+  if((x=t.closest("[data-qf]"))){var qf=x.dataset.qf.split(":");mdPush({k:"qlist",g:qf[0],f:qf[1],title:x.dataset.qt});return;}
+  if((x=t.closest("[data-qallf]"))){var ob3=Object.assign({},qIgn());qSel(qualItems(),p.g,p.f).forEach(function(o){(o.keys||[o.key]).forEach(function(kk){ob3[kk]=1;});});state.settings.qIgn=ob3;saveSettings();paintMd(0);return;}
   if((x=t.closest("[data-qall]"))){var ob2=Object.assign({},qIgn()),g2=x.dataset.qall;qualItems()[g2].forEach(function(o){(o.keys||[o.key]).forEach(function(kk){ob2[kk]=1;});});state.settings.qIgn=ob2;saveSettings();paintMd(0);return;}
   if(t.closest("#qReset")){state.settings.qIgn={};saveSettings();paintMd(0);return;}
   if((x=t.closest("[data-qc]"))){var qid=x.dataset.qc,qc=state.contracts[qid];if(qc){var qo=Object.assign({},qc);qo._id=qid;closeMd();setTimeout(function(){openForm(qo);},200);}return;}
