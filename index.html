@@ -1105,10 +1105,6 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .cdelb i{width:20px;height:20px;border-radius:50%;background:var(--alert);position:relative}
 .cdelb i::after{content:"";position:absolute;left:5px;right:5px;top:9px;height:2px;background:#fff;border-radius:1px}
 .cdelb:disabled i{background:var(--ink3);opacity:.35}
-.tcard{position:relative}
-.tcard>.card{padding-right:52px}
-.tcal{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--teal) 10%,transparent);color:var(--teal)}
-.tcal svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .mdav.ph{background:var(--surface);overflow:hidden;padding:0}.mdav.ph img{width:100%;height:100%;object-fit:cover;display:block}
 .mdav.xl{width:84px;height:84px;font-size:34px;margin:0 auto}
 .hcard{position:relative;text-align:center;padding:8px 0 4px}
@@ -2099,8 +2095,7 @@ function renderView(){
     var decCard=function(c,trial){
       var d=trial?parseD(c.trial):nDl(c,termEnd(c)),dn=daysBetween(t1,d),lv=dn<=30?"alert":"warn";
       var line=(trial?"Probeabo endet ":"Frist ")+ddmm(d)+" · "+(dn===0?"heute":"noch "+humanDays(dn));
-      var calb=canCal(c,trial?"probe":"frist")?'<button class="tcal" data-cal="'+c._id+'" data-calk="'+(trial?"probe":"frist")+'" aria-label="In Kalender eintragen"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4M12 13v4M10 15h4"/></svg></button>':"";
-      return '<div class="tcard">'+calb+'<button class="card" data-open="'+c._id+'">'+markHtml(c)+
+      return '<div class="tcard"><button class="card" data-open="'+c._id+'">'+markHtml(c)+
         '<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline '+lv+'">'+line+"</div>"+
         '<div class="tline2">'+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr"+(c.mand?" · Pflichtvertrag":"")+"</div></div></button>"+
         '<div class="tacts"><button data-keep="'+c._id+'"'+(trial?' data-trial="1"':"")+'>Behalten</button>'+
@@ -3692,8 +3687,6 @@ function openDetail(idv){
     (isKept(c)?'<button class="ghost" data-act="unkeep">Entscheid «Behalten» zurücksetzen</button>':"")+
     (c.cancelPer||c.status==="cancelled"?"":function(){var v=cancVia(c);return '<button class="ghost" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
       (v==="online"?"Online kündigen":v==="mail"?"Per E-Mail kündigen":v==="post"?"Kündigungsschreiben":"Kündigen …")+'</button>';}())+
-    (canCal(c,"frist")?'<button class="ghost" data-act="kcal">Frist in den Kalender</button>':"")+
-    (canCal(c,"probe")?'<button class="ghost" data-act="kcalp">Probeabo-Ende in den Kalender</button>':"")+
     (c.status!=="cancelled"?'<button class="ghost" data-act="pause">'+(isPaused(c)?"Fortsetzen":"Pausieren")+"</button>":"")+
     '<details class="opt moreact"><summary>Weitere Aktionen</summary><div class="optbody">'+
     '<button class="ghost" data-act="dup">Duplizieren</button>'+
@@ -3716,7 +3709,6 @@ function openDetail(idv){
         if(isPaused(c)){var nc2=stripId(c);nc2.paused=false;nc2.pausedAt="";nc2.pausedUntil="";putContract(idv,nc2);closeSheets();render();toast("Fortgesetzt");}
         else openPausePick(idv);}
       else if(a==="cancel"){c.status="cancelled";c.cancelledAt=iso(today());putContract(idv,stripId(c));closeSheets();render();toast("Ins Archiv verschoben");}
-      else if(a==="kcal"||a==="kcalp"){calAdd(idv,a==="kcalp"?"probe":"frist");}
       else if(a==="uncancel"){var u1=stripId(c);u1.cancelPer="";u1.cancelledOn="";putContract(idv,u1);closeSheets();render();toast("Kündigung zurückgenommen");}
       else if(a==="unkeep"){var u2=stripId(c);u2.keptFor="";putContract(idv,u2);closeSheets();render();toast("Wieder offen");}
       else if(a==="reactivate"){c.status="active";c.cancelledAt="";putContract(idv,stripId(c));closeSheets();render();toast("Wieder aktiv");}
@@ -3741,29 +3733,6 @@ function openDetail(idv){
 });
 (function(){var sh=document.getElementById("sheetDetail");sh.addEventListener("scroll",function(){sh.classList.toggle("scrolled",sh.scrollTop>60);},{passive:true});})();
 function stripId(c){var x=Object.assign({},c);delete x._id;return x;}
-/* Einzelner Termin in den Kalender (.ics): ganztägig am letzten Kündigungstag bzw. am Probeabo-Ende, Erinnerung 7 Tage und 1 Tag vorher um 09:00.
-   Öffnet auf dem iPhone direkt den Kalender-Dialog «Hinzufügen» (data:text/calendar). SwiftUI: EventKitUI EKEventEditViewController */
-function icsEsc(t){return String(t||"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");}
-function icsDate(d){return d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2);}
-function calEvent(c,kind){
-  if(kind==="probe"){var tr=parseD(c.trial);return tr?{c:c,d:tr,k:"probe",t:"Probeabo endet: "+titleOf(c),x:"Vorher kündigen, sonst läuft es kostenpflichtig weiter."}:null;}
-  var d=noticeDeadline(c),T=termEnd(c);return d?{c:c,d:d,k:"frist",t:"Kündigungsfrist: "+titleOf(c),x:"Letzter Tag, an dem die Kündigung beim Anbieter sein muss"+(T?" (Vertragsende "+fmtD(iso(T))+")":"")+"."}:null;}
-function canCal(c,kind){var t=today();if(kind==="probe"){var tr=parseD(c.trial);return !!(tr&&tr>=t);}
-  if(isTax(c)||c.cancelPer||isAnytime(c))return false;var d=noticeDeadline(c);return !!(d&&d>=t);}
-function icsText(ev){var now=new Date(),st=now.toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
-  var L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Kontivo//Fristen//DE","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
-  ev.forEach(function(e){var c=e.c,d2=addDays(e.d,1),via=cancVia(c);
-    L.push("BEGIN:VEVENT","UID:kontivo-"+c._id+"-"+e.k+"-"+icsDate(e.d)+"@kontivo","DTSTAMP:"+st,"DTSTART;VALUE=DATE:"+icsDate(e.d),"DTEND;VALUE=DATE:"+icsDate(d2),
-      "SUMMARY:"+icsEsc(e.t),"DESCRIPTION:"+icsEsc(e.x+(c.partner?"\nVertragspartner: "+c.partner:"")+(via?"\nKündigung per: "+{online:"Online",mail:"E-Mail",post:"Brief"}[via]:"")+(c.custNo?"\nKundennummer: "+c.custNo:"")),
-      "TRANSP:TRANSPARENT","BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(e.t),"TRIGGER:-P6DT15H","END:VALARM","BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(e.t),"TRIGGER:-PT15H","END:VALARM","END:VEVENT");});
-  L.push("END:VCALENDAR");
-  /* Zeilen über 73 Zeichen falten (RFC 5545) */
-  return L.map(function(l){var o="";while(l.length>73){o+=l.slice(0,73)+"\r\n ";l=l.slice(73);}return o+l;}).join("\r\n")+"\r\n";}
-function calAdd(id,kind){var c0=state.contracts[id];if(!c0)return;var c=Object.assign({_id:id},c0),ev=calEvent(c,kind);if(!ev){toast("Kein Termin vorhanden");return;}
-  var txt=icsText([ev]),ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
-  if(ios){location.href="data:text/calendar;charset=utf-8,"+encodeURIComponent(txt);return;}
-  var u=URL.createObjectURL(new Blob([txt],{type:"text/calendar"})),a=document.createElement("a");a.href=u;a.download=(ev.k==="probe"?"Probeabo-":"Frist-")+String(titleOf(c)).replace(/[^\w\-]+/g,"_")+".ics";
-  document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(u);},2000);}
 /* Nach Online-/E-Mail-Kündigung: beim Zurückkommen fragen, ob gekündigt wurde (Kontivo kann es nicht prüfen) */
 var kPending="";
 document.addEventListener("visibilitychange",function(){if(document.visibilityState!=="visible"||!kPending)return;var id=kPending;kPending="";var c=state.contracts[id];if(!c)return;
@@ -3858,7 +3827,6 @@ function shiftMonth(step,slide){
 }
 document.getElementById("view").addEventListener("click",function(ev){
   if(state._swiped&&Date.now()-state._swiped<400&&ev.target.closest(".kcard"))return;
-  var cb=ev.target.closest("[data-cal]");if(cb){calAdd(cb.dataset.cal,cb.dataset.calk);return;}
   var kp=ev.target.closest("[data-keep]");
   if(kp){var id=kp.dataset.keep,c0=state.contracts[id];if(!c0)return;var c1=Object.assign({},c0);
     if(kp.dataset.trial)c1.trialKept=c1.trial;else c1.keptFor=iso(termEnd(Object.assign({_id:id},c1)));
