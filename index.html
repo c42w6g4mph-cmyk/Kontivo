@@ -812,7 +812,15 @@ body{display:flex;flex-direction:column}
 .links a span:last-child{color:var(--teal);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .two.zipcity{grid-template-columns:minmax(84px,1fr) 2.2fr}
-.sndform .flabel{margin-bottom:8px}
+.flabel+.sndform.ig{margin-top:6px}
+.sndform.ig{background:var(--field);border-radius:12px;overflow:hidden}
+.ig .igr{display:flex;border-top:1px solid var(--line)}
+.ig .igr:first-child{border-top:0}
+.ig .igr input{flex:1;min-width:0;width:100%;border:0;background:transparent;border-radius:0;padding:11px 14px;font-size:16px;color:var(--ink);outline:0;box-shadow:none}
+.ig .igr.two input+input{border-left:1px solid var(--line)}
+.ig .igr.zc input:first-child{flex:0 0 32%}
+.ig .igr input::placeholder{color:var(--ink3)}
+.ig .igr input:focus{background:color-mix(in srgb,var(--teal) 6%,transparent)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px}
 .chip{padding:7px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;color:var(--ink2)}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
@@ -1163,20 +1171,14 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
     <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Kündigungsschreiben</div>
-    <form id="sSender" class="sndform" autocomplete="on" novalidate>
-      <div class="flabel">Absender</div>
-      <div class="two">
-        <div class="field"><label for="sFirst">Vorname</label><input id="sFirst" name="given-name" type="text" autocomplete="given-name" autocapitalize="words" enterkeyhint="next"></div>
-        <div class="field"><label for="sLast">Nachname</label><input id="sLast" name="family-name" type="text" autocomplete="family-name" autocapitalize="words" enterkeyhint="next"></div>
-      </div>
-      <div class="field"><label for="sStreet">Strasse und Nr.</label><input id="sStreet" name="address-line1" type="text" autocomplete="address-line1" autocapitalize="words" enterkeyhint="next"></div>
-      <div class="two zipcity">
-        <div class="field"><label for="sZip">PLZ</label><input id="sZip" name="postal-code" type="text" inputmode="numeric" autocomplete="postal-code" enterkeyhint="next"></div>
-        <div class="field"><label for="sCity">Ort</label><input id="sCity" name="address-level2" type="text" autocomplete="address-level2" autocapitalize="words" enterkeyhint="next"></div>
-      </div>
-      <div class="field" style="margin:0"><label for="sCountry">Land (optional)</label><input id="sCountry" name="country-name" type="text" autocomplete="country-name" autocapitalize="words" enterkeyhint="done" placeholder="z.B. Schweiz"></div>
+    <div class="flabel">Absender</div>
+    <form id="sSender" class="sndform ig" autocomplete="on" novalidate>
+      <div class="igr two"><input id="sFirst" name="given-name" type="text" autocomplete="given-name" autocapitalize="words" enterkeyhint="next" placeholder="Vorname" aria-label="Vorname"><input id="sLast" name="family-name" type="text" autocomplete="family-name" autocapitalize="words" enterkeyhint="next" placeholder="Nachname" aria-label="Nachname"></div>
+      <div class="igr"><input id="sStreet" name="address-line1" type="text" autocomplete="address-line1" autocapitalize="words" enterkeyhint="next" placeholder="Strasse und Nr." aria-label="Strasse und Nr."></div>
+      <div class="igr two zc"><input id="sZip" name="postal-code" type="text" inputmode="numeric" autocomplete="postal-code" enterkeyhint="next" placeholder="PLZ" aria-label="PLZ"><input id="sCity" name="address-level2" type="text" autocomplete="address-level2" autocapitalize="words" enterkeyhint="next" placeholder="Ort" aria-label="Ort"></div>
+      <div class="igr"><input id="sCountry" name="country-name" type="text" autocomplete="country-name" autocapitalize="words" enterkeyhint="done" placeholder="Land (optional)" aria-label="Land (optional)"></div>
     </form>
-    <p class="note" style="margin:6px 0 0">Erscheint oben im Kündigungstext, Ort und Datum werden ergänzt. Tipp: Über der Tastatur bietet das iPhone deine Kontaktdaten zum Ausfüllen an.</p></div>
+    <p class="note" style="margin:6px 0 0">Steht oben im Brief. Das iPhone schlägt deine Kontaktdaten über der Tastatur vor.</p></div>
   <div class="sgroup"><div class="sgh">Daten</div>
     <div class="tiles">
       <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
