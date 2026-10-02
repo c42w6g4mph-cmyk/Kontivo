@@ -1157,6 +1157,10 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .qcrit li button:active{opacity:.6}
 .qlist{background:var(--field);border-radius:12px;padding:0 4px 0 12px}
 .qlist .qrow:first-child{border-top:0}
+.qed{padding:0 8px 12px 52px}
+.qed .qein{width:100%;border:0;border-radius:10px;background:var(--surface);padding:9px 12px;font-size:16px;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.qed .hseg{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.qed .hseg button[aria-pressed="true"],.qed .hseg button:active{background:var(--sunken)}
 .qcrit li b{color:var(--ok);font-weight:600}.qcrit li.w b{color:var(--warn)}
 .crow .crowb{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:10px 0;text-align:left}
 .crow .drag{flex:none;width:44px;height:44px;display:grid;place-items:center;touch-action:none;cursor:grab;color:var(--ink3);margin-right:-8px}
@@ -4170,12 +4174,13 @@ function qualChecklist(q){
             :'<li><span>'+r[1]+'</span><b>✓</b></li>';}).join("")+'</ul></div>';}).join("")+
     '<p class="mdhint" style="margin:10px 0 0">Tippe auf «offen», um die Einträge zu sehen. Gekündigte Verträge und ignorierte Hinweise zählen nicht. Nicht überwachte Verträge, Pflichtverträge und Steuern brauchen keine Frist. Adresse, E-Mail und Link werden nur für den gewählten Kündigungsweg verlangt.</p></div>';
 }
-function qRows(a){
+function qRows(a,f){
   function mark(o){if(o.kind==="i")return incMark(o.c);if(o.kind==="h")return avHtml(o.name);return markHtml(o.c);}
   return a.map(function(o){
     var attr=o.kind==="c"?'data-qc="'+esc(o.id)+'"':o.kind==="i"?'data-qi="'+esc(o.id)+'"':o.kind==="h"?'data-hsopen="'+esc(o.id)+'"':'data-qp="'+esc(o.pk)+'"';
-    return '<div class="qrow"><button class="mdrow" type="button" '+attr+'>'+mark(o)+'<span class="t"><b>'+esc(o.name)+'</b><small>'+esc(o.why)+(o.sub?" · "+esc(o.sub):"")+'</small></span></button>'+
-      (o.logo?'<button class="qig qsr" type="button" data-qs="'+esc(o.pk)+'">Suchen</button>':"")+'<button class="qig" type="button" data-qig="'+esc(o.key)+'">Ignorieren</button></div>';}).join("");
+    return '<div class="qrow"><button class="mdrow" type="button" '+attr+'>'+mark(o)+'<span class="t"><b>'+esc(o.name)+'</b>'+(function(t){return t?'<small>'+esc(t)+'</small>':"";})(f&&QE_INLINE[f]?(o.sub||""):[o.why,o.sub].filter(Boolean).join(" · "))+'</span></button>'+
+      (o.logo?'<button class="qig qsr" type="button" data-qs="'+esc(o.pk)+'">Suchen</button>':"")+'<button class="qig" type="button" data-qig="'+esc(o.key)+'">Ignorieren</button></div>'+
+      (f?(function(e){return e?'<div class="qed">'+e+'</div>':"";})(qEditor(o,f)):"");}).join("");
 }
 function paintMdQual(){
   var b=document.getElementById("mdBody"),q=qualItems();
@@ -4561,12 +4566,33 @@ function ceDelete(src,to){
 
 /* --- Fehlende Angaben --- */
 MD_PAGES.qual=function(){paintMdQual();return null;};
+/* Direkt in der Liste erledigen: einfache Angaben ohne Umweg über das Vertragsformular */
+var QE_INLINE={holder:1,amount:1,cat:1,cycle:1,due:1,via:1,ref:1,link:1,mail:1};
+function qEditor(o,f){if(o.kind!=="c"||!QE_INLINE[f])return "";var c=o.c,id=esc(o.id),k=' data-qe="'+id+':'+f+'"';
+  if(f==="via")return '<div class="hseg">'+[["online","Online"],["mail","E-Mail"],["post","Brief"]].map(function(v){return '<button type="button"'+k+' data-qv="'+v[0]+'">'+v[1]+'</button>';}).join("")+'</div>';
+  if(f==="holder"){var H=holderStats().map(function(h){return h.name;});return '<div class="hseg">'+H.map(function(n){return '<button type="button"'+k+' data-qv="'+esc(n)+'">'+esc(n)+'</button>';}).join("")+(H.length>1?'<button type="button"'+k+' data-qv="*">'+(H.length===2?"Beide":"Alle")+'</button>':"")+'</div>';}
+  if(f==="cat")return '<select class="qein"'+k+'><option value="">Kategorie wählen …</option>'+allCats().filter(function(n){return n!=="Sonstiges";}).map(function(n){return '<option>'+esc(n)+'</option>';}).join("")+'</select>';
+  if(f==="cycle")return '<select class="qein"'+k+'><option value="">Zahlungsweise wählen …</option>'+Object.keys(CYCLE).map(function(m){return '<option value="'+m+'">'+CYCLE[m]+'</option>';}).join("")+'</select>';
+  if(f==="due")return '<input class="qein" type="date"'+k+' aria-label="Nächste Zahlung">';
+  if(f==="amount")return '<input class="qein" type="text" inputmode="decimal" placeholder="Betrag in '+esc(c.cur||"CHF")+'"'+k+'>';
+  if(f==="ref")return '<input class="qein" type="text" autocomplete="off" placeholder="Kunden- oder Vertragsnummer"'+k+'>';
+  if(f==="link")return '<input class="qein" type="url" inputmode="url" autocomplete="off" placeholder="z.B. sunrise.ch/kuendigen"'+k+'>';
+  if(f==="mail")return '<input class="qein" type="email" autocomplete="off" placeholder="z.B. kuendigung@anbieter.ch"'+k+'>';
+  return "";}
+function qSave(key,v){var i=key.indexOf(":"),id=key.slice(0,i),f=key.slice(i+1),c=state.contracts[id];if(!c)return;v=String(v==null?"":v).trim();if(!v)return;
+  var nc=Object.assign({},c);
+  if(f==="via")nc.cancF={online:"Online / Kundenkonto",mail:"E-Mail",post:"Brief"}[v];
+  else if(f==="holder"){var H=holderStats().map(function(h){return h.name;});nc.holders=v==="*"?H.slice():[v];}
+  else if(f==="cat")nc.cat=v;else if(f==="cycle")nc.cycle=+v;else if(f==="due")nc.due=v;
+  else if(f==="amount"){var n=parseNum(v);if(!(n>0)){toast("Bitte einen Betrag eingeben");return;}nc.amount=n;}
+  else if(f==="ref")nc.custNo=v;else if(f==="link")nc.cancUrl=v;else if(f==="mail")nc.mail=v;
+  putContract(id,nc);render();paintMd(0);toast(titleOf(c)+": gespeichert");}
 MD_PAGES.qlist=function(p){
   var a=qSel(qualItems(),p.g,p.f);
   if(!a.length)return '<div class="qtop ok"><i>'+esIc('<path d="m5 12.5 4.2 4.2L19 7"/>')+'</i><b>Erledigt.</b><span>Hier ist nichts mehr offen.</span></div>';
   return '<div class="qhr"><h4 class="qh w">'+cntTxt(a.length,"Eintrag","Einträge")+'</h4><span>'+(p.f==="logo"?'<button class="qig qsr" type="button" data-qs="*">Alle suchen</button>':"")+
-    '<button class="qig" type="button" data-qallf="1">Alle ignorieren</button></span></div><div class="qlist">'+qRows(a)+'</div>'+
-    '<p class="mdhint" style="margin-top:12px">Tippe auf einen Eintrag, um die Angabe nachzutragen.</p>';
+    '<button class="qig" type="button" data-qallf="1">Alle ignorieren</button></span></div><div class="qlist">'+qRows(a,p.f)+'</div>'+
+    '<p class="mdhint" style="margin-top:12px">'+(QE_INLINE[p.f]?"Direkt hier eintragen, es wird sofort gespeichert. Tippe auf den Namen für alle Angaben.":"Tippe auf einen Eintrag, um die Angabe nachzutragen.")+'</p>';
 };
 
 MD_PAGES.raw=function(p){return p.html;};
@@ -4599,11 +4625,12 @@ function mdNameChange(el){
   else if(el.id==="heName")heRename(el.value);
   else if(el.id==="ceName")ceRename(el.value);
 }
-document.getElementById("mdBody").addEventListener("change",function(e){if(/^(peName|heName|ceName)$/.test(e.target.id)||/^pa[A-Z]/.test(e.target.id))mdNameChange(e.target);else if(/^hs[A-Z]/.test(e.target.id))hsSave();});
+document.getElementById("mdBody").addEventListener("change",function(e){if(e.target.matches&&e.target.matches(".qein[data-qe]")){qSave(e.target.dataset.qe,e.target.value);return;}if(/^(peName|heName|ceName)$/.test(e.target.id)||/^pa[A-Z]/.test(e.target.id))mdNameChange(e.target);else if(/^hs[A-Z]/.test(e.target.id))hsSave();});
 document.getElementById("mdBody").addEventListener("input",function(e){
   if(e.target.id==="mdQ"){md.q=e.target.value;var y=e.target.selectionStart;paintMd(0);var q=document.getElementById("mdQ");q.focus();try{q.setSelectionRange(y,y);}catch(x){}}
   if(e.target.id==="ceNew"){var t=mdTop();if(t&&t.k==="cenew")t.nm=e.target.value;}});
 document.getElementById("mdBody").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var id=e.target.id;
+  if(e.target.matches&&e.target.matches("input.qein")){e.preventDefault();e.target.blur();return;}
   if(/^(peName|heName|ceName)$/.test(id)){e.preventDefault();e.target.blur();}
   else if(/^pa[A-Z]/.test(id)){e.preventDefault();var pins=[].slice.call(document.querySelectorAll("#paForm input")),pi=pins.indexOf(e.target);if(pi>=0&&pi<pins.length-1)pins[pi+1].focus();else{paSave();e.target.blur();}}
   else if(/^hs[A-Z]/.test(id)){e.preventDefault();var ins=[].slice.call(document.querySelectorAll("#hsForm input")),ii=ins.indexOf(e.target);if(ii>=0&&ii<ins.length-1)ins[ii+1].focus();else{hsSave();e.target.blur();}}
@@ -4620,6 +4647,7 @@ document.addEventListener("click",function(ev){
   var p=mdTop();if(!p)return;
   /* Fehlende Angaben */
   if((x=t.closest("[data-qig]"))){var ob=Object.assign({},qIgn());x.dataset.qig.split("|").forEach(function(kk){ob[kk]=1;});state.settings.qIgn=ob;saveSettings();paintMd(0);return;}
+  if((x=t.closest("button[data-qe]"))){qSave(x.dataset.qe,x.dataset.qv);return;}
   if((x=t.closest("[data-qf]"))){var qf=x.dataset.qf.split(":");mdPush({k:"qlist",g:qf[0],f:qf[1],title:x.dataset.qt});return;}
   if((x=t.closest("[data-qallf]"))){var ob3=Object.assign({},qIgn());qSel(qualItems(),p.g,p.f).forEach(function(o){(o.keys||[o.key]).forEach(function(kk){ob3[kk]=1;});});state.settings.qIgn=ob3;saveSettings();paintMd(0);return;}
   if((x=t.closest("[data-qall]"))){var ob2=Object.assign({},qIgn()),g2=x.dataset.qall;qualItems()[g2].forEach(function(o){(o.keys||[o.key]).forEach(function(kk){ob2[kk]=1;});});state.settings.qIgn=ob2;saveSettings();paintMd(0);return;}
