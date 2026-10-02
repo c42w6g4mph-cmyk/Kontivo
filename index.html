@@ -508,18 +508,56 @@ body.hasplus .topadd{display:inline-flex}
 .esv{display:flex;flex-direction:column;align-items:center;text-align:center;padding:52px 0 0}
 .esart{position:relative;width:92px;height:92px;border-radius:28px;background:color-mix(in srgb,var(--teal) 12%,var(--surface));display:grid;place-items:center;margin-bottom:18px}
 .esart svg{width:46px;height:46px;fill:none;stroke:var(--teal);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.esart i{position:absolute;right:-6px;bottom:-6px;width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;font-style:normal;font-size:22px;line-height:30px;box-shadow:0 0 0 4px var(--paper)}
 .esv .est{font-family:ui-rounded,"SF Pro Rounded","Nunito",-apple-system,system-ui,sans-serif;font-size:22px;font-weight:700}
 .esv .esp{color:var(--ink2);font-size:15px;line-height:1.45;margin:6px 0 20px;max-width:30ch}
-/* Leeres Budget */
-.bes{padding-top:18px}
-.bes .esart{width:72px;height:72px;border-radius:22px;margin-bottom:14px}
-.bes .esart svg{width:36px;height:36px}
-.bes .esart i{width:28px;height:28px;font-size:19px;line-height:26px}
-.bes .esbtn{margin-top:16px}
-.bes .esp{max-width:34ch;margin-bottom:16px}
-.bes .est{font-size:21px;line-height:1.2;text-wrap:balance}
-.bprev{width:100%;margin-top:2px;max-width:400px;background:var(--surface);border-radius:16px;padding:14px 16px 16px;text-align:left;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+/* Leere Seiten (gemeinsames Muster) */
+.eh{padding-top:16px}
+.eh .esart{width:68px;height:68px;border-radius:20px;margin-bottom:14px}
+.eh .esart svg{width:34px;height:34px}
+.eh .est{font-size:21px;line-height:1.2;text-wrap:balance;max-width:20ch}
+.eh .esp{max-width:33ch;margin:8px 0 16px}
+.eh .esbtn{margin-top:16px}
+.eprev{width:100%;max-width:380px;background:var(--surface);border-radius:16px;padding:14px 16px 16px;text-align:left;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.bpt{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.bpt span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.bpt em{font-style:normal;font-size:11.5px;font-weight:600;color:var(--teal);background:color-mix(in srgb,var(--teal) 11%,transparent);padding:2px 8px;border-radius:99px}
+.epbig{font-family:ui-rounded,"SF Pro Rounded","Nunito",-apple-system,system-ui,sans-serif;font-size:28px;font-weight:650;letter-spacing:-.02em;margin:0 0 8px;font-variant-numeric:tabular-nums}
+.epbig u,.bpr.tot u{text-decoration:none;font-family:-apple-system,system-ui,sans-serif;font-size:12px;font-weight:500;color:var(--ink3);letter-spacing:0}
+.eprow{display:flex;align-items:center;gap:11px;padding:7px 0;border-top:1px solid var(--line);font-size:15px}
+.eprow:first-of-type{border-top:0}
+.epbig+.eprow{border-top:1px solid var(--line)}
+.eprow .pci{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center}
+.eprow .pci .cicon{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.eprow .t{flex:1;min-width:0;display:grid;font-weight:500}
+.eprow .t small{font-size:12.5px;font-weight:600;color:var(--ink3)}
+.eprow .t small.w{color:var(--warn)}
+.eprow b{font-weight:600;font-variant-numeric:tabular-nums}
+.epbars{display:flex;align-items:flex-end;gap:3px;height:64px;margin-top:4px}
+.epbars i{flex:1;border-radius:3px 3px 0 0;background:color-mix(in srgb,var(--teal) 28%,var(--surface))}
+.epbars i.on{background:var(--teal)}
+.epacts{display:flex;gap:8px;margin-top:8px}
+.epacts span{flex:1;text-align:center;padding:7px;border-radius:10px;background:var(--sunken);font-size:13.5px;font-weight:600;color:var(--ink2)}
+.bpr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 0;font-size:15px}
+.bpr span{display:flex;align-items:center;gap:8px;color:var(--ink2)}
+.bpr small{font-size:11.5px;color:var(--ink3)}
+.bpr b{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bpr b.q{color:var(--ink3);font-weight:500}
+.bpr .bdi,.bpr .bdf{width:9px;height:9px;border-radius:2px;display:inline-block}
+.bpr .bdi{background:color-mix(in srgb,var(--ok) 55%,var(--surface))}.bpr .bdf{background:var(--ink2)}
+.bbar{height:8px;border-radius:99px;background:color-mix(in srgb,var(--ok) 26%,var(--surface));overflow:hidden;margin:8px 0 6px}
+.bbar i{display:block;height:100%;background:var(--ink2);border-radius:99px 0 0 99px}
+.bpr.tot{border-top:1px solid var(--line);margin-top:4px;padding-top:10px}
+.bpr.tot span{color:var(--ink);font-weight:600}
+.bpr.tot b{font-family:ui-rounded,"SF Pro Rounded","Nunito",-apple-system,system-ui,sans-serif;font-size:24px;color:var(--teal)}
+.bpr.tot b.q{color:var(--teal);opacity:.55}
+.bben{list-style:none;margin:28px 0 8px;padding:20px 0 0;border-top:1px solid var(--line);width:100%;max-width:380px;display:grid;gap:14px;text-align:left}
+.bben li{display:flex;align-items:flex-start;gap:12px}
+.bbi{flex:none;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:color-mix(in srgb,var(--teal) 12%,var(--surface));color:var(--teal)}
+.bbi svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.bben b{display:block;font-size:15px;font-weight:600;line-height:1.3}
+.bben small{display:block;font-size:13px;color:var(--ink2);line-height:1.4;margin-top:1px}
+.eslink{margin-top:12px;font-size:15px;color:var(--teal);font-weight:500;padding:4px 8px}
+.esbtn{margin-top:16px}
 .bpt{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
 .bpt span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
 .bpt em{font-style:normal;font-size:11.5px;font-weight:600;color:var(--teal);background:color-mix(in srgb,var(--teal) 11%,transparent);padding:2px 8px;border-radius:99px}
@@ -543,17 +581,7 @@ body.hasplus .topadd{display:inline-flex}
 .bbi svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .bben b{display:block;font-size:15px;font-weight:600;line-height:1.3}
 .bben small{display:block;font-size:13px;color:var(--ink2);line-height:1.4;margin-top:1px}
-.bhint{font-size:12.5px;color:var(--ink3);margin:10px 0 0}
 .esbtn{width:100%;max-width:320px;border-radius:14px;background:var(--teal);color:#fff;font-size:17px;font-weight:600;padding:14px}
-.esmore{width:100%;margin-top:34px;text-align:left}
-.esh{font-size:12.5px;color:var(--ink2);padding:0 2px 6px}
-.esg{background:var(--surface);border-radius:var(--r);padding:2px 14px}
-.esr{display:flex;align-items:center;gap:12px;width:100%;padding:12px 0;border-top:1px solid var(--line);text-align:left}
-.esr:first-child{border-top:0}
-.esr .ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none}
-.esr .ic svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.esr .tx{flex:1;display:grid}.esr .tx b{font-size:15.5px;font-weight:600}.esr .tx small{font-size:12.5px;color:var(--ink3)}
-.esr .ch{width:8px;height:8px;border-right:1.7px solid var(--ink3);border-bottom:1.7px solid var(--ink3);transform:rotate(-45deg);margin-right:4px}
 
 /* Filter kompakt, Preisänderungen */
 .ftag{flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 8px 6px 12px;border-radius:999px;background:color-mix(in srgb,var(--teal) 12%,transparent);color:var(--teal);font-size:12.5px;font-weight:600;max-width:170px}
@@ -1896,15 +1924,7 @@ function renderView(){
       ab='<button class="archtoggle" data-archtog aria-expanded="'+(!!state.showArch)+'"><span>Archiv</span><span>'+arc.length+(arc.length===1?" gekündigter Vertrag":" gekündigte Verträge")+'<i></i></span></button>';
       if(state.showArch)ab+='<div class="grp" style="padding-top:8px">'+arc.map(function(c){return cardHtml(c,"list");}).join("")+"</div>";
     }
-    if(!a.length&&!q&&!Object.keys(state.contracts).length){
-      var esSvg=function(p){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+p+'</svg>';},
-        esRow=function(k,col,ic,t,sub){return '<button type="button" class="esr" data-onb="'+k+'"><span class="ic" style="background:'+col+'">'+esSvg(ic)+'</span><span class="tx"><b>'+t+'</b><small>'+sub+'</small></span><span class="ch"></span></button>';};
-      v.innerHTML='<div class="esv"><div class="esart">'+esSvg('<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h5"/>')+'<i>+</i></div>'+
-        '<div class="est">Noch keine Verträge</div><p class="esp">Erfasse deinen ersten Vertrag. Dann siehst du hier deine Fixkosten auf einen Blick.</p>'+
-        '<button type="button" class="esbtn" data-onb="c">Ersten Vertrag erfassen</button>'+
-        '<div class="esmore"><div class="esh">Oder zuerst</div><div class="esg">'+
-        esRow("i","#2E6A4E",'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><path d="M15.5 14.5h2.5"/>',"Einnahmen erfassen","Für die Übersicht im Budget")+
-        esRow("b","#5F666E",'<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/>',"Backup einspielen","Daten von einem anderen Gerät")+'</div></div></div>';return;}
+    if(!a.length&&!q&&!Object.keys(state.contracts).length){v.innerHTML=emptyList();return;}
     if(!a.length){v.innerHTML=lfbar+(q?'<div class="empty"><b>Keine Treffer</b>Für «'+esc(state.q)+'» gibt es keinen aktiven Vertrag.</div>':(lfn?'<div class="empty"><b>Keine Treffer</b>Für «'+esc(fltLabel())+'» gibt es keinen aktiven Vertrag.</div>':'<div class="empty welcome"><img class="wlogo" src="'+LOGO+'" alt=""><b>Willkommen bei Kontivo</b>Fixkosten, Verträge und Fristen – klar im Griff.<br>Tippe oben auf + und leg den ersten Vertrag an. Mit «Aus Katalog wählen» geht es am schnellsten.</div>'))+ab;return;}
     var srt=state.settings.sort||"cat",H=state.settings.home;
     var opts=[["due","Fälligkeit"],["cost","Kosten, höchste zuerst"],["partner","Vertragspartner, A–Z"],["cat","Kategorie"],["holder","Inhaber"]];
@@ -1999,7 +2019,7 @@ function renderView(){
     o+=fold("unw","Nicht beobachtet",unw,function(c){return noticeText(c)?"Frist "+noticeText(c):"";});
     if(state._rvDue)o+='<div class="review rvsmall"><div class="rvh">Quartals-Check</div><p>Stimmen Beträge, Fristen und Preise noch?</p>'+
       '<div class="rvb"><button class="rvok" data-rv="ok">Alles geprüft</button><button class="rvl" data-rv="later">Später</button></div></div>';
-    v.innerHTML=o||'<div class="empty"><b>Keine Fristen</b>Trag bei einem Vertrag Vertragsende und Kündigungsfrist ein, dann erscheint er hier.</div>';
+    v.innerHTML=o||emptyTerm();
     return;
   }
   if(state.tab==="stat"){renderStat(v);return;}
@@ -2157,6 +2177,7 @@ function renderStat(v){
   var noStart=pool.filter(function(c){return !c.start&&c.status!=="cancelled";}).length;
   var hint=(Y<nowY&&noStart)?'<p class="note" style="margin:8px 0 0">'+noStart+(noStart===1?" Vertrag hat":" Verträge haben")+
     ' keinen Vertragsbeginn und '+(noStart===1?"wird":"werden")+' deshalb rückwirkend voll gezählt.</p>':"";
+  if(!allN&&!Object.keys(state.contracts).length){setTopYear(null);v.innerHTML=emptyStat();return;}
   if(!allN){v.innerHTML=o+'<div class="empty"><b>Keine Zahlungen in '+Y+'</b>Für dieses Jahr sind keine Zahlungen erfasst oder berechenbar.</div>'+hint;return;}
   var avg=tot/12,mx=max||1,ap=avg/mx*100;
   var pT=0,pf=new Date(Y-1,0,1),pt=new Date(Y-1,11,31);
@@ -2313,27 +2334,65 @@ function openIncAll(){
     '</div><button class="lbtn main" id="incAdd" type="button" style="margin-top:12px">Einnahme erfassen</button>';
   openSheet(document.getElementById("sheetPick"));
 }
-/* Leeres Budget: Nutzen zeigen statt Hinweistext. Mit Verträgen rechnet die Vorschau mit den echten Fixkosten,
-   die Einnahmen bleiben offen («?»); ohne Verträge ein klar markiertes Beispiel. SwiftUI: ContentUnavailableView + eigene Karte */
+/* ---------- Leere Seiten: ein Muster (Symbol, Frage, ein Satz, Vorschau, ein Knopf, zwei Vorteile) ----------
+   SwiftUI: ContentUnavailableView mit eigener Vorschau-Karte. Beispiele immer in EUR (Hauptmarkt) und als «Beispiel» markiert. */
+function esIc(p){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+p+'</svg>';}
+var ES_ICON={
+  list:'<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h5"/>',
+  stat:'<path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/>',
+  budget:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><path d="M15.5 14.5h2.5"/>',
+  term:'<circle cx="12" cy="12.5" r="8"/><path d="M12 8.5v4l2.8 1.8"/><path d="M9.5 2.8h5"/>'};
+function emptyHero(o){
+  return '<div class="esv eh"><div class="esart">'+esIc(ES_ICON[o.icon])+'</div>'+
+    '<div class="est">'+o.title+'</div><p class="esp">'+o.text+'</p>'+
+    (o.preview?'<div class="eprev">'+o.preview+'</div>':'')+
+    '<button type="button" class="esbtn" '+o.btn[0]+'>'+o.btn[1]+'</button>'+(o.sub||"")+
+    (o.ben?'<ul class="bben">'+o.ben.map(function(b){return '<li><span class="bbi">'+esIc(b[0])+'</span><span><b>'+b[1]+'</b><small>'+b[2]+'</small></span></li>';}).join("")+'</ul>':"")+'</div>';
+}
+function epHead(t,tag){return '<div class="bpt"><span>'+t+'</span><em>'+tag+'</em></div>';}
+var EX="EUR";
+function emptyList(){
+  var rows=[["Miete","Wohnen",950],["Strom","Energie & Wasser",85],["Handy","Mobilfunk & Internet",29.99]],sum=rows.reduce(function(n,r){return n+r[2];},0);
+  return emptyHero({icon:"list",title:"Alle Verträge an einem Ort",
+    text:"Erfasse Abos, Versicherungen und Verträge. Kontivo zeigt dir sofort, was dich das jeden Monat kostet.",
+    preview:epHead("Fixkosten pro Monat","Beispiel")+'<div class="epbig">'+money(sum)+' <u>'+EX+'</u></div>'+
+      rows.map(function(r){return '<div class="eprow"><span class="pci" style="background:'+catColor(r[1])+'">'+catIcon(r[1])+'</span><span class="t">'+r[0]+'</span><b>'+money(r[2])+'</b></div>';}).join(""),
+    btn:['data-onb="c"',"Ersten Vertrag erfassen"],sub:'<button type="button" class="eslink" data-onb="b">Ich habe ein Backup</button>',
+    ben:[['<path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/>',"Sieh, wohin dein Geld fliesst","Nach Kategorie, Vertragspartner und Person."],
+         ['<path d="M12 3.5 5.5 6v5.5c0 4 2.8 7.2 6.5 8.8 3.7-1.6 6.5-4.8 6.5-8.8V6z"/><path d="m9.3 12 2 2 3.6-3.8"/>',"Ohne Bankanbindung","Deine Daten bleiben auf deinem Gerät."]]});
+}
+function emptyStat(){
+  var hs=[52,48,55,50,62,49,51,88,50,57,49,54],sel=9;
+  return emptyHero({icon:"stat",title:"Wann geht wie viel weg?",
+    text:"Kontivo verteilt deine Fixkosten auf die Monate, in denen sie wirklich abgebucht werden.",
+    preview:epHead("Oktober","Beispiel")+'<div class="epbig">1’284.50 <u>'+EX+'</u></div>'+
+      '<div class="epbars">'+hs.map(function(h,i){return '<i class="'+(i===sel?"on":"")+'" style="height:'+h+'%"></i>';}).join("")+'</div>',
+    btn:['data-onb="c"',"Ersten Vertrag erfassen"],
+    ben:[['<circle cx="12" cy="12" r="8"/><path d="M8.5 12.3l2.4 2.4 4.6-4.9"/>',"Bezahlt oder offen","Sieh, was diesen Monat noch kommt."],
+         ['<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8.5 3v4M15.5 3v4"/>',"Jahreszahlungen im richtigen Monat","Keine Überraschung bei der Versicherung im Januar."]]});
+}
+function emptyTerm(){
+  return emptyHero({icon:"term",title:"Nie mehr eine Frist verpassen",
+    text:"Kontivo rechnet aus Laufzeit und Kündigungsfrist den Termin aus und zeigt dir rechtzeitig, wann du entscheiden musst.",
+    preview:epHead("Als Nächstes","Beispiel")+'<div class="eprow"><span class="pci" style="background:'+catColor("Freizeit & Sport")+'">'+catIcon("Freizeit & Sport")+'</span><span class="t">Fitnessstudio<small class="w">Frist 30.11. · noch 29 Tage</small></span></div>'+
+      '<div class="epacts"><span>Behalten</span><span>Kündigen</span></div>',
+    btn:['data-onb="c"',"Ersten Vertrag erfassen"],
+    ben:[['<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',"Kündigung mit einem Tipp","Fertiges Schreiben als PDF, mit Unterschrift."],
+         ['<path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/>',"Auch Probeabos","Erinnerung, bevor Kosten entstehen."]]});
+}
 function budgetEmpty(){
   var H=esc(state.settings.home),act=running().filter(function(c){return !notStarted(c);}),fix=act.reduce(function(n,c){return n+monthlyCost(c);},0),real=act.length>0;
-  var ic=function(p){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+p+'</svg>';};
-  var inc=real?null:6500,fx=real?fix:3200,free=inc==null?null:inc-fx,pct=inc?Math.min(100,fx/inc*100):0;
-  var prev='<div class="bprev">'+
-    '<div class="bpt"><span>'+(real?"Dein Monat":"So sieht es aus")+'</span><em>'+(real?"mit deinen echten Fixkosten":"Beispiel")+'</em></div>'+
+  var inc=real?null:6500,fx=real?fix:3200,free=inc==null?null:inc-fx,pct=inc?Math.min(100,fx/inc*100):0,cu=real?H:EX;
+  var prev=epHead(real?"Dein Monat":"So sieht es aus",real?"mit deinen echten Fixkosten":"Beispiel")+
     '<div class="bpr"><span><i class="bdi"></i>Einnahmen</span><b class="'+(inc==null?"q":"")+'">'+(inc==null?"fehlt noch":money(inc))+'</b></div>'+
     '<div class="bpr"><span><i class="bdf"></i>Fixkosten'+(real?' <small>aus '+act.length+(act.length===1?" Vertrag":" Verträgen")+'</small>':"")+'</span><b>− '+money(fx)+'</b></div>'+
     (inc==null?'':'<div class="bbar"><i style="width:'+pct+'%"></i></div>')+
-    '<div class="bpr tot"><span>Verfügbar</span><b class="'+(free==null?"q":"")+'">'+(free==null?"?":money(free))+' <u>'+H+'</u></b></div></div>';
-  var ben=[[ic('<path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/>'),"Siehst sofort, was dir bleibt","Pro Monat und übers Jahr, inklusive Verlauf."],
-           [ic('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8.5 3v4M15.5 3v4"/>'),"Keine Überraschung bei Jahreszahlungen","Versicherung im Januar? Kontivo plant sie im richtigen Monat ein."],
-           [ic('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M15 14.2c2.6-.3 4.6 1.3 5.3 4.3"/>'),"Für den ganzen Haushalt","Budget pro Person, gemeinsame Verträge anteilig."]];
-  return '<div class="esv bes"><div class="esart">'+ic('<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><path d="M15.5 14.5h2.5"/>')+'<i>+</i></div>'+
-    '<div class="est">Weisst du, was dir jeden Monat bleibt?</div>'+
-    '<p class="esp">Erfasse deinen Lohn. Kontivo zieht deine Fixkosten automatisch ab und zeigt dir, was du wirklich zur Verfügung hast.</p>'+
-    prev+'<button type="button" class="esbtn" id="incAdd">Einnahme erfassen</button>'+
-    '<p class="bhint">Netto eintragen, also was auf dem Konto ankommt. Dauert eine halbe Minute.</p>'+
-    '<ul class="bben">'+ben.map(function(b){return '<li><span class="bbi">'+b[0]+'</span><span><b>'+b[1]+'</b><small>'+b[2]+'</small></span></li>';}).join("")+'</ul></div>';
+    '<div class="bpr tot"><span>Verfügbar</span><b class="'+(free==null?"q":"")+'">'+(free==null?"?":money(free))+' <u>'+cu+'</u></b></div>';
+  return emptyHero({icon:"budget",title:"Weisst du, was dir jeden Monat bleibt?",
+    text:"Erfasse deinen Lohn. Kontivo zieht die Fixkosten ab und zeigt dir, was du wirklich zur Verfügung hast.",
+    preview:prev,btn:['id="incAdd"',"Einnahme erfassen"],
+    ben:[['<path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/>',"Sieh sofort, was dir bleibt","Pro Monat und übers Jahr, mit Verlauf."],
+         ['<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M15 14.2c2.6-.3 4.6 1.3 5.3 4.3"/>',"Für den ganzen Haushalt","Budget pro Person, gemeinsame Verträge anteilig."]]});
 }
 function renderBudget(v){
   setTopYear(null);
