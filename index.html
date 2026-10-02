@@ -561,6 +561,8 @@ body.hasplus .topadd{display:inline-flex}
 @media(max-width:374px){.ehk li{font-size:14px}}
 .ehk svg{flex:none;width:18px;height:18px;fill:none;stroke:var(--teal);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .eprev.illu{position:relative;pointer-events:none;opacity:.9}
+.ehk+.eprev{margin-top:14px}
+@media(max-height:700px){.eh .eprev.illu{display:none}.eh{padding-top:20px}}
 .eprev.illu .epacts span{background:color-mix(in srgb,var(--sunken) 70%,var(--surface));color:var(--ink3);font-weight:500}
 .espriv{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12.5px;color:var(--ink2);margin:12px 0 0;max-width:34ch;line-height:1.35}
 .espriv svg{flex:none;width:16px;height:16px;fill:none;stroke:var(--ok);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -2427,7 +2429,7 @@ function emptyStat(){
 function emptyTerm(){
   return emptyHero({icon:"term",title:"Nie mehr eine<br>Frist verpassen",
     text:"Kontivo rechnet den Kündigungstermin aus und meldet sich rechtzeitig.",
-    hooks:["Behalten oder kündigen? Du entscheidest","Auch Probe-Abos und Jahresverträge"],illu:true,preview:epHead("Als Nächstes","")+'<div class="eprow"><span class="pci" style="background:'+catColor("Freizeit & Sport")+'">'+catIcon("Freizeit & Sport")+'</span><span class="t">Fitnessstudio<small class="w">Frist 30.11. · noch 29 Tage</small></span></div>'+
+    hooks:["Behalten oder kündigen? Du entscheidest","Kündigung als PDF: mailen oder drucken","Auch Probe-Abos und Jahresverträge"],illu:true,preview:epHead("Als Nächstes","")+'<div class="eprow"><span class="pci" style="background:'+catColor("Freizeit & Sport")+'">'+catIcon("Freizeit & Sport")+'</span><span class="t">Fitnessstudio<small class="w">Frist 30.11. · noch 29 Tage</small></span></div>'+
       '<div class="epacts"><span>Behalten</span><span>Kündigen</span></div>',
     btn:['data-onb="c"',"Ersten Vertrag erfassen"]});
 }
