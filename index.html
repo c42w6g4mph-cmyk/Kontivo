@@ -1085,6 +1085,36 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .mdtip b{color:var(--ink);font-size:14.5px}
 .mdtip button{justify-self:start;margin-top:4px;color:var(--teal);font-weight:600;font-size:14px}
 .crow{padding:0!important;gap:0!important}
+.cdelb{flex:none;width:34px;height:44px;display:grid;place-items:center;margin-left:-4px}
+.cdelb i{width:20px;height:20px;border-radius:50%;background:var(--alert);position:relative}
+.cdelb i::after{content:"";position:absolute;left:5px;right:5px;top:9px;height:2px;background:#fff;border-radius:1px}
+.cdelb:disabled i{background:var(--ink3);opacity:.35}
+.mdav.multi{background:color-mix(in srgb,var(--teal) 14%,var(--surface));color:var(--teal)}
+.mdav.multi svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.harow{padding:10px 0;border-top:1px solid var(--line)}
+.harow:first-child{border-top:0}
+.hatop{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.hatop .mark{width:36px;height:36px;border-radius:9px;font-size:13px;flex:none}
+.hatop .t{flex:1;min-width:0}.hatop .t b{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hatop .t small{font-size:12px;color:var(--ink2)}
+.hseg{display:flex;background:var(--sunken);padding:3px;border-radius:10px}
+.hseg button{flex:1;min-width:0;padding:7px 4px;border-radius:8px;font-size:13.5px;color:var(--ink2);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hseg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.hchips{display:flex;flex-wrap:wrap;gap:6px}
+.hchips .chip{padding:6px 11px;font-size:13.5px}
+.mdaddr textarea{min-height:68px;resize:none}
+.qtop{display:grid;gap:3px;padding:14px 14px;border-radius:14px;background:color-mix(in srgb,var(--warn) 10%,var(--field));margin-bottom:14px}
+.qtop b{font-size:16px}.qtop span{font-size:13.5px;color:var(--ink2)}
+.qtop.ok{background:color-mix(in srgb,var(--ok) 11%,var(--field));grid-template-columns:auto 1fr;column-gap:12px;align-items:center}
+.qtop.ok i{grid-row:span 2;width:40px;height:40px;border-radius:50%;background:var(--ok);display:grid;place-items:center}
+.qtop.ok i svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.qcrit{background:var(--field);border-radius:12px;padding:12px 14px 6px;margin-bottom:6px}
+.qch{font-size:14px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline}.qch small{font-weight:500;color:var(--ink3);font-size:12px}
+.qcg{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin:12px 0 2px}
+.qcrit ul{list-style:none;margin:0;padding:0}
+.qcrit li{display:flex;justify-content:space-between;padding:5px 0;font-size:14px;border-top:1px solid var(--line)}
+.qcrit li:first-child{border-top:0}
+.qcrit li b{color:var(--ok);font-weight:600}.qcrit li.w b{color:var(--warn)}
 .crow .crowb{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:10px 0;text-align:left}
 .crow .drag{flex:none;width:44px;height:44px;display:grid;place-items:center;touch-action:none;cursor:grab;color:var(--ink3);margin-right:-8px}
 .crow .drag svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
@@ -1127,11 +1157,11 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <p class="note" style="margin:0 0 8px">Hauptwährung für alle Summen</p>
     <div class="curpick" id="sHome" role="group" aria-label="Hauptwährung"></div>
     <div class="ratefoot"><span class="note" id="rateStamp"></span><button class="mini" id="sRateNow" type="button">Aktualisieren</button></div></div>
-  <div class="sgroup"><div class="sgh">Stammdaten</div>
-    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Umbenennen, zusammenführen, Logo</small></span><em id="mdSumP"></em></button>
-    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Umbenennen, zusammenführen, löschen</small></span><em id="mdSumH"></em></button>
-    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Name, Farbe, Symbol, Reihenfolge</small></span><em id="mdSumC"></em></button>
-    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Fehlende Angaben</b><small>Unvollständige Verträge und Vertragspartner</small></span><em id="mdSumQ"></em></button></div>
+  <div class="sgroup"><div class="sgh">Verwalten</div>
+    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Namen, Logos und Adressen deiner Anbieter</small></span><em id="mdSumP"></em></button>
+    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Wer zahlt welchen Vertrag</small></span><em id="mdSumH"></em></button>
+    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
+    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small>Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Kündigungsschreiben</div>
     <form id="sSender" class="sndform" autocomplete="on" novalidate>
       <div class="flabel">Absender</div>
@@ -2626,7 +2656,7 @@ function openForm(c,asCopy){clearCands();
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
   document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
   document.getElementById("fSugg").innerHTML="";
-  document.getElementById("fWeb").value=(c&&c.web)||"";document.getElementById("fAddr").value=(c&&c.addr)||"";
+  document.getElementById("fWeb").value=(c&&c.web)||"";var pgA=c&&c.partner&&!c.addr?peGroup(String(c.partner).trim().toLowerCase()):null;document.getElementById("fAddr").value=(c&&c.addr)||(pgA&&pgA.addr)||"";
   document.getElementById("fTel").value=(c&&c.tel)||"";
   document.getElementById("fMail").value=(c&&c.mail)||"";
   paintHolders();
@@ -3186,7 +3216,8 @@ function letterParts(c){
   var sf=state.settings.senderF||{},t=function(k){return String(sf[k]||"").trim();};
   var name=[t("first"),t("last")].filter(Boolean).join(" ");
   var sender=[name,t("street"),[t("zip"),t("city")].filter(Boolean).join(" "),t("country")].filter(Boolean);
-  var al=String(c.addr||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean),pn=String(c.partner||"").trim();
+  var pg0=c.partner?peGroup(String(c.partner).trim().toLowerCase()):null;
+  var al=String(c.addr||(pg0&&pg0.addr)||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean),pn=String(c.partner||"").trim();
   /* Erste Adresszeile enthält den Namen (z.B. «Swisscom (Schweiz) AG») → nicht doppelt */
   var to=(pn&&!(al[0]&&al[0].toLowerCase().indexOf(pn.toLowerCase())>=0)?[pn]:[]).concat(al);
   var nr=[c.custNo?"Kundennummer: "+c.custNo:"",c.contrNo?"Vertragsnummer: "+c.contrNo:""].filter(Boolean);
@@ -3376,7 +3407,7 @@ document.getElementById("ltPdf").addEventListener("click",async function(){
   if(!body){toast("Der Text ist leer");return;}
   /* Empfängeradresse beim Vertrag merken (ohne die Namenszeile) */
   var c0=state.contracts[ltC._id];if(c0){var pn0=String(c0.partner||"").trim().toLowerCase(),addr=to.slice(to[0].toLowerCase()===pn0?1:0).join("\n");
-    if(addr!==(c0.addr||""))putContract(ltC._id,Object.assign({},c0,{addr:addr}));}
+    if(addr!==(c0.addr||"")){putContract(ltC._id,Object.assign({},c0,{addr:addr}));if(addr)setPartnerAddr(c0.partner,addr);}}
   var refRe=/^(Kundennummer|Vertragsnummer): /,blines=body.split(/\n/),ref=[];while(blines.length&&refRe.test(blines[0]))ref.push(blines.shift());
   var nC=document.getElementById("ltCust").value.trim(),nV=document.getElementById("ltContr").value.trim(),c1=state.contracts[ltC._id];
   if(c1&&(nC||nV)){var patch={};if(nC&&!c1.custNo){patch.custNo=nC;ref.push("Kundennummer: "+nC);}if(nV&&!c1.contrNo){patch.contrNo=nV;ref.push("Vertragsnummer: "+nV);}
@@ -3866,9 +3897,10 @@ function partnerGroups(){
   Object.keys(state.contracts).forEach(function(k){
     var c=state.contracts[k],n=String(c.partner||"").trim();if(!n)return;
     var kk=n.toLowerCase();
-    if(!g[kk]){g[kk]={key:kk,names:{},ids:[],web:"",logoC:null,cost:0};order.push(kk);}
+    if(!g[kk]){g[kk]={key:kk,names:{},ids:[],web:"",addr:"",logoC:null,cost:0};order.push(kk);}
     var o=g[kk];o.names[n]=(o.names[n]||0)+1;o.ids.push(k);
     if(!o.web&&c.web)o.web=c.web;
+    if(!o.addr&&c.addr)o.addr=c.addr;
     if(!o.logoC&&c.logoId&&KBlob.has(c.logoId))o.logoC=c;
     if(c.status!=="cancelled"&&!c.cancelPer){try{o.cost+=monthlyCost(c)*12;}catch(e){}}
   });
@@ -3955,28 +3987,45 @@ async function qApply(){
   toast(nL+(nL===1?" Logo":" Logos")+" übernommen");
 }
 var qOpen=false;
+/* Betroffene Verträge (nicht Hinweise) zählen */
+function qualOpenContracts(q){var m={};q.A.concat(q.B).forEach(function(o){m[o.id]=1;});return Object.keys(m).length;}
+var Q_CRIT=[["holder","Inhaber","A"],["amount","Betrag","A"],["cat","Kategorie","A"],["cycle","Zahlungsweise","A"],["due","Fälligkeit","B"],["notice","Kündigungsfrist","B"]];
+function qualChecklist(q){
+  var ids=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}),N=ids.length;
+  var miss={};q.A.concat(q.B).forEach(function(o){var f=o.key.split(":").pop();miss[f]=(miss[f]||0)+1;});
+  function row(f,t){var m=miss[f]||0;return '<li'+(m?' class="w"':"")+'><span>'+t+'</span><b>'+(m?m+" offen":"✓")+'</b></li>';}
+  return '<div class="qcrit"><div class="qch">Was bewertet wird <small>'+cntTxt(N,"laufender Vertrag","laufende Verträge")+'</small></div>'+
+    '<div class="qcg">Für Kosten und Budget</div><ul>'+Q_CRIT.filter(function(x){return x[2]==="A";}).map(function(x){return row(x[0],x[1]);}).join("")+'</ul>'+
+    '<div class="qcg">Für Fristen</div><ul>'+Q_CRIT.filter(function(x){return x[2]==="B";}).map(function(x){return row(x[0],x[1]);}).join("")+'</ul>'+
+    '<div class="qcg">Nur Optik, zählt nicht</div><ul><li><span>Logo des Vertragspartners</span><b>'+(q.C.length?q.C.length+" fehlen":"✓")+'</b></li></ul></div>';
+}
 function paintMdQual(){
   var b=document.getElementById("mdBody"),q=qualItems(),od=b.querySelector(".qdet");if(od)qOpen=od.open;
   function rows(a){return a.map(function(o){
     return '<div class="qrow"><button class="mdrow" type="button" '+(o.kind==="c"?'data-qc="'+esc(o.id)+'"':'data-qp="'+esc(o.pk)+'"')+'>'+markHtml(o.c)+'<span class="t"><b>'+esc(o.name)+'</b><small>'+esc(o.why)+(o.sub?" · "+esc(o.sub):"")+'</small></span></button>'+
       (o.kind==="p"?'<button class="qig qsr" type="button" data-qs="'+esc(o.pk)+'">Suchen</button>':"")+'<button class="qig" type="button" data-qig="'+esc(o.key)+'">Ignorieren</button></div>';}).join("");}
   function sec(t,a,w,g){return a.length?'<div class="qhr"><h4 class="qh'+(w?" w":"")+'">'+t+" · "+a.length+'</h4><button class="qig" type="button" data-qall="'+g+'">Alle ignorieren</button></div>'+rows(a):"";}
-  var n=q.A.length+q.B.length;
-  var h=sec("Beeinflusst die Zahlen",q.A,1,"A")+sec("Fristen",q.B,1,"B");
-  if(!n)h='<p class="qok">Bei Zahlen und Fristen ist alles vollständig.</p>';
-  if(q.C.length)h+='<details class="qdet"'+(qOpen?" open":"")+'><summary class="qh" style="cursor:pointer">Kosmetik · '+q.C.length+'</summary><div style="text-align:right"><button class="qig qsr" type="button" data-qs="*">Alle suchen</button><button class="qig" type="button" data-qall="C">Alle ignorieren</button></div>'+rows(q.C)+"</details>";
+  var n=q.A.length+q.B.length,nc=qualOpenContracts(q),N=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length;
+  var h=N?(n?'<div class="qtop"><b>'+cntTxt(nc,"Vertrag braucht","Verträge brauchen")+' noch Angaben.</b><span>Tippe auf einen Eintrag, um sie direkt nachzutragen.</span></div>'
+    :'<div class="qtop ok"><i>'+esIc('<path d="m5 12.5 4.2 4.2L19 7"/>')+'</i><b>Top. '+(N===1?"Dein Vertrag ist":"Alle "+N+" Verträge sind")+' vollständig.</b><span>Kosten, Budget und Fristen stimmen.</span></div>')
+    :'<p class="qok">Noch keine laufenden Verträge. Sobald du welche erfasst, siehst du hier, was fehlt.</p>';
+  if(N)h+=qualChecklist(q);
+  h+=sec("Für Kosten und Budget",q.A,1,"A")+sec("Für Fristen",q.B,1,"B");
+  if(q.C.length)h+='<details class="qdet"'+(qOpen?" open":"")+'><summary class="qh" style="cursor:pointer">Nur Optik · '+q.C.length+'</summary><div style="text-align:right"><button class="qig qsr" type="button" data-qs="*">Alle suchen</button><button class="qig" type="button" data-qall="C">Alle ignorieren</button></div>'+rows(q.C)+"</details>";
   if(q.ign)h+='<p class="note" style="margin:16px 0 0">'+q.ign+" ignoriert · <button class=\"dlink\" style=\"font-weight:500\" type=\"button\" id=\"qReset\">Zurücksetzen</button></p>";
+  if(N)h+='<p class="mdhint" style="margin-top:14px">Gekündigte Verträge und ignorierte Hinweise zählen nicht.</p>';
   b.innerHTML=h;
 }
 function paintMdSummary(){
   var pg=partnerGroups(),d=pg.filter(function(o){return o.dup;}).length;
   var e1=document.getElementById("mdSumP");if(!e1)return;
-  e1.textContent=d?d+(d===1?" Dublette":" Dubletten"):pg.length+" Vertragspartner";
+  e1.textContent=d?d+(d===1?" Dublette":" Dubletten"):(pg.length?pg.length+"":"–");
   e1.style.color=d?"var(--warn)":"";e1.style.fontWeight=d?"600":"";
-  document.getElementById("mdSumH").textContent=holderStats().length+"";
+  var hs=holderStats().map(function(h){return h.name;});
+  document.getElementById("mdSumH").textContent=hs.length<=2?hs.join(", "):hs.length+" Personen";
   document.getElementById("mdSumC").textContent=allCats().length+"";
-  var eq=document.getElementById("mdSumQ");if(eq){var qq=qualItems(),nq=qq.A.length+qq.B.length;
-    eq.textContent=nq?nq+(nq===1?" Hinweis":" Hinweise"):"gut ✓";eq.style.color=nq?"var(--warn)":"var(--ok)";eq.style.fontWeight="600";}
+  var eq=document.getElementById("mdSumQ");if(eq){var qq=qualItems(),nq=qualOpenContracts(qq);
+    eq.textContent=nq?cntTxt(nq,"Vertrag offen","Verträge offen"):"Vollständig ✓";eq.style.color=nq?"var(--warn)":"var(--ok)";eq.style.fontWeight="600";}
 }
 /* ---------- Stammdaten: ein Fenster mit Navigation (Liste → Detail → Aktion) ----------
    SwiftUI: NavigationStack in einem Sheet; Seiten = Enum-Fälle, Autosave über onChange/onSubmit */
@@ -4008,16 +4057,16 @@ function H0(){return esc(state.settings.home);}
 var md={stack:[]};
 function mdTop(){return md.stack[md.stack.length-1];}
 function mdTitle(p){if(!p)return "";
-  return {partner:"Vertragspartner",holder:"Inhaber",cat:"Kategorien",qual:"Fehlende Angaben",henew:"Neuer Inhaber",cenew:"Neue Kategorie",
+  return {partner:"Vertragspartner",holder:"Inhaber",cat:"Kategorien",qual:"Datenqualität",henew:"Neuer Inhaber",cenew:"Neue Kategorie",hassign:"Verträge zuordnen",hbulk:"Alle übertragen",
     pmerge:"Zusammenführen",hmove:"Zuweisen",hdel:"Inhaber löschen",cdel:"Kategorie löschen"}[p.k]||p.title||p.name||p.n||(p.k==="pe"&&peGroup(p.key)?peGroup(p.key).name:"");}
-function openMd(which){md.stack=[{k:which}];pe=null;paintMd(0);openSheet(document.getElementById("sheetMd"));}
+function openMd(which){md.stack=[{k:which}];md.catEdit=false;pe=null;paintMd(0);openSheet(document.getElementById("sheetMd"));}
 function openMdAt(p){md.stack=[p];pe=null;paintMd(0);var sh=document.getElementById("sheetMd");if(!sh.classList.contains("on"))openSheet(sh);}
 function mdPush(p){mdFlush();md.stack.push(p);paintMd(1);}
 function mdPop(n){mdFlush();n=n||1;if(md.stack.length>n){md.stack.splice(-n,n);paintMd(-1);}else closeMd();}
 function mdSwap(p,n){md.stack.splice(-(n||1),n||1,p);paintMd(0);}
 function closeMd(){mdFlush();closeSheetEl("sheetMd");md.stack=[];reopenDetail();}
 /* Offene Eingabe (Name) vor dem Wegnavigieren übernehmen */
-function mdFlush(){var a=document.activeElement;if(a&&a.closest&&a.closest("#mdBody")&&/^(peName|heName|ceName)$/.test(a.id))mdNameChange(a);}
+function mdFlush(){var a=document.activeElement;if(a&&a.closest&&a.closest("#mdBody")&&/^(peName|heName|ceName|peAddr)$/.test(a.id))mdNameChange(a);}
 function paintMd(dir){
   var p=mdTop(),b=document.getElementById("mdBody");if(!p)return;
   var prev=md.stack[md.stack.length-2];
@@ -4076,6 +4125,8 @@ MD_PAGES.pe=function(p){
     '<button class="lbtn main" id="peAuto" type="button">Logo automatisch finden</button><div class="lcands" id="peCands"></div>'+
     '<div class="lbtns2"><button class="lbtn" id="pePaste" type="button">Einfügen</button>'+(assets?'<button class="lbtn" id="peUp" type="button">Hochladen</button>':"")+'<button class="lbtn" id="peGoogle" type="button">Google</button></div>'+
     '<button class="lbtn del" id="peLogoDel" type="button">Bild entfernen</button><p class="mdhint">Gilt für alle Verträge dieses Vertragspartners.</p></div>'+
+    mdSec("Adresse",'<em>für Kündigungsschreiben</em>')+'<div class="field mdaddr"><textarea id="peAddr" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort" rows="3">'+esc(g.addr||"")+'</textarea></div>'+
+    '<p class="mdhint">Gilt für alle Verträge dieses Vertragspartners. Fehlt sie, sucht Kontivo sie beim Kündigungsschreiben.</p>'+
     mdSec(cntTxt(g.ids.length,"Vertrag","Verträge"),'<em>'+money(g.cost/12)+" "+H0()+"/Mt.</em>")+
     '<div class="mdgrp">'+g.ids.map(function(k){return mdCRow(k,state.contracts[k]);}).join("")+"</div>"+
     (others?'<div class="mdgrp mdacts"><button class="mdact" type="button" data-mdgo="pmerge">Mit anderem Vertragspartner zusammenführen …</button></div>':"");
@@ -4125,11 +4176,54 @@ function heItems(name){
   return a.sort(function(x,y){return x.title.localeCompare(y.title,"de-CH",{sensitivity:"base"});});
 }
 MD_PAGES.holder=function(){
-  return '<div class="mdgrp">'+holderStats().map(function(h){
+  var hs=holderStats(),nAll=Object.keys(state.contracts).length+Object.keys(state.incomes).length;
+  return (hs.length>1&&nAll?'<div class="mdgrp"><button class="mdrow" data-mdgo="hassign" type="button"><span class="mdav multi">'+esIc('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M15 14.2c2.6-.3 4.6 1.3 5.3 4.3"/>')+'</span><span class="t"><b>Verträge zuordnen</b><small>Wer zahlt was: pro Vertrag mit einem Tipp wechseln</small></span></button></div>':"")+
+    mdSec("Personen")+'<div class="mdgrp">'+hs.map(function(h){
     return '<button class="mdrow" data-mdgo="he" data-name="'+esc(h.name)+'" type="button"><span class="mdav">'+esc((h.name||"?").charAt(0).toUpperCase())+'</span><span class="t"><b>'+esc(h.name)+'</b><small>'+
       cntTxt(h.c,"Vertrag","Verträge")+(h.i?" · "+cntTxt(h.i,"Einnahme","Einnahmen"):"")+"</small></span></button>";}).join("")+
     '<button class="mdrow mdadd" data-mdgo="henew" type="button"><span class="mdplus">+</span><span class="t"><b>Inhaber hinzufügen</b></span></button></div>'+
-    '<p class="mdhint">Inhaber ordnen Verträge und Einnahmen Personen im Haushalt zu, z.B. für das Budget pro Person.</p>';
+    '<p class="mdhint">Inhaber sind die Personen in deinem Haushalt. Tippe auf einen Namen, um ihn zu ändern oder zu löschen.'+(hs.length<2?" Mit zwei oder mehr Personen kannst du Verträge gemeinsam oder getrennt zuordnen.":"")+'</p>';
+};
+/* Zuordnen: eine Zeile pro Vertrag/Einnahme, Wechsel mit einem Tipp (SwiftUI: Picker .segmented bzw. Toggle-Chips) */
+function hAllItems(){
+  var a=[];
+  Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(c.status==="cancelled")return;a.push({kind:"c",id:k,obj:c,title:titleOf(c),sub:c.partner&&c.label?c.partner:""});});
+  Object.keys(state.incomes).forEach(function(k){var c=state.incomes[k];a.push({kind:"i",id:k,obj:c,title:c.label||c.name||"Einnahme",sub:"Einnahme"});});
+  return a.sort(function(x,y){return (x.kind>y.kind?1:x.kind<y.kind?-1:0)||x.title.localeCompare(y.title,"de-CH",{sensitivity:"base"});});
+}
+function hSet(key,v){
+  var kind=key.charAt(0),id=key.slice(2),m=kind==="c"?state.contracts:state.incomes,c=m[id];if(!c)return;
+  var H=holderStats().map(function(h){return h.name;}),cur=holdersOf(c),arr;
+  if(v==="*")arr=H.slice();
+  else if(H.length===2)arr=[v];
+  else{arr=cur.slice();var i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);arr=H.filter(function(h){return arr.indexOf(h)>=0;});}
+  if(arr.join("|")===cur.join("|"))return;
+  var nc=Object.assign({},c);nc.holders=arr;if(kind==="c")putContract(id,nc);else putIncome(id,nc);
+  render();toast(titleOf(c)+" → "+(arr.length===H.length&&H.length>1?"Beide":arr.length?arr.join(", "):"ohne Inhaber"));
+}
+MD_PAGES.hassign=function(p){
+  var H=holderStats().map(function(h){return h.name;}),it=hAllItems(),two=H.length===2;
+  var none=it.filter(function(x){return !holdersOf(x.obj).length;}).length;
+  if(p.flt==="none")it=it.filter(function(x){return !holdersOf(x.obj).length;});
+  var h='<div class="chips" style="margin:0 0 10px"><button type="button" class="chip" data-hflt="" aria-pressed="'+(p.flt!=="none")+'">Alle</button><button type="button" class="chip" data-hflt="none" aria-pressed="'+(p.flt==="none")+'">Ohne Inhaber'+(none?" · "+none:"")+'</button></div>';
+  if(!it.length)return h+mdEmpty(p.flt==="none"?"Alle Einträge haben einen Inhaber.":"Noch keine Verträge oder Einnahmen.");
+  h+='<div class="mdgrp">'+it.map(function(x){var key=x.kind+":"+x.id,cur=holdersOf(x.obj),all=cur.length===H.length;
+    var ctl;
+    if(two)ctl='<div class="hseg">'+H.map(function(n){return '<button type="button" data-hset="'+esc(key)+'" data-hv="'+esc(n)+'" aria-pressed="'+(!all&&cur[0]===n&&cur.length===1)+'">'+esc(n)+'</button>';}).join("")+
+      '<button type="button" data-hset="'+esc(key)+'" data-hv="*" aria-pressed="'+all+'">Beide</button></div>';
+    else ctl='<div class="hchips">'+H.map(function(n){return '<button type="button" class="chip" data-hset="'+esc(key)+'" data-hv="'+esc(n)+'" aria-pressed="'+(cur.indexOf(n)>=0)+'">'+esc(n)+'</button>';}).join("")+
+      '<button type="button" class="chip" data-hset="'+esc(key)+'" data-hv="*" aria-pressed="'+all+'">Alle</button></div>';
+    return '<div class="harow"><div class="hatop">'+(x.kind==="c"?markHtml(x.obj):incMark(x.obj))+'<span class="t"><b>'+esc(x.title)+'</b>'+(x.sub?'<small>'+esc(x.sub)+'</small>':"")+'</span></div>'+ctl+'</div>';}).join("")+'</div>';
+  h+='<div class="mdgrp mdacts"><button class="mdact" type="button" data-mdgo="hbulk">Alle Einträge einer Person übertragen …</button></div>';
+  return h;
+};
+MD_PAGES.hbulk=function(p){
+  var hs=holderStats();if(p.from==null)p.from=hs[0].name;
+  function pick(attr,sel,skip){return '<div class="mdgrp">'+hs.filter(function(h){return h.name!==skip;}).map(function(h){return '<button class="mdrow mdpick" '+attr+'="'+esc(h.name)+'" aria-pressed="'+(sel===h.name)+'" type="button"><span class="mdav">'+esc(h.name.charAt(0).toUpperCase())+'</span><span class="t"><b>'+esc(h.name)+'</b><small>'+cntTxt(h.c,"Vertrag","Verträge")+(h.i?" · "+cntTxt(h.i,"Einnahme","Einnahmen"):"")+'</small></span><span class="rad"></span></button>';}).join("")+'</div>';}
+  var f=hs.filter(function(h){return h.name===p.from;})[0]||{c:0,i:0},n=f.c+f.i;
+  return mdSec("Von")+pick("data-hfrom",p.from)+mdSec("An")+pick("data-mdsel",p.to,p.from)+
+    '<p class="mdhint">'+(p.to?cntTxt(n,"Eintrag geht","Einträge gehen")+" von «"+esc(p.from)+"» an «"+esc(p.to)+"». Gemeinsame Einträge bleiben gemeinsam. «"+esc(p.from)+"» bleibt als Person bestehen.":"Zum Beispiel nach einem Umzug oder wenn jemand die Verträge übernimmt.")+'</p>'+
+    '<div class="mdbar"><button class="lbtn main" type="button" data-mdrun="hbulk"'+(p.to&&n?"":" disabled")+'>Übertragen</button></div>';
 };
 MD_PAGES.henew=function(){
   return '<div class="field"><label for="heNew">Name</label><input id="heNew" type="text" autocomplete="off" maxlength="30" placeholder="z.B. Lara" enterkeyhint="done"></div>'+
@@ -4190,13 +4284,15 @@ function heDelete(name,to){
 
 /* --- Kategorien --- */
 MD_PAGES.cat=function(){
-  var l=catList();
-  return '<div class="mdgrp" id="catRows">'+l.map(function(x,i){var cs=Object.keys(state.contracts).map(function(k){return state.contracts[k];}).filter(function(c){return (c.cat||"Sonstiges")===x.n;});
-      return '<div class="mdrow crow" data-ci="'+i+'"><button type="button" class="crowb" data-mdgo="ce" data-n="'+esc(x.n)+'"><span class="pci" style="background:'+catColor(x.n)+'">'+catIcon(x.n)+'</span><span class="t"><b>'+esc(x.n)+'</b><small>'+
+  var l=catList(),ed=!!md.catEdit;
+  return mdSec(cntTxt(l.length,"Kategorie","Kategorien"),'<button type="button" class="mdlink" data-mdrun="cedit">'+(ed?"Fertig":"Bearbeiten")+'</button>')+
+    '<div class="mdgrp'+(ed?" editing":"")+'" id="catRows">'+l.map(function(x,i){var cs=Object.keys(state.contracts).map(function(k){return state.contracts[k];}).filter(function(c){return (c.cat||"Sonstiges")===x.n;}),fixed=x.n==="Sonstiges";
+      return '<div class="mdrow crow" data-ci="'+i+'">'+(ed?'<button type="button" class="cdelb" data-cdel="'+esc(x.n)+'" aria-label="'+esc(x.n)+' löschen"'+(fixed?" disabled":"")+'><i></i></button>':"")+
+        '<button type="button" class="crowb" data-mdgo="ce" data-n="'+esc(x.n)+'"><span class="pci" style="background:'+catColor(x.n)+'">'+catIcon(x.n)+'</span><span class="t"><b>'+esc(x.n)+'</b><small>'+
         cntTxt(cs.length,"Vertrag","Verträge")+(cs.length?" · "+money(perMonth(cs))+" "+H0()+"/Mt.":"")+'</small></span></button>'+
-        '<span class="drag" data-drag="'+i+'" role="button" aria-label="'+esc(x.n)+' verschieben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg></span></div>';}).join("")+
-    '<button class="mdrow mdadd" data-mdgo="cenew" type="button"><span class="mdplus">+</span><span class="t"><b>Kategorie hinzufügen</b></span></button></div>'+
-    '<p class="mdhint">Mit ≡ ziehen, um die Reihenfolge zu ändern. Sie gilt auch für die Gruppen in «Verträge».</p>';
+        (ed?'<span class="drag" data-drag="'+i+'" role="button" aria-label="'+esc(x.n)+' verschieben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg></span>':"")+'</div>';}).join("")+
+    (ed?"":'<button class="mdrow mdadd" data-mdgo="cenew" type="button"><span class="mdplus">+</span><span class="t"><b>Kategorie hinzufügen</b></span></button>')+'</div>'+
+    '<p class="mdhint">'+(ed?"Mit ⊖ löschen, mit ≡ ziehen, um die Reihenfolge zu ändern. «Sonstiges» bleibt immer.":"Kategorien gruppieren deine Verträge in der Liste und in den Kosten. Tippe auf eine Kategorie, um Name, Farbe und Symbol zu ändern.")+'</p>';
 };
 function ceSwatches(c,i,n){
   return mdSec("Farbe")+'<div class="swatches">'+CE_COL.map(function(x){return '<button type="button" class="sw" data-cc="'+x+'" style="background:'+x+'" aria-pressed="'+(c===x)+'" aria-label="Farbe"></button>';}).join("")+"</div>"+
@@ -4230,7 +4326,7 @@ function ceRename(v){
   p.n=v;render();paintMd(0);toast("Umbenannt");
 }
 MD_PAGES.cdel=function(p){
-  var src=md.stack[md.stack.length-2].n,n=catCount(src),others=allCats().filter(function(k){return k!==src;});
+  var src=p.src||md.stack[md.stack.length-2].n,n=catCount(src),others=allCats().filter(function(k){return k!==src;});
   if(p.to==null)p.to=others.indexOf("Sonstiges")>=0?"Sonstiges":others[0];
   return mdEmpty(n?"In «"+esc(src)+"» "+(n===1?"ist 1 Vertrag":"sind "+n+" Verträge")+". In welche Kategorie sollen sie?":"«"+esc(src)+"» ist leer und kann gelöscht werden.")+
     (n?'<div class="mdgrp">'+others.map(function(k){return '<button class="mdrow mdpick" data-mdsel="'+esc(k)+'" aria-pressed="'+(p.to===k)+'" type="button"><span class="pci" style="background:'+catColor(k)+'">'+catIcon(k)+'</span><span class="t"><b>'+esc(k)+'</b></span><span class="rad"></span></button>';}).join("")+"</div>":"")+
@@ -4268,12 +4364,21 @@ function openPe(key){var t=mdTop();if(document.getElementById("sheetMd").classLi
 function openPeSearch(pk){openPe(pk);setTimeout(function(){var b=document.getElementById("peAuto");if(b)b.click();},250);}
 
 /* --- Eingaben --- */
+function peAddrChange(v){
+  var g=pe&&peGroup(pe.key);if(!g)return;v=String(v||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean).join("\n");
+  var n=setPartnerAddr(g.name,v);if(n){render();toast(v?"Adresse gespeichert":"Adresse entfernt");}
+}
+/* Adresse ist Sache des Vertragspartners: auf allen seinen Verträgen gleich halten (SwiftUI: eigene Entität Partner) */
+function setPartnerAddr(partner,addr){var pk=String(partner||"").trim().toLowerCase(),n=0;
+  Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(String(c.partner||"").trim().toLowerCase()!==pk)return;if((c.addr||"")===addr)return;putContract(k,Object.assign({},c,{addr:addr}));n++;});
+  return n;}
 function mdNameChange(el){
-  if(el.id==="peName"&&pe)peRename(el.value);
+  if(el.id==="peAddr"&&pe)peAddrChange(el.value);
+  else if(el.id==="peName"&&pe)peRename(el.value);
   else if(el.id==="heName")heRename(el.value);
   else if(el.id==="ceName")ceRename(el.value);
 }
-document.getElementById("mdBody").addEventListener("change",function(e){if(/^(peName|heName|ceName)$/.test(e.target.id))mdNameChange(e.target);});
+document.getElementById("mdBody").addEventListener("change",function(e){if(/^(peName|heName|ceName|peAddr)$/.test(e.target.id))mdNameChange(e.target);});
 document.getElementById("mdBody").addEventListener("input",function(e){
   if(e.target.id==="mdQ"){md.q=e.target.value;var y=e.target.selectionStart;paintMd(0);var q=document.getElementById("mdQ");q.focus();try{q.setSelectionRange(y,y);}catch(x){}}
   if(e.target.id==="ceNew"){var t=mdTop();if(t&&t.k==="cenew")t.nm=e.target.value;}});
@@ -4305,6 +4410,12 @@ document.addEventListener("click",function(ev){
   if((x=t.closest("[data-mdgo]"))){var g=x.dataset.mdgo;
     if(g==="pe")mdPush({k:"pe",key:x.dataset.key});else if(g==="he")mdPush({k:"he",name:x.dataset.name});else if(g==="ce")mdPush({k:"ce",n:x.dataset.n});
     else mdPush({k:g});return;}
+  if((x=t.closest("[data-cdel]"))){var cdn=x.dataset.cdel;if(cdn==="Sonstiges")return;
+    if(!catCount(cdn)){ask({title:"«"+cdn+"» löschen?",text:"Die Kategorie ist leer.",ok:"Löschen",danger:true}).then(function(y){if(!y)return;ceDelete(cdn,"Sonstiges");paintMd(0);toast("Kategorie gelöscht");});}
+    else mdPush({k:"cdel",src:cdn});return;}
+  if((x=t.closest("[data-hfrom]"))){p.from=x.dataset.hfrom;if(p.to===p.from)p.to="";paintMd(0);return;}
+  if((x=t.closest("[data-hflt]"))){p.flt=x.dataset.hflt;paintMd(0);return;}
+  if((x=t.closest("[data-hset]"))){hSet(x.dataset.hset,x.dataset.hv);paintMd(0);return;}
   if((x=t.closest("[data-mdsel]"))){p.to=x.dataset.mdsel;paintMd(0);return;}
   if((x=t.closest("[data-hsel]"))){var kk=x.dataset.hsel;if(p.sel[kk])delete p.sel[kk];else p.sel[kk]=1;paintMd(0);return;}
   if((x=t.closest("[data-dupm]"))){var l=dupSets()[x.dataset.dupm];if(!l)return;var tg=mergeTarget(l),src=l.filter(function(o){return o!==tg;}),nn=src.reduce(function(s,o){return s+o.ids.length;},0);
@@ -4318,6 +4429,7 @@ document.addEventListener("click",function(ev){
       if(holderStats().some(function(h){return h.name.toLowerCase()===v.toLowerCase();})){toast("Diesen Inhaber gibt es schon");return;}
       state.settings.holders=(state.settings.holders||["Ich"]).concat([v]);saveSettings();render();mdPop();toast("Inhaber «"+v+"» angelegt");}
     else if(r==="hsel"){p.sel=p.sel?null:{};paintMd(0);}
+    else if(r==="hbulk"){var bf=p.from,bt=p.to;if(!bf||!bt||bf===bt)return;var bn=mapHolders(function(h){return h===bf?bt:h;});render();mdPop();toast(cntTxt(bn,"Eintrag","Einträge")+" an «"+bt+"» übertragen");}
     else if(r==="hmove"){var he0=md.stack[md.stack.length-2],to2=p.to,from=he0.name,n=0;if(!to2)return;
       Object.keys(he0.sel||{}).forEach(function(key){var kind=key.charAt(0),id=key.slice(2),m=kind==="c"?state.contracts:state.incomes,c=m[id];if(!c)return;
         var arr=[];holdersOf(c).forEach(function(h){var q=h===from?to2:h;if(arr.indexOf(q)<0)arr.push(q);});
@@ -4331,7 +4443,8 @@ document.addEventListener("click",function(ev){
     else if(r==="hdelgo"){var nm2=md.stack[md.stack.length-2].name;heDelete(nm2,p.to);mdPop(2);toast(p.to?"Gelöscht, Einträge an «"+p.to+"» übertragen":"Inhaber gelöscht");}
     else if(r==="cdel"){if(!catCount(p.n)){var cn=p.n;ask({title:"«"+cn+"» löschen?",text:"Die Kategorie ist leer.",ok:"Löschen",danger:true}).then(function(y){if(!y)return;ceDelete(cn,"Sonstiges");mdPop();toast("Kategorie gelöscht");});}
       else mdPush({k:"cdel"});}
-    else if(r==="cdelgo"){var cs=md.stack[md.stack.length-2].n;ceDelete(cs,p.to||"Sonstiges");mdPop(2);toast("Kategorie gelöscht");}
+    else if(r==="cdelgo"){var cs=p.src||md.stack[md.stack.length-2].n;ceDelete(cs,p.to||"Sonstiges");mdPop(p.src?1:2);toast("Kategorie gelöscht");}
+    else if(r==="cedit"){md.catEdit=!md.catEdit;paintMd(0);}
     else if(r==="cenew"){var nv=(document.getElementById("ceNew").value||"").trim().replace(/\s+/g," ");if(!nv){toast("Bitte einen Namen eingeben");return;}
       if(allCats().some(function(k){return k.toLowerCase()===nv.toLowerCase();})){toast("Diese Kategorie gibt es schon");return;}
       var l2=catList().map(function(x){return {n:x.n,c:x.c,i:x.i};});l2.push({n:nv,c:p.c,i:p.i});saveCatList(l2);render();mdPop();toast("Kategorie «"+nv+"» angelegt");}
