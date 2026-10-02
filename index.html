@@ -1105,6 +1105,14 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .cdelb i{width:20px;height:20px;border-radius:50%;background:var(--alert);position:relative}
 .cdelb i::after{content:"";position:absolute;left:5px;right:5px;top:9px;height:2px;background:#fff;border-radius:1px}
 .cdelb:disabled i{background:var(--ink3);opacity:.35}
+.icsbtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border-radius:14px;padding:11px 14px;margin:4px 0 12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.icsbtn svg{flex:none;width:22px;height:22px;fill:none;stroke:var(--teal);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.icsbtn span{flex:1;min-width:0}.icsbtn b{display:block;font-size:15px;font-weight:600}.icsbtn small{display:block;font-size:12.5px;color:var(--ink2)}
+.icsbtn i{font-style:normal;color:var(--ink3);font-size:18px}
+.cfrow{display:flex;align-items:center;gap:8px;padding-right:10px}
+.cfrow .cfmain{flex:1;min-width:0;display:flex;align-items:center;gap:12px;text-align:left;padding:0}
+.cfrow .mm{white-space:normal}.cfrow .mm.w{color:var(--warn);font-weight:600}
+.cfok{flex:none;font-size:13.5px;font-weight:600;color:var(--teal);background:color-mix(in srgb,var(--teal) 11%,transparent);border-radius:99px;padding:6px 12px}
 .mdav.ph{background:var(--surface);overflow:hidden;padding:0}.mdav.ph img{width:100%;height:100%;object-fit:cover;display:block}
 .mdav.xl{width:84px;height:84px;font-size:34px;margin:0 auto}
 .hcard{position:relative;text-align:center;padding:8px 0 4px}
@@ -1711,7 +1719,7 @@ function parseNum(s){var n=parseFloat(String(s==null?"":s).replace(/'/g,"").repl
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function toast(m){var t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove("on");},2400);}
-function today(){var d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+function today(){var d=window.__KONTIVO_TODAY?new Date(window.__KONTIVO_TODAY+"T00:00:00"):new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
 function parseD(s){if(!s)return null;var p=String(s).split("-");if(p.length!==3)return null;var d=new Date(+p[0],+p[1]-1,+p[2]);return isNaN(d)?null:d;}
 function fmtD(s){var d=parseD(s);if(!d)return "—";return d.getDate()+". "+MON[d.getMonth()]+" "+d.getFullYear();}
 function fmtShort(d){return d?(String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getFullYear()).slice(2)):"—";}
@@ -1722,6 +1730,9 @@ function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n
 function daysBetween(a,b){return Math.round((b-a)/86400000);}
 /* Kurse in CHF pro Einheit, alle Fremdwährungen in settings.rates (z.B. rates.EUR).
    RATE0 sind nur grobe Startwerte bis zum ersten automatischen Abruf. */
+/* Rechenkern für Prüffälle (tests/): Funktionen öffentlich, damit die Swift-Version gegen dieselben Ergebnisse geprüft werden kann */
+window.KontivoCalc=function(){return {termEnd:termEnd,nextTerm:nextTerm,noticeDeadline:noticeDeadline,nDl:nDl,effEnd:effEnd,nextDue:nextDue,monthlyCost:monthlyCost,curPrice:curPrice,
+  isAnytime:isAnytime,needsAction:needsAction,trialNeeds:trialNeeds,isPaused:isPaused,occurrences:occurrences,holderShare:holderShare,cancVia:cancVia,iso:iso,parseD:parseD,state:state};};
 var RATE0={EUR:0.94,USD:0.80,GBP:1.07,TRY:0.02};
 function rateOf(c){var s=state.settings;if(!c||c==="CHF")return 1;var r=s.rates&&+s.rates[c];return r>0?r:(RATE0[c]||1);}
 function conv(a,c){var s=state.settings;c=c||"CHF";if(c===s.home)return a;return a*rateOf(c)/rateOf(s.home);}
@@ -1866,7 +1877,10 @@ function nextTerm(c,base){
     if(nDl(c,T)>=t)return T;}
   return null;
 }
-function termEnd(c){return effEnd(c)||nextTerm(c);}
+/* Nächstes mögliches Vertragsende. Befristet mit Verlängerung: ist die Frist für das aktuelle Ende verpasst,
+   gilt das nächste Verlängerungsende (sonst verschwände der Vertrag bis zum Ablauf aus «Fristen») */
+function termEnd(c){var e=effEnd(c);if(!e)return nextTerm(c);var r=+c.renew||0,t=today(),g=0;
+  while(r&&!c.cancelPer&&nDl(c,e)<t&&g++<200)e=addMonths(e,r);return e;}
 /* Steuern lassen sich nicht kündigen: keine Frist, nicht in «Fristen» */
 function isTax(c){return /^Steuern/i.test(String(c.cat||""));}
 function noticeDeadline(c){if(isTax(c))return null;var e=termEnd(c);return e?nDl(c,e):null;}
@@ -1888,6 +1902,9 @@ function isKept(c){var T=termEnd(c);return !!(T&&c.keptFor&&c.keptFor===iso(T));
 function isAnytime(c){return !c.end&&(c.cancTerm==="p"||c.cancTerm==="m");}
 function needsAction(c){if(c.cancelPer)return false;var T=termEnd(c);if(!T||isAnytime(c)||c.noWatch)return false;
   if(c.keptFor&&c.keptFor===iso(T))return false;var d=nDl(c,T),n=daysBetween(today(),d);return n>=0&&n<=90;}
+/* Kündigungsbestätigung: c.cancConf = Datum des Eingangs; ohne Bestätigung nach 14 Tagen nachfragen */
+function confWait(c){return !!(c.cancelPer&&!c.cancConf&&c.status!=="cancelled");}
+function confOverdue(c){var d=parseD(c.cancelledOn);return confWait(c)&&!!d&&daysBetween(d,today())>=14;}
 function trialNeeds(c){var d=parseD(c.trial),t=today();return !!(d&&d>=t&&daysBetween(t,d)<=90&&c.trialKept!==c.trial&&!c.cancelPer);}
 
 /* ---------- Speicher ---------- */
@@ -1994,7 +2011,7 @@ function renderView(){
   document.getElementById("cArch").textContent=archived().length?archived().length:"";
   var tT0=today();
   var soon30=function(c){var d=noticeDeadline(c);return d&&daysBetween(tT0,d)<=30;};
-  var tCount=ar.filter(function(c){return needsAction(c)&&!isTax(c);}).length+ar.filter(function(c){return trialNeeds(c)&&!isTax(c);}).length;
+  var tCount=ar.filter(function(c){return needsAction(c)&&!isTax(c);}).length+ar.filter(function(c){return trialNeeds(c)&&!isTax(c);}).length+a.filter(confOverdue).length;
   document.getElementById("cTerm").textContent=tCount?tCount:"";
 
   if(state.tab==="list"){
@@ -2063,12 +2080,13 @@ function renderView(){
     var ddmm=function(d){return ("0"+d.getDate()).slice(-2)+"."+("0"+(d.getMonth()+1)).slice(-2)+"."+(d.getFullYear()===t1.getFullYear()?"":String(d.getFullYear()).slice(-2));};
     var todo=a.filter(needsAction).sort(function(x,y){return noticeDeadline(x)-noticeDeadline(y);});
     var triTodo=a.filter(trialNeeds).sort(function(x,y){return parseD(x.trial)-parseD(y.trial);});
-    var nTodo=todo.length+triTodo.length;
+    var conf=active().filter(confWait).sort(function(x,y){return (parseD(x.cancelledOn)||0)-(parseD(y.cancelledOn)||0);}),confOd=conf.filter(confOverdue);
+    var nTodo=todo.length+triTodo.length+confOd.length;
     // Kommende Termine
     var up=[];
     a.forEach(function(c){
       if(needsAction(c)||trialNeeds(c)||c.noWatch)return;
-      if(c.cancelPer){var cp=parseD(c.cancelPer);up.push({c:c,d:cp,t:"gekündigt · endet "+fmtShort(cp),k:"end"});return;}
+      if(c.cancelPer){if(confWait(c))return;var cp=parseD(c.cancelPer);up.push({c:c,d:cp,t:"gekündigt ✓ · endet "+fmtShort(cp),k:"end"});return;}
       if(isP(c))return;
       var T=termEnd(c);if(!T)return;
       if(isKept(c)){var T2=c.end?(+c.renew?addMonths(T,+c.renew):null):nextTerm(c,addDays(T,1));
@@ -2081,10 +2099,11 @@ function renderView(){
     var nofrist=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&!noticeDeadline(c)&&!(+c.notice||0)&&!c.mand;});
     var unw=a.filter(function(c){return c.noWatch&&!c.cancelPer;});
     // Kopfzeile
-    if(nTodo){var nx=todo.map(noticeDeadline).concat(triTodo.map(function(c){return parseD(c.trial);})).sort(function(x,y){return x-y;})[0];
+    if(nTodo||conf.length){var nx=todo.map(noticeDeadline).concat(triTodo.map(function(c){return parseD(c.trial);})).sort(function(x,y){return x-y;})[0];
       var urgent=todo.filter(function(c){return daysBetween(t1,noticeDeadline(c))<=30;}).length+triTodo.filter(function(c){return daysBetween(t1,parseD(c.trial))<=30;}).length;
-      o+='<p class="tintro"><b>'+nTodo+" offen</b>"+(urgent&&urgent<nTodo?" · "+urgent+" dringend":"")+(nx?" · nächste Frist "+inDays(daysBetween(t1,nx)):"")+"</p>";}
+      o+=nTodo?'<p class="tintro"><b>'+nTodo+" offen</b>"+(urgent&&urgent<nTodo?" · "+urgent+" dringend":"")+(nx?" · nächste Frist "+inDays(daysBetween(t1,nx)):"")+"</p>":'<p class="tintro ok"><b>Keine Fristen offen</b> · '+cntTxt(conf.length,"Bestätigung","Bestätigungen")+' ausstehend</p>';}
     else if(a.length)o+='<p class="tintro ok"><b>Alles erledigt</b> · keine offenen Entscheidungen</p>';
+    if(a.length&&icsEvents().length)o+='<button type="button" class="icsbtn" data-ics="1"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span><b>Fristen in den Kalender</b><small>Erinnerung 7 Tage und 1 Tag vorher</small></span><i>›</i></button>';
     // Entscheidungen
     var decCard=function(c,trial){
       var d=trial?parseD(c.trial):nDl(c,termEnd(c)),dn=daysBetween(t1,d),lv=dn<=30?"alert":"warn";
@@ -2096,6 +2115,10 @@ function renderView(){
         '<button data-kill="'+c._id+'"'+(trial?' data-trial="1"':"")+'>'+(c.mand?"Wechseln":"Kündigen")+"</button></div></div>";};
     if(nTodo){o+='<div class="grp" style="margin-top:6px">';
       triTodo.forEach(function(c){o+=decCard(c,true);});todo.forEach(function(c){o+=decCard(c,false);});o+="</div>";}
+    if(conf.length){o+='<div class="grp"><div class="grphead"><span>Bestätigung ausstehend</span></div><div class="mrows mrows2">'+conf.map(function(c){
+        var d=parseD(c.cancelledOn),n=d?daysBetween(d,t1):0,od=confOverdue(c);
+        return '<div class="mrow trow cfrow"><button class="cfmain" data-open="'+c._id+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm'+(od?" w":"")+'">'+(d?"gekündigt "+ddmm(d)+" · ":"")+(od?n+" Tage ohne Antwort, nachfragen":"Antwort abwarten")+'</span></span></button>'+
+          '<button class="cfok" data-conf="'+c._id+'">Erhalten</button></div>';}).join("")+'</div></div>';}
     var row=function(c,txt,cls){return '<button class="mrow trow" data-open="'+c._id+'">'+markHtml(c)+
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst'+(cls?" "+cls:"")+'">'+esc(txt)+"</span></button>";};
     if(up.length){
@@ -3625,6 +3648,8 @@ function openDetail(idv){
     c.noWatch?["Frist","wird nicht beobachtet"]:null,
     rt?["Sonst verlängert bis",fmtD(iso(rt))]:(c.renew?["Verlängerung","automatisch um "+c.renew+(+c.renew===1?" Monat":" Monate")]:null),
     c.cancF?["Kündigung per",c.cancF]:null,
+    c.cancelPer&&c.cancelledOn?["Gekündigt am",fmtD(c.cancelledOn)]:null,
+    c.cancelPer?["Bestätigung",c.cancConf?"erhalten am "+fmtD(c.cancConf):"ausstehend"]:null,
     c.trial?["Probeabo endet",fmtD(c.trial)]:null]],
    ["Zuordnung",[
     c.partner?["Vertragspartner",c.partner]:null,
@@ -3676,10 +3701,11 @@ function openDetail(idv){
     (c.note?'<h3 class="dsec">Notiz</h3><div style="font-size:14.5px;white-space:pre-wrap">'+esc(c.note)+"</div>":"")+
     (docs?'<h3 class="dsec">Dokumente</h3><div class="docs" style="margin-bottom:16px">'+docs+"</div>":"")+
     '<div style="height:14px"></div>'+
+    (confWait(c)?'<button class="ghost" data-act="confok">Bestätigung erhalten</button>':"")+
     (c.cancelPer?'<button class="ghost" data-act="uncancel">Kündigung zurücknehmen</button>':"")+
     (isKept(c)?'<button class="ghost" data-act="unkeep">Entscheid «Behalten» zurücksetzen</button>':"")+
-    (function(){var v=cancVia(c);return '<button class="ghost" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
-      (v==="online"?"Online kündigen":v==="mail"?"Per E-Mail kündigen":v==="post"?"Kündigungsschreiben":"Kündigen …")+'</button>';})()+
+    (c.cancelPer||c.status==="cancelled"?"":function(){var v=cancVia(c);return '<button class="ghost" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
+      (v==="online"?"Online kündigen":v==="mail"?"Per E-Mail kündigen":v==="post"?"Kündigungsschreiben":"Kündigen …")+'</button>';}())+
     (c.status!=="cancelled"?'<button class="ghost" data-act="pause">'+(isPaused(c)?"Fortsetzen":"Pausieren")+"</button>":"")+
     '<details class="opt moreact"><summary>Weitere Aktionen</summary><div class="optbody">'+
     '<button class="ghost" data-act="dup">Duplizieren</button>'+
@@ -3702,7 +3728,8 @@ function openDetail(idv){
         if(isPaused(c)){var nc2=stripId(c);nc2.paused=false;nc2.pausedAt="";nc2.pausedUntil="";putContract(idv,nc2);closeSheets();render();toast("Fortgesetzt");}
         else openPausePick(idv);}
       else if(a==="cancel"){c.status="cancelled";c.cancelledAt=iso(today());putContract(idv,stripId(c));closeSheets();render();toast("Ins Archiv verschoben");}
-      else if(a==="uncancel"){var u1=stripId(c);u1.cancelPer="";u1.cancelledOn="";putContract(idv,u1);closeSheets();render();toast("Kündigung zurückgenommen");}
+      else if(a==="confok"){var u0=stripId(c);u0.cancConf=iso(today());putContract(idv,u0);closeSheets();render();toast("Bestätigung vermerkt");}
+      else if(a==="uncancel"){var u1=stripId(c);u1.cancelPer="";u1.cancelledOn="";u1.cancConf="";putContract(idv,u1);closeSheets();render();toast("Kündigung zurückgenommen");}
       else if(a==="unkeep"){var u2=stripId(c);u2.keptFor="";putContract(idv,u2);closeSheets();render();toast("Wieder offen");}
       else if(a==="reactivate"){c.status="active";c.cancelledAt="";putContract(idv,stripId(c));closeSheets();render();toast("Wieder aktiv");}
       else if(a==="delete"){ask({title:"Vertrag löschen?",text:"«"+titleOf(c)+"» wird endgültig gelöscht. Angehängte Dateien bleiben erhalten.",ok:"Löschen",danger:true})
@@ -3726,6 +3753,30 @@ function openDetail(idv){
 });
 (function(){var sh=document.getElementById("sheetDetail");sh.addEventListener("scroll",function(){sh.classList.toggle("scrolled",sh.scrollTop>60);},{passive:true});})();
 function stripId(c){var x=Object.assign({},c);delete x._id;return x;}
+/* Fristen als Kalender-Datei (.ics): ganztägige Termine am letzten Kündigungstag bzw. Probeabo-Ende, Erinnerung 7 Tage und 1 Tag vorher um 09:00.
+   Momentaufnahme; nach Änderungen neu exportieren (gleiche UID ersetzt den Termin). SwiftUI: UNUserNotificationCenter statt Kalender */
+function icsEsc(t){return String(t||"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");}
+function icsDate(d){return d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2);}
+function icsEvents(){var t=today(),ev=[];
+  running().forEach(function(c){if(isTax(c)||c.noWatch||c.cancelPer)return;
+    var d=noticeDeadline(c);if(d&&d>=t&&!isAnytime(c)&&!isKept(c))ev.push({c:c,d:d,k:"frist",t:"Kündigungsfrist: "+titleOf(c),x:"Letzter Tag, an dem die Kündigung beim Anbieter sein muss"+(termEnd(c)?" (Vertragsende "+fmtD(iso(termEnd(c)))+")":"")+"."});
+    var tr=parseD(c.trial);if(tr&&tr>=t&&c.trialKept!==c.trial)ev.push({c:c,d:tr,k:"probe",t:"Probeabo endet: "+titleOf(c),x:"Vorher kündigen, sonst läuft es kostenpflichtig weiter."});});
+  return ev.sort(function(a,b){return a.d-b.d;});}
+function icsText(ev){var now=new Date(),st=now.toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  var L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Kontivo//Fristen//DE","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Kontivo Fristen"];
+  ev.forEach(function(e){var c=e.c,d2=addDays(e.d,1),via=cancVia(c);
+    L.push("BEGIN:VEVENT","UID:kontivo-"+c._id+"-"+e.k+"-"+icsDate(e.d)+"@kontivo","DTSTAMP:"+st,"DTSTART;VALUE=DATE:"+icsDate(e.d),"DTEND;VALUE=DATE:"+icsDate(d2),
+      "SUMMARY:"+icsEsc(e.t),"DESCRIPTION:"+icsEsc(e.x+(c.partner?"\nVertragspartner: "+c.partner:"")+(via?"\nKündigung per: "+{online:"Online",mail:"E-Mail",post:"Brief"}[via]:"")+(c.custNo?"\nKundennummer: "+c.custNo:"")),
+      "TRANSP:TRANSPARENT","BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(e.t),"TRIGGER:-P6DT15H","END:VALARM","BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(e.t),"TRIGGER:-PT15H","END:VALARM","END:VEVENT");});
+  L.push("END:VCALENDAR");
+  /* Zeilen über 73 Zeichen falten (RFC 5545) */
+  return L.map(function(l){var o="";while(l.length>73){o+=l.slice(0,73)+"\r\n ";l=l.slice(73);}return o+l;}).join("\r\n")+"\r\n";}
+async function exportIcs(){var ev=icsEvents();if(!ev.length){toast("Keine kommenden Fristen zum Eintragen");return;}
+  var blob=new Blob([icsText(ev)],{type:"text/calendar"}),name="Kontivo-Fristen.ics";
+  /* iPhone: Öffnen der Datei zeigt «Alle hinzufügen» in Kalender; sonst über Teilen */
+  var dl=null;try{dl=await claude.use("downloads");}catch(e){}
+  if(dl){try{await dl.save({filename:name,data:blob});toast(cntTxt(ev.length,"Termin","Termine")+" erstellt. In Kalender öffnen und «Alle hinzufügen»");return;}catch(e){if(e&&e.code==="declined")return;}}
+  var u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(u);},2000);}
 /* Nach Online-/E-Mail-Kündigung: beim Zurückkommen fragen, ob gekündigt wurde (Kontivo kann es nicht prüfen) */
 var kPending="";
 document.addEventListener("visibilitychange",function(){if(document.visibilityState!=="visible"||!kPending)return;var id=kPending;kPending="";var c=state.contracts[id];if(!c)return;
@@ -3820,6 +3871,9 @@ function shiftMonth(step,slide){
 }
 document.getElementById("view").addEventListener("click",function(ev){
   if(state._swiped&&Date.now()-state._swiped<400&&ev.target.closest(".kcard"))return;
+  var cf=ev.target.closest("[data-conf]");
+  if(cf){var cid=cf.dataset.conf,cc=state.contracts[cid];if(!cc)return;putContract(cid,Object.assign({},cc,{cancConf:iso(today())}));render();toast("Bestätigung vermerkt. Tipp: Bestätigung als Dokument zum Vertrag legen.");return;}
+  if(ev.target.closest("[data-ics]")){exportIcs();return;}
   var kp=ev.target.closest("[data-keep]");
   if(kp){var id=kp.dataset.keep,c0=state.contracts[id];if(!c0)return;var c1=Object.assign({},c0);
     if(kp.dataset.trial)c1.trialKept=c1.trial;else c1.keptFor=iso(termEnd(Object.assign({_id:id},c1)));
