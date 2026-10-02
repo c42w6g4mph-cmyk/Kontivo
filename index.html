@@ -1350,6 +1350,8 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
       <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
     <div class="field"><label for="fTrial">Probeabo endet</label><input id="fTrial" type="date"></div>
   </div>
+  <div class="field" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="netflix.com/cancelplan" autocomplete="off">
+    <p class="note" style="margin:6px 0 0">Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.</p></div>
 
   <h3>Kundendaten</h3>
   <div class="two">
@@ -1364,7 +1366,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   </div>
 
   <h3>Kontakt &amp; Notiz</h3>
-  <div class="field"><label for="fAddr">Adresse des Vertragspartners — für das Kündigungsschreiben</label><textarea id="fAddr" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort" style="min-height:72px"></textarea></div>
+  <div class="field"><label for="fAddr">Adresse des Vertragspartners — für die Kündigung per Brief</label><textarea id="fAddr" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort" style="min-height:72px"></textarea></div>
   <div class="field"><label for="fWeb">Website oder Kundenportal</label><input id="fWeb" type="url" inputmode="url" placeholder="swisscom.ch/login" autocomplete="off"></div>
   <div class="two">
     <div class="field"><label for="fTel">Telefon</label><input id="fTel" type="tel" autocomplete="off"></div>
@@ -2684,7 +2686,7 @@ function openForm(c,asCopy){clearCands();
   document.getElementById("fNote").value=(c&&c.note)||"";
   document.getElementById("fPayM").value=(c&&c.payM)||"";
   document.getElementById("fPayA").value=(c&&c.payA)||"";
-  document.getElementById("fCancF").value=(c&&c.cancF)||"";
+  document.getElementById("fCancF").value=(c&&c.cancF)||"";document.getElementById("fCancUrl").value=(c&&c.cancUrl)||"";syncCancUrl();
   document.getElementById("fTrial").value=(c&&c.trial)||"";
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
   document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
@@ -2919,13 +2921,15 @@ document.getElementById("fWatch").addEventListener("change",function(){var v=thi
   document.getElementById("fMand").checked=v==="mand";document.getElementById("fNoWatch").checked=v==="nowatch";});
 document.getElementById("iLogoTap").addEventListener("click",function(){var d=document.getElementById("oILogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 document.getElementById("logoTap").addEventListener("click",function(){var d=document.getElementById("oLogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
+function syncCancUrl(){document.getElementById("fCancUrlW").hidden=document.getElementById("fCancF").value!=="Online / Kundenkonto";}
+document.getElementById("fCancF").addEventListener("change",syncCancUrl);
 function paintOptCounts(){
   var n=(draft.prices||[]).length,d=(draft.docs||[]).length,xn=(draft.extras||[]).length,g=function(id){return (document.getElementById(id).value||"").trim();};
   document.getElementById("oExtraN").textContent=xn?xn+" erfasst":"";
   document.getElementById("oPriceN").textContent=n?n+(n===1?" Änderung":" Änderungen"):"";
   document.getElementById("oDocsN").textContent=d?d+(d===1?" Datei":" Dateien"):"";
   var parts=[n?n+(n===1?" Preisänderung":" Preisänderungen"):"",xn?xn+(xn===1?" Sonderzahlung":" Sonderzahlungen"):"",
-    g("fWatch")==="mand"?"Pflichtvertrag":(g("fWatch")==="nowatch"?"nicht in Fristen":""),g("fCancF")?"Kündigungsweg":"",g("fTrial")?"Probeabo":"",
+    g("fWatch")==="mand"?"Pflichtvertrag":(g("fWatch")==="nowatch"?"nicht in Fristen":""),g("fCancF")?"Kündigungsweg":"",g("fCancUrl")?"Kündigungslink":"",g("fTrial")?"Probeabo":"",
     g("fCustNo")?"Kundennummer":"",g("fContrNo")?"Vertragsnummer":"",g("fPayM")?"Zahlungsart":"",g("fPayA")?"Belastet über":"",
     g("fAddr")?"Adresse":"",g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",d?d+(d===1?" Datei":" Dateien"):""].filter(Boolean);
   var el=document.getElementById("fMoreN");el.textContent=parts.length?parts.join(" · "):"Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …";el.classList.toggle("on",!!parts.length);
@@ -3012,7 +3016,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
     holders:(draft.holders||[]).slice(),
     payM:document.getElementById("fPayM").value,
     payA:document.getElementById("fPayA").value.trim(),
-    cancF:document.getElementById("fCancF").value,
+    cancF:document.getElementById("fCancF").value,cancUrl:document.getElementById("fCancUrl").value.trim(),
     trial:document.getElementById("fTrial").value||"",
     web:document.getElementById("fWeb").value.trim(),addr:document.getElementById("fAddr").value.trim(),
     tel:document.getElementById("fTel").value.trim(),
@@ -3244,6 +3248,11 @@ document.getElementById("vEdit").addEventListener("click",function(){document.ge
 var ltC=null;
 /* Bausteine des Briefs (Absender aus den Einstellungen, Empfänger aus dem Vertrag) */
 /* Mietverträge: Schriftform mit eigenhändiger Unterschrift (CH Art. 266l OR, DE § 568 BGB) → keine eingefügte Unterschrift */
+/* Kündigungsweg aus c.cancF (Katalog liefert ihn mit): online | mail | post; ohne Angabe: Miete und Versicherung → Brief, sonst offen */
+var CANC_VIA={"Online / Kundenkonto":"online","E-Mail":"mail","Brief":"post","Einschreiben":"post"};
+function cancVia(c){var v=CANC_VIA[c.cancF||""];if(v)return v;if(isRent(c)||c.cat==="Versicherung")return "post";return "";}
+function cancViaTxt(v){return {online:"Online",mail:"Per E-Mail",post:"Per Brief"}[v]||"noch wählen";}
+function cancLink(c){return normUrl(c.cancUrl||c.web||"");}
 function isRent(c){var t=(c.label||"")+" "+(c.partner||"");return /miete|mietvertrag|wohnungsmiete|untermiete/i.test(t)||(c.cat==="Wohnen"&&/wohnung|zimmer|apartment|vermiet|verwaltung|immobilien/i.test(t));}
 function ltDefaultSigners(c){var H=holderStats().map(function(h){return h.name;}),own=holdersOf(c).filter(function(h){return H.indexOf(h)>=0;});
   return own.length?own:(H.length===1?H.slice():[]);}
@@ -3629,7 +3638,8 @@ function openDetail(idv){
     '<div style="height:14px"></div>'+
     (c.cancelPer?'<button class="ghost" data-act="uncancel">Kündigung zurücknehmen</button>':"")+
     (isKept(c)?'<button class="ghost" data-act="unkeep">Entscheid «Behalten» zurücksetzen</button>':"")+
-    '<button class="ghost" data-act="ktext">Kündigungsschreiben</button>'+
+    (function(){var v=cancVia(c);return '<button class="ghost" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
+      (v==="online"?"Online kündigen":v==="mail"?"Per E-Mail kündigen":v==="post"?"Kündigungsschreiben":"Kündigen …")+'</button>';})()+
     (c.status!=="cancelled"?'<button class="ghost" data-act="pause">'+(isPaused(c)?"Fortsetzen":"Pausieren")+"</button>":"")+
     '<details class="opt moreact"><summary>Weitere Aktionen</summary><div class="optbody">'+
     '<button class="ghost" data-act="dup">Duplizieren</button>'+
@@ -3658,6 +3668,12 @@ function openDetail(idv){
       else if(a==="delete"){ask({title:"Vertrag löschen?",text:"«"+titleOf(c)+"» wird endgültig gelöscht. Angehängte Dateien bleiben erhalten.",ok:"Löschen",danger:true})
         .then(function(y){if(y){dropContract(idv);closeSheets();render();toast("Gelöscht");}});}
       else if(a==="ktext"){openLetter(c);}
+      else if(a==="kvia"){openCancViaPick(idv);}
+      else if(a==="konline"){var u=cancLink(c);if(!u){toast("Kein Link hinterlegt. Trag Website oder Kündigungslink ein.");closeSheets();setTimeout(function(){openForm(c);formPage(true);},180);return;}
+        kPending=idv;toast("Nach der Kündigung hier bestätigen");setTimeout(function(){openLink(u);},350);}
+      else if(a==="kmail"){if(!c.mail){ask({title:"E-Mail-Adresse fehlt",text:"Trag die Kündigungsadresse des Vertragspartners beim Vertrag unter «Kontakt» ein.",ok:"Eintragen"}).then(function(y){if(!y)return;closeSheets();setTimeout(function(){openForm(c);formPage(true);},180);});return;}
+        var Lm=letterParts(c),mt=[Lm.ref.join("\n"),Lm.body,Lm.names.join("\n")].filter(Boolean).join("\n\n");
+        kPending=idv;location.href="mailto:"+c.mail.trim()+"?subject="+encodeURIComponent(Lm.subject)+"&body="+encodeURIComponent(mt);}
     });
   });
   openSheet(document.getElementById("sheetDetail"));
@@ -3670,6 +3686,21 @@ function openDetail(idv){
 });
 (function(){var sh=document.getElementById("sheetDetail");sh.addEventListener("scroll",function(){sh.classList.toggle("scrolled",sh.scrollTop>60);},{passive:true});})();
 function stripId(c){var x=Object.assign({},c);delete x._id;return x;}
+/* Nach Online-/E-Mail-Kündigung: beim Zurückkommen fragen, ob gekündigt wurde (Kontivo kann es nicht prüfen) */
+var kPending="";
+document.addEventListener("visibilitychange",function(){if(document.visibilityState!=="visible"||!kPending)return;var id=kPending;kPending="";var c=state.contracts[id];if(!c)return;
+  setTimeout(function(){var T=termEnd(Object.assign({_id:id},c));
+    ask({title:"Gekündigt?",text:"«"+titleOf(c)+"» als gekündigt markieren"+(T?", läuft bis "+fmtD(iso(T)):"")+". Der Vertrag zählt bis zum Ende weiter und wandert danach ins Archiv.",ok:"Ja, gekündigt"})
+      .then(function(y){if(y)markCancelled(id,false);});},400);});
+function openCancViaPick(idv){
+  var c=state.contracts[idv];if(!c)return;
+  document.getElementById("pickTitle").textContent="Wie kündigst du «"+titleOf(c)+"»?";
+  var l=document.getElementById("pickList");l.dataset.dim="cvia-"+idv;
+  l.innerHTML=[["online","Online","Kundenkonto, Kündigungsbutton"],["mail","Per E-Mail","Mail mit fertigem Text"],["post","Per Brief","PDF mit Unterschrift"]].map(function(o){
+    return '<button class="pick" data-pv="'+o[0]+'"><span>'+o[1]+'</span><span>'+o[2]+'</span></button>';}).join("")+
+    '<p class="note" style="margin:10px 2px 0">Wird beim Vertrag gespeichert. Miete braucht immer einen Brief mit Unterschrift.</p>';
+  var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
+}
 
 /* ---------- Ereignisse ---------- */
 function killOptions(idv,trial){
@@ -3677,7 +3708,8 @@ function killOptions(idv,trial){
   var T=trial?parseD(c.trial):termEnd(c);
   document.getElementById("pickTitle").textContent=(c.mand?"Wechseln: ":"Kündigen: ")+titleOf(c);
   var l=document.getElementById("pickList");l.dataset.dim="kill-"+idv+(trial?"-t":"");
-  l.innerHTML='<button class="pick" data-pv="letter"><span>Kündigungsschreiben erstellen</span><span>'+(c.cancF?esc(c.cancF):"")+"</span></button>"+
+  var via=cancVia(c),vl={online:"Online kündigen",mail:"Per E-Mail kündigen",post:"Kündigungsschreiben erstellen"}[via]||"Kündigen: Weg wählen …";
+  l.innerHTML='<button class="pick" data-pv="letter"><span>'+vl+'</span><span>'+(c.cancF?esc(c.cancF):"")+"</span></button>"+
     '<button class="pick" data-pv="done"><span>'+(c.mand?"Gekündigt, neuen Anbieter erfassen":"Als gekündigt markieren")+"</span><span>"+(T?"läuft bis "+fmtShort(T):"")+"</span></button>"+
     '<p class="note" style="margin:10px 2px 0">'+(T?"Kündigung muss "+(trial?"vor dem ":"bis ")+fmtD(iso(trial?T:nDl(c,T)))+(trial?"":" beim Anbieter")+" sein. ":"")+
     "Nach dem Markieren zählt der Vertrag bis zum Ende weiter und wandert danach ins Archiv.</p>";
@@ -3857,11 +3889,14 @@ document.getElementById("pickList").addEventListener("click",function(ev){
     if(tc){tplCC=tc.dataset.tcc;this.querySelectorAll("[data-tcc]").forEach(function(x){x.setAttribute("aria-pressed",x===tc);});document.getElementById("tplRows").innerHTML=tplRows();return;}
     var tp=ev.target.closest("[data-tplp]");if(!tp)return;applyTpl(TPL[+tp.dataset.tplp]);closePick();return;
   }
+  if(pd.indexOf("cvia-")===0){var cid=pd.slice(5),cb=ev.target.closest("[data-pv]");if(!cb)return;var cc=state.contracts[cid];if(!cc)return;
+    var txt={online:"Online / Kundenkonto",mail:"E-Mail",post:"Brief"}[cb.dataset.pv];putContract(cid,Object.assign({},cc,{cancF:txt}));closePick();render();
+    closeSheets();setTimeout(function(){openDetail(cid);setTimeout(function(){var kt=document.querySelector("#detailBody [data-kbtn]");if(kt){kt.scrollIntoView({block:"center"});kt.click();}},150);},180);return;}
   if(pd.indexOf("kill-")===0){
     var kid=pd.slice(5),ktr=/-t$/.test(kid);if(ktr)kid=kid.slice(0,-2);
     var kb=ev.target.closest("[data-pv]");if(!kb)return;
     if(kb.dataset.pv==="done"){markCancelled(kid,ktr);return;}
-    closeSheets();setTimeout(function(){openDetail(kid);setTimeout(function(){var kt=document.querySelector('#detailBody [data-act="ktext"]');if(kt){kt.click();kt.scrollIntoView({block:"center"});}},120);},180);return;
+    closeSheets();setTimeout(function(){openDetail(kid);setTimeout(function(){var kt=document.querySelector('#detailBody [data-kbtn]');if(kt){kt.click();kt.scrollIntoView({block:"center"});}},120);},180);return;
   }
   if(pd.indexOf("catpick-")===0){
     if(ev.target.closest("#newCatAdd")){addCustomCat();return;}
@@ -3987,7 +4022,7 @@ function partnerGroups(){
 /* ---------- Datenqualität ---------- */
 function qIgn(){var o=state.settings.qIgn;return (o&&typeof o==="object")?o:{};}
 function qualItems(){
-  var ig=qIgn(),out={A:[],B:[],C:[],D:[]},nIg=0,cats=allCats(),hUsed={};
+  var ig=qIgn(),out={A:[],B:[],C:[],D:[]},nIg=0,cats=allCats(),hUsed={},pNeed={};
   function add(g,key,o){if(ig[key]){nIg++;return;}o.key=key;out[g].push(o);}
   Object.keys(state.contracts).forEach(function(k){
     var c=Object.assign({},state.contracts[k]);c._id=k;
@@ -3999,9 +4034,14 @@ function qualItems(){
     if(!c.cat||c.cat==="Sonstiges"||cats.indexOf(c.cat)<0)add("A","c:"+k+":cat",Object.assign({why:!c.cat?"Keine Kategorie":(c.cat==="Sonstiges"?"Kategorie «Sonstiges»":"Kategorie «"+c.cat+"» gibt es nicht mehr")},base));
     if(!(+c.cycle>0))add("A","c:"+k+":cycle",Object.assign({why:"Zahlungsweise fehlt"},base));
     if(!parseD(c.due))add("B","c:"+k+":due",Object.assign({why:"Kein Fälligkeitsdatum"},base));
-    /* Kündigen: Referenznummer für den Brief; Absender der Inhaber (einmal pro Person) */
-    if(!isTax(c)){if(!c.custNo&&!c.contrNo)add("D","c:"+k+":ref",Object.assign({why:"Kundennummer fehlt"},base));
-      holdersOf(c).forEach(function(h){hUsed[h]=1;});}
+    /* Kündigen: je nach Kündigungsweg; Absender-Bedarf pro Inhaber (2 = Adresse für Brief, 1 = Name für E-Mail) */
+    if(!isTax(c)){var via=cancVia(c);
+      if(!via)add("D","c:"+k+":via",Object.assign({why:"Kündigungsweg festlegen"},base));
+      else{if(!c.custNo&&!c.contrNo)add("D","c:"+k+":ref",Object.assign({why:"Kundennummer fehlt"},base));
+        if(via==="online"&&!cancLink(c))add("D","c:"+k+":link",Object.assign({why:"Kündigungslink fehlt"},base));
+        if(via==="mail"&&!c.mail)add("D","c:"+k+":mail",Object.assign({why:"E-Mail-Adresse fehlt"},base));
+        if(via==="post"&&c.partner)pNeed[String(c.partner).trim().toLowerCase()]=1;
+        var lv=via==="post"?2:via==="mail"?1:0;holdersOf(c).forEach(function(h){hUsed[h]=Math.max(hUsed[h]||0,lv);});}}
     /* Frist: nur, wenn der Vertrag überwacht wird; fehlt die Frist oder lässt sich kein Termin berechnen (keine Laufzeit, kein Rhythmus) */
     if(!c.cancelPer&&!c.noWatch&&!c.mand&&!isTax(c)&&!noticeDeadline(c))
       add("B","c:"+k+":notice",Object.assign({why:(!(+c.notice||0)&&!c.cancTerm)?"Keine Kündigungsfrist":"Laufzeit oder Rhythmus fehlt"},base));
@@ -4014,9 +4054,11 @@ function qualItems(){
     if(!o.ids.some(function(k){return state.contracts[k].status!=="cancelled";}))return;
     var base={kind:"p",pk:o.key,c:c,name:o.name,n:o.ids.length,sub:cntTxt(o.ids.length,"Vertrag","Verträge")};
     if(!o.logoC)add("C","p:"+o.key+":logo",Object.assign({why:"Kein Logo",logo:true,needLogo:true,keys:["p:"+o.key+":logo"]},base));
-    if(!o.addr&&!o.ids.every(function(k){return isTax(state.contracts[k]);}))add("D","p:"+o.key+":addr",Object.assign({why:"Adresse fehlt"},base));
+    if(!o.addr&&pNeed[o.key])add("D","p:"+o.key+":addr",Object.assign({why:"Adresse fehlt (Kündigung per Brief)"},base));
   });
-  Object.keys(hUsed).forEach(function(h){if(!sndOk(h))add("D","h:"+h+":sender",{kind:"h",id:h,name:h,sub:"Inhaber",why:"Absender unvollständig"});});
+  Object.keys(hUsed).forEach(function(h){var lv=hUsed[h],o=sndOf(h);
+    if(lv>=2&&!sndOk(h))add("D","h:"+h+":sender",{kind:"h",id:h,name:h,sub:"Inhaber · für Kündigung per Brief",why:"Absender unvollständig"});
+    else if(lv===1&&!(o.first||o.last))add("D","h:"+h+":sender",{kind:"h",id:h,name:h,sub:"Inhaber · für Kündigung per E-Mail",why:"Name des Absenders fehlt"});});
   out.ign=nIg;return out;
 }
 /* ---------- Automatische Logo-Suche mit Bestätigung ---------- */
@@ -4080,9 +4122,9 @@ function qualChecklist(q){
   return '<div class="qcrit"><div class="qch">Was geprüft wird <small>'+cntTxt(N,"Vertrag","Verträge")+(NI?", "+cntTxt(NI,"Einnahme","Einnahmen"):"")+'</small></div>'+
     grp("A","Kosten und Budget",[li("Inhaber",cnt("A","holder","c")),li("Betrag",cnt("A","amount","c")),li("Kategorie",cnt("A","cat")),li("Zahlungsweise",cnt("A","cycle"))].concat(NI?[li("Einnahmen: Betrag, Inhaber",mi)]:[]))+
     grp("B","Fristen",[li("Fälligkeit",cnt("B","due")),li("Kündigungsfrist und Laufzeit",cnt("B","notice"))])+
-    grp("D","Kündigen",[li("Kunden- oder Vertragsnummer",cnt("D","ref")),li("Adresse des Vertragspartners",cnt("D","addr")),li("Absender der Inhaber",cnt("D","sender"))])+
+    grp("D","Kündigen",[li("Kündigungsweg gewählt",cnt("D","via")),li("Kunden- oder Vertragsnummer",cnt("D","ref")),li("Link (Online)",cnt("D","link")),li("E-Mail-Adresse (E-Mail)",cnt("D","mail")),li("Adresse des Vertragspartners (Brief)",cnt("D","addr")),li("Absender der Inhaber",cnt("D","sender"))])+
     grp("C","Vertragspartner",[li("Logo",cnt("C","logo"))])+
-    '<p class="mdhint" style="margin:10px 0 0">Gekündigte Verträge und ignorierte Hinweise zählen nicht. Nicht überwachte Verträge, Pflichtverträge und Steuern brauchen keine Frist.</p></div>';
+    '<p class="mdhint" style="margin:10px 0 0">Gekündigte Verträge und ignorierte Hinweise zählen nicht. Nicht überwachte Verträge, Pflichtverträge und Steuern brauchen keine Frist. Adresse, E-Mail und Link werden nur für den gewählten Kündigungsweg verlangt.</p></div>';
 }
 function paintMdQual(){
   var b=document.getElementById("mdBody"),q=qualItems();
