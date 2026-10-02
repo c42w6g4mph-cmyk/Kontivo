@@ -896,6 +896,12 @@ textarea.lt{min-height:260px;font-size:15px;line-height:1.45;resize:none;font-fa
 .sigbox{position:relative;height:96px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);display:grid;place-items:center;overflow:hidden}
 .sigbox img{max-height:84px;max-width:90%;object-fit:contain}
 .sigbox span{font-size:13px;color:var(--ink3)}
+@font-face{font-family:"Mrs Saint Delafield";src:url(fonts/MrsSaintDelafield-Regular.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"Herr Von Muellerhoff";src:url(fonts/HerrVonMuellerhoff-Regular.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"Mr Dafoe";src:url(fonts/MrDafoe-Regular.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"Monsieur La Doulaise";src:url(fonts/MonsieurLaDoulaise-Regular.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"Cedarville Cursive";src:url(fonts/Cedarville-Cursive.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"Dawning of a New Day";src:url(fonts/DawningofaNewDay.ttf) format("truetype");font-display:swap}
 .sigbox.sm{height:72px}.sigbox.sm img{max-height:60px}
 .ltsig{margin-bottom:12px}.ltsig .lbtns2{margin-top:6px}
 .ltsn{font-size:13px;font-weight:600;color:var(--ink2);margin:0 2px 5px}
@@ -1196,12 +1202,9 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="ratefoot"><span class="note" id="rateStamp"></span><button class="mini" id="sRateNow" type="button">Aktualisieren</button></div></div>
   <div class="sgroup"><div class="sgh">Verwalten</div>
     <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Namen, Logos und Adressen deiner Anbieter</small></span><em id="mdSumP"></em></button>
-    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Wer zahlt welchen Vertrag</small></span><em id="mdSumH"></em></button>
+    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Personen, Absender und Unterschrift</small></span><em id="mdSumH"></em></button>
     <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
     <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
-  <div class="sgroup"><div class="sgh">Kündigungsschreiben</div>
-    <div class="sndlist" id="sndList"></div>
-    <p class="note" style="margin:6px 0 0">Jede Person mit eigener Adresse und Unterschrift. Bei gemeinsamen Verträgen kündigen alle zusammen.</p></div>
   <div class="sgroup"><div class="sgh">Daten</div>
     <div class="tiles">
       <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
@@ -1224,7 +1227,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <details class="legal"><summary>Datenschutz</summary>
     <p class="note">Kontivo hat kein Benutzerkonto, keine Werbung, kein Tracking und keine Analyse. Deine Verträge, Logos und Dokumente werden nur lokal auf diesem Gerät gespeichert und nicht an Kontivo übermittelt.</p>
     <p class="note">Für einzelne Funktionen ruft die App externe Dienste auf. Dabei wird technisch bedingt deine IP-Adresse übertragen:</p>
-    <p class="note">• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.<br>• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst), images.weserv.nl und unavatar.io.<br>• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).<br>• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.</p>
+    <p class="note">• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.<br>• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst), images.weserv.nl und unavatar.io.<br>• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).<br>• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.<br>• Handschrift-Schriften für Namenszug-Vorschläge sind in der App enthalten (SIL Open Font License), dafür wird nichts geladen.</p>
     <p class="note">Backups und CSV-Dateien erstellst und speicherst du selbst. Ohne Backup gehen deine Daten beim Löschen der App oder der Website-Daten verloren. Mit «Alle Daten löschen» entfernst du alles vom Gerät.</p></details>
     <details class="legal"><summary>Marken und Logos</summary>
     <p class="note">Logos, Marken und Firmennamen gehören ihren jeweiligen Inhabern. Sie werden nur zur Wiedererkennung deiner eigenen Verträge angezeigt. Kontivo steht in keiner Verbindung zu den genannten Anbietern und wird von ihnen weder unterstützt noch gesponsert.</p></details></div>
@@ -3342,7 +3345,7 @@ function closeLetter(){document.getElementById("sheetLetter").classList.remove("
 document.getElementById("ltClose").addEventListener("click",closeLetter);
 /* Unterschrift pro Inhaber: zeichnen (Canvas) oder Namenszug; als JPEG (weisser Grund) in settings.sigs[Inhaber] */
 var sigD={drawing:false,last:null,dirty:false},sigFor="";
-function sigDone(msg){paintSender();ltRefresh();if(document.getElementById("sheetMd").classList.contains("on"))paintMd(0);toast(msg);}
+function sigDone(msg){ltRefresh();if(document.getElementById("sheetMd").classList.contains("on"))paintMd(0);toast(msg);}
 function sigCanvas(){return document.getElementById("sigCv");}
 function openSig(h){sigFor=h||sigFor;var sh=document.getElementById("sheetSig");sh.classList.add("on");sh.scrollTop=0;document.getElementById("scrim").classList.add("on");
   requestAnimationFrame(function(){var cv=sigCanvas(),r=cv.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);
@@ -3368,25 +3371,38 @@ document.addEventListener("click",function(ev){var b;
   if((b=ev.target.closest("[data-sigdraw]"))){openSig(b.dataset.sigdraw);return;}
   if((b=ev.target.closest("[data-sigtype]"))){openSigPick(b.dataset.sigtype);return;}
   if((b=ev.target.closest("[data-sigdel]"))){setSig(b.dataset.sigdel,"");sigDone("Unterschrift entfernt");}});
-/* Namenszug-Vorschläge: übliche Formen × Schreibschriften (iOS: Snell Roundhand, Savoye LET, Zapfino, Bradley Hand, Noteworthy) */
+/* Namenszug-Vorschläge: Handschrift-Schriften (OFL, lokal in /fonts, offline im Cache), leicht schräg, Tintenblau,
+   mit kleiner Unruhe pro Buchstabe und teils Unterstrich-Schwung, damit es wie selbst geschrieben wirkt. Nur Vorschlag. */
+var SIG_FONTS=[["Mrs Saint Delafield",118,"Voller Name",0,1],["Herr Von Muellerhoff",112,"Initial + Nachname",1,0],["Mr Dafoe",96,"Voller Name",0,0],
+  ["Monsieur La Doulaise",112,"Nur Nachname",2,1],["Cedarville Cursive",78,"Voller Name",0,0],["Dawning of a New Day",92,"Initial + Nachname",1,1]];
 function sigVariants(first,last){
-  var fi=first?first.charAt(0)+".":"",v=[];
-  var forms=[[first+" "+last,"Voller Name"],[fi+" "+last,"Initial + Nachname"],[last,"Nur Nachname"],[first+" "+last,"Voller Name"],[fi+" "+last,"Initial + Nachname"],[first.charAt(0)+last.charAt(0),"Initialen"]];
-  var fonts=["'Snell Roundhand','Apple Chancery',cursive","'Savoye LET','Snell Roundhand',cursive","'Zapfino','Snell Roundhand',cursive","'Bradley Hand','Segoe Script',cursive","'Noteworthy','Marker Felt',cursive","'Snell Roundhand',cursive"];
-  var sizes=[96,96,104,72,80,110];
-  forms.forEach(function(f,i){var t=f[0].trim();if(!t||(i===2&&!last))return;v.push({text:t,label:f[1],font:fonts[i],size:sizes[i]});});
-  return v;}
-function renderSig(text,font,size){var cv=document.createElement("canvas");cv.width=900;cv.height=260;var g=cv.getContext("2d");
-  g.fillStyle="#fff";g.fillRect(0,0,900,260);g.fillStyle="#1b1e23";g.textBaseline="middle";var px=size;
-  g.font="italic 400 "+px+"px "+font;while(g.measureText(text).width>820&&px>36){px-=6;g.font="italic 400 "+px+"px "+font;}
-  g.fillText(text,40,140);return sigFromCanvas(cv);}
-function openSigPick(h){sigFor=h||sigFor;
+  var fi=first?first.charAt(0)+". ":"",forms=[(first+" "+last).trim(),(fi+last).trim(),last||first];
+  return SIG_FONTS.map(function(f,i){return {text:forms[f[3]],label:f[2],font:f[0],size:f[1],swash:f[4],seed:i+1};}).filter(function(v){return v.text;});}
+function sigRand(seed){var x=seed*9301+49297;return function(){x=(x*9301+49297)%233280;return x/233280;};}
+function renderSig(v){var W=1000,H=300,cv=document.createElement("canvas");cv.width=W;cv.height=H;var g=cv.getContext("2d"),r=sigRand(v.seed);
+  g.fillStyle="#fff";g.fillRect(0,0,W,H);var ink="#1c2a52",px=v.size;
+  g.font=px+'px "'+v.font+'", cursive';while(g.measureText(v.text).width>W-140&&px>40){px-=6;g.font=px+'px "'+v.font+'", cursive';}
+  var tw=g.measureText(v.text).width;
+  g.save();g.translate(50,H*0.58);g.rotate(-(0.035+r()*0.04));g.transform(1,0,-0.08,1,0,0);g.fillStyle=ink;g.textBaseline="alphabetic";
+  /* Buchstabe für Buchstabe mit leichter Höhen- und Grössenunruhe; Abstand über die Breite des Präfixes, damit Verbindungen bleiben */
+  var x0=0;for(var i=0;i<v.text.length;i++){var ch=v.text[i],pre=g.measureText(v.text.slice(0,i)).width;
+    g.save();g.translate(pre,(r()-0.5)*px*0.05);g.scale(1+(r()-0.5)*0.05,1+(r()-0.5)*0.07);g.fillText(ch,0,0);g.restore();}
+  /* etwas Tintenstärke: zweiter Durchgang minimal versetzt */
+  g.globalAlpha=0.35;g.fillText(v.text,0.8,0.5);g.globalAlpha=1;
+  if(v.swash){g.strokeStyle=ink;g.lineCap="round";g.lineWidth=Math.max(2,px*0.035);g.beginPath();var y=px*0.22;
+    g.moveTo(tw*0.08,y+px*0.06);g.bezierCurveTo(tw*0.35,y+px*0.16,tw*0.75,y-px*0.02,tw*1.04,y-px*0.12);g.stroke();}
+  g.restore();return sigFromCanvas(cv);}
+async function openSigPick(h){sigFor=h||sigFor;
   var sf=sndOf(sigFor),first=sf.first,last=sf.last;
   if(!first&&!last){var w=String(sigFor||"").split(/\s+/);first=w[0]||"";last=w.slice(1).join(" ");}
   if(!first&&!last){toast("Zuerst den Namen beim Absender erfassen");return;}
-  var vs=sigVariants(first,last),box=document.getElementById("sigOpts");
-  box.innerHTML=vs.map(function(v,i){var u=renderSig(v.text,v.font,v.size);v.url=u;return u?'<button type="button" class="sigopt" data-sig="'+i+'"><img src="'+u+'" alt="'+esc(v.text)+'"><small>'+esc(v.label)+'</small></button>':"";}).join("");
-  box._vs=vs;var sh=document.getElementById("sheetSigPick");sh.classList.add("on");sh.scrollTop=0;document.getElementById("scrim").classList.add("on");}
+  var box=document.getElementById("sigOpts");box.innerHTML='<p class="note">Vorschläge werden erstellt …</p>';
+  var sh=document.getElementById("sheetSigPick");sh.classList.add("on");sh.scrollTop=0;document.getElementById("scrim").classList.add("on");
+  try{if(document.fonts&&document.fonts.load)await Promise.race([Promise.all(SIG_FONTS.map(function(f){return document.fonts.load('64px "'+f[0]+'"');})),new Promise(function(r){setTimeout(r,2500);})]);}catch(e){}
+  var vs=sigVariants(first,last);
+  box.innerHTML=vs.map(function(v,i){var u=renderSig(v);v.url=u;return u?'<button type="button" class="sigopt" data-sig="'+i+'"><img src="'+u+'" alt="'+esc(v.text)+'"><small>'+esc(v.label)+'</small></button>':"";}).join("")+
+    '<p class="note" style="margin:6px 2px 0">Am echtesten ist «Zeichnen» mit dem Finger. Für Mietverträge gilt nur die Unterschrift von Hand auf Papier.</p>';
+  box._vs=vs;}
 function closeSigPick(){document.getElementById("sheetSigPick").classList.remove("on");if(!document.querySelector(".sheet.on"))document.getElementById("scrim").classList.remove("on");}
 document.getElementById("sigPickClose").addEventListener("click",closeSigPick);
 document.getElementById("sigOpts").addEventListener("click",function(ev){var b=ev.target.closest("[data-sig]");if(!b)return;var v=this._vs[+b.dataset.sig];
@@ -4359,7 +4375,7 @@ MD_PAGES.hs=function(p){
 var hsT=0;
 function hsSave(){var p=mdTop();if(!p||p.k!=="hs")return;var h=p.name,r=Object.assign({},sndRaw(h));
   HS_F.forEach(function(f){var el=document.getElementById(f[1]);if(el)r[f[0]]=el.value.trim().replace(/\s+/g," ");});
-  if(JSON.stringify(r)===JSON.stringify(sndRaw(h)))return;setSnd(h,r);paintSender();ltRefresh();clearTimeout(hsT);hsT=setTimeout(function(){toast("Absender gespeichert");},300);}
+  if(JSON.stringify(r)===JSON.stringify(sndRaw(h)))return;setSnd(h,r);ltRefresh();clearTimeout(hsT);hsT=setTimeout(function(){toast("Absender gespeichert");},300);}
 function openHs(h){var fromLt=document.getElementById("sheetLetter").classList.contains("on"),sh=document.getElementById("sheetMd"),t=mdTop();
   if(sh.classList.contains("on")&&t)mdPush({k:"hs",name:h});else openMdAt({k:"hs",name:h});sh.classList.toggle("over",fromLt);}
 /* Zuordnen: eine Zeile pro Vertrag/Einnahme, Wechsel mit einem Tipp (SwiftUI: Picker .segmented bzw. Toggle-Chips) */
@@ -4610,7 +4626,7 @@ document.addEventListener("click",function(ev){
   if((x=t.closest("[data-cdel]"))){var cdn=x.dataset.cdel;if(cdn==="Sonstiges")return;
     if(!catCount(cdn)){ask({title:"«"+cdn+"» löschen?",text:"Die Kategorie ist leer.",ok:"Löschen",danger:true}).then(function(y){if(!y)return;ceDelete(cdn,"Sonstiges");paintMd(0);toast("Kategorie gelöscht");});}
     else mdPush({k:"cdel",src:cdn});return;}
-  if((x=t.closest("[data-hssame]"))){hsSave();var rr=Object.assign({},sndRaw(p.name));if(x.dataset.hssame)rr.same=x.dataset.hssame;else delete rr.same;setSnd(p.name,rr);paintSender();paintMd(0);return;}
+  if((x=t.closest("[data-hssame]"))){hsSave();var rr=Object.assign({},sndRaw(p.name));if(x.dataset.hssame)rr.same=x.dataset.hssame;else delete rr.same;setSnd(p.name,rr);paintMd(0);return;}
   if((x=t.closest("[data-hfrom]"))){p.from=x.dataset.hfrom;if(p.to===p.from)p.to="";paintMd(0);return;}
   if((x=t.closest("[data-hflt]"))){p.flt=x.dataset.hflt;paintMd(0);return;}
   if((x=t.closest("[data-hset]"))){hSet(x.dataset.hset,x.dataset.hv);paintMd(0);return;}
@@ -4779,7 +4795,7 @@ function pickOwnPartner(o){
   });
 })();
 function fillSettings(){
-  paintMdSummary();paintSender();
+  paintMdSummary();
   var lr=state.settings.lastReview;document.getElementById("reviewStamp").textContent=lr?"Letzter Quartals-Check: "+fmtD(lr):"Noch kein Quartals-Check durchgeführt";
   paintHomePick();
   document.getElementById("csvOut").innerHTML="";paintRateStamp();
@@ -4787,10 +4803,6 @@ function fillSettings(){
 function paintRateStamp(){var s=state.settings,d=s.rateDate,H=s.home||"CHF";
   document.getElementById("rateStamp").textContent=d?"Kurse der EZB, täglich automatisch · Stand "+fmtD(d):"Kurse der EZB, täglich automatisch";
 }
-/* Absender-Liste in «Mehr»: eine Zeile pro Inhaber, öffnet die Seite «Absender» (hs) */
-function paintSender(){var el=document.getElementById("sndList");if(!el)return;
-  el.innerHTML=holderStats().map(function(x){var h=x.name,ok=sndOk(h);
-    return '<button class="srowbtn" type="button" data-hsopen="'+esc(h)+'"><span class="mdt"><b>'+esc(sndName(h))+'</b><small>'+esc(sndStatus(h))+'</small></span><em style="color:'+(ok?"var(--ok)":"var(--warn)")+';font-weight:600">'+(ok?"✓":"ergänzen")+'</em></button>';}).join("");}
 /* Hauptwährung als Kacheln mit Fahne, gleich wie in der Einführung (SwiftUI: LazyVGrid + DisclosureGroup) */
 var homeMore=false;
 function paintHomePick(){var H=state.settings.home||"EUR";if(CUR_MORE.indexOf(H)>=0)homeMore=true;
