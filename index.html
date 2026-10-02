@@ -1122,14 +1122,18 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .qtop.ok{background:color-mix(in srgb,var(--ok) 11%,var(--field));grid-template-columns:auto 1fr;column-gap:12px;align-items:center}
 .qtop.ok i{grid-row:span 2;width:40px;height:40px;border-radius:50%;background:var(--ok);display:grid;place-items:center}
 .qtop.ok i svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.qcrit{background:var(--field);border-radius:12px;padding:12px 14px;margin-bottom:6px}
-.qch{font-size:14px;font-weight:700;display:flex;align-items:baseline;cursor:pointer;list-style:none}.qch::-webkit-details-marker{display:none}
-.qch::before{content:"›";display:inline-block;color:var(--ink3);margin-right:8px;transition:transform .15s}.qcrit[open] .qch::before{transform:rotate(90deg)}
-.qch small{font-weight:500;color:var(--ink3);font-size:12px;margin-left:auto}
-.qcg{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin:12px 0 2px}
+.qcrit{background:var(--field);border-radius:14px;padding:14px 14px 12px;margin-bottom:6px}
+.qch{font-size:15px;font-weight:700;display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px}
+.qch small{font-weight:500;color:var(--ink3);font-size:12px}
+.qgrp{background:var(--surface);border-radius:11px;padding:4px 12px 2px;margin-top:10px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.qgh{display:flex;justify-content:space-between;align-items:center;padding:8px 0 6px;font-size:14px;font-weight:700}
+.qgh em{font-style:normal;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px}
+.qgh em.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.qgh em.w{color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,transparent)}
+.qhr span{display:flex;gap:2px}
 .qcrit ul{list-style:none;margin:0;padding:0}
-.qcrit li{display:flex;justify-content:space-between;padding:5px 0;font-size:14px;border-top:1px solid var(--line)}
-.qcrit li:first-child{border-top:0}
+.qcrit li{display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px;color:var(--ink2);border-top:1px solid var(--line)}
+.qcrit li.w{color:var(--ink)}
 .qcrit li b{color:var(--ok);font-weight:600}.qcrit li.w b{color:var(--warn)}
 .crow .crowb{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:10px 0;text-align:left}
 .crow .drag{flex:none;width:44px;height:44px;display:grid;place-items:center;touch-action:none;cursor:grab;color:var(--ink3);margin-right:-8px}
@@ -3983,7 +3987,7 @@ function partnerGroups(){
 /* ---------- Datenqualität ---------- */
 function qIgn(){var o=state.settings.qIgn;return (o&&typeof o==="object")?o:{};}
 function qualItems(){
-  var ig=qIgn(),out={A:[],B:[],C:[]},nIg=0,cats=allCats();
+  var ig=qIgn(),out={A:[],B:[],C:[],D:[]},nIg=0,cats=allCats(),hUsed={};
   function add(g,key,o){if(ig[key]){nIg++;return;}o.key=key;out[g].push(o);}
   Object.keys(state.contracts).forEach(function(k){
     var c=Object.assign({},state.contracts[k]);c._id=k;
@@ -3995,6 +3999,9 @@ function qualItems(){
     if(!c.cat||c.cat==="Sonstiges"||cats.indexOf(c.cat)<0)add("A","c:"+k+":cat",Object.assign({why:!c.cat?"Keine Kategorie":(c.cat==="Sonstiges"?"Kategorie «Sonstiges»":"Kategorie «"+c.cat+"» gibt es nicht mehr")},base));
     if(!(+c.cycle>0))add("A","c:"+k+":cycle",Object.assign({why:"Zahlungsweise fehlt"},base));
     if(!parseD(c.due))add("B","c:"+k+":due",Object.assign({why:"Kein Fälligkeitsdatum"},base));
+    /* Kündigen: Referenznummer für den Brief; Absender der Inhaber (einmal pro Person) */
+    if(!isTax(c)){if(!c.custNo&&!c.contrNo)add("D","c:"+k+":ref",Object.assign({why:"Kundennummer fehlt"},base));
+      holdersOf(c).forEach(function(h){hUsed[h]=1;});}
     /* Frist: nur, wenn der Vertrag überwacht wird; fehlt die Frist oder lässt sich kein Termin berechnen (keine Laufzeit, kein Rhythmus) */
     if(!c.cancelPer&&!c.noWatch&&!c.mand&&!isTax(c)&&!noticeDeadline(c))
       add("B","c:"+k+":notice",Object.assign({why:(!(+c.notice||0)&&!c.cancTerm)?"Keine Kündigungsfrist":"Laufzeit oder Rhythmus fehlt"},base));
@@ -4005,11 +4012,11 @@ function qualItems(){
   });
   partnerGroups().forEach(function(o){var c=o.logoC||state.contracts[o.ids[0]];
     if(!o.ids.some(function(k){return state.contracts[k].status!=="cancelled";}))return;
-    var ks=[],ws=[];
-    if(!o.logoC){if(ig["p:"+o.key+":logo"])nIg++;else{ks.push("p:"+o.key+":logo");ws.push("kein Logo");}}
-    if(ks.length)out.C.push({kind:"p",pk:o.key,c:c,name:o.name,n:o.ids.length,keys:ks,key:ks.join("|"),needWeb:false,needLogo:!o.logoC&&!ig["p:"+o.key+":logo"],
-      why:ws.join(", ").replace(/^./,function(m){return m.toUpperCase();})});
+    var base={kind:"p",pk:o.key,c:c,name:o.name,n:o.ids.length,sub:cntTxt(o.ids.length,"Vertrag","Verträge")};
+    if(!o.logoC)add("C","p:"+o.key+":logo",Object.assign({why:"Kein Logo",logo:true,needLogo:true,keys:["p:"+o.key+":logo"]},base));
+    if(!o.addr&&!o.ids.every(function(k){return isTax(state.contracts[k]);}))add("D","p:"+o.key+":addr",Object.assign({why:"Adresse fehlt"},base));
   });
+  Object.keys(hUsed).forEach(function(h){if(!sndOk(h))add("D","h:"+h+":sender",{kind:"h",id:h,name:h,sub:"Inhaber",why:"Absender unvollständig"});});
   out.ign=nIg;return out;
 }
 /* ---------- Automatische Logo-Suche mit Bestätigung ---------- */
@@ -4061,36 +4068,38 @@ async function qApply(){
   qsr.busy=false;closeMe();paintMd();render();
   toast(nL+(nL===1?" Logo":" Logos")+" übernommen");
 }
-var qOpen=false,qCritOpen=false;
 /* Betroffene Verträge (nicht Hinweise) zählen */
-function qualOpenContracts(q){var m={};q.A.concat(q.B).forEach(function(o){m[o.kind+o.id]=1;});return Object.keys(m).length;}
-var Q_CRIT=[["holder","Inhaber","A"],["amount","Betrag","A"],["cat","Kategorie","A"],["cycle","Zahlungsweise","A"],["due","Fälligkeit","B"],["notice","Kündigungsfrist","B"]];
+function qualOpenContracts(q){var m={};q.A.concat(q.B,q.C,q.D).forEach(function(o){m[o.kind+(o.id||o.pk)]=1;});return Object.keys(m).length;}
+var Q_GROUPS=[["A","Kosten und Budget"],["B","Fristen"],["D","Kündigen"],["C","Vertragspartner"]];
 function qualChecklist(q){
-  var ids=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}),N=ids.length;
-  var miss={};q.A.concat(q.B).forEach(function(o){var f=o.key.split(":").pop();miss[f]=(miss[f]||0)+1;});
-  var NI=Object.keys(state.incomes).length,mi=q.A.filter(function(o){return o.kind==="i";}).length;
-  function row(f,t){var m=q.A.concat(q.B).filter(function(o){return o.kind==="c"&&o.key.split(":").pop()===f;}).length;return '<li'+(m?' class="w"':"")+'><span>'+t+'</span><b>'+(m?m+" offen":"✓")+'</b></li>';}
-  return '<details class="qdet qcrit"'+(qCritOpen?" open":"")+'><summary class="qch">Was geprüft wird <small>'+cntTxt(N,"Vertrag","Verträge")+(NI?", "+cntTxt(NI,"Einnahme","Einnahmen"):"")+'</small></summary>'+
-    '<div class="qcg">Für Kosten und Budget</div><ul>'+Q_CRIT.filter(function(x){return x[2]==="A";}).map(function(x){return row(x[0],x[1]);}).join("")+
-    (NI?'<li'+(mi?' class="w"':"")+'><span>Einnahmen: Betrag, Inhaber</span><b>'+(mi?mi+" offen":"✓")+'</b></li>':"")+'</ul>'+
-    '<div class="qcg">Für Fristen</div><ul>'+Q_CRIT.filter(function(x){return x[2]==="B";}).map(function(x){return row(x[0],x[1]);}).join("")+'</ul>'+
-    '<div class="qcg">Nur Optik, zählt nicht</div><ul><li><span>Logo des Vertragspartners</span><b>'+(q.C.length?q.C.length+" fehlen":"✓")+'</b></li></ul>'+
-    '<p class="mdhint" style="margin:10px 0 4px">Gekündigte Verträge und ignorierte Hinweise zählen nicht. Nicht überwachte Verträge, Pflichtverträge und Steuern brauchen keine Frist.</p></details>';
+  var N=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length,NI=Object.keys(state.incomes).length;
+  function cnt(g,f,kind){return q[g].filter(function(o){return o.key.split(":").pop()===f&&(!kind||o.kind===kind);}).length;}
+  function li(t,m){return '<li'+(m?' class="w"':"")+'><span>'+t+'</span><b>'+(m?m+" offen":"✓")+'</b></li>';}
+  function grp(g,t,rows){var n=q[g].length;return '<div class="qgrp"><div class="qgh"><span>'+t+'</span><em class="'+(n?"w":"ok")+'">'+(n?n+" offen":"vollständig")+'</em></div><ul>'+rows.join("")+'</ul></div>';}
+  var mi=q.A.filter(function(o){return o.kind==="i";}).length;
+  return '<div class="qcrit"><div class="qch">Was geprüft wird <small>'+cntTxt(N,"Vertrag","Verträge")+(NI?", "+cntTxt(NI,"Einnahme","Einnahmen"):"")+'</small></div>'+
+    grp("A","Kosten und Budget",[li("Inhaber",cnt("A","holder","c")),li("Betrag",cnt("A","amount","c")),li("Kategorie",cnt("A","cat")),li("Zahlungsweise",cnt("A","cycle"))].concat(NI?[li("Einnahmen: Betrag, Inhaber",mi)]:[]))+
+    grp("B","Fristen",[li("Fälligkeit",cnt("B","due")),li("Kündigungsfrist und Laufzeit",cnt("B","notice"))])+
+    grp("D","Kündigen",[li("Kunden- oder Vertragsnummer",cnt("D","ref")),li("Adresse des Vertragspartners",cnt("D","addr")),li("Absender der Inhaber",cnt("D","sender"))])+
+    grp("C","Vertragspartner",[li("Logo",cnt("C","logo"))])+
+    '<p class="mdhint" style="margin:10px 0 0">Gekündigte Verträge und ignorierte Hinweise zählen nicht. Nicht überwachte Verträge, Pflichtverträge und Steuern brauchen keine Frist.</p></div>';
 }
 function paintMdQual(){
-  var b=document.getElementById("mdBody"),q=qualItems(),od=b.querySelector(".qdet:not(.qcrit)"),oc=b.querySelector(".qdet.qcrit");if(od)qOpen=od.open;if(oc)qCritOpen=oc.open;
+  var b=document.getElementById("mdBody"),q=qualItems();
+  function mark(o){if(o.kind==="i")return incMark(o.c);if(o.kind==="h")return '<span class="mdav">'+esc(o.name.charAt(0).toUpperCase())+'</span>';return markHtml(o.c);}
   function rows(a){return a.map(function(o){
-    return '<div class="qrow"><button class="mdrow" type="button" '+(o.kind==="c"?'data-qc="'+esc(o.id)+'"':o.kind==="i"?'data-qi="'+esc(o.id)+'"':'data-qp="'+esc(o.pk)+'"')+'>'+(o.kind==="i"?incMark(o.c):markHtml(o.c))+'<span class="t"><b>'+esc(o.why)+'</b><small>'+esc(o.name)+(o.sub?" · "+esc(o.sub):"")+'</small></span></button>'+
-      (o.kind==="p"?'<button class="qig qsr" type="button" data-qs="'+esc(o.pk)+'">Suchen</button>':"")+'<button class="qig" type="button" data-qig="'+esc(o.key)+'">Ignorieren</button></div>';}).join("");}
-  function sec(t,a,w,g){return a.length?'<div class="qhr"><h4 class="qh'+(w?" w":"")+'">'+t+" · "+a.length+'</h4><button class="qig" type="button" data-qall="'+g+'">Alle ignorieren</button></div>'+rows(a):"";}
-  var n=q.A.length+q.B.length,nc=qualOpenContracts(q),N=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length;
-  var h=N?(n?'<div class="qtop"><b>'+cntTxt(nc,"Vertrag braucht","Verträge brauchen")+' noch Angaben.</b><span>Tippe auf einen Eintrag, um sie direkt nachzutragen.</span></div>'
-    :'<div class="qtop ok"><i>'+esIc('<path d="m5 12.5 4.2 4.2L19 7"/>')+'</i><b>Sauber gepflegt. '+(N===1?"Dein Vertrag ist":"Alle "+N+" Verträge sind")+' vollständig.</b><span>Kosten, Budget und Fristen stimmen. So bleibt Kontivo verlässlich.</span></div>')
+    var attr=o.kind==="c"?'data-qc="'+esc(o.id)+'"':o.kind==="i"?'data-qi="'+esc(o.id)+'"':o.kind==="h"?'data-hsopen="'+esc(o.id)+'"':'data-qp="'+esc(o.pk)+'"';
+    return '<div class="qrow"><button class="mdrow" type="button" '+attr+'>'+mark(o)+'<span class="t"><b>'+esc(o.why)+'</b><small>'+esc(o.name)+(o.sub?" · "+esc(o.sub):"")+'</small></span></button>'+
+      (o.logo?'<button class="qig qsr" type="button" data-qs="'+esc(o.pk)+'">Suchen</button>':"")+'<button class="qig" type="button" data-qig="'+esc(o.key)+'">Ignorieren</button></div>';}).join("");}
+  function sec(g,t){var a=q[g];if(!a.length)return "";
+    return '<div class="qhr"><h4 class="qh w">'+t+" · "+a.length+'</h4><span>'+(g==="C"?'<button class="qig qsr" type="button" data-qs="*">Alle suchen</button>':"")+'<button class="qig" type="button" data-qall="'+g+'">Alle ignorieren</button></span></div>'+rows(a);}
+  var n=q.A.length+q.B.length+q.C.length+q.D.length,nc=qualOpenContracts(q),N=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length;
+  var h=N?(n?'<div class="qtop"><b>'+cntTxt(n,"offener Punkt","offene Punkte")+' bei '+cntTxt(nc,"Eintrag","Einträgen")+'.</b><span>Tippe auf einen Punkt, um ihn direkt zu erledigen.</span></div>'
+    :'<div class="qtop ok"><i>'+esIc('<path d="m5 12.5 4.2 4.2L19 7"/>')+'</i><b>Sauber gepflegt. '+(N===1?"Dein Vertrag ist":"Alle "+N+" Verträge sind")+' vollständig.</b><span>Kosten, Budget, Fristen und Kündigungsschreiben stimmen.</span></div>')
     :'<p class="qok">Noch keine laufenden Verträge. Sobald du welche erfasst, siehst du hier, was fehlt.</p>';
-  h+=sec("Für Kosten und Budget",q.A,1,"A")+sec("Für Fristen",q.B,1,"B");
-  if(q.C.length)h+='<details class="qdet"'+(qOpen?" open":"")+'><summary class="qh" style="cursor:pointer">Nur Optik · '+q.C.length+'</summary><div style="text-align:right"><button class="qig qsr" type="button" data-qs="*">Alle suchen</button><button class="qig" type="button" data-qall="C">Alle ignorieren</button></div>'+rows(q.C)+"</details>";
+  Q_GROUPS.forEach(function(g){h+=sec(g[0],g[1]);});
   if(q.ign)h+='<p class="note" style="margin:16px 0 0">'+q.ign+" ignoriert · <button class=\"dlink\" style=\"font-weight:500\" type=\"button\" id=\"qReset\">Zurücksetzen</button></p>";
-  if(N)h+='<div style="height:14px"></div>'+qualChecklist(q);
+  if(N)h+='<div style="height:16px"></div>'+qualChecklist(q);
   b.innerHTML=h;
 }
 function paintMdSummary(){
@@ -4102,7 +4111,7 @@ function paintMdSummary(){
   document.getElementById("mdSumH").textContent=hs.length<=2?hs.join(", "):hs.length+" Personen";
   document.getElementById("mdSumC").textContent=allCats().length+"";
   var eq=document.getElementById("mdSumQ");if(eq){var qq=qualItems(),nq=qualOpenContracts(qq),NQ=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length;
-    eq.textContent=!NQ?"–":nq?cntTxt(nq,"Vertrag offen","Verträge offen"):"Sauber gepflegt ✓";eq.style.color=!NQ?"":nq?"var(--warn)":"var(--ok)";eq.style.fontWeight=NQ?"600":"";
+    eq.textContent=!NQ?"–":nq?cntTxt(nq,"Eintrag offen","Einträge offen"):"Sauber gepflegt ✓";eq.style.color=!NQ?"":nq?"var(--warn)":"var(--ok)";eq.style.fontWeight=NQ?"600":"";
     var eqs=document.getElementById("mdSumQs");if(eqs)eqs.textContent=NQ&&!nq?"Alles da, nichts fehlt. Gut gemacht.":"Was bei deinen Verträgen noch fehlt";}
 }
 /* ---------- Stammdaten: ein Fenster mit Navigation (Liste → Detail → Aktion) ----------
