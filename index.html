@@ -1237,6 +1237,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <div class="vbody" id="vBody"></div>
   <div class="vacts" id="vActs">
     <button class="vact" id="vEdit" type="button" hidden><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M13.5 6.5l3 3"/></svg><span>Text ändern</span></button>
+    <button class="vact" id="vMailTxt" type="button" hidden><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg><span>Als E-Mail-Text</span></button>
     <button class="vact main" id="vSave" type="button"><svg viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><span>Teilen</span></button>
   </div>
 </div>
@@ -3174,8 +3175,8 @@ async function openDoc(d){
   if(!d)return;
   curDoc=d;var tok=++docToken,url=d.blob?URL.createObjectURL(d.blob):KBlob.url(d.id),type=d.type||guessType(d.name);
   document.getElementById("vTitle").textContent=d.title||d.name||"Dokument";
-  document.getElementById("vEdit").hidden=!d.blob;
-  document.getElementById("vSave").querySelector("span").textContent=d.blob?"Mailen, drucken, sichern":"Teilen";
+  document.getElementById("vEdit").hidden=!d.blob;document.getElementById("vMailTxt").hidden=!d.mail;
+  document.getElementById("vSave").querySelector("span").textContent=d.blob?"PDF teilen":"Teilen";
   document.getElementById("vBackL").textContent=d.blob?"Zurück":"Schliessen";
   document.getElementById("viewer").classList.add("on");vMsg("Wird geladen…");
   if(!d.blob&&!KBlob.has(d.id)){vMsg("Diese Datei ist auf diesem Gerät nicht vorhanden. Spiele ein Backup mit Dateien ein oder hänge sie neu an.");return;}
@@ -3225,6 +3226,12 @@ async function shareCur(hint){
   }catch(e){if(!e||e.code!=="declined")toast("Teilen fehlgeschlagen");}
 }
 document.getElementById("vSave").addEventListener("click",function(){shareCur("");});
+/* Kündigung als E-Mail-Text (ohne Anhang): Text in die Zwischenablage und Mail öffnen; Empfänger = E-Mail beim Vertrag.
+   Für Verträge mit Textform (die meisten Verbraucherverträge), nicht für Miete (Schriftform) */
+document.getElementById("vMailTxt").addEventListener("click",function(){var m=curDoc&&curDoc.mail;if(!m)return;
+  var open=function(){location.href="mailto:"+encodeURIComponent(m.to||"").replace(/%40/g,"@")+"?subject="+encodeURIComponent(m.subject)+"&body="+encodeURIComponent(m.text);};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(m.text).then(function(){toast(m.to?"Text kopiert, Mail wird geöffnet":"Text kopiert. Empfänger in Mail eintragen");setTimeout(open,500);},function(){open();});
+  else open();});
 document.getElementById("vEdit").addEventListener("click",function(){document.getElementById("vClose").click();});
 /* ---------- Kündigungsschreiben: Text bearbeiten → PDF (jsPDF, A4) → Vorschau → Teilen (Mail, Drucken, Dateien) ----------
    SwiftUI: TextEditor + UIGraphicsPDFRenderer + ShareLink */
@@ -3474,7 +3481,9 @@ document.getElementById("ltPdf").addEventListener("click",async function(){
   var L={sender:base.sender,to:to,city:base.city,subject:subj,ref:ref,body:blines.join("\n").trim(),names:base.names,sigs:isRent(ltC)?[]:ltSigners.map(sigOf)};
   var blob;try{blob=letterPdf(L);}catch(e){toast("PDF konnte nicht erstellt werden");return;}
   var nm="Kuendigung-"+String(ltC.partner||ltC.label||"Vertrag").replace(/[^\w\-]+/g,"_")+"-"+iso(today())+".pdf";
-  openDoc({blob:blob,name:nm,title:"Kündigung · "+(ltC.partner||ltC.label||"Vertrag"),type:"application/pdf"});
+  var mtxt=[L.ref.join("\n"),L.body,L.names.join("\n")+(L.sender.length>1?"\n"+L.sender.slice(1).join("\n"):"")].filter(Boolean).join("\n\n");
+  openDoc({blob:blob,name:nm,title:"Kündigung · "+(ltC.partner||ltC.label||"Vertrag"),type:"application/pdf",
+    mail:isRent(ltC)?null:{to:String((state.contracts[ltC._id]||ltC).mail||"").trim(),subject:subj,text:mtxt}});
 });
 var webWait=null;
 function logoSearch(name,target){
