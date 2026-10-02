@@ -3454,6 +3454,8 @@ document.getElementById("ltAddr").addEventListener("click",async function(){
     '<p class="note" style="margin:10px 2px 0">Quellen: Wikidata und OpenStreetMap, ohne Gewähr. Bei mehreren Standorten den Hauptsitz oder Kundendienst wählen.</p>';
   var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
 });
+document.getElementById("pickList").addEventListener("click",function(ev){if(this.dataset.dim!=="addrpe")return;var b=ev.target.closest("[data-ap]");if(!b)return;
+  var c=this._cands[+b.dataset.ap];if(!c||!pe)return;closePick();peAddrChange(addrJoin(addrSplit(c.lines.join("\n"))));paintMd(0);toast("Adresse übernommen, bitte prüfen");});
 document.getElementById("pickList").addEventListener("click",function(ev){if(this.dataset.dim!=="addrpick")return;var b=ev.target.closest("[data-ap]");if(!b)return;
   var c=this._cands[+b.dataset.ap];if(!c)return;document.getElementById("ltTo").value=c.lines.join("\n");closePick();toast("Adresse eingesetzt — bitte prüfen");});
 function dataUrlBytes(u){var b=atob(u.split(",")[1]),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
@@ -4236,7 +4238,7 @@ function mdPop(n){mdFlush();n=n||1;if(md.stack.length>n){md.stack.splice(-n,n);p
 function mdSwap(p,n){md.stack.splice(-(n||1),n||1,p);paintMd(0);}
 function closeMd(){mdFlush();document.getElementById("sheetMd").classList.remove("over");closeSheetEl("sheetMd");md.stack=[];reopenDetail();ltRefresh();}
 /* Offene Eingabe (Name) vor dem Wegnavigieren übernehmen */
-function mdFlush(){var a=document.activeElement;if(a&&a.closest&&a.closest("#mdBody")&&/^(peName|heName|ceName|peAddr)$/.test(a.id))mdNameChange(a);}
+function mdFlush(){var a=document.activeElement;if(a&&a.closest&&a.closest("#mdBody")&&(/^(peName|heName|ceName)$/.test(a.id)||/^pa[A-Z]/.test(a.id)))mdNameChange(a);}
 function paintMd(dir){
   var p=mdTop(),b=document.getElementById("mdBody");if(!p)return;
   var prev=md.stack[md.stack.length-2];
@@ -4295,8 +4297,8 @@ MD_PAGES.pe=function(p){
     '<button class="lbtn main" id="peAuto" type="button">Logo automatisch finden</button><div class="lcands" id="peCands"></div>'+
     '<div class="lbtns2"><button class="lbtn" id="pePaste" type="button">Einfügen</button>'+(assets?'<button class="lbtn" id="peUp" type="button">Hochladen</button>':"")+'<button class="lbtn" id="peGoogle" type="button">Google</button></div>'+
     '<button class="lbtn del" id="peLogoDel" type="button">Bild entfernen</button><p class="mdhint">Gilt für alle Verträge dieses Vertragspartners.</p></div>'+
-    mdSec("Adresse",'<em>für Kündigungsschreiben</em>')+'<div class="field mdaddr"><textarea id="peAddr" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort" rows="3">'+esc(g.addr||"")+'</textarea></div>'+
-    '<p class="mdhint">Gilt für alle Verträge dieses Vertragspartners. Fehlt sie, sucht Kontivo sie beim Kündigungsschreiben.</p>'+
+    mdSec("Adresse",'<button type="button" class="mdlink" data-mdrun="paddrfind">Suchen</button>')+paForm(addrSplit(g.addr||""))+
+    '<p class="mdhint" style="margin-top:6px">Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.</p>'+
     mdSec(cntTxt(g.ids.length,"Vertrag","Verträge"),'<em>'+money(g.cost/12)+" "+H0()+"/Mt.</em>")+
     '<div class="mdgrp">'+g.ids.map(function(k){return mdCRow(k,state.contracts[k]);}).join("")+"</div>"+
     (others?'<div class="mdgrp mdacts"><button class="mdact" type="button" data-mdgo="pmerge">Mit anderem Vertragspartner zusammenführen …</button></div>':"");
@@ -4572,6 +4574,17 @@ function openPe(key){var t=mdTop();if(document.getElementById("sheetMd").classLi
 function openPeSearch(pk){openPe(pk);setTimeout(function(){var b=document.getElementById("peAuto");if(b)b.click();},250);}
 
 /* --- Eingaben --- */
+/* Adresse des Vertragspartners als Felder wie beim Absender; gespeichert bleibt der mehrzeilige Text c.addr (Brief, Backup unverändert) */
+var PA_F=[["firm","paFirm","Firma, z.B. Sunrise GmbH","organization"],["extra","paExtra","Zusatz, z.B. Kundendienst oder Postfach","off"],["street","paStreet","Strasse und Nr.","off"],["zip","paZip","PLZ","off"],["city","paCity","Ort","off"],["country","paCountry","Land (optional)","off"]];
+function addrSplit(t){var L=String(t||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean),o={firm:"",extra:"",street:"",zip:"",city:"",country:""},zi=-1;
+  L.forEach(function(x,i){if(zi<0&&/^(?:[A-Z]{1,2}-?)?\d{4,5}\s+\S/.test(x))zi=i;});
+  if(zi<0){o.firm=L[0]||"";o.street=L.slice(1).join(", ");return o;}
+  var m=L[zi].match(/^(?:[A-Z]{1,2}-?)?(\d{4,5})\s+(.+)$/);o.zip=m[1];o.city=m[2];o.country=L.slice(zi+1).join(", ");
+  var pre=L.slice(0,zi);if(pre.length){o.street=pre.pop();}if(pre.length){o.firm=pre.shift();}o.extra=pre.join(", ");return o;}
+function addrJoin(o){return [o.firm,o.extra,o.street,[o.zip,o.city].filter(Boolean).join(" "),o.country].map(function(x){return String(x||"").trim();}).filter(Boolean).join("\n");}
+function paIn(i,o){var f=PA_F[i];return '<input id="'+f[1]+'" type="text" autocomplete="'+f[3]+'" autocapitalize="words" enterkeyhint="next" placeholder="'+f[2]+'" aria-label="'+f[2]+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';}
+function paForm(o){return '<form id="paForm" class="sndform ig" autocomplete="off" novalidate><div class="igr">'+paIn(0,o)+'</div><div class="igr">'+paIn(1,o)+'</div><div class="igr">'+paIn(2,o)+'</div><div class="igr two zc">'+paIn(3,o)+paIn(4,o)+'</div><div class="igr">'+paIn(5,o)+'</div></form>';}
+function paSave(){var o={};PA_F.forEach(function(f){var el=document.getElementById(f[1]);o[f[0]]=el?el.value.trim().replace(/\s+/g," "):"";});peAddrChange(addrJoin(o));}
 function peAddrChange(v){
   var g=pe&&peGroup(pe.key);if(!g)return;v=String(v||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean).join("\n");
   var n=setPartnerAddr(g.name,v);if(n){render();toast(v?"Adresse gespeichert":"Adresse entfernt");}
@@ -4581,17 +4594,18 @@ function setPartnerAddr(partner,addr){var pk=String(partner||"").trim().toLowerC
   Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(String(c.partner||"").trim().toLowerCase()!==pk)return;if((c.addr||"")===addr)return;putContract(k,Object.assign({},c,{addr:addr}));n++;});
   return n;}
 function mdNameChange(el){
-  if(el.id==="peAddr"&&pe)peAddrChange(el.value);
+  if(/^pa[A-Z]/.test(el.id)&&pe)paSave();
   else if(el.id==="peName"&&pe)peRename(el.value);
   else if(el.id==="heName")heRename(el.value);
   else if(el.id==="ceName")ceRename(el.value);
 }
-document.getElementById("mdBody").addEventListener("change",function(e){if(/^(peName|heName|ceName|peAddr)$/.test(e.target.id))mdNameChange(e.target);else if(/^hs[A-Z]/.test(e.target.id))hsSave();});
+document.getElementById("mdBody").addEventListener("change",function(e){if(/^(peName|heName|ceName)$/.test(e.target.id)||/^pa[A-Z]/.test(e.target.id))mdNameChange(e.target);else if(/^hs[A-Z]/.test(e.target.id))hsSave();});
 document.getElementById("mdBody").addEventListener("input",function(e){
   if(e.target.id==="mdQ"){md.q=e.target.value;var y=e.target.selectionStart;paintMd(0);var q=document.getElementById("mdQ");q.focus();try{q.setSelectionRange(y,y);}catch(x){}}
   if(e.target.id==="ceNew"){var t=mdTop();if(t&&t.k==="cenew")t.nm=e.target.value;}});
 document.getElementById("mdBody").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var id=e.target.id;
   if(/^(peName|heName|ceName)$/.test(id)){e.preventDefault();e.target.blur();}
+  else if(/^pa[A-Z]/.test(id)){e.preventDefault();var pins=[].slice.call(document.querySelectorAll("#paForm input")),pi=pins.indexOf(e.target);if(pi>=0&&pi<pins.length-1)pins[pi+1].focus();else{paSave();e.target.blur();}}
   else if(/^hs[A-Z]/.test(id)){e.preventDefault();var ins=[].slice.call(document.querySelectorAll("#hsForm input")),ii=ins.indexOf(e.target);if(ii>=0&&ii<ins.length-1)ins[ii+1].focus();else{hsSave();e.target.blur();}}
   else if(id==="heNew"||id==="ceNew"){e.preventDefault();var b=document.querySelector('#mdBody [data-mdrun="'+(id==="heNew"?"henew":"cenew")+'"]');if(b)b.click();}});
 document.getElementById("mdBack").addEventListener("click",function(){mdPop();});
@@ -4643,6 +4657,12 @@ document.addEventListener("click",function(ev){
       state.settings.holders=(state.settings.holders||["Ich"]).concat([v]);saveSettings();render();mdPop();toast("Inhaber «"+v+"» angelegt");}
     else if(r==="hedit"){mdFlush();p.edit=!p.edit;paintMd(0);}
     else if(r==="hall"){p.all=1;paintMd(0);}
+    else if(r==="paddrfind"){var gq=peGroup(pe&&pe.key);if(!gq)return;var c0=state.contracts[gq.ids[0]]||{};toast("Suche Adresse …");
+      findAddresses(gq.name,domainOf(gq.web||c0.web),c0.cur).then(function(cs){if(!cs||!cs.length){toast("Keine Adresse gefunden. Bitte von Website oder Rechnung übernehmen.");return;}
+        document.getElementById("pickTitle").textContent="Adresse wählen";var l=document.getElementById("pickList");l.dataset.dim="addrpe";l._cands=cs;
+        l.innerHTML=cs.map(function(c,i){return '<button class="pick pickcat" data-ap="'+i+'" type="button"><span class="pcn">'+c.lines.map(esc).join("<br>")+'<em class="tsub">'+esc(c.src)+'</em></span></button>';}).join("")+
+          '<p class="note" style="margin:10px 2px 0">Quellen: Wikidata und OpenStreetMap, ohne Gewähr. Bei mehreren Standorten den Hauptsitz oder Kundendienst wählen.</p>';
+        var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;}).catch(function(){toast("Suche nicht möglich");});}
     else if(r==="havpick"){avFor=p.name;cropTarget="h";document.getElementById("logoFile").click();}
     else if(r==="havdel"){setAv(p.name,"");paintMd(0);render();toast("Bild entfernt");}
     else if(r==="hbulk"){var bf=p.from,bt=p.to;if(!bf||!bt||bf===bt)return;var bn=mapHolders(function(h){return h===bf?bt:h;});render();mdPop();toast(cntTxt(bn,"Eintrag","Einträge")+" an «"+bt+"» übertragen");}
