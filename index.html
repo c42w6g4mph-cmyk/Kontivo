@@ -532,6 +532,12 @@ body.hasplus .topadd{display:inline-flex}
 .eprow .t small{font-size:12.5px;font-weight:600;color:var(--ink3)}
 .eprow .t small.w{color:var(--warn)}
 .eprow b{font-weight:600;font-variant-numeric:tabular-nums}
+.eprow b u{text-decoration:none;font-size:11px;font-weight:500;color:var(--ink3)}
+.eprow.ephd{padding-bottom:10px}
+.epkv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.epkv span{color:var(--ink2)}
+.epkv b{font-weight:500;font-variant-numeric:tabular-nums}
+.epkv b.w{color:var(--warn);font-weight:600}
 .epbars{display:flex;align-items:flex-end;gap:3px;height:64px;margin-top:4px}
 .epbars i{flex:1;border-radius:3px 3px 0 0;background:color-mix(in srgb,var(--teal) 28%,var(--surface))}
 .epbars i.on{background:var(--teal)}
@@ -2352,14 +2358,16 @@ function emptyHero(o){
 function epHead(t,tag){return '<div class="bpt"><span>'+t+'</span><em>'+tag+'</em></div>';}
 var EX="EUR";
 function emptyList(){
-  var rows=[["Miete","Wohnen",950],["Strom","Energie & Wasser",85],["Handy","Mobilfunk & Internet",29.99]],sum=rows.reduce(function(n,r){return n+r[2];},0);
-  return emptyHero({icon:"list",title:"Alle Verträge an einem Ort",
-    text:"Erfasse Abos, Versicherungen und Verträge. Kontivo zeigt dir sofort, was dich das jeden Monat kostet.",
-    preview:epHead("Fixkosten pro Monat","Beispiel")+'<div class="epbig">'+money(sum)+' <u>'+EX+'</u></div>'+
-      rows.map(function(r){return '<div class="eprow"><span class="pci" style="background:'+catColor(r[1])+'">'+catIcon(r[1])+'</span><span class="t">'+r[0]+'</span><b>'+money(r[2])+'</b></div>';}).join(""),
+  var cat="Mobilfunk & Internet";
+  var rows=[["Laufzeit","bis 31.03.2027",""],["Kündigen bis","31.12.2026","w"],["Kundennummer","4711-0815",""],["Dokumente","Vertrag.pdf",""]];
+  return emptyHero({icon:"list",title:"Deine Verträge, sauber organisiert",
+    text:"Laufzeit, Kündigungsfrist, Kundennummer und Dokumente an einem Ort. Kontivo rechnet die Fristen aus und zeigt, was dich jeder Vertrag kostet.",
+    preview:epHead("Vertrag","Beispiel")+
+      '<div class="eprow ephd"><span class="pci" style="background:'+catColor(cat)+'">'+catIcon(cat)+'</span><span class="t">Handy<small>Mobilfunkanbieter</small></span><b>29.99 <u>'+EX+'</u></b></div>'+
+      rows.map(function(r){return '<div class="epkv"><span>'+r[0]+'</span><b class="'+r[2]+'">'+r[1]+'</b></div>';}).join(""),
     btn:['data-onb="c"',"Ersten Vertrag erfassen"],sub:'<button type="button" class="eslink" data-onb="b">Ich habe ein Backup</button>',
-    ben:[['<path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/>',"Sieh, wohin dein Geld fliesst","Nach Kategorie, Vertragspartner und Person."],
-         ['<path d="M12 3.5 5.5 6v5.5c0 4 2.8 7.2 6.5 8.8 3.7-1.6 6.5-4.8 6.5-8.8V6z"/><path d="m9.3 12 2 2 3.6-3.8"/>',"Ohne Bankanbindung","Deine Daten bleiben auf deinem Gerät."]]});
+    ben:[['<circle cx="12" cy="12.5" r="8"/><path d="M12 8.5v4l2.8 1.8"/><path d="M9.5 2.8h5"/>',"Fristen automatisch berechnet","Kündigungstermin aus Laufzeit und Frist, rechtzeitig angezeigt."],
+         ['<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h5"/>',"Alles zum Vertrag dabei","Dokumente, Kontakt, Preisänderungen und Kündigungsschreiben."]]});
 }
 function emptyStat(){
   var hs=[52,48,55,50,62,49,51,88,50,57,49,54],sel=9;
