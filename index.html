@@ -4127,7 +4127,7 @@ function qualChecklist(q){
   var N=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length,NI=Object.keys(state.incomes).length;
   return '<div class="qcrit"><div class="qch">Was geprüft wird <small>'+cntTxt(N,"Vertrag","Verträge")+(NI?", "+cntTxt(NI,"Einnahme","Einnahmen"):"")+'</small></div>'+
     Q_ROWS.map(function(G){var n=q[G[0]].length;
-      return '<div class="qgrp"><div class="qgh"><span>'+G[1]+'</span><em class="'+(n?"w":"ok")+'">'+(n?n+" offen":"vollständig")+'</em></div><ul>'+
+      return '<div class="qgrp"><div class="qgh"><span>'+G[1]+'</span>'+(n?"":'<em class="ok">vollständig</em>')+'</div><ul>'+
         G[2].filter(function(r){return r[0]!=="inc"||NI;}).map(function(r){var m=qSel(q,G[0],r[0]).length;
           return m?'<li class="w"><button type="button" data-qf="'+G[0]+':'+r[0]+'" data-qt="'+esc(r[1])+'"><span>'+r[1]+'</span><b>'+m+' offen</b><i>›</i></button></li>'
             :'<li><span>'+r[1]+'</span><b>✓</b></li>';}).join("")+'</ul></div>';}).join("")+
