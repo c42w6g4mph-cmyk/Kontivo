@@ -557,7 +557,8 @@ body.hasplus .topadd{display:inline-flex}
 .bpr.tot b{font-family:ui-rounded,"SF Pro Rounded","Nunito",-apple-system,system-ui,sans-serif;font-size:24px;color:var(--teal)}
 .bpr.tot b.q{color:var(--teal);opacity:.55}
 .ehk{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:9px;text-align:left}
-.ehk li{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500}
+.ehk li{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;white-space:nowrap}
+@media(max-width:374px){.ehk li{font-size:14px}}
 .ehk svg{flex:none;width:18px;height:18px;fill:none;stroke:var(--teal);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .eprev.illu{position:relative;pointer-events:none;opacity:.9}
 .eprev.illu .epacts span{background:color-mix(in srgb,var(--sunken) 70%,var(--surface));color:var(--ink3);font-weight:500}
@@ -2356,7 +2357,7 @@ function epHead(t,tag){return '<div class="bpt"><span>'+t+'</span>'+(tag?'<em>'+
 function emptyList(){
   return emptyHero({icon:"list",title:"Jeden Vertrag im Griff.<br>Jede Frist im Blick.",
     text:"Erfasse einen Vertrag, den Rest übernimmt Kontivo.",
-    hooks:["Kündigungstermine automatisch berechnet","Kündigungsschreiben in einer Minute","Dokumente und Kundennummern am Vertrag"],
+    hooks:["Nie wieder ein Jahr zu viel bezahlen","Du entscheidest, nicht die Klausel","Kündigungsschreiben in einer Minute"],
     btn:['data-onb="c"',"Ersten Vertrag erfassen"],
     sub:'<p class="espriv">'+esIc('<path d="M12 3.5 5.5 6v5.5c0 4 2.8 7.2 6.5 8.8 3.7-1.6 6.5-4.8 6.5-8.8V6z"/><path d="m9.3 12 2 2 3.6-3.8"/>')+'Ohne Bankanbindung. Deine Daten bleiben auf deinem Gerät.</p>'+
         '<button type="button" class="eslink" data-onb="b">Ich habe ein Backup</button>'});
@@ -2364,13 +2365,13 @@ function emptyList(){
 function emptyStat(){
   return emptyHero({icon:"stat",title:"Dein Monat,<br>im Voraus geplant",
     text:"Sobald Verträge da sind, siehst du hier, was wann abgebucht wird.",
-    hooks:["Monat für Monat, bezahlt oder noch offen","Jahreszahlungen ohne Überraschung","Vergleich mit dem Vorjahr"],
+    hooks:["Was geht nächsten Monat wirklich weg?","Jahresrechnungen, bevor sie dich treffen","Teurer als letztes Jahr? Sofort sichtbar"],
     btn:['data-onb="c"',"Ersten Vertrag erfassen"]});
 }
 function emptyTerm(){
   return emptyHero({icon:"term",title:"Nie mehr eine<br>Frist verpassen",
     text:"Kontivo rechnet den Kündigungstermin aus und meldet sich rechtzeitig.",
-    illu:true,preview:epHead("Als Nächstes","")+'<div class="eprow"><span class="pci" style="background:'+catColor("Freizeit & Sport")+'">'+catIcon("Freizeit & Sport")+'</span><span class="t">Fitnessstudio<small class="w">Frist 30.11. · noch 29 Tage</small></span></div>'+
+    hooks:["Behalten oder kündigen? Du entscheidest","Auch Probe-Abos und Jahresverträge"],illu:true,preview:epHead("Als Nächstes","")+'<div class="eprow"><span class="pci" style="background:'+catColor("Freizeit & Sport")+'">'+catIcon("Freizeit & Sport")+'</span><span class="t">Fitnessstudio<small class="w">Frist 30.11. · noch 29 Tage</small></span></div>'+
       '<div class="epacts"><span>Behalten</span><span>Kündigen</span></div>',
     btn:['data-onb="c"',"Ersten Vertrag erfassen"]});
 }
@@ -2378,7 +2379,7 @@ function budgetEmpty(){
   var act=running().filter(function(c){return !notStarted(c);}),fix=act.reduce(function(n,c){return n+monthlyCost(c);},0);
   return emptyHero({icon:"budget",title:"Weisst du, was dir<br>jeden Monat bleibt?",
     text:act.length?"Deine Fixkosten sind schon da: "+money(fix)+" "+esc(state.settings.home)+" im Monat. Es fehlt nur dein Lohn.":"Trag deinen Lohn ein, die Fixkosten kommen aus deinen Verträgen.",
-    hooks:["Sieh sofort, was dir bleibt","Pro Monat und übers Jahr","Für den ganzen Haushalt, anteilig"],
+    hooks:["Lohn rein, Fixkosten raus: der Rest gehört dir","Was bleibt dir übrig? Sofort sichtbar","Fair geteilt: wer zahlt wie viel im Haushalt"],
     btn:['id="incAdd"',"Einnahme erfassen"]});
 }
 function renderBudget(v){
