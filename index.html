@@ -1161,7 +1161,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Namen, Logos und Adressen deiner Anbieter</small></span><em id="mdSumP"></em></button>
     <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Wer zahlt welchen Vertrag</small></span><em id="mdSumH"></em></button>
     <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
-    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small>Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
+    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Kündigungsschreiben</div>
     <form id="sSender" class="sndform" autocomplete="on" novalidate>
       <div class="flabel">Absender</div>
@@ -4007,7 +4007,7 @@ function paintMdQual(){
   function sec(t,a,w,g){return a.length?'<div class="qhr"><h4 class="qh'+(w?" w":"")+'">'+t+" · "+a.length+'</h4><button class="qig" type="button" data-qall="'+g+'">Alle ignorieren</button></div>'+rows(a):"";}
   var n=q.A.length+q.B.length,nc=qualOpenContracts(q),N=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length;
   var h=N?(n?'<div class="qtop"><b>'+cntTxt(nc,"Vertrag braucht","Verträge brauchen")+' noch Angaben.</b><span>Tippe auf einen Eintrag, um sie direkt nachzutragen.</span></div>'
-    :'<div class="qtop ok"><i>'+esIc('<path d="m5 12.5 4.2 4.2L19 7"/>')+'</i><b>Top. '+(N===1?"Dein Vertrag ist":"Alle "+N+" Verträge sind")+' vollständig.</b><span>Kosten, Budget und Fristen stimmen.</span></div>')
+    :'<div class="qtop ok"><i>'+esIc('<path d="m5 12.5 4.2 4.2L19 7"/>')+'</i><b>Sauber gepflegt. '+(N===1?"Dein Vertrag ist":"Alle "+N+" Verträge sind")+' vollständig.</b><span>Kosten, Budget und Fristen stimmen. So bleibt Kontivo verlässlich.</span></div>')
     :'<p class="qok">Noch keine laufenden Verträge. Sobald du welche erfasst, siehst du hier, was fehlt.</p>';
   if(N)h+=qualChecklist(q);
   h+=sec("Für Kosten und Budget",q.A,1,"A")+sec("Für Fristen",q.B,1,"B");
@@ -4024,8 +4024,9 @@ function paintMdSummary(){
   var hs=holderStats().map(function(h){return h.name;});
   document.getElementById("mdSumH").textContent=hs.length<=2?hs.join(", "):hs.length+" Personen";
   document.getElementById("mdSumC").textContent=allCats().length+"";
-  var eq=document.getElementById("mdSumQ");if(eq){var qq=qualItems(),nq=qualOpenContracts(qq);
-    eq.textContent=nq?cntTxt(nq,"Vertrag offen","Verträge offen"):"Vollständig ✓";eq.style.color=nq?"var(--warn)":"var(--ok)";eq.style.fontWeight="600";}
+  var eq=document.getElementById("mdSumQ");if(eq){var qq=qualItems(),nq=qualOpenContracts(qq),NQ=Object.keys(state.contracts).filter(function(k){return state.contracts[k].status!=="cancelled";}).length;
+    eq.textContent=!NQ?"–":nq?cntTxt(nq,"Vertrag offen","Verträge offen"):"Sauber gepflegt ✓";eq.style.color=!NQ?"":nq?"var(--warn)":"var(--ok)";eq.style.fontWeight=NQ?"600":"";
+    var eqs=document.getElementById("mdSumQs");if(eqs)eqs.textContent=NQ&&!nq?"Alles da, nichts fehlt. Gut gemacht.":"Was bei deinen Verträgen noch fehlt";}
 }
 /* ---------- Stammdaten: ein Fenster mit Navigation (Liste → Detail → Aktion) ----------
    SwiftUI: NavigationStack in einem Sheet; Seiten = Enum-Fälle, Autosave über onChange/onSubmit */
