@@ -1103,6 +1103,18 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .cdelb i{width:20px;height:20px;border-radius:50%;background:var(--alert);position:relative}
 .cdelb i::after{content:"";position:absolute;left:5px;right:5px;top:9px;height:2px;background:#fff;border-radius:1px}
 .cdelb:disabled i{background:var(--ink3);opacity:.35}
+.mdav.ph{background:var(--surface);overflow:hidden;padding:0}.mdav.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.mdav.xl{width:84px;height:84px;font-size:34px;margin:0 auto}
+.hcard{position:relative;text-align:center;padding:8px 0 4px}
+.hcard .hedit{position:absolute;right:4px;top:0}
+.hcard .hn{font-size:22px;font-weight:700;color:var(--ink);margin:10px 0 2px;padding:0;border:0}
+.hcard .hs{font-size:13.5px;color:var(--ink2);margin:0}
+.hcard .hav{display:flex;justify-content:center;gap:8px;margin:10px 0 4px}
+.hcard .hname{text-align:left;margin:10px 0 0}
+.hrow::after{margin-left:2px}
+.hrow em{font-style:normal;font-size:13.5px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.hrow em u{text-decoration:none;font-size:11px;font-weight:500;color:var(--ink3)}
+.hrow em.ok{color:var(--ok)}.hrow em.w{color:var(--warn)}
 .mdav.multi{background:color-mix(in srgb,var(--teal) 14%,var(--surface));color:var(--teal)}
 .mdav.multi svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .harow{padding:10px 0;border-top:1px solid var(--line)}
@@ -1631,12 +1643,17 @@ function setSnd(h,o){var a=Object.assign({},sndAll());a[h]=o;state.settings.send
 function setSig(h,u){var a=Object.assign({},state.settings.sigs||{});if(u)a[h]=u;else delete a[h];state.settings.sigs=a;saveSettings();}
 function sndStatus(h){var o=sndOf(h),a=sndAddr(o);return (sndOk(h)?a.slice(0,2).join(", "):"Adresse fehlt")+" · "+(sigOf(h)?"Unterschrift ✓":"ohne Unterschrift");}
 /* Umbenennen/Zusammenführen: Daten wandern mit (hat das Ziel schon eigene, bleiben diese) */
-function sndRename(o,v){var a=Object.assign({},sndAll()),g=Object.assign({},state.settings.sigs||{}),src=a[o];
+/* Foto/Logo pro Inhaber (optional): settings.avatars = {Inhaber: Blob-ID im Gerätespeicher}; sonst Initiale */
+function avOf(h){var a=state.settings.avatars;var id=a&&a[h];return id&&KBlob.has(id)?id:"";}
+function avHtml(h,cls){var id=avOf(h);return '<span class="mdav'+(cls?" "+cls:"")+(id?" ph":"")+'">'+(id?'<img src="'+KBlob.url(id)+'" alt="">':esc(String(h||"?").charAt(0).toUpperCase()))+'</span>';}
+function setAv(h,id){var a=Object.assign({},state.settings.avatars||{});if(id)a[h]=id;else delete a[h];state.settings.avatars=a;saveSettings();}
+function avMove(o,v){var a=Object.assign({},state.settings.avatars||{});if(a[o]&&(v===null||!a[v])){if(v)a[v]=a[o];}delete a[o];state.settings.avatars=a;}
+function sndRename(o,v){avMove(o,v);var a=Object.assign({},sndAll()),g=Object.assign({},state.settings.sigs||{}),src=a[o];
   if(src&&!a[v])a[v]=src;delete a[o];
   Object.keys(a).forEach(function(k){if(a[k]&&a[k].same===o){var r=Object.assign({},a[k]);
     if(k===v){delete r.same;SND_ADDR.forEach(function(x){r[x]=(src||{})[x]||"";});}else r.same=v;a[k]=r;}});
   if(g[o]&&!g[v])g[v]=g[o];delete g[o];state.settings.senders=a;state.settings.sigs=g;}
-function sndDrop(h){var a=Object.assign({},sndAll()),g=Object.assign({},state.settings.sigs||{}),src=a[h]||{};
+function sndDrop(h){avMove(h,null);var a=Object.assign({},sndAll()),g=Object.assign({},state.settings.sigs||{}),src=a[h]||{};
   Object.keys(a).forEach(function(k){if(a[k]&&a[k].same===h){var r=Object.assign({},a[k]);delete r.same;SND_ADDR.forEach(function(x){r[x]=src[x]||"";});a[k]=r;}});
   delete a[h];delete g[h];state.settings.senders=a;state.settings.sigs=g;}
 function migCats(){var ch=migModel();
@@ -3042,7 +3059,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
 document.getElementById("cancelForm").addEventListener("click",function(){if(!document.getElementById("fMore").hidden)formPage(false);else closeSheets();});
 
 /* Uploads */
-var cropTarget="c";
+var cropTarget="c",avFor="";
 document.getElementById("logoUp").addEventListener("click",function(){cropTarget="c";document.getElementById("logoFile").click();});
 document.getElementById("logoFile").addEventListener("change",async function(ev){
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;
@@ -3104,6 +3121,7 @@ function paintCropBg(){
   });
 }
 function openCrop(file){
+  document.querySelector("#sheetCrop h2").textContent=cropTarget==="h"?"Bild zuschneiden":"Logo zuschneiden";
   var url=URL.createObjectURL(file),img=new Image();
   img.onload=function(){
     var w=img.naturalWidth||512,h=img.naturalHeight||512,sc=Math.min(1,1600/Math.max(w,h));
@@ -3161,6 +3179,7 @@ document.getElementById("cropOk").addEventListener("click",function(){
   out.toBlob(async function(bl){
     if(!bl){toast("Bild konnte nicht erzeugt werden");return;}
     try{var r=await assets.upload(bl);
+      if(cropTarget==="h"){setAv(avFor,r.id);closeCrop();paintMd(0);render();toast("Bild gesetzt");return;}
       if(cropTarget==="p"){pe.logoId=r.id;pe.logoBg=bg;pe.logoChanged=true;paintPeMark();}else if(cropTarget==="i"){idraft.logoId=r.id;idraft.logoBg=bg;iPaintLogo();}else{draft.logoId=r.id;draft.logoBg=bg;paintLogo();}
       closeCrop();toast("Logo gesetzt");}
     catch(e){toast("Upload fehlgeschlagen");}
@@ -4134,7 +4153,7 @@ function qualChecklist(q){
     '<p class="mdhint" style="margin:10px 0 0">Tippe auf «offen», um die Einträge zu sehen. Gekündigte Verträge und ignorierte Hinweise zählen nicht. Nicht überwachte Verträge, Pflichtverträge und Steuern brauchen keine Frist. Adresse, E-Mail und Link werden nur für den gewählten Kündigungsweg verlangt.</p></div>';
 }
 function qRows(a){
-  function mark(o){if(o.kind==="i")return incMark(o.c);if(o.kind==="h")return '<span class="mdav">'+esc(o.name.charAt(0).toUpperCase())+'</span>';return markHtml(o.c);}
+  function mark(o){if(o.kind==="i")return incMark(o.c);if(o.kind==="h")return avHtml(o.name);return markHtml(o.c);}
   return a.map(function(o){
     var attr=o.kind==="c"?'data-qc="'+esc(o.id)+'"':o.kind==="i"?'data-qi="'+esc(o.id)+'"':o.kind==="h"?'data-hsopen="'+esc(o.id)+'"':'data-qp="'+esc(o.pk)+'"';
     return '<div class="qrow"><button class="mdrow" type="button" '+attr+'>'+mark(o)+'<span class="t"><b>'+esc(o.name)+'</b><small>'+esc(o.why)+(o.sub?" · "+esc(o.sub):"")+'</small></span></button>'+
@@ -4193,7 +4212,7 @@ var md={stack:[]};
 function mdTop(){return md.stack[md.stack.length-1];}
 function mdTitle(p){if(!p)return "";
   return {partner:"Vertragspartner",holder:"Inhaber",cat:"Kategorien",qual:"Datenqualität",hs:"Absender",henew:"Neuer Inhaber",cenew:"Neue Kategorie",hassign:"Verträge zuordnen",hbulk:"Alle übertragen",
-    pmerge:"Zusammenführen",hmove:"Zuweisen",hdel:"Inhaber löschen",cdel:"Kategorie löschen"}[p.k]||p.title||p.name||p.n||(p.k==="pe"&&peGroup(p.key)?peGroup(p.key).name:"");}
+    pmerge:"Zusammenführen",hdel:"Inhaber löschen",cdel:"Kategorie löschen"}[p.k]||p.title||p.name||p.n||(p.k==="pe"&&peGroup(p.key)?peGroup(p.key).name:"");}
 function openMd(which){md.stack=[{k:which}];md.catEdit=false;pe=null;paintMd(0);openSheet(document.getElementById("sheetMd"));}
 function openMdAt(p){md.stack=[p];pe=null;paintMd(0);var sh=document.getElementById("sheetMd");if(!sh.classList.contains("on"))openSheet(sh);}
 function mdPush(p){mdFlush();md.stack.push(p);paintMd(1);}
@@ -4314,10 +4333,10 @@ MD_PAGES.holder=function(){
   var hs=holderStats(),nAll=Object.keys(state.contracts).length+Object.keys(state.incomes).length;
   return (hs.length>1&&nAll?'<div class="mdgrp"><button class="mdrow" data-mdgo="hassign" type="button"><span class="mdav multi">'+esIc('<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M15 14.2c2.6-.3 4.6 1.3 5.3 4.3"/>')+'</span><span class="t"><b>Verträge zuordnen</b><small>Wer zahlt was: pro Vertrag mit einem Tipp wechseln</small></span></button></div>':"")+
     mdSec("Personen")+'<div class="mdgrp">'+hs.map(function(h){
-    return '<button class="mdrow" data-mdgo="he" data-name="'+esc(h.name)+'" type="button"><span class="mdav">'+esc((h.name||"?").charAt(0).toUpperCase())+'</span><span class="t"><b>'+esc(h.name)+'</b><small>'+
+    return '<button class="mdrow" data-mdgo="he" data-name="'+esc(h.name)+'" type="button">'+avHtml(h.name)+'<span class="t"><b>'+esc(h.name)+'</b><small>'+
       cntTxt(h.c,"Vertrag","Verträge")+(h.i?" · "+cntTxt(h.i,"Einnahme","Einnahmen"):"")+"</small></span></button>";}).join("")+
     '<button class="mdrow mdadd" data-mdgo="henew" type="button"><span class="mdplus">+</span><span class="t"><b>Inhaber hinzufügen</b></span></button></div>'+
-    '<p class="mdhint">Inhaber sind die Personen in deinem Haushalt. Tippe auf einen Namen, um ihn zu ändern oder zu löschen.'+(hs.length<2?" Mit zwei oder mehr Personen kannst du Verträge gemeinsam oder getrennt zuordnen.":"")+'</p>';
+    '<p class="mdhint">Inhaber sind die Personen in deinem Haushalt. Tippe auf eine Person für Absender, Unterschrift und Verträge.'+(hs.length<2?" Mit zwei oder mehr Personen kannst du Verträge gemeinsam oder getrennt zuordnen.":"")+'</p>';
 };
 /* Absender einer Person: kompakte Felder, optional «gleiche Adresse wie», Unterschrift */
 var HS_F=[["first","hsFirst","Vorname","given-name"],["last","hsLast","Nachname","family-name"],["street","hsStreet","Strasse und Nr.","address-line1"],["zip","hsZip","PLZ","postal-code"],["city","hsCity","Ort","address-level2"],["country","hsCountry","Land (optional)","country-name"]];
@@ -4363,9 +4382,12 @@ function hSet(key,v){
 MD_PAGES.hassign=function(p){
   var H=holderStats().map(function(h){return h.name;}),it=hAllItems(),two=H.length===2;
   var none=it.filter(function(x){return !holdersOf(x.obj).length;}).length;
-  if(p.flt==="none")it=it.filter(function(x){return !holdersOf(x.obj).length;});
-  var h='<div class="chips" style="margin:0 0 10px"><button type="button" class="chip" data-hflt="" aria-pressed="'+(p.flt!=="none")+'">Alle</button><button type="button" class="chip" data-hflt="none" aria-pressed="'+(p.flt==="none")+'">Ohne Inhaber'+(none?" · "+none:"")+'</button></div>';
-  if(!it.length)return h+mdEmpty(p.flt==="none"?"Alle Einträge haben einen Inhaber.":"Noch keine Verträge oder Einnahmen.");
+  var fw=/^h:/.test(p.flt||"")?p.flt.slice(2):"";
+  if(p.flt==="none")it=it.filter(function(x){return !holdersOf(x.obj).length;});else if(fw)it=it.filter(function(x){return holdersOf(x.obj).indexOf(fw)>=0;});
+  var h='<div class="chips" style="margin:0 0 10px"><button type="button" class="chip" data-hflt="" aria-pressed="'+!p.flt+'">Alle</button>'+
+    H.map(function(n){return '<button type="button" class="chip" data-hflt="h:'+esc(n)+'" aria-pressed="'+(fw===n)+'">'+esc(n)+'</button>';}).join("")+
+    '<button type="button" class="chip" data-hflt="none" aria-pressed="'+(p.flt==="none")+'">Ohne Inhaber'+(none?" · "+none:"")+'</button></div>';
+  if(!it.length)return h+mdEmpty(p.flt==="none"?"Alle Einträge haben einen Inhaber.":fw?"«"+esc(fw)+"» ist nichts zugeordnet.":"Noch keine Verträge oder Einnahmen.");
   h+='<div class="mdgrp">'+it.map(function(x){var key=x.kind+":"+x.id,cur=holdersOf(x.obj),all=cur.length===H.length;
     var ctl;
     if(two)ctl='<div class="hseg">'+H.map(function(n){return '<button type="button" data-hset="'+esc(key)+'" data-hv="'+esc(n)+'" aria-pressed="'+(!all&&cur[0]===n&&cur.length===1)+'">'+esc(n)+'</button>';}).join("")+
@@ -4378,7 +4400,7 @@ MD_PAGES.hassign=function(p){
 };
 MD_PAGES.hbulk=function(p){
   var hs=holderStats();if(p.from==null)p.from=hs[0].name;
-  function pick(attr,sel,skip){return '<div class="mdgrp">'+hs.filter(function(h){return h.name!==skip;}).map(function(h){return '<button class="mdrow mdpick" '+attr+'="'+esc(h.name)+'" aria-pressed="'+(sel===h.name)+'" type="button"><span class="mdav">'+esc(h.name.charAt(0).toUpperCase())+'</span><span class="t"><b>'+esc(h.name)+'</b><small>'+cntTxt(h.c,"Vertrag","Verträge")+(h.i?" · "+cntTxt(h.i,"Einnahme","Einnahmen"):"")+'</small></span><span class="rad"></span></button>';}).join("")+'</div>';}
+  function pick(attr,sel,skip){return '<div class="mdgrp">'+hs.filter(function(h){return h.name!==skip;}).map(function(h){return '<button class="mdrow mdpick" '+attr+'="'+esc(h.name)+'" aria-pressed="'+(sel===h.name)+'" type="button">'+avHtml(h.name)+'<span class="t"><b>'+esc(h.name)+'</b><small>'+cntTxt(h.c,"Vertrag","Verträge")+(h.i?" · "+cntTxt(h.i,"Einnahme","Einnahmen"):"")+'</small></span><span class="rad"></span></button>';}).join("")+'</div>';}
   var f=hs.filter(function(h){return h.name===p.from;})[0]||{c:0,i:0},n=f.c+f.i;
   return mdSec("Von")+pick("data-hfrom",p.from)+mdSec("An")+pick("data-mdsel",p.to,p.from)+
     '<p class="mdhint">'+(p.to?cntTxt(n,"Eintrag geht","Einträge gehen")+" von «"+esc(p.from)+"» an «"+esc(p.to)+"». Gemeinsame Einträge bleiben gemeinsam. «"+esc(p.from)+"» bleibt als Person bestehen.":"Zum Beispiel nach einem Umzug oder wenn jemand die Verträge übernimmt.")+'</p>'+
@@ -4388,18 +4410,27 @@ MD_PAGES.henew=function(){
   return '<div class="field"><label for="heNew">Name</label><input id="heNew" type="text" autocomplete="off" maxlength="30" placeholder="z.B. Lara" enterkeyhint="done"></div>'+
     '<button class="lbtn main" type="button" data-mdrun="henew">Hinzufügen</button>';
 };
+/* Personenkarte wie iOS-Kontakte: ruhiger Kopf, Bearbeiten (Name, Bild, Löschen) erst auf Wunsch. SwiftUI: Form mit EditButton */
 MD_PAGES.he=function(p){
-  var it=heItems(p.name),sel=p.sel,n=sel?Object.keys(sel).length:0;
-  var right=it.length?'<button type="button" class="mdlink" data-mdrun="hsel">'+(sel?"Abbrechen":"Auswählen")+"</button>":"";
-  var rows=it.map(function(x){var key=x.kind+":"+x.id,on=!!(sel&&sel[key]),oth=holdersOf(x.obj).filter(function(h){return h!==p.name;});
-    var sub=[x.sub,oth.length?"auch "+oth.join(", "):""].filter(Boolean).join(" · ");
-    return '<button class="mdrow'+(sel?" mdpick":"")+'" type="button" '+(sel?'data-hsel="'+esc(key)+'" aria-pressed="'+on+'"':(x.kind==="c"?'data-mdc="'+esc(x.id)+'"':'data-mdi="'+esc(x.id)+'"'))+'>'+
-      (sel?'<span class="chk'+(on?" on":"")+'"></span>':"")+(x.kind==="c"?markHtml(x.obj):incMark(x.obj))+'<span class="t"><b>'+esc(x.title)+"</b>"+(sub?"<small>"+esc(sub)+"</small>":"")+"</span></button>";}).join("");
-  return '<div class="mdhead"><span class="mdav big">'+esc((p.name||"?").charAt(0).toUpperCase())+'</span><div class="field"><label for="heName">Name</label><input id="heName" type="text" autocomplete="off" maxlength="30" enterkeyhint="done" value="'+esc(p.name)+'"></div></div>'+
-    '<div class="mdgrp"><button class="mdrow" data-mdgo="hs" data-name="'+esc(p.name)+'" type="button"><span class="mdav multi">'+esIc('<path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/>')+'</span><span class="t"><b>Absender und Unterschrift</b><small>'+esc(sndStatus(p.name))+'</small></span></button></div>'+
-    mdSec("Zugeordnet ("+it.length+")",right)+(it.length?'<div class="mdgrp">'+rows+"</div>":mdEmpty("Keine Verträge oder Einnahmen zugeordnet."))+
-    (sel?'<div class="mdbar"><button class="lbtn main" type="button" data-mdgo="hmove"'+(n?"":" disabled")+'>'+(n?cntTxt(n,"Eintrag","Einträge")+" zuweisen an …":"Einträge auswählen")+"</button></div>"
-      :'<div class="mdgrp mdacts"><button class="mdact del" type="button" data-mdrun="hdel">Inhaber löschen</button></div>');
+  var h=p.name,it=heItems(h),ed=!!p.edit,st=holderStats().filter(function(x){return x.name===h;})[0]||{c:0,i:0},o=sndOf(h),ok=sndOk(h),sg=sigOf(h),av=avOf(h);
+  var cs=it.filter(function(x){return x.kind==="c";}).sort(function(x,y){return monthlyCost(y.obj)-monthlyCost(x.obj);}),is=it.filter(function(x){return x.kind==="i";}),list=cs.concat(is),LIM=4;
+  function row(x){var oth=holdersOf(x.obj).filter(function(n){return n!==h;}),sub=[x.sub,oth.length?"mit "+oth.join(", "):""].filter(Boolean).join(" · ");
+    var amt=x.kind==="c"?money(curPrice(x.obj))+' <u>'+esc(x.obj.cur||"CHF")+'</u>':money(+x.obj.amount||0)+' <u>'+esc(x.obj.cur||"CHF")+'</u>';
+    return '<button class="mdrow hrow" type="button" '+(x.kind==="c"?'data-mdc="'+esc(x.id)+'"':'data-mdi="'+esc(x.id)+'"')+'>'+(x.kind==="c"?markHtml(x.obj):incMark(x.obj))+
+      '<span class="t"><b>'+esc(x.title)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':"")+'</span><em>'+amt+'</em></button>';}
+  var hh='<div class="hcard"><button type="button" class="mdlink hedit" data-mdrun="hedit">'+(ed?"Fertig":"Bearbeiten")+'</button>'+avHtml(h,"xl")+
+    (ed?'<div class="hav"><button type="button" class="mini" data-mdrun="havpick">'+(av?"Bild ändern":"Foto oder Logo wählen")+'</button>'+(av?'<button type="button" class="mini" data-mdrun="havdel">Entfernen</button>':"")+'</div>'+
+      '<div class="field hname"><label for="heName">Name</label><input id="heName" type="text" autocomplete="off" maxlength="30" enterkeyhint="done" value="'+esc(h)+'"></div>'
+     :'<h3 class="hn">'+esc(h)+'</h3><p class="hs">'+cntTxt(st.c,"Vertrag","Verträge")+(st.i?" · "+cntTxt(st.i,"Einnahme","Einnahmen"):"")+'</p>')+'</div>';
+  hh+=mdSec("Kündigungen")+'<div class="mdgrp">'+
+    '<button class="mdrow hrow" type="button" data-mdgo="hs" data-name="'+esc(h)+'"><span class="t"><b>Absender</b><small>'+esc(ok?[[o.first,o.last].filter(Boolean).join(" "),o.street,[o.zip,o.city].filter(Boolean).join(" ")].filter(Boolean).join(", "):"Name und Adresse für Briefe")+'</small></span><em class="'+(ok?"ok":"w")+'">'+(ok?"✓":"ergänzen")+'</em></button>'+
+    '<button class="mdrow hrow" type="button" data-mdgo="hs" data-name="'+esc(h)+'"><span class="t"><b>Unterschrift</b><small>'+(sg?"hinterlegt":"ohne: Linie zum Unterschreiben von Hand")+'</small></span><em class="'+(sg?"ok":"")+'">'+(sg?"✓":"optional")+'</em></button></div>';
+  var nh=holderStats().length;
+  hh+=mdSec(list.length?(cs.length?cntTxt(cs.length,"Vertrag","Verträge"):"")+(cs.length&&is.length?", ":"")+(is.length?cntTxt(is.length,"Einnahme","Einnahmen"):""):"Verträge",nh>1?'<button type="button" class="mdlink" data-mdgo="hassign" data-who="'+esc(h)+'">Zuordnen</button>':"");
+  hh+=list.length?'<div class="mdgrp">'+(p.all?list:list.slice(0,LIM)).map(row).join("")+(list.length>LIM&&!p.all?'<button type="button" class="mdact" data-mdrun="hall">Alle '+list.length+' zeigen</button>':"")+'</div>'
+    :mdEmpty("Noch nichts zugeordnet."+(nh>1?" Über «Zuordnen» Verträge zuweisen.":""));
+  if(ed)hh+='<div class="mdgrp mdacts"><button class="mdact del" type="button" data-mdrun="hdel">Inhaber löschen</button></div>';
+  return hh;
 };
 function heRename(v){
   var p=mdTop(),o=p.name;v=v.trim().replace(/\s+/g," ");
@@ -4419,13 +4450,6 @@ function heMerge(from,to){
   if(state.bHolder===from)state.bHolder=to;if(state.flt&&state.flt.holder===from)state.flt.holder=to;
   mapHolders(function(h){return h===from?to:h;});render();
 }
-MD_PAGES.hmove=function(p){
-  var he0=md.stack[md.stack.length-2],n=Object.keys(he0.sel||{}).length,H=holderStats().filter(function(h){return h.name!==he0.name;});
-  if(!H.length)return mdEmpty("Es gibt noch keinen anderen Inhaber. Lege zuerst einen an.");
-  return mdEmpty(cntTxt(n,"Eintrag","Einträge")+" von «"+esc(he0.name)+"» zuweisen an:")+
-    '<div class="mdgrp">'+H.map(function(h){return '<button class="mdrow mdpick" data-mdsel="'+esc(h.name)+'" aria-pressed="'+(p.to===h.name)+'" type="button"><span class="mdav">'+esc(h.name.charAt(0).toUpperCase())+'</span><span class="t"><b>'+esc(h.name)+'</b><small>'+cntTxt(h.c,"Vertrag","Verträge")+'</small></span><span class="rad"></span></button>';}).join("")+"</div>"+
-    '<div class="mdbar"><button class="lbtn main" type="button" data-mdrun="hmove"'+(p.to?"":" disabled")+">Zuweisen</button></div>";
-};
 MD_PAGES.hdel=function(p){
   var he0=md.stack[md.stack.length-2],st=holderStats().filter(function(h){return h.name===he0.name;})[0]||{c:0,i:0};
   var H=holderStats().filter(function(h){return h.name!==he0.name;});if(p.to==null)p.to=H.length?H[0].name:"";
@@ -4581,7 +4605,7 @@ document.addEventListener("click",function(ev){
   if((x=t.closest("[data-mdc]"))){var cid=x.dataset.mdc;peFrom="";closeMd();setTimeout(function(){openDetail(cid);},200);return;}
   if((x=t.closest("[data-mdi]"))){var iid=x.dataset.mdi;closeMd();setTimeout(function(){openIncome(iid);},200);return;}
   if((x=t.closest("[data-mdgo]"))){var g=x.dataset.mdgo;
-    if(g==="pe")mdPush({k:"pe",key:x.dataset.key});else if(g==="he")mdPush({k:"he",name:x.dataset.name});else if(g==="hs")mdPush({k:"hs",name:x.dataset.name});else if(g==="ce")mdPush({k:"ce",n:x.dataset.n});
+    if(g==="hassign"&&x.dataset.who)mdPush({k:"hassign",flt:"h:"+x.dataset.who});else if(g==="pe")mdPush({k:"pe",key:x.dataset.key});else if(g==="he")mdPush({k:"he",name:x.dataset.name});else if(g==="hs")mdPush({k:"hs",name:x.dataset.name});else if(g==="ce")mdPush({k:"ce",n:x.dataset.n});
     else mdPush({k:g});return;}
   if((x=t.closest("[data-cdel]"))){var cdn=x.dataset.cdel;if(cdn==="Sonstiges")return;
     if(!catCount(cdn)){ask({title:"«"+cdn+"» löschen?",text:"Die Kategorie ist leer.",ok:"Löschen",danger:true}).then(function(y){if(!y)return;ceDelete(cdn,"Sonstiges");paintMd(0);toast("Kategorie gelöscht");});}
@@ -4591,7 +4615,6 @@ document.addEventListener("click",function(ev){
   if((x=t.closest("[data-hflt]"))){p.flt=x.dataset.hflt;paintMd(0);return;}
   if((x=t.closest("[data-hset]"))){hSet(x.dataset.hset,x.dataset.hv);paintMd(0);return;}
   if((x=t.closest("[data-mdsel]"))){p.to=x.dataset.mdsel;paintMd(0);return;}
-  if((x=t.closest("[data-hsel]"))){var kk=x.dataset.hsel;if(p.sel[kk])delete p.sel[kk];else p.sel[kk]=1;paintMd(0);return;}
   if((x=t.closest("[data-dupm]"))){var l=dupSets()[x.dataset.dupm];if(!l)return;var tg=mergeTarget(l),src=l.filter(function(o){return o!==tg;}),nn=src.reduce(function(s,o){return s+o.ids.length;},0);
     ask({title:"Zu «"+tg.name+"» zusammenführen?",text:src.map(function(o){return "«"+o.name+"»";}).join(", ")+" ("+cntTxt(nn,"Vertrag","Verträge")+") "+(src.length===1?"läuft":"laufen")+" danach unter «"+tg.name+"».",ok:"Zusammenführen"})
       .then(function(y){if(!y)return;mergePartners(src.map(function(o){return o.key;}),tg.key);paintMd(0);toast("Zusammengeführt");});return;}
@@ -4602,13 +4625,11 @@ document.addEventListener("click",function(ev){
     else if(r==="henew"){var v=(document.getElementById("heNew").value||"").trim().replace(/\s+/g," ");if(!v){toast("Bitte einen Namen eingeben");return;}
       if(holderStats().some(function(h){return h.name.toLowerCase()===v.toLowerCase();})){toast("Diesen Inhaber gibt es schon");return;}
       state.settings.holders=(state.settings.holders||["Ich"]).concat([v]);saveSettings();render();mdPop();toast("Inhaber «"+v+"» angelegt");}
-    else if(r==="hsel"){p.sel=p.sel?null:{};paintMd(0);}
+    else if(r==="hedit"){mdFlush();p.edit=!p.edit;paintMd(0);}
+    else if(r==="hall"){p.all=1;paintMd(0);}
+    else if(r==="havpick"){avFor=p.name;cropTarget="h";document.getElementById("logoFile").click();}
+    else if(r==="havdel"){setAv(p.name,"");paintMd(0);render();toast("Bild entfernt");}
     else if(r==="hbulk"){var bf=p.from,bt=p.to;if(!bf||!bt||bf===bt)return;var bn=mapHolders(function(h){return h===bf?bt:h;});render();mdPop();toast(cntTxt(bn,"Eintrag","Einträge")+" an «"+bt+"» übertragen");}
-    else if(r==="hmove"){var he0=md.stack[md.stack.length-2],to2=p.to,from=he0.name,n=0;if(!to2)return;
-      Object.keys(he0.sel||{}).forEach(function(key){var kind=key.charAt(0),id=key.slice(2),m=kind==="c"?state.contracts:state.incomes,c=m[id];if(!c)return;
-        var arr=[];holdersOf(c).forEach(function(h){var q=h===from?to2:h;if(arr.indexOf(q)<0)arr.push(q);});
-        var nc=Object.assign({},c);nc.holders=arr;if(kind==="c")putContract(id,nc);else putIncome(id,nc);n++;});
-      he0.sel=null;render();mdPop();toast(cntTxt(n,"Eintrag","Einträge")+" an «"+to2+"» zugewiesen");}
     else if(r==="hdel"){var nm=p.name,st=holderStats();
       if(st.length<=1){toast("Mindestens ein Inhaber ist nötig");return;}
       var me=st.filter(function(h){return h.name===nm;})[0]||{c:0,i:0};
@@ -5074,6 +5095,7 @@ async function autoAttach(kind,idv,name,cur,alt,web){
 document.getElementById("bkSave").addEventListener("click",async function(){
   var used={};[state.contracts,state.incomes].forEach(function(m){Object.keys(m).forEach(function(k){var c=m[k];
       if(c.logoId)used[c.logoId]=1;(c.docs||[]).forEach(function(d){if(d&&d.id)used[d.id]=1;});});});
+  Object.keys(state.settings.avatars||{}).forEach(function(h){var id=state.settings.avatars[h];if(id)used[id]=1;});
   var files={};try{files=await KBlob.exportAll(Object.keys(used));}catch(e){files={};}
   var data=JSON.stringify({app:"vertraege",version:2,exported:new Date().toISOString(),
     settings:state.settings,contracts:state.contracts,incomes:state.incomes,files:files});
