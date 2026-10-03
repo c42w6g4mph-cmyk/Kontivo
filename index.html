@@ -613,6 +613,7 @@ body.hasplus .topadd{display:inline-flex}
 .catfield .chev{font-size:22px;color:var(--ink3)}
 .sheet.over{z-index:64}
 .sheet.md{z-index:62}.sheet.me{z-index:65}
+.sheet.md.over{z-index:64}/* Absender aus dem Brief: über dem Brief (63) */
 .srowbtn em[id^="mdSum"]{white-space:nowrap;max-width:none;flex:none}
 .srowbtn .mdt b{display:block;font-weight:600;font-size:15.5px}
 .srowbtn small{display:block;font-size:12px;color:var(--ink3);font-weight:400;margin-top:1px}
@@ -872,6 +873,7 @@ details.logodet>summary{display:none}
 .dl dd{margin:0;text-align:right;min-width:0;word-break:break-word}
 .detailhead{display:flex;align-items:center;gap:15px;margin:14px 0 6px}
 .detailhead .mark{width:76px;height:76px;border-radius:17px;font-size:28px}
+.detailhead h2{overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}/* lange Komposita umbrechen statt abschneiden */
 .pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:999px;background:var(--sunken);color:var(--ink2)}
 .pill.alert{background:color-mix(in srgb,var(--alert) 16%,transparent);color:var(--alert);font-weight:600}
 .pill.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn);font-weight:600}
@@ -1731,7 +1733,14 @@ var assets=null,editId=null,draft={};
 
 /* ---------- Helfer ---------- */
 function money(v){return nf.format(v||0);}
-function parseNum(s){var n=parseFloat(String(s==null?"":s).replace(/'/g,"").replace(",","."));return isFinite(n)?n:null;}
+/* Zahl lesen: ' ’ ʼ und (geschützte) Leerzeichen entfernen; kommen . und , vor, ist das letzte das Dezimalzeichen;
+   mehrmals dasselbe Trennzeichen = Tausender (1.234.567); sonst , → . ; übrige Zeichen → ungültig (null) */
+function parseNum(s){var t=String(s==null?"":s).replace(/['’ʼ\s  ]/g,""),sg=1;
+  if(/^[-−]/.test(t)){sg=-1;t=t.slice(1);}if(!t)return null;
+  var d=t.lastIndexOf("."),c=t.lastIndexOf(",");
+  if(d>=0&&c>=0){var dec=d>c?".":",";t=t.split(dec==="."?",":".").join("");if(t.split(dec).length>2)return null;t=t.replace(dec,".");}
+  else if(d>=0||c>=0){var sp=d>=0?".":",";t=t.split(sp).length>2?t.split(sp).join(""):t.replace(sp,".");}
+  if(!/^(\d+\.?\d*|\.\d+)$/.test(t))return null;var n=parseFloat(t);return isFinite(n)?sg*n:null;}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 /* ms: Anzeigedauer; eine Speicherfehler-Meldung wird 5 s lang nicht überschrieben */
@@ -1759,6 +1768,9 @@ function rateOf(c){var s=state.settings;if(!c||c==="CHF")return 1;var r=s.rates&
 function conv(a,c){var s=state.settings;c=c||"CHF";if(c===s.home)return a;return a*rateOf(c)/rateOf(s.home);}
 function titleOf(c){return c.label||c.partner||c.name||"Ohne Namen";}
 function holdersOf(c){return (c.holders&&c.holders.length)?c.holders:[];}
+/* Inhaber in der Reihenfolge von settings.holders, unbekannte dahinter in bisheriger Reihenfolge */
+function holdersSorted(a){var H=state.settings.holders||[],r=function(h,i){var x=H.indexOf(h);return x<0?1000+i:x;};
+  return (a||[]).map(function(h,i){return {h:h,r:r(h,i)};}).sort(function(x,y){return x.r-y.r;}).map(function(x){return x.h;});}
 function normUrl(u){u=String(u||"").trim();if(!u)return "";return /^https?:\/\//i.test(u)?u:"https://"+u;}
 function domainOf(u){u=String(u||"").trim();if(!u)return "";try{return new URL(normUrl(u)).hostname.replace(/^www\./i,"");}catch(e){return "";}}
 function colorFor(c){
@@ -2621,6 +2633,7 @@ function closeSheets(){
   document.getElementById("scrim").classList.remove("on");
   ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetLetter","sheetSig","sheetSigPick"].forEach(function(i){document.getElementById(i).classList.remove("on");});
   document.getElementById("csvOut").innerHTML="";
+  webWaitClear();/* offene Logo-Suche (Google) endet mit dem Formular */
 }
 function buildCatChips(){
   document.getElementById("fCats").addEventListener("click",function(){openCatPick("c");});
@@ -2735,7 +2748,12 @@ function paintHolders(){
     el.appendChild(b);
   });
 }
-function openForm(c,asCopy,title){clearCands();
+/* Auswahlfeld setzen; ein gespeicherter Wert ohne passende Option (z.B. aus CSV) wird als zusätzliche Option eingefügt statt verloren */
+function selVal(id,v,lbl){var s=document.getElementById(id);v=v==null?"":String(v);
+  [].slice.call(s.querySelectorAll("option[data-x]")).forEach(function(o){o.remove();});
+  if(v&&![].some.call(s.options,function(o){return o.value===v;})){var o=document.createElement("option");o.value=v;o.textContent=lbl?lbl(v):v;o.dataset.x="1";s.appendChild(o);}
+  s.value=v;}
+function openForm(c,asCopy,title){clearCands();webWaitClear();
   editId=(c&&!asCopy)?c._id:null;
   draft={cat:(c&&c.cat)||"",color:(c&&c.color)||"",logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",
     docs:(c&&c.docs&&!asCopy?c.docs.slice():[]),extras:(c&&!asCopy?extrasOf(c):[]),prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),holders:c?holdersOf(c).slice():(function(){var HL=state.settings.holders||["Ich"],lh=(state.settings.lastHolders||[]).filter(function(h){return HL.indexOf(h)>=0;});return lh.length?lh:[HL[0]];})()};
@@ -2750,13 +2768,13 @@ function openForm(c,asCopy,title){clearCands();
   document.getElementById("fEnd").value=(c&&c.end)||"";
   document.getElementById("fNotice").value=(c&&c.notice)||"";
   document.getElementById("fNoticeU").value=(c&&c.noticeU)||"m";
-  document.getElementById("fRenew").value=(c&&c.renew)||"";
+  selVal("fRenew",c&&c.renew,function(v){return v+" Monate";});
   document.getElementById("fCustNo").value=(c&&c.custNo)||"";
   document.getElementById("fContrNo").value=(c&&c.contrNo)||"";
   document.getElementById("fNote").value=(c&&c.note)||"";
-  document.getElementById("fPayM").value=(c&&c.payM)||"";
+  selVal("fPayM",c&&c.payM);
   document.getElementById("fPayA").value=(c&&c.payA)||"";
-  document.getElementById("fCancF").value=(c&&c.cancF)||"";document.getElementById("fCancUrl").value=(c&&c.cancUrl)||"";syncCancUrl();
+  selVal("fCancF",c&&c.cancF);document.getElementById("fCancUrl").value=(c&&c.cancUrl)||"";syncCancUrl();
   document.getElementById("fTrial").value=(c&&c.trial)||"";
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
   document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
@@ -2773,7 +2791,7 @@ function openForm(c,asCopy,title){clearCands();
   paintCats();paintSwatches();paintLogo();paintDocs();
   document.getElementById("logoUp").hidden=!assets;
   document.getElementById("docUp").hidden=!assets;
-  formPage(false);openSheet(document.getElementById("sheetForm"));
+  formPage(false);openSheet(document.getElementById("sheetForm"));formSnap.c=formSig("sheetForm",draft);
 }
 /* Hauptseite ↔ «Weitere Angaben» im selben Fenster */
 function formPage(more){var sh=document.getElementById("sheetForm"),mn=document.getElementById("fMain"),mo=document.getElementById("fMore"),cb=document.getElementById("cancelForm");
@@ -2911,19 +2929,28 @@ function paintSugg(){
     el.innerHTML='<span class="sl tplh">'+esc(st[10])+"</span>"+(draft.stdDone||!(st[5]||st[7]||st[9])?"":'<button type="button" class="chip" data-std>Übliche Frist übernehmen</button>');return;}
   var cur=tplFind(document.getElementById("fPartner").value);
   if(cur&&draft.tplHint===cur[0]){el.innerHTML='<span class="sl tplh">'+esc(cur[10])+"</span>";return;}
-  if(q.length<2||cur){el.innerHTML="";return;}
+  /* exakter Treffer (z.B. «CSS», «O2»), noch nicht übernommen: genau diese Vorlage anbieten */
+  if(cur){el.innerHTML='<span class="sl">Vorlage</span><button type="button" class="chip" data-tpl="'+TPL.indexOf(cur)+'">'+esc(cur[0])+" übernehmen</button>";return;}
+  if(q.length<2){el.innerHTML="";return;}
   var hits=TPL.filter(function(t){return (t[0]+" "+t[3]).toLowerCase().indexOf(q)>=0;}).slice(0,5);
   el.innerHTML=hits.length?'<span class="sl">Vorlage</span>'+hits.map(function(t){return '<button type="button" class="chip" data-tpl="'+TPL.indexOf(t)+'">'+esc(t[0])+"</button>";}).join(""):"";
 }
-function applyTpl(t,keepName,quiet){
-  if(!keepName)document.getElementById("fPartner").value=t[0];
-  var lb=document.getElementById("fLabel");if(!lb.value.trim())lb.value=t[3];
-  if(t[2]){draft.cat=t[2];paintCats();}
-  if(t[5]){document.getElementById("fNotice").value=t[5];document.getElementById("fNoticeU").value=t[6];}
-  if(termMode==="open")document.getElementById("fTermP").value=t[7]||"";
-  if(t[8])document.getElementById("fCancF").value=t[8];
-  if(t[4]&&!document.getElementById("fWeb").value)document.getElementById("fWeb").value=t[4];
-  document.getElementById("fMand").checked=!!t[9];syncWatch();
+/* Vorlage übernehmen. onlyEmpty (Internet-Treffer, «Übliche Frist übernehmen»): nur leere Felder füllen.
+   Kategorie nur, wenn es sie (noch) gibt; Pflichtvertrag hebt «nicht beobachten» auf */
+function applyTpl(t,keepName,quiet,onlyEmpty){
+  var $=function(id){return document.getElementById(id);};
+  if(!keepName)$("fPartner").value=t[0];
+  var lb=$("fLabel");if(!lb.value.trim())lb.value=t[3];
+  if(t[2]&&allCats().indexOf(t[2])>=0&&!(onlyEmpty&&draft.cat)){draft.cat=t[2];paintCats();}
+  if(onlyEmpty){if(t[5]&&!$("fNotice").value.trim()){$("fNotice").value=t[5];$("fNoticeU").value=t[6];}}
+  else{$("fNotice").value=t[5]||"";if(t[5])$("fNoticeU").value=t[6];}
+  if(termMode==="open"&&!(onlyEmpty&&$("fTermP").value))$("fTermP").value=t[7]||"";
+  if(t[8]&&!(onlyEmpty&&$("fCancF").value))$("fCancF").value=t[8];
+  syncCancUrl();
+  if(t[4]&&!$("fWeb").value)$("fWeb").value=t[4];
+  if(onlyEmpty){if(t[9]&&!$("fMand").checked&&!$("fNoWatch").checked)$("fMand").checked=true;}
+  else{$("fMand").checked=!!t[9];if(t[9])$("fNoWatch").checked=false;}
+  syncWatch();
   if(t[1]==="DE"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="EUR";
   if(t[1]==="CH"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="CHF";
   draft.tplHint=t[0];
@@ -2933,7 +2960,7 @@ document.getElementById("fPartner").addEventListener("input",function(){draft.tp
 document.getElementById("fLabel").addEventListener("input",paintSugg);
 document.getElementById("sheetForm").addEventListener("click",function(ev){if(ev.target.closest("[data-tplcat]"))openTplPick();});
 document.getElementById("fSugg").addEventListener("click",function(ev){
-  if(ev.target.closest("[data-std]")&&draft.stdTpl){var st=draft.stdTpl;applyTpl(st,true);draft.stdTpl=st;draft.stdDone=true;paintSugg();return;}
+  if(ev.target.closest("[data-std]")&&draft.stdTpl){var st=draft.stdTpl;applyTpl(st,true,false,true);draft.stdTpl=st;draft.stdDone=true;paintSugg();return;}
   var b=ev.target.closest("[data-tpl]");if(!b)return;applyTpl(TPL[+b.dataset.tpl]);
 });
 var tplCC="",tplQ="";
@@ -3065,6 +3092,9 @@ document.getElementById("saveForm").addEventListener("click",function(){
   if(!partner&&!document.getElementById("fLabel").value.trim()){toast("Bezeichnung fehlt");return;}
   if(!draft.cat){toast("Bitte eine Kategorie wählen");document.getElementById("fCats").scrollIntoView({behavior:"smooth",block:"center"});openCatPick("c");return;}
   if(amt==null||amt<0){toast("Betrag prüfen");return;}
+  var nV=noticeVal(document.getElementById("fNotice").value,document.getElementById("fNoticeU").value);
+  if(nV==null){toast("Kündigungsfrist prüfen");document.getElementById("fNotice").focus();return;}
+  var cF=document.getElementById("fCancF").value;
   var prev=editId?state.contracts[editId]:null;
   /* Vom bisherigen Stand ausgehen: Felder ausserhalb des Formulars (Kündigung, Pause, «Behalten», unbekannte) bleiben erhalten.
      keptFor verfällt von selbst, sobald sich das Vertragsende ändert (Vergleich mit termEnd). SwiftUI: nur Formular-Properties binden */
@@ -3078,7 +3108,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
     due:document.getElementById("fDue").value||iso(today()),
     start:document.getElementById("fStart").value||"",
     end:termMode==="fixed"?(document.getElementById("fEnd").value||""):"",
-    notice:parseNum(document.getElementById("fNotice").value)||0,
+    notice:nV,
     noticeU:document.getElementById("fNoticeU").value,
     renew:termMode==="fixed"?(document.getElementById("fRenew").value||""):"",
     cancTerm:termMode==="open"?(document.getElementById("fTermP").value||""):"",
@@ -3086,10 +3116,10 @@ document.getElementById("saveForm").addEventListener("click",function(){
     noWatch:document.getElementById("fNoWatch").checked,
     custNo:document.getElementById("fCustNo").value.trim(),
     contrNo:document.getElementById("fContrNo").value.trim(),
-    holders:(draft.holders||[]).slice(),
+    holders:holdersSorted(draft.holders),
     payM:document.getElementById("fPayM").value,
     payA:document.getElementById("fPayA").value.trim(),
-    cancF:document.getElementById("fCancF").value,cancUrl:document.getElementById("fCancUrl").value.trim(),
+    cancF:cF,cancUrl:cF==="Online / Kundenkonto"?document.getElementById("fCancUrl").value.trim():"",/* Kündigungslink nur bei Online */
     trial:document.getElementById("fTrial").value||"",
     web:document.getElementById("fWeb").value.trim(),addr:document.getElementById("fAddr").value.trim(),
     tel:document.getElementById("fTel").value.trim(),
@@ -3100,14 +3130,15 @@ document.getElementById("saveForm").addEventListener("click",function(){
     cancelledAt:(prev&&prev.cancelledAt)||"",
     t:(prev&&prev.t)||Date.now()
   });delete c._id;
-  if(!editId&&!c.logoId&&c.partner){var sib=samePartner(c.partner).filter(function(k){var o=state.contracts[k];return o.logoId&&KBlob.has(o.logoId);})[0];
+  /* Logo eines anderen Vertrags desselben Vertragspartners übernehmen, ausser es wurde im Formular entfernt.
+     Keine automatische Logo-Suche im Hintergrund (Logos nur als Vorschlag mit Bestätigung) */
+  if(!editId&&!c.logoId&&c.partner&&!draft.logoRemoved){var sib=samePartner(c.partner).filter(function(k){var o=state.contracts[k];return o.logoId&&KBlob.has(o.logoId);})[0];
     if(sib){c.logoId=state.contracts[sib].logoId;c.logoBg=state.contracts[sib].logoBg||"#FFFFFF";}}
   var cid=editId||uid();putContract(cid,c);
   /* Adresse gehört zum Vertragspartner: geänderte Adresse auf alle seine Verträge übertragen */
   if(c.partner&&c.addr&&c.addr!==((prev&&prev.addr)||""))setPartnerAddr(c.partner,c.addr);
   if(!editId&&(state.settings.holders||[]).length>1&&(c.holders||[]).length&&(c.holders||[]).join("|")!==(state.settings.lastHolders||[]).join("|")){state.settings.lastHolders=c.holders.slice();saveSettings();}
   closeSheets();render();toast(editId?"Aktualisiert":"Vertrag angelegt");
-  if(!editId&&!c.logoId&&(c.partner||c.label))autoAttach("c",cid,c.partner,c.cur,c.label,c.web);
 });
 document.getElementById("cancelForm").addEventListener("click",function(){if(!document.getElementById("fMore").hidden)formPage(false);else closeSheets();});
 
@@ -3118,7 +3149,7 @@ document.getElementById("logoFile").addEventListener("change",async function(ev)
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;
   openCrop(f);
 });
-document.getElementById("logoDel").addEventListener("click",function(){draft.logoId="";paintLogo();});
+document.getElementById("logoDel").addEventListener("click",function(){draft.logoId="";draft.logoRemoved=true;paintLogo();});
 document.getElementById("docUp").addEventListener("click",function(){document.getElementById("docFile").click();});
 document.getElementById("docFile").addEventListener("change",async function(ev){
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f||!assets)return;
@@ -3231,6 +3262,7 @@ document.getElementById("cropOk").addEventListener("click",function(){
   toast("Speichere Logo…");
   out.toBlob(async function(bl){
     if(!bl){toast("Bild konnte nicht erzeugt werden");return;}
+    if(cropTarget==="p"&&!pe){closeCrop();toast("Vertragspartner-Seite ist geschlossen");return;}
     try{var r=await assets.upload(bl);
       if(cropTarget==="h"){setAv(avFor,r.id);closeCrop();paintMd(0);render();toast("Bild gesetzt");return;}
       if(cropTarget==="p"){pe.logoId=r.id;pe.logoBg=bg;pe.logoChanged=true;paintPeMark();}else if(cropTarget==="i"){idraft.logoId=r.id;idraft.logoBg=bg;iPaintLogo();}else{draft.logoId=r.id;draft.logoBg=bg;paintLogo();}
@@ -3338,9 +3370,15 @@ function ltDefaultSigners(c){var H=holderStats().map(function(h){return h.name;}
   return own.length?own:(H.length===1?H.slice():[]);}
 function letterParts(c,signers){
   signers=signers||ltDefaultSigners(c);
-  var ps=signers.map(function(h){var o=sndOf(h);return {h:h,name:[o.first,o.last].filter(Boolean).join(" ")||h,addr:sndAddr(o),city:o.city};});
-  var grp=[];ps.forEach(function(p){var k=p.addr.join("|"),g=grp.filter(function(x){return x.k===k;})[0];if(g)g.n.push(p.name);else grp.push({k:k,n:[p.name],a:p.addr});});
-  var sender=[];grp.forEach(function(g){sender.push(g.n.join(" und "));sender=sender.concat(g.a);});
+  var ps=signers.map(function(h){var o=sndOf(h);return {h:h,o:o,name:[o.first,o.last].filter(Boolean).join(" ")||h,addr:sndAddr(o),city:o.city};});
+  /* Absender nach gleicher Adresse gruppiert; mehr als 7 Zeilen: zuerst ohne Land, dann eine Zeile pro Person («Name, Strasse, PLZ Ort») */
+  var noC=function(p){return sndAddr(Object.assign({},p.o,{country:""}));};
+  var block=function(nc){var grp=[],out=[];ps.forEach(function(p){var a=nc?noC(p):p.addr,k=a.join("|"),g=grp.filter(function(x){return x.k===k;})[0];if(g)g.n.push(p.name);else grp.push({k:k,n:[p.name],a:a});});
+    grp.forEach(function(g){out.push(g.n.join(" und "));out=out.concat(g.a);});return out;};
+  var sender=block(false),sCut="";
+  if(sender.length>7){sender=block(true);sCut="Absender gekürzt: Land weggelassen.";}
+  if(sender.length>7){sender=ps.map(function(p){return [p.name].concat(noC(p)).join(", ");});sCut="Absender gekürzt: eine Zeile pro Person.";}
+  if(sender.length>7){sender=sender.slice(0,7);sCut="Absender gekürzt: Nicht alle Personen passen in den Absender (höchstens 7 Zeilen).";}
   var pg0=c.partner?peGroup(String(c.partner).trim().toLowerCase()):null;
   var al=String(c.addr||(pg0&&pg0.addr)||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean),pn=String(c.partner||"").trim();
   /* Erste Adresszeile enthält den Namen (z.B. «Swisscom (Schweiz) AG») → nicht doppelt */
@@ -3349,7 +3387,9 @@ function letterParts(c,signers){
   var e=termEnd(c),d=noticeDeadline(c),we=ps.length>1;
   var body="Sehr geehrte Damen und Herren\n\nhiermit "+(we?"kündigen wir":"kündige ich")+" den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"+(e?", nach "+(we?"unserer":"meiner")+" Berechnung zum "+fmtD(iso(e)):"")+".\n\n"+
     "Bitte bestätigen Sie "+(we?"uns":"mir")+" die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse";
-  return {names:ps.map(function(p){return p.name;}),signers:signers.slice(),sender:sender.slice(0,7),to:to,city:(ps[0]||{}).city||"",subject:"Kündigung "+(c.label||c.partner)+(c.label&&c.partner?" bei "+c.partner:""),ref:nr,body:body,deadline:d};
+  /* Betreff ohne doppelten Namen («Kündigung Netflix», nicht «… Netflix bei Netflix») */
+  var lb=String(c.label||"").trim(),subj="Kündigung "+(lb||pn)+(lb&&pn&&lb.toLowerCase().indexOf(pn.toLowerCase())<0?" bei "+pn:"");
+  return {names:ps.map(function(p){return p.name;}),signers:signers.slice(),sender:sender,sCut:sCut,to:to,city:(ps[0]||{}).city||"",subject:subj,ref:nr,body:body,deadline:d};
 }
 var ltSigners=[],ltAuto={body:""};
 function ltBodyText(L){return (L.ref.length?L.ref.join("\n")+"\n\n":"")+L.body;}
@@ -3369,7 +3409,9 @@ function paintLtWho(){
       '<div class="lbtns2"><button class="lbtn" type="button" data-sigdraw="'+esc(h)+'">Zeichnen</button><button class="lbtn" type="button" data-sigtype="'+esc(h)+'">Vorschläge</button>'+(u?'<button class="lbtn" type="button" data-sigdel="'+esc(h)+'">Entfernen</button>':"")+'</div></div>';}).join("")+
       '<p class="note" style="margin:6px 0 0">Jede Person unterschreibt selbst.</p>':'<p class="note">Zuerst oben wählen, wer kündigt.</p>');
   /* Hinweise */
-  var hint=[];if(L.deadline)hint.push("Spätester Absendetermin nach hinterlegter Frist: "+fmtD(iso(L.deadline))+".");
+  /* Frist = Zugang beim Vertragspartner, nicht Absendetag */
+  var hint=[];if(L.deadline)hint.push("Muss spätestens am "+fmtD(iso(L.deadline))+" beim Vertragspartner sein. Per Post einige Werktage vorher absenden, am besten eingeschrieben.");
+  if(L.sCut&&ltSigners.length)hint.push(L.sCut);
   var own=holdersOf(c);if(own.length>1&&ltSigners.length<own.length)hint.push("Gemeinsamer Vertrag: In der Regel müssen alle Vertragsparteien kündigen.");
   if(rent){hint.push("Mietverträge verlangen Schriftform mit eigenhändiger Unterschrift (CH Art. 266l OR, DE § 568 BGB).");
     if(ltSigners.length<2)hint.push("Familienwohnung in der Schweiz: Ehe- oder eingetragene Partner müssen ausdrücklich zustimmen, am besten mitunterschreiben (Art. 266m OR).");}
@@ -3380,7 +3422,9 @@ function paintLtWho(){
 function ltSetSigners(a){ltSigners=a;var L=letterParts(ltC,ltSigners),b=document.getElementById("ltBody"),nb=ltBodyText(L);
   if(b.value===ltAuto.body){b.value=nb;ltAuto.body=nb;}paintLtWho();}
 function ltRefresh(){if(ltC&&document.getElementById("sheetLetter").classList.contains("on"))paintLtWho();}
-function openLetter(c){ltC=c;ltSigners=ltDefaultSigners(c);var L=letterParts(c,ltSigners);
+function openLetter(c){/* immer den aktuellen Stand lesen (Detail kann veraltet sein, z.B. nach nachgetragener Kundennummer) */
+  var id=c._id;if(id&&state.contracts[id]){c=Object.assign({},state.contracts[id]);c._id=id;}
+  ltC=c;ltSigners=ltDefaultSigners(c);var L=letterParts(c,ltSigners);
   document.getElementById("ltTo").value=L.to.join("\n");
   document.getElementById("ltSubj").value=L.subject;
   ltAuto.body=ltBodyText(L);document.getElementById("ltBody").value=ltAuto.body;
@@ -3402,13 +3446,15 @@ function sigDone(msg){ltRefresh();if(document.getElementById("sheetMd").classLis
 function sigCanvas(){return document.getElementById("sigCv");}
 function openSig(h){sigFor=h||sigFor;var sh=document.getElementById("sheetSig");sh.classList.add("on");sh.scrollTop=0;document.getElementById("scrim").classList.add("on");
   requestAnimationFrame(function(){var cv=sigCanvas(),r=cv.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);
-    cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);var g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);
-    g.fillStyle="#fff";g.fillRect(0,0,r.width,r.height);g.lineWidth=2.4;g.lineCap="round";g.lineJoin="round";g.strokeStyle="#1b1e23";sigD.dirty=false;});}
+    cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);var g=cv.getContext("2d");g.setTransform(1,0,0,1,0,0);
+    /* in Bitmap-Pixeln zeichnen (pos rechnet um), damit Drehen ins Querformat die Striche nicht versetzt */
+    g.fillStyle="#fff";g.fillRect(0,0,cv.width,cv.height);g.lineWidth=2.4*dpr;g.lineCap="round";g.lineJoin="round";g.strokeStyle="#1b1e23";sigD.dirty=false;sigD.id=null;sigD.drawing=false;});}
 function closeSig(){document.getElementById("sheetSig").classList.remove("on");if(!document.querySelector(".sheet.on"))document.getElementById("scrim").classList.remove("on");}
-(function(){var cv=sigCanvas();function pos(e){var r=cv.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};}
-  cv.addEventListener("pointerdown",function(e){sigD.drawing=true;sigD.last=pos(e);cv.setPointerCapture(e.pointerId);e.preventDefault();});
-  cv.addEventListener("pointermove",function(e){if(!sigD.drawing)return;var p=pos(e),g=cv.getContext("2d");g.beginPath();g.moveTo(sigD.last.x,sigD.last.y);g.lineTo(p.x,p.y);g.stroke();sigD.last=p;sigD.dirty=true;e.preventDefault();});
-  ["pointerup","pointercancel"].forEach(function(t){cv.addEventListener(t,function(){sigD.drawing=false;});});
+/* Bildschirm- in Bitmap-Koordinaten (aktuelle Grösse, auch nach dem Drehen); nur der erste Finger zeichnet (Handballen, zweiter Finger ignoriert) */
+(function(){var cv=sigCanvas();function pos(e){var r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)*cv.width/(r.width||1),y:(e.clientY-r.top)*cv.height/(r.height||1)};}
+  cv.addEventListener("pointerdown",function(e){e.preventDefault();if(sigD.drawing)return;sigD.drawing=true;sigD.id=e.pointerId;sigD.last=pos(e);try{cv.setPointerCapture(e.pointerId);}catch(x){}});
+  cv.addEventListener("pointermove",function(e){if(!sigD.drawing||e.pointerId!==sigD.id)return;var p=pos(e),g=cv.getContext("2d");g.beginPath();g.moveTo(sigD.last.x,sigD.last.y);g.lineTo(p.x,p.y);g.stroke();sigD.last=p;sigD.dirty=true;e.preventDefault();});
+  ["pointerup","pointercancel"].forEach(function(t){cv.addEventListener(t,function(e){if(e.pointerId===sigD.id){sigD.drawing=false;sigD.id=null;}});});
 })();
 document.getElementById("sigClear").addEventListener("click",function(){var cv=sigCanvas(),g=cv.getContext("2d");g.save();g.setTransform(1,0,0,1,0,0);g.fillStyle="#fff";g.fillRect(0,0,cv.width,cv.height);g.restore();sigD.dirty=false;});
 document.getElementById("sigCancel").addEventListener("click",closeSig);
@@ -3429,7 +3475,8 @@ document.addEventListener("click",function(ev){var b;
 var SIG_FONTS=[["Hurricane",120,"Voller Name",0,0],["La Belle Aurore",92,"Initial + Nachname",1,1],["Licorice",116,"Voller Name",0,0],
   ["Zeyada",110,"Nur Nachname",2,0],["Qwigley",128,"Voller Name",0,1],["Bilbo",112,"Initial + Nachname",1,0]];
 function sigVariants(first,last){
-  var fi=first?first.charAt(0)+". ":"",forms=[(first+" "+last).trim(),(fi+last).trim(),last||first];
+  /* «Initial + Nachname» nur mit Vor- und Nachname (sonst bliebe nur «S.») */
+  var fi=first?first.charAt(0)+". ":"",forms=[(first+" "+last).trim(),(first&&last)?fi+last:"",last||first];
   return SIG_FONTS.map(function(f,i){return {text:forms[f[3]],label:f[2],font:f[0],size:f[1],swash:f[4],seed:i+1};}).filter(function(v){return v.text;});}
 function sigRand(seed){var x=seed*9301+49297;return function(){x=(x*9301+49297)%233280;return x/233280;};}
 function renderSig(v){var W=1000,H=300,cv=document.createElement("canvas");cv.width=W;cv.height=H;var g=cv.getContext("2d"),r=sigRand(v.seed);
@@ -3519,14 +3566,30 @@ var HW=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,
 var HWB=[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
 var WINX={8364:128,8218:130,402:131,8222:132,8230:133,8224:134,8225:135,710:136,8240:137,352:138,8249:139,338:140,381:142,8216:145,8217:146,8220:147,8221:148,8226:149,8211:150,8212:151,732:152,8482:153,353:154,8250:155,339:156,382:158,376:159};
 function pdfByte(ch){var c=ch.charCodeAt(0);if(c<128)return c;if(c>=160&&c<256)return c;if(WINX[c])return WINX[c];return 63;}
-function pdfWidth(str,bold,pt){var t=bold?HWB:HW,w=0;for(var i=0;i<str.length;i++){var b=pdfByte(str[i]);w+=(b>=32&&b<=126)?t[b-32]:556;}return w/1000*pt;}
+/* Text für WinAnsi vorbereiten: nicht abbildbare Zeichen umschreiben statt «?» (ş→s, č→c, ı→i, ł→l, đ→d, İ→I),
+   Tab → Leerzeichen, unsichtbare Zeichen (ZWSP/ZWJ/Soft-Hyphen) und Emojis entfernen */
+var PDF_TR={"ı":"i","ł":"l","Ł":"L","đ":"d","Đ":"D","İ":"I"};
+function pdfOk(c){return c<128||(c>=160&&c<256)||!!WINX[c];}
+function pdfClean(s){s=String(s==null?"":s).replace(/\t/g," ").replace(/[­​-‏⁠﻿︀-️☀-➿]|[\uD800-\uDBFF][\uDC00-\uDFFF]/g,"");
+  var o="";for(var i=0;i<s.length;i++){var ch=s[i];if(pdfOk(ch.charCodeAt(0))){o+=ch;continue;}if(PDF_TR[ch]){o+=PDF_TR[ch];continue;}
+    var n=ch.normalize("NFD").replace(/[̀-ͯ]/g,"");o+=(n&&[].every.call(n,function(x){return pdfOk(x.charCodeAt(0));}))?n:"?";}
+  return o;}
+/* Breiten ausserhalb ASCII (Helvetica-AFM, [normal, fett]); sonst Grossbuchstaben 722, Rest 556 */
+var HX={128:[556,556],132:[333,500],133:[1000,1000],145:[222,278],146:[222,278],147:[333,500],148:[333,500],150:[556,556],151:[1000,1000],176:[400,400],183:[278,278],196:[667,722],214:[778,778],220:[722,722],223:[611,611],228:[556,556],246:[556,611],252:[556,611]};
+function pdfWidth(str,bold,pt){var t=bold?HWB:HW,w=0;for(var i=0;i<str.length;i++){var b=pdfByte(str[i]);w+=(b>=32&&b<=126)?t[b-32]:(HX[b]?HX[b][bold?1:0]:(b>=192&&b<=222?722:556));}return w/1000*pt;}
 function pdfWrap(str,bold,pt,maxPt){var words=str.split(" "),lines=[],cur="";
-  words.forEach(function(w){var t=cur?cur+" "+w:w;if(pdfWidth(t,bold,pt)<=maxPt||!cur)cur=t;else{lines.push(cur);cur=w;}});
+  words.forEach(function(w){
+    /* zu lange Wörter (z.B. URLs) zeichenweise umbrechen */
+    while(w.length>1&&pdfWidth(w,bold,pt)>maxPt){var k=1;while(k<w.length-1&&pdfWidth(w.slice(0,k+1),bold,pt)<=maxPt)k++;
+      if(cur){lines.push(cur);cur="";}lines.push(w.slice(0,k));w=w.slice(k);}
+    var t=cur?cur+" "+w:w;if(pdfWidth(t,bold,pt)<=maxPt||!cur)cur=t;else{lines.push(cur);cur=w;}});
   if(cur||!lines.length)lines.push(cur);return lines;}
 function pdfEsc(str){var o="";for(var i=0;i<str.length;i++){var b=pdfByte(str[i]);if(b===40||b===41||b===92)o+="\\"+String.fromCharCode(b);else if(b<32||b>126)o+="\\"+("00"+b.toString(8)).slice(-3);else o+=String.fromCharCode(b);}return o;}
 /* Brief nach DIN 5008 / Schweizer Geschäftsbrief: A4, linker Rand 25 mm, Absender oben, Anschriftfeld ab 50 mm
    (Fensterkuvert), Ort/Datum rechts, Betreff fett, Text, Gruss, Unterschrift (Bild), Name. Mehrseitig. */
 function letterPdf(L){
+  var cl=function(a){return (a||[]).map(pdfClean);};
+  L=Object.assign({},L,{sender:cl(L.sender),to:cl(L.to),ref:cl(L.ref),names:cl(L.names),subject:pdfClean(L.subject),body:pdfClean(L.body),city:pdfClean(L.city),name:pdfClean(L.name)});
   var PT=11,LH=15.5,LFT=71,RGT=524,W=RGT-LFT,BOT=70,TOP=842-70,pages=[],ops=[],y=0;
   var names=L.names&&L.names.length?L.names:[L.name||""],sigs=names.map(function(n,i){var u=(L.sigs||[])[i];if(!u)return null;
     try{var by=dataUrlBytes(u),sz=jpegSize(by);return sz?{bytes:by,w:sz.w,h:sz.h}:null;}catch(e){return null;}});
@@ -3541,7 +3604,7 @@ function letterPdf(L){
   var dt=(L.city?L.city+", ":"")+fmtD(iso(today()));txt(dt,RGT-pdfWidth(dt,false,PT),842-255);
   /* Betreff ab 105 mm */
   y=842-298;pdfWrap(L.subject,true,PT,W).forEach(function(w){line(w,true);});y-=LH*0.6;
-  if(L.ref.length){L.ref.forEach(function(r){line(r);});y-=LH*0.6;}
+  if(L.ref.length){L.ref.forEach(function(r){pdfWrap(r,false,PT,W).forEach(function(w){line(w);});});y-=LH*0.6;}
   /* Text: Absätze durch Leerzeilen */
   String(L.body).replace(/\r/g,"").split(/\n{2,}/).forEach(function(b,i){para(b);y-=LH*0.8;});
   /* Unterschriften nebeneinander: Bild oder freie Linie, darunter der Name */
@@ -3583,32 +3646,52 @@ document.getElementById("ltPdf").addEventListener("click",async function(){
     if(addr!==(c0.addr||"")){putContract(ltC._id,Object.assign({},c0,{addr:addr}));if(addr)setPartnerAddr(c0.partner,addr);}}
   var refRe=/^(Kundennummer|Vertragsnummer): /,blines=body.split(/\n/),ref=[];while(blines.length&&refRe.test(blines[0]))ref.push(blines.shift());
   var nC=document.getElementById("ltCust").value.trim(),nV=document.getElementById("ltContr").value.trim(),c1=state.contracts[ltC._id];
-  if(c1&&(nC||nV)){var patch={};if(nC&&!c1.custNo){patch.custNo=nC;ref.push("Kundennummer: "+nC);}if(nV&&!c1.contrNo){patch.contrNo=nV;ref.push("Vertragsnummer: "+nV);}
-    putContract(ltC._id,Object.assign({},c1,patch));ltC=Object.assign({},ltC,patch);}
+  if(c1&&(nC||nV)){var patch={};if(nC&&!c1.custNo)patch.custNo=nC;if(nV&&!c1.contrNo)patch.contrNo=nV;
+    if(Object.keys(patch).length){putContract(ltC._id,Object.assign({},c1,patch));ltC=Object.assign({},ltC,patch);}
+    /* Nachgetragene Nummern als Referenzzeilen in den Text übernehmen (gilt auch für weitere PDFs), «Fehlt noch» ausblenden */
+    var has=function(re){return ref.some(function(r){return re.test(r);});};
+    if(nC&&!has(/^Kundennummer: /))ref.push("Kundennummer: "+nC);if(nV&&!has(/^Vertragsnummer: /))ref.push("Vertragsnummer: "+nV);
+    var bEl=document.getElementById("ltBody"),wasAuto=bEl.value===ltAuto.body;bEl.value=ref.join("\n")+"\n\n"+blines.join("\n").trim();if(wasAuto)ltAuto.body=bEl.value;
+    var cN=state.contracts[ltC._id]||{};document.getElementById("ltCust").value="";document.getElementById("ltContr").value="";
+    document.getElementById("ltMissC").hidden=!!cN.custNo;document.getElementById("ltMissV").hidden=!!cN.contrNo;document.getElementById("ltMiss").hidden=!!(cN.custNo&&cN.contrNo);}
   if(to.length<=1&&!(await ask({title:"Ohne Empfängeradresse?",text:"Im Anschriftfeld steht nur der Name. Für den Postversand fehlt die Adresse.",ok:"Trotzdem erstellen"})))return;
+  if(to.length>6&&!(await ask({title:"Anschrift zu lang",text:"Die Anschrift hat "+to.length+" Zeilen. Ins Fenster eines Kuverts passen höchstens 6, sonst überdeckt sie Datum oder Betreff.",ok:"Trotzdem erstellen"})))return;
   var sm=ltSigners.filter(function(h){return !sndOk(h);});
   if(sm.length&&!(await ask({title:"Absender unvollständig",text:"Bei "+sm.join(" und ")+" fehlt die Adresse. Der Anbieter kann die Kündigung so schlechter zuordnen.",ok:"Trotzdem erstellen"})))return;
   var L={sender:base.sender,to:to,city:base.city,subject:subj,ref:ref,body:blines.join("\n").trim(),names:base.names,sigs:isRent(ltC)?[]:ltSigners.map(sigOf)};
   var blob;try{blob=letterPdf(L);}catch(e){toast("PDF konnte nicht erstellt werden");return;}
-  var nm="Kuendigung-"+String(ltC.partner||ltC.label||"Vertrag").replace(/[^\w\-]+/g,"_")+"-"+iso(today())+".pdf";
+  /* Dateiname ASCII: Umlaute als ae/oe/ue, ß als ss, übrige Akzente weg */
+  var fnm=String(ltC.partner||ltC.label||"Vertrag").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/Ä/g,"Ae").replace(/Ö/g,"Oe").replace(/Ü/g,"Ue").replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"");
+  var nm="Kuendigung-"+fnm.replace(/[^\w\-]+/g,"_")+"-"+iso(today())+".pdf";
   var mtxt=[L.ref.join("\n"),L.body,L.names.join("\n")+(L.sender.length>1?"\n"+L.sender.slice(1).join("\n"):"")].filter(Boolean).join("\n\n");
   openDoc({blob:blob,name:nm,title:"Kündigung · "+(ltC.partner||ltC.label||"Vertrag"),type:"application/pdf",
     mail:isRent(ltC)?null:{to:String((state.contracts[ltC._id]||ltC).mail||"").trim(),subject:subj,text:mtxt}});
+  /* Detail darunter mit den gespeicherten Nummern/Adresse neu zeichnen */
+  if(document.getElementById("sheetDetail").classList.contains("on")&&state.contracts[ltC._id])openDetail(ltC._id);
 });
 var webWait=null;
+/* Ziel der Logo-Suche: c = Vertragsformular, i = Einnahme, p = Vertragspartner-Seite */
+var WW_BOX={c:"logoCands",i:"iLogoCands",p:"peCands"},WW_PASTE={c:"logoPaste",i:"iLogoPaste",p:"pePaste"};
+function webWaitClear(){webWait=null;["logoPaste","iLogoPaste","pePaste"].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove("pulse");});
+  ["logoCands","iLogoCands","peCands"].forEach(function(id){var b=document.getElementById(id);if(b&&b.querySelector(".webhint"))b.innerHTML="";});}
+/* Ist das Zielformular noch offen? */
+function webWaitOpen(tg){if(tg==="p")return !!(pe&&document.getElementById("sheetMd").classList.contains("on")&&mdTop()&&mdTop().k==="pe");
+  return document.getElementById(tg==="i"?"sheetInc":"sheetForm").classList.contains("on");}
 function logoSearch(name,target){
   name=String(name||"").trim();
   if(!name){toast("Zuerst den Firmennamen eintragen");return;}
   webWait=target||"c";
-  var box=document.getElementById(webWait==="i"?"iLogoCands":"logoCands");
+  var box=document.getElementById(WW_BOX[webWait]||"logoCands");
   if(box)box.innerHTML='<div class="lcmsg webhint"><b>So geht’s:</b> In Google das passende Bild lange drücken → «Kopieren». Dann zurück in die App und «Einfügen» tippen.</div>';
-  document.getElementById(webWait==="i"?"iLogoPaste":"logoPaste").classList.add("pulse");
+  var pb=document.getElementById(WW_PASTE[webWait]||"logoPaste");if(pb)pb.classList.add("pulse");
   openLink("https://www.google.com/search?tbm=isch&q="+encodeURIComponent(name+" logo"),name+" logo");
 }
 /* Zurück aus Google: Einfügen hervorheben */
 document.addEventListener("visibilitychange",function(){
   if(document.visibilityState!=="visible"||!webWait)return;
   var tg=webWait;
+  /* Formular inzwischen geschlossen: nichts einfügen, Hinweis beenden */
+  if(!webWaitOpen(tg)){webWaitClear();return;}
   /* Automatisch einfügen versuchen; iOS erlaubt das nur mit Bestätigung, dann bleibt der Hinweis */
   (async function(){
     try{
@@ -3616,19 +3699,14 @@ document.addEventListener("visibilitychange",function(){
       var items=await navigator.clipboard.read();
       for(var i=0;i<items.length;i++){
         var t=items[i].types.filter(function(x){return /^image\//.test(x);})[0];
-        if(t&&webWait===tg){var bl=await items[i].getType(t);
-          cropTarget=tg;webWait=null;
-          ["logoPaste","iLogoPaste"].forEach(function(id){document.getElementById(id).classList.remove("pulse");});
-          ["logoCands","iLogoCands"].forEach(function(id){var b=document.getElementById(id);if(b&&b.querySelector(".webhint"))b.innerHTML="";});
-          openCrop(bl);return;}
+        if(t&&webWait===tg&&webWaitOpen(tg)){var bl=await items[i].getType(t);
+          cropTarget=tg;webWaitClear();openCrop(bl);return;}
       }
       throw 0;
     }catch(e){if(webWait)toast("Bild kopiert? Jetzt «Einfügen» tippen");}
   })();});
 async function pasteLogo(target){
-  cropTarget=target;webWait=null;
-  ["logoPaste","iLogoPaste"].forEach(function(id){document.getElementById(id).classList.remove("pulse");});
-  ["logoCands","iLogoCands"].forEach(function(id){var b=document.getElementById(id);if(b&&b.querySelector(".webhint"))b.innerHTML="";});
+  cropTarget=target;webWaitClear();
   if(!(navigator.clipboard&&navigator.clipboard.read)){toast("Einfügen wird hier nicht unterstützt – bitte hochladen");return;}
   try{
     var items=await navigator.clipboard.read(),txt="";
@@ -3661,10 +3739,13 @@ function openLink(url,copy){
 }
 
 /* ---------- Detail ---------- */
-function openDetail(idv){
+/* opt.trial: aus der Probeabo-Karte geöffnet (Kündigung per Online/E-Mail gilt dann für das Probeabo-Ende) */
+function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var c=Object.assign({},state.contracts[idv]);c._id=idv;
-  var u=urgency(c),nd=nextDue(c),e=effEnd(c);
-  var rt=renewTo(c);
+  /* gekündigt (Archiv oder «gekündigt per») oder abgelaufen: keine Frist und kein nächster Termin mehr */
+  var gone=c.status==="cancelled"||!!c.cancelPer||endedByTerm(c);
+  var u=gone?{lvl:"",days:null,date:null}:urgency(c),nd=nextDue(c),e=effEnd(c);
+  var rt=gone?null:renewTo(c);
   var secs=[
    ["Kosten",[
     ["Betrag",money(curPrice(c))+" "+c.cur+" · "+(CYCLE[c.cycle]||"monatlich")],
@@ -3673,7 +3754,7 @@ function openDetail(idv){
     ["Nächste Zahlung",nd?fmtD(iso(nd)):"—"]]],
    ["Laufzeit & Kündigung",[
     c.start?["Beginn",fmtD(c.start)]:null,
-    c.end?["Vertragsende",fmtD(iso(e))+(termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
+    c.end?["Vertragsende",fmtD(iso(e))+(!gone&&termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
     ["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
     u.date?(isAnytime(c)?["Nächste Gelegenheit","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)]:["Nächster Termin","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)+(u.days>=0?" ("+inDays(u.days)+")":" (abgelaufen)")]):null,
     c.mand?["Pflichtvertrag","nur Wechsel möglich"]:null,
@@ -3691,12 +3772,14 @@ function openDetail(idv){
     c.payM?["Zahlungsart",c.payM]:null,
     c.payA?["Belastet über",c.payA]:null]]
   ];
-  var pill=u.lvl==="alert"?'<span class="pill alert">Frist '+inDays(u.days)+"</span>":
-           u.lvl==="warn"?'<span class="pill warn">Frist '+inDays(u.days)+"</span>":
-           c.status==="cancelled"?'<span class="pill">Gekündigt'+(c.cancelledAt?" am "+fmtD(c.cancelledAt):"")+"</span>":"";
-  if(c.cancelPer&&c.status!=="cancelled")pill='<span class="pill">Gekündigt · läuft bis '+fmtD(c.cancelPer)+"</span>";
-  else if(isKept(c))pill='<span class="pill">Behalten bis nächster Termin</span>';
-  if(isPaused(c))pill='<span class="pill">Pausiert '+(c.pausedUntil?"bis "+fmtD(c.pausedUntil):"seit "+fmtD(c.pausedAt||iso(today())))+"</span>";
+  /* «Gekündigt»/«Beendet» vor Frist-Pillen */
+  var pill=c.status==="cancelled"?'<span class="pill">Gekündigt'+(c.cancelledAt?" am "+fmtD(c.cancelledAt):"")+"</span>":
+           c.cancelPer?'<span class="pill">Gekündigt · '+(endedByNotice(c)?"beendet am ":"läuft bis ")+fmtD(c.cancelPer)+"</span>":
+           endedByTerm(c)?'<span class="pill">Beendet am '+fmtD(c.end)+"</span>":
+           isKept(c)?'<span class="pill">Behalten bis nächster Termin</span>':
+           u.lvl==="alert"?'<span class="pill alert">Frist '+inDays(u.days)+"</span>":
+           u.lvl==="warn"?'<span class="pill warn">Frist '+inDays(u.days)+"</span>":"";
+  if(!gone&&isPaused(c))pill='<span class="pill">Pausiert '+(c.pausedUntil?"bis "+fmtD(c.pausedUntil):"seit "+fmtD(c.pausedAt||iso(today())))+"</span>";
   var nc=nextChange(c);
   if(nc)pill+='<span class="pill warn">Neuer Preis ab '+fmtD(nc.from)+": "+money(nc.amount)+" "+esc(c.cur)+"</span>";
   var ps=pricesOf(c),hist="";
@@ -3755,7 +3838,8 @@ function openDetail(idv){
       if(a==="edit"){closeSheets();setTimeout(function(){openForm(c);},180);}
       else if(a==="dup"){closeSheets();setTimeout(function(){openForm(c,true);},180);}
       else if(a==="pause"){
-        if(isPaused(c)){var nc2=stripId(c);nc2.paused=false;nc2.pausedAt="";nc2.pausedUntil="";putContract(idv,nc2);closeSheets();render();toast("Fortgesetzt");}
+        /* Fortsetzen = Pause endet heute; die vergangenen Pausenmonate bleiben ohne Zahlung (paused bleibt mit abgelaufenem Ende) */
+        if(isPaused(c)){var nc2=stripId(c);nc2.pausedUntil=iso(today());if(!nc2.pausedAt)nc2.pausedAt=iso(today());putContract(idv,nc2);closeSheets();render();toast("Fortgesetzt");}
         else openPausePick(idv);}
       else if(a==="cancel"){c.status="cancelled";c.cancelledAt=iso(today());putContract(idv,stripId(c));closeSheets();render();toast("Ins Archiv verschoben");}
       else if(a==="uncancel"){var u1=stripId(c);u1.cancelPer="";u1.cancelledOn="";putContract(idv,u1);closeSheets();render();toast("Kündigung zurückgenommen");}
@@ -3764,12 +3848,12 @@ function openDetail(idv){
       else if(a==="delete"){ask({title:"Vertrag löschen?",text:"«"+titleOf(c)+"» wird endgültig gelöscht. Angehängte Dateien bleiben erhalten.",ok:"Löschen",danger:true})
         .then(function(y){if(y){dropContract(idv);closeSheets();render();toast("Gelöscht");}});}
       else if(a==="ktext"){openLetter(c);}
-      else if(a==="kvia"){openCancViaPick(idv);}
+      else if(a==="kvia"){openCancViaPick(idv,dTrial);}
       else if(a==="konline"){var u=cancLink(c);if(!u){toast("Kein Link hinterlegt. Trag Website oder Kündigungslink ein.");closeSheets();setTimeout(function(){openForm(c);formPage(true);},180);return;}
-        kPending=idv;toast("Nach der Kündigung hier bestätigen");setTimeout(function(){openLink(u);},350);}
+        kPending={id:idv,trial:dTrial};toast("Nach der Kündigung hier bestätigen");setTimeout(function(){openLink(u);},350);}
       else if(a==="kmail"){if(!c.mail){ask({title:"E-Mail-Adresse fehlt",text:"Trag die Kündigungsadresse des Vertragspartners beim Vertrag unter «Kontakt» ein.",ok:"Eintragen"}).then(function(y){if(!y)return;closeSheets();setTimeout(function(){openForm(c);formPage(true);},180);});return;}
         var Lm=letterParts(c),mt=[Lm.ref.join("\n"),Lm.body,Lm.names.join("\n")].filter(Boolean).join("\n\n");
-        kPending=idv;location.href="mailto:"+c.mail.trim()+"?subject="+encodeURIComponent(Lm.subject)+"&body="+encodeURIComponent(mt);}
+        kPending={id:idv,trial:dTrial};location.href="mailto:"+c.mail.trim()+"?subject="+encodeURIComponent(Lm.subject)+"&body="+encodeURIComponent(mt);}
     });
   });
   openSheet(document.getElementById("sheetDetail"));
@@ -3783,15 +3867,17 @@ function openDetail(idv){
 (function(){var sh=document.getElementById("sheetDetail");sh.addEventListener("scroll",function(){sh.classList.toggle("scrolled",sh.scrollTop>60);},{passive:true});})();
 function stripId(c){var x=Object.assign({},c);delete x._id;return x;}
 /* Nach Online-/E-Mail-Kündigung: beim Zurückkommen fragen, ob gekündigt wurde (Kontivo kann es nicht prüfen) */
-var kPending="";
-document.addEventListener("visibilitychange",function(){if(document.visibilityState!=="visible"||!kPending)return;var id=kPending;kPending="";var c=state.contracts[id];if(!c)return;
-  setTimeout(function(){var T=termEnd(Object.assign({_id:id},c));
+/* kPending = {id, trial}: Probeabo-Kündigung endet am Tag vor dem Probeabo-Ende, sonst am nächsten Vertragsende */
+var kPending=null;
+document.addEventListener("visibilitychange",function(){if(document.visibilityState!=="visible"||!kPending)return;var kp=kPending,id=kp.id;kPending=null;var c=state.contracts[id];if(!c)return;
+  var tr=!!(kp.trial&&parseD(c.trial));
+  setTimeout(function(){var T=tr?addDays(parseD(c.trial),-1):termEnd(Object.assign({_id:id},c));
     ask({title:"Gekündigt?",text:"«"+titleOf(c)+"» als gekündigt markieren"+(T?", läuft bis "+fmtD(iso(T)):"")+". Der Vertrag zählt bis zum Ende weiter und wandert danach ins Archiv.",ok:"Ja, gekündigt"})
-      .then(function(y){if(y)markCancelled(id,false);});},400);});
-function openCancViaPick(idv){
+      .then(function(y){if(y)markCancelled(id,tr);});},400);});
+function openCancViaPick(idv,trial){
   var c=state.contracts[idv];if(!c)return;
   document.getElementById("pickTitle").textContent="Wie kündigst du «"+titleOf(c)+"»?";
-  var l=document.getElementById("pickList");l.dataset.dim="cvia-"+idv;
+  var l=document.getElementById("pickList");l.dataset.dim="cvia-"+idv+(trial?"-t":"");
   l.innerHTML=[["online","Online","Kundenkonto, Kündigungsbutton"],["mail","Per E-Mail","Mail mit fertigem Text"],["post","Per Brief","PDF mit Unterschrift"]].map(function(o){
     return '<button class="pick" data-pv="'+o[0]+'"><span>'+o[1]+'</span><span>'+o[2]+'</span></button>';}).join("")+
     '<p class="note" style="margin:10px 2px 0">Wird beim Vertrag gespeichert. Miete braucht immer einen Brief mit Unterschrift.</p>';
@@ -3801,13 +3887,14 @@ function openCancViaPick(idv){
 /* ---------- Ereignisse ---------- */
 function killOptions(idv,trial){
   var c=Object.assign({},state.contracts[idv]);c._id=idv;
-  var T=trial?parseD(c.trial):termEnd(c);
+  /* Probeabo: läuft bis zum Vortag des Probeabo-Endes (gleiches Datum wie nach dem Markieren) */
+  var T=trial?addDays(parseD(c.trial),-1):termEnd(c);
   document.getElementById("pickTitle").textContent=(c.mand?"Wechseln: ":"Kündigen: ")+titleOf(c);
   var l=document.getElementById("pickList");l.dataset.dim="kill-"+idv+(trial?"-t":"");
   var via=cancVia(c),vl={online:"Online kündigen",mail:"Per E-Mail kündigen",post:"Kündigungsschreiben erstellen"}[via]||"Kündigen: Weg wählen …";
   l.innerHTML='<button class="pick" data-pv="letter"><span>'+vl+'</span><span>'+(c.cancF?esc(c.cancF):"")+"</span></button>"+
     '<button class="pick" data-pv="done"><span>'+(c.mand?"Gekündigt, neuen Anbieter erfassen":"Als gekündigt markieren")+"</span><span>"+(T?"läuft bis "+fmtShort(T):"")+"</span></button>"+
-    '<p class="note" style="margin:10px 2px 0">'+(T?"Kündigung muss "+(trial?"vor dem ":"bis ")+fmtD(iso(trial?T:nDl(c,T)))+(trial?"":" beim Anbieter")+" sein. ":"")+
+    '<p class="note" style="margin:10px 2px 0">'+(T?"Kündigung muss "+(trial?"vor dem ":"bis ")+fmtD(iso(trial?parseD(c.trial):nDl(c,T)))+(trial?"":" beim Anbieter")+" sein. ":"")+
     "Nach dem Markieren zählt der Vertrag bis zum Ende weiter und wandert danach ins Archiv.</p>";
   openSheet(document.getElementById("sheetPick"));
 }
@@ -3988,14 +4075,14 @@ document.getElementById("pickList").addEventListener("click",function(ev){
     if(tc){tplCC=tc.dataset.tcc;this.querySelectorAll("[data-tcc]").forEach(function(x){x.setAttribute("aria-pressed",x===tc);});document.getElementById("tplRows").innerHTML=tplRows();return;}
     var tp=ev.target.closest("[data-tplp]");if(!tp)return;applyTpl(TPL[+tp.dataset.tplp]);closePick();return;
   }
-  if(pd.indexOf("cvia-")===0){var cid=pd.slice(5),cb=ev.target.closest("[data-pv]");if(!cb)return;var cc=state.contracts[cid];if(!cc)return;
+  if(pd.indexOf("cvia-")===0){var cid=pd.slice(5),ctr=/-t$/.test(cid);if(ctr)cid=cid.slice(0,-2);var cb=ev.target.closest("[data-pv]");if(!cb)return;var cc=state.contracts[cid];if(!cc)return;
     var txt={online:"Online / Kundenkonto",mail:"E-Mail",post:"Brief"}[cb.dataset.pv];putContract(cid,Object.assign({},cc,{cancF:txt}));closePick();render();
-    closeSheets();setTimeout(function(){openDetail(cid);setTimeout(function(){var kt=document.querySelector("#detailBody [data-kbtn]");if(kt){kt.scrollIntoView({block:"center"});kt.click();}},150);},180);return;}
+    closeSheets();setTimeout(function(){openDetail(cid,{trial:ctr});setTimeout(function(){var kt=document.querySelector("#detailBody [data-kbtn]");if(kt){kt.scrollIntoView({block:"center"});kt.click();}},150);},180);return;}
   if(pd.indexOf("kill-")===0){
     var kid=pd.slice(5),ktr=/-t$/.test(kid);if(ktr)kid=kid.slice(0,-2);
     var kb=ev.target.closest("[data-pv]");if(!kb)return;
     if(kb.dataset.pv==="done"){markCancelled(kid,ktr);return;}
-    closeSheets();setTimeout(function(){openDetail(kid);setTimeout(function(){var kt=document.querySelector('#detailBody [data-kbtn]');if(kt){kt.click();kt.scrollIntoView({block:"center"});}},120);},180);return;
+    closeSheets();setTimeout(function(){openDetail(kid,{trial:ktr});setTimeout(function(){var kt=document.querySelector('#detailBody [data-kbtn]');if(kt){kt.click();kt.scrollIntoView({block:"center"});}},120);},180);return;
   }
   if(pd.indexOf("catpick-")===0){
     if(ev.target.closest("#newCatAdd")){addCustomCat();return;}
@@ -4068,7 +4155,7 @@ function openIncome(idv){clearCands();document.getElementById("oILogo").open=fal
   document.getElementById("iNote").value=(c&&c.note)||"";
   document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";
   document.getElementById("iDel").hidden=!c;
-  iPaintChips();iPaintPrices();openSheet(document.getElementById("sheetInc"));
+  iPaintChips();iPaintPrices();openSheet(document.getElementById("sheetInc"));formSnap.i=formSig("sheetInc",idraft);
 }
 document.getElementById("iSave").addEventListener("click",function(){
   var name=document.getElementById("iName").value.trim(),amt=parseNum(document.getElementById("iAmt").value);
@@ -4080,7 +4167,6 @@ document.getElementById("iSave").addEventListener("click",function(){
     end:document.getElementById("iEnd").value||"",holders:idraft.holders.slice(),prices:idraft.prices.slice(),
     note:document.getElementById("iNote").value.trim(),logoId:idraft.logoId||"",logoBg:idraft.logoBg||"",color:(prev&&prev.color)||"",status:"active",t:(prev&&prev.t)||Date.now()};
   var nid=incId||uid();putIncome(nid,c);closeSheets();render();toast(incId?"Aktualisiert":"Einnahme erfasst");
-  if(!incId&&!c.logoId&&(c.name||c.label))autoAttach("i",nid,c.name,c.cur,c.label);
 });
 document.getElementById("iCancel").addEventListener("click",closeSheets);
 document.getElementById("iDel").addEventListener("click",function(){
@@ -4093,9 +4179,20 @@ document.getElementById("scrim").addEventListener("click",function(){
   if(document.getElementById("sheetCrop").classList.contains("on")){closeCrop();return;}
   if(document.getElementById("sheetSig").classList.contains("on")){closeSig();return;}
   if(document.getElementById("sheetSigPick").classList.contains("on")){closeSigPick();return;}
+  /* Absender über dem Brief (over) liegt oben: zuerst diese Seite schliessen */
+  if(document.getElementById("sheetMd").classList.contains("over")&&document.getElementById("sheetMd").classList.contains("on")){closeMd();return;}
   if(document.getElementById("sheetLetter").classList.contains("on")){closeLetter();return;}
   if(document.getElementById("sheetPick").classList.contains("over")){closePick();return;}
-  if(document.getElementById("sheetMd").classList.contains("on")){closeMd();return;}closeSheets();});
+  if(document.getElementById("sheetMd").classList.contains("on")){closeMd();return;}
+  /* Formular mit Änderungen nur nach Rückfrage verwerfen */
+  if(formDirty()){ask({title:"Änderungen verwerfen?",text:"Deine Eingaben in diesem Formular gehen verloren.",ok:"Verwerfen",danger:true}).then(function(y){if(y)closeSheets();});return;}
+  closeSheets();});
+/* Stand eines Formulars beim Öffnen (Felder + Entwurf), um Änderungen zu erkennen */
+var formSnap={};
+function formSig(id,d){var v=[];document.querySelectorAll("#"+id+" input,#"+id+" select,#"+id+" textarea").forEach(function(el){if(el.type!=="file")v.push(el.type==="checkbox"?el.checked:el.value);});
+  return JSON.stringify(v)+JSON.stringify(d||{});}
+function formDirty(){if(document.getElementById("sheetForm").classList.contains("on"))return formSig("sheetForm",draft)!==formSnap.c;
+  if(document.getElementById("sheetInc").classList.contains("on"))return formSig("sheetInc",idraft)!==formSnap.i;return false;}
 document.getElementById("pickList").addEventListener("keydown",function(ev){if(ev.target.id==="newCat"&&ev.key==="Enter"){ev.preventDefault();addCustomCat();}});
 /* ---------- Stammdaten: Vertragspartner, Inhaber, Kategorien ---------- */
 var pe=null,peFrom="";
@@ -4303,7 +4400,7 @@ function openMdAt(p){md.stack=[p];pe=null;paintMd(0);var sh=document.getElementB
 function mdPush(p){mdFlush();md.stack.push(p);paintMd(1);}
 function mdPop(n){mdFlush();n=n||1;if(md.stack.length>n){md.stack.splice(-n,n);paintMd(-1);}else closeMd();}
 function mdSwap(p,n){md.stack.splice(-(n||1),n||1,p);paintMd(0);}
-function closeMd(){mdFlush();document.getElementById("sheetMd").classList.remove("over");closeSheetEl("sheetMd");md.stack=[];reopenDetail();ltRefresh();}
+function closeMd(){mdFlush();if(webWait==="p")webWaitClear();document.getElementById("sheetMd").classList.remove("over");closeSheetEl("sheetMd");md.stack=[];reopenDetail();ltRefresh();}
 /* Offene Eingabe vor dem Wegnavigieren übernehmen (iOS löst «change» vor einem Knopf nicht zuverlässig aus):
    Namen, Adresse, Absender und Einzelfelder der Datenqualität */
 function mdFlush(){var a=document.activeElement;if(!a||!a.closest||!a.closest("#mdBody"))return;
@@ -4870,9 +4967,7 @@ document.addEventListener("click",function(ev){
     runCands("peCands",nm3,pe.cur,function(r){pe.logoId=r.id;pe.logoBg=r.bg;pe.logoChanged=true;paintPeMark();},"",pe.web);return;}
   if(t.closest("#pePaste")){document.getElementById("pePaste").classList.remove("pulse");document.getElementById("peCands").innerHTML="";pasteLogo("p");return;}
   if(t.closest("#peUp")){cropTarget="p";document.getElementById("logoFile").click();return;}
-  if(t.closest("#peGoogle")){var n2=(document.getElementById("peName").value||"").trim();if(!n2){toast("Zuerst den Namen eintragen");return;}logoSearch(n2,"p");webWait="p";
-    document.getElementById("peCands").innerHTML='<div class="lcmsg webhint"><b>So geht’s:</b> In Google das passende Bild lange drücken → «Kopieren». Dann zurück in die App und «Einfügen» tippen.</div>';
-    document.getElementById("pePaste").classList.add("pulse");return;}
+  if(t.closest("#peGoogle")){var n2=(document.getElementById("peName").value||"").trim();if(!n2){toast("Zuerst den Namen eintragen");return;}logoSearch(n2,"p");return;}
   if(t.closest("#peLogoDel")){pe.logoId="";pe.logoBg="";pe.logoChanged=true;paintPeMark();return;}
 });
 
@@ -4957,12 +5052,12 @@ async function pickWebPartner(w){
   fill("fWeb",w.dom,"Website");fill("fTel",w.tel,"Telefon");fill("fMail",w.mail,"E-Mail");
   var kt=TPL.filter(function(t){return t[4]&&regDom(t[4])===regDom(w.dom);})[0];
   draft.stdTpl=kt?[w.name].concat(kt.slice(1)):stdFor(w);draft.stdDone=false;
-  if(draft.stdTpl&&draft.stdTpl[2]&&!draft.cat){draft.cat=draft.stdTpl[2];paintCats();got.push("Kategorie");}
+  if(draft.stdTpl&&draft.stdTpl[2]&&!draft.cat&&allCats().indexOf(draft.stdTpl[2])>=0){draft.cat=draft.stdTpl[2];paintCats();got.push("Kategorie");}
   var lb=document.getElementById("fLabel");if(draft.stdTpl&&draft.stdTpl[3]&&!lb.value.trim())lb.value=draft.stdTpl[3];
   if(draft.stdTpl&&!draft.stdTpl[10])draft.stdTpl=null;
   /* Übliche Frist direkt als Vorschlag eintragen (nur in leere Felder), Hinweis bleibt sichtbar */
   if(draft.stdTpl&&(draft.stdTpl[5]||draft.stdTpl[7]||draft.stdTpl[9])&&!document.getElementById("fNotice").value.trim()&&!document.getElementById("fTermP").value){
-    var st0=draft.stdTpl;applyTpl(st0,true,true);draft.stdTpl=st0;draft.stdDone=true;got.push("übliche Frist");}
+    var st0=draft.stdTpl;applyTpl(st0,true,true,true);draft.stdTpl=st0;draft.stdDone=true;got.push("übliche Frist");}
   var cc=(draft.stdTpl&&draft.stdTpl[1])||w.cc;
   if(cc&&!document.getElementById("fAmt").value)document.getElementById("fCur").value=cc==="DE"?"EUR":"CHF";
   hidePSug();paintLogo();paintSwatches();paintSugg();
@@ -4970,13 +5065,16 @@ async function pickWebPartner(w){
   if(draft.logoId&&KBlob.has(draft.logoId)){toast(msg());return;}
   if(!assets||navigator.onLine===false){toast(msg());return;}
   toast("Lade Logo …");
-  var r=null;
+  var r=null,d0=draft,n0=String(w.name||"").trim();
   try{
     if(w.file){var q=await rateJson("https://commons.wikimedia.org/w/api.php?format=json&origin=*&action=query&prop=imageinfo&iiprop=url|size&iiurlwidth=512&titles="+encodeURIComponent("File:"+w.file)).catch(function(){return null;});
       var pg=q&&q.query&&q.query.pages,ii=pg&&Object.keys(pg).map(function(k){return pg[k].imageinfo&&pg[k].imageinfo[0];}).filter(Boolean)[0];
       if(ii&&(ii.thumburl||ii.url)){var t=await takeLogo({url:ii.thumburl||ii.url,src:"wiki"});if(t&&t.id)r=t;}}
     if(!r){var sc=await siteCand(regDom(w.dom),3);if(sc){var t2=await takeLogo(sc);if(t2&&t2.id)r=t2;}}
   }catch(e){r=null;}
+  /* spät eintreffendes Logo nur in denselben, noch offenen Entwurf mit demselben Vertragspartner */
+  var same=draft===d0&&document.getElementById("sheetForm").classList.contains("on")&&document.getElementById("fPartner").value.trim()===n0;
+  if(!same)return;
   if(r&&!(draft.logoId&&KBlob.has(draft.logoId))){draft.logoId=r.id;draft.logoBg=r.bg;paintLogo();toast(msg(["Logo"]));}
   else toast(msg());
 }
