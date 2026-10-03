@@ -194,7 +194,13 @@ struct DocumentViewer: View {
         info.jobName = shareName
         pic.printInfo = info
         pic.printingItem = data
-        _ = pic.present(animated: true, completionHandler: nil)
+        if UIDevice.current.userInterfaceIdiom == .pad, let top = CancelFlowUI.topViewController(), let v = top.view {
+            // iPad: Druckdialog als Popover über der Aktionsleiste
+            let rect = CGRect(x: v.bounds.midX - 1, y: v.bounds.maxY - 90, width: 2, height: 2)
+            _ = pic.present(from: rect, in: v, animated: true, completionHandler: nil)
+        } else {
+            _ = pic.present(animated: true, completionHandler: nil)
+        }
     }
 }
 
