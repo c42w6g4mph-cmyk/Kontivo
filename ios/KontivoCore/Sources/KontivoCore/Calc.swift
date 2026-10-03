@@ -323,7 +323,7 @@ public struct Calc {
     public func urgency(_ c: Contract) -> Urgency {
         guard let d = noticeDeadline(c) else { return Urgency(level: .none, days: nil, date: nil) }
         let days = today.days(to: d)
-        var lvl: UrgencyLevel = days < 0 ? .none : (days <= 30 ? .alert : (days <= 90 ? .warn : .ok))
+        var lvl: UrgencyLevel = days < 0 ? .none : (days <= 7 ? .alert : (days <= 30 ? .warn : .ok))
         if isAnytime(c) || c.noWatch { lvl = .none }
         if c.cancelPer != nil || (c.keptFor != nil && c.keptFor == termEnd(c)) { lvl = .none }
         return Urgency(level: lvl, days: days, date: d)
@@ -375,20 +375,20 @@ public struct Calc {
         c.end == nil && (c.cancelTerm == .monthEnd || (c.cancelTerm == .period && c.cycleForCalc <= 1))
     }
 
-    /// Entscheidung nötig: Frist in 0–90 Tagen (Steuern filtern die Aufrufer).
+    /// Entscheidung nötig: Frist in 0–30 Tagen (Steuern filtern die Aufrufer). Seit 04.10.2026: 30 statt 90 Tage.
     public func needsAction(_ c: Contract) -> Bool {
         if c.cancelPer != nil { return false }
         guard let T = termEnd(c) else { return false }
         if isAnytime(c) || c.noWatch { return false }
         if let k = c.keptFor, k == T { return false }
         let n = today.days(to: noticeDeadline(for: c, end: T))
-        return n >= 0 && n <= 90
+        return n >= 0 && n <= 30
     }
 
-    /// Probeabo endet in 0–90 Tagen und ist nicht entschieden.
+    /// Probeabo endet in 0–30 Tagen und ist nicht entschieden.
     public func trialNeeds(_ c: Contract) -> Bool {
         guard let d = c.trial else { return false }
-        return d >= today && today.days(to: d) <= 90 && c.trialKept != c.trial && c.cancelPer == nil
+        return d >= today && today.days(to: d) <= 30 && c.trialKept != c.trial && c.cancelPer == nil
     }
 
     /// Anteil einer Person an einem Vertrag: ohne Person 1, nicht Inhaber 0, sonst 1 / Anzahl Inhaber.
@@ -477,7 +477,7 @@ extension Calc {
         /// Frist bzw. Probeabo-Ende
         public var date: Day
         public var days: Int
-        /// ≤ 30 Tage alert, sonst warn
+        /// ≤ 7 Tage alert, sonst warn
         public var level: UrgencyLevel
         /// «Frist 30.11. · noch 29 Tage» / «Probeabo endet 20.10. · heute»
         public var line: String
@@ -588,7 +588,7 @@ extension Calc {
             let dn = today.days(to: d)
             let line = (trial ? "Probeabo endet " : "Frist ") + Format.ddmm(d, currentYear: y) + " · " + (dn == 0 ? "heute" : "noch " + Format.humanDays(dn))
             let sub = Format.money0(monthlyCost(c) * 12) + " " + home.rawValue + " pro Jahr" + (c.mandatory ? " · Pflichtvertrag" : "") + (isPaused(c) ? " · pausiert" : "")
-            return DeadlineDecision(contractID: c.id, trial: trial, date: d, days: dn, level: dn <= 30 ? .alert : .warn, line: line, subline: sub,
+            return DeadlineDecision(contractID: c.id, trial: trial, date: d, days: dn, level: dn <= 7 ? .alert : .warn, line: line, subline: sub,
                                     keepTitle: "Behalten", cancelTitle: c.mandatory ? "Wechseln" : "Kündigen")
         }
         for c in triTodo { if let x = card(c, trial: true) { decisions.append(x) } }
@@ -599,13 +599,13 @@ extension Calc {
         for c in todo {
             if let d = noticeDeadline(c) {
                 dates.append(d)
-                if today.days(to: d) <= 30 { urgent += 1 }
+                if today.days(to: d) <= 7 { urgent += 1 }
             }
         }
         for c in triTodo {
             if let d = c.trial {
                 dates.append(d)
-                if today.days(to: d) <= 30 { urgent += 1 }
+                if today.days(to: d) <= 7 { urgent += 1 }
             }
         }
         let nx = dates.min()

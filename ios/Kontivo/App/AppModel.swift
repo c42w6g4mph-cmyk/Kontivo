@@ -70,7 +70,9 @@ final class AppModel {
     }
 
     // MARK: Abgeleitet
-    var today: Day { Day.today(in: .current) }
+    /// Fester Stichtag (nur Bildschirmfoto-Modus), sonst heute
+    var todayOverride: Day?
+    var today: Day { todayOverride ?? Day.today(in: .current) }
     var calc: Calc { Calc(data: data, today: today) }
 
     var preferredColorScheme: ColorScheme? {

@@ -5,6 +5,7 @@ import KontivoCore
 /// Startargumente für automatische Bildschirmfotos (nur Debug):
 ///   -uiDemo            Beispieldaten statt gespeicherter Daten (nichts wird gespeichert)
 ///   -uiEmpty           leere Daten ohne Einführung
+///   -uiToday <iso>     Stichtag (Standard 2026-10-03)
 ///   -uiOnboarding      Einführung (Erststart)
 ///   -uiTab <name>      contracts | costs | budget | deadlines | more
 ///   -uiSheet <name>    detail | form | income | incomes | letter | manage | partners | persons | sender | categories | quality | cancelpick
@@ -19,6 +20,8 @@ extension AppModel {
         let demo = args.contains("-uiDemo"), empty = args.contains("-uiEmpty"), onb = args.contains("-uiOnboarding")
         guard demo || empty || onb else { return false }
         uiTestMode = true
+        // Fester Stichtag, damit Beispieldaten, Bildschirmfotos und UI-Tests nicht altern
+        todayOverride = Day(iso: value("-uiToday") ?? "2026-10-03")
         if demo, let d = DemoData.make(today: today) {
             data = d
             data.settings.onboarded = 1
