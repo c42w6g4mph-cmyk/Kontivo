@@ -1,0 +1,19 @@
+name: iOS
+on:
+  push:
+    branches: [swift]
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Umgebung
+        run: |
+          sw_vers
+          ls /Applications | grep -i xcode
+          xcodebuild -version
+          xcrun simctl list runtimes
+          xcrun simctl list devices available | grep -i iphone | head -20
+          brew list --versions xcodegen || echo "xcodegen fehlt"
+          swift --version
