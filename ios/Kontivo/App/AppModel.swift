@@ -36,6 +36,9 @@ final class AppModel {
     /// Sichtbare Rückfrage «Gekündigt?» (wird auf der obersten Ebene als Alert gezeigt, siehe CancelQuestionModifier)
     var cancelQuestion: PendingCancel?
 
+    /// Bildschirmfoto-Modus (Debug): Beispieldaten, nichts wird gespeichert
+    var uiTestMode = false
+
     // MARK: Meldungen
     var toastText: String?
     private var toastTask: Task<Void, Never>?
@@ -52,6 +55,9 @@ final class AppModel {
         } else {
             self.data = AppData.initial(homeCurrency: .CHF)
         }
+        #if DEBUG
+        if applyUITestArguments() { return }
+        #endif
         // Bestehende Daten: Einführung gilt als gesehen; ohne Daten startet die Einführung
         if data.settings.onboarded == 0 {
             if !data.contracts.isEmpty || !data.incomes.isEmpty {
@@ -105,6 +111,7 @@ final class AppModel {
 
     func saveNow() {
         saveTask?.cancel()
+        if uiTestMode { return }
         if !files.saveData(data) {
             toast("Speichern fehlgeschlagen – Gerätespeicher voll? Bitte ein Backup erstellen.")
         }

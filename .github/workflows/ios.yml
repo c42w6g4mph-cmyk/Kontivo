@@ -45,6 +45,65 @@ jobs:
           else
             echo "kein ios/project.yml" > ci-out/app.txt
           fi
+      - name: Bildschirmfotos im Simulator
+        id: shots
+        if: steps.app.outcome == 'success' && (github.ref_name == 'swift' || contains(github.event.head_commit.message, '[shots]'))
+        continue-on-error: true
+        run: |
+          mkdir -p ci-out/shots
+          APP=build/Build/Products/Debug-iphonesimulator/Kontivo.app
+          RT=$(xcrun simctl list runtimes | grep -o 'com.apple.CoreSimulator.SimRuntime.iOS-26-[0-9]*' | tail -1)
+          PHONE=$(xcrun simctl create kphone "iPhone 17 Pro" "$RT")
+          PADTYPE=$(xcrun simctl list devicetypes | grep -o 'iPad Pro 13-inch[^(]*([^)]*)' | head -1)
+          PAD=$(xcrun simctl create kpad "$PADTYPE" "$RT" 2>/dev/null || true)
+          echo "runtime=$RT phone=$PHONE padtype=$PADTYPE pad=$PAD" > ci-out/shots.txt
+          shoot() { # gerät name args...
+            D=$1; N=$2; shift 2
+            xcrun simctl terminate $D ch.kontivo.app >/dev/null 2>&1 || true
+            xcrun simctl launch $D ch.kontivo.app "$@" >/dev/null 2>&1 || echo "launch fail $N" >> ci-out/shots.txt
+            sleep 7
+            if ! xcrun simctl spawn $D launchctl list 2>/dev/null | grep -q ch.kontivo.app; then echo "ABSTURZ? $N" >> ci-out/shots.txt; fi
+            xcrun simctl io $D screenshot "ci-out/shots/$N.png" >/dev/null 2>&1
+            sips -Z 1400 "ci-out/shots/$N.png" >/dev/null 2>&1 || true
+          }
+          xcrun simctl boot $PHONE; xcrun simctl bootstatus $PHONE -b >/dev/null 2>&1
+          xcrun simctl status_bar $PHONE override --time 9:41 --batteryState charged --batteryLevel 100 >/dev/null 2>&1 || true
+          xcrun simctl install $PHONE $APP
+          shoot $PHONE 01-onboarding -uiOnboarding
+          shoot $PHONE 02-leer-vertraege -uiEmpty
+          shoot $PHONE 03-vertraege -uiDemo -uiTab contracts
+          shoot $PHONE 04-kosten -uiDemo -uiTab costs
+          shoot $PHONE 05-budget -uiDemo -uiTab budget
+          shoot $PHONE 06-fristen -uiDemo -uiTab deadlines
+          shoot $PHONE 07-mehr -uiDemo -uiTab more
+          shoot $PHONE 08-detail -uiDemo -uiSheet detail
+          shoot $PHONE 09-formular -uiDemo -uiSheet form
+          shoot $PHONE 10-bearbeiten -uiDemo -uiSheet edit
+          shoot $PHONE 11-einnahme -uiDemo -uiSheet income
+          shoot $PHONE 12-einnahmen -uiDemo -uiTab budget -uiSheet incomes
+          shoot $PHONE 13-brief -uiDemo -uiTab deadlines -uiSheet letter
+          shoot $PHONE 14-kuendigungsweg -uiDemo -uiSheet cancelpick
+          shoot $PHONE 15-verwalten -uiDemo -uiTab more -uiSheet manage
+          shoot $PHONE 16-vertragspartner -uiDemo -uiSheet partners
+          shoot $PHONE 17-inhaber -uiDemo -uiSheet persons
+          shoot $PHONE 18-absender -uiDemo -uiSheet sender
+          shoot $PHONE 19-kategorien -uiDemo -uiSheet categories
+          shoot $PHONE 20-datenqualitaet -uiDemo -uiSheet quality
+          shoot $PHONE 21-leer-kosten -uiEmpty -uiTab costs
+          shoot $PHONE 22-leer-fristen -uiEmpty -uiTab deadlines
+          xcrun simctl ui $PHONE appearance dark
+          shoot $PHONE 23-dunkel-vertraege -uiDemo -uiTab contracts
+          shoot $PHONE 24-dunkel-kosten -uiDemo -uiTab costs
+          shoot $PHONE 25-dunkel-detail -uiDemo -uiSheet detail
+          if [ -n "$PAD" ]; then
+            xcrun simctl boot $PAD; xcrun simctl bootstatus $PAD -b >/dev/null 2>&1
+            xcrun simctl install $PAD $APP
+            shoot $PAD 26-ipad-vertraege -uiDemo -uiTab contracts
+            shoot $PAD 27-ipad-kosten -uiDemo -uiTab costs
+            shoot $PAD 28-ipad-formular -uiDemo -uiSheet form
+          fi
+          ls ~/Library/Logs/DiagnosticReports 2>/dev/null | grep -i kontivo >> ci-out/shots.txt || true
+          for f in ~/Library/Logs/DiagnosticReports/*Kontivo*; do [ -f "$f" ] && head -120 "$f" >> ci-out/shots.txt; done 2>/dev/null || true
       - name: Protokoll in Branch ci-logs schreiben
         if: always()
         env:
@@ -61,6 +120,8 @@ jobs:
             grep -E "error:|BUILD FAILED|\*\* BUILD" ci-out/app.txt | head -400 || true
             echo; echo "===== APP: Ende ====="
             tail -40 ci-out/app.txt || true
+            echo; echo "===== BILDSCHIRMFOTOS ====="
+            cat ci-out/shots.txt 2>/dev/null || echo "keine"
           } > /tmp/summary.txt
           if [ -d ios/Kontivo.xcodeproj ]; then tar czf /tmp/xcodeproj.tgz -C ios Kontivo.xcodeproj; fi
           git config --global user.name ci; git config --global user.email ci@example.invalid
@@ -69,6 +130,7 @@ jobs:
             git clone -q --depth 1 --branch ci-logs "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" /tmp/cl || exit 0
             cp /tmp/summary.txt "/tmp/cl/$BR.txt"
             if [ -f /tmp/xcodeproj.tgz ]; then cp /tmp/xcodeproj.tgz "/tmp/cl/$BR-xcodeproj.tgz"; fi
+            if [ -d ci-out/shots ] && ls ci-out/shots/*.png >/dev/null 2>&1; then rm -rf "/tmp/cl/shots-$BR"; mkdir -p "/tmp/cl/shots-$BR"; cp ci-out/shots/*.png "/tmp/cl/shots-$BR/"; fi
             (cd /tmp/cl && git add -A && git commit -q -m "log $BR $GITHUB_RUN_NUMBER" && git push -q origin ci-logs) && break
             sleep $((RANDOM % 7 + 3))
           done
