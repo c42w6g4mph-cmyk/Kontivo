@@ -16,10 +16,23 @@ self.addEventListener("fetch",function(e){
   /* App selbst: zuerst Netz (Updates sofort), offline aus dem Cache */
   if(url.origin===self.location.origin){
     /* no-cache: immer beim Server nachfragen (GitHub Pages erlaubt sonst 10 Min. alten Stand) */
-    e.respondWith(fetch(url.href,{cache:"no-cache",credentials:"same-origin"}).then(function(r){
-      if(r&&r.ok){var cp=r.clone();caches.open(VERSION).then(function(c){c.put(req,cp);});}
+    var put=null;
+    var net=fetch(url.href,{cache:"no-cache",credentials:"same-origin"}).then(function(r){
+      if(r&&r.ok){var cp=r.clone();put=caches.open(VERSION).then(function(c){return c.put(req,cp);});}
       return r;
-    }).catch(function(){return caches.match(req,{ignoreSearch:true}).then(function(m){return m||caches.match("index.html");});}));
+    });
+    var cached=function(){return caches.match(req,{ignoreSearch:true}).then(function(m){return m||caches.match("index.html");});};
+    if(req.mode==="navigate"||/\/(index\.html)?$/.test(url.pathname)){
+      /* App-Start: höchstens 3 s aufs Netz warten, dann Cache; bei HTTP-Fehler Cache, falls vorhanden.
+         Die Netzantwort aktualisiert den Cache im Hintergrund weiter (waitUntil). */
+      var limit=new Promise(function(res){setTimeout(function(){res(null);},3000);});
+      e.respondWith(Promise.race([net.catch(function(){return null;}),limit]).then(function(r){
+        if(r&&r.ok)return r;
+        return cached().then(function(m){return m||r||net;});
+      }));
+      e.waitUntil(net.then(function(){return put;}).catch(function(){}));
+    }
+    else e.respondWith(net.catch(cached));
     return;
   }
   /* Schrift und PDF-Anzeige: aus dem Cache, im Hintergrund auffrischen */
