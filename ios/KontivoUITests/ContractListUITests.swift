@@ -33,7 +33,11 @@ final class ContractListUITests: KontivoUITestCase {
         tap(buttonStarting("Kategorie"), "Kategorie")
         tap(buttonStarting("Versicherung"), "Versicherung")
         waitUntil("Nur Versicherungen") { self.buttonStarting("Krankenkasse").exists && !self.buttonStarting("Handy").exists }
-        tap(button("Filter Versicherung entfernen"), "Filter entfernen")
+        // Der Knopf meldet die ganze Zeilenbreite als Rahmen; den Chip selbst (Text) antippen
+        let chip = button("Filter Versicherung entfernen")
+        wait(chip, "Filter-Chip")
+        chip.staticTexts["Versicherung"].firstMatch.tap()
+        waitGone(chip, "Filter-Chip")
         // nach Kosten sortiert steht «Handy» weiter unten
         reveal(buttonStarting("Handy"), "Alle Verträge wieder sichtbar")
         XCTAssertFalse(button("Filter Versicherung entfernen").exists, "Filter noch aktiv")

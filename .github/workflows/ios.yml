@@ -104,7 +104,7 @@ jobs:
         id: shots
         if: steps.app.outcome == 'success' && (github.ref_name == 'swift' || contains(github.event.head_commit.message, '[shots]'))
         continue-on-error: true
-        timeout-minutes: 15
+        timeout-minutes: 20
         run: |
           mkdir -p ci-out/shots
           APP=build/Build/Products/Debug-iphonesimulator/Kontivo.app
@@ -115,6 +115,7 @@ jobs:
           echo "runtime=$RT phone=$PHONE padtype=$PADTYPE pad=$PAD" > ci-out/shots.txt
           shoot() { # gerät name args...
             D=$1; N=$2; shift 2
+            echo "$(date +%T) $N" >> ci-out/shots.txt
             xcrun simctl terminate $D ch.kontivo.app >/dev/null 2>&1 || true
             xcrun simctl launch $D ch.kontivo.app "$@" >/dev/null 2>&1 || echo "launch fail $N" >> ci-out/shots.txt
             sleep 7
@@ -122,6 +123,15 @@ jobs:
             xcrun simctl io $D screenshot "ci-out/shots/$N.png" >/dev/null 2>&1
             sips -Z 1400 "ci-out/shots/$N.png" >/dev/null 2>&1 || true
           }
+          # iPad zuerst (nur 3 Fotos), damit sie bei knapper Zeit nicht wegfallen
+          if [ -n "$PAD" ]; then
+            xcrun simctl boot $PAD; xcrun simctl bootstatus $PAD -b >/dev/null 2>&1
+            xcrun simctl install $PAD $APP
+            shoot $PAD 26-ipad-vertraege -uiDemo -uiTab contracts
+            shoot $PAD 27-ipad-kosten -uiDemo -uiTab costs
+            shoot $PAD 28-ipad-formular -uiDemo -uiSheet form
+            xcrun simctl shutdown $PAD >/dev/null 2>&1 || true
+          fi
           xcrun simctl boot $PHONE; xcrun simctl bootstatus $PHONE -b >/dev/null 2>&1
           xcrun simctl status_bar $PHONE override --time 9:41 --batteryState charged --batteryLevel 100 >/dev/null 2>&1 || true
           xcrun simctl install $PHONE $APP
@@ -151,13 +161,6 @@ jobs:
           shoot $PHONE 23-dunkel-vertraege -uiDemo -uiTab contracts
           shoot $PHONE 24-dunkel-kosten -uiDemo -uiTab costs
           shoot $PHONE 25-dunkel-detail -uiDemo -uiSheet detail
-          if [ -n "$PAD" ]; then
-            xcrun simctl boot $PAD; xcrun simctl bootstatus $PAD -b >/dev/null 2>&1
-            xcrun simctl install $PAD $APP
-            shoot $PAD 26-ipad-vertraege -uiDemo -uiTab contracts
-            shoot $PAD 27-ipad-kosten -uiDemo -uiTab costs
-            shoot $PAD 28-ipad-formular -uiDemo -uiSheet form
-          fi
           ls ~/Library/Logs/DiagnosticReports 2>/dev/null | grep -i kontivo >> ci-out/shots.txt || true
           for f in ~/Library/Logs/DiagnosticReports/*Kontivo*; do [ -f "$f" ] && head -120 "$f" >> ci-out/shots.txt; done 2>/dev/null || true
       - name: Protokoll in Branch ci-logs schreiben

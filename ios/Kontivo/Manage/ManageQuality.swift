@@ -570,7 +570,7 @@ private struct MDNoticeEditor: View {
             return
         }
         let raw = mdParseNum(notice) ?? 0
-        let n = raw > 0 ? Swift.min(999, Int(raw)) : 0
+        let n = raw > 0 ? Int(Swift.min(999, raw)) : 0
         let endDay: Day? = choice == .fixed ? Day(date: end) : nil
         let id = contract.id
         let ch = choice

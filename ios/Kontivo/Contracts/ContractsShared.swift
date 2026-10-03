@@ -42,8 +42,9 @@ enum CTNumber {
     /// Ganze Zahl (Kündigungsfrist): leer/ungültig → 0, nie negativ.
     static func int(_ s: String) -> Int {
         let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let i = Int(t) { return max(0, i) }
-        if let d = parse(t) { return max(0, Int(d.rounded(.down))) }
+        if let i = Int(t) { return min(99_999, max(0, i)) }
+        // begrenzt: Int(1e30) würde abstürzen
+        if let d = parse(t) { return Int(min(99_999, max(0, d)).rounded(.down)) }
         return 0
     }
 
