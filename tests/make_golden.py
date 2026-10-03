@@ -10,7 +10,7 @@ JS="""(cases)=>{var K=window.KontivoCalc(),out={};
   function d(x){return x?K.iso(x):null;}
   cases.forEach(function(cs){var c=Object.assign({cat:"Sonstiges",status:"active",_id:cs.id},cs.c);K.state.contracts[cs.id]=c;
     var e=K.termEnd(c),nd=K.nextDue(c),occ=K.occurrences(c,new Date(window.__KONTIVO_TODAY+"T00:00:00"),new Date(new Date(window.__KONTIVO_TODAY+"T00:00:00").getFullYear()+1,11,31));
-    out[cs.id]={termEnd:d(e),noticeDeadline:d(K.noticeDeadline(c)),nextTerm:d(K.nextTerm(c)),effEnd:d(K.effEnd(c)),nextDue:d(nd),
+    out[cs.id]={termEnd:d(e),noticeDeadline:d(K.noticeDeadline(c)),nextTerm:d(K.nextTerm(c)),effEnd:d(K.effEnd(c)),renewTo:d(K.renewTo(c)),ended:K.isEnded(c),nextDue:d(nd),
       paymentsNext12:occ.slice(0,12).map(d),curPrice:Math.round(K.curPrice(c)*100)/100,monthlyCostHome:Math.round(K.monthlyCost(c)*100)/100,
       anytime:K.isAnytime(c),needsAction:K.needsAction(c),trialNeeds:K.trialNeeds(c),paused:K.isPaused(c),
       shareSinan:K.holderShare(c,"Sinan"),shareLara:K.holderShare(c,"Lara"),cancVia:K.cancVia(c)};});
