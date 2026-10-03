@@ -155,6 +155,22 @@ private struct CTFormMainPage: View {
             .contentMargins(.horizontal, max(0, (geo.size.width - KMetric.maxContent) / 2), for: .scrollContent)
         }
         .kPageBackground()
+        .modifier(CTKeyboardDone())
+    }
+}
+
+/// Knopf «Fertig» über der Tastatur (Zifferntastaturen haben keine Eingabetaste)
+struct CTKeyboardDone: ViewModifier {
+    func body(content: Content) -> some View {
+        content.toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Fertig") {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+                .fontWeight(.semibold)
+            }
+        }
     }
 }
 

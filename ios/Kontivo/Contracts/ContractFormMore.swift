@@ -28,6 +28,7 @@ struct CTFormMorePage: View {
             .contentMargins(.horizontal, max(0, (geo.size.width - KMetric.maxContent) / 2), for: .scrollContent)
         }
         .kPageBackground()
+        .modifier(CTKeyboardDone())
         .fileImporter(isPresented: $form.showFileImporter, allowedContentTypes: [.pdf, .png, .jpeg, .webP, .heic, .image]) { result in
             importFile(result)
         }
