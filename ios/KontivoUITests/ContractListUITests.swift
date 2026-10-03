@@ -14,7 +14,12 @@ final class ContractListUITests: KontivoUITestCase {
         }
         enter(search, "Netflix", "Suchfeld")
         waitUntil("Nur «Streaming»") { self.buttonStarting("Streaming").exists && !self.buttonStarting("Handy").exists }
-        tapTop("Abbrechen")
+        // Suche beenden (iOS 26: «Schließen», früher «Abbrechen»)
+        if let close = firstHittable(app.buttons.matching(NSPredicate(format: "label == 'Schließen' OR label == 'Abbrechen'")), timeout: 4) {
+            close.tap()
+        } else {
+            tap(button("Text löschen"), "Suchtext löschen")
+        }
         wait(buttonStarting("Handy"), "Liste nach der Suche")
 
         // Sortierung über das Menü
@@ -39,7 +44,7 @@ final class ContractListUITests: KontivoUITestCase {
     func testWischenUndLangesDruecken() {
         launch("-uiDemo", "-uiTab", "contracts")
         let row = buttonStarting("Fitnessabo")
-        wait(row, "Fitnessabo")
+        reveal(row, "Fitnessabo")
 
         // Wischen → Pausieren → ohne Enddatum
         row.swipeLeft()
@@ -53,10 +58,12 @@ final class ContractListUITests: KontivoUITestCase {
         waitUntil("Karte ohne «pausiert»") { !self.buttonStarting("Fitnessabo").label.contains("pausiert") }
 
         // Langes Drücken → Bearbeiten
-        buttonStarting("Handy").press(forDuration: 1.3)
+        let fit = buttonStarting("Fitnessabo")
+        reveal(fit, "Fitnessabo")
+        fit.press(forDuration: 1.3)
         tap(button("Bearbeiten"), "Kontextmenü Bearbeiten")
         waitNav("Vertrag bearbeiten")
-        XCTAssertEqual(textField("form.label").value as? String, "Handy")
+        XCTAssertEqual(textField("form.label").value as? String, "Fitnessabo")
         tapTop("Abbrechen")
         waitUntil("Formular geschlossen") { !self.navExists("Vertrag bearbeiten") }
     }
