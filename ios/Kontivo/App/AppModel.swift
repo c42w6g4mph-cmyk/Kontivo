@@ -118,7 +118,11 @@ final class AppModel {
     }
 
     // MARK: Fenster
-    func present(_ sheet: AppSheet) { sheets.append(sheet) }
+    /// Fenster öffnen. Dasselbe Fenster nicht doppelt übereinander (z.B. doppeltes Antippen).
+    func present(_ sheet: AppSheet) {
+        if sheets.last?.id == sheet.id { return }
+        sheets.append(sheet)
+    }
     /// Oberstes Fenster schliessen
     func dismissTop() { if !sheets.isEmpty { sheets.removeLast() } }
     /// Fenster ab Ebene `level` schliessen (Wischen nach unten)

@@ -4,6 +4,8 @@ import XCTest
 /// Hilfen zum Finden und Antippen über sichtbare deutsche Texte, Bildschirmfoto und Elementbaum bei Fehlern.
 class KontivoUITestCase: XCTestCase {
     var app: XCUIApplication!
+    /// Erster Start im frisch gebooteten Simulator ist langsam (erster Tipp ging verloren): einmal länger warten
+    private static var warmedUp = false
 
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -43,7 +45,14 @@ class KontivoUITestCase: XCTestCase {
         a.launchArguments = args + ["-AppleLanguages", "(de)"]
         a.launch()
         app = a
-        XCTAssertTrue(a.wait(for: .runningForeground, timeout: 20), "App startet nicht")
+        XCTAssertTrue(a.wait(for: .runningForeground, timeout: 30), "App startet nicht")
+        // bereit, sobald die Tab-Leiste oder die Einführung da ist
+        let ready = a.tabBars.firstMatch.waitForExistence(timeout: 40) || a.buttons.firstMatch.waitForExistence(timeout: 5)
+        XCTAssertTrue(ready, "App zeigt nichts an")
+        if !KontivoUITestCase.warmedUp {
+            KontivoUITestCase.warmedUp = true
+            sleep(4)
+        }
         return a
     }
 
@@ -127,6 +136,7 @@ class KontivoUITestCase: XCTestCase {
             scrollTo(e, timeout: timeout)
         }
         XCTAssertTrue(e.exists, "Nicht gefunden: \(what)", file: file, line: line)
+        dismissKeyboardIfCovering(e)
         if !e.isHittable {
             // unterhalb des sichtbaren Bereichs: etwas scrollen (sonst scrollt XCUITest beim Antippen selbst)
             let bottom = app.windows.firstMatch.frame.maxY
@@ -137,6 +147,39 @@ class KontivoUITestCase: XCTestCase {
             }
         }
         e.tap()
+    }
+
+    /// Tippt an und prüft, dass sich etwas öffnet; sonst ein zweiter Versuch (Tipp ging verloren)
+    func tapOpen(_ e: XCUIElement, _ what: String, expect: XCUIElement, timeout: TimeInterval = 8,
+                 file: StaticString = #filePath, line: UInt = #line) {
+        tap(e, what, file: file, line: line)
+        if expect.waitForExistence(timeout: timeout) { return }
+        print("HINWEIS: \(what) – nichts geöffnet, zweiter Versuch")
+        if e.exists && e.isHittable { e.tap() }
+        XCTAssertTrue(expect.waitForExistence(timeout: timeout), "Nach «\(what)» nicht erschienen", file: file, line: line)
+    }
+
+    /// Oberkante der Bildschirmtastatur (nil = keine Tastatur sichtbar)
+    func keyboardTop() -> CGFloat? {
+        let kb = app.keyboards.firstMatch
+        guard kb.exists else { return nil }
+        let f = kb.frame
+        return f.height > 0 ? f.minY : nil
+    }
+
+    /// Verdeckt die Tastatur (samt Leiste «Fertig») das Element: Tastatur schliessen bzw. Inhalt hochschieben
+    func dismissKeyboardIfCovering(_ e: XCUIElement) {
+        for _ in 0..<3 {
+            guard let top = keyboardTop(), e.exists, e.frame.maxY > top - 64 else { return }
+            let done = buttons("Fertig").allElementsBoundByIndex.first { $0.exists && $0.isHittable && $0.frame.midY > top - 130 }
+            if let d = done {
+                d.tap()
+            } else {
+                let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.42))
+                from.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18)))
+            }
+            usleep(600_000)
+        }
     }
 
     /// Tippt den obersten Knopf mit dieser Beschriftung an – bei gestapelten Fenstern gibt es z.B. «Schliessen»

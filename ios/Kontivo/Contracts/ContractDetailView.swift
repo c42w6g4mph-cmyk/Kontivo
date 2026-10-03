@@ -21,7 +21,11 @@ struct ContractDetailView: View {
                 if let c = model.data.contract(contractID) {
                     content(c)
                 } else {
-                    Color.clear
+                    // z.B. gerade gelöscht: Hinweis statt leerer Seite
+                    Text("Dieser Vertrag existiert nicht mehr.")
+                        .font(.subheadline)
+                        .foregroundStyle(KColor.ink2)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .background(KColor.paper.ignoresSafeArea())
