@@ -25,6 +25,7 @@ extension View {
     func mdPlainRow() -> some View {
         self.listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4))
+            .listRowSeparator(.hidden)
     }
 }
 

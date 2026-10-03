@@ -66,6 +66,8 @@ struct AppSheetView: View {
             }
             .modifier(CancelQuestionModifier(isTop: model.sheets.count - 1 == level))
             .tint(KColor.teal)
+            // Fenster übernehmen die Umgebung der App nicht zuverlässig: Datumsauswahl sonst im US-Format («10/3/26»)
+            .environment(\.locale, Locale(identifier: "de_CH"))
     }
 
     @ViewBuilder private var content: some View {

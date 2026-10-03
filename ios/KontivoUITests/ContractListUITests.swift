@@ -34,7 +34,9 @@ final class ContractListUITests: KontivoUITestCase {
         tap(buttonStarting("Versicherung"), "Versicherung")
         waitUntil("Nur Versicherungen") { self.buttonStarting("Krankenkasse").exists && !self.buttonStarting("Handy").exists }
         tap(button("Filter Versicherung entfernen"), "Filter entfernen")
-        wait(buttonStarting("Handy"), "Alle Verträge wieder sichtbar")
+        // nach Kosten sortiert steht «Handy» weiter unten
+        reveal(buttonStarting("Handy"), "Alle Verträge wieder sichtbar")
+        XCTAssertFalse(button("Filter Versicherung entfernen").exists, "Filter noch aktiv")
 
         // Archiv aufklappen
         tap(buttonStarting("Archiv"), "Archiv")

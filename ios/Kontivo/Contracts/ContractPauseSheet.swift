@@ -56,6 +56,7 @@ struct CTPauseSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
+        .environment(\.locale, Locale(identifier: "de_CH"))
     }
 
     private func apply(_ u: Day?) {
