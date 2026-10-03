@@ -30,9 +30,13 @@ enum KBMonthNav {
         model.selectedMonth = ny == now.year ? now.month : 1
     }
 
-    static func select(_ model: AppModel, month: Int) {
+    /// Monat im gewählten Jahr setzen; true, wenn er sich geändert hat
+    @discardableResult
+    static func select(_ model: AppModel, month: Int) -> Bool {
         let m = min(12, max(1, month))
-        if model.selectedMonth != m { model.selectedMonth = m }
+        guard model.selectedMonth != m else { return false }
+        model.selectedMonth = m
+        return true
     }
 }
 
@@ -117,6 +121,8 @@ struct KBPagingCard<Content: View>: View {
     @State private var gestureStart: CGPoint?
     @State private var scrubFrame: CGRect = .zero
     @State private var cardWidth: CGFloat = 320
+    /// Haptik nur bei Monatswechsel durch Finger (Scrubbing, Antippen, Wischen)
+    @State private var feedbackTick = 0
 
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
@@ -138,14 +144,14 @@ struct KBPagingCard<Content: View>: View {
             .simultaneousGesture(tapGesture)
             .offset(x: dragX)
             .opacity(1 - Double(min(abs(dragX) / max(cardWidth, 1), 1)) * 0.45)
-            .sensoryFeedback(.selection, trigger: model.selectedMonth)
+            .sensoryFeedback(.selection, trigger: feedbackTick)
     }
 
     private var tapGesture: some Gesture {
         SpatialTapGesture(coordinateSpace: KBCardSpace.space)
             .onEnded { v in
                 guard scrubFrame.width > 0, scrubFrame.contains(v.location) else { return }
-                KBMonthNav.select(model, month: index(at: v.location.x) + 1)
+                if KBMonthNav.select(model, month: index(at: v.location.x) + 1) { feedbackTick += 1 }
             }
     }
 
@@ -178,7 +184,7 @@ struct KBPagingCard<Content: View>: View {
         }
         switch lock {
         case .scrub:
-            KBMonthNav.select(model, month: index(at: v.location.x) + 1)
+            if KBMonthNav.select(model, month: index(at: v.location.x) + 1) { feedbackTick += 1 }
         case .page:
             dragX = v.translation.width
         case .vertical, .none:
@@ -209,6 +215,7 @@ struct KBPagingCard<Content: View>: View {
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 150_000_000)
             KBMonthNav.shift(m, step)
+            feedbackTick += 1
             var t = Transaction()
             t.disablesAnimations = true
             withTransaction(t) { dragX = step > 0 ? w * 0.3 : -w * 0.3 }

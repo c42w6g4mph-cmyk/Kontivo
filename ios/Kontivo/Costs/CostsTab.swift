@@ -43,6 +43,15 @@ struct CostsTab: View {
                 .environment(model)
         }
         .onChange(of: model.costFilter) { _, _ in autoSelectMonth() }
+        .onAppear { dropStalePerson() }
+        .onChange(of: model.data.persons) { _, _ in dropStalePerson() }
+    }
+
+    /// Gelöschte Person nicht weiter filtern
+    private func dropStalePerson() {
+        if let p = model.costFilter.person, model.data.person(p) == nil {
+            model.costFilter.person = nil
+        }
     }
 
     // MARK: Inhalt
