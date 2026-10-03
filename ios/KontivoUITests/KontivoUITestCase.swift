@@ -130,8 +130,8 @@ class KontivoUITestCase: XCTestCase {
 
     // MARK: Bedienen
 
-    /// Wartet auf das Element, scrollt bei Bedarf (Listen laden Zeilen erst beim Scrollen) und tippt es an.
-    func tap(_ e: XCUIElement, _ what: String, timeout: TimeInterval = 10, file: StaticString = #filePath, line: UInt = #line) {
+    /// Wartet auf das Element, scrollt bei Bedarf (Listen laden Zeilen erst beim Scrollen), schliesst eine verdeckende Tastatur.
+    func reveal(_ e: XCUIElement, _ what: String, timeout: TimeInterval = 10, file: StaticString = #filePath, line: UInt = #line) {
         if !e.waitForExistence(timeout: min(timeout, 4)) {
             scrollTo(e, timeout: timeout)
         }
@@ -146,7 +146,30 @@ class KontivoUITestCase: XCTestCase {
                 n += 1
             }
         }
+    }
+
+    /// Wartet auf das Element (siehe reveal) und tippt es an.
+    func tap(_ e: XCUIElement, _ what: String, timeout: TimeInterval = 10, file: StaticString = #filePath, line: UInt = #line) {
+        reveal(e, what, timeout: timeout, file: file, line: line)
         e.tap()
+    }
+
+    /// Knopf im Inhalt antippen (nicht die gleich beschriftete Taste der Bildschirmtastatur)
+    func tapContent(_ label: String, file: StaticString = #filePath, line: UInt = #line) {
+        let q = buttons(label)
+        XCTAssertTrue(q.firstMatch.waitForExistence(timeout: 8), "Kein Knopf «\(label)»", file: file, line: line)
+        let top = keyboardTop() ?? .greatestFiniteMagnitude
+        let candidates = q.allElementsBoundByIndex.filter { $0.exists && $0.frame.minY < top - 1 }
+        if let b = candidates.first(where: { $0.isHittable }) ?? candidates.first {
+            tap(b, label, file: file, line: line)
+        } else {
+            XCTFail("Knopf «\(label)» nur auf der Tastatur gefunden", file: file, line: line)
+        }
+    }
+
+    /// Hat das Feld den Tastaturfokus?
+    func hasFocus(_ e: XCUIElement) -> Bool {
+        (e.value(forKey: "hasKeyboardFocus") as? Bool) ?? false
     }
 
     /// Tippt an und prüft, dass sich etwas öffnet; sonst ein zweiter Versuch (Tipp ging verloren)
@@ -219,15 +242,19 @@ class KontivoUITestCase: XCTestCase {
         field.typeText(text)
     }
 
-    /// Feld leeren und neuen Text eingeben
+    /// Feld leeren und neuen Text eingeben. Tippt rechts ins Feld (Schreibmarke ans Ende), ohne zweiten Tipp
+    /// (der könnte die Leiste «Fertig» über der Tastatur treffen).
     func replace(_ field: XCUIElement, _ text: String, _ what: String, file: StaticString = #filePath, line: UInt = #line) {
-        tap(field, what, file: file, line: line)
-        usleep(300_000)
+        reveal(field, what, file: file, line: line)
         let old = (field.value as? String) ?? ""
-        if !old.isEmpty && old != field.placeholderValue {
-            // Schreibmarke ans Ende setzen, dann löschen
-            field.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5)).tap()
-            usleep(200_000)
+        let hasText = !old.isEmpty && old != field.placeholderValue
+        field.coordinate(withNormalizedOffset: CGVector(dx: hasText ? 0.96 : 0.5, dy: 0.5)).tap()
+        usleep(500_000)
+        if !hasFocus(field) {
+            field.tap()
+            usleep(500_000)
+        }
+        if hasText {
             field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: old.count + 2))
         }
         field.typeText(text)

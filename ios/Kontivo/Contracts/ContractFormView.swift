@@ -39,6 +39,14 @@ private struct CTFormHost: View {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Abbrechen") { cancel() }
                     }
+                    // Titel verkleinert sich statt abgeschnitten zu werden («Vertrag bearbe…» neben breiten Knöpfen)
+                    ToolbarItem(placement: .principal) {
+                        Text(form.title)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .accessibilityAddTraits(.isHeader)
+                    }
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Sichern") { save() }
                             .fontWeight(.semibold)

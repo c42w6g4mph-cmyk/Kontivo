@@ -95,4 +95,19 @@ final class DeadlineUITests: KontivoUITestCase {
         tapTop("Schliessen")
         waitUntil("Kündigung geschlossen") { !self.navExists("Kündigung") }
     }
+
+    /// Pflichtvertrag «Wechseln» → «Gekündigt, neuen Anbieter erfassen» → Formular «Neuer Anbieter»
+    func testPflichtvertragWechseln() {
+        launch("-uiDemo", "-uiTab", "deadlines")
+        tap(buttons("Wechseln").firstMatch, "Wechseln")
+        tap(buttonStarting("Gekündigt, neuen Anbieter erfassen"), "Gekündigt, neuen Anbieter erfassen")
+        waitNav("Neuer Anbieter", timeout: 12)
+        XCTAssertEqual(textField("form.label").value as? String, "Krankenkasse")
+        tapTop("Abbrechen")
+        if app.sheets.firstMatch.waitForExistence(timeout: 2) || app.alerts.firstMatch.exists {
+            tapAlertButton("Verwerfen")
+        }
+        waitUntil("Formular geschlossen") { !self.navExists("Neuer Anbieter") }
+        wait(elContaining("gekündigt · endet"), "Krankenkasse als gekündigt bei «Kommende Termine»")
+    }
 }

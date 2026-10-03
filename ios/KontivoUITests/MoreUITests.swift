@@ -23,8 +23,8 @@ final class MoreUITests: KontivoUITestCase {
         // Neue Kategorie
         tap(button("Kategorie hinzufügen"), "Kategorie hinzufügen")
         waitNav("Neue Kategorie")
-        enter(textField("Name"), "QA Haustier", "Name")
-        tap(button("Hinzufügen"), "Hinzufügen")
+        // Eingabetaste übernimmt (onSubmit)
+        enter(textField("Name"), "QA Haustier\n", "Name")
         waitNav("Kategorien")
         let row = buttonStarting("QA Haustier")
         tap(row, "Neue Kategorie in der Liste")
@@ -52,7 +52,7 @@ final class MoreUITests: KontivoUITestCase {
         tap(button("Inhaber hinzufügen"), "Inhaber hinzufügen")
         waitNav("Neuer Inhaber")
         enter(textField("Name"), "Mia", "Name")
-        tap(button("Hinzufügen"), "Hinzufügen")
+        tapContent("Hinzufügen")
         waitNav("Inhaber")
 
         // Personenkarte
@@ -109,5 +109,17 @@ final class MoreUITests: KontivoUITestCase {
         wait(button("Einnahme erfassen"), "Leerseite Budget")
         tapTab("Fristen")
         wait(elContaining("Frist verpassen"), "Leerseite Fristen")
+    }
+
+    func testVertragspartnerOeffnen() {
+        launch("-uiDemo", "-uiTab", "more")
+        tap(buttonStarting("Vertragspartner"), "Zeile Vertragspartner")
+        waitNav("Vertragspartner")
+        tap(buttonStarting("Swisscom"), "Swisscom")
+        waitNav("Swisscom")
+        goBack()
+        waitNav("Vertragspartner")
+        tapTop("Fertig")
+        waitUntil("Verwalten geschlossen") { !self.navExists("Vertragspartner") }
     }
 }
