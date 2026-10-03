@@ -85,6 +85,8 @@ final class CTFormState {
     var showCatalog = false
     var showLogoSearch = false
     var logoOpen = false
+    /// Hinweis nach «Google» («So geht’s …»)
+    var googleHint = false
     var cropItem: CTImageItem?
     var logoPhoto: PhotosPickerItem?
     var docPhoto: PhotosPickerItem?
@@ -560,11 +562,19 @@ final class CTFormState {
         let lid = logoID
         let lbg = logoBg
         let iPID = initialPartnerID
-        let iWeb = initialWeb
-        let iAddr = initialAddress
+        let iWeb = initialWeb.ctTrimmed
+        let iAddr = PostalAddress(company: t(initialAddress.company), extra: t(initialAddress.extra), street: t(initialAddress.street),
+                                  zip: t(initialAddress.zip), city: t(initialAddress.city), country: t(initialAddress.country))
         return model.update { d in
             var pid: UUID?
-            if !pname.isEmpty { pid = d.partnerID(forName: pname, web: webT) }
+            // Vertragspartner gewechselt: unveränderte Website/Adresse des bisherigen nicht auf den neuen übertragen
+            var webInherited = false
+            var addrInherited = false
+            if !pname.isEmpty, let old = iPID, Partners.find(pname, in: d)?.id != old {
+                webInherited = !iWeb.isEmpty && webT == iWeb
+                addrInherited = !iAddr.isEmpty && addr == iAddr
+            }
+            if !pname.isEmpty { pid = d.partnerID(forName: pname, web: webInherited ? "" : webT) }
             c.partnerID = pid
             if let p = pid {
                 if touched {
@@ -573,13 +583,17 @@ final class CTFormState {
                     c.logoBg = nil
                 }
                 let curWeb = d.partner(p)?.web ?? ""
-                if !webT.isEmpty {
+                if webInherited {
+                    // nichts übernehmen
+                } else if !webT.isEmpty {
                     if webT != curWeb { d.setPartnerWeb(p, webT) }
                 } else if !curWeb.isEmpty && p == iPID && !iWeb.isEmpty {
                     d.setPartnerWeb(p, "")
                 }
                 let curAddr = d.partner(p)?.address ?? PostalAddress()
-                if !addr.isEmpty {
+                if addrInherited {
+                    // nichts übernehmen
+                } else if !addr.isEmpty {
                     if addr != curAddr { d.setPartnerAddress(p, addr) }
                 } else if !curAddr.isEmpty && p == iPID && !iAddr.isEmpty {
                     d.setPartnerAddress(p, PostalAddress())

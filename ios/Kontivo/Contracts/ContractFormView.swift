@@ -251,6 +251,7 @@ private struct CTFormContractSection: View {
 
 private struct CTFormLogoRows: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.openURL) private var openURL
     @Bindable var form: CTFormState
 
     var body: some View {
@@ -288,6 +289,21 @@ private struct CTFormLogoRows: View {
             PhotosPicker(selection: $form.logoPhoto, matching: .images) {
                 Label("Bild wählen", systemImage: "photo")
             }
+            Button {
+                pasteLogo()
+            } label: {
+                Label("Einfügen", systemImage: "doc.on.clipboard")
+            }
+            Button {
+                googleSearch()
+            } label: {
+                Label("Google", systemImage: "globe")
+            }
+            if form.googleHint {
+                (Text("So geht’s: ").bold() + Text("In Google das passende Bild lange drücken → «Kopieren». Dann zurück in die App und «Einfügen» tippen."))
+                    .font(.footnote)
+                    .foregroundStyle(KColor.ink2)
+            }
             if logo != nil {
                 Button(role: .destructive) {
                     form.removeLogo()
@@ -323,6 +339,44 @@ private struct CTFormLogoRows: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    /// «Einfügen»: Bild aus der Zwischenablage oder Bild-Link → Zuschneiden (pasteLogo)
+    private func pasteLogo() {
+        form.googleHint = false
+        let pb = UIPasteboard.general
+        if let img = pb.image {
+            form.cropItem = CTImageItem(image: img)
+            return
+        }
+        if let s = pb.string?.ctTrimmed, let u = URL(string: s), let scheme = u.scheme?.lowercased(),
+           scheme == "http" || scheme == "https", u.host != nil {
+            model.toast("Lade Bild…")
+            let f = form
+            let m = model
+            Task {
+                if let img = await CTLogoFetch.image(u) {
+                    if !f.closed { f.cropItem = CTImageItem(image: img) }
+                } else {
+                    m.toast("Bild-Link konnte nicht geladen werden")
+                }
+            }
+            return
+        }
+        model.toast("Kein Bild in der Zwischenablage. In Google Bild lange drücken → «Kopieren».")
+    }
+
+    /// «Google»: Bildersuche «<Name> logo» im Browser öffnen
+    private func googleSearch() {
+        let n = form.logoSearchName
+        if n.isEmpty {
+            model.toast("Zuerst den Firmennamen eintragen")
+            return
+        }
+        form.googleHint = true
+        if let u = URL(string: "https://www.google.com/search?tbm=isch&q=" + CTWebPartners.enc(n + " logo")) {
+            openURL(u)
+        }
     }
 
     private func swatch(hex: String, selected: Bool, label: String?, a11y: String, action: @escaping () -> Void) -> some View {
