@@ -1,33 +1,78 @@
 name: iOS
+# Baut und testet die native App (Ordner ios/) auf einem Mac von GitHub.
+# Das Protokoll landet im Branch «ci-logs» (Datei <branch>.txt), weil Logs dort einfacher lesbar sind.
 on:
   push:
-    branches: [swift]
+    branches: [swift, 'swift-*']
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
 jobs:
-  probe:
+  build:
     runs-on: macos-15
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Umgebung
+      - name: Kern testen (swift test)
+        id: core
+        continue-on-error: true
         run: |
           mkdir -p ci-out
+          if [ -d ios/KontivoCore ]; then
+            cd ios/KontivoCore
+            set -o pipefail
+            swift test 2>&1 | tee ../../ci-out/core.txt
+          else
+            echo "kein ios/KontivoCore" > ci-out/core.txt
+          fi
+      - name: App bauen (xcodebuild)
+        id: app
+        continue-on-error: true
+        run: |
+          mkdir -p ci-out
+          if [ -f ios/project.yml ]; then
+            brew list xcodegen >/dev/null 2>&1 || brew install xcodegen >/dev/null 2>&1
+            cd ios
+            xcodegen generate 2>&1 | tee ../ci-out/app.txt
+            set -o pipefail
+            xcodebuild -project Kontivo.xcodeproj -scheme Kontivo -destination 'generic/platform=iOS Simulator' \
+              -derivedDataPath ../build CODE_SIGNING_ALLOWED=NO build 2>&1 | tee -a ../ci-out/app.txt
+          else
+            echo "kein ios/project.yml" > ci-out/app.txt
+          fi
+      - name: Protokoll in Branch ci-logs schreiben
+        if: always()
+        env:
+          BR: ${{ github.ref_name }}
+        run: |
           {
-          sw_vers
-          ls /Applications | grep -i xcode
-          xcodebuild -version
-          xcrun simctl list runtimes
-          xcrun simctl list devices available | grep -i iphone | head -20
-          brew list --versions xcodegen || echo "xcodegen fehlt"
-          swift --version
-          } > ci-out/log.txt 2>&1 || true
-      - name: Log zurückschreiben
+            echo "branch=$BR run=$GITHUB_RUN_NUMBER sha=$GITHUB_SHA"
+            echo "core=${{ steps.core.outcome }} app=${{ steps.app.outcome }}"
+            echo; echo "===== KERN: Fehler ====="
+            grep -E "error:|failed|FAIL|Test Case .* failed|XCTAssert|Issue recorded|✘" ci-out/core.txt | head -300 || true
+            echo; echo "===== KERN: Ende ====="
+            tail -60 ci-out/core.txt || true
+            echo; echo "===== APP: Fehler ====="
+            grep -E "error:|BUILD FAILED|\*\* BUILD" ci-out/app.txt | head -400 || true
+            echo; echo "===== APP: Ende ====="
+            tail -40 ci-out/app.txt || true
+          } > /tmp/summary.txt
+          if [ -d ios/Kontivo.xcodeproj ]; then tar czf /tmp/xcodeproj.tgz -C ios Kontivo.xcodeproj; fi
+          git config --global user.name ci; git config --global user.email ci@example.invalid
+          for i in 1 2 3 4 5 6; do
+            rm -rf /tmp/cl
+            git clone -q --depth 1 --branch ci-logs "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" /tmp/cl || exit 0
+            cp /tmp/summary.txt "/tmp/cl/$BR.txt"
+            if [ -f /tmp/xcodeproj.tgz ]; then cp /tmp/xcodeproj.tgz "/tmp/cl/$BR-xcodeproj.tgz"; fi
+            (cd /tmp/cl && git add -A && git commit -q -m "log $BR $GITHUB_RUN_NUMBER" && git push -q origin ci-logs) && break
+            sleep $((RANDOM % 7 + 3))
+          done
+      - name: Status
         if: always()
         run: |
-          git config user.name ci; git config user.email ci@example.invalid
-          cp ci-out/log.txt /tmp/log.txt
-          git fetch origin ci-logs || true
-          if git rev-parse --verify origin/ci-logs >/dev/null 2>&1; then git checkout -B ci-logs origin/ci-logs; else git checkout --orphan ci-logs; git rm -rf . >/dev/null; fi
-          cp /tmp/log.txt "run-${GITHUB_RUN_NUMBER}.txt"; cp /tmp/log.txt latest.txt
-          git add run-*.txt latest.txt; git commit -m "log ${GITHUB_RUN_NUMBER}" -q; git push origin ci-logs -q
+          if [ "${{ steps.core.outcome }}" != "success" ] || [ "${{ steps.app.outcome }}" != "success" ]; then exit 1; fi
