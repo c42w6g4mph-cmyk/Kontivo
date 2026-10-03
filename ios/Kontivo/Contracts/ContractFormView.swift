@@ -183,6 +183,8 @@ struct CTField: View {
     var capitalization: TextInputAutocapitalization = .sentences
     var autocorrect = true
     var limit: Int? = nil
+    /// Kennung für UI-Tests
+    var identifier: String = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
@@ -190,6 +192,7 @@ struct CTField: View {
                 .font(.footnote)
                 .foregroundStyle(KColor.ink2)
             TextField(placeholder, text: $text)
+                .accessibilityIdentifier(identifier)
                 .keyboardType(keyboard)
                 .textInputAutocapitalization(capitalization)
                 .autocorrectionDisabled(!autocorrect)
@@ -211,7 +214,7 @@ private struct CTFormContractSection: View {
     var body: some View {
         Section {
             CTFormLogoRows(form: form)
-            CTField(title: "Bezeichnung", placeholder: "z.B. Handy-Abo", text: $form.label)
+            CTField(title: "Bezeichnung", placeholder: "z.B. Handy-Abo", text: $form.label, identifier: "form.label")
             CTFormPartnerBlock(form: form)
             categoryRow
             if model.data.persons.count >= 2 {
@@ -244,6 +247,7 @@ private struct CTFormContractSection: View {
             .contentShape(Rectangle())
         }
         .accessibilityLabel("Kategorie, " + (cat?.name ?? "Kategorie wählen"))
+        .accessibilityIdentifier("form.category")
     }
 
     private var holdersRow: some View {
@@ -422,6 +426,7 @@ private struct CTFormCostSection: View {
         Section {
             LabeledContent(form.prices.isEmpty ? "Betrag" : "Anfangspreis") {
                 TextField("59.90", text: $form.amountText)
+                    .accessibilityIdentifier("form.amount")
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .monospacedDigit()

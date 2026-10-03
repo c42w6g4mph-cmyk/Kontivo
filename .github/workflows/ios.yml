@@ -15,7 +15,7 @@ env:
 jobs:
   build:
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Kern testen (swift test)
@@ -45,6 +45,58 @@ jobs:
           else
             echo "kein ios/project.yml" > ci-out/app.txt
           fi
+      - name: UI-Tests
+        id: ui
+        if: steps.app.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 32
+        run: |
+          mkdir -p ci-out
+          RT=$(xcrun simctl list runtimes | grep -o 'com.apple.CoreSimulator.SimRuntime.iOS-26-[0-9]*' | tail -1)
+          UDID=$(xcrun simctl create kqa-ui "iPhone 17 Pro" "$RT" 2>/dev/null || true)
+          if [ -n "$UDID" ]; then
+            xcrun simctl boot "$UDID" >/dev/null 2>&1 || true
+            xcrun simctl bootstatus "$UDID" -b >/dev/null 2>&1 || true
+            DEST="id=$UDID"
+          else
+            DEST='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2'
+          fi
+          echo "runtime=$RT udid=$UDID dest=$DEST" > ci-out/ui-info.txt
+          set -o pipefail
+          xcodebuild test -project ios/Kontivo.xcodeproj -scheme Kontivo -destination "$DEST" \
+            -derivedDataPath build -resultBundlePath ci-out/ui.xcresult \
+            -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 300 \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee ci-out/ui.txt
+      - name: UI-Tests auswerten
+        if: always() && steps.ui.outcome != 'skipped'
+        continue-on-error: true
+        run: |
+          mkdir -p ci-out/uishots
+          sed -n '/Test Suite .* started/,$p' ci-out/ui.txt > ci-out/ui-tests.txt 2>/dev/null || true
+          if [ -d ci-out/ui.xcresult ]; then
+            xcrun xcresulttool export attachments --path ci-out/ui.xcresult --output-path ci-out/uiatt >/dev/null 2>&1 || true
+            python3 - <<'PY' || true
+          import json, os, shutil
+          src = 'ci-out/uiatt'; dst = 'ci-out/uishots'
+          m = json.load(open(os.path.join(src, 'manifest.json')))
+          n = 0
+          for t in m:
+              tid = str(t.get('testIdentifier', 'test')).split('/')[-1].replace('()', '')
+              for a in t.get('attachments', []):
+                  f = a.get('exportedFileName')
+                  if not f or not f.lower().endswith(('.png', '.jpg', '.jpeg')):
+                      continue
+                  n += 1
+                  if n > 40:
+                      break
+                  ext = os.path.splitext(f)[1]
+                  name = ('%02d-%s-%s' % (n, tid, a.get('suggestedHumanReadableName', ''))).replace('/', '_').replace(' ', '_')[:110]
+                  shutil.copy(os.path.join(src, f), os.path.join(dst, name + ext))
+          PY
+            for f in ci-out/uishots/*; do [ -f "$f" ] && sips -Z 1200 "$f" >/dev/null 2>&1; done || true
+          fi
+          ls ~/Library/Logs/DiagnosticReports 2>/dev/null | grep -i kontivo > ci-out/ui-crash.txt || true
+          for f in ~/Library/Logs/DiagnosticReports/*Kontivo*; do [ -f "$f" ] && { echo "== $f"; head -c 6000 "$f"; echo; } >> ci-out/ui-crash.txt; done 2>/dev/null || true
       - name: Bildschirmfotos im Simulator
         id: shots
         if: steps.app.outcome == 'success' && (github.ref_name == 'swift' || contains(github.event.head_commit.message, '[shots]'))
@@ -111,7 +163,7 @@ jobs:
         run: |
           {
             echo "branch=$BR run=$GITHUB_RUN_NUMBER sha=$GITHUB_SHA"
-            echo "core=${{ steps.core.outcome }} app=${{ steps.app.outcome }}"
+            echo "core=${{ steps.core.outcome }} app=${{ steps.app.outcome }} ui=${{ steps.ui.outcome }}"
             echo; echo "===== KERN: Fehler ====="
             grep -E "error:|failed|FAIL|Test Case .* failed|XCTAssert|Issue recorded|✘" ci-out/core.txt | head -300 || true
             echo; echo "===== KERN: Ende ====="
@@ -120,6 +172,12 @@ jobs:
             grep -E "error:|BUILD FAILED|\*\* BUILD" ci-out/app.txt | head -400 || true
             echo; echo "===== APP: Ende ====="
             tail -40 ci-out/app.txt || true
+            echo; echo "===== UI-TESTS ====="
+            echo "ui=${{ steps.ui.outcome }}"
+            cat ci-out/ui-info.txt 2>/dev/null || true
+            grep -E "error:|Test Case .*(passed|failed)|Executed [0-9]+ test|\*\* TEST|Testing failed|Restarting after|crash|Crash|APP-ZUSTAND|BUILD FAILED" ci-out/ui.txt 2>/dev/null | head -300 || true
+            echo; echo "--- Absturzberichte ---"
+            head -c 20000 ci-out/ui-crash.txt 2>/dev/null || echo "keine"
             echo; echo "===== BILDSCHIRMFOTOS ====="
             cat ci-out/shots.txt 2>/dev/null || echo "keine"
           } > /tmp/summary.txt
@@ -131,6 +189,8 @@ jobs:
             cp /tmp/summary.txt "/tmp/cl/$BR.txt"
             if [ -f /tmp/xcodeproj.tgz ]; then cp /tmp/xcodeproj.tgz "/tmp/cl/$BR-xcodeproj.tgz"; fi
             if [ -d ci-out/shots ] && ls ci-out/shots/*.png >/dev/null 2>&1; then rm -rf "/tmp/cl/shots-$BR"; mkdir -p "/tmp/cl/shots-$BR"; cp ci-out/shots/*.png "/tmp/cl/shots-$BR/"; fi
+            if [ -f ci-out/ui-tests.txt ]; then head -c 4000000 ci-out/ui-tests.txt > "/tmp/cl/$BR-ui.txt"; fi
+            rm -rf "/tmp/cl/ui-$BR"; if ls ci-out/uishots/* >/dev/null 2>&1; then mkdir -p "/tmp/cl/ui-$BR"; cp ci-out/uishots/* "/tmp/cl/ui-$BR/"; fi
             (cd /tmp/cl && git add -A && git commit -q -m "log $BR $GITHUB_RUN_NUMBER" && git push -q origin ci-logs) && break
             sleep $((RANDOM % 7 + 3))
           done
@@ -138,3 +198,4 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.core.outcome }}" != "success" ] || [ "${{ steps.app.outcome }}" != "success" ]; then exit 1; fi
+          if [ "${{ steps.ui.outcome }}" = "failure" ]; then echo "UI-Tests fehlgeschlagen"; exit 1; fi

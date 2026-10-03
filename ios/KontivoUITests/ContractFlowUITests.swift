@@ -1,0 +1,82 @@
+import XCTest
+
+/// b) Neuer Vertrag → Liste → Detail → Bearbeiten → Duplizieren → Pausieren/Fortsetzen → Löschen
+final class ContractFlowUITests: KontivoUITestCase {
+
+    private let contractName = "QA Testvertrag"
+
+    private var rows: XCUIElementQuery { app.buttons.matching(pred("label BEGINSWITH %@", contractName)) }
+
+    func testVertragAnlegenBearbeitenDuplizierenPausierenLoeschen() {
+        launch("-uiEmpty")
+
+        // Neuer Vertrag über «+»
+        tap(button("Vertrag anlegen"), "Knopf +")
+        waitNav("Neuer Vertrag")
+        enter(textField("form.label"), contractName, "Bezeichnung")
+        enter(textField("form.amount"), "45", "Betrag")
+        tap(button("form.category"), "Kategorie wählen")
+        tap(button("Abos & Medien"), "Kategorie Abos & Medien")
+        waitUntil("Kategorie übernommen") { self.button("form.category").label.contains("Abos & Medien") }
+        tapTop("Sichern")
+
+        // erscheint in der Liste
+        wait(rows.firstMatch, "Vertrag in der Liste", timeout: 10)
+        XCTAssertEqual(rows.count, 1)
+
+        // Detail öffnen
+        tap(rows.firstMatch, "Vertragskarte")
+        wait(button("Bearbeiten"), "Detail")
+        wait(elContaining("45.00 CHF"), "Betrag im Detail")
+
+        // Bearbeiten → Betrag ändern → Sichern
+        tapTop("Bearbeiten")
+        waitNav("Vertrag bearbeiten")
+        let amount = textField("form.amount")
+        wait(amount, "Betragsfeld")
+        XCTAssertEqual(amount.value as? String, "45.00")
+        replace(amount, "52", "Betrag ändern")
+        tapTop("Sichern")
+        waitUntil("Formular geschlossen") { !self.navExists("Vertrag bearbeiten") }
+        wait(elContaining("52.00 CHF"), "Neuer Betrag im Detail")
+        XCTAssertFalse(elContaining("45.00 CHF").exists, "Alter Betrag noch sichtbar")
+
+        // Duplizieren (unter «Weitere Aktionen»)
+        tap(button("Weitere Aktionen"), "Weitere Aktionen")
+        tap(button("Duplizieren"), "Duplizieren")
+        waitNav("Duplizieren")
+        tapTop("Sichern")
+        waitGone(textField("form.amount"), "Formular Kopie")
+        tapTop("Schliessen")
+        waitUntil("Zwei Verträge in der Liste") { self.rows.count == 2 }
+
+        // Pausieren → Fortsetzen
+        tap(rows.firstMatch, "Vertragskarte")
+        tapTop("Pausieren")
+        tap(buttonStarting("1 Monat"), "1 Monat")
+        wait(button("Fortsetzen"), "Fortsetzen nach dem Pausieren")
+        wait(elContaining("Pausiert bis"), "Pille «Pausiert bis»")
+        tapTop("Fortsetzen")
+        wait(button("Pausieren"), "Pausieren nach dem Fortsetzen")
+        XCTAssertFalse(elContaining("Pausiert bis").exists, "Pille «Pausiert» noch sichtbar")
+
+        // Löschen mit Bestätigung → Detail schliesst sich
+        tap(button("Weitere Aktionen"), "Weitere Aktionen")
+        tap(button("Vertrag löschen"), "Vertrag löschen")
+        wait(app.alerts.firstMatch, "Rückfrage «Vertrag löschen?»")
+        tapAlertButton("Löschen")
+        waitGone(button("Bearbeiten"), "Detail nach dem Löschen")
+        waitUntil("Ein Vertrag übrig") { self.rows.count == 1 }
+    }
+
+    /// Abbrechen mit Änderungen fragt nach; «Verwerfen» schliesst ohne zu sichern
+    func testFormularVerwerfen() {
+        launch("-uiEmpty")
+        tap(button("Vertrag anlegen"), "Knopf +")
+        enter(textField("form.label"), "Wird verworfen", "Bezeichnung")
+        tapTop("Abbrechen")
+        tapAlertButton("Verwerfen")
+        waitGone(textField("form.label"), "Formular")
+        wait(button("Ersten Vertrag erfassen"), "Leerseite bleibt")
+    }
+}

@@ -145,6 +145,7 @@ struct KBIncomeForm: View {
             LabeledContent("Bezeichnung") {
                 TextField("", text: $draft.label, prompt: Text("z.B. Lohn"))
                     .multilineTextAlignment(.trailing)
+                    .accessibilityIdentifier("income.label")
             }
             LabeledContent("Quelle") {
                 TextField("", text: $draft.name, prompt: Text("z.B. Arbeitgeber AG"))
@@ -215,6 +216,7 @@ struct KBIncomeForm: View {
         Section {
             LabeledContent(amountLabel) {
                 TextField("", text: $amountText, prompt: Text(verbatim: "6500.00"))
+                    .accessibilityIdentifier("income.amount")
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .font(.body.monospacedDigit())

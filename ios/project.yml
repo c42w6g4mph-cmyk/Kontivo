@@ -69,12 +69,34 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: NO
+  KontivoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: KontivoUITests
+    dependencies:
+      - target: Kontivo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ch.kontivo.app.uitests
+        PRODUCT_NAME: KontivoUITests
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+        TEST_TARGET_NAME: Kontivo
+        CODE_SIGN_STYLE: Automatic
 schemes:
   Kontivo:
     build:
       targets:
         Kontivo: all
+        KontivoUITests: [test]
     run:
       config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: false
+      targets:
+        - name: KontivoUITests
+          parallelizable: false
     archive:
       config: Release
