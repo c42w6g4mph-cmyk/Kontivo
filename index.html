@@ -1557,9 +1557,11 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     exportAll:function(ids){var out={},list=(ids||Object.keys(cache)).filter(function(id){return cache[id];});
       return list.reduce(function(p,id){return p.then(function(){return b64(cache[id]).then(function(d){out[id]={type:cache[id].type||"",data:d};});});},Promise.resolve())
         .then(function(){return out;});},
-    importAll:function(files){var ids=Object.keys(files||{});
-      return ids.reduce(function(p,id){return p.then(function(){var f=files[id];if(!f||!f.data)return;return KBlob.put(id,unb64(f.data,f.type));});},Promise.resolve())
-        .then(function(){return ids.length;});}
+    /* jede Datei einzeln: ein Fehler (z.B. Speicher voll) stoppt die übrigen nicht; Rückgabe = Anzahl fehlgeschlagener Dateien */
+    importAll:function(files){var ids=Object.keys(files||{}),bad=0;
+      return ids.reduce(function(p,id){return p.then(function(){var f=files[id];if(!f||!f.data){bad++;return;}
+          return Promise.resolve().then(function(){return KBlob.put(id,unb64(f.data,f.type));}).catch(function(){bad++;});});},Promise.resolve())
+        .then(function(){return bad;});}
   };
   window.KBlob=KBlob;
 
@@ -5372,7 +5374,7 @@ function paintCands(box,cs,onPick){
   box.innerHTML='<div class="lcmsg">'+(list[0].score>=3?"Tippe auf das passende Logo:":"Keine eindeutige Übereinstimmung – passt eines davon?")+"</div>"+
     list.map(function(c,i){return '<button type="button" class="lcand'+(c.score>=3?"":" weak")+(c.src==="wiki"?" wide":"")+'" data-i="'+i+'"><img src="'+esc(c.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer"><span>'+esc(c.title)+"</span><em>"+(LSRC[c.src]||"App Store")+"</em></button>";}).join("");
   box.onclick=async function(ev){var b=ev.target.closest(".lcand");if(!b)return;
-    toast("Übernehme Logo…");var r=await takeLogo(list[+b.dataset.i]);
+    toast("Übernehme Logo…");var r;try{r=await takeLogo(list[+b.dataset.i]);}catch(e){r={err:"speicher"};}
     if(!r||!r.id){toast(LERR[r&&r.err]||"Übernahme fehlgeschlagen");return;}
     box.innerHTML="";box.onclick=null;onPick(r);toast("Logo übernommen");};
 }
@@ -5409,7 +5411,11 @@ document.getElementById("bkSave").addEventListener("click",async function(){
   var used={};[state.contracts,state.incomes].forEach(function(m){Object.keys(m).forEach(function(k){var c=m[k];
       if(c.logoId)used[c.logoId]=1;(c.docs||[]).forEach(function(d){if(d&&d.id)used[d.id]=1;});});});
   Object.keys(state.settings.avatars||{}).forEach(function(h){var id=state.settings.avatars[h];if(id)used[id]=1;});
-  var files={};try{files=await KBlob.exportAll(Object.keys(used));}catch(e){files={};}
+  /* Dateien einzeln lesen: eine defekte Datei soll nicht das ganze Backup ohne Dateien lassen */
+  var files={},miss=0,ids=Object.keys(used);
+  for(var j=0;j<ids.length;j++){try{Object.assign(files,await KBlob.exportAll([ids[j]]));}catch(e){miss++;}}
+  if(miss&&!(await ask({title:"Dateien fehlen",ok:"Trotzdem sichern",
+    text:(miss===1?"1 Datei konnte":miss+" Dateien konnten")+" nicht gelesen werden – trotzdem sichern?"})))return;
   var data=JSON.stringify({app:"vertraege",version:2,exported:new Date().toISOString(),
     settings:state.settings,contracts:state.contracts,incomes:state.incomes,files:files});
   var name="kontivo-sicherung-"+iso(today())+".json",dl=null;
@@ -5427,30 +5433,63 @@ document.getElementById("bkFile").addEventListener("change",function(ev){
     if(!o||o.app!=="vertraege"||typeof o.contracts!=="object"){toast("Keine gültige Backup-Datei");return;}
     var nc=Object.keys(o.contracts||{}).length,ni=Object.keys(o.incomes||{}).length,nf=Object.keys(o.files||{}).length;
     var when=o.exported?new Date(o.exported).toLocaleDateString("de-CH"):"unbekannt";
-    if(!(await ask({title:"Backup einspielen?",text:"Backup vom "+when+" mit "+nc+" Verträgen und "+ni+" Einnahmen"+(nf?" sowie "+nf+" Logos/Dokumenten":"")+".\n\nDie aktuellen Daten werden ersetzt.",ok:"Einspielen",danger:true})))return;
-    if(nf){toast("Dateien werden übernommen…");try{await KBlob.importAll(o.files);}catch(e){toast("Einige Dateien konnten nicht übernommen werden");}}
-    await restoreAll(o);
+    if(!(await ask({title:"Backup einspielen?",text:"Backup vom "+when+" mit "+(nc===1?"1 Vertrag":nc+" Verträgen")+" und "+(ni===1?"1 Einnahme":ni+" Einnahmen")+(nf?" sowie "+(nf===1?"1 Logo/Dokument":nf+" Logos/Dokumenten"):"")+".\n\nDie aktuellen Daten werden ersetzt.",ok:"Einspielen",danger:true})))return;
+    var miss=0;
+    if(nf){toast("Dateien werden übernommen…");try{miss=await KBlob.importAll(o.files);}catch(e){miss=nf;}}
+    await restoreAll(o,miss);
   };
   rd.readAsText(f);
 });
-async function restoreAll(o){
-  state.contracts=o.contracts||{};state.incomes=o.incomes||{};
-  state.settings=Object.assign(state.settings,o.settings||{});migCats();saveLocal();
-  fillSettings();render();toast("Backup eingespielt");
+/* Backup-Datei kann fremd sein: alles, was ungeprüft in HTML/CSS landet, auf sichere Werte begrenzen */
+function sanitizeImport(o){
+  var KEY=/^[A-Za-z0-9_-]{1,40}$/,COL=/^#[0-9A-Fa-f]{3,8}$/,SIG=/^data:image\/(jpeg|png);base64,[A-Za-z0-9+\/]*={0,2}$/,HEX=/^[0-9a-f]{32}$/i;
+  var obj=function(x){return !!x&&typeof x==="object"&&!Array.isArray(x);};
+  var badCol=function(v){return v!=null&&v!==""&&!COL.test(String(v));};
+  var col=function(c){["color","logoBg"].forEach(function(f){if(badCol(c[f]))delete c[f];});};
+  /* Schlüssel landen als data-Attribut im HTML: nur einfache Zeichen, sonst neu vergeben */
+  ["contracts","incomes"].forEach(function(m){var src=obj(o[m])?o[m]:{},out={};
+    Object.keys(src).forEach(function(k){var c=src[k];if(!obj(c))return;var nk=k;
+      if(!KEY.test(k)){nk=uid();while(src[nk]||out[nk])nk=uid();}
+      col(c);out[nk]=c;});
+    o[m]=out;});
+  var s=obj(o.settings)?o.settings:{};
+  if(["CHF","EUR","USD","GBP","TRY"].indexOf(s.home)<0)s.home="CHF";
+  if(!Array.isArray(s.holders)||!s.holders.length)delete s.holders;
+  if(obj(s.sigs)){Object.keys(s.sigs).forEach(function(h){if(!SIG.test(String(s.sigs[h])))delete s.sigs[h];});}else delete s.sigs;
+  if("sig" in s&&!SIG.test(String(s.sig)))delete s.sig;  /* alte globale Unterschrift (migModel) */
+  if(Array.isArray(s.catList))s.catList=s.catList.filter(obj).map(function(x){if(badCol(x.c))delete x.c;return x;});
+  if(obj(s.avatars)){Object.keys(s.avatars).forEach(function(h){if(!HEX.test(String(s.avatars[h])))delete s.avatars[h];});}else delete s.avatars;
+  o.settings=s;return o;
 }
+async function restoreAll(o,miss){
+  sanitizeImport(o);
+  state.contracts=o.contracts;state.incomes=o.incomes;
+  /* Einstellungen ersetzen statt mischen; nur die Darstellung (theme) bleibt gerätebezogen */
+  var th=state.settings.theme;
+  state.settings=Object.assign({home:"CHF",rates:{},holders:["Ich"]},o.settings);
+  if(th!=null)state.settings.theme=th;else delete state.settings.theme;
+  state.flt={cat:null,partner:null,holder:null};state.bHolder="";state.heroF="";
+  migCats();saveLocal();
+  fillSettings();render();toast(miss?"Backup eingespielt – "+(miss===1?"1 Datei fehlt":miss+" Dateien fehlen"):"Backup eingespielt");
+}
+/* CSV-Feld nach RFC 4180: in Anführungszeichen, sobald ; " oder ein Zeilenumbruch vorkommt (innere " verdoppelt) */
+function csvField(x){var s=String(x==null?"":x);return /[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
 document.getElementById("csvBtn").addEventListener("click",async function(){
   var rows=["Vertragspartner;Bezeichnung;Kategorie;Betrag;Waehrung;Turnus_Monate;ProMonat_"+state.settings.home+
-            ";NaechsteZahlung;Beginn;Ende;Kuendigungsfrist;Einheit;Verlaengerung;KuendigenBis;Preisverlauf;Kundennummer;Vertragsnummer;Inhaber;Zahlungsart;BelastetUeber;KuendigungPer;Website;Telefon;EMail;Status;KuendbarPer;Pflichtvertrag;Notiz;Sonderzahlungen"];
+            ";NaechsteZahlung;Beginn;Ende;Kuendigungsfrist;Einheit;Verlaengerung;KuendigenBis;Preisverlauf;Kundennummer;Vertragsnummer;Inhaber;Zahlungsart;BelastetUeber;KuendigungPer;Website;Telefon;EMail;Status;KuendbarPer;Pflichtvertrag;Notiz;Sonderzahlungen;Adresse;KuendigungsLink"];
   Object.keys(state.contracts).forEach(function(k){
     var c=state.contracts[k],nd=nextDue(c),u=urgency(c),e=effEnd(c);
     rows.push([c.partner,c.label,c.cat,curPrice(c).toFixed(2),c.cur,c.cycle,monthlyCost(c).toFixed(2),
-      nd?iso(nd):"",c.start||"",e?iso(e):"",c.notice||"",c.noticeU||"",c.renew||"",u.date?iso(u.date):"",
+      nd?iso(nd):"",c.start||"",e?iso(e):"",+c.notice||0,c.noticeU||"",c.renew||"",u.date?iso(u.date):"",
       ["Anfang:"+(+c.amount||0).toFixed(2)].concat(pricesOf(c).map(function(p){return p.from+":"+(+p.amount).toFixed(2);})).join(" | "),
-      c.custNo||"",c.contrNo||"",holdersOf(c).join(", "),c.payM||"",c.payA||"",c.cancF||"",c.web||"",c.tel||"",c.mail||"",c.status||"active",c.cancTerm||"",c.mand?"ja":"",c.note||"",
-      extrasOf(c).map(function(x){return x.date+":"+x.amount.toFixed(2)+(x.note?":"+x.note.replace(/[|:]/g," "):"");}).join(" | ")]
-      .map(function(x){return String(x==null?"":x).replace(/[;\n\r]/g," ");}).join(";"));
+      c.custNo||"",c.contrNo||"",holdersOf(c).join(", "),c.payM||"",c.payA||"",c.cancF||"",c.web||"",c.tel||"",c.mail||"",c.status||"active",
+      c.cancTerm||(c.end?"":"jederzeit"),c.mand?"ja":"",c.note||"",  /* Frist 0 und «jederzeit» ausdrücklich, damit der Import keine Katalogwerte einsetzt */
+      extrasOf(c).map(function(x){return x.date+":"+x.amount.toFixed(2)+(x.note?":"+x.note.replace(/[|:]/g," "):"");}).join(" | "),
+      c.addr||"",c.cancUrl||""]
+      .map(csvField).join(";"));
   });
-  var data=rows.join("\n"),name="kontivo-export-"+iso(today())+".csv",dl=null;
+  /* BOM und CRLF: Excel erkennt so UTF-8 (Umlaute) */
+  var data="\uFEFF"+rows.join("\r\n"),name="kontivo-export-"+iso(today())+".csv",dl=null;
   try{dl=await claude.use("downloads");}catch(e){}
   if(dl){try{await dl.save({filename:name,data:data});toast("CSV gespeichert");return;}catch(e){}}
   document.getElementById("csvOut").innerHTML='<textarea class="out"></textarea>';
@@ -5478,7 +5517,7 @@ window.kontivoAsk=ask;
 document.getElementById("wipeAll").addEventListener("click",async function(){
   var nc=Object.keys(state.contracts).length,ni=Object.keys(state.incomes).length;
   if(!(await ask({title:"Alle Daten löschen?",ok:"Weiter",danger:true,
-    text:"Gelöscht werden "+nc+" Verträge, "+ni+" Einnahmen, eigene Kategorien, Inhaber, Absender sowie hochgeladene Logos und Dokumente.\n\nDarstellung und Währung bleiben erhalten.\n\nTipp: Speichere vorher ein Backup."})))return;
+    text:"Gelöscht werden "+(nc===1?"1 Vertrag":nc+" Verträge")+", "+(ni===1?"1 Einnahme":ni+" Einnahmen")+", eigene Kategorien, Inhaber, Absender sowie hochgeladene Logos und Dokumente.\n\nDarstellung und Währung bleiben erhalten.\n\nTipp: Speichere vorher ein Backup."})))return;
   if(!(await ask({title:"Wirklich endgültig löschen?",ok:"Endgültig löschen",danger:true,text:"Das lässt sich nicht rückgängig machen."})))return;
   toast("Lösche …");
   if(assets){try{var al=await assets.list();var list=(al&&al.assets)||[];for(var x=0;x<list.length;x++){try{await assets.delete(list[x].id);}catch(e){}}}catch(e){}}
@@ -5491,13 +5530,17 @@ document.getElementById("wipeAll").addEventListener("click",async function(){
 /* ---------- CSV-Import ---------- */
 function csvParse(t){
   t=String(t||"").replace(/^﻿/,"");
-  var first=t.split(/\r?\n/)[0]||"",cnt=function(ch){return first.split(ch).length;};
-  var dl=[";",",","\t"].sort(function(a,b){return cnt(b)-cnt(a);})[0];
+  /* Excel-Zeile «sep=;» am Anfang: Trennzeichen übernehmen, Zeile überspringen */
+  var dl="",sm=t.match(/^sep=(.)[ \t]*(\r?\n|$)/i);if(sm){dl=sm[1];t=t.slice(sm[0].length);}
+  if(!dl){/* Trennzeichen in der Kopfzeile zählen, nur ausserhalb von Anführungszeichen */
+    var cnt={";":0,",":0,"\t":0},q0=false;
+    for(var j=0;j<t.length;j++){var c0=t[j];if(c0==='"')q0=!q0;else if(!q0&&(c0==="\n"||c0==="\r"))break;else if(!q0&&cnt[c0]!=null)cnt[c0]++;}
+    dl=[";",",","\t"].sort(function(a,b){return cnt[b]-cnt[a];})[0];}
   var rows=[],row=[],f="",q=false;
   var push=function(){row.push(f);f="";if(row.some(function(x){return String(x).trim();}))rows.push(row);row=[];};
   for(var i=0;i<t.length;i++){var ch=t[i];
     if(q){if(ch==='"'){if(t[i+1]==='"'){f+='"';i++;}else q=false;}else f+=ch;}
-    else if(ch==='"')q=true;
+    else if(ch==='"'&&f==="")q=true;  /* " öffnet ein Zitat nur am Feldanfang, sonst normales Zeichen (RFC 4180) */
     else if(ch===dl){row.push(f);f="";}
     else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&t[i+1]==="\n")i++;push();}
     else f+=ch;}
@@ -5513,17 +5556,31 @@ var CSVMAP={partner:["partner","anbieter","vertragspartner","firma","unternehmen
   notice:["kuendigungsfrist","frist","notice","noticeperiod","cancellationperiod"],noticeU:["einheit"],renew:["verlaengerung","verlaengerungmonate"],
   cancTerm:["kuendbarper"],mand:["pflichtvertrag","pflicht"],custNo:["kundennummer","kundennr","customernumber"],contrNo:["vertragsnummer","vertragsnr","contractnumber","policennummer"],
   holders:["inhaber","vertragsinhaber","person","owner","holder"],payM:["zahlungsart","zahlungsmethode","zahlungsmittel","paymentmethod"],payA:["belastetueber","konto","karte"],
-  cancF:["kuendigungper"],web:["website","web","url"],tel:["telefon","phone"],mail:["email","mail"],note:["notiz","notizen","notes","note","bemerkung","kommentar"],addr:["kuendigungsadresse","adresse","address","anschrift"],
+  cancF:["kuendigungper"],cancUrl:["kuendigungslink"],web:["website","web","url"],tel:["telefon","phone"],mail:["email","mail"],note:["notiz","notizen","notes","note","bemerkung","kommentar"],addr:["kuendigungsadresse","adresse","address","anschrift"],
   prices:["preisverlauf","kostenhistorien","kostenhistorie","preishistorie"],tags:["tags","schlagworte"],contact:["kontaktdaten","kontakt","ansprechpartner"],dueDay:["abbuchungstag","zahltagimmonat"],status:["status"],extras:["sonderzahlungen","einmalzahlungen"]};
 function csvNum(x){var t=String(x||"").replace(/[^\d,.\-']/g,"").replace(/'/g,"");if(!t)return null;
   if(t.indexOf(",")>=0&&t.indexOf(".")>=0){if(t.lastIndexOf(",")>t.lastIndexOf("."))t=t.replace(/\./g,"").replace(",",".");else t=t.replace(/,/g,"");}
+  else if((t.match(/[.,]/g)||[]).length>1)t=t.replace(/[.,]/g,"");  /* 1.234.567: mehrfach dasselbe Zeichen = Tausender */
   else t=t.replace(",",".");var n=parseFloat(t);return isFinite(n)?n:null;}
-function csvDate(x){var t=String(x||"").trim();if(!t)return "";var m;
-  if((m=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)))return iso(new Date(+m[1],+m[2]-1,+m[3]));
-  if((m=t.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})/))){var y=+m[3];if(y<100)y+=2000;return iso(new Date(y,+m[2]-1,+m[1]));}
-  return "";}
-function csvCycle(x){var t=csvNorm(x),n=parseInt(t,10);
-  if(!t)return 1;if(/^\d+$/.test(t))return [1,2,3,6,12,24].indexOf(n)>=0?n:1;
+/* Datum prüfen (kein Überlauf wie 31.02.), «98» → 1998, US-Format 12/31/2025 erkennen; ungültig → "" und bad.n zählen */
+function csvDate(x,bad){var t=String(x||"").trim();if(!t)return "";var m,y,mo,d;
+  if((m=t.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/))){y=+m[1];mo=+m[2];d=+m[3];}
+  else if((m=t.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})/))){d=+m[1];mo=+m[2];y=+m[3];if(y<100)y+=y>50?1900:2000;
+    if(mo>12&&d<=12){var sw=d;d=mo;mo=sw;}}
+  var dt=m?new Date(y,mo-1,d):null;
+  if(!dt||dt.getFullYear()!==y||dt.getMonth()!==mo-1||dt.getDate()!==d){if(bad)bad.n++;return "";}
+  return iso(dt);}
+var CYC_OK=[1,2,3,6,12,24];
+/* Turnus in Monaten; nicht unterstützte Zahlen auf den nächsten erlaubten Turnus runden (adj.n zählt mit) */
+function csvCycle(x,adj){var t=csvNorm(x),n=null,m;
+  if(!t)return 1;
+  /* zuerst «Zahl + Einheit» («12 Monate» ist nicht «2 Monate»), dann reine Zahl, dann Wortregeln */
+  if((m=t.match(/(\d+)(monat|month)/)))n=+m[1];
+  else if((m=t.match(/(\d+)(jahr|year)/)))n=+m[1]*12;
+  else if((m=t.match(/(\d+)(woche|week)/)))return +m[1]>1?"w"+m[1]:"w";  /* "w2" = alle 2 Wochen */
+  else if(/^\d+$/.test(t))n=+t;
+  if(n!=null){if(CYC_OK.indexOf(n)>=0)return n;
+    var best=1;CYC_OK.forEach(function(v){if(Math.abs(v-n)<Math.abs(best-n))best=v;});if(adj)adj.n++;return best;}
   if(/woech|week/.test(t))return "w";
   if(/2jahr|zweijaehr|biennial/.test(t))return 24;
   if(/halbjaehr|halfyear|semiannual|6monat/.test(t))return 6;
@@ -5531,7 +5588,7 @@ function csvCycle(x){var t=csvNorm(x),n=parseInt(t,10);
   if(/2monat|zweimonat|bimonth/.test(t))return 2;
   if(/jaehr|jahr|year|annual/.test(t))return 12;
   return 1;}
-function csvTerm(x){var t=csvNorm(x);if(!t)return "";if(["p","m","q","h","y","a"].indexOf(t)>=0)return t;
+function csvTerm(x){var t=csvNorm(x);if(!t||/jederzeit|anytime/.test(t))return "";if(["p","m","q","h","y","a"].indexOf(t)>=0)return t;
   if(/periode/.test(t))return "p";if(/monatsende|monat/.test(t))return "m";if(/quartal/.test(t))return "q";
   if(/halbjahr/.test(t))return "h";if(/vertragsjahr/.test(t))return "a";if(/jahresende|jahr/.test(t))return "y";return "";}
 function csvCat(x){var t=csvNorm(x);if(!t)return "";
@@ -5542,39 +5599,41 @@ function csvCat(x){var t=csvNorm(x);if(!t)return "";
     ["Mobilität",/auto|kfz|bahn|mobilit|leasing|oev|transport|car|parkplatz/],["Finanzen",/bank|konto|kredit|finanz|spar|depot|vorsorge|säule|finance/]];
   for(var i=0;i<R.length;i++)if(R[i][1].test(t))return R[i][0];
   if(/^(andere|sonstig|other|misc)/.test(t))return "Sonstiges";return "";}
-var newCats=false;
 function csvHist(txt,cur){
   /* Contract: "17.02.2025 bis 17.02.2026 404,1 CHF,30.08.2025 bis 15.07.2026 42,05 CHF" */
   var re=/(\d{1,2}\.\d{1,2}\.\d{2,4})\s*bis\s*(\d{1,2}\.\d{1,2}\.\d{2,4})\s*([\d'.,]+)/g,m,out=[];
   while((m=re.exec(txt))){var v=csvNum(m[3]);if(v!=null)out.push({from:csvDate(m[1]),to:csvDate(m[2]),amount:v});}
   return out.filter(function(p){return p.from&&p.to;}).sort(function(a,b){return a.from<b.from?-1:1;});
 }
-function csvHolders(txt){
-  var parts=String(txt||"").split(/\s*(?:,|&|\/|\+|\bund\b)\s*/).map(function(x){return x.trim();}).filter(Boolean);
+function csvHolders(txt,own){
+  /* Mit Komma oder aus dem eigenen Export («A, B»): nur am Komma trennen, Namen wörtlich; Nachnamen-Regel nur bei «Anna und Ben Müller» */
+  var s=String(txt||""),kom=own||s.indexOf(",")>=0,ex=state.settings.holders||[];
+  var whole=ex.filter(function(h){return h.toLowerCase()===s.trim().toLowerCase();})[0];if(whole)return [whole];  /* bestehender Inhaber, z.B. «Anna & Ben» */
+  var parts=s.split(kom?/\s*,\s*/:/\s*(?:&|\/|\+|\bund\b)\s*/).map(function(x){return x.trim();}).filter(Boolean);
   if(!parts.length)return [];
   var last=parts[parts.length-1].split(/\s+/);
-  if(last.length>1){var sur=last.slice(1).join(" ");parts=parts.map(function(p){return p.indexOf(" ")<0?p+" "+sur:p;});}
-  var ex=state.settings.holders||[];
+  if(!kom&&last.length>1){var sur=last.slice(1).join(" ");parts=parts.map(function(p){return p.indexOf(" ")<0?p+" "+sur:p;});}
   return parts.map(function(p){var lo=p.toLowerCase(),first=lo.split(/\s+/)[0];
-    return ex.filter(function(h){var hl=h.toLowerCase();return hl===lo||hl===first;})[0]||p;});
+    return ex.filter(function(h){var hl=h.toLowerCase();return hl===lo||(!kom&&hl===first);})[0]||p;});
 }
 function csvToContracts(rows){
   if(rows.length<2)return {items:[],skipped:0,dup:0,cols:0};
-  var head=rows[0].map(csvNorm),col={},taken={};
+  var head=rows[0].map(csvNorm),col={},taken={},own=head.indexOf("turnusmonate")>=0&&head.indexOf("kuendbarper")>=0;  /* eigener Export */
   Object.keys(CSVMAP).forEach(function(k){for(var a=0;a<CSVMAP[k].length&&col[k]==null;a++){var i=head.indexOf(CSVMAP[k][a]);if(i>=0&&!taken[i]){col[k]=i;taken[i]=1;}}});
   var g=function(r,k){return col[k]==null?"":String(r[col[k]]==null?"":r[col[k]]).trim();};
   var key=function(c){return [csvNorm(c.partner),csvNorm(c.label),(+c.amount).toFixed(2),c.cycle,c.start||""].join("|");};
   var have={};Object.keys(state.contracts).forEach(function(k){have[key(state.contracts[k])]=1;});
-  var out=[],skipped=0,dup=0,archived=0,H=state.settings.home,t0=today(),newH={};
+  var out=[],skipped=0,dup=0,archived=0,H=state.settings.home,t0=today(),newH={},newC=[],adj={n:0},bad={n:0};
   rows.slice(1).forEach(function(r){
     var partner=g(r,"partner"),label=g(r,"label"),amt=csvNum(g(r,"amount"));
     if(!partner&&!label){skipped++;return;}
     if(amt==null)amt=0;
-    var tpl=tplFind(partner)||tplFind(label),cy=csvCycle(g(r,"cycle"));
-    if(cy==="w"){amt=Math.round(amt*52/12*100)/100;cy=1;}
+    var tpl=tplFind(partner)||tplFind(label),cy=csvCycle(g(r,"cycle"),adj);
+    if(typeof cy==="string"){var wk=+cy.slice(1)||1;amt=Math.round(amt*52/12/wk*100)/100;cy=1;}  /* wöchentlich / alle n Wochen → monatlich */
     var curRaw=(g(r,"cur")+" "+g(r,"amount")).toUpperCase(),cur=/EUR|€/.test(curRaw)?"EUR":/USD|US\$|\$/.test(curRaw)?"USD":/GBP|£/.test(curRaw)?"GBP":/TRY|₺|\bTL\b/.test(curRaw)?"TRY":(/CHF|FR/.test(curRaw)?"CHF":H);
     var catRaw=g(r,"cat"),cat=allCats().filter(function(k){return k.toLowerCase()===catRaw.toLowerCase();})[0]||csvCat(catRaw)||(tpl?tpl[2]:"");if(cat&&allCats().indexOf(cat)<0){catRaw=cat;cat="";}
-    if(!cat&&catRaw){var cs=catList().slice();var ex2=cs.filter(function(x){return x.n.toLowerCase()===catRaw.toLowerCase();})[0];if(!ex2){cs.push({n:catRaw,c:COLORS[(cs.length+3)%COLORS.length],i:"tag"});state.settings.catList=cs;delete state.settings.cats;newCats=true;}cat=ex2?ex2.n:catRaw;}
+    /* neue Kategorien nur sammeln, angelegt werden sie erst nach der Bestätigung */
+    if(!cat&&catRaw){var cs=catList().concat(newC);var ex2=cs.filter(function(x){return x.n.toLowerCase()===catRaw.toLowerCase();})[0];if(!ex2)newC.push({n:catRaw,c:COLORS[(cs.length+3)%COLORS.length],i:"tag"});cat=ex2?ex2.n:catRaw;}
     cat=cat||"Sonstiges";
     // Kündigungsfrist: "3 Monate", "1 Jahr", "1 Woche", "1 Tag"
     var nRaw=g(r,"notice"),nNum=csvNum(nRaw),uRaw=csvNorm(g(r,"noticeU")||nRaw.replace(/[\d\s.,]/g,""));
@@ -5593,18 +5652,21 @@ function csvToContracts(rows){
       if(/anfang/i.test(m[1]))base=v;else{var d=csvDate(m[1]);if(d)prices.push({from:d,amount:v});}});
     // Tags, Kontakt, Notizen
     var tags=g(r,"tags"),st=csvNorm(g(r,"status")),mRaw=csvNorm(g(r,"mand"));
-    var mand=mRaw?/^(ja|yes|1|true|x)$/.test(mRaw):(/pflicht/i.test(tags)||!!(tpl&&tpl[9]));
+    var mand=mRaw||col.mand!=null?/^(ja|yes|1|true|x)$/.test(mRaw):(/pflicht/i.test(tags)||!!(tpl&&tpl[9]));  /* Katalog nur ohne Spalte */
     var restTags=tags.split(/\s*,\s*/).filter(function(x){return x&&!/pflicht/i.test(x);}).join(", ");
-    var hs=g(r,"holders")?csvHolders(g(r,"holders")):[(state.settings.holders||["Ich"])[0]];
+    var hs=g(r,"holders")?csvHolders(g(r,"holders"),own):[(state.settings.holders||["Ich"])[0]];
     hs.forEach(function(h){if((state.settings.holders||[]).indexOf(h)<0)newH[h]=1;});
+    /* Adresse: mehrzeilig wie im Formular; einzeilig «Firma, Strasse, PLZ Ort» → Zeilen */
+    var ad=g(r,"addr");ad=(/\n/.test(ad)?ad.split(/\s*\r?\n\s*/):ad.split(/\s*,\s*/)).filter(Boolean).join("\n");
+    /* Katalogwerte für Frist / Kündbar per nur, wenn die Spalte fehlt (leer, 0 oder «jederzeit» sind bewusste Angaben) */
     var c={partner:partner,label:label,cat:cat,amount:Math.round(base*100)/100,cur:cur,cycle:cy,
-      due:csvDate(g(r,"due")),start:csvDate(g(r,"start")),end:csvDate(g(r,"end")),
-      notice:nNum!=null?nNum:(tpl&&!nRaw?tpl[5]:0),noticeU:nNum!=null?nu:(tpl&&!nRaw?tpl[6]:"m"),
-      renew:String(csvNum(g(r,"renew"))||""),cancTerm:csvTerm(g(r,"cancTerm"))||(tpl&&!g(r,"end")?tpl[7]||"":""),
+      due:csvDate(g(r,"due"),bad),start:csvDate(g(r,"start"),bad),end:csvDate(g(r,"end"),bad),
+      notice:nNum!=null?nNum:(tpl&&col.notice==null?tpl[5]:0),noticeU:nNum!=null?nu:(tpl&&col.notice==null?tpl[6]:"m"),
+      renew:String(csvNum(g(r,"renew"))||""),cancTerm:col.cancTerm!=null?csvTerm(g(r,"cancTerm")):(tpl&&!g(r,"end")?tpl[7]||"":""),
       mand:mand,custNo:g(r,"custNo"),contrNo:g(r,"contrNo"),holders:hs,
-      payM:g(r,"payM"),payA:g(r,"payA"),cancF:g(r,"cancF")||(tpl?tpl[8]||"":""),trial:"",
-      web:g(r,"web")||(tpl?tpl[4]:""),tel:g(r,"tel"),mail:g(r,"mail"),
-      note:[g(r,"note"),g(r,"addr")?"Kündigungsadresse: "+g(r,"addr"):"",g(r,"contact")?"Kontakt: "+g(r,"contact"):"",restTags?"Tags: "+restTags:"",amt===0&&!g(r,"amount")?"Kein Betrag im Import":""].filter(Boolean).join("\n"),
+      payM:g(r,"payM"),payA:g(r,"payA"),cancF:g(r,"cancF")||(tpl?tpl[8]||"":""),cancUrl:g(r,"cancUrl"),trial:"",
+      web:g(r,"web")||(tpl?tpl[4]:""),tel:g(r,"tel"),mail:g(r,"mail"),addr:ad,
+      note:[g(r,"note"),g(r,"contact")?"Kontakt: "+g(r,"contact"):"",restTags?"Tags: "+restTags:"",amt===0&&!g(r,"amount")?"Kein Betrag im Import":""].filter(Boolean).join("\n"),
       color:"",logoId:"",logoBg:"",prices:prices,docs:[],
       extras:g(r,"extras").split("|").map(function(p){var m=p.trim().match(/^(\d{4}-\d{2}-\d{2}):(-?[\d.]+):?(.*)$/);return m?{date:m[1],amount:+m[2],note:m[3].trim()}:null;}).filter(Boolean),
       status:/cancel|gekuend|archiv/.test(st)?"cancelled":"active",cancelledAt:/cancel|gekuend|archiv/.test(st)?iso(t0):"",t:Date.now()};
@@ -5619,14 +5681,17 @@ function csvToContracts(rows){
     var e=parseD(c.end);if(e&&e<t0&&c.status!=="cancelled"){c.status="cancelled";c.cancelledAt=c.end;archived++;}
     if(have[key(c)]){dup++;return;}have[key(c)]=1;out.push(c);
   });
-  return {items:out,skipped:skipped,dup:dup,archived:archived,newHolders:Object.keys(newH),cols:Object.keys(col).length,hasAmt:col.amount!=null,hasName:col.partner!=null||col.label!=null};
+  return {items:out,skipped:skipped,dup:dup,archived:archived,newHolders:Object.keys(newH),cols:Object.keys(col).length,hasAmt:col.amount!=null,hasName:col.partner!=null||col.label!=null,
+    newCats:newC.filter(function(x){return out.some(function(c){return c.cat===x.n;});}),cycAdj:adj.n,badDates:bad.n};
 }
 document.getElementById("csvImp").addEventListener("click",function(){document.getElementById("csvFile").click();});
 document.getElementById("csvFile").addEventListener("change",function(ev){
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;
   var rd=new FileReader();
   rd.onload=async function(){
-    var res;try{res=csvToContracts(csvParse(rd.result));}catch(e){toast("Die Datei konnte nicht gelesen werden");return;}
+    /* zuerst UTF-8 (streng), sonst Windows-1252 (Excel «CSV (Trennzeichen-getrennt)»); SwiftUI: .utf8, Rückfall .windowsCP1252 */
+    var txt;try{txt=new TextDecoder("utf-8",{fatal:true}).decode(rd.result);}catch(e){try{txt=new TextDecoder("windows-1252").decode(rd.result);}catch(e2){txt="";}}
+    var res;try{res=csvToContracts(csvParse(txt));}catch(e){toast("Die Datei konnte nicht gelesen werden");return;}
     if(!res.hasAmt||!res.hasName){await ask({title:"Keine passenden Spalten",alert:true,text:"Nötig sind mindestens eine Spalte für den Namen (z.B. «Name» oder «Vertragspartner») und eine für den Betrag (z.B. «Kosten»). Am einfachsten: einmal «CSV exportieren» und die Datei als Vorlage nutzen."});return;}
     var n=res.items.length,info=[];
     if(res.dup)info.push(res.dup+" bereits vorhanden");if(res.skipped)info.push(res.skipped+" ohne Namen");
@@ -5634,16 +5699,19 @@ document.getElementById("csvFile").addEventListener("change",function(ev){
     var ok=await ask({title:n+(n===1?" Vertrag":" Verträge")+" gefunden",ok:"Importieren",
       text:(res.archived?res.archived+" davon sind bereits beendet und kommen ins Archiv.\n":"")+
         (info.length?"Übersprungen: "+info.join(", ")+".\n":"")+(res.newHolders.length?"Neue Inhaber: "+res.newHolders.join(", ")+".\n":"")+
+        (res.newCats.length?"Neue Kategorien: "+res.newCats.map(function(x){return x.n;}).join(", ")+".\n":"")+
+        (res.cycAdj?(res.cycAdj===1?"1 Zahlungsrhythmus":res.cycAdj+" Zahlungsrhythmen")+" angepasst.\n":"")+
+        (res.badDates?(res.badDates===1?"1 ungültiges Datum":res.badDates+" ungültige Daten")+" ignoriert.\n":"")+
         "\nBestehende Verträge bleiben unverändert."});
     if(!ok)return;
-    if(res.newHolders.length){state.settings.holders=(state.settings.holders||[]).concat(res.newHolders);newCats=true;}
-    if(newCats){saveSettings();newCats=false;}
+    if(res.newHolders.length)state.settings.holders=(state.settings.holders||[]).concat(res.newHolders);
+    if(res.newCats.length){state.settings.catList=catList().concat(res.newCats);delete state.settings.cats;}
     for(var k=0;k<res.items.length;k++){state.contracts[uid()+k]=res.items[k];}
     saveLocal();
     goTab("list");render();
     toast(n+(n===1?" Vertrag":" Verträge")+" importiert — bitte kurz prüfen");
   };
-  rd.readAsText(f);
+  rd.readAsArrayBuffer(f);
 });
 /* ---------- Einführung (Onboarding) ----------
    Seiten als Daten (OB_PAGES), Anzeige in #onb. settings.onboarded = Version der gesehenen Einführung.
@@ -5671,7 +5739,7 @@ var OB_TIPS=[ /* [Farbe, Symbol, Titel, Text, bald verfügbar] */
   ["#2E6A4E",'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M15 14.2c2.6-.3 4.6 1.3 5.3 4.3"/>',"Für den ganzen Haushalt","Verträge nach Personen getrennt."],
   ["#6B4E9E",'<path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/>',"Dokumente am Vertrag","PDFs direkt beim Vertrag ablegen."],
   ["#8A6A1F",'<path d="M4 12.6V5h7.6l8.4 8.4-7.6 7.6z"/><circle cx="8.2" cy="9" r="1.4"/>',"Verträge kategorisieren","Kosten nach Bereichen ordnen."],
-  ["#1F4E8C",'<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',"Kündigung leicht gemacht","PDF erstellen, drucken oder per E-Mail versenden.",true],
+  ["#1F4E8C",'<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',"Kündigung leicht gemacht","PDF erstellen, drucken oder per E-Mail versenden."],
   ["#2F86A6",'<path d="M7 18a4.5 4.5 0 0 1-.6-9 6 6 0 0 1 11.5 1.2A3.9 3.9 0 0 1 17.5 18z"/><path d="M9.5 13.5l2 2 3.5-3.5"/>',"iCloud-Synchronisierung","Deine Daten auf deinen Geräten aktuell.",true]];
 /* Schnellstart: Bezeichnung → Kategorie (fällt auf «Sonstiges» zurück, falls umbenannt/gelöscht) */
 var OB_QUICK=[["Miete","Wohnen"],["Strom","Energie & Wasser"],["Handy","Mobilfunk & Internet"],["Internet","Mobilfunk & Internet"],
@@ -5745,7 +5813,11 @@ function obApplySetup(){var s=state.settings,nm=(document.getElementById("obName
     if(!s.lastHolders||!s.lastHolders.length||(s.lastHolders.length===1&&s.lastHolders[0]==="Ich"))s.lastHolders=[nm];}
   saveSettings();render();}
 function openOnb(first){
-  ob.first=!!first;ob.i=0;ob.quick=-1;ob.home=first?"EUR":(state.settings.home||"EUR");
+  ob.first=!!first;ob.i=0;ob.quick=-1;
+  /* Hauptwährung vorbelegen: beim echten Erststart EUR; gibt es schon eine gespeicherte Einstellung
+     (z.B. nach «Alle Daten löschen», Währung bleibt dort erhalten) oder einen Kursabgleich, die bisherige */
+  var had=!!state.settings.rateChecked;try{var sv=JSON.parse(localStorage.getItem(LS)||"null");had=had||!!(sv&&sv.settings&&sv.settings.home);}catch(e){}
+  ob.home=first&&!had?"EUR":(state.settings.home||"EUR");
   ob.pages=OB_PAGES.filter(function(p){return first||!p.first;});
   var el=document.getElementById("onb");el.hidden=false;document.body.style.overflow="hidden";obPaint(1);
 }
@@ -5757,7 +5829,7 @@ document.getElementById("onb").addEventListener("click",function(ev){
   if((b=t.closest("[data-obcur]"))){ob.home=b.dataset.obcur;
     document.querySelectorAll("#onb [data-obcur]").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.obcur===ob.home);});return;}
   if((b=t.closest("[data-obmore]"))){ob.more=b.getAttribute("aria-expanded")!=="true";b.setAttribute("aria-expanded",ob.more);
-    document.querySelector(":is(#onb,#setPage) .obcurs.sm").hidden=!ob.more;return;}
+    document.querySelector("#onb .obcurs.sm").hidden=!ob.more;return;}
   if((b=t.closest("[data-obq]"))){ob.quick=+b.dataset.obq;
     document.querySelectorAll("#onb [data-obq]").forEach(function(x){x.setAttribute("aria-pressed",x===b);});
     var cb=document.querySelector('#onb [data-ob="create"]');cb.disabled=false;cb.textContent=OB_QUICK[ob.quick][0]+" erfassen";return;}
