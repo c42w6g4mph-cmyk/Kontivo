@@ -28,6 +28,7 @@ struct RootView: View {
         .overlay(alignment: .bottom) {
             if model.sheets.isEmpty { ToastView() }
         }
+        .modifier(CancelQuestionModifier(isTop: model.sheets.isEmpty))
         .fullScreenCover(item: $model.onboarding) { mode in
             OnboardingView(mode: mode)
                 .environment(model)
@@ -63,6 +64,7 @@ struct AppSheetView: View {
             .overlay(alignment: .bottom) {
                 if model.sheets.count - 1 == level { ToastView() }
             }
+            .modifier(CancelQuestionModifier(isTop: model.sheets.count - 1 == level))
             .tint(KColor.teal)
     }
 
@@ -90,6 +92,26 @@ struct AppSheetView: View {
             DocumentViewer(ref: ref)
         case .manage(let route):
             ManageView(start: route)
+        }
+    }
+}
+
+/// Rückfrage «Gekündigt?» nach Rückkehr von Website/Mail – immer auf der obersten Ebene
+struct CancelQuestionModifier: ViewModifier {
+    @Environment(AppModel.self) private var model
+    let isTop: Bool
+
+    func body(content: Content) -> some View {
+        content.alert(
+            "Gekündigt?",
+            isPresented: Binding(get: { isTop && model.cancelQuestion != nil },
+                                 set: { if !$0 { model.cancelQuestion = nil } }),
+            presenting: model.cancelQuestion
+        ) { q in
+            Button("Ja, gekündigt") { model.answerCancelQuestion(q, cancelled: true) }
+            Button("Noch nicht", role: .cancel) { model.answerCancelQuestion(q, cancelled: false) }
+        } message: { q in
+            Text(model.cancelQuestionText(q))
         }
     }
 }

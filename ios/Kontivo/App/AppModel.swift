@@ -33,6 +33,8 @@ final class AppModel {
 
     /// Kündigung über Website/E-Mail gestartet: beim Zurückkehren fragen «Gekündigt?»
     var pendingCancel: PendingCancel?
+    /// Sichtbare Rückfrage «Gekündigt?» (wird auf der obersten Ebene als Alert gezeigt, siehe CancelQuestionModifier)
+    var cancelQuestion: PendingCancel?
 
     // MARK: Meldungen
     var toastText: String?
@@ -137,6 +139,14 @@ final class AppModel {
 
     // MARK: Dateien (Logos, Dokumente, Bilder)
     func image(_ id: String?) -> UIImage? { files.image(id) }
+
+    /// Datei speichern; bei Fehler Toast und nil
+    func storeFile(_ data: Data, type: String) -> String? {
+        do { return try files.put(data, type: type) } catch {
+            toast("Speichern nicht möglich")
+            return nil
+        }
+    }
 }
 
 enum AppTab: String, Hashable, CaseIterable {
