@@ -553,7 +553,7 @@ private struct CTEmptyContracts: View {
             .foregroundStyle(KColor.ink2)
             .multilineTextAlignment(.leading)
             Button("Ich habe ein Backup") {
-                model.goTab(.more)
+                MoreRequests.openBackupImport(model)
             }
             .font(.subheadline.weight(.semibold))
         }

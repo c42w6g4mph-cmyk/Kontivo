@@ -106,6 +106,7 @@ extension AppModel {
     private func cancelFlowOnline(_ c: Contract, trial: Bool, calc: Calc) {
         guard let url = CancelLinks.web(calc.cancLink(c)) else {
             toast("Kein Link hinterlegt. Trag Website oder Kündigungslink ein.")
+            ContractFormLaunch.openMoreFor = c.id
             cancelFlowPresent(.contractForm(.edit(c.id)), closingOthers: true)
             return
         }
@@ -126,6 +127,7 @@ extension AppModel {
             CancelFlowUI.ask(title: "E-Mail-Adresse fehlt",
                              message: "Trag die Kündigungsadresse des Vertragspartners beim Vertrag unter «Kontakt» ein.",
                              ok: "Eintragen") { [weak self] in
+                ContractFormLaunch.openMoreFor = id
                 self?.cancelFlowPresent(.contractForm(.edit(id)), closingOthers: true)
             }
             return
