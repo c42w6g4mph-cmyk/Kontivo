@@ -1723,11 +1723,14 @@ function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"
 function addMonths(d,n){var y=d.getFullYear(),m=d.getMonth()+n,day=d.getDate();
   var last=new Date(y,m+1,0).getDate();return new Date(y,m,Math.min(day,last));}
 function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
+function isEOM(d){return d.getDate()===new Date(d.getFullYear(),d.getMonth()+1,0).getDate();}
+/* Monate addieren für Vertragsenden: Monatsletzter bleibt Monatsletzter (31.01. + 2 = 31.03., 30.04. + 1 = 31.05.) */
+function addMonthsE(d,n){return isEOM(d)?new Date(d.getFullYear(),d.getMonth()+n+1,0):addMonths(d,n);}
 function daysBetween(a,b){return Math.round((b-a)/86400000);}
 /* Kurse in CHF pro Einheit, alle Fremdwährungen in settings.rates (z.B. rates.EUR).
    RATE0 sind nur grobe Startwerte bis zum ersten automatischen Abruf. */
 /* Rechenkern für Prüffälle (tests/): Funktionen öffentlich, damit die Swift-Version gegen dieselben Ergebnisse geprüft werden kann */
-window.KontivoCalc=function(){return {termEnd:termEnd,nextTerm:nextTerm,noticeDeadline:noticeDeadline,nDl:nDl,effEnd:effEnd,nextDue:nextDue,monthlyCost:monthlyCost,curPrice:curPrice,
+window.KontivoCalc=function(){return {termEnd:termEnd,nextTerm:nextTerm,noticeDeadline:noticeDeadline,nDl:nDl,effEnd:effEnd,renewTo:renewTo,isEnded:isEnded,nextDue:nextDue,monthlyCost:monthlyCost,curPrice:curPrice,
   isAnytime:isAnytime,needsAction:needsAction,trialNeeds:trialNeeds,isPaused:isPaused,occurrences:occurrences,holderShare:holderShare,cancVia:cancVia,iso:iso,parseD:parseD,state:state};};
 var RATE0={EUR:0.94,USD:0.80,GBP:1.07,TRY:0.02};
 function rateOf(c){var s=state.settings;if(!c||c==="CHF")return 1;var r=s.rates&&+s.rates[c];return r>0?r:(RATE0[c]||1);}
@@ -1810,14 +1813,14 @@ function exLabel(x){return (x.amount<0?"Gutschrift":"Sonderzahlung")+(x.note?" �
 function nextChange(c){var t=today(),n=null;pricesOf(c).forEach(function(e){var f=parseD(e.from);if(!n&&f&&f>t)n=e;});return n;}
 function monthlyCost(c){var m=+c.cycle||1;return conv(curPrice(c),c.cur||"CHF")/m;}
 function nextDue(c){
-  var t=today(),o=occurrences(c,t,addMonths(t,13));
+  var t=today(),o=occurrences(c,t,addMonths(t,Math.max(13,(+c.cycle||1)+1)));
   return o.length?o[0]:null;
 }
 function limitOf(c){
   var base=null,cp=parseD(c.cancelPer);
   if(c.status==="cancelled"){
     var ca=parseD(c.cancelledAt),e=parseD(c.end);
-    if(e&&+c.renew&&ca){var g=0;while(e<ca&&g++<200)e=addMonths(e,+c.renew);}
+    if(e&&+c.renew&&ca){var e0=e,g=0;while(e<ca&&g<400){g++;e=addMonthsE(e0,g*+c.renew);}}
     base=e||ca||null;
   } else base=(c.end&&!c.renew)?parseD(c.end):null;
   if(cp)return (base&&base<cp)?base:cp;
@@ -1846,7 +1849,7 @@ function occurrences(c,from,to){
 function effEnd(c){
   var e=parseD(c.end);if(!e)return null;
   var r=+c.renew||0;if(!r)return e;
-  var t=today(),g=0;while(e<t&&g++<200)e=addMonths(e,r);
+  var t=today(),e0=e,g=0;while(e<t&&g<400){g++;e=addMonthsE(e0,g*r);}
   return e;
 }
 function nDl(c,e){
@@ -1854,29 +1857,34 @@ function nDl(c,e){
   if(c.noticeU==="k")return new Date(e.getFullYear(),e.getMonth(),Math.min(n,28));
   if(c.noticeU==="w")return addDays(e,-7*n);
   if(c.noticeU==="d")return addDays(e,-n);
-  return addMonths(e,-n);
+  return isEOM(e)?new Date(e.getFullYear(),e.getMonth()-n+1,0):addMonths(e,-n);
 }
 /* Kündigungstermine bei unbefristeten Verträgen */
 var TERMS={"":"jederzeit","p":"Ende der Zahlungsperiode","m":"Monatsende","q":"Quartalsende","h":"Halbjahresende","y":"Jahresende","a":"Ende Vertragsjahr"};
-function nextTerm(c,base){
+function nextTerm(c,base,after){
   if(c.end||!c.cancTerm)return null;
-  var t=base||today(),T;
-  if(c.cancTerm==="p"){var nd=nextDue(c);if(!nd)return null;T=addDays(nd,-1);
-    for(var j=0;j<40&&nDl(c,T)<t;j++){T=addDays(addMonths(addDays(T,1),+c.cycle||1),-1);}return T;}
+  var t=base||today(),T,ok=function(x){return after?x>after:nDl(c,x)>=t;};
+  if(c.cancTerm==="p"){var a=parseD(c.due);if(!a)return null;var m=+c.cycle||1,k;
+    var md=function(d){return (d.getFullYear()-a.getFullYear())*12+d.getMonth()-a.getMonth();};
+    if(after)k=Math.floor(md(after)/m)-1;else{var nd=nextDue(c);if(!nd)return null;k=Math.round(md(nd)/m);}
+    for(var j=0;j<80;j++,k++){T=addDays(addMonths(a,k*m),-1);if(ok(T))return T;}return null;}
   if(c.cancTerm==="a"){var b=parseD(c.start)||parseD(c.due);if(!b)return null;
-    for(var k=1;k<300;k++){T=addDays(addMonths(b,12*k),-1);if(T>=t&&nDl(c,T)>=t)return T;}return null;}
-  var y=t.getFullYear(),mo=t.getMonth();
+    /* Vertragsjahr endet am Vortag des Jahrestags (Beginn 29.02. → 28.02.) */
+    for(var i2=1;i2<300;i2++){T=addDays(new Date(b.getFullYear()+i2,b.getMonth(),b.getDate()),-1);if(after?T>after:(T>=t&&ok(T)))return T;}return null;}
+  var s0=after||t,y=s0.getFullYear(),mo=s0.getMonth();
   for(var i=0;i<60;i++){T=new Date(y,mo+i+1,0);var m1=T.getMonth()+1;
     if(c.cancTerm==="q"&&m1%3)continue;
     if(c.cancTerm==="h"&&m1%6)continue;
     if(c.cancTerm==="y"&&m1!==12)continue;
-    if(nDl(c,T)>=t)return T;}
+    if(ok(T))return T;}
   return null;
 }
 /* Nächstes mögliches Vertragsende. Befristet mit Verlängerung: ist die Frist für das aktuelle Ende verpasst,
    gilt das nächste Verlängerungsende (sonst verschwände der Vertrag bis zum Ablauf aus «Fristen») */
-function termEnd(c){var e=effEnd(c);if(!e)return nextTerm(c);var r=+c.renew||0,t=today(),g=0;
-  while(r&&!c.cancelPer&&nDl(c,e)<t&&g++<200)e=addMonths(e,r);return e;}
+function termEnd(c){var e0=parseD(c.end);if(!e0)return nextTerm(c);var r=+c.renew||0;if(!r)return e0;var t=today(),e=e0,g=0;
+  while(g<400&&(e<t||(!c.cancelPer&&nDl(c,e)<t))){g++;e=addMonthsE(e0,g*r);}return e;}
+/* Verlängerungsende nach T (befristet mit Verlängerung), vom Anker gerechnet */
+function renewAfter(c,T){var e0=parseD(c.end),r=+c.renew||0;if(!e0||!r||!T)return null;var e=e0,g=0;while(e<=T&&g<400){g++;e=addMonthsE(e0,g*r);}return e;}
 /* Steuern lassen sich nicht kündigen: keine Frist, nicht in «Fristen» */
 function isTax(c){return /^Steuern/i.test(String(c.cat||""));}
 function noticeDeadline(c){if(isTax(c))return null;var e=termEnd(c);return e?nDl(c,e):null;}
@@ -1892,10 +1900,12 @@ function isPaused(c){if(!c.paused)return false;var pu=parseD(c.pausedUntil);retu
 function running(){return active().filter(function(c){return !isPaused(c);});}
 function notStarted(c){var s0=parseD(c.start);return !!(s0&&s0>today());}
 function endedByNotice(c){var p=parseD(c.cancelPer);return !!(p&&p<today());}
-function active(){return Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;}).filter(function(c){return c.status!=="cancelled"&&!endedByNotice(c);});}
-function archived(){return Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;}).filter(function(c){return c.status==="cancelled"||endedByNotice(c);});}
+function endedByTerm(c){var e=parseD(c.end);return !!(e&&!(+c.renew)&&e<today());}
+function isEnded(c){return endedByNotice(c)||endedByTerm(c);}
+function active(){return Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;}).filter(function(c){return c.status!=="cancelled"&&!isEnded(c);});}
+function archived(){return Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;}).filter(function(c){return c.status==="cancelled"||isEnded(c);});}
 function isKept(c){var T=termEnd(c);return !!(T&&c.keptFor&&c.keptFor===iso(T));}
-function isAnytime(c){return !c.end&&(c.cancTerm==="p"||c.cancTerm==="m");}
+function isAnytime(c){return !c.end&&(c.cancTerm==="m"||(c.cancTerm==="p"&&(+c.cycle||1)<=1));}
 function needsAction(c){if(c.cancelPer)return false;var T=termEnd(c);if(!T||isAnytime(c)||c.noWatch)return false;
   if(c.keptFor&&c.keptFor===iso(T))return false;var d=nDl(c,T),n=daysBetween(today(),d);return n>=0&&n<=90;}
 function trialNeeds(c){var d=parseD(c.trial),t=today();return !!(d&&d>=t&&daysBetween(t,d)<=90&&c.trialKept!==c.trial&&!c.cancelPer);}
@@ -1948,7 +1958,7 @@ function inDays(d){
 }
 function noticeText(c){var n=+c.notice||0;if(!n)return "";if(c.noticeU==="k")return "bis zum "+n+". des Monats";
   return n+" "+(c.noticeU==="w"?(n===1?"Woche":"Wochen"):c.noticeU==="d"?(n===1?"Tag":"Tage"):(n===1?"Monat":"Monate"));}
-function renewTo(c){var e=effEnd(c);return (e&&+c.renew)?addMonths(e,+c.renew):null;}
+function renewTo(c){return renewAfter(c,termEnd(c));}
 function humanDays(d){
   if(d===0)return "heute";if(d===1)return "1 Tag";if(d<=60)return d+" Tage";
   var m=Math.round(d/30.44);if(m<24)return m+" Monate";
@@ -2004,7 +2014,7 @@ function renderView(){
   document.getElementById("cArch").textContent=archived().length?archived().length:"";
   var tT0=today();
   var soon30=function(c){var d=noticeDeadline(c);return d&&daysBetween(tT0,d)<=30;};
-  var tCount=ar.filter(function(c){return needsAction(c)&&!isTax(c);}).length+ar.filter(function(c){return trialNeeds(c)&&!isTax(c);}).length;
+  var tCount=a.filter(function(c){return needsAction(c)&&!isTax(c);}).length+a.filter(function(c){return trialNeeds(c)&&!isTax(c);}).length;
   document.getElementById("cTerm").textContent=tCount?tCount:"";
 
   if(state.tab==="list"){
@@ -2067,7 +2077,7 @@ function renderView(){
     v.innerHTML=lfbar+out+ab;return;
   }
   if(state.tab==="term"){
-    a=ar.filter(function(c){return !isTax(c);});
+    a=active().filter(function(c){return !isTax(c);});
     var H=esc(state.settings.home),t1=today(),o="";
     var isP=isAnytime;
     var ddmm=function(d){return ("0"+d.getDate()).slice(-2)+"."+("0"+(d.getMonth()+1)).slice(-2)+"."+(d.getFullYear()===t1.getFullYear()?"":String(d.getFullYear()).slice(-2));};
@@ -2081,7 +2091,7 @@ function renderView(){
       if(c.cancelPer){var cp=parseD(c.cancelPer);up.push({c:c,d:cp,t:"gekündigt · endet "+fmtShort(cp),k:"end"});return;}
       if(isP(c))return;
       var T=termEnd(c);if(!T)return;
-      if(isKept(c)){var T2=c.end?(+c.renew?addMonths(T,+c.renew):null):nextTerm(c,addDays(T,1));
+      if(isKept(c)){var T2=c.end?renewAfter(c,T):nextTerm(c,null,T);
         var d2=T2?nDl(c,T2):null;up.push({c:c,d:d2||T,t:"behalten"+(d2?" · Frist "+fmtShort(d2):""),k:"kept"});return;}
       var dl=nDl(c,T);if(dl<t1)return;
       up.push({c:c,d:dl,t:"Frist "+fmtShort(dl),k:""});
@@ -2101,7 +2111,7 @@ function renderView(){
       var line=(trial?"Probeabo endet ":"Frist ")+ddmm(d)+" · "+(dn===0?"heute":"noch "+humanDays(dn));
       return '<div class="tcard"><button class="card" data-open="'+c._id+'">'+markHtml(c)+
         '<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline '+lv+'">'+line+"</div>"+
-        '<div class="tline2">'+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr"+(c.mand?" · Pflichtvertrag":"")+"</div></div></button>"+
+        '<div class="tline2">'+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr"+(c.mand?" · Pflichtvertrag":"")+(isPaused(c)?" · pausiert":"")+"</div></div></button>"+
         '<div class="tacts"><button data-keep="'+c._id+'"'+(trial?' data-trial="1"':"")+'>Behalten</button>'+
         '<button data-kill="'+c._id+'"'+(trial?' data-trial="1"':"")+'>'+(c.mand?"Wechseln":"Kündigen")+"</button></div></div>";};
     if(nTodo){o+='<div class="grp" style="margin-top:6px">';
@@ -2200,7 +2210,7 @@ function openPick(dim){
   }
   var pool=Object.keys(state.contracts).map(function(k){return state.contracts[k];}),cnt={},act={};
   pool.forEach(function(c){
-    var ks=dim==="holder"?holdersOf(c):[statKey(c,dim)],on=c.status!=="cancelled"&&!endedByNotice(c);
+    var ks=dim==="holder"?holdersOf(c):[statKey(c,dim)],on=c.status!=="cancelled"&&!isEnded(c);
     ks.forEach(function(k){if(k){cnt[k]=(cnt[k]||0)+1;if(on)act[k]=(act[k]||0)+1;}});
   });
   var keys=Object.keys(cnt);
@@ -2224,7 +2234,7 @@ function showLpop(dim,key){
   closeLpop();var H=state.settings.home;
   var all=Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;})
     .filter(function(c){return dim==="holder"?holdersOf(c).indexOf(key)>=0:statKey(c,dim)===key;});
-  var act=all.filter(function(c){return c.status!=="cancelled"&&!endedByNotice(c);}).sort(function(a,b){return monthlyCost(b)-monthlyCost(a);});
+  var act=all.filter(function(c){return c.status!=="cancelled"&&!isEnded(c);}).sort(function(a,b){return monthlyCost(b)-monthlyCost(a);});
   var nOld=all.length-act.length,sum=0;
   var rows=act.map(function(c){var off=isPaused(c),f=dim==="holder"?holderShare(c,key):1,v=monthlyCost(c)*f;if(!off)sum+=v;
     return '<div class="lr'+(off?" off":"")+'">'+markHtml(c)+'<span class="lt">'+esc(titleOf(c))+(f<1?" · "+shareTxt(f):"")+(off?" · pausiert":"")+'</span><b>'+money(v)+"</b></div>";}).join("");
@@ -2932,18 +2942,19 @@ function updTermHint(){
   if(termMode==="fixed"){
     var fx={end:document.getElementById("fEnd").value,renew:document.getElementById("fRenew").value,
       notice:parseNum(document.getElementById("fNotice").value)||0,noticeU:document.getElementById("fNoticeU").value};
-    var E=null;try{E=effEnd(fx);}catch(e){}
+    var E=null,TE=null;try{E=effEnd(fx);TE=termEnd(fx);}catch(e){}
     if(!E){h.textContent="Vertragsende angeben, dann rechnet die App den Kündigungstermin aus.";return;}
     var rn=+fx.renew||0;
+    if(TE&&TE>E){h.textContent="Frist für "+fmtD(iso(E))+" verpasst · nächster Termin "+fmtD(iso(TE))+", kündigen bis "+fmtD(iso(nDl(fx,TE)))+".";return;}
     h.textContent="Kündigen bis "+fmtD(iso(nDl(fx,E)))+(rn?", sonst +"+rn+(rn===1?" Monat":" Monate")+".":", Vertrag endet dann.");return;}
   var tp=document.getElementById("fTermP").value,cyc=+document.getElementById("fCycle").value||1;
-  if(!tp){h.textContent=cyc>=3?"Achtung: Bei "+(CYCLE[cyc]||"")+"er Zahlung ist ein Abo meist nur auf Ende der bezahlten Periode kündbar. Dann «Kündbar per: Ende Periode» wählen.":"Unbefristet — du kannst mit der angegebenen Frist jederzeit kündigen.";return;}
+  if(!tp){h.textContent=cyc>=3?"Achtung: Bei "+({3:"quartalsweiser",6:"halbjährlicher",12:"jährlicher",24:"zweijährlicher"}[cyc]||"seltener")+" Zahlung ist ein Abo meist nur auf Ende der bezahlten Periode kündbar. Dann «Kündbar per: Ende Periode» wählen.":"Unbefristet — du kannst mit der angegebenen Frist jederzeit kündigen.";return;}
   var tmp={cancTerm:tp,notice:parseNum(document.getElementById("fNotice").value)||0,noticeU:document.getElementById("fNoticeU").value,
     start:document.getElementById("fStart").value,due:document.getElementById("fDue").value,cycle:+document.getElementById("fCycle").value||1,prices:[],amount:1};
   var T=null;try{T=nextTerm(tmp);}catch(e){}
   if(!T){h.textContent=tp==="a"?"Für «Ende Vertragsjahr» bitte den Vertragsbeginn angeben.":"";return;}
-  var per=tp==="p"&&cyc>1?(cyc===12?"Abo-Jahr":"bezahlte Periode")+" endet ":"per ";
-  h.textContent=(tp==="p"&&cyc>1?"Das "+per:"Nächster Termin: "+per)+fmtD(iso(T))+" · kündigen bis "+fmtD(iso(nDl(tmp,T)))+(tmp.notice?"":" (keine Frist erfasst)")+".";
+  var per=tp==="p"&&cyc>1?(cyc===12?"Das Abo-Jahr":"Die bezahlte Periode")+" endet ":"per ";
+  h.textContent=(tp==="p"&&cyc>1?per:"Nächster Termin: "+per)+fmtD(iso(T))+" · kündigen bis "+fmtD(iso(nDl(tmp,T)))+(tmp.notice?"":" (keine Frist erfasst)")+".";
 }
 /* Turnus auf jährlich/halbjährlich gestellt und noch kein Kündigungstermin: «Ende Periode» vorschlagen */
 document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if(termMode==="open"&&!tp.value&&+this.value>=6){tp.value="p";updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}});
@@ -3628,7 +3639,7 @@ function openDetail(idv){
     ["Nächste Zahlung",nd?fmtD(iso(nd)):"—"]]],
    ["Laufzeit & Kündigung",[
     c.start?["Beginn",fmtD(c.start)]:null,
-    c.end?["Vertragsende",fmtD(iso(e))]:null,
+    c.end?["Vertragsende",fmtD(iso(e))+(termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
     ["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
     u.date?(isAnytime(c)?["Nächste Gelegenheit","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)]:["Nächster Termin","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)+(u.days>=0?" ("+inDays(u.days)+")":" (abgelaufen)")]):null,
     c.mand?["Pflichtvertrag","nur Wechsel möglich"]:null,
@@ -4230,7 +4241,7 @@ function closeSheetEl(id){document.getElementById(id).classList.remove("on");
   if(!document.querySelector(".sheet.on"))document.getElementById("scrim").classList.remove("on");}
 var CE_COL=COLORS.concat(["#B03A5B","#2F86A6","#6E7B3A","#5F666E"]),CE_ICONS=CATS.concat(["tag"]);
 function catCount(n){return Object.keys(state.contracts).filter(function(k){return (state.contracts[k].cat||"Sonstiges")===n;}).length;}
-function isActiveC(c){return c.status!=="cancelled"&&!endedByNotice(c);}
+function isActiveC(c){return c.status!=="cancelled"&&!isEnded(c);}
 function perMonth(list){return list.reduce(function(s,c){return s+(isActiveC(c)&&!isPaused(c)?monthlyCost(c):0);},0);}
 function cntTxt(n,one,many){return n+" "+(n===1?one:many);}
 function H0(){return esc(state.settings.home);}
