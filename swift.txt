@@ -1,28 +1,23 @@
-branch=swift run=4 sha=74190789cb0b608a692d5dee2217c4718c2dcb77
-core=failure app=success
+branch=swift run=5 sha=6fdfcaeb5f5d518141a558ceebaf47b8cf38f332
+core=success app=success
 
 ===== KERN: Fehler =====
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/CSVTests.swift:151: error: -[KontivoCoreTests.CSVTests testNumbersAndDates] : XCTAssertEqual failed: ("Wohnen") is not equal to ("")
-Test Case '-[KontivoCoreTests.CSVTests testNumbersAndDates]' failed (0.169 seconds).
-Test Suite 'CSVTests' failed at 2026-10-03 12:31:53.805.
-Test Suite 'KontivoCorePackageTests.xctest' failed at 2026-10-03 12:31:53.843.
-Test Suite 'All tests' failed at 2026-10-03 12:31:53.843.
 
 ===== KERN: Ende =====
-Test Suite 'FormatTests' passed at 2026-10-03 12:31:53.812.
-	 Executed 9 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
-Test Suite 'GoldenTests' started at 2026-10-03 12:31:53.812.
+Test Suite 'FormatTests' passed at 2026-10-03 12:34:32.052.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'GoldenTests' started at 2026-10-03 12:34:32.052.
 Test Case '-[KontivoCoreTests.GoldenTests testGolden]' started.
-Test Case '-[KontivoCoreTests.GoldenTests testGolden]' passed (0.014 seconds).
-Test Suite 'GoldenTests' passed at 2026-10-03 12:31:53.826.
-	 Executed 1 test, with 0 failures (0 unexpected) in 0.014 (0.014) seconds
-Test Suite 'MutationTests' started at 2026-10-03 12:31:53.826.
+Test Case '-[KontivoCoreTests.GoldenTests testGolden]' passed (0.020 seconds).
+Test Suite 'GoldenTests' passed at 2026-10-03 12:34:32.073.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.020 (0.020) seconds
+Test Suite 'MutationTests' started at 2026-10-03 12:34:32.073.
 Test Case '-[KontivoCoreTests.MutationTests testCancelAndMandatorySwitch]' started.
-Test Case '-[KontivoCoreTests.MutationTests testCancelAndMandatorySwitch]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.MutationTests testCancelAndMandatorySwitch]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.MutationTests testCatalog]' started.
 Test Case '-[KontivoCoreTests.MutationTests testCatalog]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.MutationTests testCategoriesAndPartners]' started.
-Test Case '-[KontivoCoreTests.MutationTests testCategoriesAndPartners]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.MutationTests testCategoriesAndPartners]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.MutationTests testDeadlinesAndHero]' started.
 Test Case '-[KontivoCoreTests.MutationTests testDeadlinesAndHero]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.MutationTests testLetter]' started.
@@ -33,24 +28,24 @@ Test Case '-[KontivoCoreTests.MutationTests testPersons]' started.
 Test Case '-[KontivoCoreTests.MutationTests testPersons]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.MutationTests testSaveKeepsStatusFields]' started.
 Test Case '-[KontivoCoreTests.MutationTests testSaveKeepsStatusFields]' passed (0.000 seconds).
-Test Suite 'MutationTests' passed at 2026-10-03 12:31:53.831.
-	 Executed 8 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
-Test Suite 'QualityTests' started at 2026-10-03 12:31:53.831.
+Test Suite 'MutationTests' passed at 2026-10-03 12:34:32.078.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'QualityTests' started at 2026-10-03 12:34:32.078.
 Test Case '-[KontivoCoreTests.QualityTests testCleanAndTaxes]' started.
 Test Case '-[KontivoCoreTests.QualityTests testCleanAndTaxes]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.QualityTests testCoreRules]' started.
 Test Case '-[KontivoCoreTests.QualityTests testCoreRules]' passed (0.000 seconds).
-Test Suite 'QualityTests' passed at 2026-10-03 12:31:53.831.
+Test Suite 'QualityTests' passed at 2026-10-03 12:34:32.079.
 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'WebImportTests' started at 2026-10-03 12:31:53.831.
+Test Suite 'WebImportTests' started at 2026-10-03 12:34:32.079.
 Test Case '-[KontivoCoreTests.WebImportTests testBackupRoundTrip]' started.
-Test Case '-[KontivoCoreTests.WebImportTests testBackupRoundTrip]' passed (0.006 seconds).
+Test Case '-[KontivoCoreTests.WebImportTests testBackupRoundTrip]' passed (0.009 seconds).
 Test Case '-[KontivoCoreTests.WebImportTests testCategories]' started.
 Test Case '-[KontivoCoreTests.WebImportTests testCategories]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebImportTests testIncomesSettingsFiles]' started.
-Test Case '-[KontivoCoreTests.WebImportTests testIncomesSettingsFiles]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.WebImportTests testIncomesSettingsFiles]' passed (0.003 seconds).
 Test Case '-[KontivoCoreTests.WebImportTests testInvalid]' started.
-Test Case '-[KontivoCoreTests.WebImportTests testInvalid]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.WebImportTests testInvalid]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebImportTests testMigrations]' started.
 Test Case '-[KontivoCoreTests.WebImportTests testMigrations]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebImportTests testPartnersAndContracts]' started.
@@ -58,13 +53,13 @@ Test Case '-[KontivoCoreTests.WebImportTests testPartnersAndContracts]' passed (
 Test Case '-[KontivoCoreTests.WebImportTests testPersons]' started.
 Test Case '-[KontivoCoreTests.WebImportTests testPersons]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebImportTests testTextParsers]' started.
-Test Case '-[KontivoCoreTests.WebImportTests testTextParsers]' passed (0.001 seconds).
-Test Suite 'WebImportTests' passed at 2026-10-03 12:31:53.843.
-	 Executed 8 tests, with 0 failures (0 unexpected) in 0.011 (0.012) seconds
-Test Suite 'KontivoCorePackageTests.xctest' failed at 2026-10-03 12:31:53.843.
-	 Executed 46 tests, with 1 failure (0 unexpected) in 0.219 (0.225) seconds
-Test Suite 'All tests' failed at 2026-10-03 12:31:53.843.
-	 Executed 46 tests, with 1 failure (0 unexpected) in 0.219 (0.227) seconds
+Test Case '-[KontivoCoreTests.WebImportTests testTextParsers]' passed (0.002 seconds).
+Test Suite 'WebImportTests' passed at 2026-10-03 12:34:32.098.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.017 (0.019) seconds
+Test Suite 'KontivoCorePackageTests.xctest' passed at 2026-10-03 12:34:32.098.
+	 Executed 46 tests, with 0 failures (0 unexpected) in 0.078 (0.088) seconds
+Test Suite 'All tests' passed at 2026-10-03 12:34:32.098.
+	 Executed 46 tests, with 0 failures (0 unexpected) in 0.078 (0.094) seconds
 ◇ Test run started.
 ↳ Testing Library Version: 1501
 ↳ Target Platform: arm64e-apple-macos14.0
