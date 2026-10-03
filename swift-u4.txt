@@ -1,0 +1,112 @@
+branch=swift-u4 run=16 sha=3b75d1cacf19fc0021b6e544f340d4b1ffd2c9c4
+core=success app=failure
+
+===== KERN: Fehler =====
+
+===== KERN: Ende =====
+Test Suite 'FormatTests' passed at 2026-10-03 13:50:21.597.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'GoldenTests' started at 2026-10-03 13:50:21.598.
+Test Case '-[KontivoCoreTests.GoldenTests testGolden]' started.
+Test Case '-[KontivoCoreTests.GoldenTests testGolden]' passed (0.021 seconds).
+Test Suite 'GoldenTests' passed at 2026-10-03 13:50:21.619.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.021 (0.021) seconds
+Test Suite 'MutationTests' started at 2026-10-03 13:50:21.619.
+Test Case '-[KontivoCoreTests.MutationTests testCancelAndMandatorySwitch]' started.
+Test Case '-[KontivoCoreTests.MutationTests testCancelAndMandatorySwitch]' passed (0.002 seconds).
+Test Case '-[KontivoCoreTests.MutationTests testCatalog]' started.
+Test Case '-[KontivoCoreTests.MutationTests testCatalog]' passed (0.002 seconds).
+Test Case '-[KontivoCoreTests.MutationTests testCategoriesAndPartners]' started.
+Test Case '-[KontivoCoreTests.MutationTests testCategoriesAndPartners]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.MutationTests testDeadlinesAndHero]' started.
+Test Case '-[KontivoCoreTests.MutationTests testDeadlinesAndHero]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.MutationTests testLetter]' started.
+Test Case '-[KontivoCoreTests.MutationTests testLetter]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.MutationTests testPauseResumeKeepsHistory]' started.
+Test Case '-[KontivoCoreTests.MutationTests testPauseResumeKeepsHistory]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.MutationTests testPersons]' started.
+Test Case '-[KontivoCoreTests.MutationTests testPersons]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.MutationTests testSaveKeepsStatusFields]' started.
+Test Case '-[KontivoCoreTests.MutationTests testSaveKeepsStatusFields]' passed (0.000 seconds).
+Test Suite 'MutationTests' passed at 2026-10-03 13:50:21.627.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.007 (0.008) seconds
+Test Suite 'QualityTests' started at 2026-10-03 13:50:21.627.
+Test Case '-[KontivoCoreTests.QualityTests testCleanAndTaxes]' started.
+Test Case '-[KontivoCoreTests.QualityTests testCleanAndTaxes]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.QualityTests testCoreRules]' started.
+Test Case '-[KontivoCoreTests.QualityTests testCoreRules]' passed (0.000 seconds).
+Test Suite 'QualityTests' passed at 2026-10-03 13:50:21.628.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'WebImportTests' started at 2026-10-03 13:50:21.628.
+Test Case '-[KontivoCoreTests.WebImportTests testBackupRoundTrip]' started.
+Test Case '-[KontivoCoreTests.WebImportTests testBackupRoundTrip]' passed (0.009 seconds).
+Test Case '-[KontivoCoreTests.WebImportTests testCategories]' started.
+Test Case '-[KontivoCoreTests.WebImportTests testCategories]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.WebImportTests testIncomesSettingsFiles]' started.
+Test Case '-[KontivoCoreTests.WebImportTests testIncomesSettingsFiles]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.WebImportTests testInvalid]' started.
+Test Case '-[KontivoCoreTests.WebImportTests testInvalid]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.WebImportTests testMigrations]' started.
+Test Case '-[KontivoCoreTests.WebImportTests testMigrations]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.WebImportTests testPartnersAndContracts]' started.
+Test Case '-[KontivoCoreTests.WebImportTests testPartnersAndContracts]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.WebImportTests testPersons]' started.
+Test Case '-[KontivoCoreTests.WebImportTests testPersons]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.WebImportTests testTextParsers]' started.
+Test Case '-[KontivoCoreTests.WebImportTests testTextParsers]' passed (0.001 seconds).
+Test Suite 'WebImportTests' passed at 2026-10-03 13:50:21.646.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.016 (0.018) seconds
+Test Suite 'KontivoCorePackageTests.xctest' passed at 2026-10-03 13:50:21.646.
+	 Executed 46 tests, with 0 failures (0 unexpected) in 0.085 (0.094) seconds
+Test Suite 'All tests' passed at 2026-10-03 13:50:21.646.
+	 Executed 46 tests, with 0 failures (0 unexpected) in 0.085 (0.100) seconds
+◇ Test run started.
+↳ Testing Library Version: 1501
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
+
+===== APP: Fehler =====
+/Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManagePersons.swift:218:9: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+** BUILD FAILED **
+
+===== APP: Ende =====
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/App/KontivoApp.swift (in target 'Kontivo' from project 'Kontivo')
+    cd /Users/runner/work/Kontivo/Kontivo/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Cancel/LetterView.swift (in target 'Kontivo' from project 'Kontivo')
+    cd /Users/runner/work/Kontivo/Kontivo/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Shared/LogoSearchSheet.swift (in target 'Kontivo' from project 'Kontivo')
+    cd /Users/runner/work/Kontivo/Kontivo/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Cancel/MailComposeView.swift (in target 'Kontivo' from project 'Kontivo')
+    cd /Users/runner/work/Kontivo/Kontivo/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManageCategories.swift (in target 'Kontivo' from project 'Kontivo')
+    cd /Users/runner/work/Kontivo/Kontivo/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManageComponents.swift (in target 'Kontivo' from project 'Kontivo')
+    cd /Users/runner/work/Kontivo/Kontivo/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManageLogoBatch.swift (in target 'Kontivo' from project 'Kontivo')
+    cd /Users/runner/work/Kontivo/Kontivo/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManagePartners.swift (in target 'Kontivo' from project 'Kontivo')
+    cd /Users/runner/work/Kontivo/Kontivo/ios
+    
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManagePersons.swift (in target 'Kontivo' from project 'Kontivo')
+	SwiftCompile normal x86_64 Compiling\ ManagePersons.swift,\ ManageQuality.swift,\ ManageView.swift,\ MoreTab.swift,\ OnboardingView.swift,\ RateService.swift,\ RootView.swift,\ Routing.swift,\ SignatureSheets.swift,\ Theme.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManagePersons.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManageQuality.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManageView.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/More/MoreTab.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Onboarding/OnboardingView.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Shared/RateService.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/App/RootView.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/App/Routing.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Shared/SignatureSheets.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Design/Theme.swift /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'Kontivo' from project 'Kontivo')
+	Building project Kontivo with scheme Kontivo
+(3 failures)
