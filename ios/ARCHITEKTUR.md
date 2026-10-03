@@ -59,7 +59,7 @@ public enum CancelTerm: String, Codable { case anytime = "", period = "p", month
 public enum CancelChannel: String, Codable, CaseIterable { case online, email, letter, registered }   // Web: «Online / Kundenkonto», «E-Mail», «Brief», «Einschreiben»
 public enum CancelVia: String { case online, mail, post, none }                                   // cancVia()
 public enum CategoryKind: String, Codable { housing, energy, insurance, health, telecom, media, mobility, family, leisure, taxes, finance, other }
-public enum IncomeKind: String, Codable, CaseIterable { lohn, nebeneinkommen, bonus, kapitalertraege, vermietung, rente }   // Anzeige: Lohn, Nebeneinkommen, Bonus, Kapitalerträge, Vermietung, Rente
+public enum IncomeKind: String, Codable, CaseIterable { lohn, nebeneinkommen, bonus, kapitalertraege, vermietung, rente, sonstiges }   // Anzeige: Lohn, Nebeneinkommen, Bonus, Kapitalerträge, Vermietung, Rente, Sonstiges
 
 public struct PostalAddress: Codable, Hashable { company, extra, street, zip, city, country: String }   // leer = ""
 public struct SenderAddress: Codable, Hashable { first, last, street, zip, city, country: String }
@@ -100,7 +100,7 @@ public struct AppData { settings; persons: [Person]; categories: [Category] /* R
 Reihenfolgen sind Arrays (Einfügereihenfolge wie `Object.keys` in der Web-App).
 
 ## Rechenkern (Calc.swift)
-`public struct Calc { public let data: AppData; public let today: Day }` mit den Funktionen der Web-App unter gleichem Namen (Swift-Stil): `priceAt`, `curPrice`, `monthlyCost` (in Hauptwährung), `conv`, `occurrences(from:to:)`, `payments`, `nextDue`, `limit`, `effEnd`, `noticeDeadline(for:end:)` (= nDl), `nextTerm(base:after:)`, `termEnd`, `renewAfter`, `renewTo`, `isTax`, `noticeDeadline`, `urgency`, `isPaused`, `notStarted`, `endedByNotice`, `endedByTerm`, `isEnded`, `isKept`, `isAnytime`, `needsAction`, `trialNeeds`, `holderShare`, `cancVia`, sowie Listen `active`, `running`, `archived`.
+`public struct Calc { public let data: AppData; public let today: Day }` mit den Funktionen der Web-App unter gleichem Namen (Swift-Stil): `priceAt`, `curPrice`, `monthlyCost` (in Hauptwährung), `conv`, `occurrences(from:to:)`, `payments`, `nextDue`, `limit`, `effEnd`, `noticeDeadline(for:end:)` (= nDl), `nextTerm(base:after:)`, `termEnd`, `renewAfter`, `renewTo`, `isTax`, `noticeDeadline`, `urgency`, `isPaused`, `notStarted`, `endedByNotice`, `endedByTerm`, `isEnded`, `isKept`, `isAnytime`, `needsAction`, `trialNeeds`, `holderShare`, `cancVia`, sowie Listen `active`, `running`, `archived`. Zusätzlich fertige Tab-Logik: `hero()`, `deadlineOverview()`, `deadlineBadgeCount`, `costYear`, `periodTotal`, `monthComparison`, `budgetYear`, `budgetMonthComparison`, `reviewDue()`.
 Exakt wie index.html Zeilen «Rechnen» (inkl. Korrekturen vom 03.10.2026: Monatsletzter-Regel addMonthsE, nDl auf Monatsende, isAnytime nur bei monatlicher Periode, endedByTerm, Vertragsjahr ab 29.02.).
 Pausen: mehrere `Pause`-Einträge; `occurrences` überspringt Termine in jeder Pause; `isPaused` = eine Pause mit `from <= heute < until` (oder `until == nil`).
 Prüfung: `Tests/KontivoCoreTests/GoldenTests.swift` lädt `cases.json` + `golden.json`, wandelt jeden Fall über `WebImport` in einen `Contract`, rechnet mit fixem Stichtag und vergleicht jedes Feld.
