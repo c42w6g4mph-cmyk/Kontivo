@@ -148,7 +148,8 @@ final class CSVTests: XCTestCase {
         XCTAssertEqual(CSV.categoryGuess("Krankenkasse"), "Versicherung")
         XCTAssertEqual(CSV.categoryGuess("Streaming"), "Abos & Medien")
         XCTAssertEqual(CSV.categoryGuess("Andere"), "Sonstiges")
-        XCTAssertEqual(CSV.categoryGuess("Haustier"), "")
+        XCTAssertEqual(CSV.categoryGuess("Velo"), "")
+        XCTAssertEqual(CSV.categoryGuess("Haustier"), "Wohnen") // wie Web: «haus» trifft die Regel Wohnen
     }
 
     func testParser() {
