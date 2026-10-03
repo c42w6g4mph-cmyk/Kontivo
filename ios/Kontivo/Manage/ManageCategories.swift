@@ -66,6 +66,23 @@ struct MDIconGrid: View {
 
 // MARK: - Liste
 
+/// Rückfrage ««Name» löschen?» für eine leere Kategorie
+private struct MDCategoryDeleteAlert: ViewModifier {
+    @Binding var ask: KCategory?
+    let onDelete: (KCategory) -> Void
+
+    func body(content: Content) -> some View {
+        let show = Binding<Bool>(get: { ask != nil }, set: { if !$0 { ask = nil } })
+        let title: String = ask.map { "«" + $0.name + "» löschen?" } ?? ""
+        return content.alert(title, isPresented: show, presenting: ask) { c in
+            Button("Löschen", role: .destructive) { onDelete(c) }
+            Button("Abbrechen", role: .cancel) {}
+        } message: { _ in
+            Text("Die Kategorie ist leer.")
+        }
+    }
+}
+
 /// Kategorien (MD_PAGES.cat): Bearbeiten-Modus mit Löschen und Umsortieren
 struct MDCategoriesPage: View {
     @Environment(AppModel.self) private var model
@@ -116,14 +133,7 @@ struct MDCategoriesPage: View {
         .mdListStyle()
         .environment(\.editMode, $editMode)
         .navigationTitle("Kategorien")
-        .alert(deleteAsk.map { "«\($0.name)» löschen?" } ?? "",
-               isPresented: Binding(get: { deleteAsk != nil }, set: { if !$0 { deleteAsk = nil } }),
-               presenting: deleteAsk) { c in
-            Button("Löschen", role: .destructive) { deleteEmpty(c) }
-            Button("Abbrechen", role: .cancel) {}
-        } message: { _ in
-            Text("Die Kategorie ist leer.")
-        }
+        .modifier(MDCategoryDeleteAlert(ask: $deleteAsk, onDelete: deleteEmpty))
     }
 
     private func row(_ c: KCategory) -> some View {
@@ -179,7 +189,7 @@ struct MDCategoryPage: View {
         .navigationTitle(model.data.category(categoryID)?.name ?? "Kategorie")
     }
 
-    private func page(_ c: KCategory) -> some View {
+    private func content(_ c: KCategory) -> some View {
         let fixed = c.kind == .other
         let cs = model.data.mdContracts(inCategory: c.id)
         return List {
@@ -241,18 +251,23 @@ struct MDCategoryPage: View {
             }
         }
         .mdListStyle()
-        .onAppear { if !focused { name = c.name } }
-        .onDisappear { commitName() }
-        .onChange(of: focused) { _, f in if !f { commitName() } }
-        .onChange(of: model.data.category(categoryID)?.name) { _, n in
-            if let n, !focused { name = n }
-        }
-        .alert("«\(c.name)» löschen?", isPresented: $deleteAsk) {
-            Button("Löschen", role: .destructive) { deleteEmpty() }
-            Button("Abbrechen", role: .cancel) {}
-        } message: {
-            Text("Die Kategorie ist leer.")
-        }
+    }
+
+    private func page(_ c: KCategory) -> some View {
+        let title: String = "«" + c.name + "» löschen?"
+        return content(c)
+            .onAppear { if !focused { name = c.name } }
+            .onDisappear { commitName() }
+            .onChange(of: focused) { _, f in if !f { commitName() } }
+            .onChange(of: model.data.category(categoryID)?.name) { _, n in
+                if let n, !focused { name = n }
+            }
+            .alert(title, isPresented: $deleteAsk) {
+                Button("Löschen", role: .destructive) { deleteEmpty() }
+                Button("Abbrechen", role: .cancel) {}
+            } message: {
+                Text("Die Kategorie ist leer.")
+            }
     }
 
     /// Umbenennen (ceRename): leer → zurück; doppelt → zurück mit Hinweis (kein Zusammenführen)

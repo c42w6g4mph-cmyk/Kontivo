@@ -106,39 +106,7 @@ struct ImageCropSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
-                    Text("Mit einem Finger verschieben, mit zwei Fingern oder dem Regler zoomen. So sieht die Kachel später aus.")
-                        .font(.footnote)
-                        .foregroundStyle(KColor.ink2)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                    preview
-                    zoomRow
-                    bgSection
-                    if let e = errorText {
-                        Text(e).font(.footnote).foregroundStyle(KColor.alert)
-                    }
-                    Button { export() } label: {
-                        Text("Übernehmen").font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(prep == nil)
-                    Button { autoFit() } label: {
-                        Text("Automatisch einpassen").frame(maxWidth: .infinity).padding(.vertical, 4)
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(prep == nil)
-                }
-                .padding(KMetric.gutter)
-                .frame(maxWidth: 520)
-                .frame(maxWidth: .infinity)
-                .background(
-                    GeometryReader { g in
-                        Color.clear
-                            .onAppear { containerW = g.size.width }
-                            .onChange(of: g.size.width) { _, w in containerW = w }
-                    }
-                )
+                form
             }
             .background(KColor.paper.ignoresSafeArea())
             .navigationTitle(title)
@@ -150,6 +118,42 @@ struct ImageCropSheet: View {
             }
         }
         .task { await load() }
+    }
+
+    private var form: some View {
+            VStack(spacing: 16) {
+                Text("Mit einem Finger verschieben, mit zwei Fingern oder dem Regler zoomen. So sieht die Kachel später aus.")
+                    .font(.footnote)
+                    .foregroundStyle(KColor.ink2)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                preview
+                zoomRow
+                bgSection
+                if let e = errorText {
+                    Text(e).font(.footnote).foregroundStyle(KColor.alert)
+                }
+                Button { export() } label: {
+                    Text("Übernehmen").font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(prep == nil)
+                Button { autoFit() } label: {
+                    Text("Automatisch einpassen").frame(maxWidth: .infinity).padding(.vertical, 4)
+                }
+                .buttonStyle(.bordered)
+                .disabled(prep == nil)
+            }
+            .padding(KMetric.gutter)
+            .frame(maxWidth: 520)
+            .frame(maxWidth: .infinity)
+            .background(
+                GeometryReader { g in
+                    Color.clear
+                        .onAppear { containerW = g.size.width }
+                        .onChange(of: g.size.width) { _, w in containerW = w }
+                }
+            )
     }
 
     // MARK: Ansicht

@@ -215,6 +215,10 @@ struct MDPersonPage: View {
     }
 
     private func page(_ p: Person) -> some View {
+        alerts(handlers(content(p), p), p)
+    }
+
+    private func content(_ p: Person) -> some View {
         List {
             headerSection(p)
             cancelSection(p)
@@ -226,29 +230,46 @@ struct MDPersonPage: View {
             }
         }
         .mdListStyle()
-        .onAppear { if !nameFocused { name = p.name } }
-        .onDisappear { commitName(ask: false) }
-        .onChange(of: nameFocused) { _, f in if !f { commitName(ask: true) } }
-        .onChange(of: model.data.person(personID)?.name) { _, n in
-            if let n, !nameFocused { name = n }
-        }
-        .modifier(MDImageFlow(showPhotos: $showPhotos, showFiles: $showFiles, crop: $crop, title: "Bild zuschneiden") { png, _ in
-            setAvatar(png)
-        })
-        .alert(renameAsk.map { "«\($0.otherName)» gibt es schon" } ?? "",
-               isPresented: Binding(get: { renameAsk != nil }, set: { if !$0 { renameAsk = nil } }),
-               presenting: renameAsk) { a in
-            Button("Zusammenführen") { mergeInto(a) }
-            Button("Abbrechen", role: .cancel) { name = model.data.person(personID)?.name ?? name }
-        } message: { a in
-            Text("Alle Einträge von «" + a.oldName + "» gehen an «" + a.otherName + "», «" + a.oldName + "» wird entfernt.")
-        }
-        .alert("«\(p.name)» löschen?", isPresented: $deleteAsk) {
-            Button("Löschen", role: .destructive) { deleteNow() }
-            Button("Abbrechen", role: .cancel) {}
-        } message: {
-            Text("Der Inhaber ist nirgends zugeordnet.")
-        }
+    }
+
+    private func handlers<V: View>(_ v: V, _ p: Person) -> some View {
+        v.onAppear { if !nameFocused { name = p.name } }
+            .onDisappear { commitName(ask: false) }
+            .onChange(of: nameFocused) { _, f in if !f { commitName(ask: true) } }
+            .onChange(of: model.data.person(personID)?.name) { _, n in
+                if let n, !nameFocused { name = n }
+            }
+            .modifier(MDImageFlow(showPhotos: $showPhotos, showFiles: $showFiles, crop: $crop, title: "Bild zuschneiden") { png, _ in
+                setAvatar(png)
+            })
+    }
+
+    private var renameTitle: String {
+        guard let a = renameAsk else { return "" }
+        return "«" + a.otherName + "» gibt es schon"
+    }
+
+    private func renameMessage(_ a: MDPersonRenameAsk) -> String {
+        let parts: [String] = ["Alle Einträge von «", a.oldName, "» gehen an «", a.otherName, "», «", a.oldName, "» wird entfernt."]
+        return parts.joined()
+    }
+
+    private func alerts<V: View>(_ v: V, _ p: Person) -> some View {
+        let showRename = Binding<Bool>(get: { renameAsk != nil }, set: { if !$0 { renameAsk = nil } })
+        let deleteTitle: String = "«" + p.name + "» löschen?"
+        return v
+            .alert(renameTitle, isPresented: showRename, presenting: renameAsk) { a in
+                Button("Zusammenführen") { mergeInto(a) }
+                Button("Abbrechen", role: .cancel) { name = model.data.person(personID)?.name ?? name }
+            } message: { a in
+                Text(renameMessage(a))
+            }
+            .alert(deleteTitle, isPresented: $deleteAsk) {
+                Button("Löschen", role: .destructive) { deleteNow() }
+                Button("Abbrechen", role: .cancel) {}
+            } message: {
+                Text("Der Inhaber ist nirgends zugeordnet.")
+            }
     }
 
     private var stat: PersonStat? {
@@ -604,57 +625,76 @@ struct MDSenderPage: View {
     }
 
     private func page(_ p: Person) -> some View {
+        sheets(handlers(content(p), p))
+    }
+
+    private func content(_ p: Person) -> some View {
         let candidates = model.data.sameAddressCandidates(for: personID)
         let sameID: UUID? = p.sameAddressAs.flatMap { sid in candidates.contains { $0.id == sid } ? sid : nil }
         return List {
             Section {
                 MDHint("Steht oben im Kündigungsschreiben, wenn \(p.name) kündigt.").mdPlainRow()
             }
-            Section {
-                HStack(spacing: 10) {
-                    field("Vorname", $draft.first, .first, next: .last, content: .givenName)
-                    Divider()
-                    field("Nachname", $draft.last, .last, next: sameID == nil ? .street : nil, content: .familyName)
-                }
-                .mdRow()
-                if sameID == nil {
-                    field("Strasse und Nr.", $draft.street, .street, next: .zip, content: .streetAddressLine1)
-                        .mdRow()
-                    HStack(spacing: 10) {
-                        field("PLZ", $draft.zip, .zip, next: .city, content: .postalCode, keyboard: .numbersAndPunctuation)
-                            .frame(maxWidth: 100)
-                        Divider()
-                        field("Ort", $draft.city, .city, next: .country, content: .addressCity)
-                    }
-                    .mdRow()
-                    field("Land (optional)", $draft.country, .country, next: nil, content: .countryName)
-                        .mdRow()
-                }
-            }
+            fieldsSection(own: sameID == nil)
             if !candidates.isEmpty {
-                Section {
-                    MDChipRow {
-                        Chip(title: "Eigene Adresse", isOn: sameID == nil) { setSame(nil) }
-                        ForEach(candidates) { o in
-                            Chip(title: "Gleich wie \(o.name)", isOn: sameID == o.id) { setSame(o.id) }
-                        }
-                    }
-                    .mdPlainRow()
-                    if sameID != nil {
-                        MDHint(model.data.resolvedSender(personID).addressLines.joined(separator: ", "))
-                            .mdPlainRow()
-                    }
-                }
+                sameSection(candidates, sameID: sameID)
             }
             signatureSection(p)
         }
         .mdListStyle()
-        .onAppear { draft = p.sender }
-        .onDisappear { save() }
-        .onChange(of: focus) { old, new in
-            if old != nil && new == nil { save() }
+    }
+
+    private func fieldsSection(own: Bool) -> some View {
+        let lastNext: MDSenderField? = own ? .street : nil
+        return Section {
+            HStack(spacing: 10) {
+                field("Vorname", $draft.first, .first, next: .last, content: .givenName)
+                Divider()
+                field("Nachname", $draft.last, .last, next: lastNext, content: .familyName)
+            }
+            .mdRow()
+            if own {
+                field("Strasse und Nr.", $draft.street, .street, next: .zip, content: .streetAddressLine1)
+                    .mdRow()
+                HStack(spacing: 10) {
+                    field("PLZ", $draft.zip, .zip, next: .city, content: .postalCode, keyboard: .numbersAndPunctuation)
+                        .frame(maxWidth: 100)
+                    Divider()
+                    field("Ort", $draft.city, .city, next: .country, content: .addressCity)
+                }
+                .mdRow()
+                field("Land (optional)", $draft.country, .country, next: nil, content: .countryName)
+                    .mdRow()
+            }
         }
-        .sheet(isPresented: $showPad) {
+    }
+
+    private func sameSection(_ candidates: [Person], sameID: UUID?) -> some View {
+        Section {
+            MDChipRow {
+                Chip(title: "Eigene Adresse", isOn: sameID == nil) { setSame(nil) }
+                ForEach(candidates) { o in
+                    Chip(title: "Gleich wie " + o.name, isOn: sameID == o.id) { setSame(o.id) }
+                }
+            }
+            .mdPlainRow()
+            if sameID != nil {
+                MDHint(model.data.resolvedSender(personID).addressLines.joined(separator: ", "))
+                    .mdPlainRow()
+            }
+        }
+    }
+
+    private func handlers<V: View>(_ v: V, _ p: Person) -> some View {
+        v.onAppear { draft = p.sender }
+            .onDisappear { save() }
+            .onChange(of: focus) { old, new in
+                if old != nil && new == nil { save() }
+            }
+    }
+
+    private func sheets<V: View>(_ v: V) -> some View {
+        v.sheet(isPresented: $showPad) {
             SignaturePadSheet(title: "Unterschrift") { jpeg in
                 showPad = false
                 setSignature(jpeg, toast: "Unterschrift gespeichert")

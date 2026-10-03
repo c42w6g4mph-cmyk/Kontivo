@@ -46,21 +46,7 @@ struct MDPartnersPage: View {
         .mdListStyle()
         .searchable(text: $nav.partnerQuery, placement: .navigationBarDrawer(displayMode: .always), prompt: "Vertragspartner suchen")
         .navigationTitle("Vertragspartner")
-        .alert(mergeAsk.map { "Zu «\($0.targetName)» zusammenführen?" } ?? "",
-               isPresented: Binding(get: { mergeAsk != nil }, set: { if !$0 { mergeAsk = nil } }),
-               presenting: mergeAsk) { a in
-            Button("Zusammenführen") { merge(a) }
-            Button("Abbrechen", role: .cancel) {}
-        } message: { a in
-            Text(mergeMessage(a))
-        }
-    }
-
-    private func mergeMessage(_ a: MDDupMergeAsk) -> String {
-        let names: String = a.sourceNames.map { "«" + $0 + "»" }.joined(separator: ", ")
-        let verb: String = a.sources.count == 1 ? "läuft" : "laufen"
-        let parts: [String] = [names, " (", Format.count(a.count, "Vertrag", "Verträge"), ") ", verb, " danach unter «", a.targetName, "»."]
-        return parts.joined()
+        .modifier(MDDupMergeAlert(ask: $mergeAsk, onMerge: merge))
     }
 
     private func row(_ g: Partners.Group) -> some View {
@@ -107,6 +93,34 @@ struct MDPartnersPage: View {
         guard ok else { return }
         for n in a.sourceNames { model.mdRenameFilters(partnerFrom: n, partnerTo: a.targetName) }
         model.toast("Zusammengeführt")
+    }
+}
+
+/// Rückfrage zum Zusammenführen von Dubletten
+private struct MDDupMergeAlert: ViewModifier {
+    @Binding var ask: MDDupMergeAsk?
+    let onMerge: (MDDupMergeAsk) -> Void
+
+    private var title: String {
+        guard let a = ask else { return "" }
+        return "Zu «" + a.targetName + "» zusammenführen?"
+    }
+
+    private func message(_ a: MDDupMergeAsk) -> String {
+        let names: String = a.sourceNames.map { "«" + $0 + "»" }.joined(separator: ", ")
+        let verb: String = a.sources.count == 1 ? "läuft" : "laufen"
+        let parts: [String] = [names, " (", Format.count(a.count, "Vertrag", "Verträge"), ") ", verb, " danach unter «", a.targetName, "»."]
+        return parts.joined()
+    }
+
+    func body(content: Content) -> some View {
+        let show = Binding<Bool>(get: { ask != nil }, set: { if !$0 { ask = nil } })
+        return content.alert(title, isPresented: show, presenting: ask) { a in
+            Button("Zusammenführen") { onMerge(a) }
+            Button("Abbrechen", role: .cancel) {}
+        } message: { a in
+            Text(message(a))
+        }
     }
 }
 
@@ -165,6 +179,10 @@ struct MDPartnerPage: View {
     }
 
     private func page(_ p: Partner) -> some View {
+        alerts(sheets(handlers(content(p), p)))
+    }
+
+    private func content(_ p: Partner) -> some View {
         List {
             headerSection
             logoSection(p)
@@ -174,27 +192,45 @@ struct MDPartnerPage: View {
             mergeSection
         }
         .mdListStyle()
-        .onAppear { sync(p, force: true) }
-        .onDisappear { commitAll() }
-        .onChange(of: model.data.partner(partnerID)) { _, np in
-            if let np { sync(np, force: false) }
-        }
-        .onChange(of: focus) { old, new in focusChanged(old, new) }
-        .onChange(of: scenePhase) { _, ph in
-            if ph == .active { googleReturned() }
-        }
-        .modifier(MDImageFlow(showPhotos: $showPhotos, showFiles: $showFiles, crop: $crop, title: "Logo zuschneiden") { png, bg in
+    }
+
+    private func handlers<V: View>(_ v: V, _ p: Partner) -> some View {
+        v.onAppear { sync(p, force: true) }
+            .onDisappear { commitAll() }
+            .onChange(of: model.data.partner(partnerID)) { _, np in
+                if let np { sync(np, force: false) }
+            }
+            .onChange(of: focus) { old, new in focusChanged(old, new) }
+            .onChange(of: scenePhase) { _, ph in
+                if ph == .active { googleReturned() }
+            }
+    }
+
+    private func sheets<V: View>(_ v: V) -> some View {
+        v.modifier(MDImageFlow(showPhotos: $showPhotos, showFiles: $showFiles, crop: $crop, title: "Logo zuschneiden") { png, bg in
             if model.mdSetPartnerLogo(partnerID, png: png, bg: bg) { model.toast("Logo gespeichert") }
         })
         .modifier(MDLogoSheet(target: $logoTarget))
         .modifier(MDAddrPickSheet(pick: $addrPick) { a in addr = a })
-        .alert(renameAsk.map { "«\($0.otherName)» gibt es schon" } ?? "",
-               isPresented: Binding(get: { renameAsk != nil }, set: { if !$0 { renameAsk = nil } }),
-               presenting: renameAsk) { a in
+    }
+
+    private var renameTitle: String {
+        guard let a = renameAsk else { return "" }
+        return "«" + a.otherName + "» gibt es schon"
+    }
+
+    private func renameMessage(_ a: MDPartnerRenameAsk) -> String {
+        let parts: [String] = [Format.count(a.count, "Vertrag wird", "Verträge werden"), " mit «", a.otherName, "» zusammengeführt."]
+        return parts.joined()
+    }
+
+    private func alerts<V: View>(_ v: V) -> some View {
+        let show = Binding<Bool>(get: { renameAsk != nil }, set: { if !$0 { renameAsk = nil } })
+        return v.alert(renameTitle, isPresented: show, presenting: renameAsk) { a in
             Button("Zusammenführen") { mergeInto(a) }
             Button("Abbrechen", role: .cancel) { name = model.data.partner(partnerID)?.name ?? name }
         } message: { a in
-            Text(Format.count(a.count, "Vertrag wird", "Verträge werden") + " mit «" + a.otherName + "» zusammengeführt.")
+            Text(renameMessage(a))
         }
     }
 
