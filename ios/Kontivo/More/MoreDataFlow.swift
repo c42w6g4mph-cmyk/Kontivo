@@ -193,23 +193,31 @@ final class MoreDataFlow {
 
     /// Backup einspielen: Dateien mit gleicher ID in den Dateispeicher, Daten ersetzen, Darstellung (theme) bleibt.
     private func restore(_ r: BackupImportResult, model: AppModel) {
-        var failed = r.failedFiles
-        if !r.files.isEmpty { model.toast("Dateien werden übernommen…") }
-        for (id, f) in r.files {
-            guard MoreDataFlow.isFileID(id) else { failed += 1; continue }
-            do { try model.files.put(f.data, type: f.type, id: id) } catch { failed += 1 }
+        working = true
+        Task { @MainActor [weak self] in
+            var failed = r.failedFiles
+            if !r.files.isEmpty {
+                model.toast("Dateien werden übernommen…")
+                // Meldung zuerst zeichnen lassen
+                try? await Task.sleep(nanoseconds: 150_000_000)
+            }
+            for (id, f) in r.files {
+                guard MoreDataFlow.isFileID(id) else { failed += 1; continue }
+                do { try model.files.put(f.data, type: f.type, id: id) } catch { failed += 1 }
+            }
+            var d = r.data
+            let current = model.data.settings
+            d.settings.theme = current.theme
+            // Die Einführung wurde auf diesem Gerät schon gesehen
+            d.settings.onboarded = max(d.settings.onboarded, current.onboarded)
+            model.update { $0 = d }
+            model.costFilter = Calc.CostFilter()
+            model.budgetPerson = nil
+            model.heroFilter = nil
+            model.saveNow()
+            self?.working = false
+            model.toast(Backup.doneText(failedFiles: failed))
         }
-        var d = r.data
-        let current = model.data.settings
-        d.settings.theme = current.theme
-        // Die Einführung wurde auf diesem Gerät schon gesehen
-        d.settings.onboarded = max(d.settings.onboarded, current.onboarded)
-        model.update { $0 = d }
-        model.costFilter = Calc.CostFilter()
-        model.budgetPerson = nil
-        model.heroFilter = nil
-        model.saveNow()
-        model.toast(Backup.doneText(failedFiles: failed))
     }
 
     /// Datei-IDs wie in der Web-App: 32 Hex-Zeichen (schützt den Dateispeicher vor fremden Pfaden).
