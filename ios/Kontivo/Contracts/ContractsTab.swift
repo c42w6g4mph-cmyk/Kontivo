@@ -48,8 +48,12 @@ private struct CTContractsList: View {
     @Binding var pauseTarget: CTIDItem?
 
     var body: some View {
-        let content = CTListContent.build(data: model.data, calc: model.calc, filter: model.costFilter,
-                                          hero: model.heroFilter, search: model.searchText)
+        let calc = model.calc
+        let h = calc.hero()
+        // Web: Hero-Filter zurücksetzen, sobald sein Zähler 0 ist (z.B. letzter pausierter Vertrag fortgesetzt)
+        let hero = CTListContent.effectiveHero(model.heroFilter, h)
+        let content = CTListContent.build(data: model.data, calc: calc, filter: model.costFilter,
+                                          hero: hero, search: model.searchText)
         GeometryReader { geo in
             List {
                 topSection(content)
@@ -80,6 +84,14 @@ private struct CTContractsList: View {
             .contentMargins(.horizontal, max(KMetric.gutter, (geo.size.width - KMetric.maxContent) / 2), for: .scrollContent)
         }
         .kPageBackground()
+        .onAppear { syncHero(h) }
+        .onChange(of: h) { _, new in syncHero(new) }
+    }
+
+    /// Ungültigen Hero-Filter auch im Modell entfernen (damit das Tag verschwindet)
+    private func syncHero(_ h: Calc.Hero) {
+        let e = CTListContent.effectiveHero(model.heroFilter, h)
+        if e != model.heroFilter { model.heroFilter = e }
     }
 
     @ViewBuilder
@@ -172,6 +184,24 @@ struct CTListContent {
     /// Filtertext «Kategorie · Vertragspartner · Person»
     var filterLabel = ""
 
+    /// Hero-Filter nur, solange sein Zähler > 0 ist (Web renderHero)
+    static func effectiveHero(_ hero: HeroFilter?, _ h: Calc.Hero) -> HeroFilter? {
+        switch hero {
+        case .active: return (!h.showsChips || h.activeCount == 0) ? nil : hero
+        case .paused: return h.pausedCount == 0 ? nil : hero
+        case .future: return h.futureCount == 0 ? nil : hero
+        case nil: return nil
+        }
+    }
+
+    static func heroLabel(_ h: HeroFilter) -> String {
+        switch h {
+        case .future: return "Noch nicht aktiv"
+        case .paused: return "Pausiert"
+        case .active: return "Aktiv"
+        }
+    }
+
     static func build(data: AppData, calc: Calc, filter: Calc.CostFilter, hero: HeroFilter?, search: String) -> CTListContent {
         var out = CTListContent()
         let qRaw = search.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -197,17 +227,13 @@ struct CTListContent {
         if fc > 0 { arc = arc.filter { calc.matches($0, filter) } }
         out.archive = arc
 
-        // Leiste aktiver Filter
-        if let h = hero {
-            let t: String
-            switch h {
-            case .future: t = "Noch nicht aktiv"
-            case .paused: t = "Pausiert"
-            case .active: t = "Aktiv"
-            }
-            out.tags.append(CTFilterTag(kind: .hero, text: t))
-        }
+        // Leiste aktiver Filter; Text «Für «Pausiert · Versicherung» …» wie Web (Hero zuerst)
         var labels: [String] = []
+        if let h = hero {
+            let t = heroLabel(h)
+            out.tags.append(CTFilterTag(kind: .hero, text: t))
+            labels.append(t)
+        }
         if let k = filter.category {
             out.tags.append(CTFilterTag(kind: .category, text: k))
             labels.append(k)
@@ -234,7 +260,8 @@ struct CTListContent {
         for c in a { cost[c.id] = calc.monthlyCost(c) }
         let byCost: (Contract, Contract) -> Bool = { (cost[$0.id] ?? 0) > (cost[$1.id] ?? 0) }
         func defaultSum(_ list: [Contract]) -> String {
-            let s = list.reduce(0.0) { $0 + (calc.isPaused($1) ? 0 : (cost[$1.id] ?? 0)) }
+            // wie die Summe oben: ohne pausierte und noch nicht aktive Verträge
+            let s = list.reduce(0.0) { $0 + ((calc.isPaused($1) || calc.notStarted($1)) ? 0 : (cost[$1.id] ?? 0)) }
             return Format.money(s) + " " + home + "/Mt."
         }
         var out: [CTGroup] = []
@@ -281,13 +308,19 @@ struct CTListContent {
             var order: [String] = []
             var by: [String: [Contract]] = [:]
             for c in a.ctStableSorted(by: byCost) {
-                let names = data.holderNames(of: c)
+                // Schlüssel in der Reihenfolge der Inhaber-Liste (A & B = B & A)
+                let names = data.persons.filter { c.holderIDs.contains($0.id) }.map(\.name)
                 let k = names.isEmpty ? "Ohne Inhaber" : names.joined(separator: " & ")
                 if by[k] == nil { order.append(k) }
                 by[k, default: []].append(c)
             }
             let de = Locale(identifier: "de_CH")
-            for k in order.ctStableSorted(by: { $0.compare($1, locale: de) == .orderedAscending }) {
+            let none = "Ohne Inhaber"
+            // «Ohne Inhaber» am Ende, sonst alphabetisch
+            for k in order.ctStableSorted(by: { x, y in
+                if (x == none) != (y == none) { return y == none }
+                return x.compare(y, locale: de) == .orderedAscending
+            }) {
                 let list = by[k] ?? []
                 out.append(CTGroup(id: "h-" + k, title: k, sum: defaultSum(list), mode: .list, contracts: list))
             }
@@ -485,7 +518,7 @@ private struct CTGroupHeader: View {
     }
 }
 
-// MARK: - Keine Treffer / Willkommen
+// MARK: - Keine Treffer / Keine laufenden Verträge
 
 private struct CTNoHitsView: View {
     let content: CTListContent
@@ -501,14 +534,9 @@ private struct CTNoHitsView: View {
                 Text("Für «" + content.filterLabel + "» gibt es keinen aktiven Vertrag.")
                     .font(.subheadline).foregroundStyle(KColor.ink2)
             } else {
-                Image("Logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 56, height: 56)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .accessibilityHidden(true)
-                Text("Willkommen bei Kontivo").font(.headline).foregroundStyle(KColor.ink)
-                Text("Fixkosten, Verträge und Fristen – klar im Griff.\nTippe oben auf + und leg den ersten Vertrag an. Mit «Aus Katalog wählen» geht es am schnellsten.")
+                // Keine Suche, kein Filter, keine aktiven Verträge: alle liegen im Archiv
+                Text("Keine laufenden Verträge").font(.headline).foregroundStyle(KColor.ink)
+                Text("Alle Verträge sind gekündigt oder abgelaufen und liegen im Archiv. Tippe oben auf + für einen neuen Vertrag.")
                     .font(.subheadline).foregroundStyle(KColor.ink2)
             }
         }

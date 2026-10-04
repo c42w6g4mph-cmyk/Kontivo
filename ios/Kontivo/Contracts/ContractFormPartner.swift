@@ -199,9 +199,11 @@ struct CTFormPartnerBlock: View {
         model.toast("Lade Logo …")
         let f = form
         let m = model
+        // Name beim Übernehmen: kommt das Logo spät und wurde der Vertragspartner inzwischen geändert, nicht mehr setzen
+        let n0 = f.partnerName.ctTrimmed
         Task {
             let r = await CTLogoFetch.logo(file: w.file, domain: w.dom)
-            if f.closed { return }
+            if f.closed || f.partnerName.ctTrimmed != n0 { return }
             if let r, f.effectiveLogo(m.data) == nil, let id = m.storeFile(r.png, type: "image/png") {
                 f.logoID = id
                 f.logoBg = r.bg
@@ -248,6 +250,17 @@ struct CTTemplateRow: View {
                     .buttonStyle(.bordered)
                     .tint(KColor.teal)
                     .font(.subheadline.weight(.semibold))
+                }
+            }
+            .padding(.vertical, 2)
+        case .exact(let t):
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Vorlage")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(KColor.ink2)
+                Chip(title: t.name + " übernehmen", isOn: false) {
+                    form.applyTemplate(t, keepName: false, onlyEmpty: false, data: model.data)
+                    model.toast("Vorlage übernommen — bitte prüfen")
                 }
             }
             .padding(.vertical, 2)

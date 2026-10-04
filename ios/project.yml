@@ -21,6 +21,11 @@ targets:
     platform: iOS
     sources:
       - path: Kontivo
+        excludes:
+          - Resources/PrivacyInfo.xcprivacy
+      # Datenschutz-Manifest (App Store): ausdrücklich als Ressource ins App-Bundle
+      - path: Kontivo/Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - package: KontivoCore
     info:
@@ -34,8 +39,9 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSRequiresIPhoneOS: true
         ITSAppUsesNonExemptEncryption: false
+        # Startbildschirm in Papierfarbe (wie der App-Hintergrund), sonst blitzt beim Start Petrol auf
         UILaunchScreen:
-          UIColorName: AccentColor
+          UIColorName: LaunchBackground
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UISupportedInterfaceOrientations:
@@ -54,10 +60,9 @@ targets:
           - Zeyada.ttf
           - Qwigley-Regular.ttf
           - Bilbo-Regular.ttf
+        # Nur Berechtigungen, die die App wirklich nutzt (Kalender: Frist eintragen; Fotos: «Bild sichern» im Teilen-Menü)
         NSCalendarsWriteOnlyAccessUsageDescription: Kontivo trägt Kündigungsfristen auf deinen Wunsch in den Kalender ein.
-        NSCalendarsFullAccessUsageDescription: Kontivo trägt Kündigungsfristen auf deinen Wunsch in den Kalender ein.
-        NSCameraUsageDescription: Kontivo nutzt die Kamera, um Dokumente zu einem Vertrag zu fotografieren.
-        NSFaceIDUsageDescription: Kontivo kann mit Face ID gesperrt werden.
+        NSPhotoLibraryAddUsageDescription: Kontivo speichert Bilder auf deinen Wunsch in deiner Fotomediathek.
         LSSupportsOpeningDocumentsInPlace: false
         UISupportsDocumentBrowser: false
     settings:

@@ -29,7 +29,8 @@ struct RootView: View {
             if model.sheets.isEmpty { ToastView() }
         }
         .modifier(CancelQuestionModifier(isTop: model.sheets.isEmpty))
-        .fullScreenCover(item: $model.onboarding) { mode in
+        .modifier(PromptModifier(isTop: model.sheets.isEmpty))
+        .fullScreenCover(item: $model.onboarding, onDismiss: { model.onboardingDidDismiss() }) { mode in
             OnboardingView(mode: mode)
                 .environment(model)
         }
@@ -42,10 +43,12 @@ struct SheetLevel: ViewModifier {
     let level: Int
 
     func body(content: Content) -> some View {
+        // Wert im body lesen (Beobachtung), Schliessen meldet onDismiss an das Modell (Fensterwechsel ohne feste Wartezeiten)
+        let item = model.sheets.indices.contains(level) ? model.sheets[level] : nil
         content.sheet(item: Binding<AppSheet?>(
-            get: { model.sheets.indices.contains(level) ? model.sheets[level] : nil },
+            get: { item },
             set: { newValue in if newValue == nil { model.dismiss(level: level) } }
-        )) { sheet in
+        ), onDismiss: { model.sheetDidDismiss(level: level) }) { sheet in
             AppSheetView(sheet: sheet, level: level)
                 .modifier(SheetLevel(level: level + 1))
                 .environment(model)
@@ -65,6 +68,7 @@ struct AppSheetView: View {
                 if model.sheets.count - 1 == level { ToastView() }
             }
             .modifier(CancelQuestionModifier(isTop: model.sheets.count - 1 == level))
+            .modifier(PromptModifier(isTop: model.sheets.count - 1 == level))
             .tint(KColor.teal)
             // Fenster übernehmen die Umgebung der App nicht zuverlässig: Datumsauswahl sonst im US-Format («10/3/26»)
             .environment(\.locale, Locale(identifier: "de_CH"))
@@ -114,6 +118,38 @@ struct CancelQuestionModifier: ViewModifier {
             Button("Noch nicht", role: .cancel) { model.answerCancelQuestion(q, cancelled: false) }
         } message: { q in
             Text(model.cancelQuestionText(q))
+        }
+    }
+}
+
+/// Allgemeine Rückfrage (`model.ask`) – immer auf der obersten Ebene.
+/// Hängt an einem Hintergrund, damit sie sich nicht mit dem Alert «Gekündigt?» an derselben Ansicht stört.
+struct PromptModifier: ViewModifier {
+    @Environment(AppModel.self) private var model
+    let isTop: Bool
+
+    func body(content: Content) -> some View {
+        let p = model.prompt
+        content.background {
+            Color.clear
+                .alert(
+                    p?.title ?? "",
+                    isPresented: Binding(get: { isTop && p != nil },
+                                         set: { if !$0, model.prompt?.id == p?.id { model.prompt = nil } }),
+                    presenting: p
+                ) { q in
+                    Button(q.ok, role: q.destructive ? .destructive : nil) {
+                        model.prompt = nil
+                        // nach dem Schliessen des Alerts ausführen (Folgefenster/-rückfragen)
+                        Task { @MainActor in q.action() }
+                    }
+                    Button(q.cancel, role: .cancel) {
+                        model.prompt = nil
+                        if let c = q.onCancel { Task { @MainActor in c() } }
+                    }
+                } message: { q in
+                    if !q.message.isEmpty { Text(q.message) }
+                }
         }
     }
 }

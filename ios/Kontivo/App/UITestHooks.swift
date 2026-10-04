@@ -10,6 +10,12 @@ import KontivoCore
 ///   -uiTab <name>      contracts | costs | budget | deadlines | more
 ///   -uiSheet <name>    detail | form | income | incomes | letter | manage | partners | persons | sender | categories | quality | cancelpick
 extension AppModel {
+    /// Start mit UI-Test-/Bildschirmfoto-Argumenten (dann eigener Dateiordner, nichts Echtes wird gelesen oder geschrieben)
+    nonisolated static var isUITestLaunch: Bool {
+        let args = ProcessInfo.processInfo.arguments
+        return args.contains("-uiDemo") || args.contains("-uiEmpty") || args.contains("-uiOnboarding")
+    }
+
     /// true = Argumente angewendet (Initialisierung danach beenden)
     func applyUITestArguments() -> Bool {
         let args = ProcessInfo.processInfo.arguments
@@ -22,6 +28,9 @@ extension AppModel {
         uiTestMode = true
         // Fester Stichtag, damit Beispieldaten, Bildschirmfotos und UI-Tests nicht altern
         todayOverride = Day(iso: value("-uiToday") ?? "2026-10-03")
+        // Kosten/Budget auf den Monat des Stichtags (nicht des echten Datums)
+        selectedYear = today.year
+        selectedMonth = today.month
         if demo, let d = DemoData.make(today: today) {
             data = d
             data.settings.onboarded = 1

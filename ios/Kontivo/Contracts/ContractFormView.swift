@@ -71,6 +71,8 @@ private struct CTFormHost: View {
                 dismiss()
             }
             Button("Weiter bearbeiten", role: .cancel) {}
+        } message: {
+            Text("Deine Eingaben in diesem Formular gehen verloren.")
         }
         .sheet(isPresented: $form.showCategoryPicker) {
             CTCategoryPickSheet(selected: $form.categoryID)
@@ -163,22 +165,7 @@ private struct CTFormMainPage: View {
             .contentMargins(.horizontal, max(KMetric.gutter, (geo.size.width - KMetric.maxContent) / 2), for: .scrollContent)
         }
         .kPageBackground()
-        .modifier(CTKeyboardDone())
-    }
-}
-
-/// Knopf «Fertig» über der Tastatur (Zifferntastaturen haben keine Eingabetaste)
-struct CTKeyboardDone: ViewModifier {
-    func body(content: Content) -> some View {
-        content.toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Fertig") {
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }
-                .fontWeight(.semibold)
-            }
-        }
+        .kKeyboardDone()
     }
 }
 
@@ -339,6 +326,12 @@ private struct CTFormLogoRows: View {
                     Label("Bild entfernen", systemImage: "trash")
                 }
             }
+            // Das Logo hängt am Vertragspartner (die Farbe darunter nur an diesem Vertrag) – Hinweis daher direkt bei den Bild-Knöpfen
+            if !form.partnerName.ctTrimmed.isEmpty {
+                Text("Gilt für alle Verträge dieses Vertragspartners.")
+                    .font(.footnote)
+                    .foregroundStyle(KColor.ink3)
+            }
             swatches
         }
     }
@@ -359,11 +352,6 @@ private struct CTFormLogoRows: View {
                         form.colorHex = col
                     }
                 }
-            }
-            if !form.partnerName.ctTrimmed.isEmpty {
-                Text("Gilt für alle Verträge dieses Vertragspartners.")
-                    .font(.footnote)
-                    .foregroundStyle(KColor.ink3)
             }
         }
         .padding(.vertical, 4)
@@ -470,6 +458,7 @@ private struct CTFormCostSection: View {
 private struct CTFormTermSection: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
+    @FocusState private var noticeFocused: Bool
 
     var body: some View {
         let today = model.today
@@ -491,6 +480,14 @@ private struct CTFormTermSection: View {
                         .multilineTextAlignment(.trailing)
                         .monospacedDigit()
                         .frame(maxWidth: 56)
+                        .focused($noticeFocused)
+                        .accessibilityLabel("Kündigungsfrist")
+                        .onChange(of: form.focusNotice) { _, on in
+                            if on {
+                                noticeFocused = true
+                                form.focusNotice = false
+                            }
+                        }
                     Picker("Einheit", selection: $form.noticeUnit) {
                         Text("Monate").tag(NoticeUnit.months)
                         Text("Wochen").tag(NoticeUnit.weeks)

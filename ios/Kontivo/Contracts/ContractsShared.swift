@@ -6,46 +6,27 @@ import KontivoCore
 // MARK: - Zahlen
 
 enum CTNumber {
-    /// Betrag aus einem Eingabefeld lesen: «59.90», «59,90», «1’284.50», «1'284,50», «1.284,50».
-    /// Leer oder nicht lesbar → nil. Negative Werte bleiben negativ (die Prüfung macht der Aufrufer).
+    /// Betrag aus einem Eingabefeld lesen – gemeinsamer Zahlenleser `Format.parseNum` (1:1 Web `parseNum`):
+    /// «59.90», «59,90», «1’284.50», «1'284,50», «1.284,50». Leer oder nicht lesbar (z.B. «12abc») → nil.
+    /// Negative Werte bleiben negativ (die Prüfung macht der Aufrufer).
     static func parse(_ s: String) -> Double? {
-        var t = s.trimmingCharacters(in: .whitespacesAndNewlines)
-        for junk in ["\u{2019}", "'", " ", "\u{00A0}", "\u{202F}"] {
-            t = t.replacingOccurrences(of: junk, with: "")
-        }
-        t = t.replacingOccurrences(of: "\u{2212}", with: "-")
-        if t.isEmpty { return nil }
-        let allowed = Set("0123456789.,-")
-        guard t.allSatisfy({ allowed.contains($0) }) else { return nil }
-        let lastComma = t.lastIndex(of: ",")
-        let lastDot = t.lastIndex(of: ".")
-        if let lc = lastComma, let ld = lastDot {
-            if lc > ld {
-                t.removeAll { $0 == "." }
-                t = t.replacingOccurrences(of: ",", with: ".")
-            } else {
-                t.removeAll { $0 == "," }
-            }
-        } else if lastComma != nil {
-            if t.filter({ $0 == "," }).count > 1 {
-                t.removeAll { $0 == "," }
-            } else {
-                t = t.replacingOccurrences(of: ",", with: ".")
-            }
-        } else if lastDot != nil, t.filter({ $0 == "." }).count > 1 {
-            t.removeAll { $0 == "." }
-        }
-        guard let v = Double(t), v.isFinite else { return nil }
-        return v
+        Format.parseNum(s)
     }
 
-    /// Ganze Zahl (Kündigungsfrist): leer/ungültig → 0, nie negativ.
-    static func int(_ s: String) -> Int {
+    /// Kündigungsfrist prüfen (Web `noticeVal`): leer → 0; keine ganze Zahl oder negativ → nil;
+    /// bei «. im Monat» nur 1–28.
+    static func noticeValue(_ s: String, unit: NoticeUnit) -> Int? {
         let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let i = Int(t) { return min(99_999, max(0, i)) }
-        // begrenzt: Int(1e30) würde abstürzen
-        if let d = parse(t) { return Int(min(99_999, max(0, d)).rounded(.down)) }
-        return 0
+        if t.isEmpty { return 0 }
+        guard let n = Format.parseNum(t), n >= 0, n.rounded(.down) == n, n <= 99_999 else { return nil }
+        let i = Int(n)
+        if unit == .dayOfMonth && !(1...28).contains(i) { return nil }
+        return i
+    }
+
+    /// Ganze Zahl für Hinweise während der Eingabe (Laufzeit-Hinweis): ungültig → 0.
+    static func int(_ s: String, unit: NoticeUnit = .months) -> Int {
+        noticeValue(s, unit: unit) ?? 0
     }
 
     /// Betrag für ein Eingabefeld: «59.90»
