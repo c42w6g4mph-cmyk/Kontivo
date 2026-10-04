@@ -156,7 +156,9 @@ enum LetterPDF {
             for w in wrap(L.subject, font: bold, maxWidth: textWidth) { line(w, bold) }
             y += lineStep * 0.6
             if !L.references.isEmpty {
-                for r in L.references { line(r, regular) }
+                for r in L.references {
+                    for w in wrap(r, font: regular, maxWidth: textWidth) { line(w, regular) }
+                }
                 y += lineStep * 0.6
             }
             // Text: Absätze durch Leerzeilen

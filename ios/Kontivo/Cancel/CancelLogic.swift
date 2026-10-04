@@ -28,10 +28,9 @@ extension AppModel {
         pendingCancel = nil
         guard data.contract(p.contractID) != nil else { return }
         let q = PendingCancel(contractID: p.contractID, trial: p.trial)
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 400_000_000)
-            guard let self, self.data.contract(q.contractID) != nil else { return }
-            self.cancelQuestion = q
+        CancelWindowFlow.afterDismiss(self, wait: CancelWindowFlow.Wait.returnToApp, keepStack: false,
+                                      still: { [weak self] in self?.data.contract(q.contractID) != nil }) { [weak self] in
+            self?.cancelQuestion = q
         }
     }
 
@@ -70,16 +69,10 @@ extension AppModel {
         }
     }
 
-    /// Fenster öffnen; mit `closingOthers` zuerst alle offenen Fenster schliessen und kurz warten.
+    /// Fenster öffnen; mit `closingOthers` zuerst alle offenen Fenster schliessen (Ablauf in CancelWindowFlow).
     func cancelFlowPresent(_ sheet: AppSheet, closingOthers: Bool, then done: (() -> Void)? = nil) {
-        if closingOthers && !sheets.isEmpty {
-            dismissAll()
-            Task { @MainActor [weak self] in
-                try? await Task.sleep(nanoseconds: 600_000_000)
-                guard let self else { return }
-                self.present(sheet)
-                done?()
-            }
+        if closingOthers {
+            CancelWindowFlow.presentClosingOthers(self, sheet, then: done)
         } else {
             present(sheet)
             done?()
@@ -113,10 +106,10 @@ extension AppModel {
         pendingCancel = PendingCancel(contractID: c.id, trial: trial)
         toast("Nach der Kündigung hier bestätigen")
         let id = c.id
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 350_000_000)
-            guard let self, self.pendingCancel?.contractID == id else { return }
-            self.cancelFlowOpenExternal(url, pending: PendingCancel(contractID: id, trial: trial))
+        // kurz warten, damit der Toast noch sichtbar ist, bevor Safari öffnet
+        CancelWindowFlow.afterDismiss(self, wait: 350, keepStack: false,
+                                      still: { [weak self] in self?.pendingCancel?.contractID == id }) { [weak self] in
+            self?.cancelFlowOpenExternal(url, pending: PendingCancel(contractID: id, trial: trial))
         }
     }
 
@@ -124,9 +117,9 @@ extension AppModel {
         let to = c.mail.trimmingCharacters(in: .whitespacesAndNewlines)
         if to.isEmpty {
             let id = c.id
-            CancelFlowUI.ask(title: "E-Mail-Adresse fehlt",
-                             message: "Trag die Kündigungsadresse des Vertragspartners beim Vertrag unter «Kontakt» ein.",
-                             ok: "Eintragen") { [weak self] in
+            CancelWindowFlow.ask(title: "E-Mail-Adresse fehlt",
+                                 message: "Trag die Kündigungsadresse des Vertragspartners beim Vertrag unter «Kontakt» ein.",
+                                 ok: "Eintragen") { [weak self] in
                 ContractFormLaunch.openMoreFor = id
                 self?.cancelFlowPresent(.contractForm(.edit(id)), closingOthers: true)
             }
@@ -135,6 +128,8 @@ extension AppModel {
         let parts = Letter.parts(c, calc: calc)
         let body = Letter.directMailText(parts)
         if MFMailComposeViewController.canSendMail() {
+            // kein zweites Mail-Fenster direkt übereinander (Doppeltippen)
+            if case .mail = sheets.last { return }
             present(.mail(MailDraft(to: [to], subject: parts.subject, body: body, cancelContractID: c.id, cancelTrial: trial)))
         } else if let url = CancelLinks.mailto(to: to, subject: parts.subject, body: body) {
             cancelFlowOpenExternal(url, pending: PendingCancel(contractID: c.id, trial: trial))
@@ -171,7 +166,7 @@ enum CancelLinks {
     }
 }
 
-// MARK: - UIKit-Rückfrage (für Abläufe ohne eigene Ansicht)
+// MARK: - UIKit-Rückfrage (für Abläufe ohne eigene Ansicht; nur über CancelWindowFlow.ask aufrufen)
 
 @MainActor
 enum CancelFlowUI {

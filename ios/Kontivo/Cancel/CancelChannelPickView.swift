@@ -8,6 +8,8 @@ struct CancelChannelPickView: View {
     let trial: Bool
 
     @Environment(AppModel.self) private var model
+    /// Weg gewählt (gegen Doppeltippen)
+    @State private var picked = false
 
     private struct Option: Identifiable {
         let channel: CancelChannel
@@ -20,7 +22,6 @@ struct CancelChannelPickView: View {
         Option(channel: .online, title: "Online", detail: "Kundenkonto, Kündigungsbutton"),
         Option(channel: .email, title: "Per E-Mail", detail: "Mail mit fertigem Text"),
         Option(channel: .letter, title: "Per Brief", detail: "PDF mit Unterschrift"),
-        Option(channel: .registered, title: "Per Einschreiben", detail: "PDF mit Unterschrift, eingeschrieben"),
     ]
 
     var body: some View {
@@ -50,7 +51,7 @@ struct CancelChannelPickView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { model.dismissTop() }
+                    Button("Abbrechen") { CancelWindowFlow.dismiss(model, ifTop: .cancelChannelPick(contractID, trial: trial)) }
                 }
             }
         }
@@ -74,14 +75,18 @@ struct CancelChannelPickView: View {
     }
 
     private func pick(_ ch: CancelChannel) {
+        // Doppeltippen: nur einmal auslösen und nur dieses Fenster schliessen
+        guard !picked else { return }
         let m = model
+        let me = AppSheet.cancelChannelPick(contractID, trial: trial)
+        guard CancelWindowFlow.isTop(m, me) else { return }
+        picked = true
         let id = contractID
         let t = trial
         m.update { $0.setCancelChannel(id, ch) }
-        m.dismissTop()
+        CancelWindowFlow.dismiss(m, ifTop: me)
         // Nach dem Schliessen dieses Fensters die passende Aktion auslösen
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 550_000_000)
+        CancelWindowFlow.afterDismiss(m, still: { m.data.contract(id) != nil }) {
             m.startCancel(id, trial: t)
         }
     }

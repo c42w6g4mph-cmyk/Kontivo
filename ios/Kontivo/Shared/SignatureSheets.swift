@@ -8,8 +8,11 @@ import KontivoCore
 /// Zuschnitt und JPEG wie `sigFromCanvas` der Web-App: Bereich aller Pixel mit Rotanteil < 200, plus 12 px Rand,
 /// weisser Grund, JPEG-Qualität 0.85.
 enum SignatureImaging {
-    /// Tintenblau #1c2a52
+    /// Tintenblau #1c2a52 (Namenszug-Vorschläge)
     static let ink = UIColor(red: 0x1C / 255.0, green: 0x2A / 255.0, blue: 0x52 / 255.0, alpha: 1)
+    /// Fast Schwarz #1b1e23 für die gezeichnete Unterschrift (Web `sigCv` strokeStyle, Breite 2.4)
+    static let penInk = UIColor(red: 0x1B / 255.0, green: 0x1E / 255.0, blue: 0x23 / 255.0, alpha: 1)
+    static let penWidth: CGFloat = 2.4
 
     /// Zuschneiden auf den gezeichneten Bereich. nil, wenn nichts gezeichnet ist.
     static func cropToJPEG(_ image: CGImage, padding: Int = 12, quality: CGFloat = 0.85) -> Data? {
@@ -53,7 +56,7 @@ enum SignatureImaging {
 
 // MARK: - Unterschrift zeichnen
 
-/// Unterschrift zeichnen (PencilKit). onDone liefert JPEG-Daten (zugeschnitten, Tintenblau auf weiss).
+/// Unterschrift zeichnen (PencilKit). onDone liefert JPEG-Daten (zugeschnitten, fast schwarz auf weiss).
 /// Das Fenster schliesst sich nach «Übernehmen» selbst und meldet «Unterschrift gespeichert».
 struct SignaturePadSheet: View {
     let title: String
@@ -64,6 +67,8 @@ struct SignaturePadSheet: View {
     @State private var holder = SignatureCanvasHolder()
     @State private var message: String?
     @State private var messageTask: Task<Void, Never>?
+    /// «Übernehmen» schon getippt (gegen Doppeltippen)
+    @State private var accepted = false
 
     var body: some View {
         NavigationStack {
@@ -98,6 +103,8 @@ struct SignaturePadSheet: View {
             }
             .overlay(alignment: .bottom) { localMessage }
         }
+        // Beim Zeichnen (Abstrich nach unten) nicht wegwischen; Schliessen nur über «Abbrechen»/«Übernehmen»
+        .interactiveDismissDisabled(true)
     }
 
     @ViewBuilder private var localMessage: some View {
@@ -124,6 +131,7 @@ struct SignaturePadSheet: View {
     }
 
     private func accept() {
+        guard !accepted else { return }
         guard holder.hasStrokes else {
             show("Bitte zuerst unterschreiben")
             return
@@ -132,6 +140,7 @@ struct SignaturePadSheet: View {
             show("Nichts gezeichnet")
             return
         }
+        accepted = true
         onDone(jpeg)
         dismiss()
         model?.toast("Unterschrift gespeichert")
@@ -146,7 +155,7 @@ final class SignatureCanvasHolder {
     init() {
         let c = PKCanvasView()
         c.drawingPolicy = .anyInput
-        c.tool = PKInkingTool(.pen, color: SignatureImaging.ink, width: 2.6)
+        c.tool = PKInkingTool(.pen, color: SignatureImaging.penInk, width: SignatureImaging.penWidth)
         c.backgroundColor = .clear
         c.isOpaque = false
         c.isScrollEnabled = false

@@ -17,43 +17,10 @@ public enum KBText {
         "\(n)" + (n == 1 ? " beendeter Vertrag" : " beendete Verträge") + " nicht mitgezählt"
     }
 
-    /// Betrag aus einem Eingabefeld lesen (Fix M6): «6500», «6500.50», «6500,50», «6’500.50», «6'500.50»,
-    /// «1.234,50», «1,234.50». Mehrfach dasselbe Zeichen in Dreiergruppen gilt als Tausendertrenner.
+    /// Betrag aus einem Eingabefeld lesen: gemeinsamer Zahlenleser `Format.parseNum` (1:1 Web-`parseNum`).
     /// Leer oder unlesbar → nil.
     public static func parseAmount(_ s: String) -> Double? {
-        var t = s.trimmingCharacters(in: .whitespacesAndNewlines)
-        for junk in ["'", "\u{2019}", "\u{00A0}", "\u{202F}", " "] {
-            t = t.replacingOccurrences(of: junk, with: "")
-        }
-        t = t.replacingOccurrences(of: "\u{2212}", with: "-")
-        if t.isEmpty { return nil }
-        let lastComma = t.lastIndex(of: ",")
-        let lastDot = t.lastIndex(of: ".")
-        if let c = lastComma, let d = lastDot {
-            if c > d {
-                // 1.234,50
-                t = t.replacingOccurrences(of: ".", with: "")
-                t = t.replacingOccurrences(of: ",", with: ".")
-            } else {
-                // 1,234.50
-                t = t.replacingOccurrences(of: ",", with: "")
-            }
-        } else if lastComma != nil {
-            t = normalizeSingle(t, separator: ",")
-        } else if lastDot != nil {
-            t = normalizeSingle(t, separator: ".")
-        }
-        guard let v = Double(t), v.isFinite else { return nil }
-        return v
-    }
-
-    /// Nur eine Art Trennzeichen: einmal = Dezimaltrenner; mehrmals = Tausender, wenn alle Gruppen dreistellig sind,
-    /// sonst gilt das letzte als Dezimaltrenner.
-    static func normalizeSingle(_ t: String, separator: Character) -> String {
-        let parts = t.split(separator: separator, omittingEmptySubsequences: false).map(String.init)
-        if parts.count <= 2 { return parts.joined(separator: ".") }
-        if parts.dropFirst().allSatisfy({ $0.count == 3 }) { return parts.joined() }
-        return parts.dropLast().joined() + "." + (parts.last ?? "")
+        Format.parseNum(s)
     }
 }
 
@@ -404,10 +371,16 @@ extension Calc {
     }
 
     /// Vorjahresvergleich «verfügbar» mit derselben Sperre wie in «Kosten»: entfällt, wenn eine Zahlung des Monats
-    /// zu einem Vertrag ohne Vertragsbeginn gehört (er wird rückwirkend voll gezählt).
+    /// zu einem Vertrag ohne Vertragsbeginn gehört oder eine Einnahme (Anteil > 0) ohne Beginn im Monat einen Termin hat
+    /// (beide werden rückwirkend voll gezählt; Web `bNoStart`).
     public func kbBudgetComparison(year: Int, month: Int, person: UUID?, free: Double) -> (text: String, trend: Trend)? {
         let rows = kbExpenseRows(year: year, month: month, person: person)
         if rows.contains(where: { data.contract($0.contractID)?.start == nil }) { return nil }
+        let from = Day(year, month, 1)
+        let to = Day(year, month + 1, 0)
+        if kbBudgetIncomes(person: person).contains(where: { $0.start == nil && !occurrences($0, from: from, to: to).isEmpty }) {
+            return nil
+        }
         return budgetMonthComparison(year: year, month: month, person: person, free: free)
     }
 

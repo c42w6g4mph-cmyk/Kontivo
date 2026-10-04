@@ -13,6 +13,8 @@ struct DocumentViewer: View {
     @State private var content: DocViewerContent = .loading
     @State private var fileData: Data?
     @State private var shareURL: URL?
+    /// «Als E-Mail-Text»: Mail wird gleich geöffnet (gegen Doppeltippen)
+    @State private var mailPending = false
 
     private var isLetter: Bool { ref.letterContractID != nil }
 
@@ -138,6 +140,7 @@ struct DocumentViewer: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isLetter ? "PDF teilen" : "Teilen")
+            .accessibilityShowsLargeContentViewer()
         } else {
             DocActionButton(title: "Teilen", symbol: "square.and.arrow.up", prominent: true) {
                 model.toast("Teilen fehlgeschlagen")
@@ -161,24 +164,32 @@ struct DocumentViewer: View {
                               attachmentType: "application/pdf",
                               cancelContractID: info.isRent ? nil : ref.letterContractID,
                               cancelTrial: ref.letterTrial)
-        model.present(.mail(draft))
+        // Doppeltippen: nur öffnen, solange der Viewer zuoberst liegt
+        CancelWindowFlow.present(model, .mail(draft), over: .document(ref))
     }
 
     /// «Als E-Mail-Text»: Text in die Zwischenablage, dann Mail ohne Anhang.
     private func mailAsText(_ info: LetterDocumentInfo) {
+        let me = AppSheet.document(ref)
+        guard !mailPending, CancelWindowFlow.isTop(model, me) else { return }
+        mailPending = true
         UIPasteboard.general.string = info.mailText
         model.toast(info.recipient.isEmpty ? "Text kopiert. Empfänger in Mail eintragen" : "Text kopiert, Mail wird geöffnet")
         let contractID = ref.letterContractID
         let trial = ref.letterTrial
         let m = model
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 500_000_000)
+        // kurz warten, damit der Toast sichtbar ist; entfällt, wenn der Viewer inzwischen geschlossen wurde
+        CancelWindowFlow.afterDismiss(m, wait: 500, still: { CancelWindowFlow.isTop(m, me) }) {
             if MFMailComposeViewController.canSendMail() {
                 m.present(.mail(MailDraft(to: info.recipient.isEmpty ? [] : [info.recipient], subject: info.subject, body: info.mailText,
                                           cancelContractID: contractID, cancelTrial: trial)))
             } else if let url = CancelLinks.mailto(to: info.recipient, subject: info.subject, body: info.mailText) {
                 m.cancelFlowOpenExternal(url, pending: contractID.map { PendingCancel(contractID: $0, trial: trial) })
             }
+        }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            mailPending = false
         }
     }
 
@@ -350,6 +361,8 @@ struct DocActionButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
+        // Schrift ist auf xLarge begrenzt: bei Bedienhilfen-Grössen per Langdruck vergrössert zeigen
+        .accessibilityShowsLargeContentViewer()
     }
 }
 

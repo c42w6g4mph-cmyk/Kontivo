@@ -38,6 +38,8 @@ struct KBIncomeForm: View {
     @State private var confirmDelete = false
     @State private var confirmDiscard = false
     @State private var photoItem: PhotosPickerItem?
+    /// Fenster wird geschlossen (Doppeltippen auf «Sichern»/«Löschen» schliesst sonst das Fenster darunter)
+    @State private var closed = false
     @State private var cropImage: KBCropImage?
     @State private var showLogoSearch = false
     /// Hinweis nach «Google»
@@ -77,6 +79,7 @@ struct KBIncomeForm: View {
                 }
             }
             .scrollContentBackground(.hidden)
+            .scrollDismissesKeyboard(.interactively)
             .background(KColor.paper)
             .navigationTitle(formTitle)
             .navigationBarTitleDisplayMode(.inline)
@@ -118,13 +121,20 @@ struct KBIncomeForm: View {
         ToolbarItem(placement: .cancellationAction) {
             Button("Abbrechen") { cancel() }
                 .confirmationDialog("Änderungen verwerfen?", isPresented: $confirmDiscard, titleVisibility: .visible) {
-                    Button("Verwerfen", role: .destructive) { model.dismissTop() }
+                    Button("Verwerfen", role: .destructive) { close() }
                     Button("Weiter bearbeiten", role: .cancel) {}
                 }
         }
         ToolbarItem(placement: .confirmationAction) {
             Button("Sichern") { save() }
                 .fontWeight(.semibold)
+        }
+        // Zifferntastatur hat keinen Zeilenschalter: «Fertig» schliesst die Tastatur
+        ToolbarItemGroup(placement: .keyboard) {
+            Spacer()
+            Button("Fertig") {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
         }
     }
 
@@ -253,7 +263,7 @@ struct KBIncomeForm: View {
         return Section {
             if !sorted.isEmpty {
                 priceRow(title: "Anfangsbetrag", tag: ni < 0 ? "aktuell" : nil, planned: false,
-                         amount: KBText.parseAmount(amountText), onDelete: nil)
+                         amount: Format.parseNum(amountText), onDelete: nil)
                 ForEach(Array(sorted.enumerated()), id: \.offset) { i, p in
                     priceRow(title: "ab " + Format.fmtD(p.from),
                              tag: i == ni ? "aktuell" : (p.from > today ? "geplant" : nil),
@@ -365,18 +375,26 @@ struct KBIncomeForm: View {
         if isDirty {
             confirmDiscard = true
         } else {
-            model.dismissTop()
+            close()
         }
     }
 
+    /// Fenster genau einmal schliessen.
+    private func close() {
+        guard !closed else { return }
+        closed = true
+        model.dismissTop()
+    }
+
     private func save() {
+        guard !closed else { return }
         let hasTitle = !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             || !draft.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         guard hasTitle else {
             model.toast("Bezeichnung fehlt")
             return
         }
-        guard let a = KBText.parseAmount(amountText), a >= 0 else {
+        guard let a = Format.parseNum(amountText), a >= 0 else {
             model.toast("Betrag prüfen")
             return
         }
@@ -388,15 +406,16 @@ struct KBIncomeForm: View {
             _ = try data.saveIncome(d, today: today)
         }
         if ok {
-            model.dismissTop()
+            close()
             model.toast(wasNew ? "Einnahme erfasst" : "Aktualisiert")
         }
     }
 
     private func delete() {
+        guard !closed else { return }
         let id = draft.id
         model.update { data in data.deleteIncome(id) }
-        model.dismissTop()
+        close()
         model.toast("Gelöscht")
     }
 
@@ -405,7 +424,7 @@ struct KBIncomeForm: View {
             model.toast("Datum fehlt")
             return
         }
-        guard let a = KBText.parseAmount(priceAmountText), a >= 0 else {
+        guard let a = Format.parseNum(priceAmountText), a >= 0 else {
             model.toast("Betrag prüfen")
             return
         }
