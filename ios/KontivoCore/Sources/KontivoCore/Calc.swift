@@ -449,7 +449,7 @@ public struct Calc {
     }
 
     /// Quartals-Check fällig: ≥ 90 Tage seit letzter Prüfung (sonst seit erster Erfassung), nicht verschoben, mind. 1 aktiver Vertrag.
-    public func reviewDue(calendar: Calendar = Calendar.current) -> Bool {
+    public func reviewDue(calendar: Calendar = Day.calendar) -> Bool {
         var rb = data.settings.lastReview
         if rb == nil {
             let ts = data.contracts.map { $0.createdAt }.filter { $0.timeIntervalSince1970 > 0 }

@@ -53,14 +53,22 @@ public struct Day: Hashable, Comparable, Sendable, CustomStringConvertible {
         self.init(iso: iso)
     }
 
-    /// Kalenderdatum eines Zeitpunkts im angegebenen Kalender (Zeitzone).
-    public init(date: Date, calendar: Calendar = Calendar.current) {
+    /// Gregorianischer Kalender in der aktuellen Zeitzone des Geräts. `Day` ist immer gregorianisch –
+    /// der Gerätekalender (japanisch, buddhistisch …) darf nie für die Umrechnung verwendet werden.
+    public static var calendar: Calendar {
+        var c = Calendar(identifier: .gregorian)
+        c.timeZone = .current
+        return c
+    }
+
+    /// Kalenderdatum eines Zeitpunkts im angegebenen Kalender (Standard: gregorianisch, aktuelle Zeitzone).
+    public init(date: Date, calendar: Calendar = Day.calendar) {
         let c = calendar.dateComponents([.year, .month, .day], from: date)
         self.init(c.year ?? 1970, c.month ?? 1, c.day ?? 1)
     }
 
     /// Heute (lokales Datum ohne Zeit). Für Tests einen festen Tag übergeben statt `today` aufzurufen.
-    public static func today(calendar: Calendar = Calendar.current, now: Date = Date()) -> Day {
+    public static func today(calendar: Calendar = Day.calendar, now: Date = Date()) -> Day {
         Day(date: now, calendar: calendar)
     }
 
@@ -71,8 +79,8 @@ public struct Day: Hashable, Comparable, Sendable, CustomStringConvertible {
         return Day(date: now, calendar: cal)
     }
 
-    /// Mitternacht dieses Tages im angegebenen Kalender.
-    public func date(calendar: Calendar = Calendar.current) -> Date {
+    /// Mitternacht dieses Tages im angegebenen Kalender (Standard: gregorianisch, aktuelle Zeitzone).
+    public func date(calendar: Calendar = Day.calendar) -> Date {
         var dc = DateComponents()
         dc.year = year
         dc.month = month
