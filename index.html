@@ -214,7 +214,8 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .fqact{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;text-align:left}.fqact+.fqact{border-top:1px solid var(--line)}
 .fqact span{flex:1;min-width:0;display:grid;gap:1px}.fqact b{font-size:15px;font-weight:600}.fqact small{font-size:12.5px;color:var(--ink3)}.fqact i{font-style:normal;color:var(--ink3);font-size:18px}
 @media (max-width:374px){.kcard .ksub .ksep{display:none}.kcard .ksub .kfq{display:flex;margin-top:2px}}
-.fqf{font-size:12px;color:var(--ink3);margin:16px 4px 0;line-height:1.4;text-wrap:pretty}.fqf span{display:block}.fqf span+span{margin-top:3px}
+.fqf{font-size:12px;color:var(--ink3);margin:16px 4px 0;line-height:1.4;text-wrap:pretty}.fqf span{display:block}.fqf .fqyl{display:flex;align-items:center;gap:6px;color:var(--teal);font-weight:600;margin-bottom:4px}.fqf .fqyl i{width:10px;height:10px;border-radius:50%;border:2px solid var(--teal);box-sizing:border-box}
+.fqbar .fqy{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--surface);border:3px solid var(--teal);box-sizing:border-box}.fqf span+span{margin-top:3px}
 .kcard .kbig.neg{color:var(--alert)}
 .kcard .bchart{margin-top:34px;height:140px;margin-right:16px}
 .kcard .chart{margin-top:34px;height:140px}
@@ -2571,18 +2572,18 @@ function fqTips(d){
   return h;
 }
 function openFq(){
-  var d=state._fq;if(!d)return;var L=FQ[fqLand()],p=d.p,dot=Math.max(0,Math.min(100,p)),st=fqState(p);
+  var d=state._fq;if(!d)return;var L=FQ[fqLand()],p=d.p,dot=Math.max(0,Math.min(100,p)),st=fqState(p),showAvg=d.avg!=null&&Math.abs(d.avg-p)>=3;
   if(st==="mid"&&p<L.lo+5)st="edge";
   document.getElementById("pickTitle").textContent="Was dir bleibt";
   var l=document.getElementById("pickList");l.dataset.dim="fq";
   l.innerHTML='<div class="fqv"><div class="fqn">'+esc(d.mon)+(d.who?" · "+esc(d.who):"")+'<b>'+p+'\u00a0%</b>deiner Einnahmen bleiben nach den Fixkosten</div>'+
-    '<div class="fqbar" aria-hidden="true"><i class="fqb" style="left:'+L.lo+'%;width:'+(L.hi-L.lo)+'%"></i><i class="fqd" style="left:'+dot+'%"></i></div>'+
+    '<div class="fqbar" aria-hidden="true"><i class="fqb" style="left:'+L.lo+'%;width:'+(L.hi-L.lo)+'%"></i>'+(showAvg?'<i class="fqy" style="left:'+Math.max(0,Math.min(100,d.avg))+'%"></i>':"")+'<i class="fqd" style="left:'+dot+'%"></i></div>'+
     '<div class="fqax"><span>0\u00a0%</span><span class="fqu" style="left:'+((L.lo+L.hi)/2)+'%">üblich</span><span>100\u00a0%</span></div>'+
     '<p class="fqs">'+FQ_TXT[st]+'</p>'+
     '<div class="fqcard">'+
     '<p>'+L.note+'</p><p>Entscheidend ist der Betrag, der dir am Ende bleibt.</p></div>'+
     (st==="lo"||st==="edge"?fqTips(d):"")+
-    '<p class="fqf">'+(d.avg!=null&&Math.abs(d.avg-p)>=3?'<span>Jahresschnitt '+d.y+': '+d.avg+'\u00a0%</span>':"")+'<span>Richtwerte von Budgetberatungen, keine feste Norm.</span><span>Genauigkeit abhängig von deinen erfassten Verträgen.</span></p></div>';
+    '<p class="fqf">'+(showAvg?'<span class="fqyl"><i></i>Jahresschnitt '+d.y+': '+d.avg+'\u00a0%</span>':"")+'<span>Richtwerte von Budgetberatungen, keine feste Norm.</span><span>Genauigkeit abhängig von deinen erfassten Verträgen.</span></p></div>';
   openSheet(document.getElementById("sheetPick"));
 }
 function renderBudget(v){
