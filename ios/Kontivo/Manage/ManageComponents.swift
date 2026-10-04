@@ -241,27 +241,31 @@ struct MDImageFlow: ViewModifier {
                 Task { @MainActor in
                     let data = try? await it.loadTransferable(type: Data.self)
                     item = nil
-                    if let d = data, let img = UIImage(data: d) {
-                        crop = MDCropItem(image: img)
-                    } else {
-                        model.toast("Bild konnte nicht gelesen werden")
-                    }
+                    await open(data)
                 }
             }
             .fileImporter(isPresented: $showFiles, allowedContentTypes: [.image]) { result in
                 guard case .success(let url) = result else { return }
-                let ok = url.startAccessingSecurityScopedResource()
-                defer { if ok { url.stopAccessingSecurityScopedResource() } }
-                if let d = try? Data(contentsOf: url), let img = UIImage(data: d) {
-                    crop = MDCropItem(image: img)
-                } else {
-                    model.toast("Bild konnte nicht gelesen werden")
+                Task { @MainActor in
+                    let data = await ImageImport.read(url)
+                    // Dateiauswahl erst ausblenden lassen, sonst erscheint das Zuschneiden je nach iOS nicht (wie MoreDataFlow)
+                    try? await Task.sleep(nanoseconds: 450_000_000)
+                    await open(data)
                 }
             }
             .sheet(item: $crop) { c in
                 ImageCropSheet(image: c.image, title: title, onDone: onDone)
                     .environment(model)
             }
+    }
+
+    /// Bild verkleinert im Hintergrund lesen (ImageIO), dann zuschneiden
+    @MainActor private func open(_ data: Data?) async {
+        if let img = await ImageImport.downsampleDetached(data) {
+            crop = MDCropItem(image: img)
+        } else {
+            model.toast("Bild konnte nicht gelesen werden")
+        }
     }
 }
 
@@ -413,21 +417,21 @@ extension AppModel {
         }
     }
 
-    /// Bild aus der Zwischenablage (pasteLogo): Bild direkt, sonst ein Bild-Link (http/https)
-    func mdPasteboardImage() async -> UIImage? {
-        let pb = UIPasteboard.general
-        if pb.hasImages, let img = pb.image { return img }
-        var txt = ""
-        if pb.hasURLs, let u = pb.url { txt = u.absoluteString }
-        if txt.isEmpty, pb.hasStrings { txt = (pb.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines) }
-        if txt.range(of: "^https?://\\S+$", options: .regularExpression) != nil {
+    /// Eingefügtes Bild (PasteButton, pasteLogo): Bild direkt, sonst ein Bild-Link (http/https).
+    /// Der Systemknopf «Einfügen» löst keine Rückfrage «Kontivo möchte einfügen» aus.
+    func mdPastedImage(_ providers: [NSItemProvider]) async -> UIImage? {
+        switch await ImageImport.pasted(providers) {
+        case .image(let img):
+            return img
+        case .link(let txt):
             toast("Lade Bild…")
-            if let img = await LogoFinder.loadImage(txt, timeout: 15) { return img }
+            if let img = await ImageImport.load(link: txt) { return img }
             toast("Bild-Link konnte nicht geladen werden")
             return nil
+        case .none:
+            toast("Kein Bild in der Zwischenablage. In Google Bild lange drücken → «Kopieren».")
+            return nil
         }
-        toast("Kein Bild in der Zwischenablage. In Google Bild lange drücken → «Kopieren».")
-        return nil
     }
 
     /// Filter, die Namen von Vertragspartnern/Kategorien bzw. Personen enthalten, nachziehen
@@ -442,162 +446,9 @@ extension AppModel {
     }
 }
 
-/// Google-Bildersuche «<Name> logo» (logoSearch)
-func mdGoogleImageURL(_ name: String) -> URL? {
-    URL(string: "https://www.google.com/search?tbm=isch&q=" + LogoFinder.enc(name + " logo"))
-}
 
-// MARK: - Fachaktionen der Inline-Editoren (Datenqualität)
-
-/// Auswahl «Kündbar auf …» im Editor Frist/Laufzeit
-enum MDTermChoice: Hashable {
-    case unset
-    case anytime
-    case term(CancelTerm)
-    case fixed
-
-    static let options: [(title: String, value: MDTermChoice)] = [
-        ("Kündbar auf … wählen", .unset),
-        ("jederzeit", .anytime),
-        ("auf Monatsende", .term(.monthEnd)),
-        ("auf Quartalsende", .term(.quarterEnd)),
-        ("auf Halbjahresende", .term(.halfYearEnd)),
-        ("auf Jahresende", .term(.yearEnd)),
-        ("auf Ende Vertragsjahr", .term(.contractYear)),
-        ("auf Ende Zahlungsperiode", .term(.period)),
-        ("Feste Laufzeit bis …", .fixed),
-    ]
-}
-
-extension AppData {
-    mutating func mdSetHolders(contract id: UUID, _ ids: [UUID]) {
-        guard let i = contractIndex(id) else { return }
-        contracts[i].holderIDs = persons.map { $0.id }.filter { ids.contains($0) }
-    }
-
-    mutating func mdSetContractAmount(_ id: UUID, _ v: Double) {
-        guard let i = contractIndex(id) else { return }
-        contracts[i].amount = Format.round2(v)
-    }
-
-    mutating func mdSetContractCategory(_ id: UUID, _ cat: UUID) {
-        guard let i = contractIndex(id), category(cat) != nil else { return }
-        contracts[i].categoryID = cat
-    }
-
-    mutating func mdSetContractCycle(_ id: UUID, _ months: Int) {
-        guard let i = contractIndex(id) else { return }
-        contracts[i].cycle = months
-    }
-
-    mutating func mdSetContractDue(_ id: UUID, _ d: Day) {
-        guard let i = contractIndex(id) else { return }
-        contracts[i].due = d
-    }
-
-    mutating func mdSetCustomerNo(_ id: UUID, _ s: String) {
-        guard let i = contractIndex(id) else { return }
-        contracts[i].customerNo = s.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    mutating func mdSetCancelURL(_ id: UUID, _ s: String) {
-        guard let i = contractIndex(id) else { return }
-        contracts[i].cancelURL = s.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    mutating func mdSetContractMail(_ id: UUID, _ s: String) {
-        guard let i = contractIndex(id) else { return }
-        contracts[i].mail = s.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    /// Frist und Laufzeit (qMultiSave «notice»). Bei einem Termin werden Vertragsende und Verlängerung geleert (Fund N1).
-    mutating func mdSetNotice(_ id: UUID, notice: Int, unit: NoticeUnit, choice: MDTermChoice, end: Day?, renew: Int) {
-        guard let i = contractIndex(id) else { return }
-        contracts[i].notice = Swift.max(0, notice)
-        contracts[i].noticeUnit = unit
-        switch choice {
-        case .fixed:
-            contracts[i].end = end
-            contracts[i].renewMonths = end == nil ? 0 : renew
-            contracts[i].cancelTerm = .anytime
-        case .anytime:
-            contracts[i].cancelTerm = .anytime
-            contracts[i].end = nil
-            contracts[i].renewMonths = 0
-        case .term(let t):
-            contracts[i].cancelTerm = t
-            contracts[i].end = nil
-            contracts[i].renewMonths = 0
-        case .unset:
-            break
-        }
-    }
-
-    mutating func mdSetIncomeAmount(_ id: UUID, _ v: Double) {
-        guard let i = incomeIndex(id) else { return }
-        incomes[i].amount = Format.round2(v)
-    }
-
-    /// Adresse für einen Vertrag: mit Vertragspartner dort, ohne Vertragspartner wird einer mit dem Firmennamen
-    /// angelegt bzw. gefunden und zugeordnet (der Brief nimmt die Adresse immer vom Vertragspartner).
-    @discardableResult
-    mutating func mdSetContractAddress(_ id: UUID, company: String, address: PostalAddress) -> UUID? {
-        guard let i = contractIndex(id) else { return nil }
-        if let pid = contracts[i].partnerID, partner(pid) != nil {
-            setPartnerAddress(pid, address)
-            return pid
-        }
-        let c = Format.collapseSpaces(company)
-        let name = c.isEmpty ? title(of: contracts[i]) : c
-        guard let pid = partnerID(forName: name) else { return nil }
-        contracts[i].partnerID = pid
-        var a = address
-        if a.company.trimmingCharacters(in: .whitespaces).isEmpty { a.company = name }
-        setPartnerAddress(pid, a)
-        return pid
-    }
-
-    /// Verträge einer Kategorie (alle Status); ohne bzw. mit unbekannter Kategorie zählt als «Sonstiges» (catCount)
-    func mdContracts(inCategory id: UUID) -> [Contract] {
-        let isOther = otherCategory?.id == id
-        return contracts.filter { c in
-            if c.categoryID == id { return true }
-            if isOther { return c.categoryID == nil || category(c.categoryID) == nil }
-            return false
-        }
-    }
-
-    /// Monatskosten (Hauptwährung) laufender, nicht pausierter Verträge (perMonth)
-    func mdPerMonth(_ list: [Contract], today: Day) -> Double {
-        let calc = Calc(data: self, today: today)
-        return list.reduce(0.0) { s, c in s + ((calc.isActive(c) && !calc.isPaused(c)) ? calc.monthlyCost(c) : 0) }
-    }
-}
-
-/// Zahl lesen wie parseNum der Web-App: «'» und «’» entfernen, erstes Komma → Punkt, führende Zahl
-func mdParseNum(_ s: String) -> Double? {
-    var t = s.replacingOccurrences(of: "'", with: "")
-        .replacingOccurrences(of: "\u{2019}", with: "")
-        .replacingOccurrences(of: " ", with: "")
-        .replacingOccurrences(of: "\u{2212}", with: "-")
-    if let r = t.range(of: ",") { t.replaceSubrange(r, with: ".") }
-    var out = ""
-    var seenDot = false
-    for (i, ch) in t.enumerated() {
-        if ch.isASCII && ch.isNumber {
-            out.append(ch)
-        } else if ch == "." && !seenDot {
-            seenDot = true
-            out.append(ch)
-        } else if (ch == "-" || ch == "+") && i == 0 {
-            out.append(ch)
-        } else {
-            break
-        }
-    }
-    guard let v = Double(out), v.isFinite else { return nil }
-    return v
-}
+// Fachaktionen der Inline-Editoren (mdSet…, MDTermChoice, mdNoticeValue …) liegen im Kern: KontivoCore/ExtManage.swift.
+// Zahlen immer mit Format.parseNum (1:1 wie Web parseNum).
 
 /// Name auf höchstens 30 Zeichen begrenzen (maxlength="30")
 func mdLimit30(_ s: String) -> String {

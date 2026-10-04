@@ -58,6 +58,8 @@ final class MoreDataFlow {
     var ask: MoreAsk?
     /// Läuft gerade ein Export/Import? (verhindert Doppeltippen)
     var working = false
+    /// Fortschritt eines laufenden Backups (wird unter den Kacheln angezeigt)
+    var progress: String?
 
     static let csvTypes: [UTType] = {
         var t: [UTType] = [.commaSeparatedText, .tabSeparatedText, .plainText, .text]
@@ -105,30 +107,43 @@ final class MoreDataFlow {
 
     // MARK: Backup erstellen
 
+    /// Backup erstellen: Dateien im Hintergrund lesen (nicht auf dem Haupt-Thread), fehlende melden, dann kodieren
     func exportBackup(model: AppModel) {
         guard !working else { return }
+        working = true
+        progress = "Backup wird erstellt …"
         let data = model.data
-        var files: [String: ImportedFile] = [:]
-        var missing = 0
-        for id in data.referencedFileIDs {
-            if let d = model.files.data(id) {
-                files[id] = ImportedFile(type: model.files.type(id), data: d)
+        let entries: [(id: String, url: URL, type: String)] = data.referencedFileIDs.map { ($0, model.files.url($0), model.files.type($0)) }
+        Task { @MainActor [weak self] in
+            let read = await Task.detached(priority: .userInitiated) { () -> (files: [String: ImportedFile], missing: Int) in
+                var files: [String: ImportedFile] = [:]
+                var missing = 0
+                for e in entries {
+                    if let d = try? Data(contentsOf: e.url) {
+                        files[e.id] = ImportedFile(type: e.type, data: d)
+                    } else {
+                        missing += 1
+                    }
+                }
+                return (files, missing)
+            }.value
+            guard let self else { return }
+            if read.missing > 0 {
+                self.working = false
+                self.progress = nil
+                let text = (read.missing == 1 ? "1 Datei konnte" : "\(read.missing) Dateien konnten") + " nicht gelesen werden – trotzdem sichern?"
+                self.show(MoreAsk(title: "Dateien fehlen", message: text, confirm: "Trotzdem sichern") { [weak self] in
+                    self?.writeBackup(data, files: read.files, model: model)
+                })
             } else {
-                missing += 1
+                self.writeBackup(data, files: read.files, model: model)
             }
-        }
-        if missing > 0 {
-            let text = (missing == 1 ? "1 Datei konnte" : "\(missing) Dateien konnten") + " nicht gelesen werden – trotzdem sichern?"
-            show(MoreAsk(title: "Dateien fehlen", message: text, confirm: "Trotzdem sichern") { [weak self] in
-                self?.writeBackup(data, files: files, model: model)
-            })
-        } else {
-            writeBackup(data, files: files, model: model)
         }
     }
 
     private func writeBackup(_ data: AppData, files: [String: ImportedFile], model: AppModel) {
         working = true
+        progress = "Backup wird erstellt …"
         let name = Backup.fileName(today: model.today)
         Task { @MainActor [weak self] in
             let url = await Task.detached(priority: .userInitiated) { () -> URL? in
@@ -136,6 +151,7 @@ final class MoreDataFlow {
                 return MoreDataFlow.writeTemp(json, name: name)
             }.value
             self?.working = false
+            self?.progress = nil
             guard let url else {
                 model.toast("Speichern nicht möglich")
                 return
@@ -157,6 +173,7 @@ final class MoreDataFlow {
 
     private func readBackup(_ url: URL, model: AppModel) {
         working = true
+        progress = "Backup wird gelesen …"
         let today = model.today
         Task { @MainActor [weak self] in
             let read = await Task.detached(priority: .userInitiated) { () -> BackupRead in
@@ -171,6 +188,7 @@ final class MoreDataFlow {
             }.value
             guard let self else { return }
             self.working = false
+            self.progress = nil
             switch read {
             case .invalid:
                 model.toast(Backup.invalidMessage)
@@ -192,16 +210,15 @@ final class MoreDataFlow {
     }
 
     /// Backup einspielen: Dateien mit gleicher ID in den Dateispeicher, Daten ersetzen, Darstellung (theme) bleibt.
+    /// Dekodiert wurde im Hintergrund; beim Schreiben gibt der Ablauf nach jeder Datei die Oberfläche frei und zeigt den Fortschritt.
     private func restore(_ r: BackupImportResult, model: AppModel) {
         working = true
         Task { @MainActor [weak self] in
             var failed = r.failedFiles
-            if !r.files.isEmpty {
-                model.toast("Dateien werden übernommen…")
-                // Meldung zuerst zeichnen lassen
-                try? await Task.sleep(nanoseconds: 150_000_000)
-            }
-            for (id, f) in r.files {
+            let all = Array(r.files)
+            for (i, (id, f)) in all.enumerated() {
+                self?.progress = "Dateien werden übernommen… \(i + 1)/\(all.count)"
+                await Task.yield()
                 guard MoreDataFlow.isFileID(id) else { failed += 1; continue }
                 do { try model.files.put(f.data, type: f.type, id: id) } catch { failed += 1 }
             }
@@ -214,10 +231,19 @@ final class MoreDataFlow {
             model.costFilter = Calc.CostFilter()
             model.budgetPerson = nil
             model.heroFilter = nil
-            model.saveNow()
             self?.working = false
-            model.toast(Backup.doneText(failedFiles: failed))
+            self?.progress = nil
+            // Speicherfehler nicht mit der Erfolgsmeldung überschreiben (F15)
+            if MoreDataFlow.saveOK(model) { model.toast(Backup.doneText(failedFiles: failed)) }
         }
+    }
+
+    /// Sofort speichern. Bei Fehler bleibt die Fehlermeldung stehen; der Aufrufer zeigt dann keine Erfolgsmeldung (F15).
+    static func saveOK(_ model: AppModel) -> Bool {
+        if model.uiTestMode { return true }
+        if model.files.saveData(model.data) { return true }
+        model.toast("Speichern fehlgeschlagen – Gerätespeicher voll? Bitte ein Backup erstellen.", seconds: 5)
+        return false
     }
 
     /// Datei-IDs wie in der Web-App: 32 Hex-Zeichen (schützt den Dateispeicher vor fremden Pfaden).
@@ -259,9 +285,8 @@ final class MoreDataFlow {
         show(MoreAsk(title: p.confirmTitle, message: p.confirmText, confirm: CSVImportPreview.confirmButton) {
             let ok = model.update { CSV.apply(p, to: &$0) }
             guard ok else { return }
-            model.saveNow()
             model.goTab(.contracts)
-            model.toast(p.doneText)
+            if MoreDataFlow.saveOK(model) { model.toast(p.doneText) }
         }, delayed: true)
     }
 
@@ -293,9 +318,8 @@ final class MoreDataFlow {
         model.heroFilter = nil
         model.searchText = ""
         model.showArchive = false
-        model.saveNow()
         model.goTab(.contracts)
-        model.toast("Alle Daten gelöscht")
+        if MoreDataFlow.saveOK(model) { model.toast("Alle Daten gelöscht") }
     }
 
     // MARK: Dateien

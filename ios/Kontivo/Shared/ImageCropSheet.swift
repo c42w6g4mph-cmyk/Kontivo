@@ -1,5 +1,7 @@
 import SwiftUI
 import UIKit
+import ImageIO
+import UniformTypeIdentifiers
 import KontivoCore
 
 /// Vorbereitetes Bild für das Zuschneiden (openCrop): höchstens 1600 px, erkannte Hintergrundfarbe und Inhaltsrahmen
@@ -335,5 +337,79 @@ struct ImageCropSheet: View {
         }
         onDone(png, bgHex)
         dismiss()
+    }
+}
+
+// MARK: - Bilder einlesen (Fotos, Dateien, Zwischenablage)
+
+/// Bilder speicherschonend einlesen: ImageIO erzeugt direkt eine verkleinerte Fassung (höchstens 1600 px, EXIF-Drehung
+/// angewendet), statt ein 48-MP-Foto ganz zu dekodieren und danach neu zu zeichnen.
+enum ImageImport {
+    static let maxPixel = 1600
+
+    static func downsample(_ data: Data, maxPixel: Int = ImageImport.maxPixel) -> UIImage? {
+        guard let src = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary) else { return nil }
+        let opts: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixel,
+        ]
+        guard let cg = CGImageSourceCreateThumbnailAtIndex(src, 0, opts as CFDictionary) else { return nil }
+        return UIImage(cgImage: cg)
+    }
+
+    /// Verkleinern im Hintergrund (blockiert die Oberfläche nicht)
+    static func downsampleDetached(_ data: Data?) async -> UIImage? {
+        guard let data else { return nil }
+        return await Task.detached(priority: .userInitiated) { ImageImport.downsample(data) }.value
+    }
+
+    /// Datei aus der Dateiauswahl im Hintergrund lesen (mit Sicherheitsbereich)
+    static func read(_ url: URL) async -> Data? {
+        await Task.detached(priority: .userInitiated) { () -> Data? in
+            let ok = url.startAccessingSecurityScopedResource()
+            defer { if ok { url.stopAccessingSecurityScopedResource() } }
+            return try? Data(contentsOf: url)
+        }.value
+    }
+
+    /// Inhalt eines «Einfügen» (PasteButton): Bild oder Bild-Link
+    enum Pasted {
+        case image(UIImage)
+        case link(String)
+        case none
+    }
+
+    /// Eingefügte Elemente auswerten (pasteLogo): zuerst ein Bild, sonst ein http(s)-Link (URL oder Text)
+    static func pasted(_ providers: [NSItemProvider]) async -> Pasted {
+        for p in providers where p.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+            let d: Data? = await withCheckedContinuation { c in
+                _ = p.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { data, _ in c.resume(returning: data) }
+            }
+            if let img = await downsampleDetached(d) { return .image(img) }
+        }
+        for p in providers {
+            var txt = ""
+            if p.canLoadObject(ofClass: URL.self) {
+                let u: URL? = await withCheckedContinuation { c in
+                    _ = p.loadObject(ofClass: URL.self) { url, _ in c.resume(returning: url) }
+                }
+                txt = u?.absoluteString ?? ""
+            }
+            if txt.isEmpty, p.canLoadObject(ofClass: String.self) {
+                let s: String? = await withCheckedContinuation { c in
+                    _ = p.loadObject(ofClass: String.self) { str, _ in c.resume(returning: str) }
+                }
+                txt = (s ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            if txt.range(of: "^https?://\\S+$", options: .regularExpression) != nil { return .link(txt) }
+        }
+        return .none
+    }
+
+    /// Bild-Link laden und verkleinern (15 s)
+    static func load(link: String) async -> UIImage? {
+        await downsampleDetached(await LogoFinder.fetchData(link, timeout: 15))
     }
 }

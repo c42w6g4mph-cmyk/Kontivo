@@ -256,8 +256,14 @@ struct MDCategoryPage: View {
     private func page(_ c: KCategory) -> some View {
         let title: String = "«" + c.name + "» löschen?"
         return content(c)
-            .onAppear { if !focused { name = c.name } }
-            .onDisappear { commitName() }
+            .onAppear {
+                if !focused { name = c.name }
+                nav.flush[.category(categoryID)] = { commitName() }
+            }
+            .onDisappear {
+                commitName()
+                nav.flush[.category(categoryID)] = nil
+            }
             .onChange(of: focused) { _, f in if !f { commitName() } }
             .onChange(of: model.data.category(categoryID)?.name) { _, n in
                 if let n, !focused { name = n }

@@ -1,6 +1,51 @@
 import SwiftUI
 import UIKit
+import Network
 import KontivoCore
+
+// MARK: - Netz und Links (gemeinsam für Logo-, Adress- und Kurssuche)
+
+/// Netzstatus wie `navigator.onLine` der Web-App: kurzer Blick auf den aktuellen Pfad (NWPathMonitor).
+enum NetCheck {
+    private final class Once: @unchecked Sendable {
+        private let lock = NSLock()
+        private var done = false
+        private let cont: CheckedContinuation<Bool, Never>
+        init(_ c: CheckedContinuation<Bool, Never>) { cont = c }
+        func finish(_ v: Bool) {
+            lock.lock(); defer { lock.unlock() }
+            if done { return }
+            done = true
+            cont.resume(returning: v)
+        }
+    }
+
+    /// true, wenn eine Verbindung besteht (im Zweifel nach 1.5 s true, damit nichts blockiert)
+    static func isOnline() async -> Bool {
+        await withCheckedContinuation { (c: CheckedContinuation<Bool, Never>) in
+            let once = Once(c)
+            let m = NWPathMonitor()
+            let q = DispatchQueue(label: "ch.kontivo.netcheck")
+            m.pathUpdateHandler = { p in
+                once.finish(p.status == .satisfied)
+                m.cancel()
+            }
+            m.start(queue: q)
+            q.asyncAfter(deadline: .now() + 1.5) {
+                once.finish(true)
+                m.cancel()
+            }
+        }
+    }
+}
+
+/// Externe Links an einer Stelle (A10)
+enum WebLinks {
+    /// Google-Bildersuche «<Name> logo» (logoSearch der Web-App); öffnet in Safari
+    static func googleImages(_ name: String) -> URL? {
+        URL(string: "https://www.google.com/search?tbm=isch&q=" + LogoFinder.enc(name.trimmingCharacters(in: .whitespacesAndNewlines) + " logo"))
+    }
+}
 
 // MARK: - Kandidaten
 
@@ -585,7 +630,7 @@ struct LogoSearchSheet: View {
     @State private var notice: String?
     @State private var noticeTask: Task<Void, Never>?
 
-    private enum Phase { case idle, searching, done, noName }
+    private enum Phase { case idle, searching, done, noName, offline }
 
     var body: some View {
         NavigationStack {
@@ -619,6 +664,8 @@ struct LogoSearchSheet: View {
             .padding(.vertical, 8)
         case .noName:
             message("Zuerst den Namen eintragen")
+        case .offline:
+            message("Keine Internetverbindung")
         case .done:
             if cands.isEmpty {
                 message("Nichts gefunden. Tipp: Vertragspartner oder Bezeichnung so schreiben, wie die Firma heisst, eine Website eintragen, oder «Logo im Web suchen».")
@@ -726,6 +773,10 @@ struct LogoSearchSheet: View {
             return
         }
         phase = .searching
+        if !(await NetCheck.isOnline()) {
+            phase = .offline
+            return
+        }
         let cs = await LogoFinder.manualCandidates(name: primary, currency: currency, web: web)
         cands = cs
         phase = .done

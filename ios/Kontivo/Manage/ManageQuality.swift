@@ -147,7 +147,11 @@ struct MDQualityListPage: View {
                         Spacer(minLength: 8)
                         HStack(spacing: 14) {
                             if field == "logo" {
-                                Button("Alle suchen") { nav.push(.logoBatch) }
+                                Button("Alle suchen") {
+                                    Task { @MainActor in
+                                        if await NetCheck.isOnline() { nav.push(.logoBatch) } else { model.toast("Keine Internetverbindung") }
+                                    }
+                                }
                                     .font(.subheadline.weight(.semibold))
                             }
                             Button("Alle ignorieren") {
@@ -166,6 +170,8 @@ struct MDQualityListPage: View {
         }
         .mdListStyle()
         .navigationTitle(title)
+        // Zifferntastaturen (Betrag, Frist) haben keine Eingabetaste: «Fertig» über der Tastatur
+        .modifier(CTKeyboardDone())
         .modifier(MDLogoSheet(target: $logoTarget))
         .modifier(MDAddrPickSheet(pick: $addrPick))
     }
@@ -320,7 +326,7 @@ private struct MDContractEditor: View {
             }
         case .amount:
             MDInlineText(placeholder: "Betrag in " + contract.currency.rawValue, keyboard: .decimalPad) { v in
-                guard let n = mdParseNum(v), n > 0 else {
+                guard let n = Format.parseNum(v), n > 0 else {
                     model.toast("Bitte einen Betrag eingeben")
                     return false
                 }
@@ -487,14 +493,16 @@ private struct MDInlineText: View {
     }
 }
 
-/// Frist und Laufzeit mit «Übernehmen» (qMulti «notice»), inkl. «jederzeit» und «Feste Laufzeit bis …»
+/// Frist und Laufzeit mit «Übernehmen» (qMulti «notice»), inkl. «jederzeit» und «Feste Laufzeit bis …».
+/// Prüfung und Toasts wie Web (noticeVal, qMultiSave) – Regeln im Kern (ExtManage.swift).
 private struct MDNoticeEditor: View {
     let contract: Contract
     @Environment(AppModel.self) private var model
     @State private var notice: String
     @State private var unit: NoticeUnit
     @State private var choice: MDTermChoice
-    @State private var end: Date
+    /// Vertragsende; leer, bis der Nutzer ein Datum wählt (Web: leeres Datumsfeld)
+    @State private var end: Date?
     @State private var renew: Int
 
     private static let renewOptions: [(title: String, value: Int)] = [
@@ -506,17 +514,16 @@ private struct MDNoticeEditor: View {
         self.contract = contract
         _notice = State(initialValue: contract.notice > 0 ? "\(contract.notice)" : "")
         _unit = State(initialValue: contract.noticeUnit)
-        let ch: MDTermChoice
-        if contract.end != nil {
-            ch = .fixed
-        } else if contract.cancelTerm != .anytime {
-            ch = .term(contract.cancelTerm)
-        } else {
-            ch = .unset
-        }
-        _choice = State(initialValue: ch)
-        _end = State(initialValue: (contract.end ?? Day.today().addingMonths(12)).date())
-        _renew = State(initialValue: MDNoticeEditor.renewOptions.contains { $0.value == contract.renewMonths } ? contract.renewMonths : 0)
+        _choice = State(initialValue: MDTermChoice.initial(for: contract))
+        _end = State(initialValue: contract.end?.date())
+        _renew = State(initialValue: contract.renewMonths)
+    }
+
+    private var renewOptions: [(title: String, value: Int)] {
+        var o = MDNoticeEditor.renewOptions
+        // unbekannter gespeicherter Wert bleibt als Option erhalten (optHtml)
+        if renew > 0 && !o.contains(where: { $0.value == renew }) { o.append(("verlängert um \(renew) Monate", renew)) }
+        return o
     }
 
     var body: some View {
@@ -546,11 +553,17 @@ private struct MDNoticeEditor: View {
             .labelsHidden()
             if choice == .fixed {
                 HStack(spacing: 8) {
-                    DatePicker("Vertragsende", selection: $end, displayedComponents: .date)
-                        .labelsHidden()
-                        .accessibilityLabel("Vertragsende")
+                    if let e = end {
+                        DatePicker("Vertragsende", selection: Binding(get: { e }, set: { end = $0 }), displayedComponents: .date)
+                            .labelsHidden()
+                            .accessibilityLabel("Vertragsende")
+                    } else {
+                        Button("Vertragsende wählen") { end = Date() }
+                            .buttonStyle(.bordered)
+                            .font(.subheadline)
+                    }
                     Picker("Verlängerung", selection: $renew) {
-                        ForEach(MDNoticeEditor.renewOptions, id: \.value) { o in
+                        ForEach(renewOptions, id: \.value) { o in
                             Text(o.title).tag(o.value)
                         }
                     }
@@ -565,28 +578,21 @@ private struct MDNoticeEditor: View {
     }
 
     private func save() {
-        if choice == .unset {
-            model.toast("Bitte wählen, worauf kündbar")
+        let endDay: Day? = choice == .fixed ? end.map { Day(date: $0) } : nil
+        let n: Int
+        switch AppData.mdCheckNotice(notice, unit: unit, choice: choice, end: endDay) {
+        case .invalid(let t):
+            model.toast(t)
             return
+        case .ok(let v):
+            n = v
         }
-        let raw = mdParseNum(notice) ?? 0
-        let n = raw > 0 ? Int(Swift.min(999, raw)) : 0
-        let endDay: Day? = choice == .fixed ? Day(date: end) : nil
         let id = contract.id
         let ch = choice
         let u = unit
         let r = renew
-        guard model.update({ $0.mdSetNotice(id, notice: n, unit: u, choice: ch, end: endDay, renew: r) }),
-              let nc = model.data.contract(id) else { return }
-        let calc = model.calc
-        let complete = calc.noticeDeadline(nc) != nil || (nc.end == nil && nc.cancelTerm == .anytime && nc.notice > 0)
-        if complete {
-            model.toast(model.data.title(of: nc) + ": gespeichert")
-        } else if nc.cancelTerm == .contractYear {
-            model.toast("Gespeichert. Für «Ende Vertragsjahr» fehlt noch das Startdatum im Vertrag")
-        } else {
-            model.toast("Gespeichert, Termin noch nicht berechenbar")
-        }
+        guard model.update({ $0.mdSetNotice(id, notice: n, unit: u, choice: ch, end: endDay, renew: r) }) else { return }
+        model.toast(model.data.mdNoticeSavedToast(id, today: model.today))
     }
 }
 
@@ -795,7 +801,7 @@ private struct MDIncomeEditor: View {
         switch criterion {
         case .amount:
             MDInlineText(placeholder: "Betrag in " + income.currency.rawValue, keyboard: .decimalPad) { v in
-                guard let n = mdParseNum(v), n > 0 else {
+                guard let n = Format.parseNum(v), n > 0 else {
                     model.toast("Bitte einen Betrag eingeben")
                     return false
                 }
