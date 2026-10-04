@@ -122,4 +122,22 @@ final class MoreUITests: KontivoUITestCase {
         tapTop("Fertig")
         waitUntil("Verwalten geschlossen") { !self.navExists("Vertragspartner") }
     }
+
+    /// Umbenennen auf einen bestehenden Namen und direkt «Zurück»: die Rückfrage erscheint trotzdem (Fenster-Ebene),
+    /// «Abbrechen» lässt den Namen unverändert.
+    func testVertragspartnerUmbenennenRueckfrageBeimZurueck() {
+        launch("-uiDemo", "-uiTab", "more")
+        tap(buttonStarting("Vertragspartner"), "Zeile Vertragspartner")
+        waitNav("Vertragspartner")
+        tap(buttonStarting("Spotify"), "Spotify")
+        waitNav("Spotify")
+        replace(textField("Name"), "netflix", "Name ändern")
+        goBack()
+        wait(app.alerts.firstMatch, "Rückfrage «Netflix» gibt es schon")
+        tapAlertButton("Abbrechen")
+        waitNav("Vertragspartner")
+        wait(buttonStarting("Spotify"), "Spotify unverändert")
+        tapTop("Fertig")
+        waitUntil("Verwalten geschlossen") { !self.navExists("Vertragspartner") }
+    }
 }
