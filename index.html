@@ -207,7 +207,7 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .fqax{position:relative;display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink3);margin:6px 6px 0;height:16px}
 .fqax .fqu{position:absolute;transform:translateX(-50%);color:var(--teal)}
 .fqs{font-size:16px;color:var(--ink);text-align:center;margin:18px 8px 10px;line-height:1.35;text-wrap:balance}.fqs small{display:block;font-size:14px;color:var(--ink2);margin-top:4px}
-.fqh{font-size:14px;color:var(--ink2);margin:8px 4px;line-height:1.4;text-wrap:balance}.fqh b{font-weight:600;color:var(--ink)}
+.fqh{font-size:14px;color:var(--ink2);margin:8px 4px;line-height:1.4;text-wrap:balance}.fqh b{font-weight:600;color:var(--ink)}.fqh .nw{white-space:nowrap}
 @media (max-width:374px){.kcard .ksub .ksep{display:none}.kcard .ksub .kfq{display:flex;margin-top:2px}}
 .fqf{font-size:12px;color:var(--ink3);margin:14px 4px 0;line-height:1.4;text-wrap:balance}
 .kcard .kbig.neg{color:var(--alert)}
@@ -2541,12 +2541,12 @@ function budgetEmpty(){
    DE: Nettolohn nach Steuern und KV, üblich bleiben 50–65 %. CH: Steuern und Krankenkasse sind Fixkosten, üblich bleiben 35–50 %.
    SwiftUI: Info-Symbol neben dem Text, .popover bzw. Sheet mit Gauge */
 var FQ={
-  DE:{lo:50,hi:65,note:"In Deutschland bleiben üblicherweise 50–65\u00a0% des Nettolohns."},
-  CH:{lo:35,hi:50,note:"In der Schweiz bleiben üblicherweise 35–50\u00a0% des Nettolohns, nach Steuern und Krankenkasse."}
+  DE:{lo:50,hi:65,note:"Üblich in Deutschland: <span class=\"nw\">50–65\u00a0%</span> des Nettolohns."},
+  CH:{lo:35,hi:50,note:"Üblich in der Schweiz: <span class=\"nw\">35–50\u00a0%</span> des Nettolohns, nach Steuern und Krankenkasse."}
 };
 function fqLand(){return state.settings.home==="CHF"?"CH":"DE";}
 function fqState(p){var L=FQ[fqLand()];return p<L.lo?"lo":(p>L.hi?"hi":"mid");}
-var FQ_TXT={lo:"Das ist weniger als üblich.<small>Bei höherem Einkommen ist das oft kein Problem.</small>",mid:"Das liegt im üblichen Bereich.",hi:"Das ist mehr als üblich."};
+var FQ_TXT={lo:"Weniger als üblich.<small>Bei höherem Einkommen oft kein Problem.</small>",mid:"Im üblichen Bereich.",hi:"Mehr als üblich."};
 function openFq(){
   var d=state._fq;if(!d)return;var L=FQ[fqLand()],p=d.p,dot=Math.max(0,Math.min(100,p));
   document.getElementById("pickTitle").textContent="Was dir bleibt";
@@ -2555,9 +2555,9 @@ function openFq(){
     '<div class="fqbar" aria-hidden="true"><i class="fqb" style="left:'+L.lo+'%;width:'+(L.hi-L.lo)+'%"></i><i class="fqd" style="left:'+dot+'%"></i></div>'+
     '<div class="fqax"><span>0\u00a0%</span><span class="fqu" style="left:'+((L.lo+L.hi)/2)+'%">üblich</span><span>100\u00a0%</span></div>'+
     '<p class="fqs">'+FQ_TXT[fqState(p)]+'</p>'+
-    (d.avg!=null&&Math.abs(d.avg-p)>=3?'<p class="fqh"><b>Im Schnitt '+d.y+': '+d.avg+'\u00a0%.</b><br>Einzelne Monate schwanken wegen Jahresrechnungen oder Bonus.</p>':"")+
-    '<p class="fqh">'+L.note+'</p><p class="fqh">Entscheidend ist, wie viel dir am Ende bleibt.</p>'+
-    '<p class="fqf">Faustregeln von Budgetberatungen, keine feste Norm. Nur so genau wie deine erfassten Verträge.</p></div>';
+    (d.avg!=null&&Math.abs(d.avg-p)>=3?'<p class="fqh"><b>Im Schnitt '+d.y+': '+d.avg+'\u00a0%.</b><br>Einzelne Monate schwanken durch Jahresrechnungen oder Bonus.</p>':"")+
+    '<p class="fqh">'+L.note+'</p><p class="fqh">Entscheidend ist der Betrag, der dir am Ende bleibt.</p>'+
+    '<p class="fqf">Richtwerte von Budgetberatungen, keine feste Norm. Genauigkeit abhängig von deinen erfassten Verträgen.</p></div>';
   openSheet(document.getElementById("sheetPick"));
 }
 function renderBudget(v){
