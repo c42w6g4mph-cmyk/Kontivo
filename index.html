@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" id="themeColor" content="#F3F1EC">
 <meta name="format-detection" content="telephone=no">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221024%22 height=%221024%22 viewBox=%220 0 1024 1024%22%3E%3Cdefs%3E%3C/defs%3E%3Cg%3E%3Crect width=%221024%22 height=%221024%22 rx=%22228%22 fill=%22#0E5A5E%22/%3E%3CclipPath id=%22cu1%22%3E%3Crect x=%220%22 y=%22292%22 width=%221024%22 height=%22440%22/%3E%3C/clipPath%3E%3Cpolygon points=%22339.78,292.00 393.78,292.00 439.78,349.50 439.78,732.00 339.78,732.00%22 fill=%22#F3F1EC%22/%3E%3Cg clip-path=%22url(#cu1)%22%3E%3Cpath d=%22M693.00,792 L469.00,512 L693.00,232%22 fill=%22none%22 stroke=%22#0E5A5E%22 stroke-width=%22144%22 stroke-linejoin=%22miter%22 stroke-miterlimit=%2210%22/%3E%3Cpath d=%22M693.00,792 L469.00,512 L693.00,232%22 fill=%22none%22 stroke=%22#F3F1EC%22 stroke-width=%2280%22 stroke-linejoin=%22miter%22 stroke-miterlimit=%2210%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221024%22 height=%221024%22 viewBox=%220 0 1024 1024%22%3E%3Cdefs%3E%3C/defs%3E%3Cg%3E%3Crect width=%221024%22 height=%221024%22 rx=%22228%22 fill=%22%230E5A5E%22/%3E%3Cg transform=%22translate(-82.55,-76.22) scale(1.15)%22%3E%3CclipPath id=%22cu1%22%3E%3Crect x=%220%22 y=%22292%22 width=%221024%22 height=%22440%22/%3E%3C/clipPath%3E%3Cpolygon points=%22339.78,292.00 393.78,292.00 439.78,349.50 439.78,732.00 339.78,732.00%22 fill=%22%23F3F1EC%22/%3E%3Cg clip-path=%22url(%23cu1)%22%3E%3Cpath d=%22M693.00,792 L469.00,512 L693.00,232%22 fill=%22none%22 stroke=%22%230E5A5E%22 stroke-width=%22144%22 stroke-linejoin=%22miter%22 stroke-miterlimit=%2210%22/%3E%3Cpath d=%22M693.00,792 L469.00,512 L693.00,232%22 fill=%22none%22 stroke=%22%23F3F1EC%22 stroke-width=%2280%22 stroke-linejoin=%22miter%22 stroke-miterlimit=%2210%22/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E">
 <style>
 :root{
   --paper:#F3F1EC;
@@ -1929,7 +1929,7 @@ function noticeDeadline(c){if(isTax(c))return null;var e=termEnd(c);return e?nDl
 function urgency(c){
   var d=noticeDeadline(c);if(!d)return {lvl:"",days:null,date:null};
   var days=daysBetween(today(),d);
-  var lvl=days<0?"":(days<=30?"alert":(days<=90?"warn":"ok"));
+  var lvl=days<0?"":(days<=7?"alert":(days<=30?"warn":"ok"));
   if(isAnytime(c)||c.noWatch)lvl="";
   if(c.cancelPer||(c.keptFor&&c.keptFor===iso(termEnd(c))))lvl="";
   return {lvl:lvl,days:days,date:d};
@@ -1945,8 +1945,8 @@ function archived(){return Object.keys(state.contracts).map(function(k){var c=Ob
 function isKept(c){var T=termEnd(c);return !!(T&&c.keptFor&&c.keptFor===iso(T));}
 function isAnytime(c){return !c.end&&(c.cancTerm==="m"||(c.cancTerm==="p"&&(+c.cycle||1)<=1));}
 function needsAction(c){if(c.cancelPer)return false;var T=termEnd(c);if(!T||isAnytime(c)||c.noWatch)return false;
-  if(c.keptFor&&c.keptFor===iso(T))return false;var d=nDl(c,T),n=daysBetween(today(),d);return n>=0&&n<=90;}
-function trialNeeds(c){var d=parseD(c.trial),t=today();return !!(d&&d>=t&&daysBetween(t,d)<=90&&c.trialKept!==c.trial&&!c.cancelPer);}
+  if(c.keptFor&&c.keptFor===iso(T))return false;var d=nDl(c,T),n=daysBetween(today(),d);return n>=0&&n<=30;}
+function trialNeeds(c){var d=parseD(c.trial),t=today();return !!(d&&d>=t&&daysBetween(t,d)<=30&&c.trialKept!==c.trial&&!c.cancelPer);}
 
 /* ---------- Speicher ---------- */
 /* Speicherfehler (voll/blockiert) einmal melden; nach erfolgreichem Speichern wieder scharf */
@@ -2132,12 +2132,12 @@ function renderView(){
     var unw=a.filter(function(c){return c.noWatch&&!c.cancelPer;});
     // Kopfzeile
     if(nTodo){var nx=todo.map(noticeDeadline).concat(triTodo.map(function(c){return parseD(c.trial);})).sort(function(x,y){return x-y;})[0];
-      var urgent=todo.filter(function(c){return daysBetween(t1,noticeDeadline(c))<=30;}).length+triTodo.filter(function(c){return daysBetween(t1,parseD(c.trial))<=30;}).length;
+      var urgent=todo.filter(function(c){return daysBetween(t1,noticeDeadline(c))<=7;}).length+triTodo.filter(function(c){return daysBetween(t1,parseD(c.trial))<=7;}).length;
       o+='<p class="tintro"><b>'+nTodo+" offen</b>"+(urgent&&urgent<nTodo?" · "+urgent+" dringend":"")+(nx?" · nächste Frist "+inDays(daysBetween(t1,nx)):"")+"</p>";}
     else if(a.length)o+='<p class="tintro ok"><b>Alles erledigt</b> · keine offenen Entscheidungen</p>';
     // Entscheidungen
     var decCard=function(c,trial){
-      var d=trial?parseD(c.trial):nDl(c,termEnd(c)),dn=daysBetween(t1,d),lv=dn<=30?"alert":"warn";
+      var d=trial?parseD(c.trial):nDl(c,termEnd(c)),dn=daysBetween(t1,d),lv=dn<=7?"alert":"warn";
       var line=(trial?"Probeabo endet ":"Frist ")+ddmm(d)+" · "+(dn===0?"heute":"noch "+humanDays(dn));
       return '<div class="tcard"><button class="card" data-open="'+esc(c._id)+'">'+markHtml(c)+
         '<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline '+lv+'">'+line+"</div>"+
