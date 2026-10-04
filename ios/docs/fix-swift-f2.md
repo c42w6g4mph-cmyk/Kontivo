@@ -25,4 +25,4 @@ Quelle: Prüfberichte s2-app-vertraege.md (alle Funde) und s5-architektur.md (A1
 
 ## Offen
 - s2 A21: bewusst offen (Detail bleibt nach Aktionen offen; Rückfrage an Nutzer)
-- CI grün (ohne [noui])
+- Letzter CI-Lauf ohne [noui] (UI-Tests) – läuft
