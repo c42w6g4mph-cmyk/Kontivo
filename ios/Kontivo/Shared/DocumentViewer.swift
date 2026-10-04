@@ -140,6 +140,7 @@ struct DocumentViewer: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isLetter ? "PDF teilen" : "Teilen")
+            .accessibilityShowsLargeContentViewer()
         } else {
             DocActionButton(title: "Teilen", symbol: "square.and.arrow.up", prominent: true) {
                 model.toast("Teilen fehlgeschlagen")
@@ -360,6 +361,8 @@ struct DocActionButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
+        // Schrift ist auf xLarge begrenzt: bei Bedienhilfen-Grössen per Langdruck vergrössert zeigen
+        .accessibilityShowsLargeContentViewer()
     }
 }
 

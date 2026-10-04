@@ -23,7 +23,7 @@ Funde aus review/s3-kosten-fristen.md (A1–A12), s1 B-1 / L-2, s5 A3/A4/A5/A6/A
 - s1 L-2: kein UI-Anteil nötig – Hinweis «Absender gekürzt» kommt über Letter.hints (Kern, Bereich f1) und wird im Brief schon angezeigt
 
 - Teil B 2: Kosten-/Budgetjahr und Vorjahresvergleiche zwischengespeichert (Costs/KBYearCache.swift, Schlüssel Datenstand/heute/Jahr/Filter)
-- s5 A12 (Bereich): Einnahmen-Formular mit «Fertig» über der Tastatur und scrollDismissesKeyboard
+- s5 A12 (Bereich): Einnahmen-Formular mit «Fertig» über der Tastatur und scrollDismissesKeyboard; Viewer-Knöpfe mit Large Content Viewer
 
 ## Offen
 - CI grün mit UI-Tests (letzter Lauf ohne [noui])
