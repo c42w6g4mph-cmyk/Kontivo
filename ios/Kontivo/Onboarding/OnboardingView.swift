@@ -59,7 +59,7 @@ struct OnboardingView: View {
         case .setup:
             OnbSetupPage(home: $home, moreOpen: $moreOpen, name: $name, onNext: { next(from: i) }, onBackup: backup)
         case .start:
-            OnbStartPage(items: OnbQuick.items(model.data), quick: $quick, onCreate: create, onDone: close)
+            OnbStartPage(items: OnbQuick.items(model.data), quick: $quick, onCreate: create, onDone: { close() })
         }
     }
 
@@ -135,7 +135,9 @@ struct OnboardingView: View {
     }
 
     /// Schliessen: gesehen merken, Tab «Verträge»
-    private func close(then: (() -> Void)? = nil) {
+    private func close() { close(then: nil) }
+
+    private func close(then: (() -> Void)?) {
         model.update { $0.settings.onboarded = 1 }
         model.goTab(.contracts)
         model.closeOnboarding(then: then)
@@ -156,6 +158,6 @@ struct OnboardingView: View {
                              currency: d.settings.homeCurrency, holderIDs: d.defaultHolderIDs)
         let m = model
         // erst öffnen, wenn die Einführung geschlossen ist (Modell meldet das Ende)
-        close { m.present(.contractForm(.new(prefill: draft))) }
+        close(then: { m.present(.contractForm(.new(prefill: draft))) })
     }
 }
