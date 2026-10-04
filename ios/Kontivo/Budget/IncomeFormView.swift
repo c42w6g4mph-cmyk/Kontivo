@@ -79,6 +79,7 @@ struct KBIncomeForm: View {
                 }
             }
             .scrollContentBackground(.hidden)
+            .scrollDismissesKeyboard(.interactively)
             .background(KColor.paper)
             .navigationTitle(formTitle)
             .navigationBarTitleDisplayMode(.inline)
@@ -127,6 +128,13 @@ struct KBIncomeForm: View {
         ToolbarItem(placement: .confirmationAction) {
             Button("Sichern") { save() }
                 .fontWeight(.semibold)
+        }
+        // Zifferntastatur hat keinen Zeilenschalter: «Fertig» schliesst die Tastatur
+        ToolbarItemGroup(placement: .keyboard) {
+            Spacer()
+            Button("Fertig") {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
         }
     }
 

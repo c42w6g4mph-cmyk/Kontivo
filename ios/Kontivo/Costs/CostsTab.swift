@@ -69,7 +69,7 @@ struct CostsTab: View {
         let calc = model.calc
         let year = model.selectedYear
         let month = KBMonthNav.month(model)
-        let cy = calc.costYear(year, filter: model.costFilter, split: splitDim)
+        let cy = KBYearCache.costYear(calc, year: year, filter: model.costFilter, split: splitDim)
         return ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 KBCostFilterBar(moreFilters: $moreFilters, pick: $pick)
@@ -137,7 +137,7 @@ struct CostsTab: View {
     /// Nach einem Filterwechsel: hat der gewählte Monat nichts, den nächsten Monat mit Zahlungen wählen.
     private func autoSelectMonth() {
         let calc = model.calc
-        let cy = calc.costYear(model.selectedYear, filter: model.costFilter, split: splitDim)
+        let cy = KBYearCache.costYear(calc, year: model.selectedYear, filter: model.costFilter, split: splitDim)
         let m = calc.kbAutoMonth(cy, current: model.selectedMonth)
         if m != model.selectedMonth { model.selectedMonth = m }
     }
@@ -160,7 +160,7 @@ struct KBCostMonthCard: View {
         let calc = model.calc
         let home = calc.home.rawValue
         let m = cy.months[month - 1]
-        let cmp = calc.monthComparison(year: cy.year, month: month, filter: model.costFilter, monthSum: m.sum, items: m.items)
+        let cmp = KBYearCache.monthComparison(calc, year: cy.year, month: month, filter: model.costFilter, monthSum: m.sum, items: m.items)
         KBPagingCard {
             KBCardHeader(year: cy.year, month: month, trailing: calc.kbFilterLabel(model.costFilter))
             KBBigAmount(value: m.sum, currency: home)

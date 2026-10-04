@@ -155,7 +155,7 @@ struct KBBudgetContent: View {
         let calc = model.calc
         let year = model.selectedYear
         let month = KBMonthNav.month(model)
-        let by = calc.budgetYear(year, person: person)
+        let by = KBYearCache.budgetYear(calc, year: year, person: person)
         let bm = by.months[month - 1]
         VStack(alignment: .leading, spacing: 0) {
             KBBudgetCard(by: by, month: month, person: person)
@@ -178,7 +178,7 @@ struct KBBudgetCard: View {
         let calc = model.calc
         let home = calc.home.rawValue
         let bm = by.months[month - 1]
-        let cmp = calc.kbBudgetComparison(year: by.year, month: month, person: person, free: bm.free)
+        let cmp = KBYearCache.budgetComparison(calc, year: by.year, month: month, person: person, free: bm.free)
         let namer = KBHolderNamer(names: model.data.persons.map { $0.name }, width: 361)
         let pname = model.data.person(person)?.name ?? ""
         KBPagingCard {
