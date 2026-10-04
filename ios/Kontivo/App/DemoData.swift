@@ -78,7 +78,7 @@ enum DemoData {
    "cur": "CHF",
    "cycle": 1,
    "due": "2026-10-15",
-   "notice": 45,
+   "notice": 60,
    "noticeU": "d",
    "cancTerm": "y",
    "holders": [
