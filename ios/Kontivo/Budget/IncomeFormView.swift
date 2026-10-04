@@ -253,7 +253,7 @@ struct KBIncomeForm: View {
         return Section {
             if !sorted.isEmpty {
                 priceRow(title: "Anfangsbetrag", tag: ni < 0 ? "aktuell" : nil, planned: false,
-                         amount: KBText.parseAmount(amountText), onDelete: nil)
+                         amount: Format.parseNum(amountText), onDelete: nil)
                 ForEach(Array(sorted.enumerated()), id: \.offset) { i, p in
                     priceRow(title: "ab " + Format.fmtD(p.from),
                              tag: i == ni ? "aktuell" : (p.from > today ? "geplant" : nil),
@@ -376,7 +376,7 @@ struct KBIncomeForm: View {
             model.toast("Bezeichnung fehlt")
             return
         }
-        guard let a = KBText.parseAmount(amountText), a >= 0 else {
+        guard let a = Format.parseNum(amountText), a >= 0 else {
             model.toast("Betrag prüfen")
             return
         }
@@ -405,7 +405,7 @@ struct KBIncomeForm: View {
             model.toast("Datum fehlt")
             return
         }
-        guard let a = KBText.parseAmount(priceAmountText), a >= 0 else {
+        guard let a = Format.parseNum(priceAmountText), a >= 0 else {
             model.toast("Betrag prüfen")
             return
         }
