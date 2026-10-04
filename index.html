@@ -197,10 +197,10 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .kcard .chartwrap,.kcard .mlabels{margin-right:16px}
 .kcard .avg span{left:calc(100% + 8px);top:-7px;font-size:10px;font-weight:650;line-height:12px;color:var(--ink3);font-variant-numeric:tabular-nums;white-space:nowrap}
 .kcard .ksub{font-size:12.5px;color:var(--ink3);margin-top:6px}
-.kcard .kfq{display:inline-flex;gap:4px;align-items:center;margin-top:8px;padding:4px 10px;border:1px solid var(--line);border-radius:99px;background:none;color:var(--ink2);font:inherit;font-size:12.5px;cursor:pointer}
-.kcard .kfq span{color:var(--ink3)}
+.kcard .kfq{display:inline-flex;align-items:center;gap:4px;padding:0;margin:0;background:none;border:0;font:inherit;color:inherit;cursor:pointer}
+.kcard .kfq i{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;border:1.2px solid currentColor;font:italic 600 10px/1 Georgia,serif;opacity:.85}
 .fqv{padding:4px 2px 8px}
-.fqn{font-size:15px;color:var(--ink2);text-align:center;margin:6px 0 18px}.fqn b{display:block;font-size:34px;color:var(--ink);font-weight:650;margin-top:2px}
+.fqn{font-size:14px;color:var(--ink2);text-align:center;margin:6px 0 18px}.fqn b{display:block;font-size:34px;color:var(--ink);font-weight:650;margin:2px 0}
 .fqbar{position:relative;height:10px;border-radius:99px;background:var(--line);margin:0 6px}
 .fqbar .fqb{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--teal) 32%,transparent);border-radius:99px}
 .fqbar .fqd{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--ink);border:3px solid var(--bg,#fff);box-sizing:border-box}
@@ -2535,27 +2535,28 @@ function budgetEmpty(){
     hooks:["Lohn rein, Fixkosten raus: der Rest gehört dir","Was bleibt dir übrig? Sofort sichtbar","Fair geteilt: wer zahlt wie viel im Haushalt"],
     btn:['id="incAdd"',"Einnahme erfassen"]});
 }
-/* ---------- Fixkosten-Anteil: Vergleich mit üblichen Haushalten (Faustregeln, keine Bewertung) ----------
-   Land nach Hauptwährung: CHF → Schweiz, sonst Deutschland. Grundlage: Jahresdurchschnitt (13. Monatslohn, Jahresrechnungen verteilt).
-   CH: Nettolohn vor Steuern und Krankenkasse; beides zählt als Fixkosten, daher höherer Bereich (+ ~13 % Steuern, ~8 % KK). SwiftUI: enum FqLand + Sheet. */
+/* ---------- «% der Einnahmen» im Budget: Info-Kästchen mit Vergleich zu üblichen Haushalten (Faustregeln, keine Bewertung) ----------
+   Wert = verfügbarer Anteil im gewählten Monat (wie angezeigt); Land nach Hauptwährung: CHF → Schweiz, sonst Deutschland.
+   DE: Nettolohn nach Steuern und KV, üblich bleiben 50–65 %. CH: Steuern und Krankenkasse sind Fixkosten, üblich bleiben 35–50 %.
+   SwiftUI: Info-Symbol neben dem Text, .popover bzw. Sheet mit Gauge */
 var FQ={
-  DE:{lo:35,hi:50,base:"Nettolohn (Deutschland)",note:"Üblich sind 35–50 % des Nettolohns (Deutschland)."},
-  CH:{lo:50,hi:65,base:"Nettolohn (Schweiz, inkl. Steuern)",note:"Üblich sind 50–65 % des Nettolohns, Steuern und Krankenkasse eingerechnet (Schweiz)."}
+  DE:{lo:50,hi:65,note:"Üblich bleiben 50–65 % des Nettolohns (Deutschland)."},
+  CH:{lo:35,hi:50,note:"Üblich bleiben 35–50 % des Nettolohns, nach Steuern und Krankenkasse (Schweiz)."}
 };
 function fqLand(){return state.settings.home==="CHF"?"CH":"DE";}
 function fqState(p){var L=FQ[fqLand()];return p<L.lo?"lo":(p>L.hi?"hi":"mid");}
-var FQ_TXT={lo:"Das liegt unter dem üblichen Bereich.",mid:"Das liegt im üblichen Bereich.",
-  hi:"Das liegt über dem üblichen Bereich. Bei höherem Einkommen ist das oft kein Problem."};
+var FQ_TXT={lo:"Das ist weniger als üblich. Bei höherem Einkommen ist das oft kein Problem.",mid:"Das liegt im üblichen Bereich.",hi:"Das ist mehr als üblich."};
 function openFq(){
   var d=state._fq;if(!d)return;var L=FQ[fqLand()],p=d.p,dot=Math.max(0,Math.min(100,p));
-  document.getElementById("pickTitle").textContent="Fixkosten-Anteil";
+  document.getElementById("pickTitle").textContent="Was dir bleibt";
   var l=document.getElementById("pickList");l.dataset.dim="fq";
-  l.innerHTML='<div class="fqv"><div class="fqn">Deine Fixkosten: <b>'+p+' %</b></div>'+
+  l.innerHTML='<div class="fqv"><div class="fqn">'+esc(d.mon)+(d.who?" · "+esc(d.who):"")+'<b>'+p+' %</b>deiner Einnahmen bleiben nach den Fixkosten</div>'+
     '<div class="fqbar" aria-hidden="true"><i class="fqb" style="left:'+L.lo+'%;width:'+(L.hi-L.lo)+'%"></i><i class="fqd" style="left:'+dot+'%"></i></div>'+
     '<div class="fqax"><span>0 %</span><span class="fqu" style="left:'+((L.lo+L.hi)/2)+'%">üblich</span><span>100 %</span></div>'+
     '<p class="fqs">'+FQ_TXT[fqState(p)]+'</p>'+
+    (d.avg!=null&&Math.abs(d.avg-p)>=3?'<p class="fqh">Im Schnitt '+d.y+': '+d.avg+' %. Einzelne Monate schwanken wegen Jahresrechnungen oder Bonus.</p>':"")+
     '<p class="fqh">'+L.note+' Was das für dich heisst, hängt vor allem davon ab, wie viel dir am Ende bleibt.</p>'+
-    '<p class="fqf">Durchschnitt '+d.y+(d.who?' · Anteil '+esc(d.who):"")+'. Faustregeln von Budgetberatungen, keine feste Norm. Nur so genau wie deine erfassten Verträge.</p></div>';
+    '<p class="fqf">Faustregeln von Budgetberatungen, keine feste Norm. Nur so genau wie deine erfassten Verträge.</p></div>';
   openSheet(document.getElementById("sheetPick"));
 }
 function renderBudget(v){
@@ -2581,7 +2582,6 @@ function renderBudget(v){
   state._bHL=HL;
   var tInc=0,tFix=0;
   M.forEach(function(m){m.free=m.inc-m.fix;tInc+=m.inc;tFix+=m.fix;});
-  state._fq=tInc>0.005?{p:Math.round(tFix/tInc*100),y:Y,who:BH?dn(BH):""}:null;
   var tFree=tInc-tFix,sel=Math.min(11,Math.max(0,state.sel||0)),o="";
   var incs=incList().filter(function(c){return shr(c)>0;}).sort(function(a,b){return conv(curPrice(b),b.cur)-conv(curPrice(a),a.cur);});
   o+=bhf;
@@ -2621,11 +2621,12 @@ function renderBudget(v){
       else{bvT=nf0.format(br)+" "+H+(bpmD>0?" mehr":" weniger")+" als "+MON[sel]+" "+(Y-1);bvC=bpmD>0?" down":" up";}}
     var bBig=function(v){var t=money(Math.abs(v)),k=t.lastIndexOf(".");t=k<0?t:t.slice(0,k)+"<small>"+t.slice(k)+"</small>";return (v<0?"−":"")+t;};
     var bq=sm.inc>0.005?Math.round(sm.free/sm.inc*100):null;
+    state._fq=bq!=null&&bq>0?{p:bq,avg:tInc>0.005?Math.round(tFree/tInc*100):null,y:Y,mon:MON[sel]+" "+Y,who:BH?dn(BH):""}:null;
     var bh='<div class="kh"><div class="keb"><span class="kmo">'+MON[sel]+" "+Y+'</span><span class="kcnt">'+(BH?esc(dn(BH)):"")+'</span></div>'+
       '<div class="kbig'+(sm.free<0?" neg":"")+'">'+bBig(sm.free)+'<span class="ru">'+H+'</span></div>'+
-      '<div class="ksub">verfügbar nach Fixkosten'+(bq!=null&&bq>0?" · "+bq+" % der Einnahmen":"")+'</div>'+
+      '<div class="ksub">verfügbar nach Fixkosten'+(bq!=null&&bq>0?' · <button type="button" class="kfq" data-fq aria-label="'+bq+' % der Einnahmen, Einordnung anzeigen">'+bq+' % der Einnahmen<i aria-hidden="true">i</i></button>':"")+'</div>'+
       (bvT?'<div class="kvs'+bvC+'">'+(bvC?"<i>"+(bpmD>0?"↑":"↓")+"</i>":"")+bvT+"</div>":"")+
-      (state._fq?'<button type="button" class="kfq" data-fq>Fixkosten-Anteil '+state._fq.p+' %<span aria-hidden="true">›</span></button>':"")+"</div>";
+"</div>";
     var brow='<div class="krow"><div class="kc'+(sm.inc<0.005?" nil":"")+'"><em>Einnahmen</em><b>'+money(sm.inc)+'</b></div>'+
       '<div class="kc r'+(sm.fix<0.005?" nil":"")+'"><em>Fixkosten</em><b>'+money(sm.fix)+'</b>'+"</div></div>";
     var bfoot='<div class="krow kfoot"><div class="kc"><em>Ø pro Monat</em><b class="'+(bav<0?"up":"")+'">'+(bav<0?"−":"")+nf0.format(Math.abs(bav))+'</b></div>'+
