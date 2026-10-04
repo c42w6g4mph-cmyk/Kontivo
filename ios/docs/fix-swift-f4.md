@@ -19,5 +19,14 @@
 - Teil B: ImageIO-Verkleinerung, PasteButton (keine Einfügen-Rückfrage), Backup-Export: Dateien im Hintergrund lesen + Fortschritt; Restore mit Fortschritt/Yield
 - F15: Speicherfehler wird nicht von Erfolgsmeldung überschrieben (MoreDataFlow.saveOK)
 
+- UI-Test MoreUITests.testVertragspartnerUmbenennenRueckfrageBeimZurueck (F10)
+- CI voll grün (core/app/ui) auf a3f0743
+
+## Bewusst nicht in f4 (fremde Dateien)
+- F3, F6 (Kern, Bereich f1); F5 Fusszeile in Quality.swift (Kern, nicht in der Dateiliste von f4)
+- F1 Verhalten transferAll (Kern, Bereich f1) – nur Hinweistext hier
+- Restore schreibt Dateien weiter auf dem MainActor (mit Fortschritt/Yield): FileStore (App/) hat kein put ohne Meta-Schreiben
+- A10 Rest: Toast-Kopie in LogoSearchSheet (braucht Toast-Fenster im App-Bereich), topViewController doppelt (CancelLogic), Google-Links/Zwischenablage in Contracts/Budget auf WebLinks/ImageImport umstellen
+
 ## Offen
-- CI grün bekommen; letzter Lauf ohne [noui]
+- nichts
