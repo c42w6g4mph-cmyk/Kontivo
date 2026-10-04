@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import KontivoCore
 
 // MARK: - Liste
@@ -248,9 +249,12 @@ struct MDPartnerPage: View {
                 }
                 .buttonStyle(.borderedProminent)
                 HStack(spacing: 8) {
-                    Button { paste() } label: { Text("Einfügen").frame(maxWidth: .infinity) }
-                        .buttonStyle(.bordered)
-                        .tint(googleWait ? KColor.warn : nil)
+                    // Systemknopf: Einfügen ohne Rückfrage «Kontivo möchte einfügen»
+                    PasteButton(supportedContentTypes: [.image, .url, .plainText]) { providers in paste(providers) }
+                        .labelStyle(.titleOnly)
+                        .buttonBorderShape(.roundedRectangle)
+                        .tint(googleWait ? KColor.warn : KColor.teal)
+                        .frame(maxWidth: .infinity)
                     MDImageSourceMenu(showPhotos: $showPhotos, showFiles: $showFiles) {
                         Text("Hochladen").frame(maxWidth: .infinity)
                     }
@@ -464,10 +468,10 @@ struct MDPartnerPage: View {
         }
     }
 
-    private func paste() {
-        googleWait = false
+    private func paste(_ providers: [NSItemProvider]) {
         Task { @MainActor in
-            if let img = await model.mdPasteboardImage() { crop = MDCropItem(image: img) }
+            googleWait = false
+            if let img = await model.mdPastedImage(providers) { crop = MDCropItem(image: img) }
         }
     }
 
@@ -481,16 +485,11 @@ struct MDPartnerPage: View {
         if let u = WebLinks.googleImages(n) { openURL(u) }
     }
 
-    /// Zurück aus Google: Bild aus der Zwischenablage übernehmen, sonst Hinweis
+    /// Zurück aus Google: nur Hinweis, «Einfügen» bleibt hervorgehoben. Die Zwischenablage wird nicht still gelesen
+    /// (das löste die Systemrückfrage «Kontivo möchte einfügen» aus); `hasImages` fragt nicht nach.
     private func googleReturned() {
         guard googleWait else { return }
-        let pb = UIPasteboard.general
-        if pb.hasImages, let img = pb.image {
-            googleWait = false
-            crop = MDCropItem(image: img)
-        } else {
-            model.toast("Bild kopiert? Jetzt «Einfügen» tippen")
-        }
+        model.toast("Bild kopiert? Jetzt «Einfügen» tippen")
     }
 
     // MARK: Adresse suchen

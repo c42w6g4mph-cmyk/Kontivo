@@ -241,27 +241,31 @@ struct MDImageFlow: ViewModifier {
                 Task { @MainActor in
                     let data = try? await it.loadTransferable(type: Data.self)
                     item = nil
-                    if let d = data, let img = UIImage(data: d) {
-                        crop = MDCropItem(image: img)
-                    } else {
-                        model.toast("Bild konnte nicht gelesen werden")
-                    }
+                    await open(data)
                 }
             }
             .fileImporter(isPresented: $showFiles, allowedContentTypes: [.image]) { result in
                 guard case .success(let url) = result else { return }
-                let ok = url.startAccessingSecurityScopedResource()
-                defer { if ok { url.stopAccessingSecurityScopedResource() } }
-                if let d = try? Data(contentsOf: url), let img = UIImage(data: d) {
-                    crop = MDCropItem(image: img)
-                } else {
-                    model.toast("Bild konnte nicht gelesen werden")
+                Task { @MainActor in
+                    let data = await ImageImport.read(url)
+                    // Dateiauswahl erst ausblenden lassen, sonst erscheint das Zuschneiden je nach iOS nicht (wie MoreDataFlow)
+                    try? await Task.sleep(nanoseconds: 450_000_000)
+                    await open(data)
                 }
             }
             .sheet(item: $crop) { c in
                 ImageCropSheet(image: c.image, title: title, onDone: onDone)
                     .environment(model)
             }
+    }
+
+    /// Bild verkleinert im Hintergrund lesen (ImageIO), dann zuschneiden
+    @MainActor private func open(_ data: Data?) async {
+        if let img = await ImageImport.downsampleDetached(data) {
+            crop = MDCropItem(image: img)
+        } else {
+            model.toast("Bild konnte nicht gelesen werden")
+        }
     }
 }
 
@@ -413,21 +417,21 @@ extension AppModel {
         }
     }
 
-    /// Bild aus der Zwischenablage (pasteLogo): Bild direkt, sonst ein Bild-Link (http/https)
-    func mdPasteboardImage() async -> UIImage? {
-        let pb = UIPasteboard.general
-        if pb.hasImages, let img = pb.image { return img }
-        var txt = ""
-        if pb.hasURLs, let u = pb.url { txt = u.absoluteString }
-        if txt.isEmpty, pb.hasStrings { txt = (pb.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines) }
-        if txt.range(of: "^https?://\\S+$", options: .regularExpression) != nil {
+    /// Eingefügtes Bild (PasteButton, pasteLogo): Bild direkt, sonst ein Bild-Link (http/https).
+    /// Der Systemknopf «Einfügen» löst keine Rückfrage «Kontivo möchte einfügen» aus.
+    func mdPastedImage(_ providers: [NSItemProvider]) async -> UIImage? {
+        switch await ImageImport.pasted(providers) {
+        case .image(let img):
+            return img
+        case .link(let txt):
             toast("Lade Bild…")
-            if let img = await LogoFinder.loadImage(txt, timeout: 15) { return img }
+            if let img = await ImageImport.load(link: txt) { return img }
             toast("Bild-Link konnte nicht geladen werden")
             return nil
+        case .none:
+            toast("Kein Bild in der Zwischenablage. In Google Bild lange drücken → «Kopieren».")
+            return nil
         }
-        toast("Kein Bild in der Zwischenablage. In Google Bild lange drücken → «Kopieren».")
-        return nil
     }
 
     /// Filter, die Namen von Vertragspartnern/Kategorien bzw. Personen enthalten, nachziehen

@@ -421,14 +421,36 @@ struct OnbTabPage: View {
     let showSkip: Bool
     let onSkip: () -> Void
     let onNext: () -> Void
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    /// Grosse Schrift: Text scrollbar, Bildschirmfoto ausgeblendet, damit «Weiter» und «Überspringen» sichtbar bleiben
+    private var compact: Bool { typeSize >= .xxxLarge }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             OnbTopBar(showSkip: showSkip, onSkip: onSkip) {
                 OnbChip(symbol: tab.symbol, text: tab.name)
             }
+            if compact {
+                ScrollView {
+                    texts
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+            } else {
+                texts
+                OnbShot(tab: tab)
+                    .padding(.top, 4)
+            }
+            OnbPrimaryButton(title: "Weiter", action: onNext)
+        }
+        .padding(.top, 14)
+    }
+
+    private var texts: some View {
+        VStack(alignment: .leading, spacing: 10) {
             OnbTitle(tab.title)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(compact ? 1 : 0.8)
             VStack(alignment: .leading, spacing: 5) {
                 ForEach(tab.bullets, id: \.self) { b in
                     HStack(spacing: 9) {
@@ -443,11 +465,7 @@ struct OnbTabPage: View {
                     }
                 }
             }
-            OnbShot(tab: tab)
-                .padding(.top, 4)
-            OnbPrimaryButton(title: "Weiter", action: onNext)
         }
-        .padding(.top, 14)
     }
 }
 

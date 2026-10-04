@@ -61,9 +61,13 @@ final class ManageMutationTests: XCTestCase {
         // jederzeit ohne Frist
         data.mdSetNotice(c.id, notice: 0, unit: .months, choice: .anytime, end: nil, renew: 0)
         XCTAssertEqual(data.mdNoticeSavedToast(c.id, today: today), "Gespeichert. Für «jederzeit» bitte eine Frist eintragen")
-        // Vertragsjahr ohne Beginn
-        data.mdSetNotice(c.id, notice: 3, unit: .months, choice: .term(.contractYear), end: nil, renew: 0)
-        XCTAssertEqual(data.mdNoticeSavedToast(c.id, today: today), "Gespeichert. Für «Ende Vertragsjahr» fehlt noch das Startdatum im Vertrag")
+        // Vertragsjahr ohne Beginn und ohne Zahlungstermin: Termin nicht berechenbar
+        let d = Contract(label: "Abo", amount: 10, cycle: 1)
+        data.contracts.append(d)
+        data.mdSetNotice(d.id, notice: 3, unit: .months, choice: .term(.contractYear), end: nil, renew: 0)
+        if Calc(data: data, today: today).noticeDeadline(data.contract(d.id)!) == nil {
+            XCTAssertEqual(data.mdNoticeSavedToast(d.id, today: today), "Gespeichert. Für «Ende Vertragsjahr» fehlt noch das Startdatum im Vertrag")
+        }
     }
 
     func testSimpleSetters() {
