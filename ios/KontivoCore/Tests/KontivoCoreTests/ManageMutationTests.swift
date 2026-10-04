@@ -136,7 +136,7 @@ final class ManageMutationTests: XCTestCase {
         var data = base()
         let s = data.persons[0].id, l = data.persons[1].id
         data.contracts = [Contract(label: "A", holderIDs: [s, l]), Contract(label: "B", holderIDs: [s]), Contract(label: "C", holderIDs: [l, s])]
-        XCTAssertEqual(data.mdSharedEntries(s, l), 2)
-        XCTAssertEqual(data.mdSharedEntries(l, s), 2)
+        XCTAssertEqual(data.sharedEntryCount(s, l), 2)
+        XCTAssertEqual(data.sharedEntryCount(l, s), 2)
     }
 }

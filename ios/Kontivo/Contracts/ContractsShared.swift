@@ -16,12 +16,7 @@ enum CTNumber {
     /// Kündigungsfrist prüfen (Web `noticeVal`): leer → 0; keine ganze Zahl oder negativ → nil;
     /// bei «. im Monat» nur 1–28.
     static func noticeValue(_ s: String, unit: NoticeUnit) -> Int? {
-        let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
-        if t.isEmpty { return 0 }
-        guard let n = Format.parseNum(t), n >= 0, n.rounded(.down) == n, n <= 99_999 else { return nil }
-        let i = Int(n)
-        if unit == .dayOfMonth && !(1...28).contains(i) { return nil }
-        return i
+        Format.noticeValue(s, unit: unit)
     }
 
     /// Ganze Zahl für Hinweise während der Eingabe (Laufzeit-Hinweis): ungültig → 0.

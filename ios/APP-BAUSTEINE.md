@@ -20,7 +20,8 @@ Kurzreferenz des App-Grundgerüsts in `ios/Kontivo/App` und `ios/Kontivo/Design`
 - **Rückfrage (neu):** `model.ask(title:message:ok:destructive:cancel:onCancel:action:)` – Alert mit OK- und Abbrechen-Knopf auf der obersten Ebene (wie «Gekündigt?»), erscheint erst nach einem laufenden Schliessen. Ersetzt UIKit-Rückfragen wie `CancelFlowUI.ask` (Aufruf 1:1: `model.ask(title: t, message: m, ok: o) { … }`). Die Aktion läuft nach dem Schliessen des Alerts.
 - Gemeinsamer Zustand: `costFilter` (Kategorie/Vertragspartner/Person für Verträge-Liste und Kosten), `selectedYear`, `selectedMonth` (1–12, Kosten und Budget), `budgetPerson`, `searchText`, `heroFilter`, `showArchive`
 - Kündigung: `model.startCancel(id, trial:)` (Bereich Kündigung), `pendingCancel`, `cancelQuestion` (Alert «Gekündigt?» zeigt das Grundgerüst auf der obersten Ebene)
-- Einführung: `model.onboarding = .firstRun | .tour`
+- Einführung: `model.onboarding = .firstRun | .tour` öffnen; schliessen mit `model.closeOnboarding(then:)`
+- Kündigung/Viewer: Fensterwechsel gebündelt in `Cancel/CancelWindowFlow.swift` (`isTop`, `dismiss(ifTop:)`, `present(over:)`, `afterDismiss` mit Zustandsprüfung über die Warteschlange des Modells, `ask` → `model.ask`)
 - Dateien: `model.image(id) -> UIImage?`, `model.storeFile(data, type:) -> String?`, `model.files` (FileStore: `data(id)`, `type(id)`, `put`, `delete`, `has`, `allIDs`, `deleteAll`, `url(id)`)
   - Verwaiste Dateien (von keinem Vertrag, keiner Einnahme, keinem Vertragspartner/keiner Person referenziert, älter als 7 Tage) werden einmal pro Tag nach dem Start gelöscht (`files.collectGarbage(keeping:)`).
 - Speichern sofort: `model.saveNow()` – gibt `false` zurück, wenn nicht gespeichert wurde (Fehler oder gesperrt); dann keine Erfolgsmeldung zeigen
@@ -44,6 +45,14 @@ Bereichsinterne Auswahllisten öffnet die Ansicht selbst mit `.sheet` / `.confir
 - `DocumentViewer(ref:)`, `AddressSearch.find(name:domain:currency:)`, `AddressPickSheet(candidates:onPick:)`, `SignaturePadSheet(title:onDone:)`, `SignatureSuggestionsSheet(first:last:onPick:)` – Bereich Fristen/Kündigung
 - `LogoSearchSheet(name:currency:web:onPick:)`, `ImageCropSheet(image:title:onDone:)` – Bereich Verwalten
 - `RateService.refreshIfNeeded(model, force:)` – Bereich Mehr
+- `NetCheck.isOnline()`, `WebLinks.googleImages(…)` (LogoSearchSheet), `ImageImport` (ImageCropSheet: Fotos/Dateien/Einfügen, Verkleinerung auf 1600 px)
+
+## Gemeinsame Kern-Hilfen
+- `Format.parseNum` – einziger Zahlenleser für alle Eingaben (wie Web `parseNum`)
+- `Format.noticeValue(_:unit:)` – Kündigungsfrist prüfen (wie Web `noticeVal`); `CTNumber.noticeValue` und `AppData.mdNoticeValue` leiten darauf um
+- `AppData.sharedEntryCount(a, b)` – gemeinsame Einträge (Hinweis «Alle übertragen»)
+- `Partners.find` (nur gleicher Name), `Partners.similar` (Hinweis)
+- Fachaktionen der Verwalten-Editoren: `ExtManage.swift` (`mdSet…`, `mdCheckNotice` …)
 
 ## Regeln
 - iOS 17 APIs (neuere nur mit `if #available`), Swift 5, keine Fremdbibliotheken.

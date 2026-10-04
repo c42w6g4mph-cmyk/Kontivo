@@ -239,11 +239,9 @@ final class MoreDataFlow {
     }
 
     /// Sofort speichern. Bei Fehler bleibt die Fehlermeldung stehen; der Aufrufer zeigt dann keine Erfolgsmeldung (F15).
+    /// Läuft über `model.saveNow()` (Speichersperre nach defekten Daten, einmalige Fehlermeldung).
     static func saveOK(_ model: AppModel) -> Bool {
-        if model.uiTestMode { return true }
-        if model.files.saveData(model.data) { return true }
-        model.toast("Speichern fehlgeschlagen – Gerätespeicher voll? Bitte ein Backup erstellen.", seconds: 5)
-        return false
+        model.saveNow()
     }
 
     /// Datei-IDs wie in der Web-App: 32 Hex-Zeichen (schützt den Dateispeicher vor fremden Pfaden).

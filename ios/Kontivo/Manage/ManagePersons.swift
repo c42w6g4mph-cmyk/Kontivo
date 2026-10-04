@@ -986,7 +986,7 @@ struct MDTransferPage: View {
         let fromName = fs?.person.name ?? ""
         let toName = to.flatMap { model.data.person($0)?.name }
         var shared = 0
-        if let f = fromID, let t = to { shared = model.data.mdSharedEntries(f, t) }
+        if let f = fromID, let t = to { shared = model.data.sharedEntryCount(f, t) }
         return List {
             Section {
                 ForEach(stats, id: \.person.id) { s in

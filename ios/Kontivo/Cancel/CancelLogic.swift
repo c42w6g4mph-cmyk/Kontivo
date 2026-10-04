@@ -117,7 +117,7 @@ extension AppModel {
         let to = c.mail.trimmingCharacters(in: .whitespacesAndNewlines)
         if to.isEmpty {
             let id = c.id
-            CancelWindowFlow.ask(title: "E-Mail-Adresse fehlt",
+            CancelWindowFlow.ask(self, title: "E-Mail-Adresse fehlt",
                                  message: "Trag die Kündigungsadresse des Vertragspartners beim Vertrag unter «Kontakt» ein.",
                                  ok: "Eintragen") { [weak self] in
                 ContractFormLaunch.openMoreFor = id
@@ -166,7 +166,7 @@ enum CancelLinks {
     }
 }
 
-// MARK: - UIKit-Rückfrage (für Abläufe ohne eigene Ansicht; nur über CancelWindowFlow.ask aufrufen)
+// MARK: - UIKit-Hilfe (oberstes Fenster, z.B. für das iPad-Drucken im Viewer)
 
 @MainActor
 enum CancelFlowUI {
@@ -178,15 +178,5 @@ enum CancelFlowUI {
         var top = window?.rootViewController
         while let p = top?.presentedViewController, !p.isBeingDismissed { top = p }
         return top
-    }
-
-    /// Rückfrage mit «Abbrechen» und einem OK-Knopf.
-    static func ask(title: String, message: String, ok: String, onOK: @escaping () -> Void) {
-        guard let top = topViewController() else { return }
-        let a = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "Abbrechen", style: .cancel))
-        a.addAction(UIAlertAction(title: ok, style: .default) { _ in onOK() })
-        a.preferredAction = a.actions.last
-        top.present(a, animated: true)
     }
 }

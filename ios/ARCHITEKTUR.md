@@ -29,7 +29,7 @@ ios/
       WebImport.swift         Web-Backup (JSON der Web-App) → AppData
       Backup.swift            Natives Backup (Export/Import)
       CSV.swift               CSV-Export/-Import
-      Partners.swift          pkey, Gruppen, Dubletten
+      Partners.swift          Gruppen (Name), regDom, Dubletten, similar
       Mutations.swift         Fachaktionen auf AppData (kündigen, behalten, pausieren, duplizieren, umbenennen, zusammenführen …)
     Tests/KontivoCoreTests/   golden-Tests (Resources: cases.json, golden.json aus ../../tests/)
   Kontivo/                    App-Target
@@ -56,7 +56,7 @@ public struct Day: Hashable, Comparable, Codable, Sendable { year, month (1–12
 public enum Currency: String, Codable, CaseIterable { case CHF, EUR, USD, GBP, TRY }
 public enum NoticeUnit: String, Codable { case months = "m", weeks = "w", days = "d", dayOfMonth = "k" }
 public enum CancelTerm: String, Codable { case anytime = "", period = "p", monthEnd = "m", quarterEnd = "q", halfYearEnd = "h", yearEnd = "y", contractYear = "a" }
-public enum CancelChannel: String, Codable, CaseIterable { case online, email, letter, registered }   // Web: «Online / Kundenkonto», «E-Mail», «Brief», «Einschreiben»
+public enum CancelChannel: String, Codable, CaseIterable { case online, email, letter, registered }   // Web: «Online / Kundenkonto», «E-Mail», «Brief», «Einschreiben» – `.registered` bleibt für Import/Formular; die Auswahl «Kündigungsweg» bietet nur Online, Per E-Mail, Per Brief (wie Web openCancViaPick)
 public enum CancelVia: String { case online, mail, post, none }                                   // cancVia()
 public enum CategoryKind: String, Codable { housing, energy, insurance, health, telecom, media, mobility, family, leisure, taxes, finance, other }
 public enum IncomeKind: String, Codable, CaseIterable { lohn, nebeneinkommen, bonus, kapitalertraege, vermietung, rente, sonstiges }   // Anzeige: Lohn, Nebeneinkommen, Bonus, Kapitalerträge, Vermietung, Rente, Sonstiges
@@ -108,11 +108,21 @@ Prüfung: `Tests/KontivoCoreTests/GoldenTests.swift` lädt `cases.json` + `golde
 ## Web-Backup übernehmen (WebImport.swift)
 Eingabe: Backup-Datei der Web-App (`{app:"vertraege", version, exported, settings, contracts, incomes, files}`), siehe Inventar 6, Abschnitt 2.
 - Personen: alle Namen aus `settings.holders`, aus `holders[]` aller Verträge/Einnahmen und aus den Schlüsseln von `senders/sigs/avatars` (in dieser Reihenfolge, ohne Doppel). `senders[name]` → `sender`, `same` → `sameAddressAs`, `sigs[name]` (Data-URL) → JPEG-Daten, `avatars[name]` → `avatarID`.
-- Kategorien: `settings.catList` (oder Standardliste + altes `cats`), plus unbekannte Kategorienamen aus Verträgen (Farbe Standard, Symbol «tag»). `kind` aus dem Standardnamen (Wohnen→housing … Sonstiges→other), für eigene nil. Einnahmen-Arten → `IncomeKind`.
-- Vertragspartner: Gruppen nach `pkey(partner)` (wie Web); Name = erster Name der Gruppe; `web`, Logo (`logoId`, `logoBg`) und Adresse (`addr` mehrzeilig → `PostalAddress` wie `addrSplit`) aus dem ersten Vertrag, der das Feld hat.
+- Kategorien: `settings.catList` (oder Standardliste + altes `cats`), plus unbekannte Kategorienamen aus Verträgen (Farbe Standard, Symbol «tag»). `kind` aus `catList[].k` (übernimmt die Rolle von Web-`catKey`, bleibt beim Umbenennen erhalten), sonst aus dem Standardnamen (Wohnen→housing … Sonstiges→other), für eigene nil. Einnahmen-Arten → `IncomeKind`.
+- Vertragspartner: Gruppen nach Name ohne Gross/Klein (nicht `pkey`; ähnliche Namen bleiben getrennt und erscheinen nur als Dublette); Name = erster Name der Gruppe; `web`, Logo (`logoId`, `logoBg`) und Adresse (`addr` mehrzeilig → `PostalAddress` wie `addrSplit`) aus dem ersten Vertrag, der das Feld hat.
 - Verträge: Felder 1:1; `cancF`-Text → `CancelChannel`; `paused/pausedAt/pausedUntil` → `pauses` (from = pausedAt oder Importtag); `t` (ms) → `createdAt`.
 - Migrationen der Web-App (migModel/migCats, Inventar 6 Abschnitt 7) vor der Umwandlung anwenden (alte Felder `rate`, `holder`, `sender`, `senderF`, `sig`, alte Kategorienamen nur bei fehlender `dataVer`).
 - Dateien: `files[id] = {type, data(Base64)}` → Datei mit derselben ID.
+
+## Bewusste Abweichungen im Kern
+- Gelöschte Kategorie: der Datenqualitäts-Grund nennt keinen alten Namen (Kategorien hängen an einer ID).
+- CSV-Import: «1.000» wird als 1000 gelesen (Swift-Fix L1); Spalte «Einheit» schreibt «m».
+- Minuszeichen U+2212 in Beträgen (Typografie).
+- Vertrag ohne Vertragspartner: die Bezeichnung erscheint als erste Empfängerzeile im Brief (Web: Freitext-Adresse am Vertrag).
+
+## Vergleichstests gegen die Web-App
+- `GoldenTests` (Rechenkern, `tests/golden.json` aus `make_golden.py`).
+- `TextGoldenTests` (Fristen-Tab, CSV-Export, Datenqualität, Kündigungsschreiben – am gerenderten DOM gemessen, `tests/golden_texts.json` aus `make_golden_texts.py`). Nach Web-Änderungen beide Skripte neu laufen lassen und die JSON-Dateien nach `KontivoCore/Tests/KontivoCoreTests/Resources/` kopieren.
 
 ## App-Zustand
 `@Observable final class AppModel` (App-Target): hält `AppData`, speichert nach jeder Änderung (entprellt) als JSON in `Application Support/Kontivo/data.json`, Dateien in `Application Support/Kontivo/Files/<id>`. `calc` liefert `Calc(data:today:)`. Alle Änderungen laufen über Methoden, die `Mutations` aus dem Kern aufrufen (Ansichten ändern `data` nie direkt an mehreren Stellen).

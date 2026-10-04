@@ -135,10 +135,10 @@ struct OnboardingView: View {
     }
 
     /// Schliessen: gesehen merken, Tab «Verträge»
-    private func close() {
+    private func close(then: (() -> Void)? = nil) {
         model.update { $0.settings.onboarded = 1 }
         model.goTab(.contracts)
-        model.onboarding = nil
+        model.closeOnboarding(then: then)
     }
 
     /// «Ich habe schon ein Backup» / «Backup einspielen»: schliessen, Tab «Mehr», Dateiauswahl für das Backup
@@ -154,12 +154,8 @@ struct OnboardingView: View {
         let d = model.data
         let draft = Contract(label: item.label, categoryID: item.category?.id,
                              currency: d.settings.homeCurrency, holderIDs: d.defaultHolderIDs)
-        close()
         let m = model
-        Task { @MainActor in
-            // warten, bis die Einführung geschlossen ist
-            try? await Task.sleep(nanoseconds: 700_000_000)
-            m.present(.contractForm(.new(prefill: draft)))
-        }
+        // erst öffnen, wenn die Einführung geschlossen ist (Modell meldet das Ende)
+        close { m.present(.contractForm(.new(prefill: draft))) }
     }
 }

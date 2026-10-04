@@ -40,13 +40,9 @@ public enum MDNoticeCheck: Equatable, Sendable {
 }
 
 extension AppData {
-    /// Kündigungsfrist lesen wie `noticeVal` der Web-App: leer = 0, sonst ganze Zahl ≥ 0, bei «. im Monat» 1–28; ungültig = nil
+    /// Kündigungsfrist lesen wie `noticeVal` der Web-App (leitet auf `Format.noticeValue`)
     public static func mdNoticeValue(_ raw: String, unit: NoticeUnit) -> Int? {
-        let t = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        if t.isEmpty { return 0 }
-        guard let n = Format.parseNum(t), n >= 0, n.rounded(.down) == n, n <= 9999 else { return nil }
-        if unit == .dayOfMonth && (n < 1 || n > 28) { return nil }
-        return Int(n)
+        Format.noticeValue(raw, unit: unit)
     }
 
     /// Prüfung vor dem Speichern (qMultiSave «notice»), Reihenfolge wie Web: Frist → Vertragsende → Termin
@@ -172,10 +168,5 @@ extension AppData {
     public func mdPerMonth(_ list: [Contract], today: Day) -> Double {
         let calc = Calc(data: self, today: today)
         return list.reduce(0.0) { s, c in s + ((calc.isActive(c) && !calc.isPaused(c)) ? calc.monthlyCost(c) : 0) }
-    }
-
-    /// Anzahl Verträge/Einnahmen, die `from` und `to` gemeinsam haben (Hinweis «Alle übertragen», Web hbulk `sh`)
-    public func mdSharedEntries(_ from: UUID, _ to: UUID) -> Int {
-        contracts.filter { $0.holderIDs.contains(from) && $0.holderIDs.contains(to) }.count
     }
 }

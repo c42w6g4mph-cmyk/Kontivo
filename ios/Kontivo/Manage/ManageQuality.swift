@@ -171,7 +171,7 @@ struct MDQualityListPage: View {
         .mdListStyle()
         .navigationTitle(title)
         // Zifferntastaturen (Betrag, Frist) haben keine Eingabetaste: «Fertig» über der Tastatur
-        .modifier(CTKeyboardDone())
+        .kKeyboardDone()
         .modifier(MDLogoSheet(target: $logoTarget))
         .modifier(MDAddrPickSheet(pick: $addrPick))
     }
