@@ -113,10 +113,14 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(data.holderChoiceToast(title: "B", holderIDs: [s, l]), "B → Beide")
         XCTAssertTrue(data.applyHolderChoice(contract: data.contracts[1].id, choice: .person(l)))
         XCTAssertEqual(data.contracts[1].holderIDs, [l])
-        // Übertragen: gemeinsame bleiben gemeinsam
-        XCTAssertEqual(data.transferAll(from: l, to: s), 2)
-        XCTAssertEqual(data.contracts[0].holderIDs, [s, l])
+        // Übertragen (M-1, wie Web `mapHolders`): gemeinsame Einträge gehören danach nur noch «An»
+        XCTAssertEqual(data.sharedEntryCount(l, s), 1)
+        XCTAssertEqual(data.transferAll(from: l, to: s), 3)
+        XCTAssertEqual(data.contracts[0].holderIDs, [s])
         XCTAssertEqual(data.contracts[1].holderIDs, [s])
+        XCTAssertEqual(data.contracts[2].holderIDs, [s])
+        XCTAssertEqual(data.transferAll(from: l, to: s), 0)
+        data.contracts[0].holderIDs = [s, l]
         // Löschen ohne Ziel: Adresse wird kopiert
         let x = try data.addPerson("Max")
         data.persons[data.personIndex(x)!].sameAddressAs = s
@@ -130,6 +134,61 @@ final class MutationTests: XCTestCase {
         XCTAssertNil(data.person(x))
         XCTAssertEqual(data.person(l)?.sender.street, "Hauptstr. 1")
         XCTAssertThrowsError(try data.deletePerson(l, transferTo: nil)) { XCTAssertEqual($0 as? MutationError, .lastPerson) }
+    }
+
+    /// M-4: «Gleich wie» ohne Ketten; zeigte das Ziel auf die Person, bekommt es deren bisherige Adresse.
+    func testSenderChains() throws {
+        var data = base()
+        let a = data.persons[0].id
+        let b = data.persons[1].id
+        let c = try data.addPerson("Chris")
+        data.setSender(c, SenderAddress(first: "Chris", street: "Weg 3", zip: "8000", city: "Zürich"), sameAs: nil)
+        data.setSender(b, SenderAddress(first: "Lara"), sameAs: a)
+        XCTAssertEqual(data.person(b)?.sameAddressAs, a)
+        // A zeigt neu auf C → B zeigt direkt auf C
+        data.setSender(a, SenderAddress(first: "Sinan"), sameAs: c)
+        XCTAssertEqual(data.person(a)?.sameAddressAs, c)
+        XCTAssertEqual(data.person(b)?.sameAddressAs, c)
+        XCTAssertEqual(data.resolvedSender(b).city, "Zürich")
+        // C zeigt neu auf A (A zeigte auf C) → A bekommt die bisherige Adresse von C
+        data.setSender(c, SenderAddress(first: "Chris"), sameAs: a)
+        XCTAssertEqual(data.person(c)?.sameAddressAs, a)
+        XCTAssertNil(data.person(a)?.sameAddressAs)
+        XCTAssertEqual(data.person(a)?.sender.street, "Weg 3")
+        XCTAssertEqual(data.person(b)?.sameAddressAs, a)
+        XCTAssertEqual(data.resolvedSender(c).street, "Weg 3")
+    }
+
+    /// M-3: Inhaber nach Personenliste, Kündigungslink nur bei Online, Frist geprüft.
+    func testSaveContractNormalizes() throws {
+        var data = base()
+        let s = data.persons[0].id
+        let l = data.persons[1].id
+        let cat = data.category(named: "Abos & Medien")!.id
+        var d = Contract(label: "Netflix", categoryID: cat, amount: 15, cycle: 1, holderIDs: [l, s], cancelChannel: .email, cancelURL: "https://x.ch")
+        let id = try data.saveContract(d, today: today)
+        XCTAssertEqual(data.contract(id)?.holderIDs, [s, l])
+        XCTAssertEqual(data.contract(id)?.cancelURL, "")
+        d = data.contract(id)!
+        d.cancelChannel = .online
+        d.cancelURL = "https://netflix.com/cancel"
+        try data.saveContract(d, today: today)
+        XCTAssertEqual(data.contract(id)?.cancelURL, "https://netflix.com/cancel")
+        d.notice = 31
+        d.noticeUnit = .dayOfMonth
+        XCTAssertThrowsError(try data.saveContract(d, today: today)) { XCTAssertEqual($0 as? MutationError, .invalidNotice) }
+        d.notice = -1
+        d.noticeUnit = .months
+        XCTAssertThrowsError(try data.saveContract(d, today: today)) { XCTAssertEqual(($0 as? MutationError)?.message, "Kündigungsfrist prüfen") }
+        // Eingabe wie Web `noticeVal`
+        XCTAssertEqual(Format.noticeValue("", unit: .dayOfMonth), 0)
+        XCTAssertEqual(Format.noticeValue(" 3 ", unit: .months), 3)
+        XCTAssertNil(Format.noticeValue("1.5", unit: .months))
+        XCTAssertNil(Format.noticeValue("-1", unit: .months))
+        XCTAssertNil(Format.noticeValue("12abc", unit: .months))
+        XCTAssertNil(Format.noticeValue("31", unit: .dayOfMonth))
+        XCTAssertNil(Format.noticeValue("0", unit: .dayOfMonth))
+        XCTAssertEqual(Format.noticeValue("28", unit: .dayOfMonth), 28)
     }
 
     func testCategoriesAndPartners() throws {

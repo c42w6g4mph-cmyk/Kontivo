@@ -307,3 +307,15 @@ extension Array {
         }.map { $0.element }
     }
 }
+
+extension Format {
+    /// Kündigungsfrist aus einem Eingabefeld – wie Web `noticeVal`: leer → 0; sonst ganze Zahl ≥ 0 (über `parseNum`),
+    /// bei «. im Monat» (`.dayOfMonth`) 1–28; alles andere → nil (Toast «Kündigungsfrist prüfen»).
+    public static func noticeValue(_ raw: String, unit: NoticeUnit) -> Int? {
+        let t = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if t.isEmpty { return 0 }
+        guard let n = parseNum(t), n >= 0, n.rounded(.down) == n, n < 1e6 else { return nil }
+        if unit == .dayOfMonth && (n < 1 || n > 28) { return nil }
+        return Int(n)
+    }
+}

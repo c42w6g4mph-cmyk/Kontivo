@@ -27,8 +27,10 @@ public struct CSVImportPreview: Sendable {
     public var columnCount: Int
     public var hasAmount: Bool
     public var hasName: Bool
-    /// Turnus-Angaben, die nicht unterstützt sind (als monatlich übernommen)
-    public var unsupportedCycles: Int
+    /// Turnus-Zahlen ausserhalb 1/2/3/6/12/24, auf den nächsten erlaubten Turnus gerundet (`cycAdj`)
+    public var adjustedCycles: Int
+    /// Ungültige Daten (Fälligkeit, Beginn, Ende), ignoriert (`badDates`)
+    public var badDates: Int
 
     /// Mindestens Name und Betrag erkannt?
     public var isUsable: Bool { hasAmount && hasName }
@@ -63,7 +65,8 @@ public struct CSVImportPreview: Sendable {
         if !skipInfo.isEmpty { t += "Übersprungen: " + skipInfo.joined(separator: ", ") + ".\n" }
         if !newHolderNames.isEmpty { t += "Neue Inhaber: " + newHolderNames.joined(separator: ", ") + ".\n" }
         if !newCategoryNames.isEmpty { t += "Neue Kategorien: " + newCategoryNames.joined(separator: ", ") + ".\n" }
-        if unsupportedCycles > 0 { t += Format.count(unsupportedCycles, "Zahlungsweise", "Zahlungsweisen") + " nicht erkannt, als monatlich übernommen.\n" }
+        if adjustedCycles > 0 { t += Format.count(adjustedCycles, "Zahlungsrhythmus", "Zahlungsrhythmen") + " angepasst.\n" }
+        if badDates > 0 { t += (badDates == 1 ? "1 ungültiges Datum" : "\(badDates) ungültige Daten") + " ignoriert.\n" }
         return t + "\nBestehende Verträge bleiben unverändert."
     }
 
@@ -104,10 +107,12 @@ public enum CSV {
             let fields: [String] = [
                 p?.name ?? "", c.label, data.category(c.categoryID)?.name ?? "", Format.fixed2(calc.curPrice(c)), c.currency.rawValue, String(c.cycle),
                 Format.fixed2(calc.monthlyCost(c)), calc.nextDue(c)?.iso ?? "", c.start?.iso ?? "", calc.effEnd(c)?.iso ?? "",
-                c.notice == 0 ? "" : String(c.notice), c.noticeUnit.rawValue, c.renewMonths == 0 ? "" : String(c.renewMonths),
+                String(c.notice), c.noticeUnit.rawValue, c.renewMonths == 0 ? "" : String(c.renewMonths),
                 calc.urgency(c).date?.iso ?? "", prices, c.customerNo, c.contractNo, data.holderNames(of: c).joined(separator: ", "),
                 c.payMethod, c.payAccount, c.cancelChannel?.webText ?? "", p?.web ?? "", c.tel, c.mail, c.status.rawValue,
-                c.cancelTerm.rawValue, c.mandatory ? "ja" : "", c.note, extras, p?.address.text ?? "", c.cancelURL,
+                // Frist 0 und «jederzeit» ausdrücklich, damit der Import keine Katalogwerte einsetzt (wie Web)
+                c.cancelTerm == .anytime ? (c.end == nil ? "jederzeit" : "") : c.cancelTerm.rawValue,
+                c.mandatory ? "ja" : "", c.note, extras, p?.address.text ?? "", c.cancelURL,
             ]
             rows.append(fields.map { quote($0) }.joined(separator: ";"))
         }
@@ -262,12 +267,12 @@ public enum CSV {
         return v
     }
 
-    /// Datum lesen: «JJJJ-MM-TT» oder «TT.MM.JJ(JJ)» bzw. «TT/MM/JJJJ». Ungültige Tage → nil; zweistellige Jahre > 50 → 19xx;
+    /// Datum lesen: «JJJJ-MM-TT» bzw. «JJJJ/MM/TT» oder «TT.MM.JJ(JJ)» bzw. «TT/MM/JJJJ». Ungültige Tage → nil; zweistellige Jahre > 50 → 19xx;
     /// Monat > 12 und Tag ≤ 12 → US-Format (Fix L2).
     public static func date(_ x: String) -> Day? {
         let t = x.trimmingCharacters(in: .whitespacesAndNewlines)
         if t.isEmpty { return nil }
-        if let m = RX.match("^(\\d{4})-(\\d{1,2})-(\\d{1,2})", t), let y = Int(m[1] ?? ""), let mo = Int(m[2] ?? ""), let d = Int(m[3] ?? "") {
+        if let m = RX.match("^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})", t), let y = Int(m[1] ?? ""), let mo = Int(m[2] ?? ""), let d = Int(m[3] ?? "") {
             return valid(y, mo, d)
         }
         if let m = RX.match("^(\\d{1,2})[./](\\d{1,2})[./](\\d{2,4})", t), var d = Int(m[1] ?? ""), var mo = Int(m[2] ?? ""), var y = Int(m[3] ?? "") {
@@ -288,8 +293,17 @@ public enum CSV {
         case months(Int)
         /// alle n Wochen (Betrag wird auf monatlich umgerechnet)
         case weeks(Int)
-        /// nicht unterstützt → monatlich
-        case unsupported
+        /// Zahl ausserhalb 1/2/3/6/12/24 → auf den nächsten erlaubten Turnus gerundet (wird gezählt)
+        case adjusted(Int)
+    }
+
+    /// Nächster erlaubter Turnus (bei Gleichstand der kleinere, wie Web `csvCycle`).
+    static func nearestCycle(_ n: Int) -> CycleValue {
+        let ok = [1, 2, 3, 6, 12, 24]
+        if ok.contains(n) { return .months(n) }
+        var best = 1
+        for v in ok where Swift.abs(v - n) < Swift.abs(best - n) { best = v }
+        return .adjusted(best)
     }
 
     /// Turnus lesen: zuerst Zahl + Einheit («12 Monate», «1 Jahr», «2 Wochen», Fix M2), dann Wortregeln.
@@ -297,14 +311,13 @@ public enum CSV {
         let t = norm(x)
         if t.isEmpty { return .months(1) }
         if t.allSatisfy({ $0.isNumber }) {
-            let n = Int(t) ?? 1
-            return Format.cycleOptions.contains(n) ? .months(n) : .unsupported
+            return nearestCycle(Int(t) ?? 1)
         }
         if let m = RX.match("(\\d+)(monat|month)", t), let n = Int(m[1] ?? "") {
-            return Format.cycleOptions.contains(n) ? .months(n) : .unsupported
+            return nearestCycle(n)
         }
         if let m = RX.match("(\\d+)(jahr|jaehr|year)", t), let n = Int(m[1] ?? "") {
-            return Format.cycleOptions.contains(n * 12) ? .months(n * 12) : .unsupported
+            return nearestCycle(n * 12)
         }
         if let m = RX.match("(\\d+)(woche|week)", t), let n = Int(m[1] ?? ""), n > 0 {
             return .weeks(n)
@@ -321,7 +334,7 @@ public enum CSV {
     /// Kündbar per lesen.
     public static func term(_ x: String) -> CancelTerm? {
         let t = norm(x)
-        if t.isEmpty { return nil }
+        if t.isEmpty || RX.test("jederzeit|anytime", t) { return nil }
         if let v = CancelTerm(rawValue: t), v != .anytime { return v }
         if t.contains("periode") { return .period }
         if t.contains("monatsende") || t.contains("monat") { return .monthEnd }
@@ -370,13 +383,18 @@ public enum CSV {
         return out.stableSorted { $0.from < $1.from }
     }
 
-    /// Inhaber aus Text: Trennung an «,», «&», «/», «+», «und». Nachname des letzten Teils nur ohne Komma (Fix L6).
-    /// Abgleich mit vorhandenen Personen über vollen Namen oder Vornamen.
-    public static func holders(_ txt: String, existing: [String]) -> [String] {
-        var parts = RX.replace("\\s*(?:,|&|/|\\+|\\bund\\b)\\s*", in: txt, with: "\u{1F}").components(separatedBy: "\u{1F}")
+    /// Inhaber aus Text (wie Web `csvHolders`): Ganzer Text gleich einem bestehenden Inhaber (z.B. «Anna & Ben») → dieser.
+    /// Mit Komma oder aus dem eigenen Export (`ownExport`): nur am Komma trennen, Namen wörtlich. Sonst Trennung an «&», «/», «+»,
+    /// «und» mit Nachnamen-Regel («Anna und Ben Müller») und Abgleich auch über den Vornamen.
+    public static func holders(_ txt: String, existing: [String], ownExport: Bool = false) -> [String] {
+        let whole = txt.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if let w = existing.first(where: { $0.lowercased() == whole }) { return [w] }
+        let kom = ownExport || txt.contains(",")
+        let pattern = kom ? "\\s*,\\s*" : "\\s*(?:&|/|\\+|\\bund\\b)\\s*"
+        var parts = RX.replace(pattern, in: txt, with: "\u{1F}").components(separatedBy: "\u{1F}")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
         if parts.isEmpty { return [] }
-        if !txt.contains(",") {
+        if !kom {
             let last = parts[parts.count - 1].split(whereSeparator: { $0.isWhitespace }).map(String.init)
             if last.count > 1 {
                 let sur = last.dropFirst().joined(separator: " ")
@@ -386,7 +404,7 @@ public enum CSV {
         return parts.map { p in
             let lo = p.lowercased()
             let first = lo.split(whereSeparator: { $0.isWhitespace }).first.map(String.init) ?? lo
-            return existing.first { h in let hl = h.lowercased(); return hl == lo || hl == first } ?? p
+            return existing.first { h in let hl = h.lowercased(); return hl == lo || (!kom && hl == first) } ?? p
         }
     }
 
@@ -441,9 +459,11 @@ public enum CSV {
     /// Vorschau aus Zeilen: Verträge erkennen, Duplikate überspringen. Ändert nichts an den Daten.
     public static func preview(rows: [[String]], data: AppData, today: Day, now: Date = Date()) -> CSVImportPreview {
         var res = CSVImportPreview(items: [], skipped: 0, duplicates: 0, archived: 0, newHolderNames: [], newCategoryNames: [],
-                                   columnCount: 0, hasAmount: false, hasName: false, unsupportedCycles: 0)
+                                   columnCount: 0, hasAmount: false, hasName: false, adjustedCycles: 0, badDates: 0)
         if rows.count < 2 { return res }
         let head = rows[0].map { norm($0) }
+        // eigener Export (Spalten «Turnus_Monate» und «KuendbarPer»): Inhaber nur am Komma trennen
+        let ownExport = head.contains("turnusmonate") && head.contains("kuendbarper")
         var col: [String: Int] = [:]
         var taken = Set<Int>()
         for (field, aliases) in columnMap {
@@ -487,9 +507,9 @@ public enum CSV {
             case .weeks(let n):
                 amt = n == 1 ? Format.round2(amt * 52 / 12) : Format.round2(amt * 52 / 12 / Double(n))
                 cy = 1
-            case .unsupported:
-                cy = 1
-                res.unsupportedCycles += 1
+            case .adjusted(let n):
+                cy = n
+                res.adjustedCycles += 1
             }
             let curRaw = (g(r, "cur") + " " + g(r, "amount")).uppercased()
             let cur: Currency
@@ -564,10 +584,11 @@ public enum CSV {
             let tags = g(r, "tags")
             let st = norm(g(r, "status"))
             let mRaw = norm(g(r, "mand"))
-            let mand = !mRaw.isEmpty ? RX.test("^(ja|yes|1|true|x)$", mRaw) : (RX.test("pflicht", tags, ignoreCase: true) || (tpl?.mandatory ?? false))
+            // Katalog nur ohne Spalte (leer ist eine bewusste Angabe)
+            let mand = (!mRaw.isEmpty || col["mand"] != nil) ? RX.test("^(ja|yes|1|true|x)$", mRaw) : (RX.test("pflicht", tags, ignoreCase: true) || (tpl?.mandatory ?? false))
             let restTags = tags.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
                 .filter { !$0.isEmpty && !RX.test("pflicht", $0, ignoreCase: true) }.joined(separator: ", ")
-            let hs = g(r, "holders").isEmpty ? [defaultHolder] : holders(g(r, "holders"), existing: personNames)
+            let hs = g(r, "holders").isEmpty ? [defaultHolder] : holders(g(r, "holders"), existing: personNames, ownExport: ownExport)
             for h in hs where !personNames.contains(h) && !newHolders.contains(h) { newHolders.append(h) }
 
             var c = Contract(createdAt: now)
@@ -575,19 +596,28 @@ public enum CSV {
             c.amount = Format.round2(base)
             c.currency = cur
             c.cycle = cy
-            c.due = date(g(r, "due"))
-            c.start = date(g(r, "start"))
-            c.end = date(g(r, "end"))
+            // ungültige Daten zählen (Web `bad.n`)
+            func dateCounted(_ k: String) -> Day? {
+                let raw = g(r, k)
+                if raw.isEmpty { return nil }
+                let d = date(raw)
+                if d == nil { res.badDates += 1 }
+                return d
+            }
+            c.due = dateCounted("due")
+            c.start = dateCounted("start")
+            c.end = dateCounted("end")
+            // Katalogwerte für Frist / Kündbar per nur, wenn die Spalte fehlt (leer, 0 oder «jederzeit» sind bewusste Angaben)
             if let n = nNum {
                 c.notice = Int(n)
                 c.noticeUnit = nu
-            } else if let t = tpl, nRaw.isEmpty {
+            } else if let t = tpl, col["notice"] == nil {
                 c.notice = t.notice
                 c.noticeUnit = t.noticeUnit
             }
             if let rn = number(g(r, "renew")), rn != 0, Swift.abs(rn) < 1e6 { c.renewMonths = Int(rn) }
-            if let tm = term(g(r, "cancTerm")) {
-                c.cancelTerm = tm
+            if col["cancTerm"] != nil {
+                c.cancelTerm = term(g(r, "cancTerm")) ?? .anytime
             } else if let t = tpl, g(r, "end").isEmpty {
                 c.cancelTerm = t.cancelTerm
             }
@@ -643,7 +673,11 @@ public enum CSV {
             }
             have.insert(key)
             let web = g(r, "web").isEmpty ? (tpl?.web ?? "") : g(r, "web")
-            res.items.append(CSVImportItem(contract: c, partnerName: partner, categoryName: cat, holderNames: hs, address: g(r, "addr"), web: web))
+            // Adresse: mehrzeilig wie im Formular; einzeilig «Firma, Strasse, PLZ Ort» → Zeilen
+            let adRaw = g(r, "addr").replacingOccurrences(of: "\r\n", with: "\n")
+            let adParts = adRaw.contains("\n") ? adRaw.components(separatedBy: "\n") : adRaw.components(separatedBy: ",")
+            let ad = adParts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.joined(separator: "\n")
+            res.items.append(CSVImportItem(contract: c, partnerName: partner, categoryName: cat, holderNames: hs, address: ad, web: web))
         }
         res.newCategoryNames = newCats
         res.newHolderNames = newHolders
@@ -659,7 +693,7 @@ public enum CSV {
         }
         for n in preview.newCategoryNames where !data.categories.contains(where: { $0.name.lowercased() == n.lowercased() }) {
             let col = Category.newColor(existingCount: data.categories.count)
-            data.categories.append(Category(name: n, colorHex: col, icon: "tag", kind: Category.defaultKind(forName: n)))
+            data.categories.append(Category(name: n, colorHex: col, icon: "tag", kind: Category.kind(forName: n, among: data.categories)))
         }
         var ids: [UUID] = []
         for item in preview.items {
@@ -667,8 +701,10 @@ public enum CSV {
             var pn = item.partnerName.trimmingCharacters(in: .whitespacesAndNewlines)
             let addrText = item.address.replacingOccurrences(of: "\r\n", with: "\n")
             if pn.isEmpty && !addrText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                let firm = WebImport.addrSplit(addrText).company
-                pn = firm.isEmpty ? c.label : firm
+                // ohne Vertragspartner: Firma aus der Adresse (einzelne Zeile ohne Ziffer vor «PLZ Ort»), sonst Bezeichnung, sonst erste Zeile
+                let L = WebImport.lines(addrText)
+                let firm = WebImport.addrSplit(addrText, partnerName: L.first).company
+                pn = !firm.isEmpty ? firm : (!c.label.isEmpty ? c.label : (L.first ?? ""))
             }
             if !pn.isEmpty {
                 if let existing = Partners.find(pn, in: data), let pi = data.partnerIndex(existing.id) {

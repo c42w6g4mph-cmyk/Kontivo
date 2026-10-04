@@ -9,6 +9,9 @@
 - L-1 (isRent wie Web), L-2 (Absender-Kürzung senderCut), L-3 (Frist-Hinweis zweiter Satz)
 - C-1 (catalog.json neu erzeugt, Bank-Regel Monatsende), N-0 (index.html im Worktree = main)
 
+- CSV-1 (Frist 0/«jederzeit»/Pflicht beim Rundlauf), CSV-2 (Turnus runden, adjustedCycles), CSV-3 (einzeilige Adresse), CSV-4 (Inhaber wie Web), CSV-5 a/b (badDates, JJJJ/MM/TT)
+- M-1/F1 (transferAll wie mapHolders, sharedEntryCount), M-3 (Inhaber sortiert, cancelURL nur Online, invalidNotice), M-4 (setSender ohne Ketten), Format.noticeValue
+
 ## Offen
-- CSV-1..6, M-1/F1, M-3, M-4, K-1, COD-1, F-1, F-2
+- K-1, COD-1, F-1, F-2
 - Teil B: Vergleichstests (urgency, Fristen-Übersicht, Datenqualität, letterParts, CSV-Export)
