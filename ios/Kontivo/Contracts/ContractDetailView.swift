@@ -51,7 +51,7 @@ struct ContractDetailView: View {
             }
         }
         .sheet(isPresented: $showPause) {
-            CTPauseSheet(contractID: contractID)
+            CTPauseSheet(contractID: contractID, onPaused: { model.dismissAll() })
                 .environment(model)
         }
         .alert("Vertrag löschen?", isPresented: $askDelete) {
@@ -151,8 +151,11 @@ struct ContractDetailView: View {
         .padding(.top, 22)
     }
 
+    /// Aktion ausführen; danach schliessen wie Web (`closeSheets(); render(); toast(…)`)
     private func run(_ change: (inout AppData) throws -> Void, toast: String) {
-        if model.update(change) { model.toast(toast) }
+        guard model.update(change) else { return }
+        model.dismissAll()
+        model.toast(toast)
     }
 
     private func deleteContract() {

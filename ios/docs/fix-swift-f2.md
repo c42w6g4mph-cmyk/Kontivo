@@ -24,5 +24,5 @@ Quelle: Prüfberichte s2-app-vertraege.md (alle Funde) und s5-architektur.md (A1
 - s2 A14 (Kündigungslink nur bei Online), A15 (Verwerfen-Text), A20 (Logo-Hinweis bei den Bild-Knöpfen)
 
 ## Offen
-- s2 A21: bewusst offen (Detail bleibt nach Aktionen offen; Rückfrage an Nutzer)
+- s2 A21: ✓ nach Entscheid 04.10.: Detail schliesst nach Fortsetzen, Pausieren, Archiv, Kündigung zurücknehmen, Behalten zurücksetzen, Wieder aktiv (wie Web)
 - Letzter CI-Lauf ohne [noui] (UI-Tests) – läuft

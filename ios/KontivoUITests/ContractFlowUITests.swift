@@ -54,11 +54,17 @@ final class ContractFlowUITests: KontivoUITestCase {
         tap(rows.firstMatch, "Vertragskarte")
         tapTop("Pausieren")
         tap(buttonStarting("1 Monat"), "1 Monat")
+        // Detail schliesst sich nach Aktionen (wie Web)
+        waitGone(button("Bearbeiten"), "Detail nach dem Pausieren")
+        let pausedRow = app.buttons.matching(pred("label BEGINSWITH %@ AND label CONTAINS %@", contractName, "pausiert")).firstMatch
+        tap(pausedRow, "Pausierte Vertragskarte")
         wait(button("Fortsetzen"), "Fortsetzen nach dem Pausieren")
         wait(elContaining("Pausiert bis"), "Pille «Pausiert bis»")
         tapTop("Fortsetzen")
+        waitGone(button("Bearbeiten"), "Detail nach dem Fortsetzen")
+        waitUntil("Keine Karte mehr «pausiert»") { !pausedRow.exists }
+        tap(rows.firstMatch, "Vertragskarte")
         wait(button("Pausieren"), "Pausieren nach dem Fortsetzen")
-        XCTAssertFalse(elContaining("Pausiert bis").exists, "Pille «Pausiert» noch sichtbar")
 
         // Löschen mit Bestätigung → Detail schliesst sich
         tap(button("Weitere Aktionen"), "Weitere Aktionen")

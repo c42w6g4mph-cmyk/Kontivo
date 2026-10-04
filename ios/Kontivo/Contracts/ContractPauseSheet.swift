@@ -6,10 +6,13 @@ struct CTPauseSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     let contractID: UUID
+    /// Nach dem Pausieren statt nur dieses Fenster zu schliessen (Detail: alle Fenster schliessen wie Web)
+    var onPaused: (() -> Void)? = nil
     @State private var until: Day = Day.today(in: .current).addingMonths(1)
 
-    init(contractID: UUID) {
+    init(contractID: UUID, onPaused: (() -> Void)? = nil) {
         self.contractID = contractID
+        self.onPaused = onPaused
     }
 
     var body: some View {
@@ -68,7 +71,7 @@ struct CTPauseSheet: View {
         }
         if model.update({ try $0.pause(id, until: u, today: t) }) {
             model.toast(AppData.pauseToast(until: u))
-            dismiss()
+            if let onPaused { onPaused() } else { dismiss() }
         }
     }
 }
