@@ -172,7 +172,7 @@ public enum Catalog {
         Rule(pattern: "fitness", category: "Freizeit & Sport", label: "Fitnessabo",
              ch: nil, de: nil, any: RuleValues(notice: 0, unit: .months, term: .contractYear, channel: nil, mandatory: false, hint: Hints.fitness), dePattern: nil),
         Rule(pattern: "\\bbank\\b|kreditinstitut|neobank|sparkasse", category: "Finanzen", label: "Konto",
-             ch: nil, de: nil, any: RuleValues(notice: 0, unit: .months, term: .anytime, channel: nil, mandatory: false, hint: Hints.bank), dePattern: nil),
+             ch: nil, de: nil, any: RuleValues(notice: 0, unit: .months, term: .monthEnd, channel: nil, mandatory: false, hint: Hints.bank), dePattern: nil),
     ]
 
     /// Übliche Frist für einen beliebigen Anbieter aus Branche (Beschreibung) und Land (`stdFor`). Nur Vorschlag.

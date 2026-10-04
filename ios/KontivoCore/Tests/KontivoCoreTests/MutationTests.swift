@@ -236,13 +236,39 @@ final class MutationTests: XCTestCase {
         XCTAssertTrue(p.body.hasSuffix("Bitte bestätigen Sie uns die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse"))
         XCTAssertEqual(p.bodyText, "Kundennummer: 4711\n\n" + p.body)
         let h = Letter.hints(c, parts: p, calc: calc)
-        XCTAssertEqual(h.first, "Muss spätestens am 31. Dezember 2026 beim Vertragspartner sein.")
+        XCTAssertEqual(h.first, "Muss spätestens am 31. Dezember 2026 beim Vertragspartner sein. Per Post einige Werktage vorher absenden, am besten eingeschrieben.")
+        XCTAssertEqual(p.senderCut, "")
         XCTAssertTrue(h.contains("Mietverträge verlangen Schriftform mit eigenhändiger Unterschrift (CH Art. 266l OR, DE § 568 BGB)."))
         XCTAssertEqual(h.last, "Vorlage ohne Gewähr. Prüf Adresse, Frist und die im Vertrag verlangte Form.")
         let single = Letter.parts(c, signers: [s], calc: calc)
         XCTAssertTrue(single.body.contains("kündige ich"))
         XCTAssertTrue(Letter.hints(c, parts: single, calc: calc).contains("Gemeinsamer Vertrag: In der Regel müssen alle Vertragsparteien kündigen."))
         XCTAssertEqual(Letter.pdfFileName(c, data: data, today: today), "Kuendigung-Wincasa_AG-2026-10-03.pdf")
+
+        // L-2: Absender länger als 7 Zeilen → ohne Land, dann eine Zeile pro Person
+        var d2 = data
+        d2.persons[0].sender = SenderAddress(first: "Sinan", last: "B", street: "Hauptstr. 1", zip: "8280", city: "Kreuzlingen", country: "Schweiz")
+        d2.persons[1].sender = SenderAddress(first: "Lara", last: "Muster", street: "Seestr. 2", zip: "78462", city: "Konstanz", country: "Deutschland")
+        d2.persons[1].sameAddressAs = nil
+        let p2 = Letter.parts(c, calc: Calc(data: d2, today: today))
+        XCTAssertEqual(p2.sender, ["Sinan B", "Hauptstr. 1", "8280 Kreuzlingen", "Lara Muster", "Seestr. 2", "78462 Konstanz"])
+        XCTAssertEqual(p2.senderCut, "Absender gekürzt: Land weggelassen.")
+        XCTAssertTrue(Letter.hints(c, parts: p2, calc: Calc(data: d2, today: today)).contains("Absender gekürzt: Land weggelassen."))
+        let third = try! d2.addPerson("Mia")
+        if let k = d2.persons.firstIndex(where: { $0.id == third }) {
+            d2.persons[k].sender = SenderAddress(first: "Mia", last: "Z", street: "Weg 3", zip: "8000", city: "Zürich")
+        }
+        let p3 = Letter.parts(c, signers: [s, l, third], calc: Calc(data: d2, today: today))
+        XCTAssertEqual(p3.sender, ["Sinan B, Hauptstr. 1, 8280 Kreuzlingen", "Lara Muster, Seestr. 2, 78462 Konstanz", "Mia Z, Weg 3, 8000 Zürich"])
+        XCTAssertEqual(p3.senderCut, "Absender gekürzt: eine Zeile pro Person.")
+
+        // L-1: Miet-Heuristik wie Web
+        XCTAssertFalse(Letter.isRentHeuristic(label: "Gerätemiete Router", partner: "Swisscom", kind: nil))
+        XCTAssertFalse(Letter.isRentHeuristic(label: "Mitgliedschaft", partner: "Mieterverband", kind: nil))
+        XCTAssertFalse(Letter.isRentHeuristic(label: "Parkplatzmiete", partner: "", kind: .housing))
+        XCTAssertTrue(Letter.isRentHeuristic(label: "Mietzins", partner: "", kind: nil))
+        XCTAssertTrue(Letter.isRentHeuristic(label: "Nebenkosten", partner: "", kind: nil))
+        XCTAssertTrue(Letter.isRentHeuristic(label: "Mietwohnung", partner: "", kind: nil))
         XCTAssertEqual(Letter.fileSafe("Zürich Versicherung"), "Zuerich_Versicherung")
         XCTAssertEqual(Letter.splitReferences("Kundennummer: 1\nVertragsnummer: 2\n\nText").references.count, 2)
         XCTAssertEqual(Letter.mailText(references: ["Kundennummer: 1"], body: "Text", names: ["A"], sender: ["A", "Str. 1"]), "Kundennummer: 1\n\nText\n\nA\nStr. 1")
@@ -274,6 +300,14 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(Catalog.standardRule(for: gkv, categoryNames: names)?.notice, 2)
         let bank = WebPartnerHit(name: "Testbank", desc: "Bank", descAll: "Bank bank", dom: "testbank.ch", cc: "")
         XCTAssertEqual(Catalog.standardRule(for: bank, categoryNames: names)?.category, "Finanzen")
+        XCTAssertEqual(Catalog.standardRule(for: bank, categoryNames: names)?.cancelTerm, .monthEnd)
+        // C-1: Web-Korrekturen vom 03.10. (Konten Monatsende, Serafe/Rundfunkbeitrag Steuern, Zeitungen Abos & Medien)
+        XCTAssertEqual(Catalog.find("PostFinance")?.cancelTerm, .monthEnd)
+        XCTAssertEqual(Catalog.find("N26")?.cancelTerm, .monthEnd)
+        XCTAssertEqual(Catalog.find("Serafe")?.category, "Steuern & Gebühren")
+        XCTAssertEqual(Catalog.find("Rundfunkbeitrag")?.categoryKind, .taxes)
+        XCTAssertEqual(Catalog.find("NZZ")?.category, "Abos & Medien")
+        XCTAssertEqual(Catalog.find("Südkurier")?.category, "Abos & Medien")
         XCTAssertNil(Catalog.standardRule(for: WebPartnerHit(name: "Bäckerei", descAll: "Bäckerei"), categoryNames: names))
         XCTAssertEqual(Catalog.template(for: WebPartnerHit(name: "Swisscom AG", dom: "swisscom.ch", cc: "CH"), categoryNames: names)?.name, "Swisscom AG")
     }
