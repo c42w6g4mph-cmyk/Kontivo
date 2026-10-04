@@ -200,16 +200,21 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .kcard .kfq{white-space:nowrap;display:inline-flex;align-items:center;gap:4px;padding:0;margin:0;background:none;border:0;font:inherit;color:inherit;cursor:pointer}
 .kcard .kfq i{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;border:1.2px solid currentColor;font:italic 600 10px/1 Georgia,serif;opacity:.85}
 .fqv{padding:4px 2px 8px}
-.fqn{font-size:14px;color:var(--ink2);text-align:center;margin:6px 0 18px}.fqn b{display:block;font-size:34px;color:var(--ink);font-weight:650;margin:2px 0}
+.fqn{font-size:14px;color:var(--ink2);text-align:center;margin:6px 0 18px;text-wrap:balance}.fqn b{display:block;font-size:34px;color:var(--ink);font-weight:650;margin:2px 0}
 .fqbar{position:relative;height:10px;border-radius:99px;background:var(--line);margin:0 6px}
 .fqbar .fqb{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--teal) 32%,transparent);border-radius:99px}
-.fqbar .fqd{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--ink);border:3px solid var(--bg,#fff);box-sizing:border-box}
+.fqbar .fqd{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--ink);border:3px solid var(--surface);box-sizing:border-box}
 .fqax{position:relative;display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink3);margin:6px 6px 0;height:16px}
 .fqax .fqu{position:absolute;transform:translateX(-50%);color:var(--teal)}
 .fqs{font-size:16px;color:var(--ink);text-align:center;margin:18px 8px 10px;line-height:1.35;text-wrap:balance}.fqs small{display:block;font-size:14px;color:var(--ink2);margin-top:4px}
-.fqh{font-size:14px;color:var(--ink2);margin:8px 4px;line-height:1.4;text-wrap:balance}.fqh b{font-weight:600;color:var(--ink)}.fqh .nw{white-space:nowrap}
+.fqcard{background:var(--field);border-radius:12px;padding:2px 14px;margin:0}.fqcard p{margin:0;padding:11px 0;font-size:14px;line-height:1.4;color:var(--ink2);text-wrap:pretty}.fqcard p+p{border-top:1px solid var(--line)}.fqcard b{font-weight:600;color:var(--ink)}.fqcard .nw{white-space:nowrap}
+.fqsec{display:flex;justify-content:space-between;margin:20px 4px 8px;font-size:12.5px;font-weight:600;color:var(--ink3)}.fqsec span+span{font-weight:500}
+@media (max-width:374px){.fqlong{display:none}}
+.fqacts{margin-top:8px;background:var(--field);border-radius:12px;overflow:hidden}
+.fqact{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;text-align:left}.fqact+.fqact{border-top:1px solid var(--line)}
+.fqact span{flex:1;min-width:0;display:grid;gap:1px}.fqact b{font-size:15px;font-weight:600}.fqact small{font-size:12.5px;color:var(--ink3)}.fqact i{font-style:normal;color:var(--ink3);font-size:18px}
 @media (max-width:374px){.kcard .ksub .ksep{display:none}.kcard .ksub .kfq{display:flex;margin-top:2px}}
-.fqf{font-size:12px;color:var(--ink3);margin:14px 4px 0;line-height:1.4;text-wrap:balance}
+.fqf{font-size:12px;color:var(--ink3);margin:16px 4px 0;line-height:1.4;text-wrap:pretty}
 .kcard .kbig.neg{color:var(--alert)}
 .kcard .bchart{margin-top:34px;height:140px;margin-right:16px}
 .kcard .chart{margin-top:34px;height:140px}
@@ -2546,17 +2551,37 @@ var FQ={
 };
 function fqLand(){return state.settings.home==="CHF"?"CH":"DE";}
 function fqState(p){var L=FQ[fqLand()];return p<L.lo?"lo":(p>L.hi?"hi":"mid");}
-var FQ_TXT={lo:"Weniger als üblich.<small>Bei höherem Einkommen oft kein Problem.</small>",mid:"Im üblichen Bereich.",hi:"Mehr als üblich."};
+var FQ_TXT={lo:"Weniger als üblich.<small>Bei höherem Einkommen oft kein Problem.</small>",mid:"Im üblichen Bereich.",edge:"Im üblichen Bereich, am unteren Rand.",hi:"Mehr als üblich."};
+/* Ansatzpunkte, wenn wenig bleibt (unter oder knapp im Bereich): grösste beeinflussbare Fixkosten, bald kündbare Verträge, Abos.
+   Nur Transparenz und Wege in die App, keine Wertung. SwiftUI: Section mit NavigationLinks */
+function fqTips(d){
+  var H=esc(state.settings.home),t0=today(),sh=function(c){if(!d.bh)return 1;var hs=holdersOf(c);return hs.indexOf(d.bh)<0?0:1/hs.length;};
+  var act=running().filter(function(c){return !notStarted(c)&&!isTax(c)&&sh(c)>0;});
+  var top=act.map(function(c){return {c:c,v:monthlyCost(c)*sh(c)};}).sort(function(x,y){return y.v-x.v;}).slice(0,3);
+  if(!top.length)return "";
+  var pct=function(v){return d.incAvg>0.005?Math.round(v/d.incAvg*100):null;};
+  var h='<div class="fqsec"><span>Wo du ansetzen kannst</span><span>pro Monat</span></div><div class="ilist">'+top.map(function(x){var q=pct(x.v);
+    return '<button class="irow" type="button" data-fqopen="'+esc(x.c._id)+'">'+markHtml(x.c)+'<span class="it">'+esc(titleOf(x.c))+'<em>'+(q!=null?q+'\u00a0%<span class="fqlong"> der Einnahmen</span>':esc(x.c.cat||""))+'</em></span><b>'+money(x.v)+'<u>'+H+'</u></b></button>';}).join("")+'</div>';
+  var soon=act.filter(function(c){if(c.noWatch||c.mand||c.cancelPer||isAnytime(c))return false;var dl=noticeDeadline(c);if(!dl)return false;var n=daysBetween(t0,dl);return n>=0&&n<=90;});
+  var abos=act.filter(function(c){return catKey(c.cat)==="Abos & Medien";});
+  var rows=[];
+  if(soon.length)rows.push('<button class="fqact" type="button" data-fqgo="term"><span><b>'+cntTxt(soon.length,"Vertrag","Verträge")+' bald kündbar</b><small>Frist in den nächsten 3 Monaten</small></span><i>›</i></button>');
+  if(abos.length>=2)rows.push('<button class="fqact" type="button" data-fqcat="'+esc(abos[0].cat)+'"><span><b>'+abos.length+' Abos: '+money(abos.reduce(function(n,c){return n+monthlyCost(c)*sh(c);},0))+" "+H+'/Mt.</b><small>Nutzt du alle noch regelmässig?</small></span><i>›</i></button>');
+  if(rows.length)h+='<div class="fqacts">'+rows.join("")+'</div>';
+  return h;
+}
 function openFq(){
-  var d=state._fq;if(!d)return;var L=FQ[fqLand()],p=d.p,dot=Math.max(0,Math.min(100,p));
+  var d=state._fq;if(!d)return;var L=FQ[fqLand()],p=d.p,dot=Math.max(0,Math.min(100,p)),st=fqState(p);
+  if(st==="mid"&&p<L.lo+5)st="edge";
   document.getElementById("pickTitle").textContent="Was dir bleibt";
   var l=document.getElementById("pickList");l.dataset.dim="fq";
-  l.innerHTML='<div class="fqv"><div class="fqn">'+esc(d.mon)+(d.who?" · "+esc(d.who):"")+'<b>'+p+'\u00a0%</b>deiner Einnahmen bleiben<br>nach den Fixkosten</div>'+
+  l.innerHTML='<div class="fqv"><div class="fqn">'+esc(d.mon)+(d.who?" · "+esc(d.who):"")+'<b>'+p+'\u00a0%</b>deiner Einnahmen bleiben nach den Fixkosten</div>'+
     '<div class="fqbar" aria-hidden="true"><i class="fqb" style="left:'+L.lo+'%;width:'+(L.hi-L.lo)+'%"></i><i class="fqd" style="left:'+dot+'%"></i></div>'+
     '<div class="fqax"><span>0\u00a0%</span><span class="fqu" style="left:'+((L.lo+L.hi)/2)+'%">üblich</span><span>100\u00a0%</span></div>'+
-    '<p class="fqs">'+FQ_TXT[fqState(p)]+'</p>'+
-    (d.avg!=null&&Math.abs(d.avg-p)>=3?'<p class="fqh"><b>Im Schnitt '+d.y+': '+d.avg+'\u00a0%.</b><br>Einzelne Monate schwanken durch Jahresrechnungen oder Bonus.</p>':"")+
-    '<p class="fqh">'+L.note+'</p><p class="fqh">Entscheidend ist der Betrag, der dir am Ende bleibt.</p>'+
+    '<p class="fqs">'+FQ_TXT[st]+'</p>'+
+    '<div class="fqcard">'+(d.avg!=null&&Math.abs(d.avg-p)>=3?'<p><b>Im Schnitt '+d.y+': '+d.avg+'\u00a0%.</b> Einzelne Monate schwanken durch Jahresrechnungen oder Bonus.</p>':"")+
+    '<p>'+L.note+'</p><p>Entscheidend ist der Betrag, der dir am Ende bleibt.</p></div>'+
+    (st==="lo"||st==="edge"?fqTips(d):"")+
     '<p class="fqf">Richtwerte von Budgetberatungen, keine feste Norm. Genauigkeit abhängig von deinen erfassten Verträgen.</p></div>';
   openSheet(document.getElementById("sheetPick"));
 }
@@ -2622,7 +2647,7 @@ function renderBudget(v){
       else{bvT=nf0.format(br)+" "+H+(bpmD>0?" mehr":" weniger")+" als "+MON[sel]+" "+(Y-1);bvC=bpmD>0?" down":" up";}}
     var bBig=function(v){var t=money(Math.abs(v)),k=t.lastIndexOf(".");t=k<0?t:t.slice(0,k)+"<small>"+t.slice(k)+"</small>";return (v<0?"−":"")+t;};
     var bq=sm.inc>0.005?Math.round(sm.free/sm.inc*100):null;
-    state._fq=bq!=null&&bq>0?{p:bq,avg:tInc>0.005?Math.round(tFree/tInc*100):null,y:Y,mon:MON[sel]+" "+Y,who:BH?dn(BH):""}:null;
+    state._fq=bq!=null&&bq>0?{p:bq,avg:tInc>0.005?Math.round(tFree/tInc*100):null,incAvg:tInc/12,y:Y,mon:MON[sel]+" "+Y,who:BH?dn(BH):"",bh:BH}:null;
     var bh='<div class="kh"><div class="keb"><span class="kmo">'+MON[sel]+" "+Y+'</span><span class="kcnt">'+(BH?esc(dn(BH)):"")+'</span></div>'+
       '<div class="kbig'+(sm.free<0?" neg":"")+'">'+bBig(sm.free)+'<span class="ru">'+H+'</span></div>'+
       '<div class="ksub">verfügbar nach Fixkosten'+(bq!=null&&bq>0?'<span class="ksep"> · </span><button type="button" class="kfq" data-fq aria-label="'+bq+' % der Einnahmen, Einordnung anzeigen">'+bq+'\u00a0% der Einnahmen<i aria-hidden="true">i</i></button>':"")+'</div>'+
@@ -4088,6 +4113,10 @@ function openFilterSheet(){
 }
 document.getElementById("pickList").addEventListener("click",function(ev){
   var pd=this.dataset.dim||"";
+  if(pd==="fq"){var fo=ev.target.closest("[data-fqopen]"),fg=ev.target.closest("[data-fqgo]"),fc=ev.target.closest("[data-fqcat]");
+    if(fo){var oid=fo.dataset.fqopen;closeSheets();setTimeout(function(){openDetail(oid);},180);return;}
+    if(fg){closeSheets();goTab("term");return;}
+    if(fc){state.flt={cat:fc.dataset.fqcat,partner:null,holder:null};closeSheets();goTab("list");return;}return;}
   if(pd==="incall"){var ib=ev.target.closest("[data-inc]"),ia=ev.target.closest("#incAdd");if(!ib&&!ia)return;
     closeSheets();setTimeout(function(){openIncome(ib?ib.dataset.inc:null);},180);return;}
   if(pd.indexOf("pause-")===0){
