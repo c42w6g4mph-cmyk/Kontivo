@@ -1,0 +1,26 @@
+{
+ "about": "Test-Backup (Web-Format) für die Text-Vergleiche Datenqualität und Kündigungsschreiben (make_golden_texts.py). letters = Verträge, für die letterParts verglichen wird.",
+ "today": "2026-10-02",
+ "letters": ["L1", "L2", "L3"],
+ "settings": {"home": "CHF", "rates": {"EUR": 0.94, "USD": 0.8}, "holders": ["Sinan", "Lara", "Mia"], "dataVer": 2,
+  "senders": {"Sinan": {"first": "Sinan", "last": "Beispiel", "street": "Hauptstrasse 1", "zip": "8280", "city": "Kreuzlingen", "country": "Schweiz"},
+              "Lara": {"first": "Lara", "last": "Muster", "street": "Seestrasse 2", "zip": "78462", "city": "Konstanz", "country": "Deutschland"}}},
+ "contracts": {
+  "L1": {"partner": "Wincasa AG", "label": "Mietvertrag Wohnung", "cat": "Wohnen", "amount": 1800, "cur": "CHF", "cycle": 1, "due": "2026-11-01", "notice": 3, "noticeU": "m", "cancTerm": "q", "custNo": "4711", "holders": ["Sinan", "Lara"], "addr": "Wincasa AG\nPostfach\n8401 Winterthur"},
+  "L2": {"partner": "Allianz Suisse", "label": "Hausrat", "cat": "Versicherung", "amount": 30, "cur": "CHF", "cycle": 12, "due": "2027-03-01", "start": "2023-03-01", "notice": 3, "noticeU": "m", "cancTerm": "a", "contrNo": "P-77", "holders": ["Sinan"], "addr": "Allianz Suisse\nRichtiplatz 1\n8304 Wallisellen"},
+  "L3": {"partner": "Sunrise", "label": "Internet Sunrise", "cat": "Mobilfunk & Internet", "amount": 49.9, "cur": "CHF", "cycle": 1, "due": "2026-10-15", "notice": 60, "noticeU": "d", "cancTerm": "m", "cancF": "Brief", "holders": ["Lara"]},
+  "Q1": {"partner": "Swisscom", "label": "Gerätemiete Router", "cat": "Mobilfunk & Internet", "amount": 5, "cur": "CHF", "cycle": 1, "due": "2026-10-20", "notice": 60, "noticeU": "d", "cancTerm": "m", "cancF": "Online / Kundenkonto", "web": "swisscom.ch", "holders": []},
+  "Q2": {"label": "Unbekannt", "cat": "", "amount": 0, "cur": "CHF", "cycle": 0},
+  "Q3": {"partner": "Galaxus", "label": "Abo Plus", "cat": "Sonstiges", "amount": 9, "cur": "CHF", "cycle": 1, "due": "2026-10-20", "notice": 1, "noticeU": "m", "cancTerm": "", "cancF": "E-Mail", "custNo": "G1", "holders": ["Mia"]},
+  "Q4": {"partner": "Fitnesspark", "label": "Fitness", "cat": "Freizeit & Sport", "amount": 80, "cur": "CHF", "cycle": 1, "due": "2026-10-20", "start": "2025-01-01", "notice": 0, "noticeU": "m", "cancTerm": "y", "cancF": "Brief", "custNo": "F1", "holders": ["Sinan"], "addr": "Fitnesspark AG\nBahnhofplatz 1\n8001 Zürich"},
+  "Q5": {"partner": "Zattoo", "label": "TV", "cat": "Abos & Medien", "amount": 13, "cur": "CHF", "cycle": 1, "due": "2026-10-20", "end": "2027-12-31", "notice": 0, "noticeU": "m", "cancF": "Online / Kundenkonto", "cancUrl": "https://zattoo.com/kuendigen", "contrNo": "Z1", "holders": ["Lara"]},
+  "Q6": {"partner": "CSS", "label": "Krankenkasse", "cat": "Versicherung", "amount": 400, "cur": "CHF", "cycle": 1, "due": "2026-10-15", "notice": 0, "noticeU": "m", "cancTerm": "y", "mand": true, "custNo": "C1", "holders": ["Sinan"], "addr": "CSS Versicherung\nTribschenstrasse 21\n6005 Luzern"},
+  "Q7": {"partner": "Steueramt", "label": "Steuern", "cat": "Steuern & Gebühren", "amount": 1000, "cur": "CHF", "cycle": 3, "due": "2026-11-30", "holders": ["Sinan"]},
+  "Q8": {"partner": "Salt", "label": "Handy alt", "cat": "Mobilfunk & Internet", "amount": 30, "cur": "CHF", "cycle": 1, "due": "2026-10-20", "notice": 2, "noticeU": "m", "cancTerm": "m", "cancelPer": "2026-11-30", "cancelledOn": "2026-09-30", "holders": ["Sinan"]},
+  "Q9": {"partner": "Yallo", "label": "Archiv", "cat": "Mobilfunk & Internet", "amount": 20, "cur": "CHF", "cycle": 1, "due": "2026-10-20", "status": "cancelled", "cancelledAt": "2026-09-01", "holders": []},
+  "Q10": {"partner": "Wincasa AG", "label": "Parkplatz", "cat": "Wohnen", "amount": 120, "cur": "CHF", "cycle": 1, "due": "2026-11-01", "noWatch": true, "cancF": "Brief", "holders": ["Sinan"]}
+ },
+ "incomes": {
+  "i1": {"name": "Firma AG", "label": "Lohn", "cat": "Lohn", "amount": 0, "cur": "CHF", "cycle": 1, "due": "2026-10-25"}
+ }
+}

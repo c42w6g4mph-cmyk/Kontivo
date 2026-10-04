@@ -15,5 +15,7 @@
 - K-1 (Format.fixed1 wie toFixed(1)), F-1 (domain klein + Punycode), COD-1 (Listen elementweise lesen, AppData wirft bei unlesbarer Liste)
 - F-2: bereits in ARCHITEKTUR.md als bewusste Abweichung (U+2212)
 
+- Teil B: tests/make_golden_texts.py + cases_texts.json → golden_texts.json; Swift TextGoldenTests (urgency, Fristen, CSV, Datenqualität, Briefe)
+
 ## Offen
-- Teil B: Vergleichstests (urgency, Fristen-Übersicht, Datenqualität, letterParts, CSV-Export)
+- CI-Lauf der Vergleichstests prüfen, Abweichungen beheben; letzter Lauf ohne [noui]
