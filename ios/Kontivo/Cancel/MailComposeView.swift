@@ -23,14 +23,13 @@ struct MailComposeView: View {
         let m = model
         let contractID = draft.cancelContractID
         let trial = draft.cancelTrial
-        m.dismissTop()
+        // Nur dieses Mail-Fenster schliessen (nie das darunterliegende)
+        guard CancelWindowFlow.dismiss(m, ifTop: .mail(draft)) else { return }
         switch result {
         case .sent:
             if let id = contractID {
                 // Erst nach dem Schliessen des Mail-Fensters fragen (sonst geht die Rückfrage verloren)
-                Task { @MainActor in
-                    try? await Task.sleep(nanoseconds: 650_000_000)
-                    guard m.data.contract(id) != nil else { return }
+                CancelWindowFlow.afterDismiss(m, wait: CancelWindowFlow.Wait.all, still: { m.data.contract(id) != nil }) {
                     m.cancelQuestion = PendingCancel(contractID: id, trial: trial)
                 }
             }
@@ -114,7 +113,7 @@ private struct MailUnavailableView: View {
             .kPageBackground()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Schliessen") { model.dismissTop() }
+                    Button("Schliessen") { CancelWindowFlow.dismiss(model, ifTop: .mail(draft)) }
                 }
             }
         }
@@ -123,7 +122,7 @@ private struct MailUnavailableView: View {
     private func openMailto() {
         guard let url = CancelLinks.mailto(to: draft.to.first ?? "", subject: draft.subject, body: draft.body) else { return }
         let pending = draft.cancelContractID.map { PendingCancel(contractID: $0, trial: draft.cancelTrial) }
-        model.dismissTop()
+        guard CancelWindowFlow.dismiss(model, ifTop: .mail(draft)) else { return }
         model.cancelFlowOpenExternal(url, pending: pending)
     }
 }

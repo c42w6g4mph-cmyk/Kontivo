@@ -45,12 +45,9 @@ enum DeadlineCalendar {
         return EventInfo(title: title, date: d.date, notes: lines.joined(separator: "\n"), url: url)
     }
 
-    /// Berechtigung (nur Schreiben, iOS 17) einmalig erfragen und den Termin vorbereiten.
-    /// Der Dialog «Termin hinzufügen» funktioniert auch ohne Berechtigung (läuft ausserhalb der App).
-    static func prepare(_ info: EventInfo) async -> DeadlineEventRequest {
-        if EKEventStore.authorizationStatus(for: .event) == .notDetermined {
-            _ = try? await store.requestWriteOnlyAccessToEvents()
-        }
+    /// Termin vorbereiten. Keine Berechtigungsabfrage: der Systemdialog «Termin hinzufügen»
+    /// (EKEventEditViewController) läuft ab iOS 17 ausserhalb der App und braucht keinen Kalenderzugriff.
+    static func prepare(_ info: EventInfo) -> DeadlineEventRequest {
         let ev = EKEvent(eventStore: store)
         ev.title = info.title
         ev.isAllDay = true

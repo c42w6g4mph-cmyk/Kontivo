@@ -10,7 +10,6 @@ struct DeadlinesTab: View {
     @State private var killTarget: DeadlineKillTarget?
     @State private var killAction: DeadlineKillAction?
     @State private var eventRequest: DeadlineEventRequest?
-    @State private var preparingEvent = false
 
     var body: some View {
         let calc = model.calc
@@ -198,14 +197,10 @@ struct DeadlinesTab: View {
     }
 
     private func addToCalendar(_ d: Calc.DeadlineDecision) {
-        guard !preparingEvent, let c = model.data.contract(d.contractID) else { return }
-        preparingEvent = true
+        // Doppeltippen: nur ein Kalenderdialog
+        guard eventRequest == nil, let c = model.data.contract(d.contractID) else { return }
         let info = DeadlineCalendar.info(for: d, contract: c, calc: model.calc, data: model.data)
-        Task { @MainActor in
-            let req = await DeadlineCalendar.prepare(info)
-            preparingEvent = false
-            eventRequest = req
-        }
+        eventRequest = DeadlineCalendar.prepare(info)
     }
 
     private func eventDone(_ action: EKEventEditViewAction) {

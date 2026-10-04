@@ -363,6 +363,8 @@ struct LetterView: View {
     /// «PDF erstellen» (Reihenfolge der Prüfungen wie in der Web-App).
     private func createPDF() {
         guard let c = model.data.contract(contractID) else { return }
+        // Doppeltippen: läuft schon eine Rückfrage oder liegt der Viewer schon darüber, nichts tun
+        guard ask == nil, CancelWindowFlow.isTop(model, .letter(contractID, trial: trial)) else { return }
         focus = nil
         if signers.isEmpty {
             model.toast("Bitte wählen, wer kündigt")
@@ -399,6 +401,15 @@ struct LetterView: View {
             }
             if !nC.isEmpty && !refs.contains(where: { $0.hasPrefix("Kundennummer: ") }) { refs.append("Kundennummer: " + nC) }
             if !nV.isEmpty && !refs.contains(where: { $0.hasPrefix("Vertragsnummer: ") }) { refs.append("Vertragsnummer: " + nV) }
+            // Nachgetragene Nummern als Referenzzeilen in den Text übernehmen (gilt auch für weitere PDFs), «Fehlt noch» ausblenden
+            let wasAuto = bodyText == autoBody
+            bodyText = refs.joined(separator: "\n") + "\n\n" + split.body
+            if wasAuto { autoBody = bodyText }
+            custNo = ""
+            contrNo = ""
+            let saved = model.data.contract(id)
+            missCust = saved?.customerNo.isEmpty ?? true
+            missContr = saved?.contractNo.isEmpty ?? true
         }
         let rent = calc.isRent(c)
         let data = model.data
@@ -417,15 +428,20 @@ struct LetterView: View {
         proceed(job, from: 0)
     }
 
-    /// Rückfragen nacheinander: Empfänger ohne Adresse, dann Absender unvollständig.
+    /// Rückfragen nacheinander: Empfänger ohne Adresse, Anschrift zu lang, dann Absender unvollständig.
     private func proceed(_ job: LetterJob, from stage: Int) {
         if stage <= 0 && job.toCount <= 1 {
             ask = LetterAsk(stage: 0, job: job, title: "Ohne Empfängeradresse?",
                             message: "Im Anschriftfeld steht nur der Name. Für den Postversand fehlt die Adresse.")
             return
         }
-        if stage <= 1 && !job.missingNames.isEmpty {
-            ask = LetterAsk(stage: 1, job: job, title: "Absender unvollständig", message: Letter.missingSenderText(job.missingNames))
+        if stage <= 1 && job.toCount > 6 {
+            ask = LetterAsk(stage: 1, job: job, title: "Anschrift zu lang",
+                            message: "Die Anschrift hat \(job.toCount) Zeilen. Ins Fenster eines Kuverts passen höchstens 6, sonst überdeckt sie Datum oder Betreff.")
+            return
+        }
+        if stage <= 2 && !job.missingNames.isEmpty {
+            ask = LetterAsk(stage: 2, job: job, title: "Absender unvollständig", message: Letter.missingSenderText(job.missingNames))
             return
         }
         finish(job)
@@ -434,14 +450,17 @@ struct LetterView: View {
     private func continueAfter(_ a: LetterAsk) {
         let next = a.stage + 1
         let job = a.job
-        // Erst weiter, wenn die Rückfrage geschlossen ist
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 350_000_000)
+        let me = AppSheet.letter(contractID, trial: trial)
+        // Erst weiter, wenn die Rückfrage geschlossen ist (und nur, wenn der Brief noch zuoberst liegt)
+        CancelWindowFlow.afterDismiss(model, wait: 350, still: { [model] in CancelWindowFlow.isTop(model, me) }) {
             proceed(job, from: next)
         }
     }
 
     private func finish(_ job: LetterJob) {
+        // Doppeltippen auf «PDF»: nur öffnen, solange der Brief zuoberst liegt
+        let me = AppSheet.letter(contractID, trial: trial)
+        guard CancelWindowFlow.isTop(model, me) else { return }
         let pdf = LetterPDF.render(job.input)
         guard !pdf.isEmpty else {
             model.toast("PDF konnte nicht erstellt werden")
@@ -450,7 +469,7 @@ struct LetterView: View {
         let ref = DocumentRef(data: pdf, type: "application/pdf", title: job.title, fileName: job.fileName,
                               letterContractID: contractID, letterTrial: trial)
         LetterDocumentStore.put(ref.id, job.info)
-        model.present(.document(ref))
+        CancelWindowFlow.present(model, .document(ref), over: me)
     }
 }
 
