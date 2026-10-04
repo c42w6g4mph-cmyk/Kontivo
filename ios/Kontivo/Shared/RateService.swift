@@ -15,6 +15,8 @@ enum RateService {
             if force { model.toast("Kurse werden geladen …") }
             return
         }
+        // Demo-/Testmodus: feste Kurse, damit Bildschirmfotos und UI-Tests nicht vom Tageskurs abhängen
+        if model.uiTestMode && !force { return }
         let today = model.today
         let s = model.data.settings
         if !force, s.rateChecked == today, (s.rates["USD"] ?? 0) > 0 { return }
