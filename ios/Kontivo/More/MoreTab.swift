@@ -341,6 +341,14 @@ struct MoreDataGroup: View {
                 .fixedSize(horizontal: false, vertical: true)
             }
             .disabled(flow.working)
+            if let p = flow.progress {
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text(p).font(.footnote).foregroundStyle(KColor.ink2).monospacedDigit()
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 8)
+            }
             Text("**Backup:** alles inkl. Logos und Dokumente, auch für den Gerätewechsel.\n**CSV:** nur Tabellendaten, z.B. für Excel. Der Import erkennt gängige Spaltennamen.")
                 .font(.caption)
                 .foregroundStyle(KColor.ink2)

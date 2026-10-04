@@ -12,7 +12,12 @@
 - F9: Zusammenführen-Hinweis wörtlich wie Web
 - F10: Umbenennen-Rückfrage (Vertragspartner, Inhaber) auf Fenster-Ebene (ManageNav.renameAsk), «Fertig» sichert zuerst
 - Teil B: Eingaben beim Wechsel in den Hintergrund sichern (ManageNav.flush + saveNow)
-- A10: WebLinks.googleImages statt mdGoogleImageURL
+- A10: WebLinks.googleImages statt mdGoogleImageURL; ImageImport (Shared/ImageCropSheet.swift) für Fotos/Dateien/Einfügen
+- F12: Datenschutztext an tatsächliche Abrufe angepasst
+- F13: Einführung-Tabseiten bei grosser Schrift scrollbar, Bildschirmfoto ausgeblendet
+- F14: Zuschneiden nach Dateiauswahl verzögert, Datei im Hintergrund gelesen
+- Teil B: ImageIO-Verkleinerung, PasteButton (keine Einfügen-Rückfrage), Backup-Export: Dateien im Hintergrund lesen + Fortschritt; Restore mit Fortschritt/Yield
+- F15: Speicherfehler wird nicht von Erfolgsmeldung überschrieben (MoreDataFlow.saveOK)
 
 ## Offen
-- F12, F13, F14, F15, A10 Rest (Zwischenablage/Toast), Teil B (Backup im Hintergrund, ImageIO, PasteButton)
+- CI grün bekommen; letzter Lauf ohne [noui]
