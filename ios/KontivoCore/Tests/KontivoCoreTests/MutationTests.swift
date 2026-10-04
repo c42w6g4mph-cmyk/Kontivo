@@ -331,7 +331,7 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(Letter.fileSafe("Zürich Versicherung"), "Zuerich_Versicherung")
         XCTAssertEqual(Letter.splitReferences("Kundennummer: 1\nVertragsnummer: 2\n\nText").references.count, 2)
         XCTAssertEqual(Letter.mailText(references: ["Kundennummer: 1"], body: "Text", names: ["A"], sender: ["A", "Str. 1"]), "Kundennummer: 1\n\nText\n\nA\nStr. 1")
-        XCTAssertTrue(Letter.isRentHeuristic(label: "Routermiete", partner: "", kind: nil))
+        XCTAssertFalse(Letter.isRentHeuristic(label: "Routermiete", partner: "", kind: nil)) // wie Web: Gerätemiete ausgeschlossen
         XCTAssertTrue(Letter.isRentHeuristic(label: "Zimmer", partner: "", kind: .housing))
         XCTAssertFalse(Letter.isRentHeuristic(label: "Zimmer", partner: "", kind: nil))
     }
