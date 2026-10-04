@@ -1000,6 +1000,8 @@ struct MDTransferPage: View {
         let n = (fs?.contracts ?? 0) + (fs?.incomes ?? 0)
         let fromName = fs?.person.name ?? ""
         let toName = to.flatMap { model.data.person($0)?.name }
+        var shared = 0
+        if let f = fromID, let t = to { shared = model.data.mdSharedEntries(f, t) }
         return List {
             Section {
                 ForEach(stats, id: \.person.id) { s in
@@ -1019,7 +1021,7 @@ struct MDTransferPage: View {
                 Text("An")
             }
             Section {
-                MDHint(transferHint(n: n, fromName: fromName, toName: toName))
+                MDHint(transferHint(n: n, fromName: fromName, toName: toName, shared: shared))
                     .mdPlainRow()
             }
             Section {
@@ -1030,10 +1032,14 @@ struct MDTransferPage: View {
         .navigationTitle("Alle übertragen")
     }
 
-    private func transferHint(n: Int, fromName: String, toName: String?) -> String {
+    /// Hinweis wie Web (hbulk): gemeinsame Einträge gehören danach nur noch «An»
+    private func transferHint(n: Int, fromName: String, toName: String?, shared: Int) -> String {
         guard let tn = toName else { return "Zum Beispiel nach einem Umzug oder wenn jemand die Verträge übernimmt." }
-        let parts: [String] = [Format.count(n, "Eintrag geht", "Einträge gehen"), " von «", fromName, "» an «", tn,
-                               "». Gemeinsame Einträge bleiben gemeinsam. «", fromName, "» bleibt als Person bestehen."]
+        var parts: [String] = [Format.count(n, "Eintrag geht", "Einträge gehen"), " von «", fromName, "» an «", tn, "». "]
+        if shared > 0 {
+            parts += [shared == 1 ? "1 gemeinsamer Eintrag gehört" : "\(shared) gemeinsame Einträge gehören", " danach nur noch «", tn, "». "]
+        }
+        parts += ["«", fromName, "» bleibt als Person bestehen."]
         return parts.joined()
     }
 
