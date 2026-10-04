@@ -104,7 +104,7 @@ final class MutationTests: XCTestCase {
         let l = data.persons[1].id
         data.persons[1].sameAddressAs = s
         data.contracts = [Contract(label: "A", holderIDs: [s, l]), Contract(label: "B", holderIDs: [s]), Contract(label: "C", holderIDs: [l])]
-        XCTAssertThrowsError(try data.addPerson("sinan")) { XCTAssertEqual($0 as? MutationError, .duplicateName(s)) }
+        XCTAssertThrowsError(try data.addPerson("sinan")) { XCTAssertEqual($0 as? MutationError, .duplicatePerson(s)) }
         XCTAssertThrowsError(try data.renamePerson(l, to: "SINAN")) { XCTAssertEqual($0 as? MutationError, .duplicateName(s)) }
         try data.renamePerson(l, to: "  Lara   Muster ")
         XCTAssertEqual(data.person(l)?.name, "Lara Muster")
@@ -113,10 +113,14 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(data.holderChoiceToast(title: "B", holderIDs: [s, l]), "B → Beide")
         XCTAssertTrue(data.applyHolderChoice(contract: data.contracts[1].id, choice: .person(l)))
         XCTAssertEqual(data.contracts[1].holderIDs, [l])
-        // Übertragen: gemeinsame bleiben gemeinsam
-        XCTAssertEqual(data.transferAll(from: l, to: s), 2)
-        XCTAssertEqual(data.contracts[0].holderIDs, [s, l])
+        // Übertragen (M-1, wie Web `mapHolders`): gemeinsame Einträge gehören danach nur noch «An»
+        XCTAssertEqual(data.sharedEntryCount(l, s), 1)
+        XCTAssertEqual(data.transferAll(from: l, to: s), 3)
+        XCTAssertEqual(data.contracts[0].holderIDs, [s])
         XCTAssertEqual(data.contracts[1].holderIDs, [s])
+        XCTAssertEqual(data.contracts[2].holderIDs, [s])
+        XCTAssertEqual(data.transferAll(from: l, to: s), 0)
+        data.contracts[0].holderIDs = [s, l]
         // Löschen ohne Ziel: Adresse wird kopiert
         let x = try data.addPerson("Max")
         data.persons[data.personIndex(x)!].sameAddressAs = s
@@ -130,6 +134,61 @@ final class MutationTests: XCTestCase {
         XCTAssertNil(data.person(x))
         XCTAssertEqual(data.person(l)?.sender.street, "Hauptstr. 1")
         XCTAssertThrowsError(try data.deletePerson(l, transferTo: nil)) { XCTAssertEqual($0 as? MutationError, .lastPerson) }
+    }
+
+    /// M-4: «Gleich wie» ohne Ketten; zeigte das Ziel auf die Person, bekommt es deren bisherige Adresse.
+    func testSenderChains() throws {
+        var data = base()
+        let a = data.persons[0].id
+        let b = data.persons[1].id
+        let c = try data.addPerson("Chris")
+        data.setSender(c, SenderAddress(first: "Chris", street: "Weg 3", zip: "8000", city: "Zürich"), sameAs: nil)
+        data.setSender(b, SenderAddress(first: "Lara"), sameAs: a)
+        XCTAssertEqual(data.person(b)?.sameAddressAs, a)
+        // A zeigt neu auf C → B zeigt direkt auf C
+        data.setSender(a, SenderAddress(first: "Sinan"), sameAs: c)
+        XCTAssertEqual(data.person(a)?.sameAddressAs, c)
+        XCTAssertEqual(data.person(b)?.sameAddressAs, c)
+        XCTAssertEqual(data.resolvedSender(b).city, "Zürich")
+        // C zeigt neu auf A (A zeigte auf C) → A bekommt die bisherige Adresse von C
+        data.setSender(c, SenderAddress(first: "Chris"), sameAs: a)
+        XCTAssertEqual(data.person(c)?.sameAddressAs, a)
+        XCTAssertNil(data.person(a)?.sameAddressAs)
+        XCTAssertEqual(data.person(a)?.sender.street, "Weg 3")
+        XCTAssertEqual(data.person(b)?.sameAddressAs, a)
+        XCTAssertEqual(data.resolvedSender(c).street, "Weg 3")
+    }
+
+    /// M-3: Inhaber nach Personenliste, Kündigungslink nur bei Online, Frist geprüft.
+    func testSaveContractNormalizes() throws {
+        var data = base()
+        let s = data.persons[0].id
+        let l = data.persons[1].id
+        let cat = data.category(named: "Abos & Medien")!.id
+        var d = Contract(label: "Netflix", categoryID: cat, amount: 15, cycle: 1, holderIDs: [l, s], cancelChannel: .email, cancelURL: "https://x.ch")
+        let id = try data.saveContract(d, today: today)
+        XCTAssertEqual(data.contract(id)?.holderIDs, [s, l])
+        XCTAssertEqual(data.contract(id)?.cancelURL, "")
+        d = data.contract(id)!
+        d.cancelChannel = .online
+        d.cancelURL = "https://netflix.com/cancel"
+        try data.saveContract(d, today: today)
+        XCTAssertEqual(data.contract(id)?.cancelURL, "https://netflix.com/cancel")
+        d.notice = 31
+        d.noticeUnit = .dayOfMonth
+        XCTAssertThrowsError(try data.saveContract(d, today: today)) { XCTAssertEqual($0 as? MutationError, .invalidNotice) }
+        d.notice = -1
+        d.noticeUnit = .months
+        XCTAssertThrowsError(try data.saveContract(d, today: today)) { XCTAssertEqual(($0 as? MutationError)?.message, "Kündigungsfrist prüfen") }
+        // Eingabe wie Web `noticeVal`
+        XCTAssertEqual(Format.noticeValue("", unit: .dayOfMonth), 0)
+        XCTAssertEqual(Format.noticeValue(" 3 ", unit: .months), 3)
+        XCTAssertNil(Format.noticeValue("1.5", unit: .months))
+        XCTAssertNil(Format.noticeValue("-1", unit: .months))
+        XCTAssertNil(Format.noticeValue("12abc", unit: .months))
+        XCTAssertNil(Format.noticeValue("31", unit: .dayOfMonth))
+        XCTAssertNil(Format.noticeValue("0", unit: .dayOfMonth))
+        XCTAssertEqual(Format.noticeValue("28", unit: .dayOfMonth), 28)
     }
 
     func testCategoriesAndPartners() throws {
@@ -152,8 +211,13 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(data.categories[0].name, "Wohnen")
 
         let a = data.partnerID(forName: "Swisscom")!
+        XCTAssertEqual(data.partnerID(forName: " swisscom "), a)
+        // M-2: ähnlicher Name (gleicher pkey) wird nicht still zusammengelegt, nur als Hinweis angeboten
+        XCTAssertEqual(Partners.similar("Swisscom (Schweiz) AG", in: data)?.id, a)
         let b = data.partnerID(forName: "Swisscom (Schweiz) AG")!
-        XCTAssertEqual(a, b)
+        XCTAssertNotEqual(a, b)
+        XCTAssertNil(Partners.similar("Swisscom (Schweiz) AG", in: data))
+        data.partners.removeAll { $0.id == b }
         let c = data.partnerID(forName: "Salt")!
         data.setPartnerAddress(c, PostalAddress(company: "Salt Mobile SA", street: "Rue du Caudray 4", zip: "1020", city: "Renens"))
         data.setPartnerLogo(c, logoID: "x", background: nil)
@@ -231,17 +295,43 @@ final class MutationTests: XCTestCase {
         XCTAssertTrue(p.body.hasSuffix("Bitte bestätigen Sie uns die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse"))
         XCTAssertEqual(p.bodyText, "Kundennummer: 4711\n\n" + p.body)
         let h = Letter.hints(c, parts: p, calc: calc)
-        XCTAssertEqual(h.first, "Muss spätestens am 31. Dezember 2026 beim Vertragspartner sein.")
+        XCTAssertEqual(h.first, "Muss spätestens am 31. Dezember 2026 beim Vertragspartner sein. Per Post einige Werktage vorher absenden, am besten eingeschrieben.")
+        XCTAssertEqual(p.senderCut, "")
         XCTAssertTrue(h.contains("Mietverträge verlangen Schriftform mit eigenhändiger Unterschrift (CH Art. 266l OR, DE § 568 BGB)."))
         XCTAssertEqual(h.last, "Vorlage ohne Gewähr. Prüf Adresse, Frist und die im Vertrag verlangte Form.")
         let single = Letter.parts(c, signers: [s], calc: calc)
         XCTAssertTrue(single.body.contains("kündige ich"))
         XCTAssertTrue(Letter.hints(c, parts: single, calc: calc).contains("Gemeinsamer Vertrag: In der Regel müssen alle Vertragsparteien kündigen."))
         XCTAssertEqual(Letter.pdfFileName(c, data: data, today: today), "Kuendigung-Wincasa_AG-2026-10-03.pdf")
+
+        // L-2: Absender länger als 7 Zeilen → ohne Land, dann eine Zeile pro Person
+        var d2 = data
+        d2.persons[0].sender = SenderAddress(first: "Sinan", last: "B", street: "Hauptstr. 1", zip: "8280", city: "Kreuzlingen", country: "Schweiz")
+        d2.persons[1].sender = SenderAddress(first: "Lara", last: "Muster", street: "Seestr. 2", zip: "78462", city: "Konstanz", country: "Deutschland")
+        d2.persons[1].sameAddressAs = nil
+        let p2 = Letter.parts(c, calc: Calc(data: d2, today: today))
+        XCTAssertEqual(p2.sender, ["Sinan B", "Hauptstr. 1", "8280 Kreuzlingen", "Lara Muster", "Seestr. 2", "78462 Konstanz"])
+        XCTAssertEqual(p2.senderCut, "Absender gekürzt: Land weggelassen.")
+        XCTAssertTrue(Letter.hints(c, parts: p2, calc: Calc(data: d2, today: today)).contains("Absender gekürzt: Land weggelassen."))
+        let third = try! d2.addPerson("Mia")
+        if let k = d2.persons.firstIndex(where: { $0.id == third }) {
+            d2.persons[k].sender = SenderAddress(first: "Mia", last: "Z", street: "Weg 3", zip: "8000", city: "Zürich")
+        }
+        let p3 = Letter.parts(c, signers: [s, l, third], calc: Calc(data: d2, today: today))
+        XCTAssertEqual(p3.sender, ["Sinan B, Hauptstr. 1, 8280 Kreuzlingen", "Lara Muster, Seestr. 2, 78462 Konstanz", "Mia Z, Weg 3, 8000 Zürich"])
+        XCTAssertEqual(p3.senderCut, "Absender gekürzt: eine Zeile pro Person.")
+
+        // L-1: Miet-Heuristik wie Web
+        XCTAssertFalse(Letter.isRentHeuristic(label: "Gerätemiete Router", partner: "Swisscom", kind: nil))
+        XCTAssertFalse(Letter.isRentHeuristic(label: "Mitgliedschaft", partner: "Mieterverband", kind: nil))
+        XCTAssertFalse(Letter.isRentHeuristic(label: "Parkplatzmiete", partner: "", kind: .housing))
+        XCTAssertTrue(Letter.isRentHeuristic(label: "Mietzins", partner: "", kind: nil))
+        XCTAssertTrue(Letter.isRentHeuristic(label: "Nebenkosten", partner: "", kind: nil))
+        XCTAssertTrue(Letter.isRentHeuristic(label: "Mietwohnung", partner: "", kind: nil))
         XCTAssertEqual(Letter.fileSafe("Zürich Versicherung"), "Zuerich_Versicherung")
         XCTAssertEqual(Letter.splitReferences("Kundennummer: 1\nVertragsnummer: 2\n\nText").references.count, 2)
         XCTAssertEqual(Letter.mailText(references: ["Kundennummer: 1"], body: "Text", names: ["A"], sender: ["A", "Str. 1"]), "Kundennummer: 1\n\nText\n\nA\nStr. 1")
-        XCTAssertTrue(Letter.isRentHeuristic(label: "Routermiete", partner: "", kind: nil))
+        XCTAssertFalse(Letter.isRentHeuristic(label: "Routermiete", partner: "", kind: nil)) // wie Web: Gerätemiete ausgeschlossen
         XCTAssertTrue(Letter.isRentHeuristic(label: "Zimmer", partner: "", kind: .housing))
         XCTAssertFalse(Letter.isRentHeuristic(label: "Zimmer", partner: "", kind: nil))
     }
@@ -269,6 +359,14 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(Catalog.standardRule(for: gkv, categoryNames: names)?.notice, 2)
         let bank = WebPartnerHit(name: "Testbank", desc: "Bank", descAll: "Bank bank", dom: "testbank.ch", cc: "")
         XCTAssertEqual(Catalog.standardRule(for: bank, categoryNames: names)?.category, "Finanzen")
+        XCTAssertEqual(Catalog.standardRule(for: bank, categoryNames: names)?.cancelTerm, .monthEnd)
+        // C-1: Web-Korrekturen vom 03.10. (Konten Monatsende, Serafe/Rundfunkbeitrag Steuern, Zeitungen Abos & Medien)
+        XCTAssertEqual(Catalog.find("PostFinance")?.cancelTerm, .monthEnd)
+        XCTAssertEqual(Catalog.find("N26")?.cancelTerm, .monthEnd)
+        XCTAssertEqual(Catalog.find("Serafe")?.category, "Steuern & Gebühren")
+        XCTAssertEqual(Catalog.find("Rundfunkbeitrag")?.categoryKind, .taxes)
+        XCTAssertEqual(Catalog.find("NZZ")?.category, "Abos & Medien")
+        XCTAssertEqual(Catalog.find("Südkurier")?.category, "Abos & Medien")
         XCTAssertNil(Catalog.standardRule(for: WebPartnerHit(name: "Bäckerei", descAll: "Bäckerei"), categoryNames: names))
         XCTAssertEqual(Catalog.template(for: WebPartnerHit(name: "Swisscom AG", dom: "swisscom.ch", cc: "CH"), categoryNames: names)?.name, "Swisscom AG")
     }

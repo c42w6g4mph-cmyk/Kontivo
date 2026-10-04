@@ -7,6 +7,10 @@ public enum MutationError: Error, Equatable {
     case emptyName
     /// Name gibt es schon (ID des vorhandenen Eintrags, z.B. zum Zusammenführen)
     case duplicateName(UUID)
+    /// Kategorie mit diesem Namen gibt es schon
+    case duplicateCategory(UUID)
+    /// Neuer Inhaber: Namen gibt es schon
+    case duplicatePerson(UUID)
     /// Mindestens ein Inhaber ist nötig
     case lastPerson
     /// «Sonstiges» lässt sich weder umbenennen noch löschen
@@ -19,18 +23,23 @@ public enum MutationError: Error, Equatable {
     case invalidAmount
     /// Pause bis: Datum nicht in der Zukunft
     case dateNotInFuture
+    /// Kündigungsfrist ungültig (negativ bzw. bei «. im Monat» nicht 1–28)
+    case invalidNotice
 
     public var message: String {
         switch self {
         case .notFound: return "Nicht gefunden."
         case .emptyName: return "Name darf nicht leer sein"
         case .duplicateName: return "Diesen Namen gibt es schon"
+        case .duplicateCategory: return "Diese Kategorie gibt es schon"
+        case .duplicatePerson: return "Diesen Inhaber gibt es schon"
         case .lastPerson: return "Mindestens ein Inhaber ist nötig"
         case .fixedCategory: return "«Sonstiges» fängt alles ohne Kategorie auf und lässt sich weder umbenennen noch löschen."
         case .missingTitle: return "Bezeichnung fehlt"
         case .missingCategory: return "Bitte eine Kategorie wählen"
         case .invalidAmount: return "Betrag prüfen"
         case .dateNotInFuture: return "Bitte ein Datum in der Zukunft wählen"
+        case .invalidNotice: return "Kündigungsfrist prüfen"
         }
     }
 }
@@ -232,7 +241,16 @@ extension AppData {
         if label.isEmpty && pn.isEmpty { throw MutationError.missingTitle }
         guard let cid = draft.categoryID, category(cid) != nil else { throw MutationError.missingCategory }
         if !draft.amount.isFinite || draft.amount < 0 { throw MutationError.invalidAmount }
+        // wie Web `noticeVal`: ganze Zahl ≥ 0, bei «. im Monat» 1–28 (0 = keine Frist)
+        if draft.notice < 0 || (draft.noticeUnit == .dayOfMonth && draft.notice != 0 && !(1...28).contains(draft.notice)) {
+            throw MutationError.invalidNotice
+        }
         var d = draft
+        // Inhaber in der Reihenfolge der Personenliste (Web `holdersSorted`)
+        d.holderIDs = persons.map { $0.id }.filter { draft.holderIDs.contains($0) }
+            + draft.holderIDs.filter { id in !persons.contains { $0.id == id } }
+        // Kündigungslink nur bei «Online / Kundenkonto»
+        if d.cancelChannel != .online { d.cancelURL = "" }
         d.label = label
         d.categoryID = cid
         d.amount = Format.round2(draft.amount)
@@ -356,7 +374,7 @@ extension AppData {
     public mutating func addPerson(_ name: String) throws -> UUID {
         let n = Format.collapseSpaces(name)
         if n.isEmpty { throw MutationError.emptyName }
-        if let ex = persons.first(where: { $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicateName(ex.id) }
+        if let ex = persons.first(where: { $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicatePerson(ex.id) }
         let p = Person(name: n)
         persons.append(p)
         return p.id
@@ -431,15 +449,29 @@ extension AppData {
         if persons.isEmpty { persons.append(Person(name: "Ich")) }
     }
 
-    /// Absender speichern. Ein ungültiges «gleich wie» (auf sich selbst oder eine Person, die selbst «gleich wie» ist) wird entfernt (Fix M1).
+    /// Absender speichern. Ein ungültiges «gleich wie» (auf sich selbst oder eine Person, die selbst auf eine andere «gleich wie» ist)
+    /// wird entfernt (Fix M1). Wie Web `setSnd`: Zeigt die Person neu auf Y, zeigen alle, die auf sie zeigten, direkt auf Y
+    /// (keine Ketten); zeigte Y selbst auf sie, bekommt Y ihre bisherige Adresse.
     public mutating func setSender(_ id: UUID, _ s: SenderAddress, sameAs: UUID?) {
         guard let i = personIndex(id) else { return }
+        let old = persons[i].sender
         let t = { (x: String) in Format.collapseSpaces(x) }
         persons[i].sender = SenderAddress(first: t(s.first), last: t(s.last), street: t(s.street), zip: t(s.zip), city: t(s.city), country: t(s.country))
-        if let o = sameAs, o != id, let other = person(o), other.sameAddressAs == nil {
-            persons[i].sameAddressAs = o
-        } else {
+        guard let o = sameAs, o != id, let other = person(o), other.sameAddressAs == nil || other.sameAddressAs == id else {
             persons[i].sameAddressAs = nil
+            return
+        }
+        persons[i].sameAddressAs = o
+        for k in persons.indices where k != i && persons[k].sameAddressAs == id {
+            if persons[k].id == o {
+                persons[k].sameAddressAs = nil
+                persons[k].sender.street = old.street
+                persons[k].sender.zip = old.zip
+                persons[k].sender.city = old.city
+                persons[k].sender.country = old.country
+            } else {
+                persons[k].sameAddressAs = o
+            }
         }
     }
 
@@ -490,21 +522,33 @@ extension AppData {
         return title + " → " + holderIDs.compactMap { person($0)?.name }.joined(separator: ", ")
     }
 
-    /// «Alle Einträge einer Person übertragen»: `from` → `to`. Einträge, die `to` schon gehören, bleiben unverändert
-    /// (gemeinsame bleiben gemeinsam, Fix M7). `from` bleibt als Person bestehen. Rückgabe: Anzahl geänderter Einträge.
+    /// «Alle Einträge einer Person übertragen» (Web `mapHolders`): `from` → `to`. Einträge, die beiden gehören, gehören danach
+    /// nur noch `to` (keine Doppelnennung, Reihenfolge bleibt). `from` bleibt als Person bestehen. Rückgabe: Anzahl geänderter Einträge.
     @discardableResult
     public mutating func transferAll(from: UUID, to: UUID) -> Int {
         if from == to { return 0 }
         var n = 0
-        for i in contracts.indices where contracts[i].holderIDs.contains(from) && !contracts[i].holderIDs.contains(to) {
-            contracts[i].holderIDs = contracts[i].holderIDs.map { $0 == from ? to : $0 }
-            n += 1
+        for i in contracts.indices where contracts[i].holderIDs.contains(from) {
+            var arr: [UUID] = []
+            for h in contracts[i].holderIDs {
+                let r = h == from ? to : h
+                if !arr.contains(r) { arr.append(r) }
+            }
+            if arr != contracts[i].holderIDs {
+                contracts[i].holderIDs = arr
+                n += 1
+            }
         }
         for i in incomes.indices where incomes[i].holderID == from {
             incomes[i].holderID = to
             n += 1
         }
         return n
+    }
+
+    /// Einträge (Verträge und Einnahmen), die `a` und `b` gemeinsam gehören (Hinweis beim Übertragen: «… gehören danach nur noch «B».»).
+    public func sharedEntryCount(_ a: UUID, _ b: UUID) -> Int {
+        contracts.filter { $0.holderIDs.contains(a) && $0.holderIDs.contains(b) }.count
     }
 
     // MARK: Kategorien
@@ -519,21 +563,32 @@ extension AppData {
     public mutating func addCategory(_ name: String, colorHex: String? = nil, icon: String = "tag") throws -> UUID {
         let n = Format.collapseSpaces(name)
         if n.isEmpty { throw MutationError.emptyName }
-        if let ex = categories.first(where: { $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicateName(ex.id) }
-        let c = Category(name: n, colorHex: colorHex ?? Category.newColor(existingCount: categories.count), icon: icon, kind: Category.defaultKind(forName: n))
+        if let ex = categories.first(where: { $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicateCategory(ex.id) }
+        let c = Category(name: n, colorHex: colorHex ?? Category.newColor(existingCount: categories.count), icon: icon,
+                         kind: Category.kind(forName: n, among: categories))
         categories.append(c)
         return c.id
     }
 
-    /// Umbenennen (Art bleibt). «Sonstiges» ist fest.
+    /// Umbenennen. Standard-Arten (Fachschlüssel) bleiben; die Art eigener Kategorien folgt dem neuen Namen
+    /// (M-6: «Steuern…»-Regel wie Web `isTax`). «Sonstiges» ist fest.
     public mutating func renameCategory(_ id: UUID, to name: String) throws {
         guard let i = categoryIndex(id) else { throw MutationError.notFound }
         if categories[i].kind == .other { throw MutationError.fixedCategory }
         let n = Format.collapseSpaces(name)
         if n.isEmpty { throw MutationError.emptyName }
         if n == categories[i].name { return }
-        if let ex = categories.first(where: { $0.id != id && $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicateName(ex.id) }
+        if let ex = categories.first(where: { $0.id != id && $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicateCategory(ex.id) }
+        let old = categories[i]
+        let others = categories.filter { $0.id != id }
+        // Art nur aus der Namensregel: keine Art, oder «Steuern…» ohne Standardnamen, während es eine andere Steuern-Kategorie gibt
+        let byName = old.kind == nil || (old.kind == .taxes && Category.standardKinds[old.name] == nil
+            && old.name.lowercased().hasPrefix("steuern") && others.contains { $0.kind == .taxes })
         categories[i].name = n
+        if byName {
+            let k = Category.kind(forName: n, among: others)
+            categories[i].kind = k == .other ? nil : k
+        }
     }
 
     /// Farbe oder Symbol ändern (auch bei «Sonstiges»).
@@ -571,7 +626,8 @@ extension AppData {
 
     // MARK: Vertragspartner
 
-    /// Vertragspartner für einen eingegebenen Namen: vorhandener (Name ohne Gross/Klein, sonst Schlüssel) oder neu angelegt.
+    /// Vertragspartner für einen eingegebenen Namen: vorhandener (gleicher Name ohne Gross/Klein) oder neu angelegt.
+    /// Ähnliche Namen werden nicht still zusammengelegt (M-2, wie Web); Hinweis über `Partners.similar`.
     @discardableResult
     public mutating func partnerID(forName name: String, web: String = "") -> UUID? {
         let n = Format.collapseSpaces(name)

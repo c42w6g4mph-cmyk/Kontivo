@@ -84,4 +84,45 @@ final class QualityTests: XCTestCase {
         XCTAssertEqual(r2.C.count, 1)
         XCTAssertEqual(Quality.summary(r2), "1 Eintrag offen")
     }
+
+    /// Q-1/F3: Frist 0 bei Jahresende/Quartal/Halbjahr/Vertragsjahr oder fester Laufzeit → «Keine Kündigungsfrist».
+    func testNoticeZeroWithTerm() {
+        var data = AppData.initial()
+        let me = data.persons[0].id
+        let abos = data.category(named: "Abos & Medien")!.id
+        let y = Contract(label: "Jahr", categoryID: abos, amount: 10, cycle: 12, due: Day(2027, 1, 1), start: Day(2025, 1, 1),
+                         notice: 0, cancelTerm: .yearEnd, holderIDs: [me])
+        let e = Contract(label: "Fest", categoryID: abos, amount: 10, cycle: 1, due: Day(2026, 11, 1), end: Day(2027, 12, 31),
+                         notice: 0, holderIDs: [me])
+        let m = Contract(label: "Monat", categoryID: abos, amount: 10, cycle: 1, due: Day(2026, 11, 1), notice: 0, cancelTerm: .monthEnd, holderIDs: [me])
+        let w = Contract(label: "Ohne Überwachung", categoryID: abos, amount: 10, cycle: 12, due: Day(2027, 1, 1), notice: 0,
+                         cancelTerm: .yearEnd, noWatch: true, holderIDs: [me])
+        data.contracts = [y, e, m, w]
+        let r = Quality.report(data, today: today)
+        func reason(_ c: Contract) -> String? { r.B.first { $0.key == "c:" + c.id.uuidString + ":notice" }?.reason }
+        XCTAssertEqual(reason(y), "Keine Kündigungsfrist")
+        XCTAssertEqual(reason(e), "Keine Kündigungsfrist")
+        XCTAssertNil(reason(m))
+        XCTAssertNil(reason(w))
+        XCTAssertTrue(Quality.footnote.contains("Gekündigte und abgelaufene Verträge sowie ignorierte Hinweise zählen nicht."))
+    }
+
+    /// Q-3: «Kategorie «Sonstiges»» nur beim Namen «Sonstiges»; Steuern per Namensregel brauchen keine Frist.
+    func testCategoryReasons() {
+        var data = AppData.initial()
+        let me = data.persons[0].id
+        let other = data.category(named: "Sonstiges")!.id
+        let tid = try! data.addCategory("Steuern Auto")
+        let c1 = Contract(label: "X", categoryID: other, amount: 10, cycle: 1, due: Day(2026, 11, 1), holderIDs: [me])
+        let c2 = Contract(label: "Motorfahrzeugsteuer", categoryID: tid, amount: 300, cycle: 12, due: Day(2027, 3, 1), holderIDs: [me])
+        data.contracts = [c1, c2]
+        let r = Quality.report(data, today: today)
+        XCTAssertEqual(r.A.first { $0.key == "c:" + c1.id.uuidString + ":cat" }?.reason, "Kategorie «Sonstiges»")
+        XCTAssertFalse(r.all.contains { $0.key.hasPrefix("c:" + c2.id.uuidString) && ($0.criterion == .notice || $0.criterion == .via) })
+        // Umbenennen: Steuern-Regel folgt dem Namen (M-6)
+        try! data.renameCategory(tid, to: "Auto")
+        XCTAssertFalse(Calc(data: data, today: today).isTax(c2))
+        try! data.renameCategory(tid, to: "Steuern Fahrzeug")
+        XCTAssertTrue(Calc(data: data, today: today).isTax(c2))
+    }
 }

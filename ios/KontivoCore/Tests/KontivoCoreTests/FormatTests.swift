@@ -44,6 +44,12 @@ final class FormatTests: XCTestCase {
         XCTAssertEqual(Format.fixed2(59.9 / 3), "19.97")
         XCTAssertEqual(Format.fixed2(0), "0.00")
         XCTAssertEqual(Format.fixed2(1234.5), "1234.50")
+        // K-1: toFixed(1) rundet Gleichstände auf
+        XCTAssertEqual(Format.fixed1(2.25), "2.3")
+        XCTAssertEqual(Format.fixed1(0.75), "0.8")
+        XCTAssertEqual(Format.fixed1(0.15), "0.1")
+        XCTAssertEqual(Format.fixed1(12.34), "12.3")
+        XCTAssertEqual(Format.fixed1(0), "0.0")
     }
 
     func testRounding() {
@@ -104,6 +110,12 @@ final class FormatTests: XCTestCase {
         XCTAssertEqual(Format.normUrl(" http://a.ch "), "http://a.ch")
         XCTAssertEqual(Format.normUrl(""), "")
         XCTAssertEqual(Format.domain(of: "www.swisscom.ch/kuendigen"), "swisscom.ch")
+        // F-1: klein und Punycode wie JS `URL.hostname`
+        XCTAssertEqual(Format.domain(of: "https://WWW.Swisscom.CH:443/x?y#z"), "swisscom.ch")
+        XCTAssertEqual(Format.domain(of: "müller.ch"), "xn--mller-kva.ch")
+        XCTAssertEqual(Format.domain(of: "https://user@shop.example.com"), "shop.example.com")
+        XCTAssertEqual(Format.domain(of: "foo bar.ch"), "")
+        XCTAssertEqual(Format.domain(of: ""), "")
         XCTAssertEqual(Format.collapseSpaces("  Anna   Muster "), "Anna Muster")
         XCTAssertEqual(Format.firstName("Anna Muster"), "Anna")
         XCTAssertTrue(Format.lessDE("Ärzte", "Bank"))
@@ -122,5 +134,10 @@ final class FormatTests: XCTestCase {
         XCTAssertTrue(Partners.nameEq(Partners.ltok("Helsana"), "Helsana Versicherungen AG"))
         XCTAssertFalse(Partners.nameEq(Partners.ltok("Helsana"), "Helsana Arena"))
         XCTAssertEqual(Partners.regDom("www.shop.example.ch"), "example.ch")
+        XCTAssertEqual(Partners.regDom("bt.co.uk"), "bt.co.uk")
+        XCTAssertEqual(Partners.regDom("www.turkcell.com.tr"), "turkcell.com.tr")
+        XCTAssertEqual(Partners.regDom("shop.bbc.co.uk"), "bbc.co.uk")
+        XCTAssertEqual(Partners.regDom("www.sunrise.ch"), "sunrise.ch")
+        XCTAssertEqual(Partners.regDom("co.uk"), "co.uk")
     }
 }

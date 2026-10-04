@@ -5,6 +5,7 @@ public struct Calc {
     public let data: AppData
     public let today: Day
     private let kinds: [UUID: CategoryKind]
+    private let taxNames: Set<UUID>
     private let partnerNames: [UUID: String]
 
     /// Startwerte der Kurse (CHF pro Einheit), bis der erste Abruf erfolgt ist.
@@ -16,6 +17,8 @@ public struct Calc {
         var k: [UUID: CategoryKind] = [:]
         for c in data.categories { if let kind = c.kind { k[c.id] = kind } }
         kinds = k
+        // Web `isTax`: Name beginnt mit «Steuern» (ohne Gross/Klein) zählt immer als Steuern
+        taxNames = Set(data.categories.filter { $0.name.lowercased().hasPrefix("steuern") }.map { $0.id })
         var p: [UUID: String] = [:]
         for x in data.partners { p[x.id] = x.name }
         partnerNames = p
@@ -46,7 +49,11 @@ public struct Calc {
     }
 
     /// Steuern lassen sich nicht kündigen: keine Frist, nicht in «Fristen».
-    public func isTax(_ c: Contract) -> Bool { categoryKind(c) == .taxes }
+    public func isTax(_ c: Contract) -> Bool {
+        if categoryKind(c) == .taxes { return true }
+        guard let id = c.categoryID else { return false }
+        return taxNames.contains(id)
+    }
 
     /// Mietvertrag: ausdrücklicher Schalter, sonst Heuristik.
     public func isRent(_ c: Contract) -> Bool {
@@ -449,7 +456,7 @@ public struct Calc {
     }
 
     /// Quartals-Check fällig: ≥ 90 Tage seit letzter Prüfung (sonst seit erster Erfassung), nicht verschoben, mind. 1 aktiver Vertrag.
-    public func reviewDue(calendar: Calendar = Calendar.current) -> Bool {
+    public func reviewDue(calendar: Calendar = Day.calendar) -> Bool {
         var rb = data.settings.lastReview
         if rb == nil {
             let ts = data.contracts.map { $0.createdAt }.filter { $0.timeIntervalSince1970 > 0 }
@@ -749,7 +756,7 @@ extension Calc {
         if data.contracts.contains(where: { $0.start == nil && matches($0, filter) }) { yd = nil }
         var ydText = "—"
         if let d = yd {
-            ydText = Swift.abs(d) < 0.05 ? "±0 %" : (d > 0 ? "+" : Format.minus) + String(format: "%.1f", Swift.abs(d)) + " %"
+            ydText = Swift.abs(d) < 0.05 ? "±0 %" : (d > 0 ? "+" : Format.minus) + Format.fixed1(Swift.abs(d)) + " %"
         }
         let noStart = data.contracts.filter { $0.start == nil && $0.status != .cancelled }.count
         var hint: String? = nil

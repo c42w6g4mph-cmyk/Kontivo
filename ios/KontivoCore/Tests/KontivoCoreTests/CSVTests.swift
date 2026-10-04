@@ -45,6 +45,63 @@ final class CSVTests: XCTestCase {
         XCTAssertEqual(rows[2][1], "Grüezi Öl")
         XCTAssertEqual(rows[2][14], "Anfang:120.00 | 2027-01-01:130.00")
         XCTAssertEqual(rows[2][6], "9.40")
+        // CSV-1: Frist 0 und «jederzeit» ausdrücklich
+        XCTAssertEqual(rows[0][10], "Kuendigungsfrist")
+        XCTAssertEqual(rows[1][10], "2")
+        XCTAssertEqual(rows[2][10], "0")
+        XCTAssertEqual(rows[1][25], "m")
+        XCTAssertEqual(rows[2][25], "jederzeit")
+    }
+
+    /// CSV-1: Rundlauf erhält Frist 0, «jederzeit» und «kein Pflichtvertrag» auch bei Katalog-Vertragspartnern.
+    func testRoundTripKeepsDeliberateValues() {
+        var src = AppData.initial()
+        let me = src.persons[0].id
+        let tel = src.category(named: "Mobilfunk & Internet")!.id
+        let ins = src.category(named: "Versicherung")!.id
+        let sw = Partner(name: "Swisscom")
+        let css = Partner(name: "CSS")
+        src.partners = [sw, css]
+        src.contracts = [
+            Contract(label: "Handy", partnerID: sw.id, categoryID: tel, amount: 30, cycle: 1, due: Day(2026, 10, 20), notice: 0, cancelTerm: .anytime, holderIDs: [me]),
+            Contract(label: "Zusatz", partnerID: css.id, categoryID: ins, amount: 20, cycle: 1, due: Day(2026, 10, 20), notice: 0,
+                     cancelTerm: .anytime, mandatory: false, holderIDs: [me]),
+        ]
+        let text = CSV.export(src, today: today)
+        let pv = CSV.preview(csv: Data(text.utf8), data: AppData.initial(), today: today)
+        XCTAssertEqual(pv.items.count, 2)
+        for it in pv.items {
+            XCTAssertEqual(it.contract.notice, 0)
+            XCTAssertEqual(it.contract.cancelTerm, .anytime)
+            XCTAssertFalse(it.contract.mandatory)
+        }
+        // Ohne Spalten: Katalogwerte
+        let pv2 = CSV.preview(csv: Data("Vertragspartner;Betrag\nSwisscom;30\nCSS;400\n".utf8), data: AppData.initial(), today: today)
+        XCTAssertEqual(pv2.items[0].contract.notice, 60)
+        XCTAssertEqual(pv2.items[0].contract.cancelTerm, .monthEnd)
+        XCTAssertTrue(pv2.items[1].contract.mandatory)
+    }
+
+    /// CSV-2, CSV-3, CSV-5: Turnus angepasst, einzeilige Adresse, ungültige Daten.
+    func testAdjustedCyclesAddressDates() {
+        let csv = "Name;Betrag;Turnus;Adresse;Beginn;Faellig\nA;120;4 Monate;\"Firma AG, Hauptstr. 1, 8000 Zürich\";31.02.2026;2026/11/03\nB;10;5;;;\n"
+        let pv = CSV.preview(csv: Data(csv.utf8), data: AppData.initial(), today: today)
+        XCTAssertEqual(pv.items.count, 2)
+        XCTAssertEqual(pv.items[0].contract.cycle, 3)
+        XCTAssertEqual(pv.items[1].contract.cycle, 6)
+        XCTAssertEqual(pv.adjustedCycles, 2)
+        XCTAssertEqual(pv.items[0].address, "Firma AG\nHauptstr. 1\n8000 Zürich")
+        XCTAssertEqual(pv.items[0].contract.due, Day(2026, 11, 3))
+        XCTAssertNil(pv.items[0].contract.start)
+        XCTAssertEqual(pv.badDates, 1)
+        XCTAssertTrue(pv.confirmText.contains("2 Zahlungsrhythmen angepasst.\n"))
+        XCTAssertTrue(pv.confirmText.contains("1 ungültiges Datum ignoriert.\n"))
+        var target = AppData.initial()
+        CSV.apply(pv, to: &target)
+        let p = target.partner(target.contracts[0].partnerID)
+        XCTAssertEqual(p?.address.company, "Firma AG")
+        XCTAssertEqual(p?.address.street, "Hauptstr. 1")
+        XCTAssertEqual(p?.address.city, "Zürich")
     }
 
     func testRoundTrip() {
@@ -113,7 +170,12 @@ final class CSVTests: XCTestCase {
         XCTAssertEqual(CSV.cycle("monatlich"), .months(1))
         XCTAssertEqual(CSV.cycle(""), .months(1))
         XCTAssertEqual(CSV.cycle("12"), .months(12))
-        XCTAssertEqual(CSV.cycle("5"), .unsupported)
+        // CSV-2: nächster erlaubter Turnus (bei Gleichstand der kleinere)
+        XCTAssertEqual(CSV.cycle("5"), .adjusted(6))
+        XCTAssertEqual(CSV.cycle("4 Monate"), .adjusted(3))
+        XCTAssertEqual(CSV.cycle("18"), .adjusted(12))
+        XCTAssertEqual(CSV.cycle("3 Jahre"), .adjusted(24))
+        XCTAssertEqual(CSV.cycle("0"), .adjusted(1))
         XCTAssertEqual(CSV.cycle("wöchentlich"), .weeks(1))
         XCTAssertEqual(CSV.cycle("2 Wochen"), .weeks(2))
     }
@@ -168,6 +230,10 @@ final class CSVTests: XCTestCase {
         XCTAssertEqual(CSV.holders("Anna und Ben Müller", existing: []), ["Anna Müller", "Ben Müller"])
         XCTAssertEqual(CSV.holders("sinan", existing: ["Sinan"]), ["Sinan"])
         XCTAssertEqual(CSV.holders("Sinan Beispiel & Lara", existing: ["Sinan", "Lara"]), ["Sinan", "Lara"])
+        // CSV-4: ganzer Text = bestehender Inhaber; eigener Export nur am Komma; mit Komma kein Vornamen-Abgleich
+        XCTAssertEqual(CSV.holders("Anna & Ben", existing: ["Anna & Ben"]), ["Anna & Ben"])
+        XCTAssertEqual(CSV.holders("Anna & Ben", existing: [], ownExport: true), ["Anna & Ben"])
+        XCTAssertEqual(CSV.holders("Anna Müller, Anna Meier", existing: ["Anna"]), ["Anna Müller", "Anna Meier"])
     }
 
     func testForeignFile() {

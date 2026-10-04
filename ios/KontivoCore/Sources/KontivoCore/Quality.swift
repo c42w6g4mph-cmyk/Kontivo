@@ -151,7 +151,7 @@ public enum Quality {
 
     public static let checklistTitle = "Was geprüft wird"
     public static let completeBadge = "vollständig"
-    public static let footnote = "Tippe auf «offen», um die Einträge zu sehen. Gekündigte Verträge und ignorierte Hinweise zählen nicht. Nicht überwachte Verträge, Pflichtverträge und Steuern brauchen keine Frist. Adresse, E-Mail und Link werden nur für den gewählten Kündigungsweg verlangt."
+    public static let footnote = "Tippe auf «offen», um die Einträge zu sehen. Gekündigte und abgelaufene Verträge sowie ignorierte Hinweise zählen nicht. Nicht überwachte Verträge, Pflichtverträge und Steuern brauchen keine Frist. Adresse, E-Mail und Link werden nur für den gewählten Kündigungsweg verlangt."
     public static let emptyText = "Noch keine laufenden Verträge. Sobald du welche erfasst, siehst du hier, was fehlt."
 
     /// Offene Punkte (Regeln der Web-App mit den Fixes M5 (nur laufende Verträge), N2 («jederzeit» mit Frist ist vollständig)
@@ -187,8 +187,9 @@ public enum Quality {
             if let cid = c.categoryID {
                 if !catIDs.contains(cid) {
                     add(.A, s, .cat, name: nm, sub: sub, why: "Kategorie gibt es nicht mehr")
-                } else if data.category(cid)?.kind == .other {
-                    add(.A, s, .cat, name: nm, sub: sub, why: "Kategorie «" + (data.category(cid)?.name ?? "Sonstiges") + "»")
+                } else if data.category(cid)?.name == "Sonstiges" {
+                    // wie Web: wörtlich der Name «Sonstiges»
+                    add(.A, s, .cat, name: nm, sub: sub, why: "Kategorie «Sonstiges»")
                 }
             } else {
                 add(.A, s, .cat, name: nm, sub: sub, why: "Keine Kategorie")
@@ -219,10 +220,17 @@ public enum Quality {
                     }
                 }
             }
-            // Frist: nur bei überwachten Verträgen, wenn kein Termin berechenbar ist
-            let anytimeWithNotice = c.end == nil && c.cancelTerm == .anytime && c.notice > 0
-            if c.cancelPer == nil && !c.noWatch && !c.mandatory && !calc.isTax(c) && calc.noticeDeadline(c) == nil && !anytimeWithNotice {
-                add(.B, s, .notice, name: nm, sub: sub, why: (c.notice == 0 && c.cancelTerm == .anytime) ? "Keine Kündigungsfrist" : "Laufzeit oder Rhythmus fehlt")
+            // Frist: nur bei überwachten Verträgen; fehlt die Frist oder lässt sich kein Termin berechnen.
+            // Frist 0 bei Termin auf Quartal/Halbjahr/Jahr/Vertragsjahr oder fester Laufzeit: Kündigung am letzten Tag ist kaum je richtig
+            if c.cancelPer == nil && !c.noWatch && !c.mandatory && !calc.isTax(c) {
+                let anytimeWithNotice = c.end == nil && c.cancelTerm == .anytime && c.notice > 0
+                if calc.noticeDeadline(c) == nil {
+                    if !anytimeWithNotice {
+                        add(.B, s, .notice, name: nm, sub: sub, why: (c.notice == 0 && c.cancelTerm == .anytime) ? "Keine Kündigungsfrist" : "Laufzeit oder Rhythmus fehlt")
+                    }
+                } else if c.notice == 0 && (c.end != nil || [CancelTerm.contractYear, .yearEnd, .quarterEnd, .halfYearEnd].contains(c.cancelTerm)) {
+                    add(.B, s, .notice, name: nm, sub: sub, why: "Keine Kündigungsfrist")
+                }
             }
         }
         for i in data.incomes {

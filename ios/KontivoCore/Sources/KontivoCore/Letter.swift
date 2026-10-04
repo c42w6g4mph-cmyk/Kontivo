@@ -5,8 +5,10 @@ public struct LetterParts: Hashable, Sendable {
     /// Namen der Unterzeichnenden («Vorname Nachname», sonst Personenname)
     public var names: [String]
     public var signers: [UUID]
-    /// Absenderblock: je Adressgruppe «Name1 und Name2», danach deren Adresszeilen
+    /// Absenderblock: je Adressgruppe «Name1 und Name2», danach deren Adresszeilen (höchstens 7 Zeilen, siehe `senderCut`)
     public var sender: [String]
+    /// Hinweis, wenn der Absender gekürzt wurde («Absender gekürzt: …»), sonst leer
+    public var senderCut: String = ""
     /// Empfänger: Vertragspartner (wenn nicht schon in der ersten Adresszeile) + Adresszeilen
     public var to: [String]
     /// Ort der Datumszeile (Ort des ersten Unterzeichners)
@@ -25,11 +27,14 @@ public struct LetterParts: Hashable, Sendable {
 }
 
 public enum Letter {
-    /// Miete erkennen (Vorbelegung des Schalters): Bezeichnung + Vertragspartner enthalten «miete», «mietvertrag», «wohnungsmiete», «untermiete»,
-    /// oder Kategorie Wohnen und «wohnung», «zimmer», «apartment», «vermiet», «verwaltung», «immobilien».
+    /// Miete erkennen wie Web `isRent`: Mitgliedschaften und Gerätemieten («mieterverband», «gerätemiete», «router», «zähler»,
+    /// «parkplatz», «garage») ausgeschlossen; sonst Bezeichnung + Vertragspartner enthalten «miete», «mietvertrag», «mietzins»,
+    /// «wohnungsmiete», «mietwohnung», «untermiete», «nebenkosten», oder Kategorie Wohnen und «wohnung», «zimmer», «apartment»,
+    /// «vermiet», «verwaltung», «immobilien».
     public static func isRentHeuristic(label: String, partner: String, kind: CategoryKind?) -> Bool {
         let t = (label + " " + partner).lowercased()
-        if ["miete", "mietvertrag", "wohnungsmiete", "untermiete"].contains(where: { t.contains($0) }) { return true }
+        if ["mieterverband", "gerätemiete", "geraetemiete", "router", "zähler", "zaehler", "parkplatz", "garage"].contains(where: { t.contains($0) }) { return false }
+        if ["miete", "mietvertrag", "mietzins", "wohnungsmiete", "mietwohnung", "untermiete", "nebenkosten"].contains(where: { t.contains($0) }) { return true }
         if kind == .housing && ["wohnung", "zimmer", "apartment", "vermiet", "verwaltung", "immobilien"].contains(where: { t.contains($0) }) { return true }
         return false
     }
@@ -46,25 +51,46 @@ public enum Letter {
     public static func parts(_ c: Contract, signers: [UUID]? = nil, calc: Calc) -> LetterParts {
         let data = calc.data
         let sg = signers ?? defaultSigners(c, data: data)
-        struct P { var name: String; var addr: [String]; var city: String }
+        struct P { var name: String; var addr: [String]; var addrNoCountry: [String]; var city: String }
         let ps: [P] = sg.map { h in
             let o = data.resolvedSender(h)
             let n = o.fullName
-            return P(name: n.isEmpty ? (data.person(h)?.name ?? "") : n, addr: o.addressLines, city: o.city)
+            var nc = o
+            nc.country = ""
+            return P(name: n.isEmpty ? (data.person(h)?.name ?? "") : n, addr: o.addressLines, addrNoCountry: nc.addressLines, city: o.city)
         }
-        var groups: [(key: String, names: [String], addr: [String])] = []
-        for p in ps {
-            let k = p.addr.joined(separator: "|")
-            if let i = groups.firstIndex(where: { $0.key == k }) {
-                groups[i].names.append(p.name)
-            } else {
-                groups.append((key: k, names: [p.name], addr: p.addr))
+        // Absender nach gleicher Adresse gruppiert; mehr als 7 Zeilen: zuerst ohne Land, dann eine Zeile pro Person
+        func block(_ noCountry: Bool) -> [String] {
+            var groups: [(key: String, names: [String], addr: [String])] = []
+            for p in ps {
+                let a = noCountry ? p.addrNoCountry : p.addr
+                let k = a.joined(separator: "|")
+                if let i = groups.firstIndex(where: { $0.key == k }) {
+                    groups[i].names.append(p.name)
+                } else {
+                    groups.append((key: k, names: [p.name], addr: a))
+                }
             }
+            var out: [String] = []
+            for g in groups {
+                out.append(g.names.joined(separator: " und "))
+                out += g.addr
+            }
+            return out
         }
-        var sender: [String] = []
-        for g in groups {
-            sender.append(g.names.joined(separator: " und "))
-            sender += g.addr
+        var sender = block(false)
+        var sCut = ""
+        if sender.count > 7 {
+            sender = block(true)
+            sCut = "Absender gekürzt: Land weggelassen."
+        }
+        if sender.count > 7 {
+            sender = ps.map { ([$0.name] + $0.addrNoCountry).joined(separator: ", ") }
+            sCut = "Absender gekürzt: eine Zeile pro Person."
+        }
+        if sender.count > 7 {
+            sender = Array(sender.prefix(7))
+            sCut = "Absender gekürzt: Nicht alle Personen passen in den Absender (höchstens 7 Zeilen)."
         }
         let partner = data.partner(c.partnerID)
         let pn = (partner?.name ?? "").trimmingCharacters(in: .whitespaces)
@@ -82,7 +108,7 @@ public enum Letter {
         let body = "Sehr geehrte Damen und Herren\n\nhiermit " + (we ? "kündigen wir" : "kündige ich") + " den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"
             + (e != nil ? ", nach " + (we ? "unserer" : "meiner") + " Berechnung zum " + Format.fmtD(e) : "") + ".\n\n"
             + "Bitte bestätigen Sie " + (we ? "uns" : "mir") + " die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse"
-        return LetterParts(names: ps.map { $0.name }, signers: sg, sender: sender, to: to, city: ps.first?.city ?? "",
+        return LetterParts(names: ps.map { $0.name }, signers: sg, sender: sender, senderCut: sCut, to: to, city: ps.first?.city ?? "",
                            subject: subject(c, data: data), references: refs, body: body, deadline: d)
     }
 
@@ -100,7 +126,10 @@ public enum Letter {
     public static func hints(_ c: Contract, parts: LetterParts, calc: Calc) -> [String] {
         var h: [String] = []
         // Fix F4: Frist = Zugang beim Vertragspartner, nicht Absendetermin
-        if let d = parts.deadline { h.append("Muss spätestens am " + Format.fmtD(d) + " beim Vertragspartner sein.") }
+        if let d = parts.deadline {
+            h.append("Muss spätestens am " + Format.fmtD(d) + " beim Vertragspartner sein. Per Post einige Werktage vorher absenden, am besten eingeschrieben.")
+        }
+        if !parts.senderCut.isEmpty && !parts.signers.isEmpty { h.append(parts.senderCut) }
         if c.holderIDs.count > 1 && parts.signers.count < c.holderIDs.count {
             h.append("Gemeinsamer Vertrag: In der Regel müssen alle Vertragsparteien kündigen.")
         }

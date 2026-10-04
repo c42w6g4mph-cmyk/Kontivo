@@ -42,7 +42,7 @@ public struct BackupImportResult: Sendable {
     public var failedFiles: Int
 
     /// Text der Rückfrage «Backup einspielen?».
-    public func confirmText(calendar: Calendar = Calendar.current) -> String {
+    public func confirmText(calendar: Calendar = Day.calendar) -> String {
         Backup.confirmText(exported: exported, contracts: data.contracts.count, incomes: data.incomes.count, files: files.count, calendar: calendar)
     }
 }
@@ -110,11 +110,11 @@ public enum Backup {
     }
 
     /// «Backup vom 3.10.2026 mit 12 Verträgen und 2 Einnahmen sowie 5 Logos/Dokumenten.\n\nDie aktuellen Daten werden ersetzt.»
-    public static func confirmText(exported: String?, contracts: Int, incomes: Int, files: Int, calendar: Calendar = Calendar.current) -> String {
+    public static func confirmText(exported: String?, contracts: Int, incomes: Int, files: Int, calendar: Calendar = Day.calendar) -> String {
         var when = "unbekannt"
         if let e = exported, let d = Timestamp.parse(e) { when = Format.shortNumericDate(Day(date: d, calendar: calendar)) }
         return "Backup vom " + when + " mit " + Format.count(contracts, "Vertrag", "Verträgen") + " und " + Format.count(incomes, "Einnahme", "Einnahmen")
-            + (files > 0 ? " sowie \(files) Logos/Dokumenten" : "") + ".\n\nDie aktuellen Daten werden ersetzt."
+            + (files > 0 ? " sowie " + Format.count(files, "Logo/Dokument", "Logos/Dokumenten") : "") + ".\n\nDie aktuellen Daten werden ersetzt."
     }
 
     /// Meldung nach dem Einspielen («Backup eingespielt» bzw. mit fehlenden Dateien).
