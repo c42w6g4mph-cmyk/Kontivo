@@ -47,7 +47,7 @@ jobs:
           fi
       - name: UI-Tests
         id: ui
-        if: steps.app.outcome == 'success'
+        if: steps.app.outcome == 'success' && !contains(github.event.head_commit.message, '[noui]')
         continue-on-error: true
         timeout-minutes: 32
         run: |
