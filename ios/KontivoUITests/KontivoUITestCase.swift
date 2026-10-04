@@ -319,6 +319,7 @@ class KontivoUITestCase: XCTestCase {
         start.press(forDuration: 0.05, thenDragTo: end)
     }
 
-    /// Aktuelles Jahr (wie die App)
-    var currentYear: Int { Calendar(identifier: .gregorian).component(.year, from: Date()) }
+    /// Jahr des festen Stichtags (App: -uiToday, Standard 2026-10-03; Kosten/Budget öffnen diesen Monat).
+    /// Fest statt echtem Jahr, damit Tests und Bildschirmfotos ab 2027 dasselbe zeigen.
+    var currentYear: Int { 2026 }
 }

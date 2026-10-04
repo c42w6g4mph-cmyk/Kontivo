@@ -36,6 +36,34 @@ enum AppSheet: Identifiable, Hashable {
         case .manage(let r): return "manage-\(r.idPart)"
         }
     }
+
+    /// Fenstertyp (für den Schutz vor Doppel-Präsentation in `AppModel.present`)
+    var kind: AppSheetKind {
+        switch self {
+        case .contractDetail: return .contractDetail
+        case .contractForm: return .contractForm
+        case .incomeForm: return .incomeForm
+        case .incomesAll: return .incomesAll
+        case .letter: return .letter
+        case .cancelChannelPick: return .cancelChannelPick
+        case .mail: return .mail
+        case .document: return .document
+        case .manage: return .manage
+        }
+    }
+}
+
+enum AppSheetKind: Hashable {
+    case contractDetail, contractForm, incomeForm, incomesAll, letter, cancelChannelPick, mail, document, manage
+
+    /// Darf nicht zweimal direkt übereinander liegen (Doppeltippen öffnet sonst z.B. zwei Mail-Fenster).
+    /// Vertragsdetail und Verwalten dürfen übereinander liegen (z.B. Vertragspartner → anderer Vertrag).
+    var singleOnTop: Bool {
+        switch self {
+        case .contractDetail, .manage: return false
+        default: return true
+        }
+    }
 }
 
 enum ContractFormContext: Hashable {
