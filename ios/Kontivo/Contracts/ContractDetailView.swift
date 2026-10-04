@@ -250,29 +250,28 @@ private struct CTDetailPills: View {
         var tone: Pill.Tone
     }
 
-    /// Reihenfolge wie die Web-App (spätere überschreiben), zusätzlich «Beendet am» für abgelaufene befristete Verträge.
+    /// Rangfolge wie die Web-App (openDetail): Archiv → gekündigt per → befristet abgelaufen → behalten → Frist rot/orange;
+    /// «Pausiert …» nur bei nicht gekündigten/abgelaufenen Verträgen.
     static func pills(_ c: Contract, calc: Calc) -> [Item] {
         var main: Item?
-        let u = calc.urgency(c)
         let archived = c.status == .cancelled
-        if !archived && u.level == .alert, let d = u.days {
-            main = Item(text: "Frist " + Format.inDays(d), tone: .alert)
-        } else if !archived && u.level == .warn, let d = u.days {
-            main = Item(text: "Frist " + Format.inDays(d), tone: .warn)
-        } else if archived {
+        let gone = archived || c.cancelPer != nil || calc.endedByTerm(c)
+        let u = calc.urgency(c)
+        if archived {
             main = Item(text: "Gekündigt" + (c.cancelledAt.map { " am " + Format.fmtD($0) } ?? ""), tone: .neutral)
-        }
-        if let cp = c.cancelPer, !archived {
-            main = Item(text: "Gekündigt · läuft bis " + Format.fmtD(cp), tone: .neutral)
+        } else if let cp = c.cancelPer {
+            main = Item(text: "Gekündigt · " + (calc.endedByNotice(c) ? "beendet am " : "läuft bis ") + Format.fmtD(cp), tone: .neutral)
+        } else if calc.endedByTerm(c), let e = c.end {
+            main = Item(text: "Beendet am " + Format.fmtD(e), tone: .neutral)
         } else if calc.isKept(c) {
             main = Item(text: "Behalten bis nächster Termin", tone: .neutral)
-        } else if !archived && calc.endedByTerm(c), let e = c.end {
-            main = Item(text: "Beendet am " + Format.fmtD(e), tone: .neutral)
+        } else if u.level == .alert, let d = u.days {
+            main = Item(text: "Frist " + Format.inDays(d), tone: .alert)
+        } else if u.level == .warn, let d = u.days {
+            main = Item(text: "Frist " + Format.inDays(d), tone: .warn)
         }
-        if calc.isPaused(c) {
-            if let p = calc.currentPause(c) {
-                main = Item(text: p.until.map { "Pausiert bis " + Format.fmtD($0) } ?? "Pausiert seit " + Format.fmtD(p.from), tone: .neutral)
-            }
+        if !gone && calc.isPaused(c), let p = calc.currentPause(c) {
+            main = Item(text: p.until.map { "Pausiert bis " + Format.fmtD($0) } ?? "Pausiert seit " + Format.fmtD(p.from), tone: .neutral)
         }
         var out: [Item] = []
         if let m = main { out.append(m) }
@@ -363,16 +362,18 @@ private struct CTDetailSections: View {
     private func termRows(_ c: Contract, calc: Calc) -> [CTDetailRow] {
         var r: [CTDetailRow] = []
         let te = calc.termEnd(c)
+        // gekündigt (Archiv oder «gekündigt per») oder abgelaufen: keine Frist, kein nächster Termin, keine Verlängerung mehr
+        let gone = c.status == .cancelled || c.cancelPer != nil || calc.endedByTerm(c)
         if let s = c.start { r.append(CTDetailRow("Beginn", Format.fmtD(s))) }
         if c.end != nil, let e = calc.effEnd(c) {
-            let missed = te.map { $0 > e } ?? false
+            let missed = !gone && (te.map { $0 > e } ?? false)
             r.append(CTDetailRow("Vertragsende", Format.fmtD(e) + (missed ? " · Frist verpasst" : "")))
         }
         let nt = Format.noticeText(c)
         r.append(CTDetailRow("Kündigung", (nt.isEmpty ? "ohne Frist" : nt)
             + (c.end == nil ? " · " + (c.cancelTerm != .anytime ? "auf " + Format.termText(c.cancelTerm) : "jederzeit") : "")))
         let u = calc.urgency(c)
-        if let d = u.date, let T = te, c.cancelPer == nil, calc.isActive(c) {
+        if !gone, let d = u.date, let T = te {
             let txt = "per " + Format.fmtShort(T) + ", kündigen bis " + Format.fmtShort(d)
             if calc.isAnytime(c) {
                 r.append(CTDetailRow("Nächste Gelegenheit", txt))
@@ -383,7 +384,7 @@ private struct CTDetailSections: View {
         }
         if c.mandatory { r.append(CTDetailRow("Pflichtvertrag", "nur Wechsel möglich")) }
         if c.noWatch { r.append(CTDetailRow("Frist", "wird nicht beobachtet")) }
-        if let rt = calc.renewTo(c) {
+        if !gone, let rt = calc.renewTo(c) {
             r.append(CTDetailRow("Sonst verlängert bis", Format.fmtD(rt)))
         } else if c.renewMonths > 0 {
             r.append(CTDetailRow("Verlängerung", "automatisch um \(c.renewMonths)" + (c.renewMonths == 1 ? " Monat" : " Monate")))

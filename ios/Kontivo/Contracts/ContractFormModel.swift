@@ -62,6 +62,8 @@ final class CTFormState {
     var logoBg: String?
     /// Logo in diesem Formular gewählt oder entfernt
     var logoTouched = false
+    /// «Kündigungsfrist prüfen»: Fokus ins Fristfeld setzen (Hauptseite)
+    var focusNotice = false
 
     // Vorlagen und Vorschläge
     /// Name der übernommenen Katalog-Vorlage
@@ -255,9 +257,15 @@ final class CTFormState {
         if !t.category.isEmpty, let cid = CTFormState.categoryID(for: t.category, data: data) {
             if !onlyEmpty || !categoryValid(data) { categoryID = cid }
         }
-        if t.notice > 0 && (!onlyEmpty || noticeText.ctTrimmed.isEmpty) {
-            noticeText = "\(t.notice)"
-            noticeUnit = t.noticeUnit
+        if onlyEmpty {
+            if t.notice > 0 && noticeText.ctTrimmed.isEmpty {
+                noticeText = "\(t.notice)"
+                noticeUnit = t.noticeUnit
+            }
+        } else {
+            // Vorlage gilt vollständig: ohne Frist (z.B. Banken) wird das Feld geleert
+            noticeText = t.notice > 0 ? "\(t.notice)" : ""
+            if t.notice > 0 { noticeUnit = t.noticeUnit }
         }
         if !termFixed && (!onlyEmpty || cancelTerm == .anytime) { cancelTerm = t.cancelTerm }
         if let ch = t.cancelChannel, !onlyEmpty || cancelChannel == nil { cancelChannel = ch }
@@ -291,25 +299,27 @@ final class CTFormState {
         case none
         case hint(String, standardChip: Bool)
         case chips([CatalogEntry])
+        /// Exakter Katalog-Treffer (z.B. «CSS», «O2»), noch nicht übernommen: Chip «‹Name› übernehmen»
+        case exact(CatalogEntry)
     }
 
     var suggest: Suggest {
         let pn = partnerName.ctTrimmed
         if let st = stdTpl, st.name == pn {
-            return .hint(st.hint, standardChip: !stdDone && (st.notice > 0 || st.mandatory))
+            return .hint(st.hint, standardChip: !stdDone && (st.notice > 0 || st.cancelTerm != .anytime || st.mandatory))
         }
         let cur = Catalog.find(pn)
-        if let c = cur, tplHint == c.name { return .hint(c.hint, standardChip: false) }
+        if let c = cur { return tplHint == c.name ? .hint(c.hint, standardChip: false) : .exact(c) }
         let q = (pn.isEmpty ? label : pn).ctTrimmed.lowercased()
-        if q.count < 2 || cur != nil { return .none }
+        if q.count < 2 { return .none }
         let hits = Catalog.suggestions(q)
         return hits.isEmpty ? .none : .chips(hits)
     }
 
-    /// «Übliche Frist übernehmen»
+    /// «Übliche Frist übernehmen»: wie Web nur leere Felder füllen (bewusst gewählte Werte bleiben)
     func applyStandard(data: AppData) {
         guard let st = stdTpl else { return }
-        applyTemplate(st, keepName: true, onlyEmpty: false, data: data)
+        applyTemplate(st, keepName: true, onlyEmpty: true, data: data)
         stdTpl = st
         stdDone = true
     }
@@ -384,7 +394,7 @@ final class CTFormState {
         tmp.cycle = cycle
         tmp.due = due
         tmp.start = start
-        tmp.notice = CTNumber.int(noticeText)
+        tmp.notice = CTNumber.int(noticeText, unit: noticeUnit)
         tmp.noticeUnit = noticeUnit
         if termFixed {
             tmp.end = end
@@ -436,7 +446,7 @@ final class CTFormState {
             n(extras.count, "Sonderzahlung", "Sonderzahlungen"),
             watch == .mandatory ? "Pflichtvertrag" : (watch == .noWatch ? "nicht in Fristen" : ""),
             cancelChannel != nil ? "Kündigungsweg" : "",
-            cancelURL.ctTrimmed.isEmpty ? "" : "Kündigungslink",
+            (cancelChannel != .online || cancelURL.ctTrimmed.isEmpty) ? "" : "Kündigungslink",
             trial != nil ? "Probeabo" : "",
             customerNo.ctTrimmed.isEmpty ? "" : "Kundennummer",
             contractNo.ctTrimmed.isEmpty ? "" : "Vertragsnummer",
@@ -498,8 +508,8 @@ final class CTFormState {
 
     // MARK: Sichern
 
-    /// Formularwerte als Vertrag (ohne Vertragspartner; Betrag separat)
-    func makeContract(amount: Double) -> Contract {
+    /// Formularwerte als Vertrag (ohne Vertragspartner; Betrag und geprüfte Frist separat)
+    func makeContract(amount: Double, notice: Int? = nil) -> Contract {
         var c = base
         c.label = label.ctTrimmed
         c.categoryID = categoryID
@@ -510,7 +520,7 @@ final class CTFormState {
         c.due = due
         c.start = start
         c.end = termFixed ? end : nil
-        c.notice = CTNumber.int(noticeText)
+        c.notice = notice ?? CTNumber.int(noticeText, unit: noticeUnit)
         c.noticeUnit = noticeUnit
         c.renewMonths = termFixed ? renewMonths : 0
         c.cancelTerm = termFixed ? .anytime : cancelTerm
@@ -518,7 +528,8 @@ final class CTFormState {
         c.noWatch = watch == .noWatch
         c.isRent = isRent
         c.cancelChannel = cancelChannel
-        c.cancelURL = cancelURL.ctTrimmed
+        // Kündigungslink nur beim Weg «Online / Kundenkonto» (wie Web)
+        c.cancelURL = cancelChannel == .online ? cancelURL.ctTrimmed : ""
         c.trial = trial
         c.customerNo = customerNo.ctTrimmed
         c.contractNo = contractNo.ctTrimmed
@@ -551,7 +562,12 @@ final class CTFormState {
             model.toast("Betrag prüfen")
             return false
         }
-        var c = makeContract(amount: amt)
+        guard let notice = CTNumber.noticeValue(noticeText, unit: noticeUnit) else {
+            model.toast("Kündigungsfrist prüfen")
+            focusNotice = true
+            return false
+        }
+        var c = makeContract(amount: amt, notice: notice)
         c.categoryID = cid
         let today = model.today
         let webT = web.ctTrimmed

@@ -17,7 +17,12 @@ Quelle: Prüfberichte s2-app-vertraege.md (alle Funde) und s5-architektur.md (A1
 - s5 A13: verwaiste Dateien einmal pro Tag (>7 Tage)
 - s2 A23: Darstellung über UIWindow.overrideUserInterfaceStyle
 - APP-BAUSTEINE.md: neue APIs dokumentiert
+- s2 A1–A5 (Liste: Gruppensummen, Hero-Filter zurücksetzen, Leertexte, Hero im Filtertext, Inhaber-Gruppen)
+- s2 A6/A7 (Detail: Pillen-Rangfolge, «gone» für Frist verpasst/Sonst verlängert/Nächster Termin)
+- s2 A8–A12 (Vorlagen: exakter Treffer, Übliche Frist nur leere Felder, Chip bei Kündbar-per, spätes Logo, Frist leeren)
+- s2 A13 (Kündigungsfrist prüfen, CTNumber.noticeValue), CTNumber.parse → Format.parseNum
+- s2 A14 (Kündigungslink nur bei Online), A15 (Verwerfen-Text), A20 (Logo-Hinweis bei den Bild-Knöpfen)
 
 ## Offen
-- s2: A1–A15, A20, A21 (Verträge)
+- s2 A21: bewusst offen (Detail bleibt nach Aktionen offen; Rückfrage an Nutzer)
 - CI grün (ohne [noui])
