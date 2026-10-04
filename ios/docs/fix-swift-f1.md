@@ -17,5 +17,12 @@
 
 - Teil B: tests/make_golden_texts.py + cases_texts.json → golden_texts.json; Swift TextGoldenTests (urgency, Fristen, CSV, Datenqualität, Briefe)
 
-## Offen
-- CI-Lauf der Vergleichstests prüfen, Abweichungen beheben; letzter Lauf ohne [noui]
+- CI: Kern- und Vergleichstests grün (Lauf 57); letzter Lauf ohne [noui]
+
+## Bewusst nicht behoben
+- W-3 (a): Vertrag ohne Vertragspartner, Adresse ohne Firmenzeile → Vertragspartner heisst wie die Bezeichnung (Brief zeigt sie als erste Zeile). Sauber nur mit Adressfeld am Vertrag (Datenmodell) – Rückfrage nötig.
+- Q-3 (a): gelöschte Kategorie ohne Namen im Grund (ID-Modell, Name unbekannt); Import legt fehlende Kategorien ohnehin an.
+- CSV-5 (c): Tausender-Erkennung «1.000» = 1000 bleibt (bewusster Swift-Fix L1).
+- CSV-6: Spalte «Einheit» bleibt «m» auch ohne Frist (nur Text, Import gleichwertig).
+- M-5 teilweise: Umbenennen von Person/Vertragspartner auf bestehenden Namen bleibt `duplicateName` (App fragt nach Zusammenführen).
+- B-1, K-2: liegen in ExtKostenBudget.swift (Bereich f3).
