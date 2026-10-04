@@ -2579,10 +2579,10 @@ function openFq(){
     '<div class="fqbar" aria-hidden="true"><i class="fqb" style="left:'+L.lo+'%;width:'+(L.hi-L.lo)+'%"></i><i class="fqd" style="left:'+dot+'%"></i></div>'+
     '<div class="fqax"><span>0\u00a0%</span><span class="fqu" style="left:'+((L.lo+L.hi)/2)+'%">üblich</span><span>100\u00a0%</span></div>'+
     '<p class="fqs">'+FQ_TXT[st]+'</p>'+
-    '<div class="fqcard">'+(d.avg!=null&&Math.abs(d.avg-p)>=3?'<p><b>Im Schnitt '+d.y+': '+d.avg+'\u00a0%.</b> Einzelne Monate schwanken durch Jahresrechnungen oder Bonus.</p>':"")+
+    '<div class="fqcard">'+
     '<p>'+L.note+'</p><p>Entscheidend ist der Betrag, der dir am Ende bleibt.</p></div>'+
     (st==="lo"||st==="edge"?fqTips(d):"")+
-    '<p class="fqf">Richtwerte von Budgetberatungen, keine feste Norm. Genauigkeit abhängig von deinen erfassten Verträgen.</p></div>';
+    '<p class="fqf">'+(d.avg!=null&&Math.abs(d.avg-p)>=3?'Wert des Monats, Jahresschnitt '+d.y+': '+d.avg+'\u00a0%. ':"")+'Richtwerte von Budgetberatungen, keine feste Norm. Genauigkeit abhängig von deinen erfassten Verträgen.</p></div>';
   openSheet(document.getElementById("sheetPick"));
 }
 function renderBudget(v){
