@@ -12,6 +12,8 @@
 - CSV-1 (Frist 0/«jederzeit»/Pflicht beim Rundlauf), CSV-2 (Turnus runden, adjustedCycles), CSV-3 (einzeilige Adresse), CSV-4 (Inhaber wie Web), CSV-5 a/b (badDates, JJJJ/MM/TT)
 - M-1/F1 (transferAll wie mapHolders, sharedEntryCount), M-3 (Inhaber sortiert, cancelURL nur Online, invalidNotice), M-4 (setSender ohne Ketten), Format.noticeValue
 
+- K-1 (Format.fixed1 wie toFixed(1)), F-1 (domain klein + Punycode), COD-1 (Listen elementweise lesen, AppData wirft bei unlesbarer Liste)
+- F-2: bereits in ARCHITEKTUR.md als bewusste Abweichung (U+2212)
+
 ## Offen
-- K-1, COD-1, F-1, F-2
 - Teil B: Vergleichstests (urgency, Fristen-Übersicht, Datenqualität, letterParts, CSV-Export)

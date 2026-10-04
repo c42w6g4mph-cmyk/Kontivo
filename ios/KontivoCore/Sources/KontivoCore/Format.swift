@@ -82,6 +82,18 @@ public enum Format {
         return String(format: "%.2f", x)
     }
 
+    /// JS `toFixed(1)`: exakter Gleichstand auf der zweiten Stelle (x.25, x.75) wird aufgerundet (printf rundet zur geraden Ziffer).
+    public static func fixed1(_ x: Double) -> String {
+        if x == 0 || !x.isFinite { return "0.0" }
+        let a = Swift.abs(x)
+        let y = a * 4
+        if y == y.rounded(.down) && y.truncatingRemainder(dividingBy: 2) == 1 && a < 1e15 {
+            let n = Int((a * 10).rounded(.down)) + 1
+            return (x < 0 ? "-" : "") + String(n / 10) + "." + String(n % 10)
+        }
+        return String(format: "%.1f", x)
+    }
+
     /// JS `Math.round` (Gleichstand Richtung +∞).
     public static func jsRound(_ x: Double) -> Double {
         let f = x.rounded(.down)
@@ -268,11 +280,71 @@ public enum Format {
         return (l.hasPrefix("http://") || l.hasPrefix("https://")) ? t : "https://" + t
     }
 
-    /// Hostname ohne «www.» (`domainOf`).
+    /// Hostname ohne «www.» (`domainOf`): wie JS `new URL(…).hostname` klein geschrieben und Umlaut-Domains als Punycode
+    /// («müller.ch» → «xn--mller-kva.ch»); nicht lesbar (z.B. Leerzeichen im Host) → "".
     public static func domain(of u: String) -> String {
         let n = normUrl(u)
-        guard !n.isEmpty, let host = URL(string: n)?.host else { return "" }
-        return host.lowercased().hasPrefix("www.") ? String(host.dropFirst(4)) : host
+        if n.isEmpty { return "" }
+        var rest = Substring(n)
+        if let r = rest.range(of: "://") { rest = rest[r.upperBound...] }
+        let end = rest.firstIndex(where: { $0 == "/" || $0 == "?" || $0 == "#" || $0 == "\\" }) ?? rest.endIndex
+        var auth = rest[..<end]
+        if let at = auth.lastIndex(of: "@") { auth = auth[auth.index(after: at)...] }
+        if !auth.hasPrefix("["), let c = auth.lastIndex(of: ":") { auth = auth[..<c] }
+        let host = String(auth).precomposedStringWithCanonicalMapping.lowercased()
+        if host.isEmpty || host.contains(where: { $0.isWhitespace || $0 == "<" || $0 == ">" || $0 == "%" }) { return "" }
+        let labels = host.split(separator: ".", omittingEmptySubsequences: false).map { punycode(String($0)) }
+        let h = labels.joined(separator: ".")
+        return h.hasPrefix("www.") ? String(h.dropFirst(4)) : h
+    }
+
+    /// Punycode einer Domain-Stufe (RFC 3492, «xn--…»); reine ASCII-Stufen bleiben unverändert.
+    static func punycode(_ label: String) -> String {
+        let s = label.unicodeScalars.map { Int($0.value) }
+        if s.allSatisfy({ $0 < 0x80 }) { return label }
+        let base = 36, tMin = 1, tMax = 26, skew = 38, damp = 700
+        var n = 128, delta = 0, bias = 72
+        var out = String(String.UnicodeScalarView(label.unicodeScalars.filter { $0.value < 0x80 }))
+        let b = out.unicodeScalars.count
+        var h = b
+        if b > 0 { out += "-" }
+        func digit(_ d: Int) -> Character { Character(Unicode.Scalar(UInt8(d < 26 ? 97 + d : 22 + d))) }
+        func adapt(_ d0: Int, _ num: Int, _ first: Bool) -> Int {
+            var d = first ? d0 / damp : d0 / 2
+            d += d / num
+            var k = 0
+            while d > ((base - tMin) * tMax) / 2 {
+                d /= base - tMin
+                k += base
+            }
+            return k + (base - tMin + 1) * d / (d + skew)
+        }
+        while h < s.count {
+            guard let m = s.filter({ $0 >= n }).min() else { break }
+            delta += (m - n) * (h + 1)
+            n = m
+            for c in s {
+                if c < n { delta += 1 }
+                if c == n {
+                    var q = delta
+                    var k = base
+                    while true {
+                        let t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias)
+                        if q < t { break }
+                        out.append(digit(t + (q - t) % (base - t)))
+                        q = (q - t) / (base - t)
+                        k += base
+                    }
+                    out.append(digit(q))
+                    bias = adapt(delta, h + 1, h == b)
+                    delta = 0
+                    h += 1
+                }
+            }
+            delta += 1
+            n += 1
+        }
+        return "xn--" + out
     }
 
     /// Vergleich wie `localeCompare(…, "de-CH", {sensitivity:"base"})`.

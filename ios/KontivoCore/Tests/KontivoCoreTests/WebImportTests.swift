@@ -297,4 +297,29 @@ final class WebImportTests: XCTestCase {
         let c = WebImport.addrSplit("Kundendienst\n3050 Bern")
         XCTAssertEqual(c.street, "Kundendienst")
     }
+
+    /// COD-1: ein defektes Element löscht nicht die ganze Liste; eine gar nicht lesbare Liste wirft.
+    func testLossyDecoding() throws {
+        var d = AppData.initial()
+        d.contracts = [Contract(label: "A", amount: 10, prices: [PriceChange(from: Day(2027, 1, 1), amount: 12), PriceChange(from: Day(2028, 1, 1), amount: 14)]),
+                       Contract(label: "B", amount: 20)]
+        let enc = try d.encoded()
+        var o = try XCTUnwrap(JSONSerialization.jsonObject(with: enc) as? [String: Any])
+        var cs = try XCTUnwrap(o["contracts"] as? [Any])
+        var c0 = try XCTUnwrap(cs[0] as? [String: Any])
+        var ps = try XCTUnwrap(c0["prices"] as? [Any])
+        ps[1] = ["from": "kaputt", "amount": 14]
+        c0["prices"] = ps
+        cs[0] = c0
+        cs.append(5)
+        o["contracts"] = cs
+        let back = try AppData.decode(try JSONSerialization.data(withJSONObject: o))
+        XCTAssertEqual(back.contracts.map { $0.label }, ["A", "B"])
+        XCTAssertEqual(back.contracts[0].prices, [PriceChange(from: Day(2027, 1, 1), amount: 12)])
+        XCTAssertEqual(back.categories.count, d.categories.count)
+        o["contracts"] = "kein Array"
+        XCTAssertThrowsError(try AppData.decode(try JSONSerialization.data(withJSONObject: o)))
+        o["contracts"] = [1, 2]
+        XCTAssertThrowsError(try AppData.decode(try JSONSerialization.data(withJSONObject: o)))
+    }
 }

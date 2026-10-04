@@ -756,7 +756,7 @@ extension Calc {
         if data.contracts.contains(where: { $0.start == nil && matches($0, filter) }) { yd = nil }
         var ydText = "—"
         if let d = yd {
-            ydText = Swift.abs(d) < 0.05 ? "±0 %" : (d > 0 ? "+" : Format.minus) + String(format: "%.1f", Swift.abs(d)) + " %"
+            ydText = Swift.abs(d) < 0.05 ? "±0 %" : (d > 0 ? "+" : Format.minus) + Format.fixed1(Swift.abs(d)) + " %"
         }
         let noStart = data.contracts.filter { $0.start == nil && $0.status != .cancelled }.count
         var hint: String? = nil

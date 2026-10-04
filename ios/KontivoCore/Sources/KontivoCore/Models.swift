@@ -635,15 +635,15 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
         colorHex = c.optional(.colorHex)
         logoID = c.optional(.logoID)
         logoBg = c.optional(.logoBg)
-        prices = c.value(.prices, [PriceChange]())
-        documents = c.value(.documents, [Attachment]())
-        extras = c.value(.extras, [ExtraPayment]())
+        prices = c.lossyArray(.prices)
+        documents = c.lossyArray(.documents)
+        extras = c.lossyArray(.extras)
         status = c.value(.status, ContractStatus.active)
         cancelledAt = c.optional(.cancelledAt)
         cancelPer = c.optional(.cancelPer)
         cancelledOn = c.optional(.cancelledOn)
         keptFor = c.optional(.keptFor)
-        pauses = c.value(.pauses, [Pause]())
+        pauses = c.lossyArray(.pauses)
         createdAt = c.value(.createdAt, Date(timeIntervalSince1970: 0))
     }
 
@@ -708,7 +708,7 @@ public struct Income: Codable, Hashable, Identifiable, Sendable {
         start = c.optional(.start)
         end = c.optional(.end)
         holderID = c.optional(.holderID)
-        prices = c.value(.prices, [PriceChange]())
+        prices = c.lossyArray(.prices)
         note = c.value(.note, "")
         logoID = c.optional(.logoID)
         logoBg = c.optional(.logoBg)
@@ -775,8 +775,8 @@ public struct Settings: Codable, Hashable, Sendable {
         theme = c.value(.theme, Theme.auto)
         sort = c.value(.sort, ContractSort.category)
         onboarded = c.value(.onboarded, 0)
-        lastHolderIDs = c.value(.lastHolderIDs, [UUID]())
-        qualityIgnored = c.value(.qualityIgnored, [String]())
+        lastHolderIDs = c.lossyArray(.lastHolderIDs)
+        qualityIgnored = c.lossyArray(.qualityIgnored)
         lastReview = c.optional(.lastReview)
         reviewSnooze = c.optional(.reviewSnooze)
         dataVersion = c.value(.dataVersion, Settings.currentDataVersion)
@@ -806,11 +806,13 @@ public struct AppData: Codable, Hashable, Sendable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         settings = c.value(.settings, Settings())
-        persons = c.value(.persons, [Person]())
-        categories = c.value(.categories, [Category]())
-        partners = c.value(.partners, [Partner]())
-        contracts = c.value(.contracts, [Contract]())
-        incomes = c.value(.incomes, [Income]())
+        // Listen elementweise (COD-1): ein defekter Eintrag geht verloren, nicht die ganze Liste; ist eine vorhandene Liste
+        // gar nicht lesbar, wirft das Lesen (die App darf dann nicht mit leeren Daten überschreiben)
+        persons = try c.lossyArrayStrict(.persons)
+        categories = try c.lossyArrayStrict(.categories)
+        partners = try c.lossyArrayStrict(.partners)
+        contracts = try c.lossyArrayStrict(.contracts)
+        incomes = try c.lossyArrayStrict(.incomes)
     }
 
     /// Startzustand: Person «Ich», 12 Standardkategorien, Hauptwährung CHF.
@@ -985,4 +987,45 @@ extension KeyedDecodingContainer {
         if let v = try? decodeIfPresent(T.self, forKey: key) { return v }
         return nil
     }
+
+    /// Liste elementweise lesen: defekte Elemente werden übersprungen, statt die ganze Liste zu verwerfen (COD-1).
+    /// Fehlt der Schlüssel oder ist er keine Liste → leer.
+    func lossyArray<T: Decodable>(_ key: Key) -> [T] {
+        guard var arr = try? nestedUnkeyedContainer(forKey: key) else { return [] }
+        var out: [T] = []
+        while !arr.isAtEnd {
+            if let v = try? arr.decode(T.self) {
+                out.append(v)
+            } else if (try? arr.decode(LossySkip.self)) == nil {
+                break
+            }
+        }
+        return out
+    }
+
+    /// Wie `lossyArray`, aber eine vorhandene Liste, die gar nicht lesbar ist (keine Liste oder kein Element lesbar), wirft.
+    func lossyArrayStrict<T: Decodable>(_ key: Key) throws -> [T] {
+        if !contains(key) { return [] }
+        if (try? decodeNil(forKey: key)) == true { return [] }
+        var arr = try nestedUnkeyedContainer(forKey: key)
+        var out: [T] = []
+        var bad = 0
+        while !arr.isAtEnd {
+            if let v = try? arr.decode(T.self) {
+                out.append(v)
+            } else {
+                bad += 1
+                if (try? arr.decode(LossySkip.self)) == nil { break }
+            }
+        }
+        if out.isEmpty && bad > 0 {
+            throw DecodingError.dataCorruptedError(forKey: key, in: self, debugDescription: "Keine Einträge lesbar")
+        }
+        return out
+    }
+}
+
+/// Überspringt ein beliebiges Element einer Liste.
+struct LossySkip: Decodable {
+    init(from decoder: Decoder) throws {}
 }
