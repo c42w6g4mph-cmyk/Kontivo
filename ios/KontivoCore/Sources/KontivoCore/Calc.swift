@@ -5,6 +5,7 @@ public struct Calc {
     public let data: AppData
     public let today: Day
     private let kinds: [UUID: CategoryKind]
+    private let taxNames: Set<UUID>
     private let partnerNames: [UUID: String]
 
     /// Startwerte der Kurse (CHF pro Einheit), bis der erste Abruf erfolgt ist.
@@ -16,6 +17,8 @@ public struct Calc {
         var k: [UUID: CategoryKind] = [:]
         for c in data.categories { if let kind = c.kind { k[c.id] = kind } }
         kinds = k
+        // Web `isTax`: Name beginnt mit «Steuern» (ohne Gross/Klein) zählt immer als Steuern
+        taxNames = Set(data.categories.filter { $0.name.lowercased().hasPrefix("steuern") }.map { $0.id })
         var p: [UUID: String] = [:]
         for x in data.partners { p[x.id] = x.name }
         partnerNames = p
@@ -46,7 +49,11 @@ public struct Calc {
     }
 
     /// Steuern lassen sich nicht kündigen: keine Frist, nicht in «Fristen».
-    public func isTax(_ c: Contract) -> Bool { categoryKind(c) == .taxes }
+    public func isTax(_ c: Contract) -> Bool {
+        if categoryKind(c) == .taxes { return true }
+        guard let id = c.categoryID else { return false }
+        return taxNames.contains(id)
+    }
 
     /// Mietvertrag: ausdrücklicher Schalter, sonst Heuristik.
     public func isRent(_ c: Contract) -> Bool {

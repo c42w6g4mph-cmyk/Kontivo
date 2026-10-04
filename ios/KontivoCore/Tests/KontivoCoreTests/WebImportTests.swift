@@ -213,4 +213,88 @@ final class WebImportTests: XCTestCase {
         let enc = try r.data.encoded()
         XCTAssertEqual(try AppData.decode(enc), r.data)
     }
+
+    /// W-1, W-2, W-4, W-5, W-6, BK-2, addrSplit wie Web.
+    func testKeysGroupsSanitize() throws {
+        let json = """
+        {"app":"vertraege","settings":{"dataVer":2,"holders":["Sinan","Lara"],
+           "catList":[{"n":"Abgaben","k":"Steuern & Gebühren","c":"red","i":"Steuern"},{"n":"Versicherungen","k":"Versicherung","c":"#0E5A5E","i":"Versicherung"},
+                      {"n":"Daheim","k":"Wohnen","c":"#6B4E9E","i":"Wohnen"},{"n":"Wohnen","c":"#123456"},{"n":"Sonstiges","k":"Sonstiges"}],
+           "sigs":{"Sinan":"data:image/gif;base64,R0lG","Lara":"data:image/png;base64,iVBORw0KGgo="},
+           "avatars":{"Sinan":"nicht-hex","Lara":"0123456789abcdef0123456789abcdef"}},
+         "contracts":{
+           "a":{"partner":"Allianz Suisse","label":"Hausrat","cat":"Versicherungen","amount":30,"cycle":12,"due":"2027-01-01","addr":"Allianz Suisse\\nRichtiplatz 1\\n8304 Wallisellen","color":"javascript:x"},
+           "b":{"partner":"Allianz","label":"Auto","cat":"Versicherungen","amount":50,"cycle":12,"due":"2027-01-01","addr":"Allianz\\nPostfach\\n8010 Zürich","logoBg":"#FFF"},
+           "c":{"partner":"Gemeinde","label":"Steuern","cat":"Abgaben","amount":1000,"cycle":12,"due":"2027-03-31","notice":3,"cancTerm":"y"},
+           "d":{"label":"Miete","cat":"Daheim","amount":1800,"cycle":1,"due":"2026-11-01","addr":"Bahnhofstrasse 5\\n8001 Zürich"},
+           "e":{"cat":"Wohnen","amount":10,"cycle":1,"due":"2026-11-01","addr":"Postfach 3\\n8001 Zürich"},
+           "f":{"partner":"EKZ","cat":"Energie","amount":80,"cycle":1,"due":"2026-10-30"}},
+         "incomes":{"i1":{"name":"Vermietung","cat":"Vermietung","amount":1000,"cycle":1,"due":"2026-10-25","holders":["Sinan","Lara"],
+                          "prices":[{"from":"2027-01-01","amount":1200}]}},
+         "files":{"x1":{"type":"image/png","data":""},"x2":{"type":"image/png"}}}
+        """
+        let r = try WebImport.importBackup(Data(json.utf8), today: Day(2026, 10, 3))
+        let d = r.data
+        // W-1: Fachschlüssel k
+        XCTAssertEqual(d.category(named: "Abgaben")?.kind, .taxes)
+        XCTAssertEqual(d.category(named: "Versicherungen")?.kind, .insurance)
+        XCTAssertEqual(d.category(named: "Daheim")?.kind, .housing)
+        XCTAssertNil(d.category(named: "Wohnen")?.kind)
+        XCTAssertEqual(d.category(named: "Sonstiges")?.kind, .other)
+        let calc = Calc(data: d, today: Day(2026, 10, 3))
+        let c = try XCTUnwrap(d.contract(r.contractIDs["c"]))
+        XCTAssertTrue(calc.isTax(c))
+        XCTAssertNil(calc.noticeDeadline(c))
+        let a = try XCTUnwrap(d.contract(r.contractIDs["a"]))
+        XCTAssertEqual(calc.cancVia(a), .post)
+        // W-5: Farben, Unterschriften, Avatare geprüft
+        XCTAssertEqual(d.category(named: "Abgaben")?.colorHex, Category.fallbackColor)
+        XCTAssertNil(a.colorHex)
+        XCTAssertNil(d.person(named: "Sinan")?.signatureJPEG)
+        XCTAssertNotNil(d.person(named: "Lara")?.signatureJPEG)
+        XCTAssertNil(d.person(named: "Sinan")?.avatarID)
+        XCTAssertEqual(d.person(named: "Lara")?.avatarID, "0123456789abcdef0123456789abcdef")
+        // W-2: ähnliche Namen bleiben getrennte Vertragspartner mit eigener Adresse
+        let b = try XCTUnwrap(d.contract(r.contractIDs["b"]))
+        XCTAssertNotEqual(a.partnerID, b.partnerID)
+        XCTAssertEqual(d.partner(a.partnerID)?.address.city, "Wallisellen")
+        let pb = try XCTUnwrap(d.partner(b.partnerID))
+        XCTAssertEqual(pb.address.city, "Zürich")
+        XCTAssertEqual(pb.address.company, "Allianz")
+        XCTAssertEqual(pb.address.street, "Postfach")
+        XCTAssertEqual(pb.logoBg, nil)
+        XCTAssertEqual(Partners.duplicateSets(d, today: Day(2026, 10, 3)).count, 1)
+        // Ohne Vertragspartner: Adresse bleibt erhalten (W-3); einzelne Zeile mit Ziffer ist die Strasse
+        let dc = try XCTUnwrap(d.contract(r.contractIDs["d"]))
+        XCTAssertEqual(d.partner(dc.partnerID)?.address.street, "Bahnhofstrasse 5")
+        let ec = try XCTUnwrap(d.contract(r.contractIDs["e"]))
+        XCTAssertEqual(d.partner(ec.partnerID)?.address.street, "Postfach 3")
+        // W-4: Einnahme mit zwei Inhabern → je eine Hälfte
+        XCTAssertEqual(d.incomes.count, 2)
+        XCTAssertEqual(d.incomes.map { $0.amount }, [500, 500])
+        XCTAssertEqual(Set(d.incomes.compactMap { $0.holderID }), Set([r.personIDs["Sinan"]!, r.personIDs["Lara"]!]))
+        XCTAssertEqual(d.incomes[1].prices, [PriceChange(from: Day(2027, 1, 1), amount: 600)])
+        XCTAssertEqual(d.incomes[0].id, r.incomeIDs["i1"])
+        // BK-2: leere Dateien zählen als fehlend
+        XCTAssertEqual(r.files.count, 0)
+        XCTAssertEqual(r.failedFiles, 2)
+        // W-6: Symbol-Schlüssel alter Namen immer umstellen, Namen nur bei Datenversion < 2
+        XCTAssertEqual(d.category(named: "Abgaben")?.icon, "Steuern & Gebühren")
+        let f = try XCTUnwrap(d.contract(r.contractIDs["f"]))
+        XCTAssertEqual(d.category(f.categoryID)?.name, "Energie")
+        let v1 = try WebImport.importBackup(Data(json.replacingOccurrences(of: "\"dataVer\":2", with: "\"dataVer\":\"1\"").utf8), today: Day(2026, 10, 3))
+        let f1 = try XCTUnwrap(v1.data.contract(v1.contractIDs["f"]))
+        XCTAssertEqual(v1.data.category(f1.categoryID)?.name, "Energie & Wasser")
+        XCTAssertEqual(v1.data.category(f1.categoryID)?.kind, .energy)
+    }
+
+    func testAddrSplitLikeWeb() {
+        let a = WebImport.addrSplit("Postfach\n8021 Zürich", partnerName: "Swisscom")
+        XCTAssertEqual(a.company, "")
+        XCTAssertEqual(a.street, "Postfach")
+        let b = WebImport.addrSplit("Swisscom (Schweiz) AG\n3050 Bern", partnerName: "Swisscom")
+        XCTAssertEqual(b.company, "Swisscom (Schweiz) AG")
+        let c = WebImport.addrSplit("Kundendienst\n3050 Bern")
+        XCTAssertEqual(c.street, "Kundendienst")
+    }
 }

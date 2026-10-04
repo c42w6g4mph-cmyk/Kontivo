@@ -73,8 +73,11 @@ public enum WebImport {
         var incomes = JS.obj(o["incomes"]) ?? JSObject()
         let filesObj = JS.obj(o["files"]) ?? JSObject()
 
+        sanitize(&s, &contracts, &incomes)
         migModel(&s, &contracts, &incomes)
-        if s["dataVer"] == nil { migCats(&s, &contracts) }
+        // Wie Web `migCats`: alte Kategorienamen bei Datenversion < 2 (auch "1", 0 …), Symbol-Schlüssel immer
+        if !(JS.num(s["dataVer"]) >= 2) { migCats(&s, &contracts) }
+        migCatIcons(&s)
 
         let cKeys = contracts.orderedKeys
         let iKeys = incomes.orderedKeys
@@ -87,6 +90,8 @@ public enum WebImport {
         for k in filesObj.orderedKeys {
             guard let f = JS.obj(filesObj[k]) else { failed += 1; continue }
             let b64 = JS.str(f["data"])
+            // Wie Web (`!f.data` → fehlt): leere Datei zählt als nicht gelesen
+            if b64.isEmpty { failed += 1; continue }
             if let d = Data(base64Encoded: b64, options: .ignoreUnknownCharacters) {
                 files[k] = ImportedFile(type: JS.str(f["type"]), data: d)
             } else {
@@ -132,13 +137,15 @@ public enum WebImport {
             (i == "tag" || Category.standardNames.contains(i) || IncomeKind(webName: i) != nil) ? i : "tag"
         }
         let catList = JS.arr(s["catList"]).compactMap { JS.obj($0) }
+        // Fachschlüssel `k` (ursprünglicher Standardname) bleibt beim Umbenennen erhalten (Web `catKey`)
+        let takenKeys = Set(catList.map { JS.str($0["k"]) }.filter { !$0.isEmpty })
         if !catList.isEmpty {
             for e in catList {
                 let n = JS.str(e["n"])
                 if n.isEmpty || hasCat(n) { continue }
                 let col = JS.str(e["c"])
                 categories.append(Category(name: n, colorHex: col.isEmpty ? (Category.standardColors[n] ?? Category.fallbackColor) : col,
-                                           icon: iconKey(JS.str(e["i"])), kind: Category.defaultKind(forName: n)))
+                                           icon: iconKey(JS.str(e["i"])), kind: Category.importKind(name: n, key: JS.str(e["k"]), takenKeys: takenKeys)))
             }
         } else {
             categories = Category.standard()
@@ -154,13 +161,15 @@ public enum WebImport {
             let n = JS.str(c["cat"])
             if n.isEmpty || hasCat(n) { continue }
             categories.append(Category(name: n, colorHex: Category.standardColors[n] ?? Category.fallbackColor,
-                                       icon: Category.standardNames.contains(n) ? n : "tag", kind: Category.defaultKind(forName: n)))
+                                       icon: Category.standardNames.contains(n) ? n : "tag",
+                                       kind: Category.importKind(name: n, key: "", takenKeys: takenKeys)))
         }
-        if !categories.contains(where: { $0.kind == .other }) {
+        if !categories.contains(where: { $0.kind == .other }) && !hasCat("Sonstiges") {
             categories.append(Category(name: "Sonstiges", colorHex: Category.standardColors["Sonstiges"] ?? Category.fallbackColor, icon: "Sonstiges", kind: .other))
         }
 
-        // Vertragspartner: Gruppen nach pkey
+        // Vertragspartner: Gruppen nach Name ohne Gross/Klein (wie Web `partnerGroups`); ähnliche Namen (gleicher pkey)
+        // bleiben getrennt und erscheinen nur als Dublette (Zusammenführen ist eine bewusste Aktion)
         struct PGroup {
             var key: String
             var names: [String] = []
@@ -171,7 +180,7 @@ public enum WebImport {
         var contractGroup: [String: Int] = [:]
         for (k, c) in cObjs {
             guard let pn = partnerName(c) else { continue }
-            let key = Partners.groupKey(pn)
+            let key = pn.trimmingCharacters(in: .whitespaces).lowercased()
             var gi = groups.firstIndex { $0.key == key }
             if gi == nil {
                 groups.append(PGroup(key: key))
@@ -290,7 +299,9 @@ public enum WebImport {
             x.due = Day(iso: JS.str(c["due"]))
             x.start = Day(iso: JS.str(c["start"]))
             x.end = Day(iso: JS.str(c["end"]))
-            x.holderID = JS.arr(c["holders"]).compactMap { personIDs[JS.str($0)] }.first
+            var ih: [UUID] = []
+            for h in JS.arr(c["holders"]) { if let pid = personIDs[JS.str(h)], !ih.contains(pid) { ih.append(pid) } }
+            x.holderID = ih.first
             x.prices = prices(c["prices"])
             x.note = JS.str(c["note"])
             let l = JS.str(c["logoId"])
@@ -302,7 +313,20 @@ public enum WebImport {
             let col = JS.str(c["color"])
             x.colorHex = col.isEmpty ? nil : col
             x.createdAt = createdAt(c["t"])
-            incomesOut.append(x)
+            if ih.count > 1 {
+                // Mehrere Inhaber (alte Daten): Web rechnet je Inhaber 1/n – hier je Inhaber eine Einnahme mit Betrag/n
+                let n = Double(ih.count)
+                for (j, h) in ih.enumerated() {
+                    var y = x
+                    if j > 0 { y.id = UUID() }
+                    y.holderID = h
+                    y.amount = x.amount / n
+                    y.prices = x.prices.map { PriceChange(from: $0.from, amount: $0.amount / n) }
+                    incomesOut.append(y)
+                }
+            } else {
+                incomesOut.append(x)
+            }
         }
 
         // Einstellungen
@@ -351,9 +375,13 @@ public enum WebImport {
         let label = JS.str(c["label"]).trimmingCharacters(in: .whitespacesAndNewlines)
         let addr = JS.str(c["addr"]).trimmingCharacters(in: .whitespacesAndNewlines)
         if !addr.isEmpty {
-            let firm = addrSplit(addr).company
+            // Eine einzelne Zeile ohne Ziffer vor «PLZ Ort» gilt hier als Firma (es gibt keinen Namen zum Vergleich)
+            let L = lines(addr)
+            let firm = addrSplit(addr, partnerName: L.first).company
             if !firm.isEmpty { return firm }
-            return label.isEmpty ? nil : label
+            if !label.isEmpty { return label }
+            // Ohne Bezeichnung: erste Adresszeile, damit die Adresse nicht verloren geht
+            return L.first
         }
         let web = JS.str(c["web"]).trimmingCharacters(in: .whitespacesAndNewlines)
         if !web.isEmpty {
@@ -470,17 +498,12 @@ public enum WebImport {
             var out: [JSValue] = []
             for item in list {
                 guard var x = JS.obj(item) else { out.append(item); continue }
-                let n = JS.str(x["n"])
-                let i = JS.str(x["i"])
-                if let nn = mig[n] {
-                    x["n"] = .string(nn)
-                    if let ni = mig[i] { x["i"] = .string(ni) }
-                } else if let ni = mig[i] {
-                    x["i"] = .string(ni)
-                }
+                if let nn = mig[JS.str(x["n"])] { x["n"] = .string(nn) }
                 let key = JS.str(x["n"])
                 if seen.contains(key) { continue }
                 seen.insert(key)
+                // stabiler Schlüssel k = ursprünglicher Standardname
+                if JS.str(x["k"]).isEmpty && Category.standardNames.contains(key) { x["k"] = .string(key) }
                 out.append(.object(x))
             }
             s["catList"] = .array(out)
@@ -490,6 +513,61 @@ public enum WebImport {
                 guard let x = JS.obj(v) else { return true }
                 return mig[JS.str(x["n"])] == nil
             })
+        }
+    }
+
+    /// Symbol-Schlüssel alter Kategorienamen (bei jedem Laden, unabhängig von der Datenversion).
+    static func migCatIcons(_ s: inout JSObject) {
+        guard case .array(let list)? = s["catList"] else { return }
+        let mig = Category.legacyNames
+        s["catList"] = .array(list.map { item in
+            guard var x = JS.obj(item), let ni = mig[JS.str(x["i"])] else { return item }
+            x["i"] = .string(ni)
+            return .object(x)
+        })
+    }
+
+    /// Wie Web `sanitizeImport`: ungültige Farben, Unterschriften (keine JPEG/PNG-Data-URL) und Avatar-IDs (keine 32-stellige Hex-ID) verwerfen.
+    static func sanitize(_ s: inout JSObject, _ contracts: inout JSObject, _ incomes: inout JSObject) {
+        func badCol(_ v: JSValue?) -> Bool {
+            guard let v = v else { return false }
+            if case .null = v { return false }
+            if case .string(let t) = v, t.isEmpty { return false }
+            return !RX.test("^#[0-9A-Fa-f]{3,8}$", JS.str(v))
+        }
+        func fixColors(_ m: inout JSObject) {
+            for k in m.orderedKeys {
+                guard var c = JS.obj(m[k]) else { continue }
+                var ch = false
+                for f in ["color", "logoBg"] where badCol(c[f]) {
+                    c[f] = nil
+                    ch = true
+                }
+                if ch { m[k] = .object(c) }
+            }
+        }
+        fixColors(&contracts)
+        fixColors(&incomes)
+        let sigRX = "^data:image/(jpeg|png);base64,[A-Za-z0-9+/]*={0,2}$"
+        if var sg = JS.obj(s["sigs"]), case .object = s["sigs"]! {
+            for h in sg.orderedKeys where !RX.test(sigRX, JS.str(sg[h])) { sg[h] = nil }
+            s["sigs"] = .object(sg)
+        } else {
+            s["sigs"] = nil
+        }
+        if s["sig"] != nil && !RX.test(sigRX, JS.str(s["sig"])) { s["sig"] = nil }
+        if case .array(let list)? = s["catList"] {
+            s["catList"] = .array(list.compactMap { item -> JSValue? in
+                guard case .object(var x) = item else { return nil }
+                if badCol(x["c"]) { x["c"] = nil }
+                return .object(x)
+            })
+        }
+        if var av = JS.obj(s["avatars"]), case .object = s["avatars"]! {
+            for h in av.orderedKeys where !RX.test("^[0-9a-fA-F]{32}$", JS.str(av[h])) { av[h] = nil }
+            s["avatars"] = .object(av)
+        } else {
+            s["avatars"] = nil
         }
     }
 
@@ -536,8 +614,8 @@ public enum WebImport {
     }
 
     /// Adresse aus Freitext (`addrSplit`) mit den Korrekturen aus Fund N8: Länderpräfix der PLZ bleibt («D-78462»),
-    /// ohne PLZ-Zeile Firma = erste, Strasse = letzte Zeile, Zusatz dazwischen; eine einzelne Zeile vor der PLZ ohne Ziffer
-    /// (bzw. gleich dem Vertragspartner) ist die Firma.
+    /// ohne PLZ-Zeile Firma = erste, Strasse = letzte Zeile, Zusatz dazwischen; eine einzelne Zeile vor der PLZ ohne Ziffer,
+    /// die dem Vertragspartner ähnelt, ist die Firma (sonst die Strasse).
     public static func addrSplit(_ t: String, partnerName: String? = nil) -> PostalAddress {
         var o = PostalAddress()
         let L = lines(t)
@@ -555,12 +633,16 @@ public enum WebImport {
         }
         o.country = L.count > zi + 1 ? L[(zi + 1)...].joined(separator: ", ") : ""
         var pre = Array(L[0..<zi])
+        // Wie Web: eine einzelne Zeile ohne Ziffer, die dem Vertragspartner entspricht (lnorm-Enthaltensein), ist die Firma; sonst Strasse
         if pre.count == 1 {
             let line = pre[0]
             let hasDigit = line.contains { $0.isNumber }
-            let isPartner = partnerName.map { $0.trimmingCharacters(in: .whitespaces).lowercased() == line.lowercased() } ?? false
-            if isPartner || !hasDigit { o.company = line } else { o.street = line }
-            return o
+            let nn = Partners.lnorm(partnerName ?? "")
+            let ln0 = Partners.lnorm(line)
+            if !hasDigit && !nn.isEmpty && !ln0.isEmpty && (ln0.contains(nn) || nn.contains(ln0)) {
+                o.company = line
+                return o
+            }
         }
         if !pre.isEmpty { o.street = pre.removeLast() }
         if !pre.isEmpty { o.company = pre.removeFirst() }

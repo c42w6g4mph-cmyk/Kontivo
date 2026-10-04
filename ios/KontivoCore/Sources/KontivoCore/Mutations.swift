@@ -7,6 +7,10 @@ public enum MutationError: Error, Equatable {
     case emptyName
     /// Name gibt es schon (ID des vorhandenen Eintrags, z.B. zum Zusammenführen)
     case duplicateName(UUID)
+    /// Kategorie mit diesem Namen gibt es schon
+    case duplicateCategory(UUID)
+    /// Neuer Inhaber: Namen gibt es schon
+    case duplicatePerson(UUID)
     /// Mindestens ein Inhaber ist nötig
     case lastPerson
     /// «Sonstiges» lässt sich weder umbenennen noch löschen
@@ -25,6 +29,8 @@ public enum MutationError: Error, Equatable {
         case .notFound: return "Nicht gefunden."
         case .emptyName: return "Name darf nicht leer sein"
         case .duplicateName: return "Diesen Namen gibt es schon"
+        case .duplicateCategory: return "Diese Kategorie gibt es schon"
+        case .duplicatePerson: return "Diesen Inhaber gibt es schon"
         case .lastPerson: return "Mindestens ein Inhaber ist nötig"
         case .fixedCategory: return "«Sonstiges» fängt alles ohne Kategorie auf und lässt sich weder umbenennen noch löschen."
         case .missingTitle: return "Bezeichnung fehlt"
@@ -356,7 +362,7 @@ extension AppData {
     public mutating func addPerson(_ name: String) throws -> UUID {
         let n = Format.collapseSpaces(name)
         if n.isEmpty { throw MutationError.emptyName }
-        if let ex = persons.first(where: { $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicateName(ex.id) }
+        if let ex = persons.first(where: { $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicatePerson(ex.id) }
         let p = Person(name: n)
         persons.append(p)
         return p.id
@@ -519,21 +525,32 @@ extension AppData {
     public mutating func addCategory(_ name: String, colorHex: String? = nil, icon: String = "tag") throws -> UUID {
         let n = Format.collapseSpaces(name)
         if n.isEmpty { throw MutationError.emptyName }
-        if let ex = categories.first(where: { $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicateName(ex.id) }
-        let c = Category(name: n, colorHex: colorHex ?? Category.newColor(existingCount: categories.count), icon: icon, kind: Category.defaultKind(forName: n))
+        if let ex = categories.first(where: { $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicateCategory(ex.id) }
+        let c = Category(name: n, colorHex: colorHex ?? Category.newColor(existingCount: categories.count), icon: icon,
+                         kind: Category.kind(forName: n, among: categories))
         categories.append(c)
         return c.id
     }
 
-    /// Umbenennen (Art bleibt). «Sonstiges» ist fest.
+    /// Umbenennen. Standard-Arten (Fachschlüssel) bleiben; die Art eigener Kategorien folgt dem neuen Namen
+    /// (M-6: «Steuern…»-Regel wie Web `isTax`). «Sonstiges» ist fest.
     public mutating func renameCategory(_ id: UUID, to name: String) throws {
         guard let i = categoryIndex(id) else { throw MutationError.notFound }
         if categories[i].kind == .other { throw MutationError.fixedCategory }
         let n = Format.collapseSpaces(name)
         if n.isEmpty { throw MutationError.emptyName }
         if n == categories[i].name { return }
-        if let ex = categories.first(where: { $0.id != id && $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicateName(ex.id) }
+        if let ex = categories.first(where: { $0.id != id && $0.name.lowercased() == n.lowercased() }) { throw MutationError.duplicateCategory(ex.id) }
+        let old = categories[i]
+        let others = categories.filter { $0.id != id }
+        // Art nur aus der Namensregel: keine Art, oder «Steuern…» ohne Standardnamen, während es eine andere Steuern-Kategorie gibt
+        let byName = old.kind == nil || (old.kind == .taxes && Category.standardKinds[old.name] == nil
+            && old.name.lowercased().hasPrefix("steuern") && others.contains { $0.kind == .taxes })
         categories[i].name = n
+        if byName {
+            let k = Category.kind(forName: n, among: others)
+            categories[i].kind = k == .other ? nil : k
+        }
     }
 
     /// Farbe oder Symbol ändern (auch bei «Sonstiges»).
@@ -571,7 +588,8 @@ extension AppData {
 
     // MARK: Vertragspartner
 
-    /// Vertragspartner für einen eingegebenen Namen: vorhandener (Name ohne Gross/Klein, sonst Schlüssel) oder neu angelegt.
+    /// Vertragspartner für einen eingegebenen Namen: vorhandener (gleicher Name ohne Gross/Klein) oder neu angelegt.
+    /// Ähnliche Namen werden nicht still zusammengelegt (M-2, wie Web); Hinweis über `Partners.similar`.
     @discardableResult
     public mutating func partnerID(forName name: String, web: String = "") -> UUID? {
         let n = Format.collapseSpaces(name)

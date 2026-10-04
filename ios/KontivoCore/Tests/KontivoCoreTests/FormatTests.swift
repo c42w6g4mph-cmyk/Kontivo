@@ -122,5 +122,10 @@ final class FormatTests: XCTestCase {
         XCTAssertTrue(Partners.nameEq(Partners.ltok("Helsana"), "Helsana Versicherungen AG"))
         XCTAssertFalse(Partners.nameEq(Partners.ltok("Helsana"), "Helsana Arena"))
         XCTAssertEqual(Partners.regDom("www.shop.example.ch"), "example.ch")
+        XCTAssertEqual(Partners.regDom("bt.co.uk"), "bt.co.uk")
+        XCTAssertEqual(Partners.regDom("www.turkcell.com.tr"), "turkcell.com.tr")
+        XCTAssertEqual(Partners.regDom("shop.bbc.co.uk"), "bbc.co.uk")
+        XCTAssertEqual(Partners.regDom("www.sunrise.ch"), "sunrise.ch")
+        XCTAssertEqual(Partners.regDom("co.uk"), "co.uk")
     }
 }

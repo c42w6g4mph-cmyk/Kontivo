@@ -365,6 +365,21 @@ public struct Category: Codable, Hashable, Identifiable, Sendable {
         return nil
     }
 
+    /// Art für einen neuen oder umbenannten Namen (Web `catKey` + `isTax`): Standardname → dessen Art, sofern keine andere
+    /// Kategorie diese Art schon trägt; Name beginnt mit «Steuern» → taxes; sonst nil.
+    public static func kind(forName name: String, among others: [Category]) -> CategoryKind? {
+        if let k = standardKinds[name], !others.contains(where: { $0.kind == k }) { return k }
+        return name.lowercased().hasPrefix("steuern") ? .taxes : nil
+    }
+
+    /// Art beim Übernehmen eines Web-Eintrags `{n, k}`: Fachschlüssel `k` (bleibt beim Umbenennen), sonst Standardname,
+    /// solange kein anderer Eintrag diesen Schlüssel trägt (`takenKeys`), sonst «Steuern…»-Regel.
+    public static func importKind(name: String, key: String, takenKeys: Set<String>) -> CategoryKind? {
+        if let k = standardKinds[key] { return k }
+        if let k = standardKinds[name], !takenKeys.contains(name) { return k }
+        return name.lowercased().hasPrefix("steuern") ? .taxes : nil
+    }
+
     /// Startfarbe für eine neue Kategorie bei `count` vorhandenen (COLORS[(n+3) % 8]).
     public static func newColor(existingCount count: Int) -> String {
         palette[(count + 3) % palette.count]

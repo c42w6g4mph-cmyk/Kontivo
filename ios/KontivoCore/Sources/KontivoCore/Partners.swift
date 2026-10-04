@@ -74,11 +74,17 @@ public enum Partners {
         return !want.isEmpty && want.allSatisfy { w in have.contains { teq($0, w) } }
     }
 
-    /// Registrierbare Domain (letzte zwei Teile, ohne «www.»).
+    /// Zweistufige Endungen (`SLD2`): hier zählen drei Teile.
+    public static let SLD2: [String] = ["co.uk", "org.uk", "ac.uk", "gov.uk", "me.uk", "com.tr", "gov.tr", "org.tr", "net.tr", "gen.tr",
+                                        "co.at", "or.at", "gv.at", "ac.at", "com.au", "net.au", "org.au", "co.jp", "ne.jp", "or.jp",
+                                        "co.nz", "com.br", "co.za", "com.mx", "com.cn", "co.in"]
+
+    /// Registrierbare Domain (letzte zwei Teile, bei zweistufigen Endungen wie «co.uk» drei; ohne «www.»).
     public static func regDom(_ d: String) -> String {
         var s = d.lowercased()
         if s.hasPrefix("www.") { s = String(s.dropFirst(4)) }
-        let p = s.split(separator: ".", omittingEmptySubsequences: false)
+        let p = s.split(separator: ".", omittingEmptySubsequences: false).map(String.init)
+        if p.count > 2 && SLD2.contains(p.suffix(2).joined(separator: ".")) { return p.suffix(3).joined(separator: ".") }
         return p.count > 2 ? p.suffix(2).joined(separator: ".") : s
     }
 
@@ -140,13 +146,27 @@ public enum Partners {
         }.first
     }
 
-    /// Bestehender Vertragspartner für einen eingegebenen Namen: gleicher Name (ohne Gross/Klein), sonst gleicher Schlüssel.
+    /// Vergleichsform eines Namens für «gleicher Vertragspartner» (Web: `partner.trim().toLowerCase()`),
+    /// zusätzlich mehrfache Leerzeichen zusammengefasst.
+    public static func sameNameKey(_ name: String) -> String {
+        name.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ").lowercased()
+    }
+
+    /// Bestehender Vertragspartner für einen eingegebenen Namen: nur gleicher Name (ohne Gross/Klein, Leerzeichen getrimmt).
+    /// Ähnliche Namen (gleicher Schlüssel `pkey`, z.B. «Swisscom AG» zu «Swisscom») werden wie in der Web-App nicht still
+    /// zusammengelegt – dafür gibt es `similar(_:in:)` als Hinweis und das Zusammenführen in der Pflege.
     public static func find(_ name: String, in data: AppData) -> Partner? {
-        let n = name.trimmingCharacters(in: .whitespaces)
-        if n.isEmpty { return nil }
-        let lower = n.lowercased()
-        if let p = data.partners.first(where: { $0.name.trimmingCharacters(in: .whitespaces).lowercased() == lower }) { return p }
-        let key = pkey(n)
+        let lower = sameNameKey(name)
+        if lower.isEmpty { return nil }
+        return data.partners.first { sameNameKey($0.name) == lower }
+    }
+
+    /// Ähnlicher bestehender Vertragspartner (gleicher Schlüssel `pkey`, aber anderer Name) – nur als Hinweis
+    /// («Meinst du «Swisscom»?»), nie automatisch.
+    public static func similar(_ name: String, in data: AppData) -> Partner? {
+        let lower = sameNameKey(name)
+        if lower.isEmpty || find(name, in: data) != nil { return nil }
+        let key = pkey(name)
         if key.isEmpty { return nil }
         return data.partners.first { pkey($0.name) == key }
     }

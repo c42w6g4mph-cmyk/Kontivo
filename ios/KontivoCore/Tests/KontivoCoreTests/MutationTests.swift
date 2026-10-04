@@ -104,7 +104,7 @@ final class MutationTests: XCTestCase {
         let l = data.persons[1].id
         data.persons[1].sameAddressAs = s
         data.contracts = [Contract(label: "A", holderIDs: [s, l]), Contract(label: "B", holderIDs: [s]), Contract(label: "C", holderIDs: [l])]
-        XCTAssertThrowsError(try data.addPerson("sinan")) { XCTAssertEqual($0 as? MutationError, .duplicateName(s)) }
+        XCTAssertThrowsError(try data.addPerson("sinan")) { XCTAssertEqual($0 as? MutationError, .duplicatePerson(s)) }
         XCTAssertThrowsError(try data.renamePerson(l, to: "SINAN")) { XCTAssertEqual($0 as? MutationError, .duplicateName(s)) }
         try data.renamePerson(l, to: "  Lara   Muster ")
         XCTAssertEqual(data.person(l)?.name, "Lara Muster")
@@ -152,8 +152,13 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(data.categories[0].name, "Wohnen")
 
         let a = data.partnerID(forName: "Swisscom")!
+        XCTAssertEqual(data.partnerID(forName: " swisscom "), a)
+        // M-2: ähnlicher Name (gleicher pkey) wird nicht still zusammengelegt, nur als Hinweis angeboten
+        XCTAssertEqual(Partners.similar("Swisscom (Schweiz) AG", in: data)?.id, a)
         let b = data.partnerID(forName: "Swisscom (Schweiz) AG")!
-        XCTAssertEqual(a, b)
+        XCTAssertNotEqual(a, b)
+        XCTAssertNil(Partners.similar("Swisscom (Schweiz) AG", in: data))
+        data.partners.removeAll { $0.id == b }
         let c = data.partnerID(forName: "Salt")!
         data.setPartnerAddress(c, PostalAddress(company: "Salt Mobile SA", street: "Rue du Caudray 4", zip: "1020", city: "Renens"))
         data.setPartnerLogo(c, logoID: "x", background: nil)
