@@ -45,11 +45,20 @@ struct CostsTab: View {
         .onChange(of: model.costFilter) { _, _ in autoSelectMonth() }
         .onAppear { dropStalePerson() }
         .onChange(of: model.data.persons) { _, _ in dropStalePerson() }
+        .onChange(of: personsWithContracts) { _, _ in dropStalePerson() }
     }
 
-    /// Gelöschte Person nicht weiter filtern
+    /// Anzahl Personen mit mindestens einem Vertrag (auch beendete; Web `holderStats().filter(c>0)`)
+    private var personsWithContracts: Int {
+        let used = Set(model.data.contracts.flatMap(\.holderIDs))
+        return model.data.persons.filter { used.contains($0.id) }.count
+    }
+
+    /// Personenfilter zurücksetzen, wenn die Person gelöscht wurde oder nur noch eine Person Verträge hat
+    /// (Chips wären ausgeblendet, Filter unsichtbar – Web `renderStat`).
     private func dropStalePerson() {
-        if let p = model.costFilter.person, model.data.person(p) == nil {
+        guard let p = model.costFilter.person else { return }
+        if model.data.person(p) == nil || personsWithContracts <= 1 {
             model.costFilter.person = nil
         }
     }

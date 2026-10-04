@@ -20,7 +20,7 @@ struct KBCostFilterBar: View {
             if persons.count <= 1 {
                 HStack(spacing: 6) {
                     catPartner(f)
-                    if nOther > 0 {
+                    if nOther > 0 || f.person != nil {
                         KBClearButton(label: "Filter zurücksetzen") { model.costFilter = Calc.CostFilter() }
                     }
                 }

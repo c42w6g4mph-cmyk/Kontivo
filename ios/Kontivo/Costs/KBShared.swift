@@ -123,6 +123,10 @@ struct KBPagingCard<Content: View>: View {
     @State private var cardWidth: CGFloat = 320
     /// Haptik nur bei Monatswechsel durch Finger (Scrubbing, Antippen, Wischen)
     @State private var feedbackTick = 0
+    /// Geste läuft; setzt sich auch bei vom System abgebrochener Geste zurück (dann fehlt `onEnded`)
+    @GestureState private var gestureActive = false
+    /// Monatswechsel-Animation läuft (Wischen dann ignorieren, sonst springt die Karte)
+    @State private var paging = false
 
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
@@ -145,6 +149,21 @@ struct KBPagingCard<Content: View>: View {
             .offset(x: dragX)
             .opacity(1 - Double(min(abs(dragX) / max(cardWidth, 1), 1)) * 0.45)
             .sensoryFeedback(.selection, trigger: feedbackTick)
+            .onChange(of: gestureActive) { _, on in
+                if !on { checkCancelled() }
+            }
+    }
+
+    /// Abgebrochene Geste (Kontrollzentrum, Anruf …): `onEnded` kommt nicht → Karte zurücksetzen (Web `pointercancel`).
+    private func checkCancelled() {
+        DispatchQueue.main.async {
+            guard gestureStart != nil else { return }
+            lock = .none
+            gestureStart = nil
+            if dragX != 0 && !paging {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.86)) { dragX = 0 }
+            }
+        }
     }
 
     private var tapGesture: some Gesture {
@@ -157,6 +176,7 @@ struct KBPagingCard<Content: View>: View {
 
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 6, coordinateSpace: KBCardSpace.space)
+            .updating($gestureActive) { _, st, _ in st = true }
             .onChanged { v in dragChanged(v) }
             .onEnded { v in dragEnded(v) }
     }
@@ -186,7 +206,7 @@ struct KBPagingCard<Content: View>: View {
         case .scrub:
             if KBMonthNav.select(model, month: index(at: v.location.x) + 1) { feedbackTick += 1 }
         case .page:
-            dragX = v.translation.width
+            if !paging { dragX = v.translation.width }
         case .vertical, .none:
             break
         }
@@ -196,8 +216,8 @@ struct KBPagingCard<Content: View>: View {
         let l = lock
         lock = .none
         gestureStart = nil
-        guard l == .page else {
-            if dragX != 0 { withAnimation(.spring(response: 0.25, dampingFraction: 0.86)) { dragX = 0 } }
+        guard l == .page, !paging else {
+            if dragX != 0 && !paging { withAnimation(.spring(response: 0.25, dampingFraction: 0.86)) { dragX = 0 } }
             return
         }
         let w = max(cardWidth, 1)
@@ -212,7 +232,9 @@ struct KBPagingCard<Content: View>: View {
         }
         withAnimation(.easeIn(duration: 0.16)) { dragX = step > 0 ? -w : w }
         let m = model
+        paging = true
         Task { @MainActor in
+            defer { paging = false }
             try? await Task.sleep(nanoseconds: 150_000_000)
             KBMonthNav.shift(m, step)
             feedbackTick += 1
