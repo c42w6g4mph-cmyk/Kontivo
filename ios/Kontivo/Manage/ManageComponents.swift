@@ -442,10 +442,6 @@ extension AppModel {
     }
 }
 
-/// Google-Bildersuche «<Name> logo» (logoSearch)
-func mdGoogleImageURL(_ name: String) -> URL? {
-    URL(string: "https://www.google.com/search?tbm=isch&q=" + LogoFinder.enc(name + " logo"))
-}
 
 // Fachaktionen der Inline-Editoren (mdSet…, MDTermChoice, mdNoticeValue …) liegen im Kern: KontivoCore/ExtManage.swift.
 // Zahlen immer mit Format.parseNum (1:1 wie Web parseNum).

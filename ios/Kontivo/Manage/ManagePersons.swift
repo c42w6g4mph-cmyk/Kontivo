@@ -181,13 +181,6 @@ struct MDPersonNewPage: View {
 
 // MARK: - Personenkarte
 
-private struct MDPersonRenameAsk: Identifiable {
-    let id = UUID()
-    let otherID: UUID
-    let otherName: String
-    let oldName: String
-}
-
 /// Personenkarte wie die iOS-Kontakte (MD_PAGES.he)
 struct MDPersonPage: View {
     let personID: UUID
@@ -197,7 +190,6 @@ struct MDPersonPage: View {
     @State private var showAll = false
     @State private var name = ""
     @FocusState private var nameFocused: Bool
-    @State private var renameAsk: MDPersonRenameAsk?
     @State private var deleteAsk = false
     @State private var showPhotos = false
     @State private var showFiles = false
@@ -233,9 +225,19 @@ struct MDPersonPage: View {
     }
 
     private func handlers<V: View>(_ v: V, _ p: Person) -> some View {
-        v.onAppear { if !nameFocused { name = p.name } }
-            .onDisappear { commitName(ask: false) }
-            .onChange(of: nameFocused) { _, f in if !f { commitName(ask: true) } }
+        v.onAppear {
+            if !nameFocused { name = p.name }
+            nav.flush[.person(personID)] = { commitName() }
+        }
+            .onDisappear {
+                commitName()
+                nav.flush[.person(personID)] = nil
+            }
+            .onChange(of: nameFocused) { _, f in if !f { commitName() } }
+            // Rückfrage abgebrochen: Feld auf den gespeicherten Namen zurücksetzen
+            .onChange(of: nav.renameAsk?.id) { old, new in
+                if old != nil && new == nil, let n = model.data.person(personID)?.name, !nameFocused { name = n }
+            }
             .onChange(of: model.data.person(personID)?.name) { _, n in
                 if let n, !nameFocused { name = n }
             }
@@ -244,26 +246,9 @@ struct MDPersonPage: View {
             })
     }
 
-    private var renameTitle: String {
-        guard let a = renameAsk else { return "" }
-        return "«" + a.otherName + "» gibt es schon"
-    }
-
-    private func renameMessage(_ a: MDPersonRenameAsk) -> String {
-        let parts: [String] = ["Alle Einträge von «", a.oldName, "» gehen an «", a.otherName, "», «", a.oldName, "» wird entfernt."]
-        return parts.joined()
-    }
-
     private func alerts<V: View>(_ v: V, _ p: Person) -> some View {
-        let showRename = Binding<Bool>(get: { renameAsk != nil }, set: { if !$0 { renameAsk = nil } })
         let deleteTitle: String = "«" + p.name + "» löschen?"
         return v
-            .alert(renameTitle, isPresented: showRename, presenting: renameAsk) { a in
-                Button("Zusammenführen") { mergeInto(a) }
-                Button("Abbrechen", role: .cancel) { name = model.data.person(personID)?.name ?? name }
-            } message: { a in
-                Text(renameMessage(a))
-            }
             .alert(deleteTitle, isPresented: $deleteAsk) {
                 Button("Löschen", role: .destructive) { deleteNow() }
                 Button("Abbrechen", role: .cancel) {}
@@ -308,7 +293,7 @@ struct MDPersonPage: View {
                             .autocorrectionDisabled()
                             .submitLabel(.done)
                             .focused($nameFocused)
-                            .onSubmit { commitName(ask: true) }
+                            .onSubmit { commitName() }
                             .onChange(of: name) { _, v in if v.count > 30 { name = mdLimit30(v) } }
                             .mdFieldBox()
                             .accessibilityLabel("Name")
@@ -398,7 +383,7 @@ struct MDPersonPage: View {
             MDSectionHeader(title: title) {
                 if multi {
                     Button("Zuordnen") {
-                        commitName(ask: false)
+                        commitName()
                         nav.push(.assign(.person(personID)))
                     }
                 }
@@ -442,13 +427,13 @@ struct MDPersonPage: View {
     // MARK: Aktionen
 
     private func toggleEdit() {
-        if editing { commitName(ask: true) }
+        if editing { commitName() }
         nameFocused = false
         editing.toggle()
     }
 
-    /// Umbenennen (heRename)
-    private func commitName(ask: Bool) {
+    /// Umbenennen (heRename); gleicher Name → Rückfrage Zusammenführen auf Fenster-Ebene (überlebt «Zurück»/«Fertig»)
+    private func commitName() {
         guard let p = model.data.person(personID) else { return }
         let n = Format.collapseSpaces(name)
         if n.isEmpty {
@@ -458,11 +443,7 @@ struct MDPersonPage: View {
         }
         if n == p.name { return }
         if let ex = model.data.persons.first(where: { $0.id != personID && $0.name.lowercased() == n.lowercased() }) {
-            if ask {
-                if renameAsk == nil { renameAsk = MDPersonRenameAsk(otherID: ex.id, otherName: ex.name, oldName: p.name) }
-            } else {
-                name = p.name
-            }
+            nav.ask(MDRenameAsk(kind: .person, sourceID: personID, otherID: ex.id, otherName: ex.name, oldName: p.name))
             return
         }
         if model.update({ try $0.renamePerson(personID, to: n) }) {
@@ -471,14 +452,6 @@ struct MDPersonPage: View {
         } else {
             name = p.name
         }
-    }
-
-    private func mergeInto(_ a: MDPersonRenameAsk) {
-        guard model.data.person(a.otherID) != nil else { return }
-        model.update { $0.mergePerson(personID, into: a.otherID) }
-        model.mdMovePersonFilters(from: personID, to: a.otherID)
-        nav.swap(.person(a.otherID))
-        model.toast("Zusammengeführt mit «\(a.otherName)»")
     }
 
     private func setAvatar(_ png: Data) {
@@ -495,7 +468,8 @@ struct MDPersonPage: View {
             model.toast("Mindestens ein Inhaber ist nötig")
             return
         }
-        commitName(ask: false)
+        commitName()
+        if nav.renameAsk != nil { return }
         let s = stat
         if (s?.contracts ?? 0) == 0 && (s?.incomes ?? 0) == 0 {
             deleteAsk = true
@@ -608,6 +582,7 @@ private struct MDSigSuggest: Identifiable {
 struct MDSenderPage: View {
     let personID: UUID
     @Environment(AppModel.self) private var model
+    @Environment(ManageNav.self) private var nav
     @State private var draft = SenderAddress()
     @FocusState private var focus: MDSenderField?
     @State private var showPad = false
@@ -686,8 +661,14 @@ struct MDSenderPage: View {
     }
 
     private func handlers<V: View>(_ v: V, _ p: Person) -> some View {
-        v.onAppear { draft = p.sender }
-            .onDisappear { save() }
+        v.onAppear {
+            draft = p.sender
+            nav.flush[.sender(personID)] = { save() }
+        }
+            .onDisappear {
+                save()
+                nav.flush[.sender(personID)] = nil
+            }
             .onChange(of: focus) { old, new in
                 if old != nil && new == nil { save() }
             }
@@ -778,8 +759,12 @@ struct MDSenderPage: View {
     private func save() {
         guard let p = model.data.person(personID) else { return }
         let s = normalized()
-        if s == p.sender { return }
-        if model.update({ $0.setSender(personID, s, sameAs: p.sameAddressAs) }) {
+        // Nur das beim Zeichnen gültige «gleich wie» behalten (Ziel ohne Adresse → eigene Adresse gilt, Web hsSave)
+        let cands = model.data.sameAddressCandidates(for: personID)
+        let same: UUID? = p.sameAddressAs.flatMap { sid in cands.contains { $0.id == sid } ? sid : nil }
+        if s == p.sender && same == p.sameAddressAs { return }
+        let changed = s != p.sender
+        if model.update({ $0.setSender(personID, s, sameAs: same) }), changed {
             model.toast("Absender gespeichert")
         }
     }

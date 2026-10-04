@@ -112,7 +112,8 @@ struct MDLogoBatchPage: View {
                              disabled: n == 0 || state.busy) {
                     Task { @MainActor in
                         let done = await state.apply(model)
-                        nav.pop()
+                        // Nur schliessen, wenn die Ergebnisseite noch oben liegt (Zurück während der Übernahme, Web closeMe)
+                        if nav.path.last == .logoBatch { nav.pop() }
                         model.toast(done == 1 ? "1 Logo übernommen" : "\(done) Logos übernommen")
                     }
                 }

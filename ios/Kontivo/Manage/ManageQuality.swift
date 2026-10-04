@@ -147,7 +147,11 @@ struct MDQualityListPage: View {
                         Spacer(minLength: 8)
                         HStack(spacing: 14) {
                             if field == "logo" {
-                                Button("Alle suchen") { nav.push(.logoBatch) }
+                                Button("Alle suchen") {
+                                    Task { @MainActor in
+                                        if await NetCheck.isOnline() { nav.push(.logoBatch) } else { model.toast("Keine Internetverbindung") }
+                                    }
+                                }
                                     .font(.subheadline.weight(.semibold))
                             }
                             Button("Alle ignorieren") {

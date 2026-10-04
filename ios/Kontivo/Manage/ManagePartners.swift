@@ -137,13 +137,6 @@ private enum MDPartnerField: Hashable {
     }
 }
 
-private struct MDPartnerRenameAsk: Identifiable {
-    let id = UUID()
-    let otherID: UUID
-    let otherName: String
-    let count: Int
-}
-
 /// Seite eines Vertragspartners (MD_PAGES.pe): Name, Logo, Website, Adresse, Verträge, Zusammenführen
 struct MDPartnerPage: View {
     let partnerID: UUID
@@ -156,7 +149,6 @@ struct MDPartnerPage: View {
     @State private var web = ""
     @State private var addr = PostalAddress()
     @FocusState private var focus: MDPartnerField?
-    @State private var renameAsk: MDPartnerRenameAsk?
     @State private var logoTarget: MDLogoTarget?
     @State private var showPhotos = false
     @State private var showFiles = false
@@ -179,7 +171,7 @@ struct MDPartnerPage: View {
     }
 
     private func page(_ p: Partner) -> some View {
-        alerts(sheets(handlers(content(p), p)))
+        sheets(handlers(content(p), p))
     }
 
     private func content(_ p: Partner) -> some View {
@@ -195,8 +187,18 @@ struct MDPartnerPage: View {
     }
 
     private func handlers<V: View>(_ v: V, _ p: Partner) -> some View {
-        v.onAppear { sync(p, force: true) }
-            .onDisappear { commitAll() }
+        v.onAppear {
+            sync(p, force: true)
+            nav.flush[.partner(partnerID)] = { commitAll() }
+        }
+            .onDisappear {
+                commitAll()
+                nav.flush[.partner(partnerID)] = nil
+            }
+            // Rückfrage abgebrochen: Feld auf den gespeicherten Namen zurücksetzen
+            .onChange(of: nav.renameAsk?.id) { old, new in
+                if old != nil && new == nil, let n = model.data.partner(partnerID)?.name, focus != .name { name = n }
+            }
             .onChange(of: model.data.partner(partnerID)) { _, np in
                 if let np { sync(np, force: false) }
             }
@@ -214,26 +216,6 @@ struct MDPartnerPage: View {
         .modifier(MDAddrPickSheet(pick: $addrPick) { a in addr = a })
     }
 
-    private var renameTitle: String {
-        guard let a = renameAsk else { return "" }
-        return "«" + a.otherName + "» gibt es schon"
-    }
-
-    private func renameMessage(_ a: MDPartnerRenameAsk) -> String {
-        let parts: [String] = [Format.count(a.count, "Vertrag wird", "Verträge werden"), " mit «", a.otherName, "» zusammengeführt."]
-        return parts.joined()
-    }
-
-    private func alerts<V: View>(_ v: V) -> some View {
-        let show = Binding<Bool>(get: { renameAsk != nil }, set: { if !$0 { renameAsk = nil } })
-        return v.alert(renameTitle, isPresented: show, presenting: renameAsk) { a in
-            Button("Zusammenführen") { mergeInto(a) }
-            Button("Abbrechen", role: .cancel) { name = model.data.partner(partnerID)?.name ?? name }
-        } message: { a in
-            Text(renameMessage(a))
-        }
-    }
-
     // MARK: Abschnitte
 
     private var headerSection: some View {
@@ -248,7 +230,7 @@ struct MDPartnerPage: View {
                         .autocorrectionDisabled()
                         .submitLabel(.done)
                         .focused($focus, equals: .name)
-                        .onSubmit { commitName(ask: true) }
+                        .onSubmit { commitName() }
                         .accessibilityLabel("Name")
                 }
             }
@@ -413,19 +395,20 @@ struct MDPartnerPage: View {
 
     private func focusChanged(_ old: MDPartnerField?, _ new: MDPartnerField?) {
         guard let old else { return }
-        if old == .name && new != .name { commitName(ask: true) }
+        if old == .name && new != .name { commitName() }
         if old == .web && new != .web { commitWeb() }
         if old.isAddress && !(new?.isAddress ?? false) { commitAddress() }
     }
 
     private func commitAll() {
-        commitName(ask: false)
+        commitName()
         commitWeb()
         commitAddress()
     }
 
     /// Umbenennen (peRename): leer → zurücksetzen; gleicher Name eines anderen → Rückfrage Zusammenführen
-    private func commitName(ask: Bool) {
+    /// (auf Fenster-Ebene, damit sie auch beim Wegnavigieren erscheint – Web mdFlush)
+    private func commitName() {
         guard let p = model.data.partner(partnerID) else { return }
         let n = Format.collapseSpaces(name)
         if n.isEmpty {
@@ -435,14 +418,8 @@ struct MDPartnerPage: View {
         }
         if n == p.name { return }
         if let ex = model.data.partners.first(where: { $0.id != partnerID && $0.name.lowercased() == n.lowercased() }) {
-            if ask {
-                if renameAsk == nil {
-                    let cnt = model.data.contracts.filter { $0.partnerID == partnerID }.count
-                    renameAsk = MDPartnerRenameAsk(otherID: ex.id, otherName: ex.name, count: cnt)
-                }
-            } else {
-                name = p.name
-            }
+            let cnt = model.data.contracts.filter { $0.partnerID == partnerID }.count
+            nav.ask(MDRenameAsk(kind: .partner, sourceID: partnerID, otherID: ex.id, otherName: ex.name, oldName: p.name, count: cnt))
             return
         }
         let old = p.name
@@ -453,15 +430,6 @@ struct MDPartnerPage: View {
         } else {
             name = p.name
         }
-    }
-
-    private func mergeInto(_ a: MDPartnerRenameAsk) {
-        let srcName = model.data.partner(partnerID)?.name ?? ""
-        guard model.data.partner(a.otherID) != nil else { return }
-        model.update { _ = $0.mergePartners([partnerID], into: a.otherID) }
-        model.mdRenameFilters(partnerFrom: srcName, partnerTo: a.otherName)
-        nav.swap(.partner(a.otherID))
-        model.toast("Zusammengeführt mit «\(a.otherName)»")
     }
 
     private func commitWeb() {
@@ -486,7 +454,7 @@ struct MDPartnerPage: View {
     // MARK: Logo
 
     private func openLogoSearch() {
-        commitName(ask: false)
+        commitName()
         logoTarget = model.mdLogoTarget(partner: partnerID, name: name)
     }
 
@@ -510,7 +478,7 @@ struct MDPartnerPage: View {
             return
         }
         googleWait = true
-        if let u = mdGoogleImageURL(n) { openURL(u) }
+        if let u = WebLinks.googleImages(n) { openURL(u) }
     }
 
     /// Zurück aus Google: Bild aus der Zwischenablage übernehmen, sonst Hinweis
@@ -593,7 +561,7 @@ struct MDPartnerMergePage: View {
             }
             if let t = target {
                 Section {
-                    MDHint([Format.count(srcCount + t.contractIDs.count, "Vertrag läuft", "Verträge laufen"), " danach unter «", t.partner.name, "». Ein fehlendes Logo wird ergänzt."].joined())
+                    MDHint([Format.count(srcCount + t.contractIDs.count, "Vertrag läuft", "Verträge laufen"), " danach unter «", t.partner.name, "». Fehlendes Logo und fehlende Website werden ergänzt, die Adresse gilt für alle."].joined())
                         .mdPlainRow()
                 }
             }

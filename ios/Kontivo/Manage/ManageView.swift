@@ -59,8 +59,31 @@ final class ManageNav {
     var partnerQuery = ""
     /// Schliesst das ganze Fenster
     @ObservationIgnored var close: () -> Void = {}
+    /// Rückfrage «X gibt es schon» auf Fenster-Ebene: überlebt «Zurück»/«Fertig» (Web mdFlush, Fix N8)
+    var renameAsk: MDRenameAsk?
+    /// Nach der Rückfrage das Fenster schliessen («Fertig» mit offenem Namenskonflikt)
+    @ObservationIgnored var closeAfterAsk = false
+    /// Offene Eingaben der sichtbaren Seite sichern (vor «Fertig» und beim Wechsel in den Hintergrund)
+    @ObservationIgnored var flush: [ManagePage: () -> Void] = [:]
 
     init(root: ManagePage) { self.root = root }
+
+    /// «Fertig»: zuerst offene Eingaben sichern; steht eine Rückfrage an, erst danach schliessen
+    func requestClose() {
+        for f in flush.values { f() }
+        if renameAsk != nil { closeAfterAsk = true } else { close() }
+    }
+
+    /// Rückfrage stellen (nur eine gleichzeitig)
+    func ask(_ a: MDRenameAsk) {
+        if renameAsk == nil { renameAsk = a }
+    }
+
+    /// Seiten einer Quelle im Stapel durch die Zielseite ersetzen (nach dem Zusammenführen)
+    func replace(_ from: ManagePage, with to: ManagePage) {
+        if root == from { root = to }
+        path = path.map { $0 == from ? to : $0 }
+    }
 
     func push(_ p: ManagePage) { path.append(p) }
 
@@ -92,8 +115,12 @@ struct ManageView: View {
         _nav = State(initialValue: ManageNav(root: ManagePage(route: start)))
     }
 
+    @Environment(AppModel.self) private var model
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some View {
         @Bindable var nav = nav
+        let showAsk = Binding<Bool>(get: { nav.renameAsk != nil }, set: { if !$0 { nav.renameAsk = nil } })
         NavigationStack(path: $nav.path) {
             ManagePageView(page: nav.root)
                 .id(nav.root)
@@ -103,6 +130,72 @@ struct ManageView: View {
         }
         .environment(nav)
         .onAppear { nav.close = { dismiss() } }
+        // Eingaben sichern, bevor iOS die App im Hintergrund beenden kann
+        .onChange(of: scenePhase) { _, ph in
+            if ph == .background {
+                for f in nav.flush.values { f() }
+                model.saveNow()
+            }
+        }
+        .alert(nav.renameAsk?.title ?? "", isPresented: showAsk, presenting: nav.renameAsk) { a in
+            Button("Zusammenführen") { merge(a) }
+            Button("Abbrechen", role: .cancel) { finishAsk() }
+        } message: { a in
+            Text(a.message)
+        }
+    }
+
+    private func finishAsk() {
+        nav.renameAsk = nil
+        if nav.closeAfterAsk {
+            nav.closeAfterAsk = false
+            nav.close()
+        }
+    }
+
+    private func merge(_ a: MDRenameAsk) {
+        switch a.kind {
+        case .partner:
+            if model.data.partner(a.sourceID) != nil, model.data.partner(a.otherID) != nil {
+                model.update { _ = $0.mergePartners([a.sourceID], into: a.otherID) }
+                model.mdRenameFilters(partnerFrom: a.oldName, partnerTo: a.otherName)
+                nav.replace(.partner(a.sourceID), with: .partner(a.otherID))
+                model.toast("Zusammengeführt mit «\(a.otherName)»")
+            }
+        case .person:
+            if model.data.person(a.sourceID) != nil, model.data.person(a.otherID) != nil {
+                model.update { $0.mergePerson(a.sourceID, into: a.otherID) }
+                model.mdMovePersonFilters(from: a.sourceID, to: a.otherID)
+                nav.replace(.person(a.sourceID), with: .person(a.otherID))
+                nav.replace(.sender(a.sourceID), with: .sender(a.otherID))
+                model.toast("Zusammengeführt mit «\(a.otherName)»")
+            }
+        }
+        finishAsk()
+    }
+}
+
+/// Rückfrage beim Umbenennen auf einen bestehenden Namen (Vertragspartner: peRename, Inhaber: heRename)
+struct MDRenameAsk: Identifiable {
+    enum Kind { case partner, person }
+    let id = UUID()
+    let kind: Kind
+    let sourceID: UUID
+    let otherID: UUID
+    let otherName: String
+    let oldName: String
+    /// Anzahl Verträge des Vertragspartners (nur Vertragspartner)
+    var count = 0
+
+    var title: String { "«" + otherName + "» gibt es schon" }
+
+    var message: String {
+        switch kind {
+        case .partner:
+            return [Format.count(count, "Vertrag wird", "Verträge werden"), " mit «", otherName, "» zusammengeführt."].joined()
+        case .person:
+            return ["Alle Einträge von «", oldName, "» gehen an «", otherName, "», «", oldName, "» wird entfernt."].joined()
+        }
     }
 }
 
@@ -116,7 +209,7 @@ struct ManagePageView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Fertig") { nav.close() }
+                    Button("Fertig") { nav.requestClose() }
                         .fontWeight(.semibold)
                 }
             }
