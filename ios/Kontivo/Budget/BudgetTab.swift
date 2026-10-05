@@ -184,10 +184,7 @@ struct KBBudgetCard: View {
         KBPagingCard {
             KBCardHeader(year: by.year, month: month, trailing: pname.isEmpty ? "" : namer.display(pname))
             KBBigAmount(value: bm.free, currency: home, alert: bm.free < 0)
-            Text(verbatim: KBBudgetCard.subline(bm))
-                .font(.footnote)
-                .foregroundStyle(KColor.ink3)
-                .padding(.top, 6)
+            KBBudgetSubline(bm: bm, info: shareInfo(bm, pname: pname))
             if let c = cmp {
                 KBCompareLine(text: c.text, arrow: c.trend.kbArrow, color: KBBudgetCard.color(c.trend))
             }
@@ -207,6 +204,16 @@ struct KBBudgetCard: View {
                 }
             }
         }
+    }
+
+    /// Einordnung «x % der Einnahmen»: Wert des Monats, dazu Jahresschnitt (Web state._fq)
+    private func shareInfo(_ bm: Calc.BudgetMonth, pname: String) -> BudgetShareInfo? {
+        guard bm.income > 0.005 else { return nil }
+        let q = Int(Format.jsRound(bm.free / bm.income * 100))
+        guard q > 0 else { return nil }
+        let avg: Int? = by.totalIncome > 0.005 ? Int(Format.jsRound(by.totalFree / by.totalIncome * 100)) : nil
+        return BudgetShareInfo(percent: q, average: avg, year: by.year, monthLabel: Format.monthNames[month - 1] + " " + String(by.year),
+                               personName: pname, person: person, incomeAverage: by.totalIncome / 12)
     }
 
     /// «verfügbar nach Fixkosten · 23 % der Einnahmen»
