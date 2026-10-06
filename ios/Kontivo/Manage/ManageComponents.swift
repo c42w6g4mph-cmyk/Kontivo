@@ -442,7 +442,6 @@ extension AppModel {
 
     func mdMovePersonFilters(from: UUID, to: UUID?) {
         if costFilter.person == from { costFilter.person = to }
-        if budgetPerson == from { budgetPerson = to }
     }
 }
 

@@ -9,7 +9,9 @@ struct BudgetShareInfo: Identifiable, Hashable {
     let monthLabel: String
     let personName: String
     let person: UUID?
-    let incomeAverage: Double   // Einnahmen pro Monat im Jahresschnitt
+    /// Einnahmen und Verfügbar des Monats (für «ohne: x %» in den Tipps)
+    let income: Double
+    let free: Double
     var id: String { "\(year)-\(monthLabel)-\(person?.uuidString ?? "")" }
 }
 
@@ -36,13 +38,14 @@ struct KBBudgetSubline: View {
         if let i = info {
             Button { shown = i } label: {
                 HStack(spacing: 4) {
-                    Text(verbatim: String(i.percent) + "\u{00A0}% der Einnahmen")
+                    Text(verbatim: BudgetShare.percentText(i.percent) + " der Einnahmen")
                     Image(systemName: "info.circle")
                 }
                 .lineLimit(1)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(Text(verbatim: String(i.percent) + " % der Einnahmen, Einordnung anzeigen"))
+            .accessibilityLabel(Text(verbatim: BudgetShare.percentText(i.percent) + " der Einnahmen, Einordnung anzeigen"))
+            .accessibilityIdentifier("budget.share")
         }
     }
 }
@@ -65,7 +68,7 @@ struct BudgetShareSheet: View {
                     VStack(spacing: 2) {
                         Text(verbatim: info.monthLabel + (info.personName.isEmpty ? "" : " · " + info.personName))
                             .font(.subheadline).foregroundStyle(KColor.ink2)
-                        Text(verbatim: String(info.percent) + "\u{00A0}%")
+                        Text(verbatim: BudgetShare.percentText(info.percent))
                             .font(.system(size: 34, weight: .semibold, design: .rounded)).foregroundStyle(KColor.ink)
                         Text("deiner Einnahmen bleiben nach den Fixkosten")
                             .font(.subheadline).foregroundStyle(KColor.ink2)
@@ -94,7 +97,7 @@ struct BudgetShareSheet: View {
                     .padding(.horizontal, 14)
                     .background(KColor.field, in: RoundedRectangle(cornerRadius: 12))
 
-                    if level == .low || level == .edge { TipsSection(info: info) }
+                    if BudgetShare.showsTips(level) { TipsSection(info: info) }
 
                     VStack(alignment: .leading, spacing: 3) {
                         if showAvg, let a = info.average {
@@ -197,18 +200,27 @@ private struct TipsSection: View {
                                 MarkView(contract: c, data: model.data, size: 32)
                                 VStack(alignment: .leading, spacing: 1) {
                                     Text(verbatim: model.data.title(of: c)).font(.subheadline.weight(.medium)).foregroundStyle(KColor.ink).lineLimit(1)
-                                    if info.incomeAverage > 0.005 {
+                                    if info.income > 0.005 {
                                         ViewThatFits {
                                             Text(verbatim: pct(x.monthly) + "\u{00A0}% der Einnahmen")
                                             Text(verbatim: pct(x.monthly) + "\u{00A0}%")
                                         }
                                         .font(.caption).foregroundStyle(KColor.ink3)
+                                    } else if let cat = model.data.category(c.categoryID) {
+                                        Text(verbatim: cat.name).font(.caption).foregroundStyle(KColor.ink3)
                                     }
                                 }
                                 Spacer(minLength: 8)
-                                (Text(verbatim: Format.money(x.monthly)).font(.subheadline.weight(.semibold).monospacedDigit()).foregroundColor(KColor.ink)
-                                 + Text(verbatim: " " + home).font(.caption2).foregroundColor(KColor.ink3))
-                                    .lineLimit(1).layoutPriority(1)
+                                VStack(alignment: .trailing, spacing: 1) {
+                                    (Text(verbatim: Format.money(x.monthly)).font(.subheadline.weight(.semibold).monospacedDigit()).foregroundColor(KColor.ink)
+                                     + Text(verbatim: " " + home).font(.caption2).foregroundColor(KColor.ink3))
+                                        .lineLimit(1)
+                                    // Anteil ohne diesen Vertrag (Web «ohne: x %»)
+                                    if let wo = BudgetShare.withoutPercent(free: info.free, income: info.income, monthly: x.monthly) {
+                                        Text(verbatim: "ohne: " + BudgetShare.percentText(wo)).font(.caption2.monospacedDigit()).foregroundStyle(KColor.teal)
+                                    }
+                                }
+                                .layoutPriority(1)
                             }
                             .padding(.vertical, 10).padding(.horizontal, 13).contentShape(Rectangle())
                         }
@@ -238,7 +250,7 @@ private struct TipsSection: View {
         }
     }
 
-    private func pct(_ v: Double) -> String { String(Int(Format.jsRound(v / info.incomeAverage * 100))) }
+    private func pct(_ v: Double) -> String { String(Int(Format.jsRound(v / info.income * 100))) }
 
     /// Fenster schliessen, danach Ziel öffnen
     private func go(_ then: @escaping () -> Void) {

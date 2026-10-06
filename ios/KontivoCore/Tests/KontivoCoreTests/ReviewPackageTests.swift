@@ -168,7 +168,7 @@ final class ReviewPackageTests: XCTestCase {
         XCTAssertNil(d.contracts[0].review)
         calc = Calc(data: d, today: today)
         XCTAssertTrue(calc.deadlineOverview().marked.isEmpty)
-        d.finishReview(today: today)
+        d.markReviewed(today: today)
         XCTAssertEqual(d.settings.lastReview, today)
         XCTAssertNil(d.settings.reviewSnooze)
     }

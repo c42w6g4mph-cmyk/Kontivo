@@ -160,6 +160,7 @@ struct KBBudgetContent: View {
         VStack(alignment: .leading, spacing: 0) {
             KBBudgetCard(by: by, month: month, person: person)
                 .padding(.top, 14)
+            if person == nil, let rows = calc.fairShare() { KBFairShareView(rows: rows) }
             KBBudgetIncomeList(year: year, month: month, person: person, incomeCount: incomeCount, monthIncome: bm.income)
             KBBudgetExpenseList(year: year, month: month, person: person, bm: bm, showAll: $showAllExpenses)
         }
@@ -206,22 +207,21 @@ struct KBBudgetCard: View {
         }
     }
 
-    /// Einordnung «x % der Einnahmen»: Wert des Monats, dazu Jahresschnitt (Web state._fq)
+    /// Einordnung «x % der Einnahmen»: Wert des Monats (auch negativ), dazu Jahresschnitt (Web state._fq)
     private func shareInfo(_ bm: Calc.BudgetMonth, pname: String) -> BudgetShareInfo? {
         guard bm.income > 0.005 else { return nil }
         let q = Int(Format.jsRound(bm.free / bm.income * 100))
-        guard q > 0 else { return nil }
         let avg: Int? = by.totalIncome > 0.005 ? Int(Format.jsRound(by.totalFree / by.totalIncome * 100)) : nil
         return BudgetShareInfo(percent: q, average: avg, year: by.year, monthLabel: Format.monthNames[month - 1] + " " + String(by.year),
-                               personName: pname, person: person, incomeAverage: by.totalIncome / 12)
+                               personName: pname, person: person, income: bm.income, free: bm.free)
     }
 
-    /// «verfügbar nach Fixkosten · 23 % der Einnahmen»
+    /// «verfügbar nach Fixkosten · 23 % der Einnahmen» (auch «−12 %»)
     static func subline(_ bm: Calc.BudgetMonth) -> String {
         var s = "verfügbar nach Fixkosten"
         if bm.income > 0.005 {
             let q = Int(Format.jsRound(bm.free / bm.income * 100))
-            if q > 0 { s += " · " + String(q) + " % der Einnahmen" }
+            s += " · " + BudgetShare.percentText(q).replacingOccurrences(of: "\u{00A0}", with: " ") + " der Einnahmen"
         }
         return s
     }
@@ -556,5 +556,46 @@ struct KBExpenseRowView: View {
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
         }
+    }
+}
+
+
+// MARK: - «Fair geteilt?» (Web .fgcard): Balken = Anteil an den Fixkosten, Strich = Anteil an den Einnahmen
+
+struct KBFairShareView: View {
+    @Environment(AppModel.self) private var model
+    let rows: [Calc.FairRow]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            KBGroupHeader(title: Calc.fairTitle, amount: Calc.fairSubtitle)
+            KBListBlock {
+                ForEach(Array(rows.enumerated()), id: \.element.personID) { idx, r in
+                    if idx > 0 { KBRowDivider() }
+                    HStack(spacing: 12) {
+                        if let p = model.data.person(r.personID) { PersonAvatar(person: p, size: 36) }
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(verbatim: r.name).font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
+                            Text(verbatim: r.subline).font(.caption.monospacedDigit()).foregroundStyle(KColor.ink3).lineLimit(1)
+                            GeometryReader { g in
+                                let w = g.size.width
+                                ZStack(alignment: .leading) {
+                                    Capsule().fill(KColor.line).frame(height: 8)
+                                    Capsule().fill(KColor.teal.opacity(0.55)).frame(width: w * CGFloat(r.fixedPercent) / 100, height: 8)
+                                    Rectangle().fill(KColor.ink).frame(width: 2, height: 14).offset(x: w * CGFloat(r.incomePercent) / 100 - 1)
+                                }
+                                .frame(height: 14)
+                            }
+                            .frame(height: 14)
+                            .accessibilityHidden(true)
+                        }
+                    }
+                    .padding(.vertical, 10)
+                    .accessibilityElement(children: .combine)
+                }
+                Text(verbatim: Calc.fairHint).font(.caption).foregroundStyle(KColor.ink3).padding(.vertical, 8)
+            }
+        }
+        .accessibilityIdentifier("budget.fair")
     }
 }

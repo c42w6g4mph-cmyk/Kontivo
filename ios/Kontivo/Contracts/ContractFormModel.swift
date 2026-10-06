@@ -25,6 +25,8 @@ final class CTFormState {
     var partnerName: String
     var categoryID: UUID?
     var holderIDs: [UUID]
+    /// Individuelle Aufteilung (leer = gleich; Web `draft.split`)
+    var split: [SplitShare]
     var amountText: String
     var currency: Currency
     var cycle: Int
@@ -132,6 +134,7 @@ final class CTFormState {
         categoryID = data.category(c.categoryID) != nil ? c.categoryID : nil
         let personIDs = Set(data.persons.map { $0.id })
         holderIDs = c.holderIDs.filter { personIDs.contains($0) }
+        split = c.validSplit != nil ? c.split : []
         amountText = blankAmount ? "" : CTNumber.field(c.amount)
         currency = useHomeCurrency ? data.settings.homeCurrency : c.currency
         cycle = c.cycle == 0 ? 1 : c.cycle
@@ -173,7 +176,7 @@ final class CTFormState {
     // MARK: Änderungen erkennen
 
     func snapshot() -> CTFormSnapshot {
-        CTFormSnapshot(label: label, partnerName: partnerName, categoryID: categoryID, holderIDs: holderIDs, amountText: amountText,
+        CTFormSnapshot(label: label, partnerName: partnerName, categoryID: categoryID, holderIDs: holderIDs, split: split, amountText: amountText,
                        currency: currency, cycle: cycle, due: due, termFixed: termFixed, start: start, end: end, noticeText: noticeText,
                        noticeUnit: noticeUnit, cancelTerm: cancelTerm, renewMonths: renewMonths, prices: prices, extras: extras,
                        watch: watch, isRent: isRent, cancelChannel: cancelChannel, trial: trial, cancelURL: cancelURL,
@@ -332,6 +335,35 @@ final class CTFormState {
         var set = Set(holderIDs)
         if set.contains(id) { set.remove(id) } else { set.insert(id) }
         holderIDs = persons.map { $0.id }.filter { set.contains($0) }
+        syncSplit()
+    }
+
+    // MARK: Aufteilung (Web paintSplit)
+
+    var splitIndividual: Bool { !split.isEmpty && holderIDs.count >= 2 }
+
+    /// Unter 2 Inhabern keine Aufteilung; fehlt ein Inhaber in der Aufteilung, wieder gleichmässig vorbelegen.
+    func syncSplit() {
+        if holderIDs.count < 2 { split = []; return }
+        if split.isEmpty { return }
+        if !holderIDs.allSatisfy({ h in split.contains { $0.personID == h } }) { split = AppData.equalSplit(holders: holderIDs) }
+    }
+
+    func setSplitIndividual(_ on: Bool) {
+        split = on ? AppData.equalSplit(holders: holderIDs) : []
+    }
+
+    func splitPercent(_ id: UUID) -> Int { split.first { $0.personID == id }?.percent ?? 0 }
+
+    /// Anteil setzen (0–100); der letzte Inhaber ergibt sich aus 100 − übrige.
+    func setSplitPercent(_ id: UUID, _ v: Int) {
+        guard holderIDs.count >= 2, let last = holderIDs.last, id != last else { return }
+        var o: [UUID: Int] = [:]
+        for s in split { o[s.personID] = s.percent }
+        o[id] = max(0, min(100, v))
+        let others = holderIDs.dropLast().reduce(0) { $0 + (o[$1] ?? 0) }
+        o[last] = max(0, 100 - others)
+        split = holderIDs.map { SplitShare(personID: $0, percent: o[$0] ?? 0) }
     }
 
     // MARK: Logo und Farbe
@@ -516,6 +548,7 @@ final class CTFormState {
         c.label = label.ctTrimmed
         c.categoryID = categoryID
         c.holderIDs = holderIDs
+        c.split = AppData.normalizedSplit(split, holders: holderIDs)
         c.amount = amount
         c.currency = currency
         c.cycle = cycle
@@ -631,6 +664,7 @@ struct CTFormSnapshot: Hashable {
     var partnerName: String
     var categoryID: UUID?
     var holderIDs: [UUID]
+    var split: [SplitShare]
     var amountText: String
     var currency: Currency
     var cycle: Int

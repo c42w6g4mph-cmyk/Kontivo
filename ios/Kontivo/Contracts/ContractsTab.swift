@@ -372,6 +372,15 @@ private struct CTHeroView: View {
                 .font(.subheadline)
                 .foregroundStyle(KColor.ink2)
                 .monospacedDigit()
+            if let n = model.calc.nextDebit(), let c = model.data.contract(n.contractID) {
+                // Nächste Abbuchung über alle laufenden Verträge (Web #hNext)
+                (Text("Nächste Abbuchung: ") + Text(model.data.title(of: c)).bold()
+                 + Text(" " + Format.money(n.value) + " " + model.data.settings.homeCurrency.rawValue + " " + n.when))
+                    .font(.footnote).foregroundStyle(KColor.ink3).monospacedDigit()
+                    .lineLimit(2)
+                    .padding(.top, 2)
+                    .accessibilityIdentifier("hero.next")
+            }
             if h.showsChips {
                 CTFlowLayout(spacing: 8, lineSpacing: 8) {
                     chip(h.activeCount, " aktiv ›", .active)

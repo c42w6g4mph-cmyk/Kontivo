@@ -96,6 +96,8 @@ enum ManageRoute: Hashable {
     case assign(personFilter: UUID?)
     case categories
     case quality
+    /// Direkt in eine Liste der Datenqualität (Web `openMdAt({k:"qlist"})`), z.B. «Kündigungsfrist und Laufzeit» aus «Fristen»
+    case qualityList(QualityGroup, field: String, title: String)
 
     var idPart: String {
         switch self {
@@ -108,6 +110,7 @@ enum ManageRoute: Hashable {
         case .assign(let u): return "ha-\(u?.uuidString ?? "")"
         case .categories: return "c"
         case .quality: return "q"
+        case .qualityList(let g, let f, _): return "ql-\(g.rawValue)-\(f)"
         }
     }
 }

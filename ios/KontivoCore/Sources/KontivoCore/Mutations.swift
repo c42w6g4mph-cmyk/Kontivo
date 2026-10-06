@@ -357,12 +357,6 @@ extension AppData {
         contracts[i].review = nil
     }
 
-    /// «Fertig» im Quartals-Check: Prüfung als erledigt merken.
-    public mutating func finishReview(today: Day) {
-        settings.lastReview = today
-        settings.reviewSnooze = nil
-    }
-
     /// Inhaber-Vorbelegung für einen neuen Vertrag: zuletzt gewählte (sofern vorhanden), sonst erste Person.
     public var defaultHolderIDs: [UUID] {
         let ids = Set(persons.map { $0.id })

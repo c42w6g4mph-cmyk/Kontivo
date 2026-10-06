@@ -10,6 +10,7 @@ struct DeadlinesTab: View {
     @State private var killTarget: DeadlineKillTarget?
     @State private var killAction: DeadlineKillAction?
     @State private var eventRequest: DeadlineEventRequest?
+    @State private var showReview = false
 
     var body: some View {
         let calc = model.calc
@@ -42,6 +43,9 @@ struct DeadlinesTab: View {
             DeadlineEventEditor(request: r) { action in eventDone(action) }
                 .ignoresSafeArea()
         }
+        .sheet(isPresented: $showReview) {
+            DeadlineReviewSheet().environment(model)
+        }
     }
 
     // MARK: Inhalt
@@ -57,14 +61,21 @@ struct DeadlinesTab: View {
                 }
                 .padding(.top, 2)
             }
+            if !ov.marked.isEmpty {
+                markedGroup(ov)
+            }
             if !ov.upcoming.isEmpty {
                 upcomingGroup(ov.upcoming)
             }
             foldGroup(key: "any", title: Calc.DeadlineOverview.anytimeTitle, extra: "", rows: ov.anytime)
-            foldGroup(key: "none", title: Calc.DeadlineOverview.withoutNoticeTitle, extra: Calc.DeadlineOverview.withoutNoticeExtra, rows: ov.withoutNotice)
+            // «Ohne Frist erfasst»: Zeile öffnet den Inline-Editor «Kündigungsfrist und Laufzeit» (Web data-qnotice)
+            foldGroup(key: "none", title: Calc.DeadlineOverview.withoutNoticeTitle, extra: Calc.DeadlineOverview.withoutNoticeExtra, rows: ov.withoutNotice,
+                      chevron: true) { _ in
+                model.present(.manage(.qualityList(.B, field: "notice", title: "Kündigungsfrist und Laufzeit")))
+            }
             foldGroup(key: "unw", title: Calc.DeadlineOverview.unwatchedTitle, extra: "", rows: ov.unwatched)
             if review {
-                DeadlineReviewCard(onDone: markReviewed, onLater: snoozeReview)
+                DeadlineReviewCard(onGo: { showReview = true }, onDone: markReviewed, onLater: snoozeReview)
                     .padding(.top, 14)
             }
         }
@@ -93,6 +104,50 @@ struct DeadlinesTab: View {
         }
     }
 
+    /// «Zum Kündigen vorgemerkt» (Quartals-Check): Karte mit «Doch behalten» und «Kündigen»/«Wechseln»
+    @ViewBuilder private func markedGroup(_ ov: Calc.DeadlineOverview) -> some View {
+        HStack {
+            SectionHead(title: Calc.DeadlineOverview.markedTitle)
+            Spacer()
+            Text(verbatim: Format.money(ov.markedMonthly) + " " + model.calc.home.rawValue + "/Mt.")
+                .font(.footnote.monospacedDigit()).foregroundStyle(KColor.ink2).padding(.top, 22)
+        }
+        VStack(spacing: 8) {
+            ForEach(ov.marked, id: \.self) { m in
+                if let c = model.data.contract(m.contractID) {
+                    VStack(spacing: 0) {
+                        Button { model.present(.contractDetail(c.id)) } label: {
+                            HStack(spacing: 12) {
+                                MarkView(contract: c, data: model.data, size: 40)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(model.data.title(of: c)).font(.body.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
+                                    Text(verbatim: m.line).font(.footnote).foregroundStyle(KColor.ink2).lineLimit(2)
+                                }
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.horizontal, 13).padding(.top, 12).padding(.bottom, 8)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        HStack(spacing: 8) {
+                            DeadlineActionButton(title: m.keepTitle) {
+                                let id = c.id
+                                if model.update({ $0.clearReview(id) }) { model.toast("Bleibt") }
+                            }
+                            DeadlineActionButton(title: m.cancelTitle) {
+                                killTarget = DeadlineKillTarget(contractID: c.id, trial: false)
+                            }
+                        }
+                        .padding(.horizontal, 13).padding(.bottom, 12)
+                    }
+                    .background(KColor.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous))
+                    .accessibilityIdentifier("deadlines.marked")
+                }
+            }
+        }
+    }
+
     @ViewBuilder private func upcomingGroup(_ rows: [Calc.UpcomingRow]) -> some View {
         SectionHead(title: Calc.DeadlineOverview.upcomingTitle)
         KCard {
@@ -115,7 +170,8 @@ struct DeadlinesTab: View {
         }
     }
 
-    @ViewBuilder private func foldGroup(key: String, title: String, extra: String, rows: [Calc.FoldRow]) -> some View {
+    @ViewBuilder private func foldGroup(key: String, title: String, extra: String, rows: [Calc.FoldRow],
+                                        chevron: Bool = false, onRow: ((Contract) -> Void)? = nil) -> some View {
         if !rows.isEmpty {
             let open = openFolds.contains(key)
             KCard {
@@ -143,8 +199,8 @@ struct DeadlinesTab: View {
                     ForEach(rows, id: \.self) { r in
                         if let c = model.data.contract(r.contractID) {
                             Divider().padding(.leading, 61)
-                            DeadlineListRow(contract: c, data: model.data, text: r.text, color: KColor.ink2) {
-                                model.present(.contractDetail(c.id))
+                            DeadlineListRow(contract: c, data: model.data, text: r.text + (chevron ? " ›" : ""), color: KColor.ink2) {
+                                if let f = onRow { f(c) } else { model.present(.contractDetail(c.id)) }
                             }
                         }
                     }
@@ -330,8 +386,9 @@ private struct DeadlineListRow: View {
     }
 }
 
-/// «Quartals-Check» mit «Alles geprüft» und «Später»
+/// «Quartals-Check» mit «Durchgehen» (Verträge einzeln), «Alles passt» und «Später» (Web .review, data-rv)
 private struct DeadlineReviewCard: View {
+    let onGo: () -> Void
     let onDone: () -> Void
     let onLater: () -> Void
 
@@ -342,14 +399,14 @@ private struct DeadlineReviewCard: View {
                 Text("Quartals-Check")
                     .font(.body.weight(.bold))
                     .foregroundStyle(KColor.ink)
-                Text("Stimmen Beträge, Fristen und Preise noch?")
+                Text("Brauchst du noch alles? Geh deine Verträge kurz durch.")
                     .font(.subheadline)
                     .foregroundStyle(KColor.ink2)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.bottom, 6)
                 HStack(spacing: 8) {
-                    Button(action: onDone) {
-                        Text("Alles geprüft")
+                    Button(action: onGo) {
+                        Text("Durchgehen")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.white)
                             .frame(maxWidth: .infinity, minHeight: 40)
@@ -357,16 +414,9 @@ private struct DeadlineReviewCard: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    Button(action: onLater) {
-                        Text("Später")
-                            .font(.subheadline)
-                            .foregroundStyle(KColor.ink2)
-                            .padding(.horizontal, 14)
-                            .frame(minHeight: 40)
-                            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("review.go")
+                    ghost("Alles passt", action: onDone)
+                    ghost("Später", action: onLater)
                 }
             }
             .padding(.horizontal, 15)
@@ -375,6 +425,106 @@ private struct DeadlineReviewCard: View {
         }
         .background(KColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous))
+    }
+
+    private func ghost(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(KColor.ink2)
+                .lineLimit(1).minimumScaleFactor(0.8)
+                .padding(.horizontal, 12)
+                .frame(minHeight: 40)
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// Quartals-Check pro Vertrag (Web openReview): Liste der laufenden Verträge, je Zeile «Brauche ich» / «Weg damit» (Pflichtvertrag: «Wechseln»);
+/// «Fertig» merkt die Prüfung als erledigt. «Weg damit» landet in «Fristen» unter «Zum Kündigen vorgemerkt».
+struct DeadlineReviewSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        let calc = model.calc
+        let list = calc.reviewList()
+        let home = calc.home.rawValue
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Tippe bei jedem Vertrag, ob du ihn noch brauchst. «Weg damit» merkt ihn in «Fristen» zum Kündigen vor.")
+                        .font(.footnote).foregroundStyle(KColor.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if list.isEmpty {
+                        Text("Keine laufenden Verträge.").font(.footnote).foregroundStyle(KColor.ink2)
+                    }
+                    ForEach(list) { c in
+                        let v = calc.freshReview(c)
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 10) {
+                                MarkView(contract: c, data: model.data, size: 36)
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(model.data.title(of: c)).font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
+                                    Text(verbatim: Format.money(calc.monthlyCost(c)) + " " + home + "/Mt." + (c.mandatory ? " · Pflichtvertrag" : ""))
+                                        .font(.caption).foregroundStyle(KColor.ink3).lineLimit(1)
+                                }
+                            }
+                            HStack(spacing: 6) {
+                                seg("Brauche ich", on: v == .keep) { set(c.id, .keep) }
+                                seg(c.mandatory ? "Wechseln" : "Weg damit", on: v == .kill) { set(c.id, .kill) }
+                            }
+                        }
+                        .padding(12)
+                        .background(KColor.surface, in: RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous))
+                        .accessibilityIdentifier("review.row")
+                    }
+                    Button {
+                        let t = model.today
+                        if model.update({ $0.markReviewed(today: t) }) { model.toast(AppData.reviewedToast) }
+                        dismiss()
+                    } label: {
+                        Text("Fertig").font(.body.weight(.semibold)).foregroundStyle(.white)
+                            .frame(maxWidth: .infinity).padding(.vertical, 13)
+                            .background(KColor.teal, in: RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 6)
+                    .accessibilityIdentifier("review.done")
+                }
+                .padding(.horizontal, KMetric.gutter).padding(.vertical, 12)
+            }
+            .kPageBackground()
+            .navigationTitle("Quartals-Check")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { dismiss() } label: { Image(systemName: "xmark.circle.fill").symbolRenderingMode(.hierarchical) }
+                        .accessibilityLabel("Schliessen")
+                }
+            }
+        }
+        .presentationDragIndicator(.visible)
+    }
+
+    private func set(_ id: UUID, _ v: ReviewVerdict) {
+        let t = model.today
+        model.update { $0.setReview(id, v, today: t) }
+    }
+
+    private func seg(_ title: String, on: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title).font(.subheadline.weight(.semibold))
+                .foregroundStyle(on ? Color.white : KColor.ink)
+                .lineLimit(1).minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity).frame(minHeight: 36)
+                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(on ? KColor.teal : KColor.sunken))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(on ? .isSelected : [])
     }
 }
 

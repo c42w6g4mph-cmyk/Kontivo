@@ -24,8 +24,11 @@ final class AppModel {
     /// Gewählter Monat/Jahr in Kosten und Budget
     var selectedYear: Int
     var selectedMonth: Int   // 1–12
-    /// Personenfilter im Budget
-    var budgetPerson: UUID?
+    /// Personenfilter im Budget = derselbe wie in Verträgen/Kosten (Web: state.bHolder ↔ state.flt.holder, seit 06.10.2026 ein Filter)
+    var budgetPerson: UUID? {
+        get { costFilter.person }
+        set { costFilter.person = newValue }
+    }
     /// Suche und Hero-Filter in «Verträge»
     var searchText = ""
     var heroFilter: HeroFilter?

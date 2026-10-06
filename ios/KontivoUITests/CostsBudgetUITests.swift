@@ -64,3 +64,45 @@ final class CostsBudgetUITests: KontivoUITestCase {
         waitUntil("Formular geschlossen") { !self.navExists("Einnahme bearbeiten") }
     }
 }
+
+/// Review-Paket 06.10.2026: Budget-Info «Was dir bleibt», «Fair geteilt?», Aufteilung im Detail und im Formular
+final class ReviewPackageUITests: KontivoUITestCase {
+    private func chart(_ prefix: String) -> XCUIElement {
+        app.descendants(matching: .any).matching(pred("label BEGINSWITH %@", prefix)).firstMatch
+    }
+
+    func testBudgetInfoFenster() {
+        launch("-uiDemo", "-uiTab", "budget")
+        wait(chart("Verfügbar pro Monat"), "Budget-Karte", timeout: 12)
+        let share = button("budget.share")
+        scrollTo(share)
+        tap(share, "«% der Einnahmen» Info")
+        waitNav("Was dir bleibt")
+        wait(elContaining("deiner Einnahmen bleiben nach den Fixkosten"), "Erklärung im Fenster")
+        wait(elContaining("Richtwerte von Budgetberatungen"), "Fussnote")
+        tapTop("Schliessen")
+        waitUntil("Fenster zu") { !self.navExists("Was dir bleibt") }
+        // «Fair geteilt?» (Miete 70/30 gemeinsam, zwei Einkommen)
+        let fair = el("budget.fair")
+        scrollTo(fair)
+        wait(fair, "Karte «Fair geteilt?»")
+        XCTAssertTrue(elContaining("Fixkosten").exists)
+    }
+
+    func testAufteilungDetailUndFormular() {
+        launch("-uiDemo", "-uiTab", "contracts")
+        let row = buttonStarting("Miete")
+        scrollTo(row)
+        tap(row, "Miete öffnen")
+        wait(elContaining("Sinan 70"), "Inhaber mit Anteilen", timeout: 12)
+        XCTAssertTrue(elContaining("Lara 30").exists)
+        wait(elContaining("Bisher bezahlt"), "Zeile «Bisher bezahlt»")
+        tapTop("Bearbeiten")
+        waitNav("Vertrag bearbeiten")
+        let seg = el("form.split")
+        scrollTo(seg)
+        wait(seg, "Segment Aufteilung")
+        XCTAssertTrue(seg.buttons["Individuell"].isSelected, "Individuell gewählt")
+        tapTop("Abbrechen")
+    }
+}

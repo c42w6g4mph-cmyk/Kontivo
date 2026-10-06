@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import KontivoCore
 
-/// Tab «Mehr»: Darstellung, Währung, Verwalten, Daten, Hilfe, Rechtliches (Reihenfolge wie die Web-App).
+/// Tab «Mehr»: Verwalten, Darstellung, Währung, Daten, Hilfe, Rechtliches (Reihenfolge wie die Web-App seit 06.10.2026).
 struct MoreTab: View {
     @Environment(AppModel.self) private var model
     @State private var flow = MoreDataFlow()
@@ -13,9 +13,9 @@ struct MoreTab: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 12) {
+                MoreManageGroup()
                 MoreThemeGroup()
                 MoreCurrencyGroup(expanded: $moreCurrencies)
-                MoreManageGroup()
                 MoreDataGroup(flow: flow)
                 MoreHelpGroup()
                 MoreLegalGroup()

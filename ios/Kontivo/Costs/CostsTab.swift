@@ -85,6 +85,7 @@ struct CostsTab: View {
                                     byAmount: $listByAmount, showPaid: $showPaid)
                     KBCostSplitView(cy: cy, month: month, splitDim: $splitDim, splitMonth: $splitMonth,
                                     ringSel: $ringSel, showRest: $showRest)
+                    KBPriceIncreaseList(filter: model.costFilter)
                 }
             }
             .padding(.horizontal, KMetric.gutter)
@@ -335,6 +336,49 @@ struct KBCostMonthList: View {
         ForEach(Array(list.enumerated()), id: \.offset) { idx, it in
             if idx > 0 || dividerFirst { KBRowDivider() }
             KBCostRow(item: it)
+        }
+    }
+}
+
+/// «Teurer geworden · 12 Monate»: Preiserhöhungen der letzten 12 Monate mit Mehrkosten pro Jahr (Web renderStat)
+struct KBPriceIncreaseList: View {
+    @Environment(AppModel.self) private var model
+    let filter: Calc.CostFilter
+
+    var body: some View {
+        let incs = model.calc.priceIncreases(filter: filter)
+        let home = model.data.settings.homeCurrency.rawValue
+        if !incs.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+                KBGroupHeader(title: "Teurer geworden · 12 Monate", amount: "+" + Format.money0(incs.reduce(0) { $0 + $1.yearly }) + " " + home + "/Jahr")
+                KBListBlock {
+                    ForEach(Array(incs.enumerated()), id: \.offset) { idx, it in
+                        if idx > 0 { KBRowDivider() }
+                        if let c = model.data.contract(it.contractID) {
+                            Button { model.present(.contractDetail(c.id)) } label: {
+                                HStack(spacing: 12) {
+                                    MarkView(contract: c, data: model.data, size: 40)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(verbatim: model.data.title(of: c))
+                                            .font(.system(.body, design: .rounded).weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
+                                        Text(verbatim: "+" + Format.money(it.step) + " " + c.currency.rawValue + " ab " + Format.fmtShort(it.from))
+                                            .font(.footnote).foregroundStyle(KColor.ink2).lineLimit(1)
+                                    }
+                                    Spacer(minLength: 8)
+                                    HStack(alignment: .firstTextBaseline, spacing: 3) {
+                                        Text(verbatim: "+" + Format.money0(it.yearly)).font(.body.weight(.semibold).monospacedDigit()).foregroundStyle(KColor.ink)
+                                        Text(verbatim: home + "/Jahr").font(.caption2).foregroundStyle(KColor.ink2)
+                                    }
+                                }
+                                .padding(.vertical, 10)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+            .accessibilityIdentifier("costs.increases")
         }
     }
 }

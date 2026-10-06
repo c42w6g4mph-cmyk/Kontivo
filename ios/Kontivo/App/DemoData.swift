@@ -104,6 +104,10 @@ enum DemoData {
     "Sinan",
     "Lara"
    ],
+   "split": {
+    "Sinan": 70,
+    "Lara": 30
+   },
    "status": "active",
    "start": "2024-03-01",
    "noWatch": true

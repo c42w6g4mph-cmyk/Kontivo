@@ -137,7 +137,8 @@ struct KBCostSplitView: View {
                         }
                     }
                     (Text(verbatim: fmt(s.value)).fontWeight(.semibold).foregroundStyle(KColor.ink2)
-                     + Text(verbatim: " " + home + " · " + String(sp.percent(s.value)) + " %").foregroundStyle(KColor.ink3))
+                     + Text(verbatim: " " + home + " · " + String(sp.percent(s.value)) + " %").foregroundStyle(KColor.ink3)
+                     + prevText(s))
                         .font(.caption.monospacedDigit())
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -151,6 +152,17 @@ struct KBCostSplitView: View {
         .opacity(dim ? 0.4 : 1)
         .accessibilityAddTraits(on ? .isSelected : [])
         .accessibilityValue(s.isOther ? Text(verbatim: showRest ? "aufgeklappt" : "zugeklappt") : Text(verbatim: ""))
+    }
+
+    /// Vorjahr je Gruppe (nur Jahresansicht, nicht «Übrige»): « · wie 2025» bzw. « · +120 vs. 2025» (Web prevTxt)
+    private func prevText(_ s: Calc.KBSplitSegment) -> Text {
+        guard !splitMonth, !s.isOther, let p = cy.previousText(s.key) else { return Text(verbatim: "") }
+        if let d = p.delta {
+            return Text(verbatim: " · ").foregroundStyle(KColor.ink3)
+                + Text(verbatim: d).foregroundStyle(KBCostMonthCard.color(p.trend))
+                + Text(verbatim: " " + p.suffix).foregroundStyle(KColor.ink3)
+        }
+        return Text(verbatim: " · " + p.suffix).foregroundStyle(KColor.ink3)
     }
 
     // MARK: Restliste hinter «Übrige»

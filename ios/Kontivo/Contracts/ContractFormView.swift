@@ -214,6 +214,7 @@ private struct CTFormContractSection: View {
             categoryRow
             if model.data.persons.count >= 2 {
                 holdersRow
+                if form.holderIDs.count >= 2 { CTFormSplitRows(form: form) }
             }
         } header: {
             Text("Vertrag")
@@ -256,6 +257,54 @@ private struct CTFormContractSection: View {
                         form.toggleHolder(p.id, persons: model.data.persons)
                     }
                 }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+/// Aufteilung bei gemeinsamen Verträgen: «Gleich aufgeteilt» oder «Individuell» mit Prozent je Inhaber;
+/// der letzte Inhaber ergibt sich aus 100 − übrige (Web #fSplitWrap / paintSplit).
+private struct CTFormSplitRows: View {
+    @Environment(AppModel.self) private var model
+    @Bindable var form: CTFormState
+
+    var body: some View {
+        let holders = form.holderIDs.compactMap { model.data.person($0) }
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("Aufteilung", selection: Binding(get: { form.splitIndividual }, set: { form.setSplitIndividual($0) })) {
+                Text("Gleich aufgeteilt").tag(false)
+                Text("Individuell").tag(true)
+            }
+            .pickerStyle(.segmented)
+            .accessibilityIdentifier("form.split")
+            if form.splitIndividual {
+                VStack(spacing: 0) {
+                    ForEach(Array(holders.enumerated()), id: \.element.id) { i, p in
+                        let last = i == holders.count - 1
+                        if i > 0 { Divider().overlay(KColor.line) }
+                        HStack {
+                            Text(p.name).foregroundStyle(KColor.ink).lineLimit(1)
+                            Spacer(minLength: 8)
+                            if last {
+                                Text(verbatim: String(form.splitPercent(p.id))).foregroundStyle(KColor.ink2).monospacedDigit()
+                            } else {
+                                TextField("0", text: Binding(
+                                    get: { String(form.splitPercent(p.id)) },
+                                    set: { form.setSplitPercent(p.id, Int($0.filter { $0.isNumber }) ?? 0) }))
+                                    .keyboardType(.numberPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(width: 56)
+                                    .accessibilityLabel("Anteil " + p.name)
+                                    .accessibilityIdentifier("form.split." + String(i))
+                            }
+                            Text("%").foregroundStyle(KColor.ink3)
+                        }
+                        .padding(.vertical, 8).padding(.horizontal, 12)
+                    }
+                }
+                .background(KColor.field, in: RoundedRectangle(cornerRadius: 10))
+                Text("Der letzte Anteil ergibt sich aus den übrigen.").font(.caption).foregroundStyle(KColor.ink3)
             }
         }
         .padding(.vertical, 4)

@@ -36,6 +36,7 @@ enum ManagePage: Hashable {
         case .assign(let u): self = .assign(u.map { MDAssignFilter.person($0) } ?? .all)
         case .categories: self = .categories
         case .quality: self = .quality
+        case .qualityList(let g, let f, let t): self = .qualityList(g, f, t)
         }
     }
 }
