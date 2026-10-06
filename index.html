@@ -2265,12 +2265,16 @@ function renderView(){
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst">'+esc(txt)+" ›</span></button>";};
     /* Flexibel: kurzfristig kündbare Verträge als eine Karte mit Logostapel, aufklappbar */
     if(anytime.length){var fOp=!!(state.tfold||{}).any;
-      var fRow=function(c){var T=nextTerm(c),nt=noticeText(c);
+      /* Ende bei Kündigung heute: Kündbar-auf-Termin (nextTerm) oder bei «jederzeit mit Frist» heute + Frist */
+      var fEnd=function(c){var T=nextTerm(c);if(T)return T;var n=+c.notice||0,t=today(),u=c.noticeU;if(!n)return t;
+        if(u==="d")return new Date(t.getFullYear(),t.getMonth(),t.getDate()+n);if(u==="w")return new Date(t.getFullYear(),t.getMonth(),t.getDate()+7*n);
+        if(u==="k")return new Date(t.getFullYear(),t.getMonth()+(t.getDate()<=n?1:2),0);return addMonths(t,n);};
+      var fRow=function(c){var T=fEnd(c),nt=noticeText(c);
         return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">'+(nt?(c.noticeU==="k"?"Kündigung "+nt:"Frist "+nt):"Ohne Frist")+'</span></span>'+
           '<span class="tchip">'+(T?"endet "+ddmm(T):"offen")+"</span></button>";};
       o+='<div class="grp"><div class="grphead"><span>Flexibel</span></div><div class="tflex'+(fOp?" on":"")+'"><button class="tfx" data-tfold="any" aria-expanded="'+fOp+'"><span class="tstk">'+anytime.slice().sort(function(x,y){return monthlyCost(y)-monthlyCost(x);}).slice(0,4).map(function(c){return markHtml(c);}).join("")+'</span>'+
         '<span class="mt"><span class="mn">'+anytime.length+(anytime.length===1?" Vertrag":" Verträge")+'</span><span class="mm">Ohne Mindestlaufzeit</span></span><i></i></button>'+
-        (fOp?'<p class="tfnote">Vertragsende bei Kündigung per heute</p><div class="mrows2">'+anytime.slice().sort(function(x,y){return (nextTerm(x)||0)-(nextTerm(y)||0);}).map(fRow).join("")+"</div>":"")+"</div></div>";}
+        (fOp?'<p class="tfnote">Vertragsende bei Kündigung per heute</p><div class="mrows2">'+anytime.slice().sort(function(x,y){return fEnd(x)-fEnd(y);}).map(fRow).join("")+"</div>":"")+"</div></div>";}
     o+=fold("none","Ohne Frist erfasst",nofrist,function(){return "ergänzen";}," · ergänzen",rowQ);
     o+=fold("unw","Nicht beobachtet",unw,function(c){return noticeText(c)?"Frist "+noticeText(c):"";});
     if(state._rvDue)o+='<div class="review rvsmall"><div class="rvh">Quartals-Check</div><p>Brauchst du noch alles? Geh deine Verträge kurz durch.</p>'+
