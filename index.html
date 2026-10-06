@@ -430,7 +430,6 @@ body.hasplus .topadd{display:inline-flex}
 .tlist .tit:first-child{border-top:0}
 .tlist .tit .mrow{border-top:0}
 .tlist .mt{gap:2px}
-.tlist .mm,.tfx .mm{white-space:normal;line-height:1.35}
 .tlist .tacts{padding:0 0 13px 52px;margin-top:-3px}
 .tacts .tk{color:var(--teal)}
 .tchip{flex:none;font-size:12px;font-weight:600;padding:4px 8px;border-radius:8px;background:var(--sunken);color:var(--ink2);white-space:nowrap}
@@ -2248,10 +2247,10 @@ function renderView(){
     });
     items.sort(function(x,y){return x.d-y.d;});
     var tItem=function(x){var c=x.c,dn=daysBetween(t1,x.d),sub,chip,cc="",acts=false;
-      if(x.k==="end"){sub="gekündigt · läuft aus";chip="endet "+ddmm(x.d);cc="end";}
-      else if(x.k==="trial"){sub="Probeabo endet "+fmtShort(x.d);chip=inDays(dn);cc=dn<=7?"alert":"warn";acts=true;}
-      else if(x.k==="kept"){sub="behalten · kündigen bis "+fmtShort(x.d);chip=inDays(dn);cc="ok";}
-      else{sub="kündigen bis "+fmtShort(x.d)+(x.e?" · endet "+fmtShort(x.e):"");chip=inDays(dn);acts=needsAction(c)||(x.e&&daysBetween(t1,x.e)<=61);cc=dn<=7?"alert":(acts?"warn":"");}
+      if(x.k==="end"){sub="gekündigt";chip="endet "+ddmm(x.d);cc="end";}
+      else if(x.k==="trial"){sub="Probeabo endet "+ddmm(x.d);chip=inDays(dn);cc=dn<=7?"alert":"warn";acts=true;}
+      else if(x.k==="kept"){sub="behalten · nächste Frist "+ddmm(x.d);chip=inDays(dn);cc="ok";}
+      else{sub="kündigen bis "+ddmm(x.d);chip=inDays(dn);acts=needsAction(c)||(x.e&&daysBetween(t1,x.e)<=61);cc=dn<=7?"alert":(acts?"warn":"");}
       if(c.mand&&x.k!=="end")sub+=" · Pflicht";
       var tr=x.k==="trial"?' data-trial="1"':"";
       return '<div class="tit"><button class="mrow" data-open="'+esc(c._id)+'">'+markHtml(c)+
@@ -2267,13 +2266,13 @@ function renderView(){
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst">'+esc(txt)+" ›</span></button>";};
     /* Flexibel: kurzfristig kündbare Verträge als eine Karte mit Logostapel, aufklappbar */
     if(anytime.length){var fOp=!!(state.tfold||{}).any;
-      var fTerm=function(c){return (!c.end&&c.cancTerm==="m")?"auf Monatsende":(!c.end&&c.cancTerm==="p")?"auf Ende Zahlungsperiode":"jederzeit";};
+      var fTerm=function(c){return (!c.end&&c.cancTerm==="m")?"Monatsende":(!c.end&&c.cancTerm==="p")?"Periodenende":"sofort";};
       var fRow=function(c){var T=nextTerm(c),nt=noticeText(c);
         return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">'+(nt?(c.noticeU==="k"?"Kündigung "+nt:"Frist "+nt):"ohne Frist")+" · "+fTerm(c)+'</span></span>'+
-          '<span class="tfe">'+(T?"<small>endet</small>"+ddmm(T):"<small>endet</small>nach Frist")+"</span></button>";};
+          '<span class="tfe">'+(T?ddmm(T):"–")+"</span></button>";};
       o+='<div class="grp"><div class="grphead"><span>Flexibel</span></div><div class="tflex'+(fOp?" on":"")+'"><button class="tfx" data-tfold="any" aria-expanded="'+fOp+'"><span class="tstk">'+anytime.slice().sort(function(x,y){return monthlyCost(y)-monthlyCost(x);}).slice(0,4).map(function(c){return markHtml(c);}).join("")+'</span>'+
         '<span class="mt"><span class="mn">'+anytime.length+(anytime.length===1?" Vertrag":" Verträge")+'</span><span class="mm">keine feste Laufzeit · kurz kündbar</span></span><i></i></button>'+
-        (fOp?'<p class="tfnote">Diese Verträge kannst du jederzeit kündigen. Rechts steht, wann sie enden, wenn du heute kündigst.</p><div class="mrows2">'+anytime.slice().sort(function(x,y){return (nextTerm(x)||0)-(nextTerm(y)||0);}).map(fRow).join("")+"</div>":"")+"</div></div>";}
+        (fOp?'<p class="tfnote">Rechts: Ende bei Kündigung heute</p><div class="mrows2">'+anytime.slice().sort(function(x,y){return (nextTerm(x)||0)-(nextTerm(y)||0);}).map(fRow).join("")+"</div>":"")+"</div></div>";}
     o+=fold("none","Ohne Frist erfasst",nofrist,function(){return "ergänzen";}," · ergänzen",rowQ);
     o+=fold("unw","Nicht beobachtet",unw,function(c){return noticeText(c)?"Frist "+noticeText(c):"";});
     if(state._rvDue)o+='<div class="review rvsmall"><div class="rvh">Quartals-Check</div><p>Brauchst du noch alles? Geh deine Verträge kurz durch.</p>'+
