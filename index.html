@@ -70,7 +70,6 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .big .u{font-size:.3em;font-family:-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-weight:500;color:var(--ink2);letter-spacing:0}
 .heroSub{color:var(--ink2);font-size:14px;margin-top:9px}
 .heroSub b{color:var(--ink);font-weight:600}
-.heroNext{color:var(--ink2);font-size:14px;margin-top:4px}.heroNext b{color:var(--ink);font-weight:600}
 .hchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .hchip{display:inline-flex;align-items:center;gap:4px;font-size:13px;padding:6px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--ink2);line-height:1.2}
 .hchip b{color:var(--ink);font-weight:650}
@@ -850,8 +849,16 @@ body{display:flex;flex-direction:column}
 .ig .igr input::placeholder{color:var(--ink3)}
 .ig .igr input:focus{background:color-mix(in srgb,var(--teal) 6%,transparent)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px}
-.sprows{background:var(--field);border-radius:12px;padding:0 12px}.sprow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:15px}.sprow:first-child{border-top:0}
-.spin{display:flex;align-items:center;gap:4px}.spin input{width:64px;height:36px;border:0;border-radius:8px;background:var(--surface);text-align:right;font-size:16px;padding:0 8px;box-shadow:inset 0 0 0 1px var(--line)}.spin input[readonly]{color:var(--ink2);box-shadow:none;background:transparent}.spin u{text-decoration:none;color:var(--ink3)}
+.spbox{background:var(--field);border-radius:12px;padding:10px 14px 12px}
+.sprow2{padding:8px 0;border-top:1px solid var(--line)}.sprow2:first-child{border-top:0;padding-top:2px}
+.sphead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}.sphead span{display:flex;flex-direction:column;min-width:0}.sphead .r{text-align:right;align-items:flex-end}
+.sphead em{font-style:normal;font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sphead small{font-size:13px;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}.sphead small b{color:var(--ink);font-weight:600}
+.sprange{-webkit-appearance:none;appearance:none;width:100%;height:36px;margin:4px 0 0;background:transparent;touch-action:pan-y}
+.sprange::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--teal) var(--p),var(--line) var(--p))}
+.sprange::-moz-range-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--teal) var(--p),var(--line) var(--p))}
+.sprange::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 .5px rgba(0,0,0,.08)}
+.sprange::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .chip{padding:7px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;color:var(--ink2)}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
 .swatches{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
@@ -1219,7 +1226,6 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="hlabel">Aktuelle Fixkosten pro Monat</div>
     <div class="big"><span id="hMonth">0.00</span><span class="u" id="hCur">CHF</span></div>
     <div class="heroSub" id="hSub"></div>
-    <div class="heroNext" id="hNext" hidden></div>
     <div class="hchips" id="hChips"></div>
     <button class="flag" id="hFlag" hidden></button>
     <div id="reviewCard"></div>
@@ -1228,17 +1234,17 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 
   <div id="view"></div>
   <section class="setpage" id="setPage" hidden aria-label="Mehr">
-  <div class="sgroup"><div class="sgh">Verwalten</div>
-    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Namen, Logos und Adressen deiner Anbieter</small></span><em id="mdSumP"></em></button>
-    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Personen, Absender und Unterschrift</small></span><em id="mdSumH"></em></button>
-    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
-    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Darstellung</div>
     <div class="seg2" id="themeSeg" role="group" aria-label="Darstellung" style="margin:0">
       <button type="button" data-th="auto" aria-pressed="true">Automatisch</button>
       <button type="button" data-th="light" aria-pressed="false">Hell</button>
       <button type="button" data-th="dark" aria-pressed="false">Dunkel</button>
     </div></div>
+  <div class="sgroup"><div class="sgh">Verwalten</div>
+    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Namen, Logos und Adressen deiner Anbieter</small></span><em id="mdSumP"></em></button>
+    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Personen, Absender und Unterschrift</small></span><em id="mdSumH"></em></button>
+    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
+    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Währung</div>
     <p class="note" style="margin:0 0 8px">Hauptwährung für alle Summen</p>
     <div class="curpick" id="sHome" role="group" aria-label="Hauptwährung"></div>
@@ -2016,12 +2022,6 @@ function renderHero(){
   document.getElementById("hMonth").textContent=money(mSum);
   document.getElementById("hCur").textContent=state.settings.home;
   document.getElementById("hSub").textContent=nf0.format(mSum*12)+" "+state.settings.home+" pro Jahr"+((!np&&!fut&&a.length)?" · "+a.length+(a.length===1?" aktiver Vertrag":" aktive Verträge"):"");
-  /* Nächste Abbuchung über alle laufenden Verträge (frühester nächster Termin, grösster Betrag bei gleichem Tag) */
-  var hn=document.getElementById("hNext"),best=null;
-  a.forEach(function(c){var d=nextDue(c);if(!d)return;var v=conv(priceAt(c,d),c.cur);if(!best||d<best.d||(d.getTime()===best.d.getTime()&&v>best.v))best={d:d,v:v,c:c};});
-  if(best){var dn=daysBetween(today(),best.d),when=dn===0?"heute":dn===1?"morgen":"am "+fmtShort(best.d);
-    hn.innerHTML="Nächste Abbuchung: <b>"+esc(titleOf(best.c))+"</b> "+money(best.v)+" "+esc(state.settings.home)+" "+when;hn.hidden=false;}
-  else hn.hidden=true;
   var hf=state.heroF||"";
   /* Filter zurücksetzen, sobald sein Zähler 0 ist (z.B. letzter pausierter Vertrag fortgesetzt) */
   if((hf==="act"&&(!(np||fut)||!a.length))||(hf==="paused"&&!np)||(hf==="fut"&&!fut))hf=state.heroF="";
@@ -2489,15 +2489,6 @@ function renderStat(v){
     }
   }
   o+="</div>";
-  /* Preiserhöhungen der letzten 12 Monate über alle laufenden Verträge: Mehrkosten pro Jahr in Hauptwährung */
-  var incs=[],incSum=0,t12=addDays(T0,-365);
-  pool.forEach(function(c){if(!isActiveC(c)||!fltMatch(c,null))return;var ps=pricesOf(c),prev=+c.amount||0,sh2=holderShare(c);
-    ps.forEach(function(p){var f=parseD(p.from);if(f&&f>t12&&f<=T0&&+p.amount>prev){var dy=conv((+p.amount-prev)*12/(+c.cycle||1),c.cur)*sh2;incs.push({c:c,from:p.from,a:+p.amount-prev,dy:dy});incSum+=dy;}
-      if(f&&f<=T0)prev=+p.amount;});});
-  if(incs.length){incs.sort(function(x,y){return y.dy-x.dy;});
-    o+='<div class="grp"><div class="grphead"><span>Teurer geworden · 12 Monate</span><span>+'+nf0.format(incSum)+" "+H+'/Jahr</span></div><div class="mrows mrows2">'+
-      incs.map(function(it){var c=it.c;return '<button class="mrow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">+'+money(it.a)+" "+esc(c.cur)+" ab "+fmtShort(parseD(it.from))+'</span></span>'+
-        '<span class="ma"><span><b>+'+nf0.format(it.dy)+'</b> <u>'+H+'/Jahr</u></span></span></button>';}).join("")+"</div></div>";}
   v.innerHTML=o+"</div>";
 }
 var TITLES={list:"Verträge",stat:"Kosten",budget:"Budget",term:"Fristen",arch:"Archiv",set:"Mehr"};
@@ -2863,7 +2854,10 @@ function paintDocs(){paintOptCounts();
     l.appendChild(row);
   });
 }
-/* Individuelle Aufteilung: draft.split = {Inhaber: %} oder null (= gleich). Letzter Inhaber ergibt sich aus 100 − übrige. */
+/* Individuelle Aufteilung: draft.split = {Inhaber: %} oder null (= gleich). Schieberegler je Inhaber (bei 2 Inhabern einer),
+   zeigt Prozent und Betrag pro Zahlung; letzter Inhaber = 100 − übrige. SwiftUI: Slider(value:in:step:) mit Label */
+function spAmt(p){var a=parseNum(document.getElementById("fAmt").value)||0,cur=document.getElementById("fCur").value;return money(a*p/100)+" "+esc(cur);}
+function spTxt(p){return '<b>'+Math.round(p)+' %</b> · '+spAmt(p);}
 function paintSplit(){
   var hs=holdersSorted(draft.holders||[]),w=document.getElementById("fSplitWrap"),rows=document.getElementById("fSplitRows");
   w.hidden=hs.length<2;if(hs.length<2){draft.split=null;return;}
@@ -2871,18 +2865,33 @@ function paintSplit(){
   var ind=!!draft.split;
   document.querySelectorAll("#fSplitSeg button").forEach(function(b){b.setAttribute("aria-pressed",(b.dataset.sp==="ind")===ind);});
   rows.hidden=!ind;if(!ind){rows.innerHTML="";return;}
-  var sum=hs.reduce(function(n,h){return n+(+draft.split[h]||0);},0);
-  rows.innerHTML='<div class="sprows">'+hs.map(function(h,i){var last=i===hs.length-1;
-    return '<div class="sprow"><span>'+esc(h)+'</span><span class="spin"><input type="text" inputmode="numeric" data-sph="'+esc(h)+'" value="'+Math.round(+draft.split[h]||0)+'"'+(last?' readonly':'')+' aria-label="Anteil '+esc(h)+'"><u>%</u></span></div>';}).join("")+'</div>'+
-    '<p class="note" style="margin:6px 0 0">'+(Math.abs(sum-100)<0.6?"Der letzte Anteil ergibt sich automatisch.":"Summe "+Math.round(sum)+" % — bitte auf 100 % anpassen.")+'</p>';
+  var v=function(h){return Math.round(+draft.split[h]||0);};
+  if(hs.length===2){var a=hs[0],b=hs[1];
+    rows.innerHTML='<div class="spbox"><div class="sphead"><span><em>'+esc(a)+'</em><small data-spv="'+esc(a)+'">'+spTxt(v(a))+'</small></span>'+
+      '<span class="r"><em>'+esc(b)+'</em><small data-spv="'+esc(b)+'">'+spTxt(v(b))+'</small></span></div>'+
+      '<input type="range" class="sprange" min="0" max="100" step="1" data-sph="'+esc(a)+'" value="'+v(a)+'" style="--p:'+v(a)+'%" aria-label="Anteil '+esc(a)+'" aria-valuetext="'+esc(a)+' '+v(a)+' %, '+esc(b)+' '+v(b)+' %"></div>';
+  }else{
+    rows.innerHTML='<div class="spbox">'+hs.map(function(h,i){var last=i===hs.length-1;
+      return '<div class="sprow2"><div class="sphead"><span><em>'+esc(h)+'</em></span><span class="r"><small data-spv="'+esc(h)+'">'+spTxt(v(h))+'</small></span></div>'+
+        (last?'<p class="note" style="margin:2px 0 0">Rest, ergibt sich automatisch</p>':'<input type="range" class="sprange" min="0" max="100" step="1" data-sph="'+esc(h)+'" value="'+v(h)+'" style="--p:'+v(h)+'%" aria-label="Anteil '+esc(h)+'">')+'</div>';}).join("")+'</div>';
+  }
 }
+/* Werte beim Ziehen aktualisieren, ohne neu zu zeichnen (Regler bleibt greifbar) */
+function spRefresh(){var hs=holdersSorted(draft.holders||[]);if(!draft.split||hs.length<2)return;
+  hs.forEach(function(h){var p=Math.round(+draft.split[h]||0);
+    var t=document.querySelector('#fSplitRows [data-spv="'+CSS.escape(h)+'"]');if(t)t.innerHTML=spTxt(p);
+    var r=document.querySelector('#fSplitRows input[data-sph="'+CSS.escape(h)+'"]');if(r){if(+r.value!==p)r.value=p;r.style.setProperty("--p",p+"%");}});
+  if(hs.length===2){var r2=document.querySelector("#fSplitRows input[data-sph]");if(r2)r2.setAttribute("aria-valuetext",hs[0]+" "+Math.round(draft.split[hs[0]])+" %, "+hs[1]+" "+Math.round(draft.split[hs[1]])+" %");}}
 document.getElementById("fSplitSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-sp]");if(!b)return;
   if(b.dataset.sp==="eq")draft.split=null;else{draft.split={};}paintSplit();});
 document.getElementById("fSplitRows").addEventListener("input",function(ev){var i=ev.target;if(!i.dataset.sph||!draft.split)return;
-  var hs=holdersSorted(draft.holders||[]),v=Math.max(0,Math.min(100,Math.round(parseNum(i.value)||0)));draft.split[i.dataset.sph]=v;
-  var others=0;hs.slice(0,-1).forEach(function(h){others+=(+draft.split[h]||0);});draft.split[hs[hs.length-1]]=Math.max(0,100-others);
-  var lastIn=document.querySelector('#fSplitRows input[data-sph="'+CSS.escape(hs[hs.length-1])+'"]');if(lastIn)lastIn.value=draft.split[hs[hs.length-1]];
-  var note=document.querySelector("#fSplitRows .note");if(note)note.textContent=others<=100?"Der letzte Anteil ergibt sich automatisch.":"Summe "+Math.round(others)+" % — bitte auf 100 % anpassen.";});
+  var hs=holdersSorted(draft.holders||[]),h=i.dataset.sph,v=Math.max(0,Math.min(100,Math.round(+i.value||0)));
+  /* zuerst vom letzten (Rest) nehmen, reicht das nicht, von den übrigen Reglern (von hinten) */
+  draft.split[h]=v;var mids=hs.slice(0,-1).filter(function(x){return x!==h;});
+  var sum=function(){return hs.slice(0,-1).reduce(function(n,x){return n+(+draft.split[x]||0);},0);};
+  for(var k=mids.length-1;k>=0&&sum()>100;k--){var x=mids[k];draft.split[x]=Math.max(0,(+draft.split[x]||0)-(sum()-100));}
+  draft.split[hs[hs.length-1]]=Math.max(0,100-sum());spRefresh();});
+["fAmt","fCur"].forEach(function(id){var e=document.getElementById(id);e.addEventListener("input",spRefresh);e.addEventListener("change",spRefresh);});
 function paintHolders(){
   var el=document.getElementById("fHolders");el.innerHTML="";
   var all=(state.settings.holders||["Ich"]).slice();
