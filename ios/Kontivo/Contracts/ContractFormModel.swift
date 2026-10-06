@@ -355,14 +355,16 @@ final class CTFormState {
 
     func splitPercent(_ id: UUID) -> Int { split.first { $0.personID == id }?.percent ?? 0 }
 
-    /// Anteil setzen (0–100); der letzte Inhaber ergibt sich aus 100 − übrige.
+    /// Anteil setzen (0–100). Überschuss zuerst vom letzten (Rest), dann von den übrigen Reglern von hinten (Web spRefresh).
     func setSplitPercent(_ id: UUID, _ v: Int) {
         guard holderIDs.count >= 2, let last = holderIDs.last, id != last else { return }
         var o: [UUID: Int] = [:]
         for s in split { o[s.personID] = s.percent }
         o[id] = max(0, min(100, v))
-        let others = holderIDs.dropLast().reduce(0) { $0 + (o[$1] ?? 0) }
-        o[last] = max(0, 100 - others)
+        let mids = holderIDs.dropLast()
+        func sum() -> Int { mids.reduce(0) { $0 + (o[$1] ?? 0) } }
+        for x in mids.reversed() where x != id && sum() > 100 { o[x] = max(0, (o[x] ?? 0) - (sum() - 100)) }
+        o[last] = max(0, 100 - sum())
         split = holderIDs.map { SplitShare(personID: $0, percent: o[$0] ?? 0) }
     }
 

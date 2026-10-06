@@ -263,8 +263,8 @@ private struct CTFormContractSection: View {
     }
 }
 
-/// Aufteilung bei gemeinsamen Verträgen: «Gleich aufgeteilt» oder «Individuell» mit Prozent je Inhaber;
-/// der letzte Inhaber ergibt sich aus 100 − übrige (Web #fSplitWrap / paintSplit).
+/// Aufteilung bei gemeinsamen Verträgen: «Gleich aufgeteilt» oder «Individuell» mit Schieberegler je Inhaber (bei 2 Inhabern einer),
+/// Anzeige Prozent und Betrag pro Zahlung; der letzte Inhaber ergibt sich aus 100 − übrige (Web paintSplit/spRefresh).
 private struct CTFormSplitRows: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
@@ -279,35 +279,59 @@ private struct CTFormSplitRows: View {
             .pickerStyle(.segmented)
             .accessibilityIdentifier("form.split")
             if form.splitIndividual {
-                VStack(spacing: 0) {
-                    ForEach(Array(holders.enumerated()), id: \.element.id) { i, p in
-                        let last = i == holders.count - 1
-                        if i > 0 { Divider().overlay(KColor.line) }
-                        HStack {
-                            Text(p.name).foregroundStyle(KColor.ink).lineLimit(1)
+                VStack(alignment: .leading, spacing: 10) {
+                    if holders.count == 2 {
+                        HStack(alignment: .bottom) {
+                            label(holders[0], align: .leading)
                             Spacer(minLength: 8)
-                            if last {
-                                Text(verbatim: String(form.splitPercent(p.id))).foregroundStyle(KColor.ink2).monospacedDigit()
-                            } else {
-                                TextField("0", text: Binding(
-                                    get: { String(form.splitPercent(p.id)) },
-                                    set: { form.setSplitPercent(p.id, Int($0.filter { $0.isNumber }) ?? 0) }))
-                                    .keyboardType(.numberPad)
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 56)
-                                    .accessibilityLabel("Anteil " + p.name)
-                                    .accessibilityIdentifier("form.split." + String(i))
-                            }
-                            Text("%").foregroundStyle(KColor.ink3)
+                            label(holders[1], align: .trailing)
                         }
-                        .padding(.vertical, 8).padding(.horizontal, 12)
+                        slider(holders[0])
+                    } else {
+                        ForEach(Array(holders.enumerated()), id: \.element.id) { i, p in
+                            if i > 0 { Divider().overlay(KColor.line) }
+                            HStack {
+                                Text(p.name).font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
+                                Spacer(minLength: 8)
+                                value(p)
+                            }
+                            if i < holders.count - 1 {
+                                slider(p)
+                            } else {
+                                Text("Rest, ergibt sich automatisch").font(.caption).foregroundStyle(KColor.ink3)
+                            }
+                        }
                     }
                 }
-                .background(KColor.field, in: RoundedRectangle(cornerRadius: 10))
-                Text("Der letzte Anteil ergibt sich aus den übrigen.").font(.caption).foregroundStyle(KColor.ink3)
+                .padding(.horizontal, 14).padding(.vertical, 12)
+                .background(KColor.field, in: RoundedRectangle(cornerRadius: 12))
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private func label(_ p: Person, align: HorizontalAlignment) -> some View {
+        VStack(alignment: align, spacing: 2) {
+            Text(p.name).font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
+            value(p)
+        }
+    }
+
+    private func value(_ p: Person) -> some View {
+        let pc = form.splitPercent(p.id)
+        let amt = (CTNumber.parse(form.amountText) ?? 0) * Double(pc) / 100
+        return (Text(verbatim: String(pc) + "\u{00A0}%").fontWeight(.semibold).foregroundColor(KColor.ink)
+                + Text(verbatim: " · " + Format.money(amt) + "\u{00A0}" + form.currency.rawValue).foregroundColor(KColor.ink2))
+            .font(.footnote.monospacedDigit())
+            .lineLimit(1)
+    }
+
+    private func slider(_ p: Person) -> some View {
+        Slider(value: Binding(get: { Double(form.splitPercent(p.id)) },
+                              set: { form.setSplitPercent(p.id, Int($0.rounded())) }), in: 0...100, step: 1)
+            .tint(KColor.teal)
+            .accessibilityLabel("Anteil " + p.name)
+            .accessibilityValue(String(form.splitPercent(p.id)) + " Prozent")
     }
 }
 
