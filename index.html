@@ -909,6 +909,8 @@ body{display:flex;flex-direction:column}
 .sphead small{font-size:13px;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}.sphead small b{color:var(--ink);font-weight:600}
 .sprange{-webkit-appearance:none;appearance:none;width:100%;height:36px;margin:4px 0 0;background:transparent;touch-action:pan-y}
 .sprange::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--teal) var(--p),var(--line) var(--p))}
+.sprange.sp2::-webkit-slider-runnable-track{background:var(--line)}
+.sprange.sp2::-moz-range-track{background:var(--line)}
 .sprange::-moz-range-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--teal) var(--p),var(--line) var(--p))}
 .sprange::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 .5px rgba(0,0,0,.08)}
 .sprange::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
@@ -2931,7 +2933,7 @@ function paintDocs(){paintOptCounts();
     l.appendChild(row);
   });
 }
-/* Individuelle Aufteilung: draft.split = {Inhaber: %} oder null (= gleich). Schieberegler je Inhaber (bei 2 Inhabern einer),
+/* Individuelle Aufteilung: draft.split = {Inhaber: %} oder null (= gleich). Schieberegler je Inhaber (bei 2 Inhabern einer: Wert = Anteil der rechten Person, Spur ohne Füllung),
    zeigt Prozent und Betrag pro Zahlung; letzter Inhaber = 100 − übrige. SwiftUI: Slider(value:in:step:) mit Label */
 function spAmt(p){var a=parseNum(document.getElementById("fAmt").value)||0,t=today();(draft.prices||[]).slice().sort(function(x,y){return String(x.from).localeCompare(String(y.from));}).forEach(function(q){var f=parseD(q.from);if(f&&f<=t&&isFinite(+q.amount))a=+q.amount;});var cur=document.getElementById("fCur").value;return money(a*p/100)+" "+esc(cur);}
 function spTxt(p){return '<b>'+Math.round(p)+' %</b> · '+spAmt(p);}
@@ -2946,7 +2948,7 @@ function paintSplit(){
   if(hs.length===2){var a=hs[0],b=hs[1];
     rows.innerHTML='<div class="spbox"><div class="sphead"><span><em>'+esc(a)+'</em><small data-spv="'+esc(a)+'">'+spTxt(v(a))+'</small></span>'+
       '<span class="r"><em>'+esc(b)+'</em><small data-spv="'+esc(b)+'">'+spTxt(v(b))+'</small></span></div>'+
-      '<input type="range" class="sprange" min="0" max="100" step="1" data-sph="'+esc(a)+'" value="'+v(a)+'" style="--p:'+v(a)+'%" aria-label="Anteil '+esc(a)+'" aria-valuetext="'+esc(a)+' '+v(a)+' %, '+esc(b)+' '+v(b)+' %"></div>';
+      '<input type="range" class="sprange sp2" min="0" max="100" step="1" data-sph="'+esc(b)+'" value="'+v(b)+'" style="--p:'+v(b)+'%" aria-label="Anteil '+esc(b)+'" aria-valuetext="'+esc(a)+' '+v(a)+' %, '+esc(b)+' '+v(b)+' %"></div>';
   }else{
     rows.innerHTML='<div class="spbox">'+hs.map(function(h,i){var last=i===hs.length-1;
       return '<div class="sprow2"><div class="sphead"><span><em>'+esc(h)+'</em></span><span class="r"><small data-spv="'+esc(h)+'">'+spTxt(v(h))+'</small></span></div>'+
@@ -2963,6 +2965,8 @@ document.getElementById("fSplitSeg").addEventListener("click",function(ev){var b
   if(b.dataset.sp==="eq")draft.split=null;else{draft.split={};}paintSplit();});
 document.getElementById("fSplitRows").addEventListener("input",function(ev){var i=ev.target;if(!i.dataset.sph||!draft.split)return;
   var hs=holdersSorted(draft.holders||[]),h=i.dataset.sph,v=Math.max(0,Math.min(100,Math.round(+i.value||0)));
+  /* zwei Inhaber: ein Regler, nach rechts ziehen = mehr für die rechte Person */
+  if(hs.length===2){draft.split[hs[1]]=v;draft.split[hs[0]]=100-v;spRefresh();return;}
   /* zuerst vom letzten (Rest) nehmen, reicht das nicht, von den übrigen Reglern (von hinten) */
   draft.split[h]=v;var mids=hs.slice(0,-1).filter(function(x){return x!==h;});
   var sum=function(){return hs.slice(0,-1).reduce(function(n,x){return n+(+draft.split[x]||0);},0);};
