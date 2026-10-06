@@ -415,12 +415,12 @@ private struct CTDetailSections: View {
             + (c.end == nil ? " · " + (c.cancelTerm != .anytime ? "auf " + Format.termText(c.cancelTerm) : "jederzeit") : "")))
         let u = calc.urgency(c)
         if !gone, let d = u.date, let T = te {
-            let txt = "per " + Format.fmtShort(T) + ", kündigen bis " + Format.fmtShort(d)
-            if calc.isAnytime(c) {
-                r.append(CTDetailRow("Nächste Gelegenheit", txt))
+            let days = u.days ?? 0
+            if days >= 0 {
+                // Mini-Zeitstrahl heute → kündigen bis → Ende (Web termLine)
+                r.append(CTDetailRow(timeline: CTTimeline(today: calc.today, deadline: d, end: T, anytime: calc.isAnytime(c), days: days)))
             } else {
-                let days = u.days ?? 0
-                r.append(CTDetailRow("Nächster Termin", txt + (days >= 0 ? " (" + Format.inDays(days) + ")" : " (abgelaufen)")))
+                r.append(CTDetailRow("Nächster Termin", "per " + Format.fmtShort(T) + ", kündigen bis " + Format.fmtShort(d) + " (abgelaufen)"))
             }
         }
         if c.mandatory { r.append(CTDetailRow("Pflichtvertrag", "nur Wechsel möglich")) }
@@ -565,9 +565,89 @@ struct CTDetailRow: Identifiable {
     let id = UUID()
     let label: String
     let value: String
+    var timeline: CTTimeline?
     init(_ label: String, _ value: String) {
         self.label = label
         self.value = value
+    }
+    init(timeline: CTTimeline) {
+        label = ""
+        value = ""
+        self.timeline = timeline
+    }
+}
+
+/// Nächste Kündigung als Zeitstrahl: Punkt heute, Frist (teal, anteilig 28–62 %), Vertragsende (Ring)
+struct CTTimeline {
+    let today: Day
+    let deadline: Day
+    let end: Day
+    let anytime: Bool
+    let days: Int
+
+    var position: CGFloat {
+        let tot = max(1, today.days(to: end))
+        let p = Int(Format.jsRound(Double(today.days(to: deadline)) / Double(tot) * 100))
+        return CGFloat(max(28, min(62, p))) / 100
+    }
+
+    /// «noch 55 Tage», ab 61 Tagen in Monaten, «heute»; leer bei jederzeit kündbaren Verträgen
+    var remaining: String {
+        if anytime { return "" }
+        if days == 0 { return "heute" }
+        if days <= 60 { return "noch \(days)" + (days == 1 ? " Tag" : " Tage") }
+        let m = Int(Format.jsRound(Double(days) / 30.44))
+        return "noch \(m)" + (m == 1 ? " Monat" : " Monate")
+    }
+
+    var urgent: Bool { !anytime && days <= 7 }
+}
+
+private struct CTTimelineView: View {
+    let t: CTTimeline
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Nächste Kündigung").font(.footnote).foregroundStyle(KColor.ink2)
+                Spacer()
+                Text(verbatim: t.remaining).font(.footnote.weight(t.urgent ? .semibold : .regular))
+                    .foregroundStyle(t.urgent ? KColor.alert : KColor.ink2)
+            }
+            GeometryReader { g in
+                let w = g.size.width
+                ZStack(alignment: .leading) {
+                    Rectangle().fill(KColor.line).frame(height: 2).padding(.horizontal, 6)
+                    Circle().fill(KColor.ink3).frame(width: 8, height: 8).offset(x: 2)
+                    Circle().fill(KColor.teal).frame(width: 12, height: 12).offset(x: w * t.position - 6)
+                    Circle().strokeBorder(KColor.ink, lineWidth: 2).frame(width: 12, height: 12).offset(x: w - 12)
+                }
+                .frame(height: 14)
+            }
+            .frame(height: 14)
+            GeometryReader { g in
+                let w = g.size.width
+                ZStack(alignment: .topLeading) {
+                    Text("heute").font(.footnote).foregroundStyle(KColor.ink3)
+                    label(Format.fmtShort(t.deadline), "kündigen bis", align: .center)
+                        .fixedSize()
+                        .position(x: w * t.position, y: 17)
+                    HStack { Spacer(); label(Format.fmtShort(t.end), "Ende", align: .trailing) }
+                }
+            }
+            .frame(height: 36)
+        }
+        .padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 8)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: "Nächste Kündigung: bis " + Format.fmtD(t.deadline) + " kündigen, Vertragsende " + Format.fmtD(t.end)
+                                 + (t.remaining.isEmpty ? "" : ", " + t.remaining)))
+    }
+
+    private func label(_ date: String, _ sub: String, align: HorizontalAlignment) -> some View {
+        VStack(alignment: align, spacing: 1) {
+            Text(verbatim: date).font(.footnote.weight(.semibold)).foregroundStyle(KColor.ink).monospacedDigit()
+            Text(verbatim: sub).font(.caption2).foregroundStyle(KColor.ink2)
+        }
     }
 }
 
@@ -590,6 +670,9 @@ private struct CTDetailRowsView: View {
     var body: some View {
         ForEach(Array(rows.enumerated()), id: \.offset) { i, r in
             if i > 0 { Divider().padding(.leading, 14) }
+            if let tl = r.timeline {
+                CTTimelineView(t: tl)
+            } else {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(r.label)
                     .font(.subheadline)
@@ -604,6 +687,7 @@ private struct CTDetailRowsView: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 11)
             .accessibilityElement(children: .combine)
+            }
         }
     }
 }

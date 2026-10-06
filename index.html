@@ -909,6 +909,14 @@ details.logodet>summary{display:none}
 .dl{border-top:1px solid var(--line);padding:11px 0;display:flex;justify-content:space-between;gap:16px;font-size:14px}
 .dl dt{color:var(--ink2);font-size:12.5px;flex:none}
 .dl dd{margin:0;text-align:right;min-width:0;word-break:break-word}
+.dl.dtl{display:block;padding:12px 0 8px}
+.tlh{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink2);margin-bottom:8px}.tlh .alert{color:var(--alert);font-weight:600}
+.tll{position:relative;height:14px;margin:0 6px}.tll:before{content:"";position:absolute;left:0;right:0;top:6px;height:2px;background:var(--line)}
+.tll i{position:absolute;top:1px;width:12px;height:12px;border-radius:50%}.tll .t0{left:-2px;top:3px;width:8px;height:8px;background:var(--ink3)}
+.tll .td{margin-left:-6px;background:var(--teal)}.tll .te{right:-6px;background:var(--field);box-shadow:inset 0 0 0 2px var(--ink)}
+.tlx{position:relative;height:38px;margin-top:5px;font-size:13px}.tlx span{position:absolute;top:0;line-height:1.25;white-space:nowrap}
+.tlx .a{left:0;color:var(--ink3)}.tlx .m{transform:translateX(-50%);text-align:center}.tlx .e{right:0;text-align:right}
+.tlx b{font-weight:600;color:var(--ink)}.tlx small{display:block;font-size:11.5px;color:var(--ink2)}
 .detailhead{display:flex;align-items:center;gap:15px;margin:14px 0 6px}
 .detailhead .mark{width:76px;height:76px;border-radius:17px;font-size:28px}
 .detailhead h2{overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}/* lange Komposita umbrechen statt abschneiden */
@@ -3906,6 +3914,14 @@ function openLink(url,copy){
 
 /* ---------- Detail ---------- */
 /* opt.trial: aus der Probeabo-Karte geöffnet (Kündigung per Online/E-Mail gilt dann für das Probeabo-Ende) */
+/* Detail: nächste Kündigung als Mini-Zeitstrahl heute → kündigen bis → Ende. Mittlerer Punkt anteilig (begrenzt auf 28–62 %, damit die Beschriftungen nicht kollidieren).
+   SwiftUI: GeometryReader mit drei Kreisen auf einer Linie */
+function termLine(c,u){var T=termEnd(c),t0=today(),D=u.date,tot=Math.max(1,daysBetween(t0,T)),p=Math.max(28,Math.min(62,Math.round(daysBetween(t0,D)/tot*100)));
+  var dn=u.days,mo=Math.round(dn/30.44),left=isAnytime(c)?"":(dn===0?"heute":dn<=60?"noch "+dn+(dn===1?" Tag":" Tage"):"noch "+mo+(mo===1?" Monat":" Monate")),cls=u.days<=7&&!isAnytime(c)?" alert":"";
+  return '<div class="tlw" role="img" aria-label="Nächste Kündigung: bis '+fmtD(iso(D))+' kündigen, Vertragsende '+fmtD(iso(T))+(left?", "+left:"")+'">'+
+    '<div class="tlh"><span>Nächste Kündigung</span><span class="'+cls+'">'+left+'</span></div>'+
+    '<div class="tll"><i class="t0"></i><i class="td" style="left:'+p+'%"></i><i class="te"></i></div>'+
+    '<div class="tlx"><span class="a">heute</span><span class="m" style="left:'+p+'%"><b>'+fmtShort(D)+'</b><small>kündigen bis</small></span><span class="e"><b>'+fmtShort(T)+'</b><small>Ende</small></span></div></div>';}
 function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var c=Object.assign({},state.contracts[idv]);c._id=idv;
   /* gekündigt (Archiv oder «gekündigt per») oder abgelaufen: keine Frist und kein nächster Termin mehr */
@@ -3926,7 +3942,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     c.start?["Beginn",fmtD(c.start)]:null,
     c.end?["Vertragsende",fmtD(iso(e))+(!gone&&termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
     ["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
-    u.date?(isAnytime(c)?["Nächste Gelegenheit","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)]:["Nächster Termin","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)+(u.days>=0?" ("+inDays(u.days)+")":" (abgelaufen)")]):null,
+    u.date?(u.days>=0&&termEnd(c)?["",termLine(c,u),true]:["Nächster Termin","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)+" (abgelaufen)"]):null,
     c.mand?["Pflichtvertrag","nur Wechsel möglich"]:null,
     c.noWatch?["Frist","wird nicht beobachtet"]:null,
     rt?["Sonst verlängert bis",fmtD(iso(rt))]:(c.renew?["Verlängerung","automatisch um "+c.renew+(+c.renew===1?" Monat":" Monate")]:null),
@@ -3986,7 +4002,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     (acts?'<div class="dacts">'+acts+"</div>":"")+
     (skr?'<p class="skr">Preiserhöhung: In Deutschland und der Schweiz besteht oft ein Sonderkündigungsrecht, meist innert 4–6 Wochen nach der Mitteilung. Massgebend ist dein Vertrag.</p>':"")+
     secs.map(function(sc){var rr=sc[1].filter(Boolean);if(!rr.length)return "";
-      return '<h3 class="dsec">'+esc(sc[0])+'</h3><dl class="dgrp">'+rr.map(function(r){return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+(r[0]==="Vertragspartner"?'<button type="button" class="dlink" data-peopen="'+esc(String(r[1]).trim().toLowerCase())+'" data-peid="'+esc(c._id)+'">'+esc(r[1])+" ›</button>":esc(r[1]))+"</dd></div>";}).join("")+"</dl>";}).join("")+
+      return '<h3 class="dsec">'+esc(sc[0])+'</h3><dl class="dgrp">'+rr.map(function(r){if(r[2])return '<div class="dl dtl">'+r[1]+"</div>";return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+(r[0]==="Vertragspartner"?'<button type="button" class="dlink" data-peopen="'+esc(String(r[1]).trim().toLowerCase())+'" data-peid="'+esc(c._id)+'">'+esc(r[1])+" ›</button>":esc(r[1]))+"</dd></div>";}).join("")+"</dl>";}).join("")+
     ((c.web||c.tel||c.mail)?'<h3 class="dsec">Kontakt</h3><div class="links">'+
       (c.web?'<button data-link="'+esc(normUrl(c.web))+'" data-copy="'+esc(normUrl(c.web))+'"><span>Website</span><span>'+esc(c.web.replace(/^https?:\/\//i,""))+'</span></button>':"")+
       (c.tel?'<button data-link="tel:'+esc(c.tel.replace(/\s/g,""))+'" data-copy="'+esc(c.tel)+'"><span>Telefon</span><span>'+esc(c.tel)+'</span></button>':"")+
