@@ -69,7 +69,9 @@ extension AppData {
     /// Inhaber setzen (Reihenfolge der Personenliste)
     public mutating func mdSetHolders(contract id: UUID, _ ids: [UUID]) {
         guard let i = contractIndex(id) else { return }
-        contracts[i].holderIDs = persons.map { $0.id }.filter { ids.contains($0) }
+        let arr = persons.map { $0.id }.filter { ids.contains($0) }
+        if arr != contracts[i].holderIDs { contracts[i].split = [] }
+        contracts[i].holderIDs = arr
     }
 
     public mutating func mdSetContractAmount(_ id: UUID, _ v: Double) {

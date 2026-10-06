@@ -472,6 +472,34 @@ public struct Pause: Codable, Hashable, Sendable {
     }
 }
 
+/// Anteil einer Person an einem gemeinsamen Vertrag in Prozent (Web `c.split`). Nur gültig, wenn alle Inhaber vorkommen
+/// und die Summe 100 ist (`Calc.splitOf`); sonst gilt die Gleichverteilung.
+public struct SplitShare: Codable, Hashable, Sendable {
+    public var personID: UUID
+    public var percent: Int
+
+    public init(personID: UUID, percent: Int) {
+        self.personID = personID
+        self.percent = percent
+    }
+}
+
+/// Entscheid im Quartals-Check (Web `c.review = {v, at}`): «Brauche ich» bzw. «Weg damit» (landet in «Fristen» unter
+/// «Zum Kündigen vorgemerkt»). Älter als 90 Tage gilt im nächsten Check als nicht beantwortet.
+public enum ReviewVerdict: String, Codable, Hashable, Sendable {
+    case keep, kill
+}
+
+public struct ContractReview: Codable, Hashable, Sendable {
+    public var verdict: ReviewVerdict
+    public var at: Day
+
+    public init(verdict: ReviewVerdict, at: Day) {
+        self.verdict = verdict
+        self.at = at
+    }
+}
+
 /// Angehängtes Dokument (Datei mit derselben ID im Dateispeicher).
 public struct Attachment: Codable, Hashable, Identifiable, Sendable {
     public var id: String
@@ -543,6 +571,10 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
     public var keptFor: Day?
     public var pauses: [Pause]
     public var createdAt: Date
+    /// Individuelle Aufteilung (leer = gleich verteilt)
+    public var split: [SplitShare]
+    /// Entscheid im Quartals-Check
+    public var review: ContractReview?
 
     public init(id: UUID = UUID(), label: String = "", partnerID: UUID? = nil, categoryID: UUID? = nil,
                 amount: Double = 0, currency: Currency = .CHF, cycle: Int = 1,
@@ -556,7 +588,7 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
                 colorHex: String? = nil, logoID: String? = nil, logoBg: String? = nil,
                 prices: [PriceChange] = [], documents: [Attachment] = [], extras: [ExtraPayment] = [],
                 status: ContractStatus = .active, cancelledAt: Day? = nil, cancelPer: Day? = nil, cancelledOn: Day? = nil,
-                keptFor: Day? = nil, pauses: [Pause] = [], createdAt: Date = Date()) {
+                keptFor: Day? = nil, pauses: [Pause] = [], createdAt: Date = Date(), split: [SplitShare] = [], review: ContractReview? = nil) {
         self.id = id
         self.label = label
         self.partnerID = partnerID
@@ -599,6 +631,8 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
         self.keptFor = keptFor
         self.pauses = pauses
         self.createdAt = createdAt
+        self.split = split
+        self.review = review
     }
 
     public init(from decoder: Decoder) throws {
@@ -645,10 +679,25 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
         keptFor = c.optional(.keptFor)
         pauses = c.lossyArray(.pauses)
         createdAt = c.value(.createdAt, Date(timeIntervalSince1970: 0))
+        split = c.lossyArray(.split)
+        review = c.optional(.review)
     }
 
     /// Turnus für Rechnungen (JS `+c.cycle||1`).
     public var cycleForCalc: Int { cycle == 0 ? 1 : cycle }
+
+    /// Gültige individuelle Aufteilung (Web `splitOf`): ab 2 Inhabern, jeder Inhaber mit Anteil ≥ 0, Summe 100 (±0.6). Sonst nil = gleich.
+    public var validSplit: [UUID: Int]? {
+        if holderIDs.count < 2 || split.isEmpty { return nil }
+        var o: [UUID: Int] = [:]
+        for s in split { o[s.personID] = s.percent }
+        var sum = 0
+        for h in holderIDs {
+            guard let v = o[h], v >= 0 else { return nil }
+            sum += v
+        }
+        return abs(sum - 100) < 1 ? o.filter { holderIDs.contains($0.key) } : nil
+    }
 }
 
 public struct Income: Codable, Hashable, Identifiable, Sendable {
@@ -900,6 +949,12 @@ public struct AppData: Codable, Hashable, Sendable {
 
     /// Namen der Inhaber in Reihenfolge der Zuordnung.
     public func holderNames(of c: Contract) -> [String] { c.holderIDs.compactMap { person($0)?.name } }
+
+    /// Inhaber mit Anteilen (Web `holdersText`): «Sinan 70 % & Lara 30 %», ohne Aufteilung «Sinan & Lara».
+    public func holdersText(of c: Contract) -> String {
+        guard let sp = c.validSplit else { return holderNames(of: c).joined(separator: " & ") }
+        return c.holderIDs.compactMap { h in person(h).map { $0.name + " " + String(sp[h] ?? 0) + "\u{00A0}%" } }.joined(separator: " & ")
+    }
 
     /// Markenfarbe (`colorFor`): eigene Farbe → Kategorie → Hash über Vertragspartner/Bezeichnung.
     public func color(of c: Contract) -> String {

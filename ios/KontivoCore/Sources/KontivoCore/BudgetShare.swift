@@ -5,7 +5,7 @@ import Foundation
 /// DE: Nettolohn nach Steuern und KV → üblich bleiben 50–65 %. CH: Steuern und Krankenkasse sind Fixkosten → 35–50 %.
 public enum BudgetShare {
     public enum Land: Sendable { case ch, de }
-    public enum Level: Sendable, Equatable { case low, edge, mid, high }
+    public enum Level: Sendable, Equatable { case negative, low, edge, mid, high }
 
     public struct Range: Sendable, Equatable {
         public let lo: Int, hi: Int
@@ -21,8 +21,9 @@ public enum BudgetShare {
         }
     }
 
-    /// Unter, am unteren Rand (bis 5 Punkte über der Untergrenze), im oder über dem Bereich
+    /// Negativ (Fixkosten über Einnahmen), unter, am unteren Rand (bis 5 Punkte über der Untergrenze), im oder über dem Bereich
     public static func level(_ p: Int, _ r: Range) -> Level {
+        if p < 0 { return .negative }
         if p < r.lo { return .low }
         if p > r.hi { return .high }
         return p < r.lo + 5 ? .edge : .mid
@@ -30,6 +31,7 @@ public enum BudgetShare {
 
     public static func headline(_ l: Level) -> (title: String, sub: String?) {
         switch l {
+        case .negative: return ("Die Fixkosten übersteigen die Einnahmen.", "In diesem Monat, zum Beispiel wegen einer Jahresrechnung.")
         case .low: return ("Weniger als üblich.", "Bei höherem Einkommen oft kein Problem.")
         case .edge: return ("Im üblichen Bereich, am unteren Rand.", nil)
         case .mid: return ("Im üblichen Bereich.", nil)
@@ -41,6 +43,18 @@ public enum BudgetShare {
     public static func showAverage(month: Int, average: Int?) -> Bool {
         guard let a = average else { return false }
         return abs(a - month) >= 3
+    }
+
+    /// Tipps zeigen: unter dem Bereich, am Rand oder negativ
+    public static func showsTips(_ l: Level) -> Bool { l == .negative || l == .low || l == .edge }
+
+    /// «−12 %» bzw. «37 %» (Web: bq<0 ? "−"+(-bq) : bq)
+    public static func percentText(_ p: Int) -> String { (p < 0 ? Format.minus + String(-p) : String(p)) + "\u{00A0}%" }
+
+    /// Anteil ohne diesen Vertrag (Tipps «ohne: x %»): (verfügbar + Monatskosten) / Einnahmen, nil ohne Einnahmen.
+    public static func withoutPercent(free: Double, income: Double, monthly: Double) -> Int? {
+        guard income > 0.005 else { return nil }
+        return Int(Format.jsRound((free + monthly) / income * 100))
     }
 
     /// Ansatzpunkte bei wenig Spielraum (Web fqTips): grösste beeinflussbare Fixkosten (ohne Steuern),

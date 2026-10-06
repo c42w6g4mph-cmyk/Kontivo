@@ -4,7 +4,7 @@ Aufruf (im Ordner ios/KontivoCore):  python3 Scripts/make_catalog.py
 Liest die Konstanten H_* und das Array TPL («Anbieterkatalog Schweiz / Deutschland») aus ../../index.html,
 löst die Hinweis-Konstanten als Text auf und schreibt ein JSON-Array mit benannten Feldern:
 name, country ("" = international), category (Name der Vorbelegung), label, web, notice, noticeUnit (m|w|d|k),
-cancelTerm (""|p|m|q|h|y|a), cancelChannel (online|email|letter|registered|null), mandatory, hint.
+cancelTerm (""|p|m|q|h|y|a), cancelChannel (online|email|letter|registered|null), mandatory, hint, cancelURL (12. Feld, "" = keiner).
 Bereinigung (Inventar 2, F10): die Zahl 0 im Feld «Kündigungsweg» wird zu null.
 """
 import json, os, re, sys
@@ -31,7 +31,8 @@ rows = eval(arr, {"__builtins__": {}}, dict(consts))
 CHANNEL = {"Online / Kundenkonto": "online", "E-Mail": "email", "Brief": "letter", "Einschreiben": "registered"}
 out = []
 for r in rows:
-    name, cc, cat, lab, web, no, nu, tm, cf, md, hint = r
+    name, cc, cat, lab, web, no, nu, tm, cf, md, hint = r[:11]
+    url = r[11] if len(r) > 11 else ""
     if not isinstance(cf, str) or not cf:
         ch = None
     else:
@@ -39,7 +40,7 @@ for r in rows:
     out.append({
         "name": name, "country": cc or "", "category": cat, "label": lab, "web": web or "",
         "notice": int(no or 0), "noticeUnit": nu or "m", "cancelTerm": tm or "", "cancelChannel": ch,
-        "mandatory": bool(md), "hint": hint or "",
+        "mandatory": bool(md), "hint": hint or "", "cancelURL": url or "",
     })
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)

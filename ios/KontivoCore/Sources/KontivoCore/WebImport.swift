@@ -241,6 +241,18 @@ public enum WebImport {
             var hs: [UUID] = []
             for h in JS.arr(c["holders"]) { if let pid = personIDs[JS.str(h)], !hs.contains(pid) { hs.append(pid) } }
             x.holderIDs = hs
+            // Aufteilung {Inhabername: Prozent} → Personen-IDs; unvollständig → gleich
+            if let spo = JS.obj(c["split"]), hs.count >= 2 {
+                var sp: [SplitShare] = []
+                for h in JS.arr(c["holders"]) {
+                    let name = JS.str(h)
+                    if let pid = personIDs[name], !sp.contains(where: { $0.personID == pid }) { sp.append(SplitShare(personID: pid, percent: JS.intOr(spo[name], -1))) }
+                }
+                x.split = sp.count == hs.count && sp.allSatisfy({ $0.percent >= 0 }) ? AppData.normalizedSplit(sp, holders: hs) : []
+            }
+            if let rv = JS.obj(c["review"]), let d = Day(iso: JS.str(rv["at"])), let v = ReviewVerdict(rawValue: JS.str(rv["v"])) {
+                x.review = ContractReview(verdict: v, at: d)
+            }
             x.payMethod = JS.str(c["payM"])
             x.payAccount = JS.str(c["payA"])
             x.cancelChannel = CancelChannel(webText: JS.str(c["cancF"]))

@@ -84,6 +84,7 @@ extension AppData {
         let per = calc.cancelEnd(c, trial: trial) ?? today
         c.cancelPer = per
         c.cancelledOn = today
+        c.review = nil
         contracts[i] = c
         var res = CancelResult(cancelPer: per, toast: "Gekündigt — läuft bis " + Format.fmtD(per), replacement: nil, replacementToast: nil)
         if c.mandatory {
@@ -264,6 +265,7 @@ extension AppData {
         d.note = d.note.trimmingCharacters(in: .whitespacesAndNewlines)
         d.extras = d.extras.filter { $0.amount.isFinite && $0.amount != 0 }.stableSorted { $0.date < $1.date }
         if d.end == nil { d.renewMonths = 0 } else { d.cancelTerm = .anytime }
+        d.split = AppData.normalizedSplit(d.split, holders: d.holderIDs)
         if let i = contractIndex(d.id) {
             var c = contracts[i]
             c.label = d.label
@@ -299,6 +301,7 @@ extension AppData {
             c.prices = d.prices
             c.documents = d.documents
             c.extras = d.extras
+            c.split = d.split
             contracts[i] = c
         } else {
             d.status = .active
@@ -314,6 +317,50 @@ extension AppData {
             }
         }
         return d.id
+    }
+
+    /// Aufteilung fürs Speichern (Web `saveForm`): ab 2 Inhabern, jeder mit Anteil; letzter Inhaber = 100 − übrige (≥ 0);
+    /// Summe ≠ 100 oder unvollständig → leer (= gleich).
+    public static func normalizedSplit(_ split: [SplitShare], holders: [UUID]) -> [SplitShare] {
+        if holders.count < 2 || split.isEmpty { return [] }
+        var o: [UUID: Int] = [:]
+        for s in split { o[s.personID] = Swift.max(0, Swift.min(100, s.percent)) }
+        for h in holders where o[h] == nil { return [] }
+        let others = holders.dropLast().reduce(0) { $0 + (o[$1] ?? 0) }
+        if others > 100 { return [] }
+        o[holders[holders.count - 1]] = 100 - others
+        return holders.map { SplitShare(personID: $0, percent: o[$0] ?? 0) }
+    }
+
+    /// Gleichmässige Vorbelegung für «Individuell» (Web `paintSplit`): 100 / n abgerundet, Rest beim letzten.
+    public static func equalSplit(holders: [UUID]) -> [SplitShare] {
+        if holders.count < 2 { return [] }
+        let eq = 100 / holders.count
+        return holders.enumerated().map { SplitShare(personID: $0.element, percent: $0.offset == holders.count - 1 ? 100 - eq * (holders.count - 1) : eq) }
+    }
+
+    // MARK: Quartals-Check
+
+    /// Antwort im Quartals-Check setzen (gleiche Antwort nochmals → zurücknehmen).
+    public mutating func setReview(_ id: UUID, _ v: ReviewVerdict, today: Day) {
+        guard let i = contractIndex(id) else { return }
+        if contracts[i].review?.verdict == v && Calc(data: self, today: today).freshReview(contracts[i]) == v {
+            contracts[i].review = nil
+        } else {
+            contracts[i].review = ContractReview(verdict: v, at: today)
+        }
+    }
+
+    /// «Doch behalten» in «Fristen».
+    public mutating func clearReview(_ id: UUID) {
+        guard let i = contractIndex(id) else { return }
+        contracts[i].review = nil
+    }
+
+    /// «Fertig» im Quartals-Check: Prüfung als erledigt merken.
+    public mutating func finishReview(today: Day) {
+        settings.lastReview = today
+        settings.reviewSnooze = nil
     }
 
     /// Inhaber-Vorbelegung für einen neuen Vertrag: zuletzt gewählte (sofern vorhanden), sonst erste Person.
@@ -417,6 +464,12 @@ extension AppData {
                 let r = h == from ? to : h
                 if !arr.contains(r) { arr.append(r) }
             }
+            // Aufteilung: Namen mitführen; fallen zwei Inhaber zusammen, gilt wieder «gleich» (Web `mapHolders`)
+            if arr.count == contracts[i].holderIDs.count {
+                contracts[i].split = contracts[i].split.map { SplitShare(personID: $0.personID == from ? to : $0.personID, percent: $0.percent) }
+            } else {
+                contracts[i].split = []
+            }
             contracts[i].holderIDs = arr
         }
         for i in incomes.indices where incomes[i].holderID == from { incomes[i].holderID = to }
@@ -440,7 +493,10 @@ extension AppData {
             persons[k].sameAddressAs = nil
             persons[k].sender = persons[k].sender.withAddress(of: src.sender)
         }
-        for k in contracts.indices { contracts[k].holderIDs.removeAll { $0 == id } }
+        for k in contracts.indices where contracts[k].holderIDs.contains(id) {
+            contracts[k].holderIDs.removeAll { $0 == id }
+            contracts[k].split = []
+        }
         for k in incomes.indices where incomes[k].holderID == id { incomes[k].holderID = nil }
         settings.lastHolderIDs.removeAll { $0 == id }
         let prefix = "h:" + id.uuidString + ":"
@@ -512,6 +568,7 @@ extension AppData {
         }
         if arr == cur { return false }
         contracts[i].holderIDs = arr
+        contracts[i].split = []
         return true
     }
 
@@ -535,6 +592,11 @@ extension AppData {
                 if !arr.contains(r) { arr.append(r) }
             }
             if arr != contracts[i].holderIDs {
+                if arr.count == contracts[i].holderIDs.count {
+                    contracts[i].split = contracts[i].split.map { SplitShare(personID: $0.personID == from ? to : $0.personID, percent: $0.percent) }
+                } else {
+                    contracts[i].split = []
+                }
                 contracts[i].holderIDs = arr
                 n += 1
             }

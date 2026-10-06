@@ -398,11 +398,71 @@ public struct Calc {
         return d >= today && today.days(to: d) <= 30 && c.trialKept != c.trial && c.cancelPer == nil
     }
 
-    /// Anteil einer Person an einem Vertrag: ohne Person 1, nicht Inhaber 0, sonst 1 / Anzahl Inhaber.
+    /// Anteil einer Person an einem Vertrag: ohne Person 1, nicht Inhaber 0, sonst Aufteilung (`validSplit`) bzw. 1 / Anzahl Inhaber.
     public func holderShare(_ c: Contract, person: UUID?) -> Double {
         guard let p = person else { return 1 }
         if !c.holderIDs.contains(p) { return 0 }
+        if let sp = c.validSplit { return Double(sp[p] ?? 0) / 100 }
         return 1 / Double(c.holderIDs.count)
+    }
+
+    /// Bisher bezahlt (Detail): Summe aller Zahlungen von Beginn bis heute in Hauptwährung, nil ohne Beginn in der Vergangenheit.
+    public func paidSoFar(_ c: Contract) -> (sum: Double, sinceYear: Int)? {
+        guard let s0 = c.start, s0 < today else { return nil }
+        let sum = payments(c, from: s0, to: today).reduce(0.0) { $0 + conv($1.amount, c.currency) }
+        return sum > 0.005 ? (sum, s0.year) : nil
+    }
+
+    /// Preiserhöhung angekündigt oder in den letzten 60 Tagen wirksam: Hinweis auf ein mögliches Sonderkündigungsrecht (Detail).
+    public func specialCancelHint(_ c: Contract) -> Bool {
+        if !isActive(c) || isTax(c) { return false }
+        var prev = c.amount
+        for p in pricesOf(c) {
+            if p.from > today { return p.amount > curPrice(c) }
+            if p.from.days(to: today) <= 60 && p.amount > prev { return true }
+            prev = p.amount
+        }
+        return false
+    }
+
+    public static let specialCancelText = "Preiserhöhung: In Deutschland und der Schweiz besteht oft ein Sonderkündigungsrecht, meist innert 4–6 Wochen nach der Mitteilung. Massgebend ist dein Vertrag."
+
+    /// Nächste Abbuchung über alle laufenden, begonnenen Verträge (Hero): frühester Termin, bei gleichem Tag der grössere Betrag.
+    public struct NextDebit: Hashable, Sendable {
+        public var contractID: UUID
+        public var date: Day
+        /// Betrag in Hauptwährung
+        public var value: Double
+        /// «heute», «morgen», «am 12.10.»
+        public var when: String
+    }
+
+    public func nextDebit() -> NextDebit? {
+        var best: NextDebit? = nil
+        for c in running where !notStarted(c) {
+            guard let d = nextDue(c) else { continue }
+            let v = conv(priceAt(c, d), c.currency)
+            if let b = best, !(d < b.date || (d == b.date && v > b.value)) { continue }
+            let dn = today.days(to: d)
+            best = NextDebit(contractID: c.id, date: d, value: v, when: dn == 0 ? "heute" : dn == 1 ? "morgen" : "am " + Format.fmtShort(d))
+        }
+        return best
+    }
+
+    // MARK: Quartals-Check pro Vertrag
+
+    /// «Weg damit» vorgemerkt.
+    public func reviewKill(_ c: Contract) -> Bool { c.review?.verdict == .kill }
+
+    /// Antwort aus dem letzten Check, sofern nicht älter als 90 Tage (sonst nil = unbeantwortet).
+    public func freshReview(_ c: Contract) -> ReviewVerdict? {
+        guard let r = c.review, r.at.days(to: today) <= 90 else { return nil }
+        return r.verdict
+    }
+
+    /// Verträge für den Check: laufend, begonnen, keine Steuern, nicht gekündigt; teuerste zuerst.
+    public func reviewList() -> [Contract] {
+        running.filter { !isTax($0) && $0.cancelPer == nil && !notStarted($0) }.stableSorted { monthlyCost($0) > monthlyCost($1) }
     }
 
     /// Kündigungsende beim Markieren (Probeabo: Tag vor Probeabo-Ende, sonst termEnd).
@@ -510,6 +570,17 @@ extension Calc {
         public var kind: UpcomingKind
     }
 
+    /// Vorgemerkter Vertrag aus dem Quartals-Check.
+    public struct MarkedRow: Hashable, Sendable {
+        public var contractID: UUID
+        /// «719 CHF pro Jahr · beim Quartals-Check vorgemerkt»
+        public var line: String
+        /// «Doch behalten»
+        public var keepTitle: String
+        /// «Kündigen» bzw. «Wechseln»
+        public var cancelTitle: String
+    }
+
     /// Zeile einer Klappgruppe.
     public struct FoldRow: Hashable, Sendable {
         public var contractID: UUID
@@ -537,6 +608,12 @@ extension Calc {
         public var unwatched: [FoldRow]
         /// Gar kein Inhalt → Leerseite
         public var isEmpty: Bool
+        /// Quartals-Check: «Weg damit» vorgemerkt (teuerste zuerst), bis gekündigt oder «Doch behalten»
+        public var marked: [MarkedRow] = []
+        /// Summe Monatskosten der vorgemerkten (Hauptwährung)
+        public var markedMonthly: Double = 0
+
+        public static let markedTitle = "Zum Kündigen vorgemerkt"
 
         public static let upcomingTitle = "Kommende Termine"
         public static let anytimeTitle = "Jederzeit kündbar"
@@ -629,8 +706,15 @@ extension Calc {
             done = true
         }
         let empty = n == 0 && a.isEmpty && up.isEmpty && anytime.isEmpty && nofrist.isEmpty && unw.isEmpty
-        return DeadlineOverview(decisions: decisions, openCount: n, urgentCount: urgent, nextDate: nx, headerBold: bold, headerRest: rest, allDone: done,
-                                upcoming: up, anytime: anytime, withoutNotice: nofrist, unwatched: unw, isEmpty: empty)
+        var ov = DeadlineOverview(decisions: decisions, openCount: n, urgentCount: urgent, nextDate: nx, headerBold: bold, headerRest: rest, allDone: done,
+                                  upcoming: up, anytime: anytime, withoutNotice: nofrist, unwatched: unw, isEmpty: empty)
+        let marked = a.filter { reviewKill($0) && $0.cancelPer == nil }.stableSorted { monthlyCost($0) > monthlyCost($1) }
+        ov.marked = marked.map { c in
+            MarkedRow(contractID: c.id, line: Format.money0(monthlyCost(c) * 12) + " " + home.rawValue + " pro Jahr · beim Quartals-Check vorgemerkt",
+                      keepTitle: "Doch behalten", cancelTitle: c.mandatory ? "Wechseln" : "Kündigen")
+        }
+        ov.markedMonthly = marked.reduce(0.0) { $0 + monthlyCost($1) }
+        return ov
     }
 }
 
@@ -718,6 +802,44 @@ extension Calc {
         public var yearDeltaText: String
         /// Hinweis zu Verträgen ohne Beginn (nur für vergangene Jahre), sonst nil
         public var noStartHint: String?
+        /// Aufteilung im Vorjahr (gleiche Schlüssel), für den Vergleich in der Legende
+        public var splitPrevYear: [String: Double] = [:]
+
+        /// Vergleich einer Gruppe mit dem Vorjahr (nur Jahresansicht): «wie 2025» bzw. («+120», up) «vs. 2025»; nil ohne Vorjahreswert.
+        public func previousText(_ key: String) -> (delta: String?, trend: Trend, suffix: String)? {
+            guard let p = splitPrevYear[key], let v = splitYear[key], v > 0.004 else { return nil }
+            let d = v - p
+            if Swift.abs(d) < 0.5 { return (nil, .same, "wie \(year - 1)") }
+            return ((d > 0 ? "+" : Format.minus) + Format.money0(Swift.abs(d)), d > 0 ? .up : .down, "vs. \(year - 1)")
+        }
+    }
+
+    /// Preiserhöhung der letzten 12 Monate (Kosten «Teurer geworden»).
+    public struct PriceIncrease: Hashable, Sendable {
+        public var contractID: UUID
+        public var from: Day
+        /// Erhöhung pro Zahlung in Vertragswährung
+        public var step: Double
+        /// Mehrkosten pro Jahr in Hauptwährung × Anteil
+        public var yearly: Double
+    }
+
+    /// Preiserhöhungen der letzten 12 Monate über alle laufenden, gefilterten Verträge; grösste Mehrkosten zuerst.
+    public func priceIncreases(filter: CostFilter) -> [PriceIncrease] {
+        let t12 = today.addingDays(-365)
+        var out: [PriceIncrease] = []
+        for c in data.contracts where isActive(c) && matches(c, filter) {
+            var prev = c.amount
+            let sh = holderShare(c, person: filter.person)
+            for p in pricesOf(c) {
+                if p.from > t12 && p.from <= today && p.amount > prev {
+                    out.append(PriceIncrease(contractID: c.id, from: p.from, step: p.amount - prev,
+                                             yearly: conv((p.amount - prev) * 12 / Double(c.cycleForCalc), c.currency) * sh))
+                }
+                if p.from <= today { prev = p.amount }
+            }
+        }
+        return out.stableSorted { $0.yearly > $1.yearly }
     }
 
     /// Zahlungen eines Jahres (alle Verträge inkl. Archiv; Grenzen über `limit`), mit Filtern und Personenanteil.
@@ -763,8 +885,14 @@ extension Calc {
         if year < today.year && noStart > 0 {
             hint = "\(noStart)" + (noStart == 1 ? " Vertrag hat" : " Verträge haben") + " keinen Vertragsbeginn und " + (noStart == 1 ? "wird" : "werden") + " deshalb rückwirkend voll gezählt."
         }
+        var gP: [String: Double] = [:]
+        for c in data.contracts where matches(c, filter, skip: split) {
+            let sh = holderShare(c, person: filter.person)
+            let k = statKey(c, split)
+            for p in payments(c, from: Day(year - 1, 1, 1), to: Day(year - 1, 12, 31)) { gP[k, default: 0] += conv(p.amount, c.currency) * sh }
+        }
         return CostYear(year: year, months: months, total: tot, maxMonth: mx, average: tot / 12, splitYear: gY, splitMonths: gM, paymentCount: allN,
-                        previousYearTotal: pT, yearDelta: yd, yearDeltaText: ydText, noStartHint: hint)
+                        previousYearTotal: pT, yearDelta: yd, yearDeltaText: ydText, noStartHint: hint, splitPrevYear: gP)
     }
 
     /// Summe aller gefilterten Zahlungen (Hauptwährung × Anteil) im Zeitraum.
@@ -845,6 +973,48 @@ extension Calc {
             for p in payments(c, from: from, to: to) { m[p.date.month - 1].fixed += conv(p.amount, c.currency) * f }
         }
         return BudgetYear(year: year, months: m, totalIncome: m.reduce(0.0) { $0 + $1.income }, totalFixed: m.reduce(0.0) { $0 + $1.fixed })
+    }
+
+    /// «Fair geteilt?» (Budget, ohne Personenfilter, ab 2 Personen): Anteil jeder Person an den laufenden Fixkosten gegenüber
+    /// ihrem Anteil an den Einnahmen. Nur Anzeige, keine Wertung. nil, wenn kein gemeinsamer Vertrag oder keine Einnahmen.
+    public struct FairRow: Hashable, Sendable {
+        public var personID: UUID
+        public var name: String
+        public var fixedPercent: Int
+        public var incomePercent: Int
+        /// «Fixkosten 60 % · Einnahmen 55 %»
+        public var subline: String
+    }
+
+    public static let fairTitle = "Fair geteilt?"
+    public static let fairSubtitle = "Fixkosten vs. Einnahmen"
+    public static let fairHint = "Balken = Anteil an den Fixkosten, Strich = Anteil an den Einnahmen. Gemeinsame Verträge zählen nach Aufteilung."
+
+    public func fairShare() -> [FairRow]? {
+        if data.persons.count < 2 { return nil }
+        let runC = running.filter { !notStarted($0) }
+        if !runC.contains(where: { $0.holderIDs.count > 1 }) { return nil }
+        var fixT = 0.0, incT = 0.0
+        var pf: [UUID: Double] = [:], pi: [UUID: Double] = [:]
+        for c in runC {
+            let m = monthlyCost(c)
+            fixT += m
+            for h in c.holderIDs { pf[h, default: 0] += m * holderShare(c, person: h) }
+        }
+        for i in data.incomes {
+            if let e = i.end, e < today { continue }
+            if let s = i.start, s > today { continue }
+            let m = conv(curPrice(i), i.currency) / Double(i.cycle == 0 ? 1 : i.cycle)
+            incT += m
+            if let h = i.holderID { pi[h, default: 0] += m }
+        }
+        if fixT <= 0.005 || incT <= 0.005 { return nil }
+        let rows = data.persons.filter { (pf[$0.id] ?? 0) > 0.005 || (pi[$0.id] ?? 0) > 0.005 }.map { p -> FairRow in
+            let f = Int(Format.jsRound((pf[p.id] ?? 0) / fixT * 100))
+            let n = Int(Format.jsRound((pi[p.id] ?? 0) / incT * 100))
+            return FairRow(personID: p.id, name: p.name, fixedPercent: f, incomePercent: n, subline: "Fixkosten \(f)\u{00A0}% · Einnahmen \(n)\u{00A0}%")
+        }
+        return rows.isEmpty ? nil : rows
     }
 
     /// Vergleich «verfügbar» mit dem Vorjahresmonat (Budget), nil ohne Vorjahreswerte.

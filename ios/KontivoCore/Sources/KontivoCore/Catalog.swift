@@ -18,11 +18,13 @@ public struct CatalogEntry: Codable, Hashable, Sendable, Identifiable {
     public var cancelChannel: CancelChannel?
     public var mandatory: Bool
     public var hint: String
+    /// Kündigungslink (Vorschlag fürs Formular, wenn dort noch keiner steht)
+    public var cancelURL: String
 
     public var id: String { name }
 
     public init(name: String, country: String, category: String, label: String, web: String, notice: Int, noticeUnit: NoticeUnit,
-                cancelTerm: CancelTerm, cancelChannel: CancelChannel?, mandatory: Bool, hint: String) {
+                cancelTerm: CancelTerm, cancelChannel: CancelChannel?, mandatory: Bool, hint: String, cancelURL: String = "") {
         self.name = name
         self.country = country
         self.category = category
@@ -34,6 +36,7 @@ public struct CatalogEntry: Codable, Hashable, Sendable, Identifiable {
         self.cancelChannel = cancelChannel
         self.mandatory = mandatory
         self.hint = hint
+        self.cancelURL = cancelURL
     }
 
     /// Land für die Anzeige (`tplFlag`): «CH», «DE» oder «CH · DE».

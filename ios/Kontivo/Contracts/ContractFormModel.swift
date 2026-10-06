@@ -270,6 +270,8 @@ final class CTFormState {
         if !termFixed && (!onlyEmpty || cancelTerm == .anytime) { cancelTerm = t.cancelTerm }
         if let ch = t.cancelChannel, !onlyEmpty || cancelChannel == nil { cancelChannel = ch }
         if !t.web.isEmpty && web.ctTrimmed.isEmpty { web = t.web }
+        // Kündigungslink aus dem Katalog nur, wenn noch keiner eingetragen ist (Web `applyTpl`)
+        if !t.cancelURL.isEmpty && cancelURL.ctTrimmed.isEmpty { cancelURL = t.cancelURL }
         if onlyEmpty {
             if t.mandatory && watch == .yes { watch = .mandatory }
         } else if t.mandatory {

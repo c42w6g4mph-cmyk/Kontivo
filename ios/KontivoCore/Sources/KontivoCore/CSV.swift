@@ -10,6 +10,8 @@ public struct CSVImportItem: Hashable, Sendable {
     public var address: String
     /// Website des Vertragspartners
     public var web: String
+    /// Aufteilung je Inhabername (leer = gleich)
+    public var splitByName: [String: Int] = [:]
 }
 
 /// Vorschau des CSV-Imports. Es wird noch nichts gespeichert (auch keine Kategorien oder Inhaber).
@@ -90,7 +92,7 @@ public enum CSV {
         ["Vertragspartner", "Bezeichnung", "Kategorie", "Betrag", "Waehrung", "Turnus_Monate", "ProMonat_" + home.rawValue,
          "NaechsteZahlung", "Beginn", "Ende", "Kuendigungsfrist", "Einheit", "Verlaengerung", "KuendigenBis", "Preisverlauf",
          "Kundennummer", "Vertragsnummer", "Inhaber", "Zahlungsart", "BelastetUeber", "KuendigungPer", "Website", "Telefon", "EMail",
-         "Status", "KuendbarPer", "Pflichtvertrag", "Notiz", "Sonderzahlungen", "Adresse", "KuendigungsLink"]
+         "Status", "KuendbarPer", "Pflichtvertrag", "Notiz", "Sonderzahlungen", "Adresse", "KuendigungsLink", "Aufteilung"]
     }
 
     /// Alle Verträge als CSV-Text (mit BOM, CRLF).
@@ -112,11 +114,35 @@ public enum CSV {
                 c.payMethod, c.payAccount, c.cancelChannel?.webText ?? "", p?.web ?? "", c.tel, c.mail, c.status.rawValue,
                 // Frist 0 und «jederzeit» ausdrücklich, damit der Import keine Katalogwerte einsetzt (wie Web)
                 c.cancelTerm == .anytime ? (c.end == nil ? "jederzeit" : "") : c.cancelTerm.rawValue,
-                c.mandatory ? "ja" : "", c.note, extras, p?.address.text ?? "", c.cancelURL,
+                c.mandatory ? "ja" : "", c.note, extras, p?.address.text ?? "", c.cancelURL, splitText(c, data),
             ]
             rows.append(fields.map { quote($0) }.joined(separator: ";"))
         }
         return "\u{FEFF}" + rows.joined(separator: "\r\n")
+    }
+
+    /// Spalte «Aufteilung»: «Sinan:70 | Lara:30» (nur bei individueller Aufteilung).
+    static func splitText(_ c: Contract, _ data: AppData) -> String {
+        guard let sp = c.validSplit else { return "" }
+        return c.holderIDs.compactMap { h in data.person(h).map { $0.name + ":" + String(sp[h] ?? 0) } }.joined(separator: " | ")
+    }
+
+    /// Spalte «Aufteilung» lesen (Web): «Name:70 | Name:30», Namen wie die Inhaber (ohne Gross/Klein); nur gültig, wenn alle
+    /// Inhaber vorkommen und die Summe 100 ist. Rückgabe: Anteile je Inhabername.
+    public static func parseSplit(_ raw: String, holders: [String]) -> [String: Int] {
+        if raw.isEmpty || holders.count < 2 { return [:] }
+        var o: [String: Int] = [:]
+        for x in raw.components(separatedBy: "|") {
+            guard let m = RX.match("^(.+?):\\s*(\\d+)\\s*%?$", x.trimmingCharacters(in: .whitespaces)), let nm = m[1], let v = Int(m[2] ?? "") else { continue }
+            let key = nm.trimmingCharacters(in: .whitespaces).lowercased()
+            if let h = holders.first(where: { $0.lowercased() == key }) { o[h] = v }
+        }
+        var sum = 0
+        for h in holders {
+            guard let v = o[h] else { return [:] }
+            sum += v
+        }
+        return abs(sum - 100) < 1 ? o : [:]
     }
 
     /// Export als UTF-8-Daten.
@@ -438,6 +464,7 @@ public enum CSV {
         ("mail", ["email", "mail"]),
         ("note", ["notiz", "notizen", "notes", "note", "bemerkung", "kommentar"]),
         ("addr", ["kuendigungsadresse", "adresse", "address", "anschrift"]),
+        ("split", ["aufteilung", "anteile", "split"]),
         ("prices", ["preisverlauf", "kostenhistorien", "kostenhistorie", "preishistorie"]),
         ("tags", ["tags", "schlagworte"]),
         ("contact", ["kontaktdaten", "kontakt", "ansprechpartner"]),
@@ -677,7 +704,8 @@ public enum CSV {
             let adRaw = g(r, "addr").replacingOccurrences(of: "\r\n", with: "\n")
             let adParts = adRaw.contains("\n") ? adRaw.components(separatedBy: "\n") : adRaw.components(separatedBy: ",")
             let ad = adParts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.joined(separator: "\n")
-            res.items.append(CSVImportItem(contract: c, partnerName: partner, categoryName: cat, holderNames: hs, address: ad, web: web))
+            res.items.append(CSVImportItem(contract: c, partnerName: partner, categoryName: cat, holderNames: hs, address: ad, web: web,
+                                           splitByName: parseSplit(g(r, "split"), holders: hs)))
         }
         res.newCategoryNames = newCats
         res.newHolderNames = newHolders
@@ -723,11 +751,14 @@ public enum CSV {
                 c.categoryID = (data.category(named: item.categoryName) ?? data.categories.first { $0.name.lowercased() == item.categoryName.lowercased() })?.id
             }
             c.holderIDs = []
+            var sp: [SplitShare] = []
             for h in item.holderNames {
                 if let p = data.person(named: h) ?? data.persons.first(where: { $0.name.lowercased() == h.lowercased() }), !c.holderIDs.contains(p.id) {
                     c.holderIDs.append(p.id)
+                    if let v = item.splitByName[h] { sp.append(SplitShare(personID: p.id, percent: v)) }
                 }
             }
+            c.split = sp.count == c.holderIDs.count ? AppData.normalizedSplit(sp, holders: c.holderIDs) : []
             c.id = UUID()
             data.contracts.append(c)
             ids.append(c.id)
