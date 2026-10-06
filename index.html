@@ -4100,13 +4100,16 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
 /* Hintergrund sperren, solange ein Fenster offen ist (iOS scrollt sonst die Seite dahinter mit) */
 var kLock={y:0,on:false};
 (function(){var b=document.body;
-  function upd(){var on=!!document.querySelector(".sheet.on");if(on===kLock.on)return;kLock.on=on;
+  /* Geschlossene Fenster für VoiceOver und Tastatur unerreichbar (inert). Bei JEDER Änderung nachführen, auch wenn ein Fenster
+     über einem anderen aufgeht (sonst bleibt z.B. das Kündigungsschreiben über dem Detail gesperrt). Den Hintergrund nur
+     sperren/lösen, wenn sich «irgendein Fenster offen» ändert */
+  function upd(){
+    document.querySelectorAll(".sheet").forEach(function(el){var o=el.classList.contains("on");if(el.inert===o)el.inert=!o;el.setAttribute("aria-hidden",o?"false":"true");});
+    var on=!!document.querySelector(".sheet.on");if(on===kLock.on)return;kLock.on=on;
     /* body ist fixiert relativ zum Viewport, html hat aber padding-top = Notch-Inset: Versatz mitrechnen */
     var inset=parseFloat(getComputedStyle(document.documentElement).paddingTop)||0;
     if(on){kLock.y=window.scrollY;b.style.position="fixed";b.style.top=(inset-kLock.y)+"px";b.style.left="0";b.style.right="0";}
-    else{b.style.position="";b.style.top="";b.style.left="";b.style.right="";window.scrollTo(0,kLock.y);}
-    /* geschlossene Fenster für VoiceOver und Tastatur unerreichbar */
-    document.querySelectorAll(".sheet").forEach(function(el){var o=el.classList.contains("on");el.inert=!o;el.setAttribute("aria-hidden",o?"false":"true");});}
+    else{b.style.position="";b.style.top="";b.style.left="";b.style.right="";window.scrollTo(0,kLock.y);}}
   var mo=new MutationObserver(upd);document.querySelectorAll(".sheet").forEach(function(el){mo.observe(el,{attributes:true,attributeFilter:["class"]});el.inert=true;el.setAttribute("aria-hidden","true");});
   /* Escape schliesst das oberste Fenster (iPad-Tastatur) */
   document.addEventListener("keydown",function(e){if(e.key!=="Escape"||!kLock.on)return;
