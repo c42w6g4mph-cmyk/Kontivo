@@ -444,6 +444,9 @@ body.hasplus .topadd{display:inline-flex}
 .tstk .mark:first-child{margin-left:0}
 .tfx i{flex:none;width:8px;height:8px;border-right:1.6px solid var(--ink3);border-bottom:1.6px solid var(--ink3);transform:rotate(-45deg);margin-right:4px;transition:transform .15s}
 .tfx[aria-expanded="true"] i{transform:rotate(45deg)}
+.tfnote{margin:0;padding:12px 14px;border-top:1px solid var(--line);font-size:13px;line-height:1.4;color:var(--ink2)}
+.tfe{flex:none;text-align:right;font-size:15px;font-weight:600;color:var(--ink);line-height:1.2}
+.tfe small{display:block;font-size:11.5px;font-weight:500;color:var(--ink3)}
 .tflex .mrows2{border-top:1px solid var(--line);border-radius:0;background:transparent}
 
 .tacts button{flex:1;padding:8px 10px;border-radius:10px;font-size:14px;font-weight:600;background:var(--sunken);color:var(--ink)}
@@ -2231,7 +2234,7 @@ function renderView(){
       o+='<div class="grp"><div class="grphead"><span>Zum Kündigen vorgemerkt</span><span>'+money(mSum)+" "+H+'/Mt.</span></div>'+
         marked.map(function(c){return '<div class="tcard"><button class="card" data-open="'+esc(c._id)+'">'+markHtml(c)+'<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline2">'+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr · beim Quartals-Check vorgemerkt</div></div></button>"+
           '<div class="tacts"><button data-rvkeep="'+esc(c._id)+'">Doch behalten</button><button data-kill="'+esc(c._id)+'">'+(c.mand?"Wechseln":"Kündigen")+"</button></div></div>";}).join("")+"</div>";}
-    /* Eine Liste nach Datum (Variante 1): Knöpfe Behalten/Kündigen nur, wenn die Frist in den nächsten 90 Tagen liegt oder ein Probeabo endet */
+    /* Eine Liste nach Datum (Variante 1): Knöpfe Behalten/Kündigen erst ab 2 Monaten vor Vertragsende (bei längerer Frist ab 30 Tagen vor der Frist, needsAction) oder wenn ein Probeabo endet */
     var items=[];
     triTodo.forEach(function(c){items.push({c:c,d:parseD(c.trial),k:"trial"});});
     a.forEach(function(c){
@@ -2248,7 +2251,7 @@ function renderView(){
       if(x.k==="end"){sub="gekündigt · läuft aus";chip="endet "+ddmm(x.d);cc="end";}
       else if(x.k==="trial"){sub="Probeabo endet "+fmtShort(x.d);chip=inDays(dn);cc=dn<=7?"alert":"warn";acts=true;}
       else if(x.k==="kept"){sub="behalten · kündigen bis "+fmtShort(x.d);chip=inDays(dn);cc="ok";}
-      else{sub="kündigen bis "+fmtShort(x.d)+(x.e?" · endet "+fmtShort(x.e):"");chip=inDays(dn);acts=dn<=90;cc=dn<=7?"alert":(acts?"warn":"");}
+      else{sub="kündigen bis "+fmtShort(x.d)+(x.e?" · endet "+fmtShort(x.e):"");chip=inDays(dn);acts=needsAction(c)||(x.e&&daysBetween(t1,x.e)<=61);cc=dn<=7?"alert":(acts?"warn":"");}
       if(c.mand&&x.k!=="end")sub+=" · Pflicht";
       var tr=x.k==="trial"?' data-trial="1"':"";
       return '<div class="tit"><button class="mrow" data-open="'+esc(c._id)+'">'+markHtml(c)+
@@ -2263,12 +2266,14 @@ function renderView(){
     var rowQ=function(c,txt){return '<button class="mrow trow" data-qnotice="'+esc(c._id)+'">'+markHtml(c)+
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst">'+esc(txt)+" ›</span></button>";};
     /* Flexibel: kurzfristig kündbare Verträge als eine Karte mit Logostapel, aufklappbar */
-    if(anytime.length){var fOp=!!(state.tfold||{}).any,fEnd=null;
-      anytime.forEach(function(c){var T=isP(c)?nextTerm(c):null;if(T&&(!fEnd||T<fEnd))fEnd=T;});
-      var fMon=anytime.every(isP);
+    if(anytime.length){var fOp=!!(state.tfold||{}).any;
+      var fTerm=function(c){return (!c.end&&c.cancTerm==="m")?"auf Monatsende":(!c.end&&c.cancTerm==="p")?"auf Ende Zahlungsperiode":"jederzeit";};
+      var fRow=function(c){var T=nextTerm(c),nt=noticeText(c);
+        return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">'+(nt?(c.noticeU==="k"?"Kündigung "+nt:"Frist "+nt):"ohne Frist")+" · "+fTerm(c)+'</span></span>'+
+          '<span class="tfe">'+(T?"<small>endet</small>"+ddmm(T):"<small>endet</small>nach Frist")+"</span></button>";};
       o+='<div class="grp"><div class="grphead"><span>Flexibel</span></div><div class="tflex'+(fOp?" on":"")+'"><button class="tfx" data-tfold="any" aria-expanded="'+fOp+'"><span class="tstk">'+anytime.slice().sort(function(x,y){return monthlyCost(y)-monthlyCost(x);}).slice(0,4).map(function(c){return markHtml(c);}).join("")+'</span>'+
-        '<span class="mt"><span class="mn">'+anytime.length+(anytime.length===1?" Vertrag":" Verträge")+'</span><span class="mm">'+(fMon?"monatlich kündbar":"kurzfristig kündbar")+(fEnd?" · frühestes Ende "+ddmm(fEnd):"")+'</span></span><i></i></button>'+
-        (fOp?'<div class="mrows2">'+anytime.map(function(c){var T=nextTerm(c);return row(c,T?"Ende "+ddmm(T):((!c.end&&c.cancTerm==="p")?"zum Periodenende":"Frist "+noticeText(c)));}).join("")+"</div>":"")+"</div></div>";}
+        '<span class="mt"><span class="mn">'+anytime.length+(anytime.length===1?" Vertrag":" Verträge")+'</span><span class="mm">keine feste Laufzeit · kurz kündbar</span></span><i></i></button>'+
+        (fOp?'<p class="tfnote">Diese Verträge kannst du jederzeit kündigen. Rechts steht, wann sie enden, wenn du heute kündigst.</p><div class="mrows2">'+anytime.slice().sort(function(x,y){return (nextTerm(x)||0)-(nextTerm(y)||0);}).map(fRow).join("")+"</div>":"")+"</div></div>";}
     o+=fold("none","Ohne Frist erfasst",nofrist,function(){return "ergänzen";}," · ergänzen",rowQ);
     o+=fold("unw","Nicht beobachtet",unw,function(c){return noticeText(c)?"Frist "+noticeText(c):"";});
     if(state._rvDue)o+='<div class="review rvsmall"><div class="rvh">Quartals-Check</div><p>Brauchst du noch alles? Geh deine Verträge kurz durch.</p>'+
