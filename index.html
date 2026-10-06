@@ -898,6 +898,8 @@ body{display:flex;flex-direction:column}
 .ig .igr.two input+input{border-left:1px solid var(--line)}
 .ig .igr.zc input:first-child{flex:0 0 32%}
 .ig .igr input::placeholder{color:var(--ink3)}
+.pehist{font-size:13px;font-weight:600;color:var(--ink2);margin:10px 2px 6px}
+.pehist:first-of-type{margin-top:0}
 .ig .igr input:focus{background:color-mix(in srgb,var(--teal) 6%,transparent)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px}
 .spbox{background:var(--field);border-radius:12px;padding:10px 14px 12px}
@@ -1436,7 +1438,20 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
       <option value="">— nicht automatisch</option><option value="1">1 Monat</option><option value="3">3 Monate</option>
       <option value="6">6 Monate</option><option value="12">12 Monate</option><option value="24">24 Monate</option></select></div>
   </div>
-  <p class="note" id="tmHint" style="margin:-4px 0 0"></p>
+  <p class="note" id="tmHint" style="margin:-4px 0 14px"></p>
+  <div class="field"><label for="fWatch">In «Fristen» anzeigen</label><select id="fWatch">
+    <option value="">Ja</option>
+    <option value="mand">Ja – Pflichtvertrag (wechseln statt kündigen)</option>
+    <option value="nowatch">Nein – z.B. Miete</option></select></div>
+  <div hidden><input type="checkbox" id="fMand"><input type="checkbox" id="fNoWatch"></div>
+  <div class="two">
+    <div class="field"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
+      <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
+    <div class="field"><label for="fTrial">Probeabo endet</label><input id="fTrial" type="date"></div>
+  </div>
+  <div class="field" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="netflix.com/cancelplan" autocomplete="off">
+    <p class="note" style="margin:6px 0 0">Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.</p></div>
+
 
   <button type="button" class="morerow" id="fMoreBtn"><span class="t"><b>Weitere Angaben</b><small id="fMoreN">Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …</small></span><em>›</em></button>
   <div style="height:8px"></div>
@@ -1463,21 +1478,6 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <div class="field"><label for="xNote">Bezeichnung (optional)</label><input id="xNote" type="text" placeholder="z.B. Nebenkostenabrechnung" autocomplete="off" maxlength="60"></div>
   <button class="mini" id="xAdd" style="margin:-6px 0 4px">Sonderzahlung hinzufügen</button>
 
-  <h3>Fristen</h3>
-  <div class="field"><label for="fWatch">In «Fristen» anzeigen</label><select id="fWatch">
-    <option value="">Ja</option>
-    <option value="mand">Ja – Pflichtvertrag (wechseln statt kündigen)</option>
-    <option value="nowatch">Nein – z.B. Miete</option></select>
-    <p class="note" style="margin:6px 0 0">Pflichtvertrag: nur Wechsel möglich, z.B. Grundversicherung.</p></div>
-  <div hidden><input type="checkbox" id="fMand"><input type="checkbox" id="fNoWatch"></div>
-  <div class="two">
-    <div class="field"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
-      <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
-    <div class="field"><label for="fTrial">Probeabo endet</label><input id="fTrial" type="date"></div>
-  </div>
-  <div class="field" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="netflix.com/cancelplan" autocomplete="off">
-    <p class="note" style="margin:6px 0 0">Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.</p></div>
-
   <h3>Kundendaten</h3>
   <div class="two">
     <div class="field"><label for="fCustNo">Kundennummer</label><input id="fCustNo" type="text" autocomplete="off"></div>
@@ -1491,11 +1491,14 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   </div>
 
   <h3>Kontakt &amp; Notiz</h3>
-  <div class="field"><label for="fAddr">Adresse des Vertragspartners — für die Kündigung per Brief</label><textarea id="fAddr" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort" style="min-height:72px"></textarea></div>
-  <div class="field"><label for="fWeb">Website oder Kundenportal</label><input id="fWeb" type="url" inputmode="url" placeholder="swisscom.ch/login" autocomplete="off"></div>
-  <div class="two">
-    <div class="field"><label for="fTel">Telefon</label><input id="fTel" type="tel" autocomplete="off"></div>
-    <div class="field"><label for="fMail">E-Mail</label><input id="fMail" type="email" autocomplete="off"></div>
+  <div class="flabel">Adresse des Vertragspartners</div>
+  <div class="sndform ig" id="fAddrG"></div><textarea id="fAddr" hidden></textarea>
+  <p class="note" style="margin:6px 0 14px">Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.</p>
+  <div class="flabel">Kontakt</div>
+  <div class="sndform ig" style="margin-bottom:14px">
+    <div class="igr"><input id="fWeb" type="url" inputmode="url" placeholder="Website oder Kundenportal" aria-label="Website oder Kundenportal" autocomplete="off"></div>
+    <div class="igr"><input id="fTel" type="tel" placeholder="Telefon" aria-label="Telefon" autocomplete="off"></div>
+    <div class="igr"><input id="fMail" type="email" placeholder="E-Mail" aria-label="E-Mail" autocomplete="off"></div>
   </div>
   <div class="field"><label for="fNote">Notiz</label><textarea id="fNote" placeholder="Zugangsweg, Ansprechpartner, Besonderheiten"></textarea></div>
 
@@ -2930,7 +2933,7 @@ function paintDocs(){paintOptCounts();
 }
 /* Individuelle Aufteilung: draft.split = {Inhaber: %} oder null (= gleich). Schieberegler je Inhaber (bei 2 Inhabern einer),
    zeigt Prozent und Betrag pro Zahlung; letzter Inhaber = 100 − übrige. SwiftUI: Slider(value:in:step:) mit Label */
-function spAmt(p){var a=parseNum(document.getElementById("fAmt").value)||0,cur=document.getElementById("fCur").value;return money(a*p/100)+" "+esc(cur);}
+function spAmt(p){var a=parseNum(document.getElementById("fAmt").value)||0,t=today();(draft.prices||[]).slice().sort(function(x,y){return String(x.from).localeCompare(String(y.from));}).forEach(function(q){var f=parseD(q.from);if(f&&f<=t&&isFinite(+q.amount))a=+q.amount;});var cur=document.getElementById("fCur").value;return money(a*p/100)+" "+esc(cur);}
 function spTxt(p){return '<b>'+Math.round(p)+' %</b> · '+spAmt(p);}
 function paintSplit(){
   var hs=holdersSorted(draft.holders||[]),w=document.getElementById("fSplitWrap"),rows=document.getElementById("fSplitRows");
@@ -3011,7 +3014,7 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
   document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
   document.getElementById("fSugg").innerHTML="";
-  document.getElementById("fWeb").value=(c&&c.web)||"";var pgA=c&&c.partner&&!c.addr?peGroup(String(c.partner).trim().toLowerCase()):null;document.getElementById("fAddr").value=(c&&c.addr)||(pgA&&pgA.addr)||"";
+  document.getElementById("fWeb").value=(c&&c.web)||"";var pgA=c&&c.partner&&!c.addr?peGroup(String(c.partner).trim().toLowerCase()):null;document.getElementById("fAddr").value=(c&&c.addr)||(pgA&&pgA.addr)||"";fAddrPaint();
   document.getElementById("fTel").value=(c&&c.tel)||"";
   document.getElementById("fMail").value=(c&&c.mail)||"";
   paintHolders();
@@ -3260,11 +3263,16 @@ function paintOptCounts(){
   document.getElementById("oPriceN").textContent=n?n+(n===1?" Änderung":" Änderungen"):"";
   document.getElementById("oDocsN").textContent=d?d+(d===1?" Datei":" Dateien"):"";
   var parts=[n?n+(n===1?" Preisänderung":" Preisänderungen"):"",xn?xn+(xn===1?" Sonderzahlung":" Sonderzahlungen"):"",
-    g("fWatch")==="mand"?"Pflichtvertrag":(g("fWatch")==="nowatch"?"nicht in Fristen":""),g("fCancF")?"Kündigungsweg":"",g("fCancUrl")?"Kündigungslink":"",g("fTrial")?"Probeabo":"",
     g("fCustNo")?"Kundennummer":"",g("fContrNo")?"Vertragsnummer":"",g("fPayM")?"Zahlungsart":"",g("fPayA")?"Belastet über":"",
     g("fAddr")?"Adresse":"",g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",d?d+(d===1?" Datei":" Dateien"):""].filter(Boolean);
   var el=document.getElementById("fMoreN");el.textContent=parts.length?parts.join(" · "):"Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …";el.classList.toggle("on",!!parts.length);
 }
+/* Adresse im Vertragsformular wie auf der Vertragspartner-Seite: Felder Firma/Zusatz/Strasse/PLZ Ort/Land, gespeichert als Text in #fAddr */
+function fAddrPaint(){var o=addrSplit(document.getElementById("fAddr").value,document.getElementById("fPartner").value),F=function(i){var f=PA_F[i];
+    return '<input id="fa'+f[1].slice(2)+'" data-fa="'+f[0]+'" type="text" autocomplete="off" autocapitalize="words" placeholder="'+f[2]+'" aria-label="'+f[2]+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';};
+  document.getElementById("fAddrG").innerHTML='<div class="igr">'+F(0)+'</div><div class="igr">'+F(1)+'</div><div class="igr">'+F(2)+'</div><div class="igr two zc">'+F(3)+F(4)+'</div><div class="igr">'+F(5)+'</div>';}
+document.getElementById("fAddrG").addEventListener("input",function(){var o={};document.querySelectorAll("#fAddrG [data-fa]").forEach(function(i){o[i.dataset.fa]=i.value.trim().replace(/\s+/g," ");});
+  document.getElementById("fAddr").value=addrJoin(o);paintOptCounts();});
 function paintPrices(){paintOptCounts();
   var l=document.getElementById("pList"),ps=pricesOf({prices:draft.prices}),cur=document.getElementById("fCur").value;
   document.getElementById("fAmtL").textContent=ps.length?"Anfangspreis":"Betrag";
@@ -4780,6 +4788,9 @@ MD_PAGES.pe=function(p){
     '<p class="mdhint" style="margin-top:6px">Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.</p>'+
     mdSec(cntTxt(g.ids.length,"Vertrag","Verträge"),'<em>'+money(g.cost/12)+" "+H0()+"/Mt.</em>")+
     '<div class="mdgrp">'+g.ids.map(function(k){return mdCRow(k,state.contracts[k]);}).join("")+"</div>"+
+    (function(){var wp=g.ids.filter(function(k){return state.contracts[k]&&pricesOf(state.contracts[k]).length;});if(!wp.length)return "";
+      return mdSec("Preisverlauf")+wp.map(function(k){var c=Object.assign({_id:k},state.contracts[k]);
+        return (wp.length>1||g.ids.length>1?'<div class="pehist">'+esc(titleOf(c))+"</div>":"")+priceChart(c);}).join("");})()+
     (others?'<div class="mdgrp mdacts"><button class="mdact" type="button" data-mdgo="pmerge">Mit anderem Vertragspartner zusammenführen …</button></div>':"");
 };
 function paintPeMark(){
