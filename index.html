@@ -426,6 +426,26 @@ body.hasplus .topadd{display:inline-flex}
 .tcard>.card{margin:0;border-left:0;background:transparent;padding-bottom:9px}
 .tcard .tline{font-size:12.5px}
 .tacts{display:flex;gap:8px;padding:0 13px 12px 76px}
+.tlist .tit{border-top:1px solid var(--line)}
+.tlist .tit:first-child{border-top:0}
+.tlist .tit .mrow{border-top:0}
+.tlist .mt{gap:2px}
+.tlist .mm,.tfx .mm{white-space:normal;line-height:1.35}
+.tlist .tacts{padding:0 0 13px 52px;margin-top:-3px}
+.tacts .tk{color:var(--teal)}
+.tchip{flex:none;font-size:12px;font-weight:600;padding:4px 8px;border-radius:8px;background:var(--sunken);color:var(--ink2);white-space:nowrap}
+.tchip.warn{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.tchip.alert,.tchip.end{background:color-mix(in srgb,var(--alert) 15%,transparent);color:var(--alert)}
+.tchip.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.tflex{background:var(--surface);border-radius:var(--r);overflow:hidden}
+.tfx{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px}
+.tstk{display:flex;flex:none}
+.tstk .mark{width:34px;height:34px;border-radius:9px;margin-left:-9px;box-shadow:0 0 0 2px var(--surface);font-size:12px}
+.tstk .mark:first-child{margin-left:0}
+.tfx i{flex:none;width:8px;height:8px;border-right:1.6px solid var(--ink3);border-bottom:1.6px solid var(--ink3);transform:rotate(-45deg);margin-right:4px;transition:transform .15s}
+.tfx[aria-expanded="true"] i{transform:rotate(45deg)}
+.tflex .mrows2{border-top:1px solid var(--line);border-radius:0;background:transparent}
+
 .tacts button{flex:1;padding:8px 10px;border-radius:10px;font-size:14px;font-weight:600;background:var(--sunken);color:var(--ink)}
 .skr{margin:0 0 10px;padding:9px 12px;border-radius:10px;background:color-mix(in srgb,var(--warn) 10%,var(--field));font-size:13px;color:var(--ink2);line-height:1.4}
 .dacts{display:flex;gap:8px;margin:2px 0 6px}.dacts button{flex:1;min-width:0;padding:11px 10px;border-radius:11px;font-size:14px;font-weight:600;background:var(--sunken);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dacts button[data-kbtn]{background:var(--teal);color:#fff}
@@ -2195,19 +2215,6 @@ function renderView(){
     var todo=a.filter(function(c){return needsAction(c)&&!trialNeeds(c);}).sort(function(x,y){return noticeDeadline(x)-noticeDeadline(y);});
     var triTodo=a.filter(trialNeeds).sort(function(x,y){return parseD(x.trial)-parseD(y.trial);});
     var nTodo=todo.length+triTodo.length;
-    // Kommende Termine
-    var up=[];
-    a.forEach(function(c){
-      if(needsAction(c)||trialNeeds(c)||c.noWatch)return;
-      if(c.cancelPer){var cp=parseD(c.cancelPer);up.push({c:c,d:cp,t:"gekündigt · endet "+fmtShort(cp),k:"end"});return;}
-      if(isP(c))return;
-      var T=termEnd(c);if(!T)return;
-      if(isKept(c)){var T2=c.end?renewAfter(c,T):nextTerm(c,null,T);
-        var d2=T2?nDl(c,T2):null;up.push({c:c,d:d2||T,t:"behalten"+(d2?" · Frist "+fmtShort(d2):""),k:"kept"});return;}
-      var dl=nDl(c,T);if(dl<t1)return;
-      up.push({c:c,d:dl,t:"Frist "+fmtShort(dl),k:""});
-    });
-    up.sort(function(x,y){return x.d-y.d;});
     var anytime=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&(isP(c)||(!noticeDeadline(c)&&(+c.notice||0)>0));});
     var nofrist=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&!noticeDeadline(c)&&!(+c.notice||0)&&!c.mand;});
     var unw=a.filter(function(c){return c.noWatch&&!c.cancelPer;});
@@ -2216,17 +2223,6 @@ function renderView(){
       var urgent=todo.filter(function(c){return daysBetween(t1,noticeDeadline(c))<=7;}).length+triTodo.filter(function(c){return daysBetween(t1,parseD(c.trial))<=7;}).length;
       o+='<p class="tintro"><b>'+nTodo+" offen</b>"+(urgent&&urgent<nTodo?" · "+urgent+" dringend":"")+(nx?" · nächste Frist "+inDays(daysBetween(t1,nx)):"")+"</p>";}
     else if(a.length)o+='<p class="tintro ok"><b>Alles erledigt</b> · keine offenen Entscheidungen</p>';
-    // Entscheidungen
-    var decCard=function(c,trial){
-      var d=trial?parseD(c.trial):nDl(c,termEnd(c)),dn=daysBetween(t1,d),lv=dn<=7?"alert":"warn";
-      var line=(trial?"Probeabo endet ":"Frist ")+ddmm(d)+" · "+(dn===0?"heute":"noch "+humanDays(dn));
-      return '<div class="tcard"><button class="card" data-open="'+esc(c._id)+'">'+markHtml(c)+
-        '<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline '+lv+'">'+line+"</div>"+
-        '<div class="tline2">'+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr"+(c.mand?" · Pflichtvertrag":"")+(isPaused(c)?" · pausiert":"")+"</div></div></button>"+
-        '<div class="tacts"><button data-keep="'+esc(c._id)+'"'+(trial?' data-trial="1"':"")+'>Behalten</button>'+
-        '<button data-kill="'+esc(c._id)+'"'+(trial?' data-trial="1"':"")+'>'+(c.mand?"Wechseln":"Kündigen")+"</button></div></div>";};
-    if(nTodo){o+='<div class="grp" style="margin-top:6px">';
-      triTodo.forEach(function(c){o+=decCard(c,true);});todo.forEach(function(c){o+=decCard(c,false);});o+="</div>";}
     var row=function(c,txt,cls){return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst'+(cls?" "+cls:"")+'">'+esc(txt)+"</span></button>";};
     /* Quartals-Check: «Weg damit» vorgemerkte Verträge, bis gekündigt oder «Doch behalten» */
@@ -2235,10 +2231,30 @@ function renderView(){
       o+='<div class="grp"><div class="grphead"><span>Zum Kündigen vorgemerkt</span><span>'+money(mSum)+" "+H+'/Mt.</span></div>'+
         marked.map(function(c){return '<div class="tcard"><button class="card" data-open="'+esc(c._id)+'">'+markHtml(c)+'<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline2">'+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr · beim Quartals-Check vorgemerkt</div></div></button>"+
           '<div class="tacts"><button data-rvkeep="'+esc(c._id)+'">Doch behalten</button><button data-kill="'+esc(c._id)+'">'+(c.mand?"Wechseln":"Kündigen")+"</button></div></div>";}).join("")+"</div>";}
-    if(up.length){
-      o+='<div class="grp"><div class="grphead"><span>Kommende Termine</span></div><div class="mrows mrows2">'+
-        up.map(function(x){return row(x.c,x.t,x.k);}).join("")+"</div></div>";
-    }
+    /* Eine Liste nach Datum (Variante 1): Knöpfe Behalten/Kündigen nur, wenn die Frist in den nächsten 90 Tagen liegt oder ein Probeabo endet */
+    var items=[];
+    triTodo.forEach(function(c){items.push({c:c,d:parseD(c.trial),k:"trial"});});
+    a.forEach(function(c){
+      if(trialNeeds(c)||c.noWatch)return;
+      if(c.cancelPer){items.push({c:c,d:parseD(c.cancelPer),k:"end"});return;}
+      if(isP(c))return;
+      var T=termEnd(c);if(!T)return;
+      if(isKept(c)){var T2=c.end?renewAfter(c,T):nextTerm(c,null,T),d2=T2?nDl(c,T2):null;items.push({c:c,d:d2||T,k:"kept",e:T2});return;}
+      var dl=nDl(c,T);if(dl<t1)return;
+      items.push({c:c,d:dl,k:"open",e:T});
+    });
+    items.sort(function(x,y){return x.d-y.d;});
+    var tItem=function(x){var c=x.c,dn=daysBetween(t1,x.d),sub,chip,cc="",acts=false;
+      if(x.k==="end"){sub="gekündigt · läuft aus";chip="endet "+ddmm(x.d);cc="end";}
+      else if(x.k==="trial"){sub="Probeabo endet "+fmtShort(x.d);chip=inDays(dn);cc=dn<=7?"alert":"warn";acts=true;}
+      else if(x.k==="kept"){sub="behalten · kündigen bis "+fmtShort(x.d);chip=inDays(dn);cc="ok";}
+      else{sub="kündigen bis "+fmtShort(x.d)+(x.e?" · endet "+fmtShort(x.e):"");chip=inDays(dn);acts=dn<=90;cc=dn<=7?"alert":(acts?"warn":"");}
+      if(c.mand&&x.k!=="end")sub+=" · Pflicht";
+      var tr=x.k==="trial"?' data-trial="1"':"";
+      return '<div class="tit"><button class="mrow" data-open="'+esc(c._id)+'">'+markHtml(c)+
+        '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">'+esc(sub)+'</span></span><span class="tchip'+(cc?" "+cc:"")+'">'+esc(chip)+"</span></button>"+
+        (acts?'<div class="tacts"><button data-keep="'+esc(c._id)+'"'+tr+'>Behalten</button><button class="tk" data-kill="'+esc(c._id)+'"'+tr+'>'+(c.mand?"Wechseln":"Kündigen")+"</button></div>":"")+"</div>";};
+    if(items.length)o+='<div class="grp"><div class="grphead"><span>Fristen</span><span>nach Datum</span></div><div class="mrows2 tlist">'+items.map(tItem).join("")+"</div></div>";
     var fold=function(key,title,list,txtFn,extra,rowFn){
       if(!list.length)return "";var op=!!(state.tfold||{})[key];
       return '<div class="grp tfg"><button class="tfold" data-tfold="'+key+'" aria-expanded="'+op+'"><span>'+title+" ("+list.length+")"+(extra||"")+"</span><i></i></button>"+
@@ -2246,7 +2262,13 @@ function renderView(){
     /* Frist direkt nachtragen: Zeile öffnet die Datenqualität mit dem Inline-Editor «Kündigungsfrist und Laufzeit» */
     var rowQ=function(c,txt){return '<button class="mrow trow" data-qnotice="'+esc(c._id)+'">'+markHtml(c)+
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst">'+esc(txt)+" ›</span></button>";};
-    o+=fold("any","Jederzeit kündbar",anytime,function(c){if(!c.end&&c.cancTerm==="p")return "zum Periodenende";var T=nextTerm(c);return T?"nächste Frist "+ddmm(nDl(c,T)):"Frist "+noticeText(c);});
+    /* Flexibel: kurzfristig kündbare Verträge als eine Karte mit Logostapel, aufklappbar */
+    if(anytime.length){var fOp=!!(state.tfold||{}).any,fEnd=null;
+      anytime.forEach(function(c){var T=isP(c)?nextTerm(c):null;if(T&&(!fEnd||T<fEnd))fEnd=T;});
+      var fMon=anytime.every(isP);
+      o+='<div class="grp"><div class="grphead"><span>Flexibel</span></div><div class="tflex'+(fOp?" on":"")+'"><button class="tfx" data-tfold="any" aria-expanded="'+fOp+'"><span class="tstk">'+anytime.slice().sort(function(x,y){return monthlyCost(y)-monthlyCost(x);}).slice(0,4).map(function(c){return markHtml(c);}).join("")+'</span>'+
+        '<span class="mt"><span class="mn">'+anytime.length+(anytime.length===1?" Vertrag":" Verträge")+'</span><span class="mm">'+(fMon?"monatlich kündbar":"kurzfristig kündbar")+(fEnd?" · frühestes Ende "+ddmm(fEnd):"")+'</span></span><i></i></button>'+
+        (fOp?'<div class="mrows2">'+anytime.map(function(c){var T=nextTerm(c);return row(c,T?"Ende "+ddmm(T):((!c.end&&c.cancTerm==="p")?"zum Periodenende":"Frist "+noticeText(c)));}).join("")+"</div>":"")+"</div></div>";}
     o+=fold("none","Ohne Frist erfasst",nofrist,function(){return "ergänzen";}," · ergänzen",rowQ);
     o+=fold("unw","Nicht beobachtet",unw,function(c){return noticeText(c)?"Frist "+noticeText(c):"";});
     if(state._rvDue)o+='<div class="review rvsmall"><div class="rvh">Quartals-Check</div><p>Brauchst du noch alles? Geh deine Verträge kurz durch.</p>'+
