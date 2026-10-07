@@ -907,6 +907,14 @@ body{display:flex;flex-direction:column}
 .sphead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}.sphead span{display:flex;flex-direction:column;min-width:0}.sphead .r{text-align:right;align-items:flex-end}
 .sphead em{font-style:normal;font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sphead small{font-size:13px;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}.sphead small b{color:var(--ink);font-weight:600}
+.sphd2{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;margin-bottom:2px}.sphd2 span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sprng{-webkit-appearance:none;appearance:none;display:block;width:100%;height:32px;margin:0;background:transparent;touch-action:pan-y}
+.sprng::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--line)}
+.sprng::-moz-range-track{height:6px;border-radius:3px;background:var(--line)}
+.sprng::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-11px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 .5px rgba(0,0,0,.08)}
+.sprng::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.spticks{display:flex;justify-content:space-between;padding:0 13px;margin:-3px 0 10px}.spticks i{width:1px;height:6px;background:var(--ink3);opacity:.55}
+.spgrid .spcell small.r{text-align:right}
 .spgrid{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));gap:10px}
 .spcell{min-width:0;display:flex;flex-direction:column;gap:5px}
 .spcell em{font-style:normal;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2949,26 +2957,35 @@ function paintSplit(){
   document.querySelectorAll("#fSplitSeg button").forEach(function(b){b.setAttribute("aria-pressed",(b.dataset.sp==="ind")===ind);});
   rows.hidden=!ind;if(!ind){rows.innerHTML="";return;}
   var cur=esc(document.getElementById("fCur").value),two=hs.length===2;
-  /* nebeneinander: 2 oder 3 Spalten (4 Inhaber: 2×2) */
-  rows.innerHTML='<div class="spbox"><div class="spgrid" style="--n:'+(hs.length===3?3:2)+'">'+hs.map(function(h,i){var ro=!two&&i===hs.length-1;
-    return '<div class="spcell"><em>'+esc(h)+'</em>'+
+  /* 2 Inhaber: Namen oben, Regler (50-Rappen-Schritte, Wert = Betrag der rechten Person), Felder darunter.
+     Ab 3: nur Felder nebeneinander (3 Spalten bzw. 2×2), ohne Regler. SwiftUI: Slider(step: 0.5) + 2 TextFields */
+  var T0=spTotal(),rmax=Math.ceil(T0*2)/2;
+  rows.innerHTML='<div class="spbox">'+(two?'<div class="sphd2"><span>'+esc(hs[0])+'</span><span>'+esc(hs[1])+'</span></div>'+
+      (T0>0?'<input type="range" class="sprng" min="0" max="'+rmax+'" step="0.5" value="'+spVal(hs[1])+'" data-sprng aria-label="Aufteilung, Betrag '+esc(hs[1])+'"><div class="spticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>':""):"")+
+    '<div class="spgrid" style="--n:'+(hs.length===3?3:2)+'">'+hs.map(function(h,i){var ro=!two&&i===hs.length-1;
+    return '<div class="spcell">'+(two?"":'<em>'+esc(h)+'</em>')+
       (ro?'<span class="spin ro"><b data-spr="'+esc(h)+'">'+money(spVal(h))+'</b></span>'
          :'<span class="spin"><input type="text" class="num" inputmode="decimal" data-spa="'+esc(h)+'" value="'+spVal(h).toFixed(2)+'" aria-label="Betrag '+esc(h)+'"></span>')+
-      '<small data-spp="'+esc(h)+'">'+spPct(h)+(ro?" · Rest":"")+'</small></div>';}).join("")+'</div>'+
+      '<small data-spp="'+esc(h)+'"'+(two&&i===1?' class="r"':"")+'>'+spPct(h)+(ro?" · Rest":"")+'</small></div>';}).join("")+'</div>'+
     '<p class="sptot" id="spTot"></p></div>';
   spRefresh();
 }
 /* Werte nachführen, ohne neu zu zeichnen (das Feld, in dem getippt wird, bleibt unangetastet) */
 function spRefresh(){var hs=holdersSorted(draft.holders||[]);if(!draft.split||hs.length<2)return;
   var ae=document.activeElement,cur=document.getElementById("fCur").value,T=spTotal();
+  if(hs.length===2&&T>0&&!document.querySelector("#fSplitRows [data-sprng]")){paintSplit();return;}
   hs.forEach(function(h){var q=CSS.escape(h);
     var t=document.querySelector('#fSplitRows [data-spp="'+q+'"]');if(t)t.textContent=spPct(h)+(hs.length>2&&h===hs[hs.length-1]?" · Rest":"");
     var i=document.querySelector('#fSplitRows input[data-spa="'+q+'"]');if(i&&i!==ae)i.value=spVal(h).toFixed(2);
     var r=document.querySelector('#fSplitRows [data-spr="'+q+'"]');if(r)r.textContent=money(spVal(h));});
+  var rg=document.querySelector("#fSplitRows [data-sprng]");if(rg&&rg!==ae){rg.max=Math.ceil(T*2)/2;rg.value=spVal(hs[1]);}
   var tt=document.getElementById("spTot");if(tt)tt.textContent=T>0?"Total "+money(T)+" "+cur+" pro Zahlung":"Zuerst den Betrag unter «Kosten» eintragen.";}
 document.getElementById("fSplitSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-sp]");if(!b)return;
   if(b.dataset.sp==="eq")draft.split=null;else{draft.split={};}paintSplit();});
-document.getElementById("fSplitRows").addEventListener("input",function(ev){var i=ev.target;if(!i.dataset.spa||!draft.split)return;
+document.getElementById("fSplitRows").addEventListener("input",function(ev){var i=ev.target;
+  if(i.dataset.sprng!=null&&draft.split){var hs2=holdersSorted(draft.holders||[]),T2=spTotal();if(!(T2>0)||hs2.length!==2)return;
+    var b2=Math.min(T2,Math.max(0,+i.value||0)),v2=Math.round(b2/T2*1e6)/1e4;draft.split[hs2[1]]=v2;draft.split[hs2[0]]=Math.round((100-v2)*1e4)/1e4;spRefresh();return;}
+  if(!i.dataset.spa||!draft.split)return;
   var hs=holdersSorted(draft.holders||[]),h=i.dataset.spa,T=spTotal();if(!(T>0))return;
   var x=parseNum(i.value);if(x==null)x=0;x=Math.max(0,Math.min(T,x));var v=Math.round(x/T*1e6)/1e4;
   if(hs.length===2){draft.split[h]=v;draft.split[hs[0]===h?hs[1]:hs[0]]=Math.round((100-v)*1e4)/1e4;spRefresh();return;}
