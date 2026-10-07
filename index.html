@@ -907,13 +907,15 @@ body{display:flex;flex-direction:column}
 .sphead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}.sphead span{display:flex;flex-direction:column;min-width:0}.sphead .r{text-align:right;align-items:flex-end}
 .sphead em{font-style:normal;font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sphead small{font-size:13px;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}.sphead small b{color:var(--ink);font-weight:600}
-.sprange{-webkit-appearance:none;appearance:none;width:100%;height:36px;margin:4px 0 0;background:transparent;touch-action:pan-y}
-.sprange::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--teal) var(--p),var(--line) var(--p))}
-.sprange.sp2::-webkit-slider-runnable-track{background:var(--line)}
-.sprange.sp2::-moz-range-track{background:var(--line)}
-.sprange::-moz-range-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--teal) var(--p),var(--line) var(--p))}
-.sprange::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 .5px rgba(0,0,0,.08)}
-.sprange::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.sprow3{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line)}.sprow3:first-child{border-top:0;padding-top:2px}
+.sprow3 .spn{flex:1;min-width:0;display:flex;flex-direction:column}
+.sprow3 .spn em{font-style:normal;font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sprow3 .spn small{font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.spin{flex:none;display:flex;align-items:center;gap:6px;background:var(--surface);border-radius:10px;padding:0 10px}
+.spin input{width:92px;border:0;background:transparent;padding:9px 0;text-align:right;font-size:16px;color:var(--ink);outline:0;box-shadow:none;font-variant-numeric:tabular-nums}
+.spin u{text-decoration:none;font-size:13px;color:var(--ink2)}
+.spin.ro{background:transparent;padding-right:0}.spin.ro b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;min-width:92px;text-align:right}
+.sptot{margin:8px 0 0;font-size:12.5px;color:var(--ink2)}
 .chip{padding:7px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;color:var(--ink2)}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
 .swatches{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
@@ -2933,45 +2935,49 @@ function paintDocs(){paintOptCounts();
     l.appendChild(row);
   });
 }
-/* Individuelle Aufteilung: draft.split = {Inhaber: %} oder null (= gleich). Schieberegler je Inhaber (bei 2 Inhabern einer: Wert = Anteil der rechten Person, Spur ohne Füllung),
-   zeigt Prozent und Betrag pro Zahlung; letzter Inhaber = 100 − übrige. SwiftUI: Slider(value:in:step:) mit Label */
-function spAmt(p){var a=parseNum(document.getElementById("fAmt").value)||0,t=today();(draft.prices||[]).slice().sort(function(x,y){return String(x.from).localeCompare(String(y.from));}).forEach(function(q){var f=parseD(q.from);if(f&&f<=t&&isFinite(+q.amount))a=+q.amount;});var cur=document.getElementById("fCur").value;return money(a*p/100)+" "+esc(cur);}
-function spTxt(p){return '<b>'+Math.round(p)+' %</b> · '+spAmt(p);}
+/* Individuelle Aufteilung: draft.split = {Inhaber: %} oder null (= gleich). Eingabe als Betrag pro Zahlung (auf den Rappen),
+   gespeichert als Prozent mit 4 Nachkommastellen, damit es bei Preisänderungen anteilig bleibt.
+   2 Inhaber: beide Felder editierbar, das andere passt sich an. Ab 3: letzter Inhaber = Rest. SwiftUI: TextField(.decimalPad) je Inhaber */
+function spTotal(){var a=parseNum(document.getElementById("fAmt").value)||0,t=today();(draft.prices||[]).slice().sort(function(x,y){return String(x.from).localeCompare(String(y.from));}).forEach(function(q){var f=parseD(q.from);if(f&&f<=t&&isFinite(+q.amount))a=+q.amount;});return a;}
+function spVal(h){return Math.round(spTotal()*(+draft.split[h]||0))/100;}
+function spPct(h){var p=+draft.split[h]||0;return (Math.round(p*10)/10).toLocaleString("de-CH")+" %";}
 function paintSplit(){
   var hs=holdersSorted(draft.holders||[]),w=document.getElementById("fSplitWrap"),rows=document.getElementById("fSplitRows");
   w.hidden=hs.length<2;if(hs.length<2){draft.split=null;return;}
-  if(draft.split){var ok=hs.every(function(h){return draft.split[h]!=null;});if(!ok){var eq=Math.floor(100/hs.length),sp={};hs.forEach(function(h,i){sp[h]=i===hs.length-1?100-eq*(hs.length-1):eq;});draft.split=sp;}}
+  if(draft.split){var ok=hs.every(function(h){return draft.split[h]!=null;});if(!ok){var sp={};hs.forEach(function(h){sp[h]=100/hs.length;});draft.split=sp;}}
   var ind=!!draft.split;
   document.querySelectorAll("#fSplitSeg button").forEach(function(b){b.setAttribute("aria-pressed",(b.dataset.sp==="ind")===ind);});
   rows.hidden=!ind;if(!ind){rows.innerHTML="";return;}
-  var v=function(h){return Math.round(+draft.split[h]||0);};
-  if(hs.length===2){var a=hs[0],b=hs[1];
-    rows.innerHTML='<div class="spbox"><div class="sphead"><span><em>'+esc(a)+'</em><small data-spv="'+esc(a)+'">'+spTxt(v(a))+'</small></span>'+
-      '<span class="r"><em>'+esc(b)+'</em><small data-spv="'+esc(b)+'">'+spTxt(v(b))+'</small></span></div>'+
-      '<input type="range" class="sprange sp2" min="0" max="100" step="1" data-sph="'+esc(b)+'" value="'+v(b)+'" style="--p:'+v(b)+'%" aria-label="Anteil '+esc(b)+'" aria-valuetext="'+esc(a)+' '+v(a)+' %, '+esc(b)+' '+v(b)+' %"></div>';
-  }else{
-    rows.innerHTML='<div class="spbox">'+hs.map(function(h,i){var last=i===hs.length-1;
-      return '<div class="sprow2"><div class="sphead"><span><em>'+esc(h)+'</em></span><span class="r"><small data-spv="'+esc(h)+'">'+spTxt(v(h))+'</small></span></div>'+
-        (last?'<p class="note" style="margin:2px 0 0">Rest, ergibt sich automatisch</p>':'<input type="range" class="sprange" min="0" max="100" step="1" data-sph="'+esc(h)+'" value="'+v(h)+'" style="--p:'+v(h)+'%" aria-label="Anteil '+esc(h)+'">')+'</div>';}).join("")+'</div>';
-  }
+  var cur=esc(document.getElementById("fCur").value),two=hs.length===2;
+  rows.innerHTML='<div class="spbox">'+hs.map(function(h,i){var ro=!two&&i===hs.length-1;
+    return '<div class="sprow3"><span class="spn"><em>'+esc(h)+'</em><small data-spp="'+esc(h)+'">'+spPct(h)+(ro?" · Rest":"")+'</small></span>'+
+      (ro?'<span class="spin ro"><b data-spr="'+esc(h)+'">'+money(spVal(h))+'</b><u>'+cur+'</u></span>'
+         :'<span class="spin"><input type="text" class="num" inputmode="decimal" data-spa="'+esc(h)+'" value="'+spVal(h).toFixed(2)+'" aria-label="Betrag '+esc(h)+'"><u>'+cur+'</u></span>')+'</div>';}).join("")+
+    '<p class="sptot" id="spTot"></p></div>';
+  spRefresh();
 }
-/* Werte beim Ziehen aktualisieren, ohne neu zu zeichnen (Regler bleibt greifbar) */
+/* Werte nachführen, ohne neu zu zeichnen (das Feld, in dem getippt wird, bleibt unangetastet) */
 function spRefresh(){var hs=holdersSorted(draft.holders||[]);if(!draft.split||hs.length<2)return;
-  hs.forEach(function(h){var p=Math.round(+draft.split[h]||0);
-    var t=document.querySelector('#fSplitRows [data-spv="'+CSS.escape(h)+'"]');if(t)t.innerHTML=spTxt(p);
-    var r=document.querySelector('#fSplitRows input[data-sph="'+CSS.escape(h)+'"]');if(r){if(+r.value!==p)r.value=p;r.style.setProperty("--p",p+"%");}});
-  if(hs.length===2){var r2=document.querySelector("#fSplitRows input[data-sph]");if(r2)r2.setAttribute("aria-valuetext",hs[0]+" "+Math.round(draft.split[hs[0]])+" %, "+hs[1]+" "+Math.round(draft.split[hs[1]])+" %");}}
+  var ae=document.activeElement,cur=document.getElementById("fCur").value,T=spTotal();
+  hs.forEach(function(h){var q=CSS.escape(h);
+    var t=document.querySelector('#fSplitRows [data-spp="'+q+'"]');if(t)t.textContent=spPct(h)+(hs.length>2&&h===hs[hs.length-1]?" · Rest":"");
+    var i=document.querySelector('#fSplitRows input[data-spa="'+q+'"]');if(i&&i!==ae)i.value=spVal(h).toFixed(2);
+    var r=document.querySelector('#fSplitRows [data-spr="'+q+'"]');if(r)r.textContent=money(spVal(h));});
+  document.querySelectorAll("#fSplitRows .spin u").forEach(function(u){u.textContent=cur;});
+  var tt=document.getElementById("spTot");if(tt)tt.textContent=T>0?"Total "+money(T)+" "+cur+" pro Zahlung":"Zuerst den Betrag unter «Kosten» eintragen.";}
 document.getElementById("fSplitSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-sp]");if(!b)return;
   if(b.dataset.sp==="eq")draft.split=null;else{draft.split={};}paintSplit();});
-document.getElementById("fSplitRows").addEventListener("input",function(ev){var i=ev.target;if(!i.dataset.sph||!draft.split)return;
-  var hs=holdersSorted(draft.holders||[]),h=i.dataset.sph,v=Math.max(0,Math.min(100,Math.round(+i.value||0)));
-  /* zwei Inhaber: ein Regler, nach rechts ziehen = mehr für die rechte Person */
-  if(hs.length===2){draft.split[hs[1]]=v;draft.split[hs[0]]=100-v;spRefresh();return;}
-  /* zuerst vom letzten (Rest) nehmen, reicht das nicht, von den übrigen Reglern (von hinten) */
-  draft.split[h]=v;var mids=hs.slice(0,-1).filter(function(x){return x!==h;});
-  var sum=function(){return hs.slice(0,-1).reduce(function(n,x){return n+(+draft.split[x]||0);},0);};
-  for(var k=mids.length-1;k>=0&&sum()>100;k--){var x=mids[k];draft.split[x]=Math.max(0,(+draft.split[x]||0)-(sum()-100));}
-  draft.split[hs[hs.length-1]]=Math.max(0,100-sum());spRefresh();});
+document.getElementById("fSplitRows").addEventListener("input",function(ev){var i=ev.target;if(!i.dataset.spa||!draft.split)return;
+  var hs=holdersSorted(draft.holders||[]),h=i.dataset.spa,T=spTotal();if(!(T>0))return;
+  var x=parseNum(i.value);if(x==null)x=0;x=Math.max(0,Math.min(T,x));var v=Math.round(x/T*1e6)/1e4;
+  if(hs.length===2){draft.split[h]=v;draft.split[hs[0]===h?hs[1]:hs[0]]=Math.round((100-v)*1e4)/1e4;spRefresh();return;}
+  /* ab 3: zuerst vom letzten (Rest) nehmen, reicht das nicht, von den übrigen Feldern (von hinten) */
+  draft.split[h]=v;var mids=hs.slice(0,-1).filter(function(y){return y!==h;});
+  var sum=function(){return hs.slice(0,-1).reduce(function(n,y){return n+(+draft.split[y]||0);},0);};
+  for(var k=mids.length-1;k>=0&&sum()>100;k--){var y=mids[k];draft.split[y]=Math.max(0,(+draft.split[y]||0)-(sum()-100));}
+  draft.split[hs[hs.length-1]]=Math.max(0,Math.round((100-sum())*1e4)/1e4);spRefresh();});
+/* Beim Verlassen: Eingabe sauber formatieren (z.B. «30» → «30.00», zu hoch → Total) */
+document.getElementById("fSplitRows").addEventListener("focusout",function(ev){var i=ev.target;if(i.dataset&&i.dataset.spa&&draft.split)i.value=spVal(i.dataset.spa).toFixed(2);});
 ["fAmt","fCur"].forEach(function(id){var e=document.getElementById(id);e.addEventListener("input",spRefresh);e.addEventListener("change",spRefresh);});
 function paintHolders(){
   var el=document.getElementById("fHolders");el.innerHTML="";
@@ -3363,8 +3369,8 @@ document.getElementById("saveForm").addEventListener("click",function(){
     custNo:document.getElementById("fCustNo").value.trim(),
     contrNo:document.getElementById("fContrNo").value.trim(),
     holders:holdersSorted(draft.holders),
-    split:(function(){var hs=holdersSorted(draft.holders),sp=draft.split;if(hs.length<2||!sp)return undefined;var o={},sum=0;hs.forEach(function(h){o[h]=Math.round(+sp[h]||0);sum+=o[h];});
-      if(Math.abs(sum-100)>0.6)return undefined;var eq=hs.every(function(h){return Math.abs(o[h]-100/hs.length)<0.6;});return eq?undefined:o;})(),
+    split:(function(){var hs=holdersSorted(draft.holders),sp=draft.split;if(hs.length<2||!sp)return undefined;var o={},sum=0;hs.forEach(function(h){o[h]=Math.round((+sp[h]||0)*1e4)/1e4;sum+=o[h];});
+      if(Math.abs(sum-100)>0.01)return undefined;var eq=hs.every(function(h){return Math.abs(o[h]-100/hs.length)<0.001;});return eq?undefined:o;})(),
     payM:document.getElementById("fPayM").value,
     payA:document.getElementById("fPayA").value.trim(),
     cancF:cF,cancUrl:cF==="Online / Kundenkonto"?document.getElementById("fCancUrl").value.trim():"",/* Kündigungslink nur bei Online */
@@ -5825,7 +5831,7 @@ document.getElementById("csvBtn").addEventListener("click",async function(){
       c.custNo||"",c.contrNo||"",holdersOf(c).join(", "),c.payM||"",c.payA||"",c.cancF||"",c.web||"",c.tel||"",c.mail||"",c.status||"active",
       c.cancTerm||(c.end?"":"jederzeit"),c.mand?"ja":"",c.note||"",  /* Frist 0 und «jederzeit» ausdrücklich, damit der Import keine Katalogwerte einsetzt */
       extrasOf(c).map(function(x){return x.date+":"+x.amount.toFixed(2)+(x.note?":"+x.note.replace(/[|:]/g," "):"");}).join(" | "),
-      c.addr||"",c.cancUrl||"",(function(){var sp=splitOf(c);return sp?holdersOf(c).map(function(h){return h+":"+Math.round(+sp[h]);}).join(" | "):"";})()]
+      c.addr||"",c.cancUrl||"",(function(){var sp=splitOf(c);return sp?holdersOf(c).map(function(h){return h+":"+String(Math.round(+sp[h]*100)/100);}).join(" | "):"";})()]
       .map(csvField).join(";"));
   });
   /* BOM und CRLF: Excel erkennt so UTF-8 (Umlaute) */
@@ -6004,7 +6010,7 @@ function csvToContracts(rows){
       notice:nNum!=null?(noticeVal(nNum,nu)!=null?noticeVal(nNum,nu):Math.max(0,Math.round(Math.abs(nNum)))):(tpl&&col.notice==null?tpl[5]:0),noticeU:nNum!=null?nu:(tpl&&col.notice==null?tpl[6]:"m"),
       renew:String(csvNum(g(r,"renew"))||""),cancTerm:col.cancTerm!=null?csvTerm(g(r,"cancTerm")):(tpl&&!g(r,"end")?tpl[7]||"":""),
       mand:mand,custNo:g(r,"custNo"),contrNo:g(r,"contrNo"),holders:hs,
-      split:(function(){var raw=g(r,"split");if(!raw||hs.length<2)return undefined;var o={};raw.split("|").forEach(function(x){var m=x.trim().match(/^(.+?):\s*(\d+)\s*%?$/);if(m){var nm=hs.filter(function(h){return h.toLowerCase()===m[1].trim().toLowerCase();})[0];if(nm)o[nm]=+m[2];}});
+      split:(function(){var raw=g(r,"split");if(!raw||hs.length<2)return undefined;var o={};raw.split("|").forEach(function(x){var m=x.trim().match(/^(.+?):\s*(\d+(?:[.,]\d+)?)\s*%?$/);if(m){var nm=hs.filter(function(h){return h.toLowerCase()===m[1].trim().toLowerCase();})[0];if(nm)o[nm]=+m[2].replace(",",".");}});
         var sum=0;hs.forEach(function(h){sum+=(+o[h]||0);});return (hs.every(function(h){return o[h]!=null;})&&Math.abs(sum-100)<0.6)?o:undefined;})(),
       payM:g(r,"payM"),payA:g(r,"payA"),cancF:g(r,"cancF")||(tpl?tpl[8]||"":""),cancUrl:g(r,"cancUrl"),trial:"",
       web:g(r,"web")||(tpl?tpl[4]:""),tel:g(r,"tel"),mail:g(r,"mail"),addr:ad,
