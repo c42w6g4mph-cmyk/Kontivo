@@ -907,14 +907,14 @@ body{display:flex;flex-direction:column}
 .sphead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}.sphead span{display:flex;flex-direction:column;min-width:0}.sphead .r{text-align:right;align-items:flex-end}
 .sphead em{font-style:normal;font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sphead small{font-size:13px;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}.sphead small b{color:var(--ink);font-weight:600}
-.sprow3{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line)}.sprow3:first-child{border-top:0;padding-top:2px}
-.sprow3 .spn{flex:1;min-width:0;display:flex;flex-direction:column}
-.sprow3 .spn em{font-style:normal;font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sprow3 .spn small{font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
-.spin{flex:none;display:flex;align-items:center;gap:6px;background:var(--surface);border-radius:10px;padding:0 10px}
-.spin input{width:92px;border:0;background:transparent;padding:9px 0;text-align:right;font-size:16px;color:var(--ink);outline:0;box-shadow:none;font-variant-numeric:tabular-nums}
-.spin u{text-decoration:none;font-size:13px;color:var(--ink2)}
-.spin.ro{background:transparent;padding-right:0}.spin.ro b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;min-width:92px;text-align:right}
+.spgrid{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));gap:10px}
+.spcell{min-width:0;display:flex;flex-direction:column;gap:5px}
+.spcell em{font-style:normal;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spcell small{font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.spin{display:flex;align-items:center;gap:5px;background:var(--surface);border-radius:10px;padding:0 10px;min-width:0}
+.spin input{flex:1;min-width:0;width:100%;border:0;background:transparent;padding:9px 0;text-align:right;font-size:16px;color:var(--ink);outline:0;box-shadow:none;font-variant-numeric:tabular-nums}
+.spin u{flex:none;text-decoration:none;font-size:12.5px;color:var(--ink2)}
+.spin.ro{background:transparent;border:1px dashed var(--line)}.spin.ro b{flex:1;min-width:0;padding:9px 0;text-align:right;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
 .sptot{margin:8px 0 0;font-size:12.5px;color:var(--ink2)}
 .chip{padding:7px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;color:var(--ink2)}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
@@ -2949,10 +2949,12 @@ function paintSplit(){
   document.querySelectorAll("#fSplitSeg button").forEach(function(b){b.setAttribute("aria-pressed",(b.dataset.sp==="ind")===ind);});
   rows.hidden=!ind;if(!ind){rows.innerHTML="";return;}
   var cur=esc(document.getElementById("fCur").value),two=hs.length===2;
-  rows.innerHTML='<div class="spbox">'+hs.map(function(h,i){var ro=!two&&i===hs.length-1;
-    return '<div class="sprow3"><span class="spn"><em>'+esc(h)+'</em><small data-spp="'+esc(h)+'">'+spPct(h)+(ro?" · Rest":"")+'</small></span>'+
-      (ro?'<span class="spin ro"><b data-spr="'+esc(h)+'">'+money(spVal(h))+'</b><u>'+cur+'</u></span>'
-         :'<span class="spin"><input type="text" class="num" inputmode="decimal" data-spa="'+esc(h)+'" value="'+spVal(h).toFixed(2)+'" aria-label="Betrag '+esc(h)+'"><u>'+cur+'</u></span>')+'</div>';}).join("")+
+  /* nebeneinander: 2 oder 3 Spalten (4 Inhaber: 2×2) */
+  rows.innerHTML='<div class="spbox"><div class="spgrid" style="--n:'+(hs.length===3?3:2)+'">'+hs.map(function(h,i){var ro=!two&&i===hs.length-1;
+    return '<div class="spcell"><em>'+esc(h)+'</em>'+
+      (ro?'<span class="spin ro"><b data-spr="'+esc(h)+'">'+money(spVal(h))+'</b></span>'
+         :'<span class="spin"><input type="text" class="num" inputmode="decimal" data-spa="'+esc(h)+'" value="'+spVal(h).toFixed(2)+'" aria-label="Betrag '+esc(h)+'"></span>')+
+      '<small data-spp="'+esc(h)+'">'+spPct(h)+(ro?" · Rest":"")+'</small></div>';}).join("")+'</div>'+
     '<p class="sptot" id="spTot"></p></div>';
   spRefresh();
 }
@@ -2963,7 +2965,6 @@ function spRefresh(){var hs=holdersSorted(draft.holders||[]);if(!draft.split||hs
     var t=document.querySelector('#fSplitRows [data-spp="'+q+'"]');if(t)t.textContent=spPct(h)+(hs.length>2&&h===hs[hs.length-1]?" · Rest":"");
     var i=document.querySelector('#fSplitRows input[data-spa="'+q+'"]');if(i&&i!==ae)i.value=spVal(h).toFixed(2);
     var r=document.querySelector('#fSplitRows [data-spr="'+q+'"]');if(r)r.textContent=money(spVal(h));});
-  document.querySelectorAll("#fSplitRows .spin u").forEach(function(u){u.textContent=cur;});
   var tt=document.getElementById("spTot");if(tt)tt.textContent=T>0?"Total "+money(T)+" "+cur+" pro Zahlung":"Zuerst den Betrag unter «Kosten» eintragen.";}
 document.getElementById("fSplitSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-sp]");if(!b)return;
   if(b.dataset.sp==="eq")draft.split=null;else{draft.split={};}paintSplit();});
