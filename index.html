@@ -3418,9 +3418,10 @@ function paintOptCounts(){
   var el=document.getElementById("fMoreN");el.textContent=parts.length?parts.join(" · "):"Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …";el.classList.toggle("on",!!parts.length);
 }
 /* Adresse im Vertragsformular wie auf der Vertragspartner-Seite: Felder Firma/Zusatz/Strasse/PLZ Ort/Land, gespeichert als Text in #fAddr */
-function fAddrPaint(){var o=addrSplit(document.getElementById("fAddr").value,document.getElementById("fPartner").value),F=function(i){var f=PA_F[i];
-    return '<input id="fa'+f[1].slice(2)+'" data-fa="'+f[0]+'" type="text" autocomplete="off" autocapitalize="words" placeholder="'+f[2]+'" aria-label="'+f[2]+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';};
+function fAddrPaint(){var pn=document.getElementById("fPartner").value,o=addrSplit(document.getElementById("fAddr").value,pn),F=function(i){var f=PA_F[i],pl=i===0?firmPh(pn):f[2];
+    return '<input id="fa'+f[1].slice(2)+'" data-fa="'+f[0]+'" type="text" autocomplete="off" autocapitalize="words" placeholder="'+esc(pl)+'" aria-label="'+esc(pl)+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';};
   document.getElementById("fAddrG").innerHTML='<div class="igr">'+F(0)+'</div><div class="igr">'+F(1)+'</div><div class="igr">'+F(2)+'</div><div class="igr two zc">'+F(3)+F(4)+'</div><div class="igr">'+F(5)+'</div>';}
+document.getElementById("fPartner").addEventListener("input",function(){var i=document.querySelector('#fAddrG [data-fa="firm"]');if(i){i.placeholder=firmPh(this.value);i.setAttribute("aria-label",i.placeholder);}});
 document.getElementById("fAddrG").addEventListener("input",function(){var o={};document.querySelectorAll("#fAddrG [data-fa]").forEach(function(i){o[i.dataset.fa]=i.value.trim().replace(/\s+/g," ");});
   document.getElementById("fAddr").value=addrJoin(o);paintOptCounts();});
 function paintPrices(){paintOptCounts();
@@ -4934,7 +4935,7 @@ MD_PAGES.pe=function(p){
     '<button class="lbtn main" id="peAuto" type="button">Logo automatisch finden</button><div class="lcands" id="peCands"></div>'+
     '<div class="lbtns2"><button class="lbtn" id="pePaste" type="button">Einfügen</button>'+(assets?'<button class="lbtn" id="peUp" type="button">Hochladen</button>':"")+'<button class="lbtn" id="peGoogle" type="button">Google</button></div>'+
     '<button class="lbtn del" id="peLogoDel" type="button">Bild entfernen</button><p class="mdhint">Gilt für alle Verträge dieses Vertragspartners.</p></div>'+
-    mdSec("Adresse",'<span class="mdlinks"><button type="button" class="mdlink" data-mdrun="paddrpaste">Einfügen</button><button type="button" class="mdlink" data-mdrun="paddrfind">Suchen</button></span>')+paForm(addrSplit(g.addr||"",g.name))+
+    mdSec("Adresse",'<span class="mdlinks"><button type="button" class="mdlink" data-mdrun="paddrpaste">Einfügen</button><button type="button" class="mdlink" data-mdrun="paddrfind">Suchen</button></span>')+paForm(addrSplit(g.addr||"",g.name),g.name)+
     '<p class="mdhint" style="margin-top:6px">Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.</p>'+
     mdSec(cntTxt(g.ids.length,"Vertrag","Verträge"),'<em>'+money(g.cost/12)+" "+H0()+"/Mt.</em>")+
     '<div class="mdgrp">'+g.ids.map(function(k){return mdCRow(k,state.contracts[k]);}).join("")+"</div>"+
@@ -5341,8 +5342,9 @@ document.getElementById("fAddrG").addEventListener("paste",function(e){var t=(e.
 document.getElementById("mdBody").addEventListener("paste",function(e){if(!e.target.closest||!e.target.closest("#paForm")||!pe)return;var t=(e.clipboardData||window.clipboardData).getData("text");if(!addrLooksPasted(t))return;
   e.preventDefault();var o=addrFromPaste(t,pe.name);if(o)paFill(o);});
 function addrJoin(o){return [o.firm,o.extra,o.street,[o.zip,o.city].filter(Boolean).join(" "),o.country].map(function(x){return String(x||"").trim();}).filter(Boolean).join("\n");}
-function paIn(i,o){var f=PA_F[i];return '<input id="'+f[1]+'" type="text" autocomplete="'+f[3]+'" autocapitalize="words" enterkeyhint="next" placeholder="'+f[2]+'" aria-label="'+f[2]+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';}
-function paForm(o){return '<form id="paForm" class="sndform ig" autocomplete="off" novalidate><div class="igr">'+paIn(0,o)+'</div><div class="igr">'+paIn(1,o)+'</div><div class="igr">'+paIn(2,o)+'</div><div class="igr two zc">'+paIn(3,o)+paIn(4,o)+'</div><div class="igr">'+paIn(5,o)+'</div></form>';}
+function firmPh(n){n=String(n||"").trim();return n?"Firma (optional, sonst "+n+")":"Firma (optional)";}
+function paIn(i,o,ph){var f=PA_F[i],pl=ph||f[2];return '<input id="'+f[1]+'" type="text" autocomplete="'+f[3]+'" autocapitalize="words" enterkeyhint="next" placeholder="'+esc(pl)+'" aria-label="'+esc(pl)+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';}
+function paForm(o,name){return '<form id="paForm" class="sndform ig" autocomplete="off" novalidate><div class="igr">'+paIn(0,o,firmPh(name))+'</div><div class="igr">'+paIn(1,o)+'</div><div class="igr">'+paIn(2,o)+'</div><div class="igr two zc">'+paIn(3,o)+paIn(4,o)+'</div><div class="igr">'+paIn(5,o)+'</div></form>';}
 function paSave(){var o={};PA_F.forEach(function(f){var el=document.getElementById(f[1]);o[f[0]]=el?el.value.trim().replace(/\s+/g," "):"";});peAddrChange(addrJoin(o));}
 function peAddrChange(v){
   var g=pe&&peGroup(pe.key);if(!g)return;v=String(v||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean).join("\n");
