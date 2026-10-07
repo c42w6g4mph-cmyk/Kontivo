@@ -867,6 +867,7 @@ body.hasplus .topadd{display:inline-flex}
 .field input[type=date]::-webkit-date-and-time-value{text-align:left}
 .field input.num{text-align:right}
 .flabel{font-size:12.5px;color:var(--ink2);margin:0 0 6px}
+.flabel.flrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:0}.flabel.flrow .mdlink{padding:6px 0}
 /* Formular: Gruppen statt Schritte, «Weitere Angaben» als Unterseite (SwiftUI: Form-Sections + NavigationLink) */
 #sheetForm h3{display:flex;align-items:baseline;gap:8px;font-size:13px;color:var(--ink);font-weight:650;border-bottom:0;padding-bottom:0;margin:22px 0 10px}
 #sheetForm h3:first-child{margin-top:4px}
@@ -1192,6 +1193,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .mdsec{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:16px 4px 6px;font-size:12.5px;font-weight:600;color:var(--ink3)}
 .mdsec em{font-style:normal;font-weight:500}
 .mdlink{color:var(--teal);font-weight:600;font-size:13.5px;padding:8px 0}
+.mdlinks{display:flex;gap:16px}
 .mdnote{font-size:14px;color:var(--ink2);margin:6px 4px 12px;line-height:1.45}
 .mdhint{font-size:12.5px;color:var(--ink3);margin:-6px 4px 12px;line-height:1.45}
 .mdlp .mdhint{margin:8px 0 0}
@@ -1511,7 +1513,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   </div>
 
   <h3>Kontakt &amp; Notiz</h3>
-  <div class="flabel">Adresse des Vertragspartners</div>
+  <div class="flabel flrow"><span>Adresse des Vertragspartners</span><button type="button" class="mdlink" id="fAddrPaste">Einfügen</button></div>
   <div class="sndform ig" id="fAddrG"></div><textarea id="fAddr" hidden></textarea>
   <p class="note" style="margin:6px 0 14px">Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.</p>
   <div class="flabel">Kontakt</div>
@@ -4821,7 +4823,7 @@ MD_PAGES.pe=function(p){
     '<button class="lbtn main" id="peAuto" type="button">Logo automatisch finden</button><div class="lcands" id="peCands"></div>'+
     '<div class="lbtns2"><button class="lbtn" id="pePaste" type="button">Einfügen</button>'+(assets?'<button class="lbtn" id="peUp" type="button">Hochladen</button>':"")+'<button class="lbtn" id="peGoogle" type="button">Google</button></div>'+
     '<button class="lbtn del" id="peLogoDel" type="button">Bild entfernen</button><p class="mdhint">Gilt für alle Verträge dieses Vertragspartners.</p></div>'+
-    mdSec("Adresse",'<button type="button" class="mdlink" data-mdrun="paddrfind">Suchen</button>')+paForm(addrSplit(g.addr||"",g.name))+
+    mdSec("Adresse",'<span class="mdlinks"><button type="button" class="mdlink" data-mdrun="paddrpaste">Einfügen</button><button type="button" class="mdlink" data-mdrun="paddrfind">Suchen</button></span>')+paForm(addrSplit(g.addr||"",g.name))+
     '<p class="mdhint" style="margin-top:6px">Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.</p>'+
     mdSec(cntTxt(g.ids.length,"Vertrag","Verträge"),'<em>'+money(g.cost/12)+" "+H0()+"/Mt.</em>")+
     '<div class="mdgrp">'+g.ids.map(function(k){return mdCRow(k,state.contracts[k]);}).join("")+"</div>"+
@@ -5205,10 +5207,28 @@ function addrSplit(t,name){var L=String(t||"").split(/\n/).map(function(x){retur
   /* ohne PLZ-Zeile: Firma = erste, Strasse = letzte, dazwischen Zusatz */
   if(zi<0){o.firm=L[0]||"";if(L.length>1){o.street=L[L.length-1];o.extra=L.slice(1,-1).join(", ");}return o;}
   /* Länderpräfix (CH-, D-, A-) bleibt bei der PLZ */
-  var m=L[zi].match(/^((?:[A-Z]{1,2}-?)?\d{4,5})\s+(.+)$/);o.zip=m[1];o.city=m[2];o.country=L.slice(zi+1).join(", ");
+  var m=L[zi].match(/^((?:[A-Z]{1,2}-?)?\d{4,5}(?:\s?[A-Z]{2}(?=\s))?)\s+(.+)$/);/* NL: «1075 KZ Amsterdam» */o.zip=m[1];o.city=m[2];o.country=L.slice(zi+1).join(", ");
   var pre=L.slice(0,zi),nn=lnorm(name||""),ln0=pre.length===1?lnorm(pre[0]):"";
   if(pre.length===1&&!/\d/.test(pre[0])&&nn&&ln0&&(ln0.indexOf(nn)>=0||nn.indexOf(ln0)>=0)){o.firm=pre[0];return o;}
   if(pre.length){o.street=pre.pop();}if(pre.length){o.firm=pre.shift();}o.extra=pre.join(", ");return o;}
+/* Eingefügte Adresse (Rechnung, Website, Google/Apple Maps) auf die Felder verteilen. Einzeilig mit Kommas (Maps) wird zu Zeilen.
+   SwiftUI: PasteButton bzw. UIPasteboard + gleiche Aufteilung (addressSplit) */
+function addrFromPaste(t,name){t=String(t||"").replace(/\r/g,"").replace(/\t/g," ").trim();if(!t)return null;
+  if(!/\n/.test(t))t=t.split(/\s*[,;]\s*/).join("\n");
+  var L=t.split(/\n/).map(function(x){return x.trim();}).filter(function(x){return x&&!/^(tel|telefon|phone|fax|e-?mail|www\.|https?:)/i.test(x);});
+  return addrSplit(L.join("\n"),name);}
+function addrLooksPasted(t){t=String(t||"");return /\n/.test(t.trim())||(t.split(",").length>=3)||(/,/.test(t)&&/\b\d{4,5}\s+\S/.test(t));}
+async function clipText(){try{if(!navigator.clipboard||!navigator.clipboard.readText)throw 0;return await navigator.clipboard.readText();}
+  catch(e){toast("Kein Zugriff auf die Zwischenablage. Adresse direkt in ein Feld einfügen, sie wird automatisch verteilt.",4500);return null;}}
+function fAddrFill(o){document.getElementById("fAddr").value=addrJoin(o);fAddrPaint();paintOptCounts();toast("Adresse eingefügt, bitte prüfen");}
+function paFill(o){PA_F.forEach(function(f){var el=document.getElementById(f[1]);if(el)el.value=o[f[0]]||"";});paSave();}
+document.getElementById("fAddrPaste").addEventListener("click",async function(){var t=await clipText();if(t==null)return;var o=addrFromPaste(t,document.getElementById("fPartner").value);
+  if(!o){toast("Zwischenablage ist leer");return;}fAddrFill(o);});
+/* Mehrzeilige Adresse direkt in ein Feld eingefügt: automatisch verteilen */
+document.getElementById("fAddrG").addEventListener("paste",function(e){var t=(e.clipboardData||window.clipboardData).getData("text");if(!addrLooksPasted(t))return;
+  e.preventDefault();var o=addrFromPaste(t,document.getElementById("fPartner").value);if(o)fAddrFill(o);});
+document.getElementById("mdBody").addEventListener("paste",function(e){if(!e.target.closest||!e.target.closest("#paForm")||!pe)return;var t=(e.clipboardData||window.clipboardData).getData("text");if(!addrLooksPasted(t))return;
+  e.preventDefault();var o=addrFromPaste(t,pe.name);if(o)paFill(o);});
 function addrJoin(o){return [o.firm,o.extra,o.street,[o.zip,o.city].filter(Boolean).join(" "),o.country].map(function(x){return String(x||"").trim();}).filter(Boolean).join("\n");}
 function paIn(i,o){var f=PA_F[i];return '<input id="'+f[1]+'" type="text" autocomplete="'+f[3]+'" autocapitalize="words" enterkeyhint="next" placeholder="'+f[2]+'" aria-label="'+f[2]+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';}
 function paForm(o){return '<form id="paForm" class="sndform ig" autocomplete="off" novalidate><div class="igr">'+paIn(0,o)+'</div><div class="igr">'+paIn(1,o)+'</div><div class="igr">'+paIn(2,o)+'</div><div class="igr two zc">'+paIn(3,o)+paIn(4,o)+'</div><div class="igr">'+paIn(5,o)+'</div></form>';}
@@ -5298,6 +5318,7 @@ document.addEventListener("click",function(ev){
       state.settings.holders=(state.settings.holders||["Ich"]).concat([v]);saveSettings();render();mdPop();toast("Inhaber «"+v+"» angelegt");}
     else if(r==="hedit"){mdFlush();p.edit=!p.edit;paintMd(0);}
     else if(r==="hall"){p.all=1;paintMd(0);}
+    else if(r==="paddrpaste"){clipText().then(function(t){if(t==null||!pe)return;var o=addrFromPaste(t,pe.name);if(!o){toast("Zwischenablage ist leer");return;}paFill(o);});}
     else if(r==="paddrfind"){var gq=peGroup(pe&&pe.key);if(!gq)return;var c0=state.contracts[gq.ids[0]]||{};toast("Suche Adresse …");
       findAddresses(gq.name,domainOf(gq.web||c0.web),c0.cur).then(function(cs){if(!cs||!cs.length){toast("Keine Adresse gefunden. Bitte von Website oder Rechnung übernehmen.");return;}
         document.getElementById("pickTitle").textContent="Adresse wählen";var l=document.getElementById("pickList");l.dataset.dim="addrpe";l._cands=cs;l._pk=gq.key;
