@@ -417,6 +417,14 @@ body.hasplus .topadd{display:inline-flex}
 .brandfoot b{display:block;font-family:ui-rounded,"SF Pro Rounded","Nunito",-apple-system,system-ui,sans-serif;font-size:16px;font-weight:700}
 .brandfoot span{display:block;font-size:12.5px;color:var(--ink3);line-height:1.35}
 /* Fristen: Entscheid */
+.tstat{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;margin:18px 0 26px}
+.tstat i{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;margin-bottom:8px;font-style:normal;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.tstat i svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.tstat.ok i{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.tstat.warn i{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.tstat.alert i{background:color-mix(in srgb,var(--alert) 16%,transparent);color:var(--alert)}
+.tstat b{font-family:ui-rounded,"SF Pro Rounded","Nunito",-apple-system,system-ui,sans-serif;font-size:20px;font-weight:700;color:var(--ink)}
+.tstat span{font-size:14px;color:var(--ink2)}
 .tintro{margin:4px 2px 12px;font-size:14px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tintro b{color:var(--ink);font-weight:600}
 .tintro.ok b{color:var(--ok)}
@@ -2238,8 +2246,9 @@ function renderView(){
     // Kopfzeile
     if(nTodo){var nx=todo.map(noticeDeadline).concat(triTodo.map(function(c){return parseD(c.trial);})).sort(function(x,y){return x-y;})[0];
       var urgent=todo.filter(function(c){return daysBetween(t1,noticeDeadline(c))<=7;}).length+triTodo.filter(function(c){return daysBetween(t1,parseD(c.trial))<=7;}).length;
-      o+='<p class="tintro"><b>'+nTodo+" offen</b>"+(urgent&&urgent<nTodo?" · "+urgent+" dringend":"")+(nx?" · nächste Frist "+inDays(daysBetween(t1,nx)):"")+"</p>";}
-    else if(a.length)o+='<p class="tintro ok"><b>Alles erledigt</b> · keine offenen Entscheidungen</p>';
+      o+='<div class="tstat'+(urgent?" alert":" warn")+'"><i>'+nTodo+'</i><b>'+(nTodo===1?"1 Entscheidung offen":nTodo+" Entscheidungen offen")+'</b><span>'+(function(t){return t.charAt(0).toUpperCase()+t.slice(1);})([nx?"nächste Frist "+inDays(daysBetween(t1,nx)):"",urgent&&urgent<nTodo?urgent+" dringend":""].filter(Boolean).join(" · "))+"</span></div>";}
+    /* Status zentriert unter dem Titel (SwiftUI: ContentUnavailableView-ähnlich, Symbol + Titel + Untertitel) */
+    else if(a.length)o+='<div class="tstat ok"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12.5 4 4 8-9"/></svg></i><b>Alles erledigt</b><span>Keine offenen Entscheidungen</span></div>';
     var row=function(c,txt,cls){return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst'+(cls?" "+cls:"")+'">'+esc(txt)+"</span></button>";};
     /* Quartals-Check: «Weg damit» vorgemerkte Verträge, bis gekündigt oder «Doch behalten» */
