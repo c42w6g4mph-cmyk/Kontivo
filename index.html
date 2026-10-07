@@ -1327,6 +1327,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Namen, Logos und Adressen deiner Anbieter</small></span><em id="mdSumP"></em></button>
     <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Personen, Absender und Unterschrift</small></span><em id="mdSumH"></em></button>
     <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
+    <button class="srowbtn" id="tplFill" type="button"><span class="mdt"><b>Kontaktdaten ergänzen</b><small>Adresse, E-Mail, Telefon aus dem Anbieter-Katalog, nur leere Felder</small></span><em></em></button>
     <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Währung</div>
     <p class="note" style="margin:0 0 8px">Hauptwährung für alle Summen</p>
@@ -3080,7 +3081,8 @@ document.getElementById("fMore").addEventListener("change",paintOptCounts);
 document.getElementById("fPartner").addEventListener("input",paintLogo);
 document.getElementById("fAmt").addEventListener("input",paintDup);document.getElementById("fCur").addEventListener("change",paintDup);
 /* ---------- Anbieterkatalog Schweiz / Deutschland ---------- */
-/* [Name, Land, Kategorie, Bezeichnung, Web, Frist, Einheit, Kündbar per, Kündigung per, Pflicht, Hinweis] */
+/* [Name, Land, Kategorie, Bezeichnung, Web, Frist, Einheit, Kündbar per, Kündigung per, Pflicht, Hinweis, Kündigungslink, Adresse, E-Mail, Telefon, offiziell bestätigt (1/0)]
+   Kontaktdaten recherchiert Okt. 2026; 0 = nur Sekundärquelle, in der App mit Prüfhinweis */
 var H_KVG="Grundversicherung: per 31.12. kündbar, Kündigung muss bis 30.11. eingetroffen sein. Mit Mindestfranchise und Standardmodell (freie Arztwahl) zusätzlich per 30.06., Kündigung bis 31.03. Zusatzversicherungen haben eigene Fristen.";
 var H_VVG="Nach 3 Jahren per Ende Versicherungsjahr kündbar (VVG). Genaue Frist in der Police prüfen.";
 var H_TCH="60 Tage auf Monatsende, frühestens auf Ende der Mindestlaufzeit.";
@@ -3094,61 +3096,61 @@ var H_GKV="Gesetzliche Krankenkasse: 2 Monate zum Monatsende, nach mindestens 12
 var H_VDE="Meist 3 Monate zum Ende des Versicherungsjahres, neuere Verträge oft 1 Monat. Police prüfen.";
 var H_PRF="Frist im Vertrag prüfen.";
 var TPL=[
- ["CSS","CH","Versicherung","Krankenkasse","css.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Helsana","CH","Versicherung","Krankenkasse","helsana.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["SWICA","CH","Versicherung","Krankenkasse","swica.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Sanitas","CH","Versicherung","Krankenkasse","sanitas.com",1,"m","y","Einschreiben",1,H_KVG],
- ["Visana","CH","Versicherung","Krankenkasse","visana.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Concordia","CH","Versicherung","Krankenkasse","concordia.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Groupe Mutuel","CH","Versicherung","Krankenkasse","groupemutuel.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Assura","CH","Versicherung","Krankenkasse","assura.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["KPT","CH","Versicherung","Krankenkasse","kpt.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Atupri","CH","Versicherung","Krankenkasse","atupri.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Sympany","CH","Versicherung","Krankenkasse","sympany.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["ÖKK","CH","Versicherung","Krankenkasse","oekk.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["EGK","CH","Versicherung","Krankenkasse","egk.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Die Mobiliar","CH","Versicherung","Hausrat & Haftpflicht","mobiliar.ch",3,"m","a","Brief",0,H_VVG],
- ["AXA","CH","Versicherung","Versicherung","axa.ch",3,"m","a","Brief",0,H_VVG],
- ["Zurich","CH","Versicherung","Versicherung","zurich.ch",3,"m","a","Brief",0,H_VVG],
- ["Allianz Suisse","CH","Versicherung","Versicherung","allianz.ch",3,"m","a","Brief",0,H_VVG],
- ["Helvetia","CH","Versicherung","Versicherung","helvetia.ch",3,"m","a","Brief",0,H_VVG],
- ["Baloise","CH","Versicherung","Versicherung","baloise.ch",3,"m","a","Brief",0,H_VVG],
- ["Generali","CH","Versicherung","Versicherung","generali.ch",3,"m","a","Brief",0,H_VVG],
- ["Vaudoise","CH","Versicherung","Versicherung","vaudoise.ch",3,"m","a","Brief",0,H_VVG],
- ["Smile","CH","Versicherung","Versicherung","smile-direct.ch",3,"m","a","E-Mail",0,H_VVG],
- ["TCS","CH","Mobilität","Mitgliedschaft","tcs.ch",0,"m","a","",0,H_PRF],
- ["Swisscom","CH","Mobilfunk & Internet","Handy / Internet","swisscom.ch",60,"d","m","",0,H_TCH],
- ["Sunrise","CH","Mobilfunk & Internet","Handy / Internet","sunrise.ch",60,"d","m","",0,H_TCH],
- ["Salt","CH","Mobilfunk & Internet","Handy","salt.ch",60,"d","m","",0,H_TCH],
- ["Wingo","CH","Mobilfunk & Internet","Handy / Internet","wingo.ch",60,"d","m","",0,H_TCH],
- ["Yallo","CH","Mobilfunk & Internet","Handy","yallo.ch",60,"d","m","",0,H_TCH],
- ["M-Budget Mobile","CH","Mobilfunk & Internet","Handy","",60,"d","m","Brief",0,H_TCH+" Nur schriftlich."],
- ["Coop Mobile","CH","Mobilfunk & Internet","Handy","",60,"d","m","",0,H_TCH],
- ["Quickline","CH","Mobilfunk & Internet","Internet / TV","quickline.ch",0,"m","","",0,H_PRF],
- ["Init7","CH","Mobilfunk & Internet","Internet","init7.net",0,"m","","",0,H_PRF],
- ["SBB Halbtax","CH","Mobilität","Halbtax","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung spätestens 1 Monat vorher auf swisspass.ch."],
- ["SBB GA","CH","Mobilität","Generalabonnement","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung über swisspass.ch; Frist prüfen."],
- ["Mobility","CH","Mobilität","Carsharing","mobility.ch",0,"m","p","Online / Kundenkonto",0,H_PRF],
- ["Serafe","CH","Steuern & Gebühren","Radio- und TV-Abgabe","serafe.ch",0,"m","","",1,"Gesetzliche Abgabe pro Haushalt, nicht kündbar."],
- ["EKZ","CH","Energie & Wasser","Strom","ekz.ch",0,"m","","",1,H_ECH],
- ["EKT","CH","Energie & Wasser","Strom","ekt.ch",0,"m","","",1,H_ECH],
- ["BKW","CH","Energie & Wasser","Strom","bkw.ch",0,"m","","",1,H_ECH],
- ["CKW","CH","Energie & Wasser","Strom","ckw.ch",0,"m","","",1,H_ECH],
- ["ewz","CH","Energie & Wasser","Strom","ewz.ch",0,"m","","",1,H_ECH],
- ["PostFinance","CH","Finanzen","Konto","postfinance.ch",0,"m","m","",0,H_BNK],
- ["UBS","CH","Finanzen","Konto","ubs.com",0,"m","m","",0,H_BNK],
- ["Raiffeisen","CH","Finanzen","Konto","raiffeisen.ch",0,"m","m","",0,H_BNK],
- ["ZKB","CH","Finanzen","Konto","zkb.ch",0,"m","m","",0,H_BNK],
- ["TKB","CH","Finanzen","Konto","tkb.ch",0,"m","m","",0,H_BNK],
- ["Neon","CH","Finanzen","Konto","neon-free.ch",0,"m","m","",0,H_BNK],
- ["Yuh","CH","Finanzen","Konto","yuh.com",0,"m","m","",0,H_BNK],
- ["Migros Fitness","CH","Freizeit & Sport","Fitnessabo","migros-fitness.ch",0,"m","a","",0,H_FIT],
- ["Update Fitness","CH","Freizeit & Sport","Fitnessabo","update-fitness.ch",0,"m","a","",0,H_FIT],
- ["Activ Fitness","CH","Freizeit & Sport","Fitnessabo","activfitness.ch",0,"m","a","",0,H_FIT],
- ["NZZ","CH","Abos & Medien","Zeitung","nzz.ch",0,"m","a","",0,H_PRF],
- ["Tages-Anzeiger","CH","Abos & Medien","Zeitung","tagesanzeiger.ch",0,"m","a","",0,H_PRF],
- ["Teleboy","CH","Abos & Medien","TV","teleboy.ch",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Zattoo","CH","Abos & Medien","TV","zattoo.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["CSS","CH","Versicherung","Krankenkasse","css.ch",1,"m","y","Einschreiben",1,H_KVG,"","CSS Kranken-Versicherung AG\nTribschenstrasse 21\nPostfach 2568\n6002 Luzern","","+41 58 277 11 11",1],
+ ["Helsana","CH","Versicherung","Krankenkasse","helsana.ch",1,"m","y","Einschreiben",1,H_KVG,"","Helsana Versicherungen AG\nIDPH Kündigungen D-CH\nPostfach\n8081 Zürich","kuendigungen@helsana.ch","+41 43 340 11 11",1],
+ ["SWICA","CH","Versicherung","Krankenkasse","swica.ch",1,"m","y","Einschreiben",1,H_KVG,"","SWICA Krankenversicherung AG\nRömerstrasse 37\n8401 Winterthur","","+41 58 800 99 33",1],
+ ["Sanitas","CH","Versicherung","Krankenkasse","sanitas.com",1,"m","y","Einschreiben",1,H_KVG,"","Sanitas Grundversicherungen AG\nJägergasse 3\nPostfach\n8004 Zürich","info@sanitas.com","+41 844 150 150",1],
+ ["Visana","CH","Versicherung","Krankenkasse","visana.ch",1,"m","y","Einschreiben",1,H_KVG,"","Visana Services AG\nWeltpoststrasse 19\nPostfach\n3000 Bern 16","customerservice-centre@visana.ch","+41 848 848 899",1],
+ ["Concordia","CH","Versicherung","Krankenkasse","concordia.ch",1,"m","y","Einschreiben",1,H_KVG,"","CONCORDIA\nBundesplatz 15\n6002 Luzern","info@concordia.ch","+41 41 228 01 11",1],
+ ["Groupe Mutuel","CH","Versicherung","Krankenkasse","groupemutuel.ch",1,"m","y","Einschreiben",1,H_KVG,"","Groupe Mutuel\nRue des Cèdres 5\n1919 Martigny","kunden@groupemutuel.ch","+41 848 803 111",1],
+ ["Assura","CH","Versicherung","Krankenkasse","assura.ch",1,"m","y","Einschreiben",1,H_KVG,"","Assura-Basis AG\nPostfach 61\n1009 Pully","","+41 800 277 872",1],
+ ["KPT","CH","Versicherung","Krankenkasse","kpt.ch",1,"m","y","Einschreiben",1,H_KVG,"","KPT Krankenkasse AG\nWankdorfallee 3\nPostfach\n3001 Bern","","+41 58 310 91 11",1],
+ ["Atupri","CH","Versicherung","Krankenkasse","atupri.ch",1,"m","y","Einschreiben",1,H_KVG,"","Atupri Gesundheitsversicherung AG\nLaupenstrasse 18\n3008 Bern","info@atupri.ch","+41 800 200 888",1],
+ ["Sympany","CH","Versicherung","Krankenkasse","sympany.ch",1,"m","y","Einschreiben",1,H_KVG,"","Sympany\nPeter Merian-Weg 4\n4002 Basel","","+41 58 262 42 00",1],
+ ["ÖKK","CH","Versicherung","Krankenkasse","oekk.ch",1,"m","y","Einschreiben",1,H_KVG,"","ÖKK\nBahnhofstrasse 13\nPostfach\n7302 Landquart","info@oekk.ch","+41 800 838 000",1],
+ ["EGK","CH","Versicherung","Krankenkasse","egk.ch",1,"m","y","Einschreiben",1,H_KVG,"","EGK-Gesundheitskasse\nBirspark 1\n4242 Laufen","info@egk.ch","+41 61 765 51 11",1],
+ ["Die Mobiliar","CH","Versicherung","Hausrat & Haftpflicht","mobiliar.ch",3,"m","a","Brief",0,H_VVG,"","Schweizerische Mobiliar Versicherungsgesellschaft AG\nBundesgasse 35\n3001 Bern","info@mobiliar.ch","",1],
+ ["AXA","CH","Versicherung","Versicherung","axa.ch",3,"m","a","Brief",0,H_VVG,"","AXA Versicherungen AG\nGeneral-Guisan-Strasse 40\n8400 Winterthur","","+41 800 809 809",1],
+ ["Zurich","CH","Versicherung","Versicherung","zurich.ch",3,"m","a","Brief",0,H_VVG,"","Zürich Versicherungs-Gesellschaft AG\nMythenquai 2\n8002 Zürich","contact@zurich.ch","+41 800 80 80 80",1],
+ ["Allianz Suisse","CH","Versicherung","Versicherung","allianz.ch",3,"m","a","Brief",0,H_VVG,"","Allianz Suisse Versicherungs-Gesellschaft AG\nRichtiplatz 1\n8304 Wallisellen","contact@allianz-suisse.ch","+41 58 358 71 11",1],
+ ["Helvetia","CH","Versicherung","Versicherung","helvetia.ch",3,"m","a","Brief",0,H_VVG,"","Helvetia Versicherungen\nSt. Alban-Anlage 26\n4002 Basel","","+41 58 280 10 00",1],
+ ["Baloise","CH","Versicherung","Versicherung","baloise.ch",3,"m","a","Brief",0,H_VVG,"","Helvetia Versicherungen\nSt. Alban-Anlage 26\n4002 Basel","","+41 58 280 10 00",1],
+ ["Generali","CH","Versicherung","Versicherung","generali.ch",3,"m","a","Brief",0,H_VVG,"","Generali Versicherungen\nSoodmattenstrasse 2\n8134 Adliswil 1","info.ch@generali.com","+41 800 881 882",1],
+ ["Vaudoise","CH","Versicherung","Versicherung","vaudoise.ch",3,"m","a","Brief",0,H_VVG,"","Vaudoise Versicherungen\nPlace de Milan\nCase postale 120\n1001 Lausanne","info@vaudoise.ch","",1],
+ ["Smile","CH","Versicherung","Versicherung","smile-direct.ch",3,"m","a","E-Mail",0,H_VVG,"","smile.direct versicherungen\nZürichstrasse 130\n8600 Dübendorf","info@smile-versicherung.ch","+41 844 848 444",1],
+ ["TCS","CH","Mobilität","Mitgliedschaft","tcs.ch",0,"m","a","",0,H_PRF,"","Touring Club Schweiz\nChemin de Blandonnet 4\n1214 Vernier","","+41 58 827 27 27",1],
+ ["Swisscom","CH","Mobilfunk & Internet","Handy / Internet","swisscom.ch",60,"d","m","",0,H_TCH,"","Swisscom (Schweiz) AG\nAlte Tiefenaustrasse 6\n3050 Bern","","+41 800 800 800",1],
+ ["Sunrise","CH","Mobilfunk & Internet","Handy / Internet","sunrise.ch",60,"d","m","",0,H_TCH,"","Sunrise GmbH\nThurgauerstrasse 101B / Postfach\n8152 Glattpark (Opfikon)","","+41 800 707 505",1],
+ ["Salt","CH","Mobilfunk & Internet","Handy","salt.ch",60,"d","m","",0,H_TCH,"","Salt Mobile SA\nCustomer Communications\nCase postale\n1020 Renens","","+41 800 700 700",1],
+ ["Wingo","CH","Mobilfunk & Internet","Handy / Internet","wingo.ch",60,"d","m","",0,H_TCH,"","Wingo Contact Center\nAlte Tiefenaustrasse 6\n3050 Bern","","+41 900 94 93 92",1],
+ ["Yallo","CH","Mobilfunk & Internet","Handy","yallo.ch",60,"d","m","",0,H_TCH,"","Sunrise GmbH\nThurgauerstrasse 101B / Postfach\n8152 Glattpark (Opfikon)","","+41 840 00 33 77",1],
+ ["M-Budget Mobile","CH","Mobilfunk & Internet","Handy","",60,"d","m","Brief",0,H_TCH+" Nur schriftlich.","","Migros Mobile Contact Center\n3050 Bern","","+41 800 15 17 28",1],
+ ["Coop Mobile","CH","Mobilfunk & Internet","Handy","",60,"d","m","",0,H_TCH,"","Coop Mobile Contact Center\n3050 Bern","","+41 800 746 746",1],
+ ["Quickline","CH","Mobilfunk & Internet","Internet / TV","quickline.ch",0,"m","","",0,H_PRF,"","Quickline AG\nDr. Schneider-Strasse 16\n2560 Nidau","info@quickline.ch","+41 800 84 10 20",1],
+ ["Init7","CH","Mobilfunk & Internet","Internet","init7.net",0,"m","","",0,H_PRF,"","Init7 (Schweiz) AG\nTechnoparkstrasse 5\n8406 Winterthur","","",1],
+ ["SBB Halbtax","CH","Mobilität","Halbtax","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung spätestens 1 Monat vorher auf swisspass.ch.","","Schweizerische Bundesbahnen SBB\nHilfikerstrasse 1\n3000 Bern 65","","+41 848 44 66 88",1],
+ ["SBB GA","CH","Mobilität","Generalabonnement","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung über swisspass.ch; Frist prüfen.","","Schweizerische Bundesbahnen SBB\nHilfikerstrasse 1\n3000 Bern 65","","+41 848 44 66 88",1],
+ ["Mobility","CH","Mobilität","Carsharing","mobility.ch",0,"m","p","Online / Kundenkonto",0,H_PRF,"","Mobility Genossenschaft\nSuurstoffi 16\n6343 Rotkreuz","office@mobility.ch","+41 848 824 812",1],
+ ["Serafe","CH","Steuern & Gebühren","Radio- und TV-Abgabe","serafe.ch",0,"m","","",1,"Gesetzliche Abgabe pro Haushalt, nicht kündbar.","","SERAFE AG\nPostfach\n8010 Zürich","","+41 58 201 31 67",1],
+ ["EKZ","CH","Energie & Wasser","Strom","ekz.ch",0,"m","","",1,H_ECH,"","Elektrizitätswerke des Kantons Zürich\nDreikönigstrasse 18\n8022 Zürich","","+41 58 359 55 22",1],
+ ["EKT","CH","Energie & Wasser","Strom","ekt.ch",0,"m","","",1,H_ECH,"","EKT AG\nBahnhofstrasse 37\n9320 Arbon","","+41 71 440 61 11",1],
+ ["BKW","CH","Energie & Wasser","Strom","bkw.ch",0,"m","","",1,H_ECH,"","BKW Energie AG\nViktoriaplatz 2\n3013 Bern","","+41 844 121 113",1],
+ ["CKW","CH","Energie & Wasser","Strom","ckw.ch",0,"m","","",1,H_ECH,"","CKW AG\nPostfach\n6002 Luzern","","+41 800 88 77 66",1],
+ ["ewz","CH","Energie & Wasser","Strom","ewz.ch",0,"m","","",1,H_ECH,"","ewz\nTramstrasse 35\nPostfach\n8050 Zürich","kundenzentrum@ewz.ch","+41 58 319 47 00",1],
+ ["PostFinance","CH","Finanzen","Konto","postfinance.ch",0,"m","m","",0,H_BNK,"","PostFinance AG\nKonto Services Region Bern\nMingerstrasse 12\n3030 Bern","","+41 58 448 14 14",1],
+ ["UBS","CH","Finanzen","Konto","ubs.com",0,"m","m","",0,H_BNK,"","UBS Switzerland AG\nBahnhofstrasse 45\n8001 Zürich","","",1],
+ ["Raiffeisen","CH","Finanzen","Konto","raiffeisen.ch",0,"m","m","",0,H_BNK,"","Raiffeisen Schweiz Genossenschaft\nRaiffeisenplatz\n9001 St. Gallen","","",1],
+ ["ZKB","CH","Finanzen","Konto","zkb.ch",0,"m","m","",0,H_BNK,"","Zürcher Kantonalbank\nBahnhofstrasse 9\n8010 Zürich","","+41 844 843 823",1],
+ ["TKB","CH","Finanzen","Konto","tkb.ch",0,"m","m","",0,H_BNK,"","Thurgauer Kantonalbank\nBankplatz 1\n8570 Weinfelden","","+41 848 111 444",1],
+ ["Neon","CH","Finanzen","Konto","neon-free.ch",0,"m","m","",0,H_BNK,"","neon Switzerland AG\nBuckhauserstrasse 24\n8048 Zürich","service@neon-free.ch","",1],
+ ["Yuh","CH","Finanzen","Konto","yuh.com",0,"m","m","",0,H_BNK,"","Yuh Ltd\nChemin de la Crétaux 33\nCase postale 1032\n1196 Gland","info@yuh.com","+41 44 825 87 89",1],
+ ["Migros Fitness","CH","Freizeit & Sport","Fitnessabo","migros-fitness.ch",0,"m","a","",0,H_FIT,"","movemi AG\nThurgauerstrasse 32\n8050 Zürich","","",1],
+ ["Update Fitness","CH","Freizeit & Sport","Fitnessabo","update-fitness.ch",0,"m","a","",0,H_FIT,"","update Fitness AG\nAdministration\nMurgtalstrasse 20\n9542 Münchwilen","","+41 840 084 040",1],
+ ["Activ Fitness","CH","Freizeit & Sport","Fitnessabo","activfitness.ch",0,"m","a","",0,H_FIT,"","movemi AG\nACTIV FITNESS Kundenservice\nThurgauerstrasse 32\n8050 Zürich","info@activfitness.ch","+41 44 822 70 00",1],
+ ["NZZ","CH","Abos & Medien","Zeitung","nzz.ch",0,"m","a","",0,H_PRF,"","Neue Zürcher Zeitung AG\nNZZ Service\nPostfach\n8021 Zürich","","+41 44 258 10 00",1],
+ ["Tages-Anzeiger","CH","Abos & Medien","Zeitung","tagesanzeiger.ch",0,"m","a","",0,H_PRF,"","Tamedia Publikationen Deutschschweiz AG\nWerdstrasse 21\nPostfach\n8021 Zürich","","",1],
+ ["Teleboy","CH","Abos & Medien","TV","teleboy.ch",0,"m","p","Online / Kundenkonto",0,H_STR,"","Teleboy AG\nSeestrasse 513\n8038 Zürich","info@teleboy.ch","+41 848 444 888",1],
+ ["Zattoo","CH","Abos & Medien","TV","zattoo.com",0,"m","p","Online / Kundenkonto",0,H_STR,"","Zattoo AG\nBaslerstrasse 60\n8048 Zürich","","",1],
  ["Netflix","","Abos & Medien","Streaming","netflix.com",0,"m","p","Online / Kundenkonto",0,H_STR,"netflix.com/cancelplan"],
  ["Spotify","","Abos & Medien","Musik","spotify.com",0,"m","p","Online / Kundenkonto",0,H_STR,"spotify.com/account/subscription"],
  ["Disney+","","Abos & Medien","Streaming","disneyplus.com",0,"m","p","Online / Kundenkonto",0,H_STR,"disneyplus.com/account/subscription"],
@@ -3164,45 +3166,151 @@ var TPL=[
  ["DAZN","","Abos & Medien","Sport","dazn.com",0,"m","p","Online / Kundenkonto",0,"Jahresabos laufen 12 Monate. "+H_PRF,"dazn.com/account"],
  ["Audible","","Abos & Medien","Hörbücher","audible.de",0,"m","p","Online / Kundenkonto",0,H_STR,"audible.de/account/overview"],
  ["Revolut","","Finanzen","Konto","revolut.com",0,"m","m","",0,H_BNK],
- ["Telekom","DE","Mobilfunk & Internet","Handy / Internet","telekom.de",1,"m","","Online / Kundenkonto",0,H_TDE,"telekom.de/kuendigen"],
- ["Vodafone","DE","Mobilfunk & Internet","Handy / Internet","vodafone.de",1,"m","","Online / Kundenkonto",0,H_TDE,"vodafone.de/kuendigen"],
- ["O2","DE","Mobilfunk & Internet","Handy","o2online.de",1,"m","","Online / Kundenkonto",0,H_TDE,"o2online.de/kuendigung"],
- ["1&1","DE","Mobilfunk & Internet","Handy / Internet","1und1.de",1,"m","","Online / Kundenkonto",0,H_TDE],
- ["Congstar","DE","Mobilfunk & Internet","Handy","congstar.de",1,"m","","Online / Kundenkonto",0,H_TDE],
- ["Techniker Krankenkasse","DE","Versicherung","Krankenkasse","tk.de",2,"m","m","Online / Kundenkonto",1,H_GKV],
- ["AOK","DE","Versicherung","Krankenkasse","aok.de",2,"m","m","Brief",1,H_GKV],
- ["Barmer","DE","Versicherung","Krankenkasse","barmer.de",2,"m","m","Online / Kundenkonto",1,H_GKV],
- ["DAK","DE","Versicherung","Krankenkasse","dak.de",2,"m","m","Online / Kundenkonto",1,H_GKV],
- ["HUK-COBURG","DE","Versicherung","Versicherung","huk.de",3,"m","a","Brief",0,H_VDE],
- ["Allianz","DE","Versicherung","Versicherung","allianz.de",3,"m","a","Brief",0,H_VDE],
- ["ERGO","DE","Versicherung","Versicherung","ergo.de",3,"m","a","Brief",0,H_VDE],
- ["ADAC","DE","Mobilität","Mitgliedschaft","adac.de",3,"m","a","Brief",0,"Mitgliedschaft: Kündigung bis 3 Monate vor Ablauf des Mitgliedsjahres. "+H_PRF],
- ["Deutschlandticket","DE","Mobilität","Deutschlandticket","",10,"k","m","Online / Kundenkonto",0,"Kündigung bis zum 10. des Monats zum Monatsende. Je nach Verkaufsstelle leicht anders."],
- ["BahnCard","DE","Mobilität","BahnCard","bahn.de",0,"m","a","Online / Kundenkonto",0,"Verlängert sich automatisch. Frist vor Ablauf im Kundenkonto prüfen."],
- ["Rundfunkbeitrag","DE","Steuern & Gebühren","Rundfunkbeitrag","rundfunkbeitrag.de",0,"m","","",1,"Gesetzlicher Beitrag pro Wohnung, nicht kündbar. Abmeldung nur bei Umzug."],
- ["EnBW","DE","Energie & Wasser","Strom","enbw.com",1,"m","","Online / Kundenkonto",0,H_EDE],
- ["E.ON","DE","Energie & Wasser","Strom","eon.de",1,"m","","Online / Kundenkonto",0,H_EDE],
- ["Vattenfall","DE","Energie & Wasser","Strom","vattenfall.de",1,"m","","Online / Kundenkonto",0,H_EDE],
- ["Stadtwerke Konstanz","DE","Energie & Wasser","Strom","stadtwerke-konstanz.de",1,"m","","Brief",0,H_EDE],
+ ["Telekom","DE","Mobilfunk & Internet","Handy / Internet","telekom.de",1,"m","","Online / Kundenkonto",0,H_TDE,"telekom.de/kuendigen","Telekom Deutschland GmbH\nLandgrabenweg 149\n53227 Bonn","","+49 800 3301000",1],
+ ["Vodafone","DE","Mobilfunk & Internet","Handy / Internet","vodafone.de",1,"m","","Online / Kundenkonto",0,H_TDE,"vodafone.de/kuendigen","Vodafone GmbH\nKundenservice\n40875 Ratingen","","+49 800 5054741",1],
+ ["O2","DE","Mobilfunk & Internet","Handy","o2online.de",1,"m","","Online / Kundenkonto",0,H_TDE,"o2online.de/kuendigung","Telefónica Germany GmbH & Co. OHG\nKundenbetreuung\n90345 Nürnberg","","+49 40 519006642",1],
+ ["1&1","DE","Mobilfunk & Internet","Handy / Internet","1und1.de",1,"m","","Online / Kundenkonto",0,H_TDE,"","1&1 Telecom GmbH\nElgendorfer Str. 57\n56410 Montabaur","","+49 721 9600",1],
+ ["Congstar","DE","Mobilfunk & Internet","Handy","congstar.de",1,"m","","Online / Kundenkonto",0,H_TDE,"","congstar GmbH\nPostfach 1165\n61466 Kronberg","","+49 221 79700700",1],
+ ["Techniker Krankenkasse","DE","Versicherung","Krankenkasse","tk.de",2,"m","m","Online / Kundenkonto",1,H_GKV,"","Techniker Krankenkasse\nBramfelder Straße 140\n22305 Hamburg","","+49 40 460 660",1],
+ ["AOK","DE","Versicherung","Krankenkasse","aok.de",2,"m","m","Brief",1,H_GKV,"","AOK Baden-Württemberg\nPresselstraße 19\n70191 Stuttgart","","",1],
+ ["Barmer","DE","Versicherung","Krankenkasse","barmer.de",2,"m","m","Online / Kundenkonto",1,H_GKV,"","Barmer\nAxel-Springer-Straße 44\n10969 Berlin","service@barmer.de","+49 202 568 333 1010",1],
+ ["DAK","DE","Versicherung","Krankenkasse","dak.de",2,"m","m","Online / Kundenkonto",1,H_GKV,"","DAK-Gesundheit\nNagelsweg 27-31\n20097 Hamburg","","+49 40 325 325 555",1],
+ ["HUK-COBURG","DE","Versicherung","Versicherung","huk.de",3,"m","a","Brief",0,H_VDE,"","HUK-COBURG\n96444 Coburg","info@huk-coburg.de","+49 9561 96101",1],
+ ["Allianz","DE","Versicherung","Versicherung","allianz.de",3,"m","a","Brief",0,H_VDE,"","Allianz Versicherungs-AG\nKöniginstraße 28\n80802 München","info@allianz.de","+49 800 4100 280",1],
+ ["ERGO","DE","Versicherung","Versicherung","ergo.de",3,"m","a","Brief",0,H_VDE,"","ERGO Versicherung AG\nERGO-Platz 1\n40477 Düsseldorf","service@ergo.de","+49 800 3746 041",1],
+ ["ADAC","DE","Mobilität","Mitgliedschaft","adac.de",3,"m","a","Brief",0,"Mitgliedschaft: Kündigung bis 3 Monate vor Ablauf des Mitgliedsjahres. "+H_PRF,"","ADAC e.V.\nHansastraße 19\n80686 München","service@adac.de","+49 89 558 95 96 97",1],
+ ["Deutschlandticket","DE","Mobilität","Deutschlandticket","",10,"k","m","Online / Kundenkonto",0,"Kündigung bis zum 10. des Monats zum Monatsende. Je nach Verkaufsstelle leicht anders.","","","","",1],
+ ["BahnCard","DE","Mobilität","BahnCard","bahn.de",0,"m","a","Online / Kundenkonto",0,"Verlängert sich automatisch. Frist vor Ablauf im Kundenkonto prüfen.","","DB Fernverkehr AG\nBahnCard-Service\n60643 Frankfurt am Main","","+49 30 2970",1],
+ ["Rundfunkbeitrag","DE","Steuern & Gebühren","Rundfunkbeitrag","rundfunkbeitrag.de",0,"m","","",1,"Gesetzlicher Beitrag pro Wohnung, nicht kündbar. Abmeldung nur bei Umzug.","","ARD ZDF Deutschlandradio Beitragsservice\n50656 Köln","","+49 1806 999 555 10",1],
+ ["EnBW","DE","Energie & Wasser","Strom","enbw.com",1,"m","","Online / Kundenkonto",0,H_EDE,"","EnBW Energie Baden-Württemberg AG\nDurlacher Allee 93\n76131 Karlsruhe","kontakt@enbw.com","+49 721 72586-001",1],
+ ["E.ON","DE","Energie & Wasser","Strom","eon.de",1,"m","","Online / Kundenkonto",0,H_EDE,"","E.ON Energie Deutschland GmbH\nArnulfstraße 203\n80634 München","","+49 871 95386200",1],
+ ["Vattenfall","DE","Energie & Wasser","Strom","vattenfall.de",1,"m","","Online / Kundenkonto",0,H_EDE,"","Vattenfall Europe Sales GmbH\nAmerigo-Vespucci-Platz 2\n20457 Hamburg","","+49 800 102 004 01",1],
+ ["Stadtwerke Konstanz","DE","Energie & Wasser","Strom","stadtwerke-konstanz.de",1,"m","","Brief",0,H_EDE,"","Stadtwerke Konstanz GmbH\nMax-Stromeyer-Straße 21-29\n78467 Konstanz","info@stadtwerke-konstanz.de","+49 7531 803-0",1],
  ["Sparkasse","DE","Finanzen","Konto","sparkasse.de",0,"m","m","",0,H_BNK],
- ["DKB","DE","Finanzen","Konto","dkb.de",0,"m","m","",0,H_BNK],
- ["ING","DE","Finanzen","Konto","ing.de",0,"m","m","",0,H_BNK],
- ["N26","DE","Finanzen","Konto","n26.com",0,"m","m","",0,H_BNK],
- ["Commerzbank","DE","Finanzen","Konto","commerzbank.de",0,"m","m","",0,H_BNK],
- ["McFit","DE","Freizeit & Sport","Fitnessabo","mcfit.com",0,"m","a","",0,H_FIT],
- ["Urban Sports Club","DE","Freizeit & Sport","Sportabo","urbansportsclub.com",0,"m","p","Online / Kundenkonto",0,H_PRF,"urbansportsclub.com/de/profile/membership"],
- ["Südkurier","DE","Abos & Medien","Zeitung","suedkurier.de",0,"m","a","",0,H_PRF]
+ ["DKB","DE","Finanzen","Konto","dkb.de",0,"m","m","",0,H_BNK,"","Deutsche Kreditbank AG\n10919 Berlin","","",1],
+ ["ING","DE","Finanzen","Konto","ing.de",0,"m","m","",0,H_BNK,"","ING-DiBa AG\nTheodor-Heuss-Allee 2\n60486 Frankfurt am Main","","+49 69 50 50 90 69",1],
+ ["N26","DE","Finanzen","Konto","n26.com",0,"m","m","",0,H_BNK,"","N26 Bank SE\nVoltairestraße 8\n10179 Berlin","","",1],
+ ["Commerzbank","DE","Finanzen","Konto","commerzbank.de",0,"m","m","",0,H_BNK,"","Commerzbank AG\n60261 Frankfurt am Main","info@commerzbank.com","+49 69 136 20",1],
+ ["McFit","DE","Freizeit & Sport","Fitnessabo","mcfit.com",0,"m","a","",0,H_FIT,"","RSG Group GmbH\nTannenberg 4\n96132 Schlüsselfeld","","+49 30 837 95500",1],
+ ["Urban Sports Club","DE","Freizeit & Sport","Sportabo","urbansportsclub.com",0,"m","p","Online / Kundenkonto",0,H_PRF,"urbansportsclub.com/de/profile/membership","Urban Sports GmbH\nNovalisstraße 10\n10115 Berlin","","",1],
+ ["Südkurier","DE","Abos & Medien","Zeitung","suedkurier.de",0,"m","a","",0,H_PRF,"","SÜDKURIER GmbH\nKundenbetreuung\nMax-Stromeyer-Straße 178\n78467 Konstanz","","",0],
+ ["Swiss Life", "CH", "Versicherung", "Lebensversicherung", "swisslife.ch", 0, "m", "p", "Einschreiben", 0, "Lebens-/Vorsorgepolicen schriftlich mit Unterschrift kündigen; vorzeitige Auflösung führt zu Rückkaufswert mit Abzügen.", "", "Swiss Life AG\nGeneral-Guisan-Quai 40\nPostfach\n8022 Zürich", "", "+41 43 284 33 11", 1],
+ ["Simpego", "CH", "Versicherung", "Versicherung", "simpego.ch", 1, "d", "a", "E-Mail", 0, "Kündigung per E-Mail/Post muss spätestens 1 Tag vor Ende des Vertragsjahres eingehen; teils tägliches Kündigungsrecht.", "", "Simpego Versicherungen AG\nHohlstrasse 556\n8048 Zürich", "service@simpego.ch", "+41 58 521 11 11", 1],
+ ["Rega", "CH", "Sonstiges", "Gönnerschaft", "portal.rega.ch", 0, "m", "y", "Online / Kundenkonto", 0, "Keine Kündigung nötig: Gönnerschaft erlischt ohne Einzahlung; Austritt auch im Gönnerportal möglich.", "", "Schweizerische Rettungsflugwacht Rega\nRega-Center\nPostfach 1414\n8058 Zürich-Flughafen", "", "+41 844 834 844", 1],
+ ["Digital Republic", "CH", "Mobilfunk & Internet", "Handy / Internet", "digitalrepublic.ch", 0, "m", "p", "Online / Kundenkonto", 0, "Automatische Erneuerung im Kundenportal deaktivieren oder per E-Mail kündigen; endet auf Ende der Tarifperiode.", "", "Digital Republic AG\nSuurstoffi 22\n6343 Rotkreuz", "support@digitalrepublic.ch", "+41 44 500 49 55", 1],
+ ["Aldi Suisse Mobile", "CH", "Mobilfunk & Internet", "Handy", "aldi-mobile.ch", 0, "m", "", "", 0, "Läuft über Sunrise; Kündigungsfrist in AGB prüfen, Kündigung via Hotline/Support.", "", "ALDI SUISSE MOBILE\nc/o Sunrise GmbH\nThurgauerstrasse 101B\n8152 Glattpark (Opfikon)", "aldimobile@customer-center.ch", "+41 900 959 959", 1],
+ ["Lebara", "CH", "Mobilfunk & Internet", "Handy", "lebara.ch", 0, "m", "", "", 0, "Abos teils mit 24 Monaten Laufzeit; Frist im Vertrag prüfen, Kündigung über Kundendienst.", "", "Sunrise GmbH\nThurgauerstrasse 101B / Postfach\n8152 Glattpark (Opfikon)", "", "+41 800 00 68 68", 1],
+ ["iWay", "CH", "Mobilfunk & Internet", "Internet", "iway.ch", 0, "m", "", "", 0, "Kündigungsfrist in AGB bzw. Kundenkonto prüfen.", "", "iWay AG\nBadenerstrasse 569\n8048 Zürich", "info@iway.ch", "+41 43 500 11 11", 1],
+ ["Lyca Mobile", "CH", "Mobilfunk & Internet", "Handy", "lycamobile.ch", 0, "m", "", "Brief", 0, "Prepaid ohne Mindestlaufzeit: Guthaben aufbrauchen; Kündigung bzw. Rufnummernsperre schriftlich mit Rufnummer und SIM-Nummer.", "", "Lycamobile AG\nHermetschloostrasse 73\n8048 Zürich", "", "", 1],
+ ["Energie Kreuzlingen", "CH", "Energie & Wasser", "Strom", "energiekreuzlingen.ch", 0, "m", "", "", 1, "Grundversorgung für Kreuzlingen: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig melden.", "", "Energie Kreuzlingen\nNationalstrasse 27\n8280 Kreuzlingen", "info@energiekreuzlingen.ch", "+41 71 677 61 85", 1],
+ ["IWB", "CH", "Energie & Wasser", "Strom", "iwb.ch/kontakt", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "IWB Industrielle Werke Basel\nMargarethenstrasse 40\n4002 Basel", "", "+41 61 275 51 11", 1],
+ ["Groupe E", "CH", "Energie & Wasser", "Strom", "groupe-e.ch/de/kontakt", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "Groupe E AG\nRoute de Morat 135\n1763 Granges-Paccot", "info@groupe-e.ch", "+41 26 352 52 52", 1],
+ ["Romande Energie", "CH", "Energie & Wasser", "Strom", "romande-energie.ch/contact", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "Romande Energie SA\nRue de Lausanne 53\n1110 Morges", "", "", 1],
+ ["SAK", "CH", "Energie & Wasser", "Strom", "sak.ch/ueber-sak/kontakt", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "St.Gallisch-Appenzellische Kraftwerke AG\nVadianstrasse 50\nPostfach 2041\n9001 St.Gallen", "info@sak.ch", "+41 71 229 51 51", 1],
+ ["Migros Bank", "CH", "Finanzen", "Konto", "migrosbank.ch", 0, "m", "", "Brief", 0, "Konto-Saldierung schriftlich mit Unterschrift oder in der Filiale; Restguthaben-Zielkonto angeben, Karten zurückgeben.", "", "Migros Bank AG\nSeidengasse 12\n8001 Zürich", "kundencenter@migrosbank.ch", "", 1],
+ ["Valiant", "CH", "Finanzen", "Konto", "valiant.ch", 0, "m", "", "Brief", 0, "Konto-Saldierung schriftlich mit Unterschrift oder am Schalter; Zielkonto für Restsaldo angeben.", "", "Valiant Bank AG\nBundesplatz 4\nPostfach\n3001 Bern", "info@valiant.ch", "+41 31 320 91 11", 1],
+ ["Cembra", "CH", "Finanzen", "Kreditkarte", "cembra.ch", 0, "m", "", "Brief", 0, "Kreditkarte jederzeit schriftlich kündbar; Kartennummer angeben, Saldo begleichen, Karte zerschneiden.", "", "Cembra Money Bank AG\nBändliweg 20\n8048 Zürich", "", "", 1],
+ ["Swisscard", "CH", "Finanzen", "Kreditkarte", "swisscard.ch", 0, "m", "", "Brief", 0, "Jederzeit schriftlich kündbar; Bonuspunkte vorher einlösen, Jahresgebühr wird meist nicht zurückerstattet.", "", "Swisscard AECS GmbH\nNeugasse 18\nPostfach\n8810 Horgen", "", "+41 44 659 60 00", 1],
+ ["Viseca", "CH", "Finanzen", "Kreditkarte", "viseca.ch", 0, "m", "", "Brief", 0, "Jederzeit ohne Frist schriftlich kündbar; viele Karten laufen über die Hausbank, dann dort kündigen.", "", "Viseca Card Services SA\nHagenholzstrasse 56\nPostfach 7007\n8050 Zürich", "", "+41 58 958 84 00", 1],
+ ["St.Galler Kantonalbank", "CH", "Finanzen", "Konto", "sgkb.ch", 0, "m", "", "Brief", 0, "Konto-Saldierung schriftlich mit Unterschrift oder in der Geschäftsstelle; Zielkonto für Restsaldo angeben.", "", "St.Galler Kantonalbank AG\nSt. Leonhardstrasse 25\n9001 St. Gallen", "info@sgkb.ch", "+41 844 811 811", 1],
+ ["Swissquote", "CH", "Finanzen", "Konto / Depot", "swissquote.com", 0, "m", "", "Brief", 0, "Kontoschliessung schriftlich mit Unterschrift; Wertschriften vorher verkaufen oder Transfer beauftragen.", "", "Swissquote Bank AG\nChemin de la Crétaux 33\n1196 Gland", "", "+41 44 825 88 88", 1],
+ ["Fitnesspark", "CH", "Freizeit & Sport", "Fitnessabo", "fitnesspark.ch", 2, "m", "p", "Brief", 0, "Schriftlich per Brief 2 Monate vor Ende der Vertragsdauer, sonst automatische Verlängerung; Mitgliedernummer angeben.", "", "movemi AG\nFitnesspark Kundenservice\nThurgauerstrasse 32\n8050 Zürich", "info@fitnesspark.ch", "", 1],
+ ["Kieser Training", "CH", "Freizeit & Sport", "Fitnessabo", "kieser.com/ch-de", 2, "m", "p", "Einschreiben", 0, "Kündigung schriftlich beim Studio, in dem der Vertrag abgeschlossen wurde, 2 Monate vor Laufzeitende.", "", "Kieser Training AG\nHardstrasse 223\n8005 Zürich", "info@kieser.com", "+41 44 296 17 17", 1],
+ ["Thurgauer Zeitung", "CH", "Abos & Medien", "Zeitung", "chmedia.ch/kontakt", 0, "m", "p", "E-Mail", 0, "Abo auf Ende der Laufzeit beim CH Media Aboservice schriftlich oder per E-Mail kündigen.", "", "CH Regionalmedien AG\nAboservice\nFürstenlandstrasse 35\n9001 St. Gallen", "aboservice@chmedia.ch", "+41 58 200 55 55", 1],
+ ["Republik", "CH", "Abos & Medien", "Magazin", "republik.ch", 2, "d", "p", "Online / Kundenkonto", 0, "Online im Konto unter Abonnements kündbar; Jahresmitgliedschaft bis 2 Tage vor Laufzeitende, Monatsabo jederzeit.", "", "Republik AG\nSihlhallenstrasse 1\n8004 Zürich", "kontakt@republik.ch", "+41 44 505 67 80", 1],
+ ["Blick+", "CH", "Abos & Medien", "Zeitung digital", "myservices.blick.ch", 0, "m", "p", "Online / Kundenkonto", 0, "Bei Kreditkarte/TWINT/LSV automatische Verlängerung; via myservices.blick.ch oder Kundenservice auf Periodenende kündigen.", "", "Ringier AG, Ringier Medien Schweiz\nBrühlstrasse 5\n4800 Zofingen", "kundenservice@blick.ch", "+41 58 510 73 02", 1],
+ ["freenet", "DE", "Mobilfunk & Internet", "Handy", "freenet.de/kuendigung", 1, "m", "", "Online / Kundenkonto", 0, "Kündigung online über das Kündigungsformular; massgebend ist der Eingang beim Anbieter.", "", "freenet DLS GmbH\nHollerstraße 126\n24782 Büdelsdorf", "info@freenet-mobilfunk.de", "+49 40 555541000", 1],
+ ["Aldi Talk", "DE", "Mobilfunk & Internet", "Handy", "alditalk.de", 0, "m", "", "Online / Kundenkonto", 0, "Prepaid ohne Laufzeit; schriftliche Anliegen über Kontaktformular im Kundenportal oder in der App.", "", "medion GmbH\nAm Zehnthof 77\n45307 Essen", "medionmobile@medion.com", "", 1],
+ ["Lidl Connect", "DE", "Mobilfunk & Internet", "Handy", "lidl.de/c/faq-kontakt-hilfe/s10007729", 30, "d", "", "E-Mail", 0, "Kündigung per Brief, Fax oder E-Mail; für Rufnummernmitnahme ist eine vollständige Kündigung nötig.", "", "LIDL Connect Kundenbetreuung\nPostfach 100 254\n16285 Schwedt", "lidl-connect-kundenbetreuung@vodafone.de", "+49 211 27742774", 1],
+ ["fraenk", "DE", "Mobilfunk & Internet", "Handy", "fraenk.de", 0, "m", "p", "Online / Kundenkonto", 0, "Reiner App-Tarif ohne Hotline; Kündigung direkt in der fraenk-App.", "", "fraenk Kundenservice\nPostfach 1132\n61466 Kronberg", "", "", 1],
+ ["blau", "DE", "Mobilfunk & Internet", "Handy", "blau.de/service/kuendigen", 1, "m", "", "Online / Kundenkonto", 0, "Kündigung in Mein Blau, telefonisch oder per Brief mit Rufnummer und Unterschrift.", "", "Telefónica Germany GmbH & Co. OHG\nBlau Kundenbetreuung\n90345 Nürnberg", "", "+49 40 519006630", 1],
+ ["winSIM", "DE", "Mobilfunk & Internet", "Handy", "winsim.de/kuendigung", 1, "m", "", "Online / Kundenkonto", 0, "Im Servicebereich «Kündigung vormerken» und innert 7 Tagen telefonisch bestätigen, sonst verfällt sie.", "", "Drillisch Online GmbH\nLindleystraße 10\n60314 Frankfurt am Main", "kontakt@winsim.de", "+49 6181 7074094", 1],
+ ["klarmobil", "DE", "Mobilfunk & Internet", "Handy", "klarmobil.de", 1, "m", "", "Online / Kundenkonto", 0, "Kündigung im Online-Service oder per Einschreiben; schriftliche Bestätigung verlangen.", "", "klarmobil GmbH\nHollerstraße 126\n24782 Büdelsdorf", "", "+49 40 348585300", 1],
+ ["PŸUR", "DE", "Mobilfunk & Internet", "Internet / TV", "pyur.com/kuendigung", 1, "m", "", "Online / Kundenkonto", 0, "Online-Kündigung über mein.pyur.com; Bestätigung kommt per E-Mail oder Post innert ca. 10 Werktagen.", "", "Tele Columbus AG\nPostfach 11 06 08\n10836 Berlin", "", "+49 30 130049902", 1],
+ ["Deutsche Glasfaser", "DE", "Mobilfunk & Internet", "Internet", "deutsche-glasfaser.de", 1, "m", "", "Online / Kundenkonto", 0, "Nach 24 Monaten Mindestlaufzeit monatlich kündbar; Leihrouter danach zurückschicken.", "", "Deutsche Glasfaser Holding GmbH\n40463 Düsseldorf", "", "+49 2861 890600", 1],
+ ["Sky", "DE", "Abos & Medien", "TV", "sky.de/kontakt-hilfe", 1, "m", "", "Online / Kundenkonto", 0, "Sky bittet um Online-Kündigung statt Post; Smartcard und Receiver danach innert 2 Wochen zurücksenden.", "", "Sky Deutschland Fernsehen GmbH & Co. KG\n22033 Hamburg", "", "", 1],
+ ["RTL+", "DE", "Abos & Medien", "Streaming", "plus.rtl.de", 30, "d", "", "Online / Kundenkonto", 0, "Kündigung im Konto unter «Mein Paket»; 30 Tage Frist. Über Amazon/Apple/Telekom gebuchte Abos dort kündigen.", "", "RTL interactive GmbH\nPicassoplatz 1\n50679 Köln", "", "+49 221 45660", 1],
+ ["waipu.tv", "DE", "Abos & Medien", "TV", "waipu.tv", 0, "m", "p", "Online / Kundenkonto", 0, "Kündigung unter Mein waipu.tv › Paket & Optionen; Monatspakete enden mit der laufenden Abrechnungsperiode.", "", "EXARING AG\nLeopoldstraße 236\n80807 München", "", "", 1],
+ ["Der Spiegel", "DE", "Abos & Medien", "Magazin", "spiegel.de", 1, "m", "", "E-Mail", 0, "Print nach Mindestlaufzeit mit 1 Monat (Jahresabo 6 Wochen) Frist; SPIEGEL+ online in «Mein Konto» kündbar.", "", "DER SPIEGEL\nAbonnentenservice\n20637 Hamburg", "aboservice@spiegel.de", "+49 40 30072700", 0],
+ ["Süddeutsche Zeitung", "DE", "Abos & Medien", "Zeitung", "sueddeutsche.de", 4, "w", "m", "Brief", 0, "Kündigung in Textform mit 4 Wochen Frist zum Monatsende; Abonummer angeben, am besten per Einschreiben.", "", "Süddeutsche Zeitung GmbH\nLeserservice\nHultschiner Straße 8\n81677 München", "", "+49 89 21838080", 0],
+ ["IKK classic", "DE", "Versicherung", "Krankenkasse", "ikk-classic.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "IKK classic\n04063 Leipzig", "info@ikk-classic.de", "+49 800 455 1111", 1],
+ ["KKH", "DE", "Versicherung", "Krankenkasse", "kkh.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "Kaufmännische Krankenkasse – KKH\n30125 Hannover", "service@kkh.de", "+49 800 5548640554", 1],
+ ["hkk", "DE", "Versicherung", "Krankenkasse", "hkk.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "hkk Krankenkasse\n28185 Bremen", "info@hkk.de", "+49 421 36550", 1],
+ ["HEK", "DE", "Versicherung", "Krankenkasse", "hek.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "HEK - Hanseatische Krankenkasse\nWandsbeker Zollstraße 86-90\n22041 Hamburg", "kontakt@hek.de", "+49 800 0213213", 1],
+ ["Mobil Krankenkasse", "DE", "Versicherung", "Krankenkasse", "mobil-krankenkasse.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "Mobil Krankenkasse\nFriedenheimer Brücke 29\n80639 München", "info@service.mobil-krankenkasse.de", "+49 800 255 0800", 1],
+ ["SBK", "DE", "Versicherung", "Krankenkasse", "sbk.org", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "SBK Siemens-Betriebskrankenkasse\nSt.-Pöltener-Str. 37\n89522 Heidenheim", "info@sbk.org", "+49 800 072 572 572 50", 1],
+ ["Knappschaft", "DE", "Versicherung", "Krankenkasse", "knappschaft.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "Deutsche Rentenversicherung Knappschaft-Bahn-See\n44781 Bochum", "", "", 1],
+ ["AXA Deutschland", "DE", "Versicherung", "Versicherung", "axa.de", 3, "m", "a", "Online / Kundenkonto", 0, "Meist 3 Monate vor Ende Versicherungsjahr; Kfz 1 Monat vor Ablauf (oft 30.11.). Kündigungsbutton im Kundenportal.", "", "AXA Konzern AG\n51171 Köln", "service@axa.de", "+49 800 3203205", 1],
+ ["Generali Deutschland", "DE", "Versicherung", "Versicherung", "generali.de", 3, "m", "a", "Brief", 0, "Kündigung an die im Versicherungsschein genannte Gesellschaft; meist 3 Monate vor Ablauf des Versicherungsjahres.", "", "Generali Deutschland AG\nAdenauerring 7\n81737 München", "service@generali.de", "+49 89 5121 0", 1],
+ ["R+V", "DE", "Versicherung", "Versicherung", "ruv.de", 3, "m", "a", "Online / Kundenkonto", 0, "Meist 3 Monate vor Ende Versicherungsjahr; Kfz 1 Monat vor Ablauf (oft 30.11.). Kündigungsbutton im Kundenportal.", "", "R+V Allgemeine Versicherung AG\nRaiffeisenplatz 1\n65189 Wiesbaden", "ruv@ruv.de", "+49 611 5330", 1],
+ ["Debeka", "DE", "Versicherung", "Versicherung", "debeka.de", 3, "m", "a", "Online / Kundenkonto", 0, "Meist 3 Monate vor Ende Versicherungsjahr; Kfz 1 Monat vor Ablauf (oft 30.11.). Kündigungsbutton im Kundenportal.", "", "Debeka Versicherungen\n56058 Koblenz", "kundenservice@debeka.de", "+49 261 498 4664", 1],
+ ["Signal Iduna", "DE", "Versicherung", "Versicherung", "signal-iduna.de", 3, "m", "a", "Online / Kundenkonto", 0, "Meist 3 Monate vor Ende Versicherungsjahr; Kfz 1 Monat vor Ablauf (oft 30.11.). Kündigungsbutton im Kundenportal.", "", "SIGNAL IDUNA\nJoseph-Scherer-Straße 3\n44139 Dortmund", "info@signal-iduna.de", "+49 231 1350", 1],
+ ["DEVK", "DE", "Versicherung", "Versicherung", "devk.de", 3, "m", "a", "Online / Kundenkonto", 0, "Meist 3 Monate vor Ende Versicherungsjahr; Kfz 1 Monat vor Ablauf (oft 30.11.). Kündigungsbutton im Kundenportal.", "", "DEVK Versicherungen\nRiehler Straße 190\n50735 Köln", "info@devk.de", "+49 800 4757757", 1],
+ ["HanseMerkur", "DE", "Versicherung", "Versicherung", "hansemerkur.de/kontakt/kuendigungsservice", 3, "m", "a", "Online / Kundenkonto", 0, "Kündigung in Textform mit Versicherungsnummer und Unterschrift; telefonisch nicht möglich. Frist je nach Sparte.", "", "HanseMerkur\nPostfach\n20352 Hamburg", "info@hansemerkur.de", "+49 40 4119-0", 1],
+ ["CosmosDirekt", "DE", "Versicherung", "Versicherung", "cosmosdirekt.de", 3, "m", "a", "Online / Kundenkonto", 0, "Kündigung über meinCosmosDirekt oder in Textform; Kfz meist 1 Monat vor Ablauf (oft 30.11.), sonst 3 Monate zum Vertragsende.", "", "CosmosDirekt\n66101 Saarbrücken", "info@cosmosdirekt.de", "+49 681 966 68 00", 1],
+ ["WGV", "DE", "Versicherung", "Versicherung", "wgv.de/kundenservice", 3, "m", "a", "Online / Kundenkonto", 0, "Kündigung online über Kundenservice/MeineWGV; Kfz in der Regel 1 Monat vor Ablauf zum 1.1. (Stichtag 30.11.).", "", "WGV Versicherungen\n70164 Stuttgart", "kundenservice@wgv.de", "+49 711 1695-1500", 1],
+ ["VHV", "DE", "Versicherung", "Versicherung", "vhv.de/service/kuendigung", 3, "m", "a", "Online / Kundenkonto", 0, "Kündigung über Kündigungsbutton/Kundenportal oder in Textform; Kfz meist 1 Monat vor Ablauf, sonst 3 Monate zum Vertragsende.", "", "VHV Allgemeine Versicherung AG\nVHV-Platz 1\n30177 Hannover", "info@vhv.de", "+49 511 907-0", 1],
+ ["ACE", "DE", "Mobilität", "Mitgliedschaft", "ace.de/mitgliedschaft/mitgliedschaft-kuendigen", 3, "m", "y", "E-Mail", 0, "Nur zum Jahresende kündbar; Kündigung in Textform muss bis 30.09. beim ACE eingehen.", "", "ACE Auto Club Europa e.V.\nSchmidener Straße 227\n70374 Stuttgart", "mitglieder-service@ace.de", "+49 711 5303 36677", 1],
+ ["EWE", "DE", "Energie & Wasser", "Strom / Gas", "ewe.de", 1, "m", "", "Online / Kundenkonto", 0, "Kündigung über Kundenportal/Kündigungsbutton oder in Textform; Frist laut Vertrag, nach Erstlaufzeit meist 1 Monat.", "", "EWE VERTRIEB GmbH\nCloppenburger Straße 310\n26133 Oldenburg", "info@ewe.de", "+49 441 8000-5555", 1],
+ ["Yello", "DE", "Energie & Wasser", "Strom", "yello.de/kuendigen", 1, "m", "", "Online / Kundenkonto", 0, "Online-Kündigungsformular mit Vertragsnummer; Yello kündigt zum nächstmöglichen Termin.", "", "Yello Strom GmbH\nSiegburger Straße 229\n50679 Köln", "", "", 1],
+ ["LichtBlick", "DE", "Energie & Wasser", "Strom", "lichtblick.de/vertrag-kuendigen", 1, "m", "", "Online / Kundenkonto", 0, "Online-Kündigung über lichtblick.de/vertrag-kuendigen oder Mein Konto; Frist laut Vertrag.", "", "LichtBlick SE\nKlostertor 1\n20097 Hamburg", "kundenservice@lichtblick.de", "+49 40 80803030", 1],
+ ["Octopus Energy", "DE", "Energie & Wasser", "Strom", "octopusenergy.de/contract-cancellation", 30, "d", "", "Online / Kundenkonto", 0, "Ohne Mindestlaufzeit mit 30 Tagen Frist; Kündigung im Octopus-Konto oder per E-Mail, nicht telefonisch.", "", "Octopus Energy Germany GmbH\nAugust-Everding-Straße 25\n81671 München", "hallo@octopusenergy.de", "+49 800 400 8010", 1],
+ ["Tibber", "DE", "Energie & Wasser", "Strom", "tibber.com/de", 0, "m", "", "Online / Kundenkonto", 0, "Kündigung über App/Chat oder per E-Mail; genaue Frist laut Vertragsbedingungen prüfen.", "", "Tibber Deutschland GmbH\nStrelitzer Straße 60\n10115 Berlin", "hello@tibber.com", "", 1],
+ ["HelloFresh", "DE", "Abos & Medien", "Kochbox", "hellofresh.de/cancel-account", 0, "m", "", "Online / Kundenkonto", 0, "Abo im Kundenkonto kündigen bzw. pausieren – vor dem Bearbeitungsstichtag der nächsten Lieferung.", "", "HelloFresh Deutschland SE & Co. KG\nPrinzenstraße 89\n10969 Berlin", "", "", 1],
+ ["Sparkasse Bodensee", "DE", "Finanzen", "Konto", "sparkasse-bodensee.de", 0, "m", "", "Brief", 0, "Girokonto jederzeit ohne Frist kündbar; Kündigung unterschrieben per Brief oder in der Filiale (Hauptstelle Konstanz) abgeben.", "", "Sparkasse Bodensee\nCharlottenstr. 2\n88045 Friedrichshafen", "info@sparkasse-bodensee.de", "+49 7541 704 0", 1],
+ ["Deutsche Bank", "DE", "Finanzen", "Konto", "deutsche-bank.de/kontakt", 0, "m", "", "Brief", 0, "Konto jederzeit kündbar; schriftlich an die kontoführende Filiale oder via 24h-Hotline/Online-Banking.", "", "Deutsche Bank AG\nTaunusanlage 12\n60325 Frankfurt am Main", "deutsche.bank@db.com", "+49 69 910 10000", 1],
+ ["Postbank", "DE", "Finanzen", "Konto", "postbank.de", 0, "m", "", "Brief", 0, "Girokonto jederzeit kündbar, schriftlich an die Postbank oder in der Filiale; Sparkonten haben 3 Monate Frist.", "", "Postbank – eine Niederlassung der Deutsche Bank AG\nBundeskanzlerplatz 6\n53113 Bonn", "direkt@postbank.de", "+49 228 5500 5500", 1],
+ ["HypoVereinsbank", "DE", "Finanzen", "Konto", "hvb.de", 0, "m", "", "Brief", 0, "Konto ohne feste Laufzeit jederzeit fristlos kündbar; schriftlich an die Filiale oder Bank.", "", "UniCredit Bank GmbH\nArabellastraße 12\n81925 München", "info@unicredit.de", "+49 89 378 0", 1],
+ ["Volksbank", "DE", "Finanzen", "Konto", "gestalterbank.de", 0, "m", "", "Brief", 0, "Konto jederzeit kündbar; immer an die eigene kontoführende Volksbank schreiben. Mitgliedschaft/Genossenschaftsanteile separat kündigen.", "", "Volksbank eG – Die Gestalterbank\nAm Riettor 1\n78048 Villingen-Schwenningen", "mail@gestalterbank.de", "+49 7721 802 0", 1],
+ ["comdirect", "DE", "Finanzen", "Konto / Depot", "comdirect.de", 0, "m", "", "Brief", 0, "Konto/Depot jederzeit kündbar; schriftlich an comdirect in Quickborn oder über die Postbox im Online-Banking.", "", "comdirect – eine Marke der Commerzbank AG\nPascalkehre 15\n25451 Quickborn", "info@comdirect.de", "+49 4106 708 25 00", 1],
+ ["Consorsbank", "DE", "Finanzen", "Konto / Depot", "consorsbank.de", 0, "m", "", "Brief", 0, "Konto/Depot jederzeit kündbar; schriftlich an die Consorsbank in Nürnberg oder über das Online-Postfach.", "", "Consorsbank\nBahnhofstraße 55\n90402 Nürnberg", "info@consorsbank.de", "+49 911 369 0", 1],
+ ["Trade Republic", "DE", "Finanzen", "Konto / Depot", "traderepublic.com", 0, "m", "", "Online / Kundenkonto", 0, "Konto/Depot jederzeit in der App kündbar (Profil > Konto schliessen); Depot vorher leeren oder übertragen.", "", "Trade Republic Bank GmbH\nBrunnenstraße 19-21\n10119 Berlin", "", "", 1],
+ ["Targobank", "DE", "Finanzen", "Konto", "targobank.de", 0, "m", "", "Brief", 0, "Konto jederzeit kündbar; Kündigung schriftlich, da Bankaufträge per E-Mail nicht angenommen werden.", "", "TARGOBANK AG\nKasernenstr. 10\n40213 Düsseldorf", "kontakt@targobank.de", "+49 211 8984 0", 1],
+ ["FitX", "DE", "Freizeit & Sport", "Fitnessabo", "mein.fitx.de", 1, "m", "p", "Online / Kundenkonto", 0, "12 Monate Grundlaufzeit, danach monatlich kündbar; online im Mitgliederbereich mein.fitx.de kündigen.", "", "FitX Deutschland GmbH\nRolf-Schwarz-Schütte-Platz 2\n40789 Monheim am Rhein", "", "", 1],
+ ["clever fit", "DE", "Freizeit & Sport", "Fitnessabo", "clever-fit.com", 1, "m", "p", "Brief", 0, "Studios meist Franchise: Kündigung an das eigene Studio richten, nicht an die Zentrale.", "", "clever fit GmbH\nAugsburger Str. 52\n86899 Landsberg am Lech", "info@clever-fit.com", "+49 8191 30526 00", 1],
+ ["Fitness First", "DE", "Freizeit & Sport", "Fitnessabo", "fitnessfirst.de/kuendigung", 1, "m", "p", "Online / Kundenkonto", 0, "Online über fitnessfirst.de/kuendigung kündbar; 1 Monat vor Laufzeitende, sonst Verlängerung.", "", "Fitness First Germany GmbH\nHanauer Landstr. 148a\n60314 Frankfurt am Main", "", "+49 69 408016 555", 1],
+ ["EGYM Wellpass", "DE", "Freizeit & Sport", "Firmenfitness", "de.egym-wellpass.com/de-de/kuendigung", 15, "k", "m", "Online / Kundenkonto", 0, "In der App unter Profil > Meine Mitgliedschaft kündbar; bis zum 15. für das Monatsende.", "", "EGYM Wellpass GmbH\nEinsteinstraße 172\n81677 München", "support@egym-wellpass.com", "", 1],
+ ["DIE ZEIT", "DE", "Abos & Medien", "Zeitung", "abo.zeit.de", 2, "w", "", "Online / Kundenkonto", 0, "Abo nach Mindestlaufzeit mit 2 Wochen Frist kündbar; Kündigungsbutton im Aboportal nutzen.", "", "Zeitverlag Gerd Bucerius GmbH & Co. KG\nBuceriusstraße, Eingang Speersort 1\n20095 Hamburg", "", "", 0],
+ ["WOW", "DE", "Abos & Medien", "Streaming", "wowtv.de/kontakt", 0, "m", "p", "Online / Kundenkonto", 0, "Monatlich zum Ende des Abrechnungszeitraums im WOW-Konto kündbar; Anliegen nicht per Post senden.", "", "Sky Deutschland Fernsehen GmbH & Co. KG\nMedienallee 26\n85774 Unterföhring", "", "+49 89 54 19 27 32", 1]
 ];
-var TPLI={n:0,cc:1,cat:2,lab:3,web:4,no:5,nu:6,tm:7,cf:8,md:9,h:10,url:11};
+var TPLI={n:0,cc:1,cat:2,lab:3,web:4,no:5,nu:6,tm:7,cf:8,md:9,h:10,url:11,addr:12,mail:13,tel:14,ok:15};
+function tplHint(t){return (t[10]||"")+(t[15]===0?" Kontaktdaten nicht offiziell bestätigt – vor dem Versand prüfen.":"");}
+/* Katalog-Eintrag zu einem bestehenden Vertrag: exakter Name; bei Länder-Varianten (AXA / AXA Deutschland) entscheidet die Währung */
+function tplMatch(c){
+  var cc=c.cur==="EUR"?"DE":(c.cur==="CHF"?"CH":"");
+  var names=[c.partner,c.label].map(function(x){return String(x||"").trim().toLowerCase();}).filter(Boolean);
+  for(var i=0;i<names.length;i++){var n=names[i];
+    var exact=TPL.filter(function(t){return t[0].toLowerCase()===n;});
+    if(!exact.length)continue;
+    var pref=TPL.filter(function(t){return t[0].toLowerCase().indexOf(n+" ")===0;});
+    var same=exact.concat(pref).filter(function(t){return !t[1]||t[1]===cc;});
+    return same[0]||exact[0];
+  }
+  return null;
+}
+function tplFillPlan(){
+  var plan=[];
+  Object.keys(state.contracts).forEach(function(k){
+    var c=state.contracts[k];if(c.status==="cancelled")return;
+    var t=tplMatch(c);if(!t)return;
+    var add={};
+    if(!c.addr&&t[12])add.addr=t[12];
+    if(!c.mail&&t[13])add.mail=t[13];
+    if(!c.tel&&t[14])add.tel=t[14];
+    if(!c.web&&t[4])add.web=t[4];
+    if(Object.keys(add).length)plan.push({id:k,c:c,t:t,add:add});
+  });
+  return plan;
+}
 function tplFind(n){n=String(n||"").trim().toLowerCase();return TPL.filter(function(t){return t[0].toLowerCase()===n;})[0]||null;}
 function tplFlag(t){return t[1]||"CH · DE";}
 function paintSugg(){
   var el=document.getElementById("fSugg"),q=(document.getElementById("fPartner").value||document.getElementById("fLabel").value).trim().toLowerCase();
   var st=draft.stdTpl;
   if(st&&st[0]===document.getElementById("fPartner").value.trim()){
-    el.innerHTML='<span class="sl tplh">'+esc(st[10])+"</span>"+(draft.stdDone||!(st[5]||st[7]||st[9])?"":'<button type="button" class="chip" data-std>Übliche Frist übernehmen</button>');return;}
+    el.innerHTML='<span class="sl tplh">'+esc(tplHint(st))+"</span>"+(draft.stdDone||!(st[5]||st[7]||st[9])?"":'<button type="button" class="chip" data-std>Übliche Frist übernehmen</button>');return;}
   var cur=tplFind(document.getElementById("fPartner").value);
-  if(cur&&draft.tplHint===cur[0]){el.innerHTML='<span class="sl tplh">'+esc(cur[10])+"</span>";return;}
+  if(cur&&draft.tplHint===cur[0]){el.innerHTML='<span class="sl tplh">'+esc(tplHint(cur))+"</span>";return;}
   /* exakter Treffer (z.B. «CSS», «O2»), noch nicht übernommen: genau diese Vorlage anbieten */
   if(cur){el.innerHTML='<span class="sl">Vorlage</span><button type="button" class="chip" data-tpl="'+TPL.indexOf(cur)+'">'+esc(cur[0])+" übernehmen</button>";return;}
   if(q.length<2){el.innerHTML="";return;}
@@ -3223,6 +3331,9 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
   syncCancUrl();
   if(t[4]&&!$("fWeb").value)$("fWeb").value=t[4];
   if(t[11]&&!$("fCancUrl").value)$("fCancUrl").value=t[11];
+  if(t[14]&&!$("fTel").value)$("fTel").value=t[14];
+  if(t[13]&&!$("fMail").value)$("fMail").value=t[13];
+  if(t[12]&&!$("fAddr").value.trim()){$("fAddr").value=t[12];fAddrPaint();paintOptCounts();}
   if(onlyEmpty){if(t[9]&&!$("fMand").checked&&!$("fNoWatch").checked)$("fMand").checked=true;}
   else{$("fMand").checked=!!t[9];if(t[9])$("fNoWatch").checked=false;}
   syncWatch();
@@ -5894,6 +6005,17 @@ document.getElementById("csvBtn").addEventListener("click",async function(){
 
 /* ---------- Rückfrage ---------- */
 var askRes=null;
+document.getElementById("tplFill").addEventListener("click",async function(){
+  var plan=tplFillPlan();
+  if(!plan.length){await ask({title:"Nichts zu ergänzen",alert:true,text:"Für deine Verträge fehlen keine Kontaktdaten, die der Katalog kennt, oder der Vertragspartner heisst anders als im Katalog."});return;}
+  var unv=plan.filter(function(x){return x.t[15]===0;}).length;
+  var lst=plan.slice(0,12).map(function(x){return "• "+titleOf(x.c)+" → "+x.t[0];}).join("\n")+(plan.length>12?"\n… und "+(plan.length-12)+" weitere":"");
+  var ok=await ask({title:plan.length+(plan.length===1?" Vertrag":" Verträge")+" ergänzen?",ok:"Ergänzen",
+    text:lst+"\n\nNur leere Felder werden gefüllt."+(unv?"\n"+unv+" davon mit nicht offiziell bestätigten Daten – vor dem Versand prüfen.":"")});
+  if(!ok)return;
+  plan.forEach(function(x){putContract(x.id,Object.assign({},state.contracts[x.id],x.add));});
+  render();toast(plan.length+(plan.length===1?" Vertrag":" Verträge")+" ergänzt");
+});
 function ask(o){return new Promise(function(res){
   askRes=res;document.getElementById("askT").textContent=o.title||"";
   document.getElementById("askP").textContent=o.text||"";
@@ -6061,7 +6183,7 @@ function csvToContracts(rows){
       split:(function(){var raw=g(r,"split");if(!raw||hs.length<2)return undefined;var o={};raw.split("|").forEach(function(x){var m=x.trim().match(/^(.+?):\s*(\d+(?:[.,]\d+)?)\s*%?$/);if(m){var nm=hs.filter(function(h){return h.toLowerCase()===m[1].trim().toLowerCase();})[0];if(nm)o[nm]=+m[2].replace(",",".");}});
         var sum=0;hs.forEach(function(h){sum+=(+o[h]||0);});return (hs.every(function(h){return o[h]!=null;})&&Math.abs(sum-100)<0.6)?o:undefined;})(),
       payM:g(r,"payM"),payA:g(r,"payA"),cancF:g(r,"cancF")||(tpl?tpl[8]||"":""),cancUrl:g(r,"cancUrl"),trial:"",
-      web:g(r,"web")||(tpl?tpl[4]:""),tel:g(r,"tel"),mail:g(r,"mail"),addr:ad,
+      web:g(r,"web")||(tpl?tpl[4]:""),tel:g(r,"tel")||(tpl?tpl[14]||"":""),mail:g(r,"mail")||(tpl?tpl[13]||"":""),addr:ad||(tpl?tpl[12]||"":""),
       note:[g(r,"note"),g(r,"contact")?"Kontakt: "+g(r,"contact"):"",restTags?"Tags: "+restTags:"",amt===0&&!g(r,"amount")?"Kein Betrag im Import":""].filter(Boolean).join("\n"),
       color:"",logoId:"",logoBg:"",prices:prices,docs:[],
       extras:g(r,"extras").split("|").map(function(p){var m=p.trim().match(/^(\d{4}-\d{2}-\d{2}):(-?[\d.]+):?(.*)$/);return m?{date:m[1],amount:+m[2],note:m[3].trim()}:null;}).filter(Boolean),
