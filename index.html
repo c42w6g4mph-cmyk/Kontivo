@@ -279,6 +279,21 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .seg2{display:flex;background:var(--sunken);padding:3px;border-radius:10px;margin:2px 0 10px}
 .seg2 button{flex:1;padding:7px;border-radius:8px;font-size:14px;color:var(--ink2);font-weight:500}
 .seg2 button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+/* Art des Vertrags als Kacheln (SwiftUI: LazyVGrid mit 2 Spalten, Auswahl mit Rahmen in Akzentfarbe) */
+.tmtiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 14px}
+.tmtile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 11px;border-radius:12px;background:var(--field);border:1.5px solid transparent;min-height:84px}
+.tmtile svg{width:20px;height:20px;fill:none;stroke:var(--teal);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-bottom:4px}
+.tmtile b{font-size:14.5px;font-weight:600;color:var(--ink)}
+.tmtile small{font-size:12px;line-height:1.3;color:var(--ink2)}
+.tmtile[aria-pressed="true"]{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 10%,var(--field))}
+.tmtile:disabled{opacity:.4}
+.swlist{background:var(--field);border-radius:12px;margin-bottom:12px}
+.swrow{display:flex;align-items:center;gap:12px;padding:11px 13px;cursor:pointer}
+.swrow+.swrow{border-top:1px solid var(--line)}
+.swrow .t{flex:1;min-width:0;display:grid;gap:2px}.swrow b{font-size:15px;font-weight:500}.swrow small{font-size:12.5px;color:var(--ink2);line-height:1.35}
+.swi{-webkit-appearance:none;appearance:none;flex:none;width:51px;height:31px;border-radius:99px;background:var(--line);position:relative;margin:0;cursor:pointer;transition:background-color .2s}
+.swi::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .2s}
+.swi:checked{background:var(--teal)}.swi:checked::after{left:22px}
 .fbar{display:flex;align-items:center;gap:6px;overflow-x:auto;margin:12px -17px 0;padding:2px 17px;scrollbar-width:none}
 .fbar::-webkit-scrollbar{display:none}
 .fbar3{display:flex;gap:6px;margin:12px 0 0}
@@ -1441,17 +1456,20 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   </div>
 
   <h3>Laufzeit &amp; Kündigung</h3>
-  <div class="seg2" id="termSeg" role="group" aria-label="Laufzeit" style="margin:0 0 14px">
-    <button type="button" data-tm="open" aria-pressed="true">Flexibel</button>
-    <button type="button" data-tm="fixed" aria-pressed="false">Feste Laufzeit</button>
-    <button type="button" data-tm="trial" aria-pressed="false">Probeabo</button>
+  <div class="tmtiles" id="termSeg" role="group" aria-label="Art des Vertrags">
+    <button type="button" class="tmtile" data-tm="open" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg><b>Abo</b><small>Ohne Mindestlaufzeit, z.B. Netflix</small></button>
+    <button type="button" class="tmtile" data-tm="fixed" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><b>Mit Laufzeit</b><small>Bindet z.B. 12 oder 24 Monate</small></button>
+    <button type="button" class="tmtile" data-tm="trial" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12v8h14v-8M3 8h18v4H3zM12 8v12"/></svg><b>Probeabo</b><small>Gratis bis zu einem Datum</small></button>
+    <button type="button" class="tmtile" data-tm="tax" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 16.5l5-5"/></svg><b>Gebühr / Steuer</b><small>Nicht kündbar, z.B. Serafe</small></button>
   </div>
-  <div class="field tmtrial" hidden><label for="fTrial">Probeabo endet</label><input id="fTrial" type="date"></div>
-  <div class="two auto">
+  <div class="tmtrial" hidden><div class="flabel">Probeabo dauert</div>
+    <div class="chips" id="fTrialD" role="group" aria-label="Dauer des Probeabos"><button type="button" class="chip" data-trd="7d">7 Tage</button><button type="button" class="chip" data-trd="14d">14 Tage</button><button type="button" class="chip" data-trd="1m">1 Monat</button><button type="button" class="chip" data-trd="3m">3 Monate</button><button type="button" class="chip" data-trd="date">Datum …</button></div>
+    <div class="field" id="fTrialW" hidden><label for="fTrial">Probeabo endet am</label><input id="fTrial" type="date"></div></div>
+  <div class="two auto tmstart">
     <div class="field"><label for="fStart">Vertragsbeginn</label><input id="fStart" type="date"></div>
     <div class="field tmfixed"><label for="fEnd">Vertragsende</label><input id="fEnd" type="date"></div>
   </div>
-  <div class="two">
+  <div class="two tmnotice">
     <div class="field"><label for="fNotice">Kündigungsfrist</label>
       <div class="nrow"><input id="fNotice" class="num" type="text" inputmode="numeric" placeholder="–">
       <select id="fNoticeU"><option value="m">Monate</option><option value="w">Wochen</option><option value="d">Tage</option><option value="k">. im Monat</option></select></div>
@@ -1465,15 +1483,10 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
       <option value="6">6 Monate</option><option value="12">12 Monate</option><option value="24">24 Monate</option></select></div>
   </div>
   <p class="note" id="tmHint" style="margin:-4px 0 14px"></p>
-  <div class="field"><label for="fWatch">In «Fristen» anzeigen</label><select id="fWatch">
-    <option value="">Ja</option>
-    <option value="mand">Ja – Pflichtvertrag (wechseln statt kündigen)</option>
-    <option value="nowatch">Nein – z.B. Miete</option>
-    <option value="fixed">Nein – nicht kündbar (z.B. Serafe, Rundfunkbeitrag)</option></select></div>
-  <div hidden><input type="checkbox" id="fMand"><input type="checkbox" id="fNoWatch"><input type="checkbox" id="fNoCancel"></div>
-  <div class="field"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
+  <div hidden><input type="checkbox" id="fNoCancel"></div>
+  <div class="field tmcanc"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
     <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
-  <div class="field" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="netflix.com/cancelplan" autocomplete="off">
+  <div class="field tmcanc" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="netflix.com/cancelplan" autocomplete="off">
     <p class="note" style="margin:6px 0 0">Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.</p></div>
 
 
@@ -1501,6 +1514,12 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   </div>
   <div class="field"><label for="xNote">Bezeichnung (optional)</label><input id="xNote" type="text" placeholder="z.B. Nebenkostenabrechnung" autocomplete="off" maxlength="60"></div>
   <button class="mini" id="xAdd" style="margin:-6px 0 4px">Sonderzahlung hinzufügen</button>
+
+  <h3>Erinnerung und Wechsel</h3>
+  <div class="swlist">
+    <label class="swrow"><span class="t"><b>Pflichtvertrag</b><small>Wechseln statt kündigen, z.B. Krankenkasse. Nach der Kündigung neuen Anbieter erfassen.</small></span><input type="checkbox" class="swi" id="fMand"></label>
+    <label class="swrow"><span class="t"><b>Nicht an Frist erinnern</b><small>Erscheint nicht unter «Fristen», z.B. Miete.</small></span><input type="checkbox" class="swi" id="fNoWatch"></label>
+  </div>
 
   <h3>Kundendaten</h3>
   <div class="two">
@@ -2862,7 +2881,7 @@ function buildCatChips(){
   document.getElementById("fCats").addEventListener("click",function(){openCatPick("c");});
   document.getElementById("iCats").addEventListener("click",function(){openCatPick("i");});
 }
-var TAX_INFO="Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge markierst du unter «In «Fristen» anzeigen».";
+var TAX_INFO="Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge: unter «Laufzeit & Kündigung» die Kachel «Gebühr / Steuer» wählen.";
 function catInfoIc(){return '<span class="catinfo" role="button" tabindex="0" data-catinfo aria-label="Info: nicht kündbar">i</span>';}
 function paintCatField(pre,cat){
   var ic=document.getElementById(pre+"CatIcon"),nm=document.getElementById(pre+"CatName");
@@ -2871,7 +2890,9 @@ function paintCatField(pre,cat){
 }
 function paintCats(){paintCatField("f",draft.cat);
   /* Steuern & Gebühren sind immer nicht kündbar: Auswahl fest auf «nicht kündbar» */
-  var w=document.getElementById("fWatch"),tx=catKey(draft.cat||"")==="Steuern & Gebühren";if(!w)return;w.disabled=tx;if(tx)w.value="fixed";else syncWatch();}
+  var tx=catKey(draft.cat||"")==="Steuern & Gebühren";
+  document.querySelectorAll("#termSeg [data-tm]").forEach(function(b){b.disabled=tx&&b.dataset.tm!=="tax";});
+  if(tx&&termMode!=="tax")setTermMode("tax");}
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-catinfo]");if(!b)return;e.preventDefault();e.stopPropagation();
   ask({title:"Nicht kündbar",text:TAX_INFO,alert:true});},true);
 function openCatPick(kind){
@@ -3070,7 +3091,8 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";
   paintPrices();
   ["xDate","xAmt","xNote"].forEach(function(i){document.getElementById(i).value="";});setXKind("pay");paintExtras();
-  setTermMode((c&&(c.end||c.renew))?"fixed":(c&&c.trial&&!c.trialKept?"trial":"open"));
+  trialD="";
+  setTermMode(c&&c.noCancel?"tax":(c&&(c.end||c.renew))?"fixed":(c&&c.trial&&!c.trialKept?"trial":"open"));
   document.getElementById("oLogo").open=false;document.getElementById("logoTap").setAttribute("aria-expanded","false");
   paintCats();paintSwatches();paintLogo();paintDocs();
   document.getElementById("logoUp").hidden=!assets;
@@ -3382,18 +3404,36 @@ function openTplPick(){
 }
 document.getElementById("fLabel").addEventListener("input",paintLogo);
 var termMode="open";
+/* Art des Vertrags als Kacheln: «Abo» (open), «Mit Laufzeit» (fixed), «Probeabo» (trial), «Gebühr / Steuer» (tax = c.noCancel).
+   Kein neues Feld: Probeabo in c.trial, Gebühr in c.noCancel. Jede Art zeigt nur ihre Felder:
+   Probeabo nur Dauer + Kündigungsweg (Frist fragt «Ohne Frist erfasst» nach dem Behalten), Gebühr keine Frist und keinen Kündigungsweg.
+   SwiftUI: LazyVGrid mit enum ContractKind { abo, term, trial, fee } */
 function setTermMode(m){termMode=m;
-  document.querySelectorAll("#termSeg button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.tm===m);});
-  document.querySelectorAll("#sheetForm .tmfixed").forEach(function(el){el.hidden=m!=="fixed";});
-  document.querySelectorAll("#sheetForm .tmopen").forEach(function(el){el.hidden=m==="fixed";});
-  document.querySelectorAll("#sheetForm .tmtrial").forEach(function(el){el.hidden=m!=="trial";});
-  updTermHint();}
-/* Laufzeit-Art: «Flexibel» (open), «Feste Laufzeit» (fixed), «Probeabo» (trial = Flexibel + Enddatum des Probeabos).
-   Kein neues Feld: trial wie bisher in c.trial. SwiftUI: Picker(.segmented) mit enum TermMode { open, fixed, trial } */
+  document.querySelectorAll("#termSeg [data-tm]").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.tm===m);});
+  var sh=function(cls,on){document.querySelectorAll("#sheetForm ."+cls).forEach(function(el){el.hidden=!on;});};
+  sh("tmfixed",m==="fixed");sh("tmopen",m==="open"||m==="trial");sh("tmtrial",m==="trial");
+  sh("tmstart",m!=="trial");sh("tmnotice",m==="open"||m==="fixed");sh("tmcanc",m!=="tax");
+  document.getElementById("fNoCancel").checked=m==="tax";
+  if(m==="trial")paintTrialD();
+  syncCancUrl();updTermHint();}
+/* Probeabo-Dauer: Chips setzen das Enddatum ab Vertragsbeginn (sonst heute); «Datum …» zeigt das Datumsfeld */
+var trialD="";
+var TRD={"7d":[0,7],"14d":[0,14],"1m":[1,0],"3m":[3,0]};
+function trialFrom(k){var b=parseD(document.getElementById("fStart").value)||today(),x=TRD[k];return iso(x[0]?addMonths(b,x[0]):addDays(b,x[1]));}
+function paintTrialD(){
+  var v=document.getElementById("fTrial").value;
+  if(!trialD)trialD=v?(Object.keys(TRD).filter(function(k){return trialFrom(k)===v;})[0]||"date"):"";
+  document.querySelectorAll("#fTrialD [data-trd]").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.trd===trialD);});
+  document.getElementById("fTrialW").hidden=trialD!=="date";}
+document.getElementById("fStart").addEventListener("change",function(){if(termMode==="trial"&&TRD[trialD]){document.getElementById("fTrial").value=trialFrom(trialD);updTermHint();}});
+document.getElementById("fTrialD").addEventListener("click",function(ev){var b=ev.target.closest("[data-trd]");if(!b)return;
+  trialD=b.dataset.trd;if(trialD!=="date")document.getElementById("fTrial").value=trialFrom(trialD);
+  paintTrialD();updTermHint();if(trialD==="date")document.getElementById("fTrial").focus();});
 function updTermHint(){
   var h=document.getElementById("tmHint");
+  if(termMode==="tax"){h.textContent="Nicht kündbar: keine Fristen, kein Kündigen. Zählt in Kosten und Budget.";return;}
   if(termMode==="trial"){var tv=document.getElementById("fTrial").value;
-    h.textContent=tv?"Kontivo erinnert dich vor dem "+fmtD(tv)+". Danach gelten Frist und «Kündbar per».":"Datum angeben, an dem das Probeabo endet.";return;}
+    h.textContent=tv?"Endet am "+fmtD(tv)+". Kontivo erinnert dich unter «Fristen».":"Wie lange läuft das Probeabo?";return;}
   if(termMode==="fixed"){
     var fx={end:document.getElementById("fEnd").value,renew:document.getElementById("fRenew").value,
       notice:parseNum(document.getElementById("fNotice").value)||0,noticeU:document.getElementById("fNoticeU").value};
@@ -3415,13 +3455,13 @@ function updTermHint(){
 document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if(termMode!=="fixed"&&!tp.value&&+this.value>=6){tp.value="p";updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}});
 ["fTermP","fNotice","fNoticeU","fStart","fDue","fCycle","fEnd","fRenew","fTrial"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updTermHint);el.addEventListener("change",updTermHint);});
 document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(b)setTermMode(b.dataset.tm);});
-function syncWatch(){var m=document.getElementById("fMand").checked,n=document.getElementById("fNoWatch").checked,f=document.getElementById("fNoCancel").checked;
-  document.getElementById("fWatch").value=f?"fixed":(m?"mand":(n?"nowatch":""));}
-document.getElementById("fWatch").addEventListener("change",function(){var v=this.value;
-  document.getElementById("fMand").checked=v==="mand";document.getElementById("fNoWatch").checked=v==="nowatch";document.getElementById("fNoCancel").checked=v==="fixed";});
+/* Nach einer Vorlage: «nicht kündbar» wählt die Kachel «Gebühr / Steuer», sonst zurück auf «Abo» */
+function syncWatch(){var f=document.getElementById("fNoCancel").checked;
+  if(f&&termMode!=="tax")setTermMode("tax");else if(!f&&termMode==="tax")setTermMode("open");paintOptCounts();}
+["fMand","fNoWatch"].forEach(function(i){document.getElementById(i).addEventListener("change",paintOptCounts);});
 document.getElementById("iLogoTap").addEventListener("click",function(){var d=document.getElementById("oILogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 document.getElementById("logoTap").addEventListener("click",function(){var d=document.getElementById("oLogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
-function syncCancUrl(){document.getElementById("fCancUrlW").hidden=document.getElementById("fCancF").value!=="Online / Kundenkonto";}
+function syncCancUrl(){document.getElementById("fCancUrlW").hidden=termMode==="tax"||document.getElementById("fCancF").value!=="Online / Kundenkonto";}
 document.getElementById("fCancF").addEventListener("change",syncCancUrl);
 function paintOptCounts(){
   var n=(draft.prices||[]).length,d=(draft.docs||[]).length,xn=(draft.extras||[]).length,g=function(id){return (document.getElementById(id).value||"").trim();};
@@ -3430,7 +3470,8 @@ function paintOptCounts(){
   document.getElementById("oDocsN").textContent=d?d+(d===1?" Datei":" Dateien"):"";
   var parts=[n?n+(n===1?" Preisänderung":" Preisänderungen"):"",xn?xn+(xn===1?" Sonderzahlung":" Sonderzahlungen"):"",
     g("fCustNo")?"Kundennummer":"",g("fContrNo")?"Vertragsnummer":"",g("fPayM")?"Zahlungsart":"",g("fPayA")?"Belastet über":"",
-    g("fAddr")?"Adresse":"",g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",d?d+(d===1?" Datei":" Dateien"):""].filter(Boolean);
+    g("fAddr")?"Adresse":"",g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",d?d+(d===1?" Datei":" Dateien"):"",
+    document.getElementById("fMand").checked?"Pflichtvertrag":"",document.getElementById("fNoWatch").checked?"Ohne Erinnerung":""].filter(Boolean);
   var el=document.getElementById("fMoreN");el.textContent=parts.length?parts.join(" · "):"Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …";el.classList.toggle("on",!!parts.length);
 }
 /* Adresse im Vertragsformular wie auf der Vertragspartner-Seite: Felder Firma/Zusatz/Strasse/PLZ Ort/Land, gespeichert als Text in #fAddr */
@@ -3503,7 +3544,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   if(amt==null||amt<0){toast("Betrag prüfen");return;}
   var nV=noticeVal(document.getElementById("fNotice").value,document.getElementById("fNoticeU").value);
   if(nV==null){toast("Kündigungsfrist prüfen");document.getElementById("fNotice").focus();return;}
-  if(termMode==="trial"&&!document.getElementById("fTrial").value){toast("Enddatum des Probeabos angeben");document.getElementById("fTrial").focus();return;}
+  if(termMode==="trial"&&!document.getElementById("fTrial").value){toast("Wie lange läuft das Probeabo?");document.getElementById("fTrialD").scrollIntoView({block:"center",behavior:"smooth"});return;}
   var cF=document.getElementById("fCancF").value;
   var prev=editId?state.contracts[editId]:null;
   /* Vom bisherigen Stand ausgehen: Felder ausserhalb des Formulars (Kündigung, Pause, «Behalten», unbekannte) bleiben erhalten.
@@ -3521,7 +3562,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
     notice:nV,
     noticeU:document.getElementById("fNoticeU").value,
     renew:termMode==="fixed"?(document.getElementById("fRenew").value||""):"",
-    cancTerm:termMode!=="fixed"?(document.getElementById("fTermP").value||""):"",
+    cancTerm:(termMode==="open"||termMode==="trial")?(document.getElementById("fTermP").value||""):"",
     mand:document.getElementById("fMand").checked,
     noWatch:document.getElementById("fNoWatch").checked,
     noCancel:document.getElementById("fNoCancel").checked||undefined,
