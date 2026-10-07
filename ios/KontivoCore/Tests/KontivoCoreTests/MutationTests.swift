@@ -360,7 +360,7 @@ final class MutationTests: XCTestCase {
     }
 
     func testCatalog() {
-        XCTAssertEqual(Catalog.entries.count, 98)
+        XCTAssertEqual(Catalog.entries.count, 176)
         let css = Catalog.find(" css ")
         XCTAssertEqual(css?.cancelTerm, .yearEnd)
         XCTAssertEqual(css?.cancelChannel, .registered)

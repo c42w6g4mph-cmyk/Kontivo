@@ -39,7 +39,7 @@ final class WebSync07Tests: XCTestCase {
         // Länder-Variante über die Währung
         XCTAssertEqual(Catalog.match(names: ["AXA"], currency: .EUR)?.country, "DE")
         XCTAssertEqual(Catalog.match(names: ["AXA"], currency: .CHF)?.country, "CH")
-        XCTAssertNil(Catalog.match(names: ["Sparkasse Bodensee"], currency: .EUR))
+        XCTAssertNil(Catalog.match(names: ["Unbekannte Firma XY"], currency: .EUR))
     }
 
     func testCatalogFillPlan() {
