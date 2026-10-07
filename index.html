@@ -692,6 +692,7 @@ body.hasplus .topadd{display:inline-flex}
 @media (max-width:370px){.sortbtn .sortl{display:none}.sortbtn{padding:0 10px}}
 
 /* Kategorie kompakt */
+.catinfo{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;margin-left:7px;border-radius:50%;border:1.4px solid var(--ink3);color:var(--ink2);font:600 11.5px/1 Georgia,serif;font-style:italic;vertical-align:1px;cursor:pointer}
 .catfield{display:flex;align-items:center;gap:11px;width:100%;height:50px;padding:0 13px 0 8px;border-radius:12px;background:var(--field);margin-bottom:13px;text-align:left}
 .catfield .cfi{flex:none;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center}
 .catfield .cfi .cicon{width:19px;height:19px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -1465,8 +1466,9 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <div class="field"><label for="fWatch">In «Fristen» anzeigen</label><select id="fWatch">
     <option value="">Ja</option>
     <option value="mand">Ja – Pflichtvertrag (wechseln statt kündigen)</option>
-    <option value="nowatch">Nein – z.B. Miete</option></select></div>
-  <div hidden><input type="checkbox" id="fMand"><input type="checkbox" id="fNoWatch"></div>
+    <option value="nowatch">Nein – z.B. Miete</option>
+    <option value="fixed">Nein – nicht kündbar (z.B. Serafe, Rundfunkbeitrag)</option></select></div>
+  <div hidden><input type="checkbox" id="fMand"><input type="checkbox" id="fNoWatch"><input type="checkbox" id="fNoCancel"></div>
   <div class="two">
     <div class="field"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
       <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
@@ -2053,7 +2055,9 @@ function termEnd(c){var e0=parseD(c.end);if(!e0)return nextTerm(c);var r=+c.rene
 function renewAfter(c,T){var e0=parseD(c.end),r=+c.renew||0;if(!e0||!r||!T)return null;var e=e0,g=0;while(e<=T&&g<400){g++;e=addMonthsE(e0,g*r);}return e;}
 /* Steuern lassen sich nicht kündigen: keine Frist, nicht in «Fristen» */
 function isTax(c){return catKey(c.cat)==="Steuern & Gebühren"||/^Steuern/i.test(String(c.cat||""));}
-function noticeDeadline(c){if(isTax(c))return null;var e=termEnd(c);return e?nDl(c,e):null;}
+/* Nicht kündbar: Steuern & Gebühren automatisch, sonst c.noCancel (z.B. Serafe unter «Wohnen»). Keine Frist, nicht in «Fristen», kein Kündigen */
+function isFixed(c){return isTax(c)||!!c.noCancel;}
+function noticeDeadline(c){if(isFixed(c))return null;var e=termEnd(c);return e?nDl(c,e):null;}
 function urgency(c){
   var d=noticeDeadline(c);if(!d)return {lvl:"",days:null,date:null};
   var days=daysBetween(today(),d);
@@ -2072,7 +2076,7 @@ function active(){return Object.keys(state.contracts).map(function(k){var c=Obje
 function archived(){return Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;}).filter(function(c){return c.status==="cancelled"||isEnded(c);});}
 function isKept(c){var T=termEnd(c);return !!(T&&c.keptFor&&c.keptFor===iso(T));}
 function isAnytime(c){return !c.end&&(c.cancTerm==="m"||(c.cancTerm==="p"&&(+c.cycle||1)<=1));}
-function needsAction(c){if(c.cancelPer)return false;var T=termEnd(c);if(!T||isAnytime(c)||c.noWatch)return false;
+function needsAction(c){if(c.cancelPer||isFixed(c))return false;var T=termEnd(c);if(!T||isAnytime(c)||c.noWatch)return false;
   if(c.keptFor&&c.keptFor===iso(T))return false;var d=nDl(c,T),n=daysBetween(today(),d);return n>=0&&n<=30;}
 function trialNeeds(c){var d=parseD(c.trial),t=today();return !!(d&&d>=t&&daysBetween(t,d)<=30&&c.trialKept!==c.trial&&!c.cancelPer);}
 
@@ -2168,7 +2172,7 @@ function renderView(){
   document.getElementById("cArch").textContent=archived().length?archived().length:"";
   var tT0=today();
   var soon30=function(c){var d=noticeDeadline(c);return d&&daysBetween(tT0,d)<=30;};
-  var tCount=a.filter(function(c){return !isTax(c)&&(needsAction(c)||trialNeeds(c));}).length;
+  var tCount=a.filter(function(c){return !isFixed(c)&&(needsAction(c)||trialNeeds(c));}).length;
   document.getElementById("cTerm").textContent=tCount?tCount:"";
 
   if(state.tab==="list"){
@@ -2236,7 +2240,7 @@ function renderView(){
     v.innerHTML=lfbar+out+ab;return;
   }
   if(state.tab==="term"){
-    a=active().filter(function(c){return !isTax(c);});
+    a=active().filter(function(c){return !isFixed(c);});
     var H=esc(state.settings.home),t1=today(),o="";
     var isP=isAnytime;
     var ddmm=function(d){return ("0"+d.getDate()).slice(-2)+"."+("0"+(d.getMonth()+1)).slice(-2)+"."+(d.getFullYear()===t1.getFullYear()?"":String(d.getFullYear()).slice(-2));};
@@ -2859,19 +2863,25 @@ function buildCatChips(){
   document.getElementById("fCats").addEventListener("click",function(){openCatPick("c");});
   document.getElementById("iCats").addEventListener("click",function(){openCatPick("i");});
 }
+var TAX_INFO="Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge markierst du unter «In «Fristen» anzeigen».";
+function catInfoIc(){return '<span class="catinfo" role="button" tabindex="0" data-catinfo aria-label="Info: nicht kündbar">i</span>';}
 function paintCatField(pre,cat){
   var ic=document.getElementById(pre+"CatIcon"),nm=document.getElementById(pre+"CatName");
-  if(cat){ic.style.background=catColor(cat);ic.innerHTML=catIcon(cat);nm.textContent=cat;nm.classList.remove("ph");}
+  if(cat){ic.style.background=catColor(cat);ic.innerHTML=catIcon(cat);nm.innerHTML=esc(cat)+(catKey(cat)==="Steuern & Gebühren"?catInfoIc():"");nm.classList.remove("ph");}
   else{ic.style.background="var(--sunken)";ic.innerHTML="";nm.textContent="Kategorie wählen";nm.classList.add("ph");}
 }
-function paintCats(){paintCatField("f",draft.cat);}
+function paintCats(){paintCatField("f",draft.cat);
+  /* Steuern & Gebühren sind immer nicht kündbar: Auswahl fest auf «nicht kündbar» */
+  var w=document.getElementById("fWatch"),tx=catKey(draft.cat||"")==="Steuern & Gebühren";if(!w)return;w.disabled=tx;if(tx)w.value="fixed";else syncWatch();}
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-catinfo]");if(!b)return;e.preventDefault();e.stopPropagation();
+  ask({title:"Nicht kündbar",text:TAX_INFO,alert:true});},true);
 function openCatPick(kind){
   var list=kind==="c"?allCats():INC_CATS,cur=kind==="c"?draft.cat:idraft.cat;
   document.getElementById("pickTitle").textContent="Kategorie";
   var l=document.getElementById("pickList");l.dataset.dim="catpick-"+kind;
   l.innerHTML=list.map(function(k){
     return '<button class="pick pickcat" data-pv="'+esc(k)+'" aria-pressed="'+(cur===k)+'"><span class="pci" style="background:'+catColor(k)+'">'+catIcon(k)+
-      '</span><span class="pcn">'+esc(k)+"</span></button>";}).join("")+
+      '</span><span class="pcn">'+esc(k)+(kind==="c"&&catKey(k)==="Steuern & Gebühren"?catInfoIc():"")+"</span></button>";}).join("")+
     (kind==="c"?'<div class="catadd"><input id="newCat" type="text" placeholder="Eigene Kategorie, z.B. Haustier" autocomplete="off" maxlength="30"><button type="button" id="newCatAdd">Hinzufügen</button></div>':"");
   var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
 }
@@ -3052,7 +3062,7 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   selVal("fCancF",c&&c.cancF);document.getElementById("fCancUrl").value=(c&&c.cancUrl)||"";syncCancUrl();
   document.getElementById("fTrial").value=(c&&c.trial)||"";
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
-  document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
+  document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);document.getElementById("fNoCancel").checked=!!(c&&c.noCancel);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
   document.getElementById("fSugg").innerHTML="";
   document.getElementById("fWeb").value=(c&&c.web)||"";var pgA=c&&c.partner&&!c.addr?peGroup(String(c.partner).trim().toLowerCase()):null;document.getElementById("fAddr").value=(c&&c.addr)||(pgA&&pgA.addr)||"";fAddrPaint();
   document.getElementById("fTel").value=(c&&c.tel)||"";
@@ -3334,8 +3344,10 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
   if(t[14]&&!$("fTel").value)$("fTel").value=t[14];
   if(t[13]&&!$("fMail").value)$("fMail").value=t[13];
   if(t[12]&&!$("fAddr").value.trim()){$("fAddr").value=t[12];fAddrPaint();paintOptCounts();}
-  if(onlyEmpty){if(t[9]&&!$("fMand").checked&&!$("fNoWatch").checked)$("fMand").checked=true;}
-  else{$("fMand").checked=!!t[9];if(t[9])$("fNoWatch").checked=false;}
+  /* Katalog «Steuern & Gebühren» (Serafe, Rundfunkbeitrag): nicht kündbar statt Pflichtvertrag */
+  var tFix=t[2]==="Steuern & Gebühren";
+  if(onlyEmpty){if(tFix&&!$("fMand").checked&&!$("fNoWatch").checked)$("fNoCancel").checked=true;else if(t[9]&&!tFix&&!$("fMand").checked&&!$("fNoWatch").checked&&!$("fNoCancel").checked)$("fMand").checked=true;}
+  else{$("fNoCancel").checked=tFix;$("fMand").checked=!!t[9]&&!tFix;if(t[9]||tFix)$("fNoWatch").checked=false;}
   syncWatch();
   if(t[1]==="DE"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="EUR";
   if(t[1]==="CH"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="CHF";
@@ -3399,10 +3411,10 @@ function updTermHint(){
 document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if(termMode==="open"&&!tp.value&&+this.value>=6){tp.value="p";updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}});
 ["fTermP","fNotice","fNoticeU","fStart","fDue","fCycle","fEnd","fRenew"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updTermHint);el.addEventListener("change",updTermHint);});
 document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(b)setTermMode(b.dataset.tm);});
-function syncWatch(){var m=document.getElementById("fMand").checked,n=document.getElementById("fNoWatch").checked;
-  document.getElementById("fWatch").value=m?"mand":(n?"nowatch":"");}
+function syncWatch(){var m=document.getElementById("fMand").checked,n=document.getElementById("fNoWatch").checked,f=document.getElementById("fNoCancel").checked;
+  document.getElementById("fWatch").value=f?"fixed":(m?"mand":(n?"nowatch":""));}
 document.getElementById("fWatch").addEventListener("change",function(){var v=this.value;
-  document.getElementById("fMand").checked=v==="mand";document.getElementById("fNoWatch").checked=v==="nowatch";});
+  document.getElementById("fMand").checked=v==="mand";document.getElementById("fNoWatch").checked=v==="nowatch";document.getElementById("fNoCancel").checked=v==="fixed";});
 document.getElementById("iLogoTap").addEventListener("click",function(){var d=document.getElementById("oILogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 document.getElementById("logoTap").addEventListener("click",function(){var d=document.getElementById("oLogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 function syncCancUrl(){document.getElementById("fCancUrlW").hidden=document.getElementById("fCancF").value!=="Online / Kundenkonto";}
@@ -3507,6 +3519,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
     cancTerm:termMode==="open"?(document.getElementById("fTermP").value||""):"",
     mand:document.getElementById("fMand").checked,
     noWatch:document.getElementById("fNoWatch").checked,
+    noCancel:document.getElementById("fNoCancel").checked||undefined,
     custNo:document.getElementById("fCustNo").value.trim(),
     contrNo:document.getElementById("fContrNo").value.trim(),
     holders:holdersSorted(draft.holders),
@@ -3524,7 +3537,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
     status:(prev&&prev.status)||"active",
     cancelledAt:(prev&&prev.cancelledAt)||"",
     t:(prev&&prev.t)||Date.now()
-  });delete c._id;if(c.split===undefined)delete c.split;
+  });delete c._id;if(c.split===undefined)delete c.split;if(!c.noCancel)delete c.noCancel;
   /* Logo eines anderen Vertrags desselben Vertragspartners übernehmen, ausser es wurde im Formular entfernt.
      Keine automatische Logo-Suche im Hintergrund (Logos nur als Vorschlag mit Bestätigung) */
   if(!editId&&!c.logoId&&c.partner&&!draft.logoRemoved){var sib=samePartner(c.partner).filter(function(k){var o=state.contracts[k];return o.logoId&&KBlob.has(o.logoId);})[0];
@@ -4150,8 +4163,8 @@ function termLine(c,u){var T=termEnd(c),t0=today(),D=u.date,tot=Math.max(1,daysB
 function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var c=Object.assign({},state.contracts[idv]);c._id=idv;
   /* gekündigt (Archiv oder «gekündigt per») oder abgelaufen: keine Frist und kein nächster Termin mehr */
-  var gone=c.status==="cancelled"||!!c.cancelPer||endedByTerm(c);
-  var u=gone?{lvl:"",days:null,date:null}:urgency(c),nd=nextDue(c),e=effEnd(c);
+  var gone=c.status==="cancelled"||!!c.cancelPer||endedByTerm(c),fixd=isFixed(c);
+  var u=gone||fixd?{lvl:"",days:null,date:null}:urgency(c),nd=nextDue(c),e=effEnd(c);
   var rt=gone?null:renewTo(c);
   /* Summe aller Zahlungen seit Vertragsbeginn bis heute (occurrences + Sonderzahlungen), nur mit erfasstem Beginn */
   var paidSoFar=null;(function(){var s0=parseD(c.start),t0=today();if(!s0||s0>=t0)return;var sum=0;
@@ -4166,11 +4179,11 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
    ["Laufzeit & Kündigung",[
     c.start?["Beginn",fmtD(c.start)]:null,
     c.end?["Vertragsende",fmtD(iso(e))+(!gone&&termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
-    ["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
+    fixd?["Kündigung",isTax(c)?"nicht kündbar · Steuern & Gebühren":"nicht kündbar"]:["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
     u.date?(u.days>=0&&termEnd(c)?["",termLine(c,u),true]:["Nächster Termin","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)+" (abgelaufen)"]):null,
-    c.mand?["Pflichtvertrag","nur Wechsel möglich"]:null,
-    c.noWatch?["Frist","wird nicht beobachtet"]:null,
-    rt?["Sonst verlängert bis",fmtD(iso(rt))]:(c.renew?["Verlängerung","automatisch um "+c.renew+(+c.renew===1?" Monat":" Monate")]:null),
+    c.mand&&!fixd?["Pflichtvertrag","nur Wechsel möglich"]:null,
+    c.noWatch&&!fixd?["Frist","wird nicht beobachtet"]:null,
+    fixd?null:rt?["Sonst verlängert bis",fmtD(iso(rt))]:(c.renew?["Verlängerung","automatisch um "+c.renew+(+c.renew===1?" Monat":" Monate")]:null),
     c.cancF?["Kündigung per",c.cancF]:null,
     c.cancelPer&&c.cancelledOn?["Gekündigt am",fmtD(c.cancelledOn)]:null,
     c.trial?["Probeabo endet",fmtD(c.trial)]:null]],
@@ -4191,11 +4204,12 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
            isKept(c)?'<span class="pill">Behalten bis nächster Termin</span>':
            u.lvl==="alert"?'<span class="pill alert">Frist '+inDays(u.days)+"</span>":
            u.lvl==="warn"?'<span class="pill warn">Frist '+inDays(u.days)+"</span>":"";
+  if(!gone&&fixd&&!pill)pill='<span class="pill">Nicht kündbar</span>';
   if(!gone&&isPaused(c))pill='<span class="pill">Pausiert '+(c.pausedUntil?"bis "+fmtD(c.pausedUntil):"seit "+fmtD(c.pausedAt||iso(today())))+"</span>";
   var nc=nextChange(c);
   if(nc)pill+='<span class="pill warn">Neuer Preis ab '+fmtD(nc.from)+": "+money(nc.amount)+" "+esc(c.cur)+"</span>";
   /* Preiserhöhung (angekündigt oder in den letzten 60 Tagen): Hinweis auf ein mögliches Sonderkündigungsrecht */
-  var skr=!gone&&!isTax(c)&&(function(){var t=today(),ps=pricesOf(c),prev=+c.amount||0;for(var i=0;i<ps.length;i++){var f=parseD(ps[i].from);
+  var skr=!gone&&!isFixed(c)&&(function(){var t=today(),ps=pricesOf(c),prev=+c.amount||0;for(var i=0;i<ps.length;i++){var f=parseD(ps[i].from);
       if(f>t)return +ps[i].amount>priceAt(c,t);if(daysBetween(f,t)<=60&&+ps[i].amount>prev)return true;prev=+ps[i].amount;}return false;})();
   var ps=pricesOf(c),hist="";
   if(ps.length){
@@ -4214,7 +4228,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       return '<div class="prow"><span class="pd">'+fmtD(x.date)+(x.note?" · "+esc(x.note):"")+(cr?'<span class="tag">Gutschrift</span>':"")+(parseD(x.date)>t2?'<span class="tag fut">geplant</span>':"")+
         '</span><span class="pa'+(cr?" cr":"")+'">'+(cr?"−":"")+money(Math.abs(x.amount))+" "+esc(c.cur)+"</span></div>";}).join("")+"</div>";}
   /* Hauptaktionen (Kündigen, Pausieren) als Leiste oben wie in «Fristen», seltene Aktionen bleiben unten */
-  var acts=(c.cancelPer||c.status==="cancelled"?"":function(){var v=cancVia(c);return '<button type="button" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
+  var acts=(c.cancelPer||c.status==="cancelled"||fixd?"":function(){var v=cancVia(c);return '<button type="button" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
       (v==="online"?"Online kündigen":v==="mail"?"Per E-Mail kündigen":v==="post"?"Kündigungsschreiben":"Kündigen …")+'</button>';}())+
     (c.status!=="cancelled"?'<button type="button" data-act="pause">'+(isPaused(c)?"Fortsetzen":"Pausieren")+"</button>":"");
   var docs=(c.docs||[]).map(function(d,i){return '<div class="doc"><button class="open" data-doc="'+i+'">'+(isPdf(d)?"📄 ":"🖼 ")+esc(d.name)+"</button></div>";}).join("");
@@ -4328,7 +4342,7 @@ function openCancViaPick(idv,trial){
 /* ---------- Quartals-Check pro Vertrag: c.review = {v: keep|kill, at: Datum}; «kill» landet in «Fristen» unter «Zum Kündigen vorgemerkt» ----------
    SwiftUI: Sheet mit List und Picker(.segmented) pro Zeile */
 function reviewKill(c){return !!(c.review&&c.review.v==="kill");}
-function reviewList(){return running().filter(function(c){return !isTax(c)&&!c.cancelPer&&!notStarted(c);}).sort(function(x,y){return monthlyCost(y)-monthlyCost(x);});}
+function reviewList(){return running().filter(function(c){return !isFixed(c)&&!c.cancelPer&&!notStarted(c);}).sort(function(x,y){return monthlyCost(y)-monthlyCost(x);});}
 function openReview(){
   var H=esc(state.settings.home),list=reviewList(),t0=today();
   document.getElementById("pickTitle").textContent="Quartals-Check";
@@ -4696,7 +4710,7 @@ function qualItems(){
     if(!(+c.cycle>0))add("A","c:"+k+":cycle",Object.assign({why:"Zahlungsweise fehlt"},base));
     if(!parseD(c.due))add("B","c:"+k+":due",Object.assign({why:"Kein Fälligkeitsdatum"},base));
     /* Kündigen: je nach Kündigungsweg; Absender-Bedarf pro Inhaber (2 = Adresse für Brief, 1 = Name für E-Mail). Bereits gekündigte zählen nicht */
-    if(!isTax(c)&&!c.cancelPer){var via=cancVia(c);
+    if(!isFixed(c)&&!c.cancelPer){var via=cancVia(c);
       if(!via)add("D","c:"+k+":via",Object.assign({why:"Kündigungsweg festlegen"},base));
       else{if(!c.custNo&&!c.contrNo)add("D","c:"+k+":ref",Object.assign({why:"Kundennummer fehlt"},base));
         if(via==="online"&&!cancLink(c))add("D","c:"+k+":link",Object.assign({why:"Kündigungslink fehlt"},base));
@@ -4707,7 +4721,7 @@ function qualItems(){
         var lv=via==="post"?2:via==="mail"?1:0;holdersOf(c).forEach(function(h){hUsed[h]=Math.max(hUsed[h]||0,lv);});}}
     /* Frist: nur, wenn der Vertrag überwacht wird; fehlt die Frist oder lässt sich kein Termin berechnen (keine Laufzeit, kein Rhythmus).
        Frist 0 bei Termin auf Quartal/Halbjahr/Jahr/Vertragsjahr oder fester Laufzeit: Kündigung am letzten Tag ist kaum je richtig */
-    if(!c.cancelPer&&!c.noWatch&&!c.mand&&!isTax(c)){var nN=+c.notice||0;
+    if(!c.cancelPer&&!c.noWatch&&!c.mand&&!isFixed(c)){var nN=+c.notice||0;
       if(!noticeDeadline(c)){if(!anyNotice(c))add("B","c:"+k+":notice",Object.assign({why:(!nN&&!c.cancTerm)?"Keine Kündigungsfrist":"Laufzeit oder Rhythmus fehlt"},base));}
       else if(!nN&&(c.end||/^[ayqh]$/.test(c.cancTerm||"")))add("B","c:"+k+":notice",Object.assign({why:"Keine Kündigungsfrist"},base));}
   });
