@@ -222,9 +222,32 @@ private struct CTFormContractSection: View {
         .listRowBackground(KColor.surface)
     }
 
+    @State private var showTaxInfo = false
+
+    /// Text des Infoknopfs hinter «Steuern & Gebühren» (Web TAX_INFO, v88)
+    static let taxInfo = "Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge markierst du unter «In «Fristen» anzeigen»."
+
     private var categoryRow: some View {
         let cat = model.data.category(form.categoryID)
-        return Button {
+        return HStack(spacing: 6) {
+            categoryButton(cat)
+            if cat?.kind == .taxes {
+                Button { showTaxInfo = true } label: {
+                    Image(systemName: "info.circle").font(.body).foregroundStyle(KColor.ink2)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Info: nicht kündbar")
+            }
+        }
+        .alert("Nicht kündbar", isPresented: $showTaxInfo) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(CTFormContractSection.taxInfo)
+        }
+    }
+
+    private func categoryButton(_ cat: KontivoCore.Category?) -> some View {
+        Button {
             form.showCategoryPicker = true
         } label: {
             HStack(spacing: 10) {
@@ -242,6 +265,7 @@ private struct CTFormContractSection: View {
             }
             .contentShape(Rectangle())
         }
+        .buttonStyle(.borderless)
         .accessibilityLabel("Kategorie, " + (cat?.name ?? "Kategorie wählen"))
         .accessibilityIdentifier("form.category")
     }
@@ -263,14 +287,18 @@ private struct CTFormContractSection: View {
     }
 }
 
-/// Aufteilung bei gemeinsamen Verträgen: «Gleich aufgeteilt» oder «Individuell» mit Schieberegler je Inhaber (bei 2 Inhabern einer),
-/// Anzeige Prozent und Betrag pro Zahlung; der letzte Inhaber ergibt sich aus 100 − übrige (Web paintSplit/spRefresh).
+/// Aufteilung bei gemeinsamen Verträgen (Web v82–v84): «Gleich aufgeteilt» oder «Individuell» mit Beträgen pro Zahlung
+/// (auf den Rappen, zum aktuellen Preis), Prozent darunter. 2 Inhaber: Namen oben, Regler (50-Rappen-Schritte, nach rechts = mehr
+/// für die rechte Person), darunter beide Felder; das andere passt sich an. Ab 3: nur Felder nebeneinander, letzter = Rest.
 private struct CTFormSplitRows: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
+    @State private var texts: [UUID: String] = [:]
+    @FocusState private var focused: UUID?
 
     var body: some View {
         let holders = form.holderIDs.compactMap { model.data.person($0) }
+        let total = form.splitTotal(today: model.today)
         VStack(alignment: .leading, spacing: 8) {
             Picker("Aufteilung", selection: Binding(get: { form.splitIndividual }, set: { form.setSplitIndividual($0) })) {
                 Text("Gleich aufgeteilt").tag(false)
@@ -279,59 +307,78 @@ private struct CTFormSplitRows: View {
             .pickerStyle(.segmented)
             .accessibilityIdentifier("form.split")
             if form.splitIndividual {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 8) {
                     if holders.count == 2 {
-                        HStack(alignment: .bottom) {
-                            label(holders[0], align: .leading)
+                        HStack {
+                            Text(holders[0].name).font(.subheadline.weight(.semibold)).lineLimit(1)
                             Spacer(minLength: 8)
-                            label(holders[1], align: .trailing)
+                            Text(holders[1].name).font(.subheadline.weight(.semibold)).lineLimit(1)
                         }
-                        slider(holders[0])
-                    } else {
+                        .foregroundStyle(KColor.ink)
+                        if total > 0 {
+                            Slider(value: Binding(get: { form.splitAmount(holders[1].id, total: total) },
+                                                  set: { v in focused = nil; texts = [:]; form.setSplitAmount(holders[1].id, min(v, total), total: total) }),
+                                   in: 0...(total * 2).rounded(.up) / 2, step: 0.5)
+                                .tint(KColor.ink3)
+                                .accessibilityLabel("Aufteilung, Betrag " + holders[1].name)
+                                .accessibilityValue(Format.money(form.splitAmount(holders[1].id, total: total)) + " " + form.currency.rawValue)
+                        }
+                    }
+                    let cols = holders.count == 3 ? 3 : 2
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10, alignment: .top), count: cols), alignment: .leading, spacing: 10) {
                         ForEach(Array(holders.enumerated()), id: \.element.id) { i, p in
-                            if i > 0 { Divider().overlay(KColor.line) }
-                            HStack {
-                                Text(p.name).font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
-                                Spacer(minLength: 8)
-                                value(p)
-                            }
-                            if i < holders.count - 1 {
-                                slider(p)
-                            } else {
-                                Text("Rest, ergibt sich automatisch").font(.caption).foregroundStyle(KColor.ink3)
+                            let rest = holders.count > 2 && i == holders.count - 1
+                            VStack(alignment: holders.count == 2 && i == 1 ? .trailing : .leading, spacing: 5) {
+                                if holders.count > 2 {
+                                    Text(p.name).font(.footnote.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
+                                }
+                                if rest {
+                                    Text(verbatim: Format.money(form.splitAmount(p.id, total: total)))
+                                        .font(.body.weight(.semibold).monospacedDigit())
+                                        .frame(maxWidth: .infinity, alignment: .trailing)
+                                        .padding(.horizontal, 10).padding(.vertical, 9)
+                                        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(KColor.line, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+                                } else {
+                                    TextField("0.00", text: amountBinding(p.id, total: total))
+                                        .keyboardType(.decimalPad)
+                                        .multilineTextAlignment(.trailing)
+                                        .monospacedDigit()
+                                        .focused($focused, equals: p.id)
+                                        .padding(.horizontal, 10).padding(.vertical, 9)
+                                        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.surface))
+                                        .accessibilityLabel("Betrag " + p.name)
+                                        .disabled(total <= 0)
+                                }
+                                Text(verbatim: pct(form.splitPercent(p.id)) + (rest ? " · Rest" : ""))
+                                    .font(.caption.monospacedDigit()).foregroundStyle(KColor.ink2)
                             }
                         }
                     }
+                    Text(verbatim: total > 0 ? "Total " + Format.money(total) + " " + form.currency.rawValue + " pro Zahlung" : "Zuerst den Betrag unter «Kosten» eintragen.")
+                        .font(.caption).foregroundStyle(KColor.ink2)
                 }
                 .padding(.horizontal, 14).padding(.vertical, 12)
                 .background(KColor.field, in: RoundedRectangle(cornerRadius: 12))
+                .onChange(of: focused) { old, _ in if let o = old { texts[o] = nil } }
             }
         }
         .padding(.vertical, 4)
     }
 
-    private func label(_ p: Person, align: HorizontalAlignment) -> some View {
-        VStack(alignment: align, spacing: 2) {
-            Text(p.name).font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
-            value(p)
-        }
+    private func pct(_ v: Double) -> String {
+        let r = (v * 10).rounded() / 10
+        return (r == r.rounded() ? String(Int(r)) : String(format: "%.1f", r)) + "\u{00A0}%"
     }
 
-    private func value(_ p: Person) -> some View {
-        let pc = form.splitPercent(p.id)
-        let amt = (CTNumber.parse(form.amountText) ?? 0) * Double(pc) / 100
-        return (Text(verbatim: String(pc) + "\u{00A0}%").fontWeight(.semibold).foregroundColor(KColor.ink)
-                + Text(verbatim: " · " + Format.money(amt) + "\u{00A0}" + form.currency.rawValue).foregroundColor(KColor.ink2))
-            .font(.footnote.monospacedDigit())
-            .lineLimit(1)
-    }
-
-    private func slider(_ p: Person) -> some View {
-        Slider(value: Binding(get: { Double(form.splitPercent(p.id)) },
-                              set: { form.setSplitPercent(p.id, Int($0.rounded())) }), in: 0...100, step: 1)
-            .tint(KColor.teal)
-            .accessibilityLabel("Anteil " + p.name)
-            .accessibilityValue(String(form.splitPercent(p.id)) + " Prozent")
+    /// Während der Eingabe bleibt der getippte Text stehen; sonst der formatierte Betrag.
+    private func amountBinding(_ id: UUID, total: Double) -> Binding<String> {
+        Binding(
+            get: { focused == id ? (texts[id] ?? String(format: "%.2f", form.splitAmount(id, total: total))) : String(format: "%.2f", form.splitAmount(id, total: total)) },
+            set: { v in
+                texts[id] = v
+                form.setSplitAmount(id, CTNumber.parse(v) ?? 0, total: total)
+            }
+        )
     }
 }
 
@@ -593,15 +640,57 @@ private struct CTFormTermSection: View {
                     Text("Ende Vertragsjahr").tag(CancelTerm.contractYear)
                 }
             }
+            // Fristen-Angaben (seit Web v80 hier statt unter «Weitere Angaben»)
+            let isTax = model.data.category(form.categoryID)?.kind == .taxes
+            Picker("In «Fristen» anzeigen", selection: isTax ? Binding<CTFormState.Watch>.constant(.fixed) : $form.watch) {
+                Text("Ja").tag(CTFormState.Watch.yes)
+                Text("Ja – Pflichtvertrag (wechseln statt kündigen)").tag(CTFormState.Watch.mandatory)
+                Text("Nein – z.B. Miete").tag(CTFormState.Watch.noWatch)
+                Text("Nein – nicht kündbar (z.B. Serafe, Rundfunkbeitrag)").tag(CTFormState.Watch.fixed)
+            }
+            .disabled(isTax)
+            .accessibilityIdentifier("form.watch")
+            Picker("Kündigungsweg", selection: $form.cancelChannel) {
+                Text("—").tag(CancelChannel?.none)
+                ForEach(CancelChannel.allCases, id: \.self) { ch in
+                    Text(ch.webText).tag(CancelChannel?.some(ch))
+                }
+            }
+            CTOptionalDateRow(title: "Probeabo endet", day: $form.trial, fallback: today.addingMonths(1))
+            if form.cancelChannel == .online {
+                CTField(title: "Kündigungslink", placeholder: "netflix.com/cancelplan", text: $form.cancelURL,
+                        keyboard: .URL, capitalization: .never, autocorrect: false)
+            }
+            Toggle("Mietvertrag", isOn: rentBinding)
         } header: {
             Text("Laufzeit & Kündigung")
         } footer: {
-            let hint = form.termHint(model.data, today: today)
-            if !hint.isEmpty {
-                Text(hint)
+            VStack(alignment: .leading, spacing: 6) {
+                let hint = form.termHint(model.data, today: today)
+                if !hint.isEmpty {
+                    Text(hint)
+                }
+                if model.data.category(form.categoryID)?.kind == .taxes {
+                    Text("Steuern und Gebühren sind nicht kündbar: keine Fristen, kein Kündigen.")
+                }
+                if form.cancelChannel == .online {
+                    Text("Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.")
+                }
+                Text("Miete braucht immer einen Brief mit Unterschrift.")
             }
         }
         .listRowBackground(KColor.surface)
+    }
+
+    private var rentBinding: Binding<Bool> {
+        Binding(
+            get: {
+                if let r = form.isRent { return r }
+                let kind = model.data.category(form.categoryID)?.kind
+                return Letter.isRentHeuristic(label: form.label, partner: form.partnerName, kind: kind)
+            },
+            set: { form.isRent = $0 }
+        )
     }
 }
 

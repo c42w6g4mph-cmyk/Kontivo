@@ -245,13 +245,36 @@ final class MutationTests: XCTestCase {
         let o = calc.deadlineOverview()
         // Seit 04.10.2026: Entscheidung erst 30 Tage vor der Frist, «dringend» ab 7 Tagen
         XCTAssertEqual(o.openCount, 1)
-        XCTAssertEqual(o.decisions.map { $0.trial }, [true])
-        XCTAssertEqual(o.decisions[0].line, "Probeabo endet 20.10. · noch 17 Tage")
-        XCTAssertEqual(o.headerBold, "1 offen")
-        XCTAssertEqual(o.headerRest, " · nächste Frist in 17 Tagen")
-        XCTAssertEqual(o.upcoming.map { $0.text }, ["Frist 30.11.26"])
-        XCTAssertEqual(o.anytime.map { $0.text }, ["nächste Frist 31.10.", "zum Periodenende"])
+        // Variante 1: eine Liste nach Datum, Knöpfe nur bei Probeabo / ≤ 30 Tage vor Frist / ≤ 61 Tage vor Ende
+        XCTAssertEqual(o.items.map { $0.kind }, [.trial, .open])
+        XCTAssertEqual(o.items[0].sub, "Probeabo bis 20.10.")
+        XCTAssertEqual(o.items[0].chip, "in 17 Tagen")
+        XCTAssertEqual(o.items[0].chipLevel, .warn)
+        XCTAssertTrue(o.items[0].showActions)
+        XCTAssertEqual(o.items[1].sub, "Kündigung bis 30.11.")
+        XCTAssertEqual(o.items[1].chip, "in 58 Tagen")
+        XCTAssertEqual(o.items[1].chipLevel, .none)
+        XCTAssertFalse(o.items[1].showActions)
+        XCTAssertEqual(o.status?.title, "1 Entscheidung offen")
+        XCTAssertEqual(o.status?.subtitle, "Nächste Frist in 17 Tagen")
+        XCTAssertEqual(o.status?.kind, .warn)
+        XCTAssertEqual(o.flexible.count, 2)
+        let nf = o.flexible.first { $0.contractID == data.contracts[1].id }
+        XCTAssertEqual(nf?.sub, "Ohne Frist")
+        XCTAssertEqual(nf?.chip, "endet 31.10.")
+        XCTAssertEqual(o.flexCountText, "2 Verträge")
         XCTAssertEqual(calc.deadlineBadgeCount, 1)
+        // nicht kündbar: weder Liste noch Flexibel noch Zähler
+        var fixed = data
+        fixed.contracts[0].noCancel = true
+        fixed.contracts[1].noCancel = true
+        let fo = Calc(data: fixed, today: Day(2026, 10, 3)).deadlineOverview()
+        XCTAssertEqual(fo.items.map { $0.kind }, [.trial])
+        XCTAssertEqual(fo.flexible.count, 1)
+        XCTAssertNil(Calc(data: fixed, today: Day(2026, 10, 3)).noticeDeadline(fixed.contracts[0]))
+        // 61 Tage vor Vertragsende erscheinen die Knöpfe
+        let near = Calc(data: data, today: Day(2026, 11, 1)).deadlineOverview()
+        XCTAssertEqual(near.items.first { $0.contractID == data.contracts[0].id }?.showActions, true)
         // 58 Tage vor der Frist: Entscheidung ja, sobald ≤ 30 Tage
         let later = Calc(data: data, today: Day(2026, 11, 1))
         XCTAssertTrue(later.needsAction(data.contracts[0]))

@@ -245,6 +245,9 @@ struct ManagePageView: View {
 /// Übersicht «Verwalten» (wie der Abschnitt «Verwalten» in «Mehr», paintMdSummary)
 struct MDOverviewPage: View {
     @Environment(AppModel.self) private var model
+    @State private var fillPlan: [CatalogFillItem] = []
+    @State private var askFill = false
+    @State private var nothingToFill = false
 
     var body: some View {
         List {
@@ -252,11 +255,56 @@ struct MDOverviewPage: View {
                 partnersRow
                 personsRow
                 categoriesRow
+                catalogFillRow
                 qualityRow
             }
         }
         .mdListStyle()
         .navigationTitle("Verwalten")
+        .alert(Format.count(fillPlan.count, "Vertrag", "Verträge") + " ergänzen?", isPresented: $askFill) {
+            Button("Abbrechen", role: .cancel) {}
+            Button("Ergänzen") { runFill() }
+        } message: {
+            Text(fillMessage)
+        }
+        .alert("Nichts zu ergänzen", isPresented: $nothingToFill) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Für deine Verträge fehlen keine Kontaktdaten, die der Katalog kennt, oder der Vertragspartner heisst anders als im Katalog.")
+        }
+    }
+
+    /// «Kontaktdaten ergänzen» (Web b520636): Adresse, E-Mail, Telefon und Website aus dem Anbieter-Katalog, nur leere Felder.
+    private var catalogFillRow: some View {
+        Button {
+            fillPlan = model.data.catalogFillPlan()
+            if fillPlan.isEmpty { nothingToFill = true } else { askFill = true }
+        } label: {
+            MDOverviewRow(title: "Kontaktdaten ergänzen", subtitle: "Adresse, E-Mail, Telefon aus dem Anbieter-Katalog, nur leere Felder",
+                          trailing: "", color: KColor.ink2, bold: false)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("manage.catalogFill")
+        .mdRow()
+    }
+
+    private var fillMessage: String {
+        let lines = fillPlan.prefix(12).map { it -> String in
+            let t = model.data.contract(it.contractID).map { model.data.title(of: $0) } ?? ""
+            return "• " + t + " → " + it.entryName
+        }
+        var m = lines.joined(separator: "\n") + (fillPlan.count > 12 ? "\n… und \(fillPlan.count - 12) weitere" : "")
+        m += "\n\nNur leere Felder werden gefüllt."
+        let unv = fillPlan.filter { !$0.confirmed }.count
+        if unv > 0 { m += "\n\(unv) davon mit nicht offiziell bestätigten Daten – vor dem Versand prüfen." }
+        return m
+    }
+
+    private func runFill() {
+        let plan = fillPlan
+        if model.update({ $0.applyCatalogFill(plan) }) {
+            model.toast(Format.count(plan.count, "Vertrag", "Verträge") + " ergänzt")
+        }
     }
 
     private var partnersRow: some View {

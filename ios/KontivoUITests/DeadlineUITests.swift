@@ -6,9 +6,9 @@ final class DeadlineUITests: KontivoUITestCase {
 
     private var keepButtons: XCUIElementQuery { buttons("Behalten") }
 
-    /// Kopfzeile «3 offen · …»
+    /// Status «3 Entscheidungen offen» bzw. «1 Entscheidung offen» (Variante 1)
     private func openCount() -> Int? {
-        let q = app.staticTexts.matching(pred("label MATCHES %@", "^[0-9]+ offen.*"))
+        let q = app.staticTexts.matching(pred("label MATCHES %@", "^[0-9]+ Entscheidung(en)? offen.*"))
         guard q.firstMatch.exists else { return nil }
         let label = q.firstMatch.label
         return Int(label.prefix { $0.isNumber })
@@ -16,28 +16,30 @@ final class DeadlineUITests: KontivoUITestCase {
 
     func testBehaltenUndAlsGekuendigtMarkieren() {
         launch("-uiDemo", "-uiTab", "deadlines")
-        wait(keepButtons.firstMatch, "Entscheidungskarten")
-        let n0 = keepButtons.count
+        wait(keepButtons.firstMatch, "Liste mit Knöpfen")
+        // Knöpfe gibt es ab 30 Tagen vor der Frist oder 2 Monaten vor Vertragsende → mindestens so viele wie offene Entscheidungen
+        let b0 = keepButtons.count
+        guard let n0 = openCount() else { return XCTFail("Status «… offen» fehlt") }
         XCTAssertGreaterThanOrEqual(n0, 2, "Beispieldaten sollten mindestens 2 offene Entscheidungen haben")
-        waitUntil("Kopfzeile «\(n0) offen»") { self.openCount() == n0 }
+        XCTAssertGreaterThanOrEqual(b0, n0)
 
-        // Behalten
+        // Behalten (erste Zeile = früheste Frist)
         tap(keepButtons.firstMatch, "Behalten")
-        waitUntil("Eine Entscheidung weniger") { self.keepButtons.count == n0 - 1 }
-        waitUntil("Kopfzeile «\(n0 - 1) offen»") { self.openCount() == n0 - 1 || (n0 == 1 && self.elContaining("Alles erledigt").exists) }
+        waitUntil("Ein Knopfpaar weniger") { self.keepButtons.count == b0 - 1 }
+        waitUntil("Status «\(n0 - 1) offen»") { self.openCount() == n0 - 1 || (n0 == 1 && self.elContaining("Alles erledigt").exists) }
 
         // Kündigen → Als gekündigt markieren
         let kill = buttons("Kündigen").firstMatch
         tap(kill, "Kündigen")
         tap(buttonStarting("Als gekündigt markieren"), "Als gekündigt markieren")
-        waitUntil("Noch eine Entscheidung weniger") { self.keepButtons.count == n0 - 2 }
+        waitUntil("Noch ein Knopfpaar weniger") { self.keepButtons.count == b0 - 2 }
         if n0 - 2 > 0 {
-            waitUntil("Kopfzeile «\(n0 - 2) offen»") { self.openCount() == n0 - 2 }
+            waitUntil("Status «\(n0 - 2) offen»") { self.openCount() == n0 - 2 }
         } else {
             wait(elContaining("Alles erledigt"), "Alles erledigt")
         }
-        // Der gekündigte Vertrag steht jetzt bei «Kommende Termine» als «gekündigt · endet …»
-        wait(elContaining("gekündigt · endet"), "Eintrag «gekündigt · endet»")
+        // Der gekündigte Vertrag steht in der Liste als «Gekündigt» mit Chip «endet …»
+        wait(elContaining("Gekündigt"), "Eintrag «Gekündigt»")
     }
 
     func testKuendigungsschreibenPDFUndZurueck() {
@@ -108,6 +110,6 @@ final class DeadlineUITests: KontivoUITestCase {
             tapAlertButton("Verwerfen")
         }
         waitUntil("Formular geschlossen") { !self.navExists("Neuer Anbieter") }
-        wait(elContaining("gekündigt · endet"), "Krankenkasse als gekündigt bei «Kommende Termine»")
+        wait(elContaining("Gekündigt"), "Krankenkasse als «Gekündigt» in der Liste")
     }
 }

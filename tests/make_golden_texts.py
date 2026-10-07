@@ -7,7 +7,7 @@ Benötigt: pip install playwright (Chromium). index.html wird nicht verändert.
 
 Inhalt je Stichtag aus cases.json:
   urgency    Stufe/Tage/Datum je Fall (Quelltext von urgency/daysBetween/today aus index.html, mit den Funktionen des Test-Hakens)
-  deadlines  Tab «Fristen» aus dem gerenderten DOM: Kopfzeile, Entscheidungskarten, Kommende Termine, Klappgruppen (aufgeklappt)
+  deadlines  Tab «Fristen» aus dem gerenderten DOM (Variante 1, v88): Status, Liste nach Datum, Karte «Flexibel» (aufgeklappt), Klappgruppen (aufgeklappt)
   csv        CSV-Export (Inhalt der heruntergeladenen Datei, mit BOM und CRLF)
 Für das Test-Backup cases_texts.json:
   quality    Datenqualität aus dem DOM (Verwalten → Datenqualität): Kopf, Checkliste mit Zählern, je «n offen»-Seite die Einträge
@@ -59,16 +59,20 @@ JS_URGENCY = """(src)=>{var K=window.KontivoCalc();
   var out={};Object.keys(K.state.contracts).forEach(function(k){var u=f(K.state.contracts[k]);
     out[k]={lvl:u.lvl,days:u.days,date:u.date?K.iso(u.date):null};});return out;}"""
 
-JS_DEADLINES = """()=>{var v=document.getElementById('view'),r={header:null,headerOk:false,decisions:[],upcoming:[],folds:[]};
-  var ti=v.querySelector('.tintro');if(ti){r.header=ti.textContent;r.headerOk=ti.classList.contains('ok');}
-  v.querySelectorAll('.tcard').forEach(function(t){var l=t.querySelector('.tline'),acts=t.querySelectorAll('.tacts button');
-    r.decisions.push({id:t.querySelector('[data-open]').dataset.open,trial:!!t.querySelector('[data-trial]'),line:l.textContent,
-      lvl:l.classList.contains('alert')?'alert':'warn',sub:t.querySelector('.tline2').textContent,keep:acts[0].textContent,kill:acts[1].textContent});});
-  v.querySelectorAll('.grp').forEach(function(g){var h=g.querySelector('.grphead');if(!h||h.textContent!=='Kommende Termine')return;
-    g.querySelectorAll('.trow').forEach(function(b){var s=b.querySelector('.tst');
-      r.upcoming.push({id:b.dataset.open,text:s.textContent,kind:s.classList.contains('kept')?'kept':(s.classList.contains('end')?'ended':'normal')});});});
+JS_DEADLINES = """()=>{var v=document.getElementById('view'),r={status:null,items:[],flex:null,folds:[]};
+  var st=v.querySelector('.tstat');if(st){var ok=st.classList.contains('ok');
+    r.status={kind:ok?'ok':(st.classList.contains('alert')?'alert':'warn'),count:ok?null:parseInt(st.querySelector('i').textContent,10),
+      title:st.querySelector('b').textContent,sub:st.querySelector('span').textContent};}
+  v.querySelectorAll('.tlist .tit').forEach(function(t){var b=t.querySelector('[data-open]'),ch=t.querySelector('.tchip'),acts=t.querySelectorAll('.tacts button');
+    var lv=['warn','alert','ok','end'].filter(function(k){return ch.classList.contains(k);})[0]||'';
+    r.items.push({id:b.dataset.open,sub:t.querySelector('.mm').textContent,chip:ch.textContent,lvl:lv,acts:acts.length>0,trial:!!t.querySelector('[data-trial]'),
+      keep:acts.length?acts[0].textContent:null,kill:acts.length?acts[1].textContent:null});});
+  var fx=v.querySelector('.tflex');if(fx){var nt=fx.querySelector('.tfnote');
+    r.flex={count:fx.querySelector('.tfx .mn').textContent,sub:fx.querySelector('.tfx .mm').textContent,note:nt?nt.textContent:null,
+      stack:fx.querySelectorAll('.tstk .mark').length,rows:[]};
+    fx.querySelectorAll('.mrows2 .trow').forEach(function(x){r.flex.rows.push({id:x.dataset.open,sub:x.querySelector('.mm').textContent,chip:x.querySelector('.tchip').textContent});});}
   v.querySelectorAll('.tfg').forEach(function(g){var b=g.querySelector('.tfold'),rows=[];
-    g.querySelectorAll('.trow').forEach(function(x){rows.push({id:x.dataset.open,text:x.querySelector('.tst').textContent});});
+    g.querySelectorAll('.trow').forEach(function(x){rows.push({id:x.dataset.open||x.dataset.qnotice,text:x.querySelector('.tst').textContent});});
     r.folds.push({key:b.dataset.tfold,title:b.textContent,rows:rows});});
   return r;}"""
 

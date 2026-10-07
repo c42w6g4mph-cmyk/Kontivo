@@ -476,9 +476,10 @@ public struct Pause: Codable, Hashable, Sendable {
 /// und die Summe 100 ist (`Calc.splitOf`); sonst gilt die Gleichverteilung.
 public struct SplitShare: Codable, Hashable, Sendable {
     public var personID: UUID
-    public var percent: Int
+    /// Prozent mit bis zu 4 Nachkommastellen (Web seit v82: Eingabe als Betrag auf den Rappen).
+    public var percent: Double
 
-    public init(personID: UUID, percent: Int) {
+    public init(personID: UUID, percent: Double) {
         self.personID = personID
         self.percent = percent
     }
@@ -537,6 +538,8 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
     public var mandatory: Bool
     /// Frist nicht beobachten.
     public var noWatch: Bool
+    /// Nicht kündbar (z.B. Serafe, Rundfunkbeitrag); Steuern & Gebühren gelten automatisch als nicht kündbar (`Calc.isFixed`).
+    public var noCancel: Bool
     /// Mietvertrag (Schriftform). nil = Heuristik `Letter.isRentHeuristic`.
     public var isRent: Bool?
     public var customerNo: String
@@ -580,7 +583,7 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
                 amount: Double = 0, currency: Currency = .CHF, cycle: Int = 1,
                 due: Day? = nil, start: Day? = nil, end: Day? = nil,
                 notice: Int = 0, noticeUnit: NoticeUnit = .months, renewMonths: Int = 0, cancelTerm: CancelTerm = .anytime,
-                mandatory: Bool = false, noWatch: Bool = false, isRent: Bool? = nil,
+                mandatory: Bool = false, noWatch: Bool = false, noCancel: Bool = false, isRent: Bool? = nil,
                 customerNo: String = "", contractNo: String = "", holderIDs: [UUID] = [],
                 payMethod: String = "", payAccount: String = "", cancelChannel: CancelChannel? = nil, cancelURL: String = "",
                 trial: Day? = nil, trialKept: Day? = nil,
@@ -605,6 +608,7 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
         self.cancelTerm = cancelTerm
         self.mandatory = mandatory
         self.noWatch = noWatch
+        self.noCancel = noCancel
         self.isRent = isRent
         self.customerNo = customerNo
         self.contractNo = contractNo
@@ -653,6 +657,7 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
         cancelTerm = c.value(.cancelTerm, CancelTerm.anytime)
         mandatory = c.value(.mandatory, false)
         noWatch = c.value(.noWatch, false)
+        noCancel = c.value(.noCancel, false)
         isRent = c.optional(.isRent)
         customerNo = c.value(.customerNo, "")
         contractNo = c.value(.contractNo, "")
@@ -687,16 +692,16 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
     public var cycleForCalc: Int { cycle == 0 ? 1 : cycle }
 
     /// Gültige individuelle Aufteilung (Web `splitOf`): ab 2 Inhabern, jeder Inhaber mit Anteil ≥ 0, Summe 100 (±0.6). Sonst nil = gleich.
-    public var validSplit: [UUID: Int]? {
+    public var validSplit: [UUID: Double]? {
         if holderIDs.count < 2 || split.isEmpty { return nil }
-        var o: [UUID: Int] = [:]
+        var o: [UUID: Double] = [:]
         for s in split { o[s.personID] = s.percent }
-        var sum = 0
+        var sum = 0.0
         for h in holderIDs {
             guard let v = o[h], v >= 0 else { return nil }
             sum += v
         }
-        return abs(sum - 100) < 1 ? o.filter { holderIDs.contains($0.key) } : nil
+        return abs(sum - 100) < 0.6 ? o.filter { holderIDs.contains($0.key) } : nil
     }
 }
 
@@ -953,7 +958,7 @@ public struct AppData: Codable, Hashable, Sendable {
     /// Inhaber mit Anteilen (Web `holdersText`): «Sinan 70 % & Lara 30 %», ohne Aufteilung «Sinan & Lara».
     public func holdersText(of c: Contract) -> String {
         guard let sp = c.validSplit else { return holderNames(of: c).joined(separator: " & ") }
-        return c.holderIDs.compactMap { h in person(h).map { $0.name + " " + String(sp[h] ?? 0) + "\u{00A0}%" } }.joined(separator: " & ")
+        return c.holderIDs.compactMap { h in person(h).map { $0.name + " " + String(Int((sp[h] ?? 0).rounded())) + "\u{00A0}%" } }.joined(separator: " & ")
     }
 
     /// Markenfarbe (`colorFor`): eigene Farbe → Kategorie → Hash über Vertragspartner/Bezeichnung.

@@ -283,6 +283,7 @@ extension AppData {
             c.cancelTerm = d.cancelTerm
             c.mandatory = d.mandatory
             c.noWatch = d.noWatch
+            c.noCancel = d.noCancel
             c.isRent = d.isRent
             c.customerNo = d.customerNo
             c.contractNo = d.contractNo
@@ -319,24 +320,29 @@ extension AppData {
         return d.id
     }
 
+    /// Prozent auf 4 Nachkommastellen (Web `Math.round(x*1e4)/1e4`).
+    public static func roundPercent(_ v: Double) -> Double { (v * 10_000).rounded() / 10_000 }
+
     /// Aufteilung fürs Speichern (Web `saveForm`): ab 2 Inhabern, jeder mit Anteil; letzter Inhaber = 100 − übrige (≥ 0);
-    /// Summe ≠ 100 oder unvollständig → leer (= gleich).
+    /// Summe ≠ 100 oder unvollständig → leer (= gleich); Gleichverteilung → leer. Prozent mit 4 Nachkommastellen.
     public static func normalizedSplit(_ split: [SplitShare], holders: [UUID]) -> [SplitShare] {
         if holders.count < 2 || split.isEmpty { return [] }
-        var o: [UUID: Int] = [:]
-        for s in split { o[s.personID] = Swift.max(0, Swift.min(100, s.percent)) }
+        var o: [UUID: Double] = [:]
+        for s in split { o[s.personID] = roundPercent(Swift.max(0, Swift.min(100, s.percent))) }
         for h in holders where o[h] == nil { return [] }
-        let others = holders.dropLast().reduce(0) { $0 + (o[$1] ?? 0) }
-        if others > 100 { return [] }
-        o[holders[holders.count - 1]] = 100 - others
+        let others = holders.dropLast().reduce(0.0) { $0 + (o[$1] ?? 0) }
+        if others > 100.0001 { return [] }
+        o[holders[holders.count - 1]] = Swift.max(0, roundPercent(100 - others))
+        let eq = 100.0 / Double(holders.count)
+        if holders.allSatisfy({ abs((o[$0] ?? 0) - eq) < 0.001 }) { return [] }
         return holders.map { SplitShare(personID: $0, percent: o[$0] ?? 0) }
     }
 
-    /// Gleichmässige Vorbelegung für «Individuell» (Web `paintSplit`): 100 / n abgerundet, Rest beim letzten.
+    /// Gleichmässige Vorbelegung für «Individuell» (Web `paintSplit`): 100 / n für alle.
     public static func equalSplit(holders: [UUID]) -> [SplitShare] {
         if holders.count < 2 { return [] }
-        let eq = 100 / holders.count
-        return holders.enumerated().map { SplitShare(personID: $0.element, percent: $0.offset == holders.count - 1 ? 100 - eq * (holders.count - 1) : eq) }
+        let eq = 100.0 / Double(holders.count)
+        return holders.map { SplitShare(personID: $0, percent: eq) }
     }
 
     // MARK: Quartals-Check
@@ -802,5 +808,54 @@ extension AppData {
         settings.theme = s.theme
         settings.sort = s.sort
         settings.onboarded = s.onboarded
+    }
+}
+
+// MARK: - Kontaktdaten aus dem Katalog ergänzen (Web «Kontaktdaten ergänzen», tplFillPlan, b520636)
+
+public struct CatalogFillItem: Hashable, Sendable {
+    public var contractID: UUID
+    public var entryName: String
+    public var confirmed: Bool
+    /// Fehlende Partner-Adresse (nil = nichts zu ergänzen)
+    public var address: PostalAddress?
+    public var mail: String?
+    public var tel: String?
+    /// Fehlende Website des Vertragspartners
+    public var web: String?
+}
+
+extension AppData {
+    /// Plan über alle nicht ins Archiv verschobenen Verträge: nur leere Felder (Adresse/Website am Vertragspartner, E-Mail/Telefon am Vertrag).
+    public func catalogFillPlan() -> [CatalogFillItem] {
+        var out: [CatalogFillItem] = []
+        var addrDone = Set<UUID>()
+        for c in contracts where c.status != .cancelled {
+            let p = partner(c.partnerID)
+            guard let t = Catalog.match(names: [p?.name ?? "", c.label], currency: c.currency) else { continue }
+            var it = CatalogFillItem(contractID: c.id, entryName: t.name, confirmed: t.confirmed)
+            if let p = p, p.address.isEmpty, !t.address.isEmpty, !addrDone.contains(p.id) {
+                it.address = WebImport.addrSplit(t.address, partnerName: p.name)
+                addrDone.insert(p.id)
+            }
+            if c.mail.isEmpty && !t.mail.isEmpty { it.mail = t.mail }
+            if c.tel.isEmpty && !t.tel.isEmpty { it.tel = t.tel }
+            if let p = p, p.web.isEmpty, !t.web.isEmpty { it.web = t.web }
+            if it.address != nil || it.mail != nil || it.tel != nil || it.web != nil { out.append(it) }
+        }
+        return out
+    }
+
+    /// Plan anwenden (nur leere Felder; Adresse/Website am Vertragspartner).
+    public mutating func applyCatalogFill(_ plan: [CatalogFillItem]) {
+        for it in plan {
+            guard let i = contracts.firstIndex(where: { $0.id == it.contractID }) else { continue }
+            if let m = it.mail, contracts[i].mail.isEmpty { contracts[i].mail = m }
+            if let t = it.tel, contracts[i].tel.isEmpty { contracts[i].tel = t }
+            if let pid = contracts[i].partnerID, let pi = partners.firstIndex(where: { $0.id == pid }) {
+                if let a = it.address, partners[pi].address.isEmpty { partners[pi].address = a }
+                if let w = it.web, partners[pi].web.isEmpty { partners[pi].web = w }
+            }
+        }
     }
 }

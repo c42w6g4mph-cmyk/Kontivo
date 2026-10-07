@@ -393,3 +393,131 @@ extension Calc {
         return "Trag deinen Lohn ein, die Fixkosten kommen aus deinen Verträgen."
     }
 }
+
+// MARK: - Kosten «Aufteilung und Entwicklung» (Web 64ccf42 + 5a60137, Variante P2)
+
+extension Calc {
+    public enum CostTrend: String, Hashable, Sendable {
+        case same, up, down, new
+    }
+
+    /// Jahresbalken (aktuelles Jahr und bis zu 2 Vorjahre).
+    public struct CostEvoBar: Hashable, Identifiable, Sendable {
+        public var year: Int
+        public var groups: [String: Double]
+        public var total: Double
+        public var isCurrent: Bool
+        public var id: Int { year }
+    }
+
+    /// Zeile der Liste (Top 4 + «Übrige»).
+    public struct CostEvoRow: Hashable, Identifiable, Sendable {
+        public var segment: KBSplitSegment
+        public var value: Double
+        /// Anteil am Total, gerundet
+        public var percent: Int
+        /// «↑ 11 % mehr», «↓ 3 % weniger», «wie 2025», «neu»; nil ohne Vorjahr
+        public var change: String?
+        public var trend: CostTrend
+        /// Verlauf vom ältesten zum aktuellen Jahr
+        public var series: [(year: Int, value: Double)]
+        public var id: String { segment.id }
+
+        public static func == (a: CostEvoRow, b: CostEvoRow) -> Bool { a.segment == b.segment && a.value == b.value && a.change == b.change }
+        public func hash(into h: inout Hasher) { h.combine(segment); h.combine(value) }
+    }
+
+    public struct CostEvolution: Hashable, Sendable {
+        public var keys: [String]
+        public var total: Double
+        /// «Entwicklung 2024–2026» bzw. «Oktober 2024–2026»
+        public var title: String
+        /// «↓ 5 % vs. 2025» bzw. «wie 2025»; nil ohne Vorjahr
+        public var chip: String?
+        public var chipTrend: CostTrend
+        /// Aktuell zuerst, dann Vorjahre
+        public var bars: [CostEvoBar]
+        public var maxTotal: Double
+        public var segments: [KBSplitSegment]
+        public var rows: [CostEvoRow]
+        /// Schlüssel hinter «Übrige» mit Wert und Prozent
+        public var rest: [(key: String, value: Double, percent: Int)]
+        /// «Vorjahre ausgeblendet: …» (nur Jahresansicht)
+        public var note: String?
+
+        public static func == (a: CostEvolution, b: CostEvolution) -> Bool { a.keys == b.keys && a.total == b.total && a.title == b.title && a.chip == b.chip && a.rows == b.rows }
+        public func hash(into h: inout Hasher) { h.combine(keys); h.combine(total); h.combine(title) }
+
+        /// Wert eines Segments in einer Gruppen-Summe (Übrige = alles ausser Top).
+        public func value(_ g: [String: Double], _ s: KBSplitSegment) -> Double {
+            if !s.isOther { return g[s.key] ?? 0 }
+            let top = Set(segments.filter { !$0.isOther }.map { $0.key })
+            return g.filter { !top.contains($0.key) }.reduce(0.0) { $0 + $1.value }
+        }
+    }
+
+    /// Gruppen-Summen (Hauptwährung × Anteil) für ein Jahr bzw. einen Monat des Jahres.
+    public func costGroups(year: Int, month: Int?, filter: CostFilter, dim: FilterDimension) -> [String: Double] {
+        let from = month.map { Day(year, $0, 1) } ?? Day(year, 1, 1)
+        let to = month.map { Day(year, $0, 1).lastDayOfMonth } ?? Day(year, 12, 31)
+        var g: [String: Double] = [:]
+        for c in data.contracts where matches(c, filter, skip: dim) {
+            let sh = holderShare(c, person: filter.person)
+            let k = statKey(c, dim)
+            for p in payments(c, from: from, to: to) { g[k, default: 0] += conv(p.amount, c.currency) * sh }
+        }
+        return g
+    }
+
+    /// Karte «Aufteilung und Entwicklung». month = nil → Jahresansicht.
+    public func costEvolution(year Y: Int, month: Int?, filter: CostFilter, dim: FilterDimension) -> CostEvolution {
+        let groups = costGroups(year: Y, month: month, filter: filter, dim: dim)
+        let sp = kbSplit(groups, dim: dim)
+        let keys = sp.keys
+        let gTot = keys.reduce(0.0) { $0 + (groups[$1] ?? 0) }
+        let noSt = data.contracts.contains { $0.start == nil && matches($0, filter, skip: dim) }
+        var hist: [CostEvoBar] = []
+        if !noSt {
+            for hy in 1...2 {
+                let gh = costGroups(year: Y - hy, month: month, filter: filter, dim: dim)
+                let th = gh.values.reduce(0, +)
+                if th > 0.004 { hist.append(CostEvoBar(year: Y - hy, groups: gh, total: th, isCurrent: false)) } else { break }
+            }
+        }
+        let prev = hist.first
+        var chip: String? = nil
+        var chipTrend = CostTrend.same
+        if let p = prev {
+            let dpc = (gTot - p.total) / p.total * 100
+            let rp = Int(Format.jsRound(Swift.abs(dpc)))
+            if rp < 1 { chip = "wie \(p.year)" } else { chip = (dpc > 0 ? "↑ " : "↓ ") + "\(rp) % vs. \(p.year)"; chipTrend = dpc > 0 ? .up : .down }
+        }
+        let bars = [CostEvoBar(year: Y, groups: groups, total: gTot, isCurrent: true)] + hist
+        let mx = bars.map { $0.total }.max() ?? 1
+        let span = hist.isEmpty ? "\(Y)" : "\(hist[hist.count - 1].year)–\(Y)"
+        let title = (month.map { Format.monthNames[$0 - 1] + " " } ?? "Entwicklung ") + span
+        var ev = CostEvolution(keys: keys, total: gTot, title: title, chip: chip, chipTrend: chipTrend, bars: bars, maxTotal: mx == 0 ? 1 : mx,
+                               segments: sp.segments, rows: [], rest: [], note: noSt && month == nil ? "Vorjahre ausgeblendet: Bei einigen Verträgen fehlt der Vertragsbeginn." : nil)
+        let tot = gTot == 0 ? 1 : gTot
+        let evc = ev
+        let rows: [CostEvoRow] = sp.segments.map { s in
+            let v = evc.value(groups, s)
+            var change: String? = nil
+            var tr = CostTrend.same
+            if let p = prev {
+                let pv = evc.value(p.groups, s)
+                if pv < 0.005 { change = "neu"; tr = .new } else {
+                    let pc = Int(Format.jsRound((v - pv) / pv * 100))
+                    if Swift.abs(pc) < 1 { change = "wie \(p.year)" } else {
+                        change = (pc > 0 ? "↑ " : "↓ ") + "\(Swift.abs(pc)) % " + (pc > 0 ? "mehr" : "weniger"); tr = pc > 0 ? .up : .down
+                    }
+                }
+            }
+            let series = bars.reversed().map { (year: $0.year, value: evc.value($0.groups, s)) }
+            return CostEvoRow(segment: s, value: v, percent: Int(Format.jsRound(v / tot * 100)), change: change, trend: tr, series: series)
+        }
+        ev.rows = rows
+        ev.rest = sp.rest.map { (key: $0, value: groups[$0] ?? 0, percent: Int(Format.jsRound((groups[$0] ?? 0) / tot * 100))) }
+        return ev
+    }
+}

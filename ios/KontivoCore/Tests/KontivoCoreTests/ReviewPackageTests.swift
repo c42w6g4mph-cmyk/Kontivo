@@ -45,7 +45,7 @@ final class ReviewPackageTests: XCTestCase {
         let sp = AppData.normalizedSplit([SplitShare(personID: a, percent: 65), SplitShare(personID: b, percent: 0)], holders: [a, b])
         XCTAssertEqual(sp.map { $0.percent }, [65, 35])
         XCTAssertEqual(AppData.normalizedSplit([SplitShare(personID: a, percent: 65)], holders: [a, b]), [])
-        XCTAssertEqual(AppData.equalSplit(holders: [a, b, UUID()]).map { $0.percent }, [33, 33, 34])
+        XCTAssertEqual(AppData.equalSplit(holders: [a, b, UUID()]).map { ($0.percent * 100).rounded() / 100 }, [33.33, 33.33, 33.33])
     }
 
     func testSaveContractKeepsSplitAndHolderChangesDropIt() throws {
@@ -83,6 +83,7 @@ final class ReviewPackageTests: XCTestCase {
         XCTAssertTrue(csv.contains("Aufteilung"))
         XCTAssertTrue(csv.contains("Sinan:70 | Lara:30"))
         XCTAssertEqual(CSV.parseSplit("Sinan:70 | lara: 30 %", holders: ["Sinan", "Lara"]), ["Sinan": 70, "Lara": 30])
+        XCTAssertEqual(CSV.parseSplit("Sinan:60.12 | Lara:39,88", holders: ["Sinan", "Lara"]), ["Sinan": 60.12, "Lara": 39.88])
         XCTAssertEqual(CSV.parseSplit("Sinan:70", holders: ["Sinan", "Lara"]), [:])
         XCTAssertEqual(CSV.parseSplit("Sinan:70 | Lara:40", holders: ["Sinan", "Lara"]), [:])
     }

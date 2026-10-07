@@ -75,31 +75,46 @@ final class TextGoldenTests: XCTestCase {
                 checked += 1
             }
 
-            // Tab «Fristen»
+            // Tab «Fristen» (Variante 1): Status, Liste nach Datum, Karte «Flexibel»
             let dl = JS.obj(exp["deadlines"]) ?? JSObject()
             let ov = calc.deadlineOverview()
-            XCTAssertEqual(ov.headerBold.map { $0 + ov.headerRest }, str(dl["header"]), "\(t) Fristen-Kopfzeile")
-            XCTAssertEqual(ov.allDone, bool(dl["headerOk"]), "\(t) Kopfzeile grün")
-            let dec = JS.arr(dl["decisions"]).compactMap { JS.obj($0) }
-            XCTAssertEqual(ov.decisions.count, dec.count, "\(t) Anzahl Entscheidungen")
-            for (x, e) in zip(ov.decisions, dec) {
-                let m = "\(t) Entscheidung \(JS.str(e["id"]))"
-                XCTAssertEqual(webID[x.contractID], JS.str(e["id"]), m)
-                XCTAssertEqual(x.trial, bool(e["trial"]), m + " trial")
-                XCTAssertEqual(x.line, JS.str(e["line"]), m + " Zeile")
-                XCTAssertEqual(x.level.rawValue, JS.str(e["lvl"]), m + " Stufe")
-                XCTAssertEqual(x.subline, JS.str(e["sub"]), m + " Zusatz")
-                XCTAssertEqual(x.keepTitle, JS.str(e["keep"]), m + " Behalten")
-                XCTAssertEqual(x.cancelTitle, JS.str(e["kill"]), m + " Kündigen")
+            if let ws = JS.obj(dl["status"]) {
+                XCTAssertEqual(ov.status?.kind.rawValue, JS.str(ws["kind"]), "\(t) Status Art")
+                XCTAssertEqual(ov.status?.count, int(ws["count"]), "\(t) Status Zahl")
+                XCTAssertEqual(ov.status?.title, JS.str(ws["title"]), "\(t) Status Titel")
+                XCTAssertEqual(ov.status?.subtitle, JS.str(ws["sub"]), "\(t) Status Untertitel")
+            } else {
+                XCTAssertNil(ov.status, "\(t) kein Status")
             }
-            let up = JS.arr(dl["upcoming"]).compactMap { JS.obj($0) }
-            XCTAssertEqual(ov.upcoming.map { webID[$0.contractID] ?? "?" }, up.map { JS.str($0["id"]) }, "\(t) Kommende Termine (Reihenfolge)")
-            for (x, e) in zip(ov.upcoming, up) {
-                XCTAssertEqual(x.text, JS.str(e["text"]), "\(t) Kommende Termine \(JS.str(e["id"]))")
-                XCTAssertEqual(x.kind.rawValue, JS.str(e["kind"]), "\(t) Kommende Termine Art \(JS.str(e["id"]))")
+            let wi = JS.arr(dl["items"]).compactMap { JS.obj($0) }
+            XCTAssertEqual(ov.items.map { webID[$0.contractID] ?? "?" }, wi.map { JS.str($0["id"]) }, "\(t) Liste (Reihenfolge)")
+            for (x, e) in zip(ov.items, wi) {
+                let m = "\(t) Liste \(JS.str(e["id"]))"
+                XCTAssertEqual(x.sub, JS.str(e["sub"]), m + " Zeile")
+                XCTAssertEqual(x.chip, JS.str(e["chip"]), m + " Chip")
+                XCTAssertEqual(x.chipLevel.rawValue, JS.str(e["lvl"]), m + " Chip-Farbe")
+                XCTAssertEqual(x.showActions, bool(e["acts"]), m + " Knöpfe")
+                XCTAssertEqual(x.trial, bool(e["trial"]), m + " Probeabo")
+                if x.showActions {
+                    XCTAssertEqual(x.keepTitle, JS.str(e["keep"]), m + " Behalten")
+                    XCTAssertEqual(x.cancelTitle, JS.str(e["kill"]), m + " Kündigen")
+                }
+            }
+            if let wf = JS.obj(dl["flex"]) {
+                XCTAssertEqual(ov.flexCountText, JS.str(wf["count"]), "\(t) Flexibel Anzahl")
+                XCTAssertEqual(Calc.DeadlineOverview.flexSubtitle, JS.str(wf["sub"]), "\(t) Flexibel Untertitel")
+                XCTAssertEqual(Calc.DeadlineOverview.flexNote, JS.str(wf["note"]), "\(t) Flexibel Hinweis")
+                XCTAssertEqual(ov.flexStack.count, int(wf["stack"]), "\(t) Flexibel Logostapel")
+                let rows = JS.arr(wf["rows"]).compactMap { JS.obj($0) }
+                XCTAssertEqual(ov.flexible.map { webID[$0.contractID] ?? "?" }, rows.map { JS.str($0["id"]) }, "\(t) Flexibel (Reihenfolge)")
+                for (x, e) in zip(ov.flexible, rows) {
+                    XCTAssertEqual(x.sub, JS.str(e["sub"]), "\(t) Flexibel \(JS.str(e["id"])) Zeile")
+                    XCTAssertEqual(x.chip, JS.str(e["chip"]), "\(t) Flexibel \(JS.str(e["id"])) Chip")
+                }
+            } else {
+                XCTAssertTrue(ov.flexible.isEmpty, "\(t) kein Flexibel")
             }
             var folds: [(key: String, title: String, rows: [Calc.FoldRow])] = []
-            if !ov.anytime.isEmpty { folds.append(("any", Calc.DeadlineOverview.anytimeTitle + " (\(ov.anytime.count))", ov.anytime)) }
             if !ov.withoutNotice.isEmpty {
                 folds.append(("none", Calc.DeadlineOverview.withoutNoticeTitle + " (\(ov.withoutNotice.count))" + Calc.DeadlineOverview.withoutNoticeExtra, ov.withoutNotice))
             }

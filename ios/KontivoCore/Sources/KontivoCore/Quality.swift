@@ -198,7 +198,7 @@ public enum Quality {
             if c.due == nil { add(.B, s, .due, name: nm, sub: sub, why: "Kein Fälligkeitsdatum") }
             if c.cancelPer == nil, let pid = c.partnerID { relevantPartners.insert(pid) }
             // Kündigen: je nach Kündigungsweg (nicht bei Steuern und bereits gekündigten)
-            if !calc.isTax(c) && c.cancelPer == nil {
+            if !calc.isFixed(c) && c.cancelPer == nil {
                 let via = calc.cancVia(c)
                 if via == .none {
                     add(.D, s, .via, name: nm, sub: sub, why: "Kündigungsweg festlegen")
@@ -222,7 +222,7 @@ public enum Quality {
             }
             // Frist: nur bei überwachten Verträgen; fehlt die Frist oder lässt sich kein Termin berechnen.
             // Frist 0 bei Termin auf Quartal/Halbjahr/Jahr/Vertragsjahr oder fester Laufzeit: Kündigung am letzten Tag ist kaum je richtig
-            if c.cancelPer == nil && !c.noWatch && !c.mandatory && !calc.isTax(c) {
+            if c.cancelPer == nil && !c.noWatch && !c.mandatory && !calc.isFixed(c) {
                 let anytimeWithNotice = c.end == nil && c.cancelTerm == .anytime && c.notice > 0
                 if calc.noticeDeadline(c) == nil {
                     if !anytimeWithNotice {

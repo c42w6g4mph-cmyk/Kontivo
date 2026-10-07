@@ -182,6 +182,7 @@ struct MDPartnerPage: View {
             webSection
             addressSection
             contractsSection
+            priceSection
             mergeSection
         }
         .mdListStyle()
@@ -305,7 +306,8 @@ struct MDPartnerPage: View {
 
     private var addressSection: some View {
         Section {
-            addrField("Firma, z.B. Sunrise GmbH", $addr.company, .company, next: .extra, content: .organizationName)
+            addrField(name.trimmingCharacters(in: .whitespaces).isEmpty ? "Firma (optional)" : "Firma (optional, sonst " + name.trimmingCharacters(in: .whitespaces) + ")",
+                      $addr.company, .company, next: .extra, content: .organizationName)
             addrField("Zusatz, z.B. Kundendienst oder Postfach", $addr.extra, .extra, next: .street)
             addrField("Strasse und Nr.", $addr.street, .street, next: .zip)
             HStack(spacing: 10) {
@@ -340,7 +342,17 @@ struct MDPartnerPage: View {
                 .mdRow()
         } header: {
             MDSectionHeader(title: "Adresse") {
-                Button("Suchen") { searchAddress() }
+                HStack(spacing: 14) {
+                    // Einfügen: Adresse aus Rechnung, Website oder Karten auf die Felder verteilen (Web v86)
+                    PasteButton(payloadType: String.self) { items in
+                        guard let t = items.first else { return }
+                        Task { @MainActor in pasteAddress(t) }
+                    }
+                    .labelStyle(.titleOnly)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(.mini)
+                    Button("Suchen") { searchAddress() }
+                }
             }
         } footer: {
             Text("Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.")
@@ -375,6 +387,38 @@ struct MDPartnerPage: View {
                     .monospacedDigit()
             }
         }
+    }
+
+    /// Preisverlauf je Vertrag mit Preisänderungen (Web v80); Vertragsname darüber, wenn der Vertragspartner mehrere Verträge hat.
+    @ViewBuilder private var priceSection: some View {
+        let cs = model.data.contracts.filter { $0.partnerID == partnerID }
+        let wp = cs.filter { !$0.prices.isEmpty }
+        if !wp.isEmpty {
+            Section {
+                ForEach(wp) { c in
+                    VStack(alignment: .leading, spacing: 6) {
+                        if cs.count > 1 {
+                            Text(model.data.title(of: c)).font(.footnote.weight(.semibold)).foregroundStyle(KColor.ink2)
+                        }
+                        CTPriceChart(contract: c, today: model.today)
+                    }
+                    .padding(.vertical, 6)
+                    .mdRow()
+                }
+            } header: {
+                Text("Preisverlauf")
+            }
+        }
+    }
+
+    private func pasteAddress(_ text: String) {
+        guard let a = WebImport.addrFromPaste(text, partnerName: name), !a.isEmpty else {
+            model.toast("Keine Adresse in der Zwischenablage")
+            return
+        }
+        addr = a
+        commitAddress()
+        model.toast("Adresse eingefügt, bitte prüfen")
     }
 
     @ViewBuilder private var mergeSection: some View {

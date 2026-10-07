@@ -236,6 +236,7 @@ public enum WebImport {
             x.cancelTerm = CancelTerm(rawValue: JS.str(c["cancTerm"])) ?? .anytime
             x.mandatory = JS.truthy(c["mand"])
             x.noWatch = JS.truthy(c["noWatch"])
+            x.noCancel = JS.truthy(c["noCancel"])
             x.customerNo = JS.str(c["custNo"])
             x.contractNo = JS.str(c["contrNo"])
             var hs: [UUID] = []
@@ -246,7 +247,7 @@ public enum WebImport {
                 var sp: [SplitShare] = []
                 for h in JS.arr(c["holders"]) {
                     let name = JS.str(h)
-                    if let pid = personIDs[name], !sp.contains(where: { $0.personID == pid }) { sp.append(SplitShare(personID: pid, percent: JS.intOr(spo[name], -1))) }
+                    if let pid = personIDs[name], !sp.contains(where: { $0.personID == pid }) { sp.append(SplitShare(personID: pid, percent: spo[name] != nil && JS.num(spo[name]).isFinite ? JS.num(spo[name]) : -1)) }
                 }
                 x.split = sp.count == hs.count && sp.allSatisfy({ $0.percent >= 0 }) ? AppData.normalizedSplit(sp, holders: hs) : []
             }
@@ -625,6 +626,26 @@ public enum WebImport {
         return o
     }
 
+    /// Eingefügte Adresse (Rechnung, Website, Google/Apple Maps) auf die Felder verteilen (Web `addrFromPaste`, v86):
+    /// einzeilig mit Komma/Semikolon → Zeilen; Zeilen mit Telefon, Fax, E-Mail, Web werden ignoriert. nil = leer.
+    public static func addrFromPaste(_ text: String, partnerName: String? = nil) -> PostalAddress? {
+        var t = text.replacingOccurrences(of: "\r", with: "").replacingOccurrences(of: "\t", with: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+        if t.isEmpty { return nil }
+        if !t.contains("\n") {
+            t = t.components(separatedBy: CharacterSet(charactersIn: ",;")).map { $0.trimmingCharacters(in: .whitespaces) }.joined(separator: "\n")
+        }
+        let keep = t.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && !RX.test("(?i)^(tel|telefon|phone|fax|e-?mail|www\\.|https?:)", $0) }
+        return addrSplit(keep.joined(separator: "\n"), partnerName: partnerName)
+    }
+
+    /// Sieht der Text wie eine ganze Adresse aus (Web `addrLooksPasted`): Zeilenumbruch, ≥ 2 Kommas oder Komma + PLZ.
+    public static func addrLooksPasted(_ t: String) -> Bool {
+        if t.trimmingCharacters(in: .whitespacesAndNewlines).contains("\n") { return true }
+        if t.components(separatedBy: ",").count >= 3 { return true }
+        return t.contains(",") && RX.test("\\b\\d{4,5}\\s+\\S", t)
+    }
+
     /// Adresse aus Freitext (`addrSplit`) mit den Korrekturen aus Fund N8: Länderpräfix der PLZ bleibt («D-78462»),
     /// ohne PLZ-Zeile Firma = erste, Strasse = letzte Zeile, Zusatz dazwischen; eine einzelne Zeile vor der PLZ ohne Ziffer,
     /// die dem Vertragspartner ähnelt, ist die Firma (sonst die Strasse).
@@ -639,7 +660,8 @@ public enum WebImport {
             }
             return o
         }
-        if let m = RX.match("^((?:[A-Z]{1,2}-?)?)(\\d{4,5})\\s+(.+)$", L[zi]) {
+        // NL: «1075 KZ Amsterdam» (Buchstaben gehören zur PLZ)
+        if let m = RX.match("^((?:[A-Z]{1,2}-?)?)(\\d{4,5}(?:\\s?[A-Z]{2}(?=\\s))?)\\s+(.+)$", L[zi]) {
             o.zip = (m[1] ?? "") + (m[2] ?? "")
             o.city = m[3] ?? ""
         }

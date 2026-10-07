@@ -18,8 +18,8 @@ enum DeadlineCalendar {
     }
 
     /// Angaben für den Eintrag aus der Entscheidungskarte.
-    static func info(for d: Calc.DeadlineDecision, contract c: Contract, calc: Calc, data: AppData) -> EventInfo {
-        let title = (d.trial ? "Probeabo endet: " : "Kündigungsfrist: ") + data.title(of: c)
+    static func info(trial: Bool, date: Day, contract c: Contract, calc: Calc, data: AppData) -> EventInfo {
+        let title = (trial ? "Probeabo endet: " : "Kündigungsfrist: ") + data.title(of: c)
         var lines: [String] = []
         let pn = data.partnerName(of: c).trimmingCharacters(in: .whitespaces)
         if !pn.isEmpty { lines.append("Vertragspartner: " + pn) }
@@ -36,13 +36,13 @@ enum DeadlineCalendar {
         if !way.isEmpty { lines.append("Kündigungsweg: " + way) }
         let cust = c.customerNo.trimmingCharacters(in: .whitespaces)
         if !cust.isEmpty { lines.append("Kundennummer: " + cust) }
-        if d.trial {
-            lines.append("Kündigung muss vor dem " + Format.fmtD(d.date) + " sein.")
+        if trial {
+            lines.append("Kündigung muss vor dem " + Format.fmtD(date) + " sein.")
         } else {
-            lines.append("Kündigung muss bis " + Format.fmtD(d.date) + " beim Vertragspartner sein.")
+            lines.append("Kündigung muss bis " + Format.fmtD(date) + " beim Vertragspartner sein.")
         }
         let url = via == .online ? CancelLinks.web(calc.cancLink(c)) : nil
-        return EventInfo(title: title, date: d.date, notes: lines.joined(separator: "\n"), url: url)
+        return EventInfo(title: title, date: date, notes: lines.joined(separator: "\n"), url: url)
     }
 
     /// Termin vorbereiten. Keine Berechtigungsabfrage: der Systemdialog «Termin hinzufügen»

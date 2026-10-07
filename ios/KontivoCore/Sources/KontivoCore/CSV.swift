@@ -11,7 +11,7 @@ public struct CSVImportItem: Hashable, Sendable {
     /// Website des Vertragspartners
     public var web: String
     /// Aufteilung je Inhabername (leer = gleich)
-    public var splitByName: [String: Int] = [:]
+    public var splitByName: [String: Double] = [:]
 }
 
 /// Vorschau des CSV-Imports. Es wird noch nichts gespeichert (auch keine Kategorien oder Inhaber).
@@ -124,25 +124,26 @@ public enum CSV {
     /// Spalte «Aufteilung»: «Sinan:70 | Lara:30» (nur bei individueller Aufteilung).
     static func splitText(_ c: Contract, _ data: AppData) -> String {
         guard let sp = c.validSplit else { return "" }
-        return c.holderIDs.compactMap { h in data.person(h).map { $0.name + ":" + String(sp[h] ?? 0) } }.joined(separator: " | ")
+        return c.holderIDs.compactMap { h in data.person(h).map { $0.name + ":" + JS.numberString(((sp[h] ?? 0) * 100).rounded() / 100) } }.joined(separator: " | ")
     }
 
     /// Spalte «Aufteilung» lesen (Web): «Name:70 | Name:30», Namen wie die Inhaber (ohne Gross/Klein); nur gültig, wenn alle
     /// Inhaber vorkommen und die Summe 100 ist. Rückgabe: Anteile je Inhabername.
-    public static func parseSplit(_ raw: String, holders: [String]) -> [String: Int] {
+    public static func parseSplit(_ raw: String, holders: [String]) -> [String: Double] {
         if raw.isEmpty || holders.count < 2 { return [:] }
-        var o: [String: Int] = [:]
+        var o: [String: Double] = [:]
         for x in raw.components(separatedBy: "|") {
-            guard let m = RX.match("^(.+?):\\s*(\\d+)\\s*%?$", x.trimmingCharacters(in: .whitespaces)), let nm = m[1], let v = Int(m[2] ?? "") else { continue }
+            guard let m = RX.match("^(.+?):\\s*(\\d+(?:[.,]\\d+)?)\\s*%?$", x.trimmingCharacters(in: .whitespaces)), let nm = m[1],
+                  let v = Double((m[2] ?? "").replacingOccurrences(of: ",", with: ".")) else { continue }
             let key = nm.trimmingCharacters(in: .whitespaces).lowercased()
             if let h = holders.first(where: { $0.lowercased() == key }) { o[h] = v }
         }
-        var sum = 0
+        var sum = 0.0
         for h in holders {
             guard let v = o[h] else { return [:] }
             sum += v
         }
-        return abs(sum - 100) < 1 ? o : [:]
+        return abs(sum - 100) < 0.6 ? o : [:]
     }
 
     /// Export als UTF-8-Daten.
@@ -656,8 +657,9 @@ public enum CSV {
             c.payAccount = g(r, "payA")
             c.cancelChannel = CancelChannel(webText: g(r, "cancF")) ?? tpl?.cancelChannel
             c.cancelURL = g(r, "cancUrl")
-            c.tel = g(r, "tel")
-            c.mail = g(r, "mail")
+            // Leere Kontaktdaten aus dem Katalog (Web b520636)
+            c.tel = g(r, "tel").isEmpty ? (tpl?.tel ?? "") : g(r, "tel")
+            c.mail = g(r, "mail").isEmpty ? (tpl?.mail ?? "") : g(r, "mail")
             var noteLines: [String] = [g(r, "note")]
             if !g(r, "contact").isEmpty { noteLines.append("Kontakt: " + g(r, "contact")) }
             if !restTags.isEmpty { noteLines.append("Tags: " + restTags) }
@@ -703,7 +705,8 @@ public enum CSV {
             // Adresse: mehrzeilig wie im Formular; einzeilig «Firma, Strasse, PLZ Ort» → Zeilen
             let adRaw = g(r, "addr").replacingOccurrences(of: "\r\n", with: "\n")
             let adParts = adRaw.contains("\n") ? adRaw.components(separatedBy: "\n") : adRaw.components(separatedBy: ",")
-            let ad = adParts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.joined(separator: "\n")
+            let ad0 = adParts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.joined(separator: "\n")
+            let ad = ad0.isEmpty ? (tpl?.address ?? "") : ad0
             res.items.append(CSVImportItem(contract: c, partnerName: partner, categoryName: cat, holderNames: hs, address: ad, web: web,
                                            splitByName: parseSplit(g(r, "split"), holders: hs)))
         }

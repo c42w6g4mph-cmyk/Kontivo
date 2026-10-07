@@ -2,8 +2,8 @@ import SwiftUI
 import EventKitUI
 import KontivoCore
 
-/// Tab «Fristen»: offene Entscheidungen (Probeabos und Kündigungsfristen) mit «Behalten» / «Kündigen»,
-/// kommende Termine, Klappgruppen und Quartals-Check.
+/// Tab «Fristen» (Variante 1): Status, eine Liste nach Datum mit «Behalten» / «Kündigen» nur bei anstehenden Fristen,
+/// Karte «Flexibel», Klappgruppen und Quartals-Check.
 struct DeadlinesTab: View {
     @Environment(AppModel.self) private var model
     @State private var openFolds: Set<String> = []
@@ -48,26 +48,35 @@ struct DeadlinesTab: View {
         }
     }
 
-    // MARK: Inhalt
+    // MARK: Inhalt (Web Variante 1, 06./07.10.2026)
 
     @ViewBuilder private func content(_ ov: Calc.DeadlineOverview, review: Bool) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            if ov.headerBold != nil {
-                headerLine(ov)
-            }
-            if !ov.decisions.isEmpty {
-                VStack(spacing: 8) {
-                    ForEach(ov.decisions, id: \.self) { d in decisionCard(d) }
-                }
-                .padding(.top, 2)
+            if let st = ov.status {
+                DeadlineStatusView(status: st)
             }
             if !ov.marked.isEmpty {
                 markedGroup(ov)
             }
-            if !ov.upcoming.isEmpty {
-                upcomingGroup(ov.upcoming)
+            if !ov.items.isEmpty {
+                SectionHead(title: Calc.DeadlineOverview.listTitle, trailing: Calc.DeadlineOverview.listRight)
+                KCard {
+                    ForEach(Array(ov.items.enumerated()), id: \.element) { item in
+                        if item.offset > 0 { Divider().padding(.leading, 65) }
+                        if let c = model.data.contract(item.element.contractID) {
+                            DeadlineItemRow(item: item.element, contract: c, data: model.data,
+                                            onOpen: { model.present(.contractDetail(c.id)) },
+                                            onKeep: { keep(item.element) },
+                                            onKill: { killTarget = DeadlineKillTarget(contractID: c.id, trial: item.element.trial) },
+                                            onCalendar: { addToCalendar(item.element) })
+                        }
+                    }
+                }
+                .accessibilityIdentifier("deadlines.list")
             }
-            foldGroup(key: "any", title: Calc.DeadlineOverview.anytimeTitle, extra: "", rows: ov.anytime)
+            if !ov.flexible.isEmpty {
+                flexGroup(ov)
+            }
             // «Ohne Frist erfasst»: Zeile öffnet den Inline-Editor «Kündigungsfrist und Laufzeit» (Web data-qnotice)
             foldGroup(key: "none", title: Calc.DeadlineOverview.withoutNoticeTitle, extra: Calc.DeadlineOverview.withoutNoticeExtra, rows: ov.withoutNotice,
                       chevron: true) { _ in
@@ -82,36 +91,9 @@ struct DeadlinesTab: View {
         .padding(.top, 4)
     }
 
-    /// «3 offen · 1 dringend · nächste Frist in 5 Tagen» bzw. «Alles erledigt · keine offenen Entscheidungen» (grün)
-    private func headerLine(_ ov: Calc.DeadlineOverview) -> some View {
-        let bold = Text(ov.headerBold ?? "").fontWeight(.semibold).foregroundStyle(ov.allDone ? KColor.ok : KColor.ink)
-        return Text("\(bold)\(ov.headerRest)")
-            .font(.subheadline)
-            .foregroundStyle(KColor.ink2)
-            .lineLimit(2)
-            .padding(.horizontal, 2)
-            .padding(.bottom, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    @ViewBuilder private func decisionCard(_ d: Calc.DeadlineDecision) -> some View {
-        if let c = model.data.contract(d.contractID) {
-            DeadlineDecisionCard(decision: d, contract: c, data: model.data,
-                                 onOpen: { model.present(.contractDetail(d.contractID)) },
-                                 onKeep: { keep(d) },
-                                 onKill: { killTarget = DeadlineKillTarget(contractID: d.contractID, trial: d.trial) },
-                                 onCalendar: { addToCalendar(d) })
-        }
-    }
-
     /// «Zum Kündigen vorgemerkt» (Quartals-Check): Karte mit «Doch behalten» und «Kündigen»/«Wechseln»
     @ViewBuilder private func markedGroup(_ ov: Calc.DeadlineOverview) -> some View {
-        HStack {
-            SectionHead(title: Calc.DeadlineOverview.markedTitle)
-            Spacer()
-            Text(verbatim: Format.money(ov.markedMonthly) + " " + model.calc.home.rawValue + "/Mt.")
-                .font(.footnote.monospacedDigit()).foregroundStyle(KColor.ink2).padding(.top, 22)
-        }
+        SectionHead(title: Calc.DeadlineOverview.markedTitle, trailing: Format.money(ov.markedMonthly) + " " + model.calc.home.rawValue + "/Mt.")
         VStack(spacing: 8) {
             ForEach(ov.marked, id: \.self) { m in
                 if let c = model.data.contract(m.contractID) {
@@ -134,7 +116,7 @@ struct DeadlinesTab: View {
                                 let id = c.id
                                 if model.update({ $0.clearReview(id) }) { model.toast("Bleibt") }
                             }
-                            DeadlineActionButton(title: m.cancelTitle) {
+                            DeadlineActionButton(title: m.cancelTitle, accent: true) {
                                 killTarget = DeadlineKillTarget(contractID: c.id, trial: false)
                             }
                         }
@@ -148,25 +130,66 @@ struct DeadlinesTab: View {
         }
     }
 
-    @ViewBuilder private func upcomingGroup(_ rows: [Calc.UpcomingRow]) -> some View {
-        SectionHead(title: Calc.DeadlineOverview.upcomingTitle)
+    /// «Flexibel»: kurzfristig kündbare Verträge als eine Karte mit Logostapel, aufklappbar
+    @ViewBuilder private func flexGroup(_ ov: Calc.DeadlineOverview) -> some View {
+        let open = openFolds.contains("any")
+        SectionHead(title: Calc.DeadlineOverview.flexTitle)
         KCard {
-            ForEach(Array(rows.enumerated()), id: \.element) { item in
-                if item.offset > 0 { Divider().padding(.leading, 61) }
-                if let c = model.data.contract(item.element.contractID) {
-                    DeadlineListRow(contract: c, data: model.data, text: item.element.text, color: upcomingColor(item.element.kind)) {
-                        model.present(.contractDetail(c.id))
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) { toggleFold("any") }
+            } label: {
+                HStack(spacing: 12) {
+                    HStack(spacing: -9) {
+                        ForEach(ov.flexStack, id: \.self) { id in
+                            if let c = model.data.contract(id) {
+                                MarkView(contract: c, data: model.data, size: 34)
+                                    .overlay(RoundedRectangle(cornerRadius: 8.5, style: .continuous).strokeBorder(KColor.surface, lineWidth: 2))
+                            }
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: ov.flexCountText).font(.body.weight(.semibold)).foregroundStyle(KColor.ink)
+                        Text(verbatim: Calc.DeadlineOverview.flexSubtitle).font(.footnote).foregroundStyle(KColor.ink2).lineLimit(1)
+                    }
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(KColor.ink3)
+                        .rotationEffect(.degrees(open ? 90 : 0))
+                }
+                .padding(14)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityValue(open ? "aufgeklappt" : "zugeklappt")
+            .accessibilityIdentifier("deadlines.flex")
+            if open {
+                Divider()
+                Text(verbatim: Calc.DeadlineOverview.flexNote)
+                    .font(.footnote).foregroundStyle(KColor.ink2)
+                    .padding(.horizontal, 14).padding(.vertical, 11)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                ForEach(ov.flexible, id: \.self) { r in
+                    if let c = model.data.contract(r.contractID) {
+                        Divider().padding(.leading, 61)
+                        Button { model.present(.contractDetail(c.id)) } label: {
+                            HStack(spacing: 12) {
+                                MarkView(contract: c, data: model.data, size: 36)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(model.data.title(of: c)).font(.body.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1).minimumScaleFactor(0.8)
+                                    Text(verbatim: r.sub).font(.footnote).foregroundStyle(KColor.ink2).lineLimit(1)
+                                }
+                                Spacer(minLength: 8)
+                                DeadlineChip(text: r.chip, level: .none)
+                            }
+                            .padding(.horizontal, 13).padding(.vertical, 10)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityElement(children: .combine)
                     }
                 }
             }
-        }
-    }
-
-    private func upcomingColor(_ k: Calc.UpcomingKind) -> Color {
-        switch k {
-        case .normal: return KColor.ink2
-        case .kept: return KColor.ok
-        case .ended: return KColor.alert.opacity(0.85)
         }
     }
 
@@ -220,7 +243,7 @@ struct DeadlinesTab: View {
         }
     }
 
-    private func keep(_ d: Calc.DeadlineDecision) {
+    private func keep(_ d: Calc.DeadlineItem) {
         let day = model.today
         let id = d.contractID
         let trial = d.trial
@@ -252,10 +275,10 @@ struct DeadlinesTab: View {
         model.update { $0.snoozeReview(today: day) }
     }
 
-    private func addToCalendar(_ d: Calc.DeadlineDecision) {
+    private func addToCalendar(_ d: Calc.DeadlineItem) {
         // Doppeltippen: nur ein Kalenderdialog
         guard eventRequest == nil, let c = model.data.contract(d.contractID) else { return }
-        let info = DeadlineCalendar.info(for: d, contract: c, calc: model.calc, data: model.data)
+        let info = DeadlineCalendar.info(trial: d.trial, date: d.date, contract: c, calc: model.calc, data: model.data)
         eventRequest = DeadlineCalendar.prepare(info)
     }
 
@@ -265,10 +288,70 @@ struct DeadlinesTab: View {
     }
 }
 
-// MARK: - Entscheidungskarte
+// MARK: - Status, Zeile, Chip
 
-private struct DeadlineDecisionCard: View {
-    let decision: Calc.DeadlineDecision
+/// Status zentriert unter dem Titel: Kreis mit Haken (grün) bzw. Anzahl (gelb/rot), Titel, Untertitel.
+private struct DeadlineStatusView: View {
+    let status: Calc.DeadlineStatus
+
+    var body: some View {
+        let col: Color = status.kind == .ok ? KColor.ok : (status.kind == .alert ? KColor.alert : KColor.warn)
+        VStack(spacing: 3) {
+            ZStack {
+                Circle().fill(col.opacity(0.16))
+                if let n = status.count {
+                    Text(verbatim: String(n)).font(.system(size: 22, weight: .bold, design: .rounded).monospacedDigit()).foregroundStyle(col)
+                } else {
+                    Image(systemName: "checkmark").font(.system(size: 22, weight: .bold)).foregroundStyle(col)
+                }
+            }
+            .frame(width: 52, height: 52)
+            .padding(.bottom, 8)
+            .accessibilityHidden(true)
+            Text(verbatim: status.title)
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(KColor.ink)
+                .multilineTextAlignment(.center)
+            Text(verbatim: status.subtitle)
+                .font(.subheadline)
+                .foregroundStyle(KColor.ink2)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 18)
+        .padding(.bottom, 22)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("deadlines.status")
+    }
+}
+
+/// Chip rechts: gelb (Knöpfe sichtbar), rot (≤ 7 Tage bzw. gekündigt), grün (behalten), sonst neutral.
+private struct DeadlineChip: View {
+    let text: String
+    let level: Calc.ChipLevel
+
+    var body: some View {
+        let col: Color? = {
+            switch level {
+            case .warn: return KColor.warn
+            case .alert, .end: return KColor.alert
+            case .ok: return KColor.ok
+            case .none: return nil
+            }
+        }()
+        Text(verbatim: text)
+            .font(.caption.weight(.semibold))
+            .lineLimit(1)
+            .foregroundStyle(col ?? KColor.ink2)
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(col.map { $0.opacity(0.15) } ?? KColor.sunken))
+            .fixedSize()
+    }
+}
+
+/// Zeile der Liste «Fristen · nach Datum»: Logo, Titel, Unterzeile, Chip; Knöpfe nur bei `showActions`.
+private struct DeadlineItemRow: View {
+    let item: Calc.DeadlineItem
     let contract: Contract
     let data: AppData
     let onOpen: () -> Void
@@ -278,67 +361,63 @@ private struct DeadlineDecisionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top, spacing: 4) {
-                Button(action: onOpen) {
-                    HStack(alignment: .center, spacing: 12) {
-                        MarkView(contract: contract, data: data, size: 44)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(data.title(of: contract))
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(KColor.ink)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.75)
-                            Text(decision.line)
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(decision.level == .alert ? KColor.alert : KColor.warn)
-                            Text(decision.subline)
-                                .font(.footnote)
-                                .foregroundStyle(KColor.ink3)
-                                .lineLimit(1)
-                        }
-                        Spacer(minLength: 0)
+            Button(action: onOpen) {
+                HStack(spacing: 12) {
+                    MarkView(contract: contract, data: data, size: 40)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(data.title(of: contract))
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(KColor.ink)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                        Text(verbatim: item.sub)
+                            .font(.footnote)
+                            .foregroundStyle(KColor.ink2)
+                            .lineLimit(1)
                     }
-                    .contentShape(Rectangle())
+                    Spacer(minLength: 8)
+                    DeadlineChip(text: item.chip, level: item.chipLevel)
                 }
-                .buttonStyle(.plain)
-                .accessibilityElement(children: .combine)
-                .accessibilityHint("Öffnet die Vertragsdetails")
-                Button(action: onCalendar) {
-                    Image(systemName: "calendar.badge.plus")
-                        .font(.system(size: 18, weight: .regular))
-                        .foregroundStyle(KColor.teal)
-                        .frame(width: 40, height: 40)
-                        .contentShape(Rectangle())
+                .padding(.horizontal, 13)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityHint("Öffnet die Vertragsdetails")
+            if item.showActions {
+                HStack(spacing: 8) {
+                    DeadlineActionButton(title: item.keepTitle, action: onKeep)
+                    DeadlineActionButton(title: item.cancelTitle, accent: true, action: onKill)
+                    Button(action: onCalendar) {
+                        Image(systemName: "calendar.badge.plus")
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundStyle(KColor.teal)
+                            .frame(width: 38, height: 36)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("In den Kalender eintragen")
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("In den Kalender eintragen")
+                .padding(.leading, 13 + 40 + 12)
+                .padding(.trailing, 13)
+                .padding(.bottom, 12)
+                .padding(.top, -3)
             }
-            .padding(.leading, 13)
-            .padding(.trailing, 6)
-            .padding(.top, 12)
-            .padding(.bottom, 9)
-            HStack(spacing: 8) {
-                DeadlineActionButton(title: decision.keepTitle, action: onKeep)
-                DeadlineActionButton(title: decision.cancelTitle, action: onKill)
-            }
-            .padding(.leading, 13 + 44 + 12)
-            .padding(.trailing, 13)
-            .padding(.bottom, 12)
         }
-        .background(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).fill(KColor.surface))
-        .overlay(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).strokeBorder(KColor.line, lineWidth: 0.5))
     }
 }
 
 private struct DeadlineActionButton: View {
     let title: String
+    var accent = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Text(title)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(KColor.ink)
+                .foregroundStyle(accent ? KColor.teal : KColor.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
@@ -351,7 +430,7 @@ private struct DeadlineActionButton: View {
     }
 }
 
-/// Zeile in «Kommende Termine» und in den Klappgruppen: Logo, Titel, rechts Text.
+/// Zeile in den Klappgruppen: Logo, Titel, rechts Text.
 private struct DeadlineListRow: View {
     let contract: Contract
     let data: AppData

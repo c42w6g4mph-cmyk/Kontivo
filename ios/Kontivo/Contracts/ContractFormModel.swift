@@ -11,7 +11,8 @@ extension String {
 @MainActor
 @Observable
 final class CTFormState {
-    enum Watch: Hashable { case yes, mandatory, noWatch }
+    /// «In Fristen anzeigen»: Ja / Ja – Pflichtvertrag (wechseln statt kündigen) / Nein – z.B. Miete / Nein – nicht kündbar
+    enum Watch: Hashable { case yes, mandatory, noWatch, fixed }
 
     let context: ContractFormContext
     /// Ausgangsvertrag (bestehend, Entwurf, Kopie); Felder ausserhalb des Formulars bleiben unverändert
@@ -148,7 +149,7 @@ final class CTFormState {
         renewMonths = c.renewMonths
         prices = c.prices
         extras = c.extras.filter { $0.amount.isFinite && $0.amount != 0 }.ctStableSorted { $0.date < $1.date }
-        watch = c.mandatory ? .mandatory : (c.noWatch ? .noWatch : .yes)
+        watch = c.noCancel ? .fixed : (c.mandatory ? .mandatory : (c.noWatch ? .noWatch : .yes))
         isRent = c.isRent
         cancelChannel = c.cancelChannel
         trial = c.trial
@@ -275,13 +276,20 @@ final class CTFormState {
         if !t.web.isEmpty && web.ctTrimmed.isEmpty { web = t.web }
         // Kündigungslink aus dem Katalog nur, wenn noch keiner eingetragen ist (Web `applyTpl`)
         if !t.cancelURL.isEmpty && cancelURL.ctTrimmed.isEmpty { cancelURL = t.cancelURL }
+        // Katalog «Steuern & Gebühren» (Serafe, Rundfunkbeitrag): nicht kündbar statt Pflichtvertrag (Web v88)
         if onlyEmpty {
-            if t.mandatory && watch == .yes { watch = .mandatory }
+            if t.isFixed && watch == .yes { watch = .fixed } else if t.mandatory && !t.isFixed && watch == .yes { watch = .mandatory }
+        } else if t.isFixed {
+            watch = .fixed
         } else if t.mandatory {
             watch = .mandatory
-        } else if watch == .mandatory {
+        } else if watch == .mandatory || watch == .fixed {
             watch = .yes
         }
+        // Kontaktdaten aus dem Katalog nur in leere Felder (Web b520636)
+        if !t.address.isEmpty && address.isEmpty { address = WebImport.addrSplit(t.address, partnerName: partnerName) }
+        if !t.mail.isEmpty && mail.ctTrimmed.isEmpty { mail = t.mail }
+        if !t.tel.isEmpty && tel.ctTrimmed.isEmpty { tel = t.tel }
         if amountText.ctTrimmed.isEmpty, let cur = t.suggestedCurrency { currency = cur }
         tplHint = t.name
     }
@@ -353,19 +361,47 @@ final class CTFormState {
         split = on ? AppData.equalSplit(holders: holderIDs) : []
     }
 
-    func splitPercent(_ id: UUID) -> Int { split.first { $0.personID == id }?.percent ?? 0 }
+    /// Anteil in Prozent (4 Nachkommastellen).
+    func splitPercent(_ id: UUID) -> Double { split.first { $0.personID == id }?.percent ?? 0 }
 
-    /// Anteil setzen (0–100). Überschuss zuerst vom letzten (Rest), dann von den übrigen Reglern von hinten (Web spRefresh).
-    func setSplitPercent(_ id: UUID, _ v: Int) {
-        guard holderIDs.count >= 2, let last = holderIDs.last, id != last else { return }
-        var o: [UUID: Int] = [:]
+    /// Betrag pro Zahlung zum aktuellen Preis (Anfangspreis + Preisänderungen bis heute), Basis der Aufteilung (Web spTotal).
+    func splitTotal(today: Day) -> Double {
+        var a = CTNumber.parse(amountText) ?? 0
+        for p in sortedPrices where p.from <= today { a = p.amount }
+        return a
+    }
+
+    /// Betrag einer Person auf den Rappen.
+    func splitAmount(_ id: UUID, total: Double) -> Double { (total * splitPercent(id)).rounded() / 100 }
+
+    /// Betrag setzen (Web v82–v84): 2 Inhaber → die andere Person bekommt den Rest; ab 3 zuerst vom letzten (Rest) nehmen,
+    /// reicht das nicht, von den übrigen von hinten.
+    func setSplitAmount(_ id: UUID, _ x: Double, total: Double) {
+        guard holderIDs.count >= 2, total > 0 else { return }
+        let v = AppData.roundPercent(max(0, min(total, x)) / total * 100)
+        var o: [UUID: Double] = [:]
         for s in split { o[s.personID] = s.percent }
-        o[id] = max(0, min(100, v))
-        let mids = holderIDs.dropLast()
-        func sum() -> Int { mids.reduce(0) { $0 + (o[$1] ?? 0) } }
-        for x in mids.reversed() where x != id && sum() > 100 { o[x] = max(0, (o[x] ?? 0) - (sum() - 100)) }
-        o[last] = max(0, 100 - sum())
+        if holderIDs.count == 2 {
+            let other = holderIDs[0] == id ? holderIDs[1] : holderIDs[0]
+            o[id] = v
+            o[other] = AppData.roundPercent(100 - v)
+        } else {
+            guard let last = holderIDs.last, id != last else { return }
+            o[id] = v
+            let mids = holderIDs.dropLast()
+            func sum() -> Double { mids.reduce(0.0) { $0 + (o[$1] ?? 0) } }
+            for y in mids.reversed() where y != id && sum() > 100 { o[y] = max(0, (o[y] ?? 0) - (sum() - 100)) }
+            o[last] = max(0, AppData.roundPercent(100 - sum()))
+        }
         split = holderIDs.map { SplitShare(personID: $0, percent: o[$0] ?? 0) }
+    }
+
+    /// Adresse aus der Zwischenablage auf die Felder verteilen (Web «Einfügen», v86). false = nichts Brauchbares.
+    @discardableResult
+    func pasteAddress(_ text: String) -> Bool {
+        guard let a = WebImport.addrFromPaste(text, partnerName: partnerName), !a.isEmpty else { return false }
+        address = a
+        return true
     }
 
     // MARK: Logo und Farbe
@@ -480,10 +516,6 @@ final class CTFormState {
         let parts = [
             n(prices.count, "Preisänderung", "Preisänderungen"),
             n(extras.count, "Sonderzahlung", "Sonderzahlungen"),
-            watch == .mandatory ? "Pflichtvertrag" : (watch == .noWatch ? "nicht in Fristen" : ""),
-            cancelChannel != nil ? "Kündigungsweg" : "",
-            (cancelChannel != .online || cancelURL.ctTrimmed.isEmpty) ? "" : "Kündigungslink",
-            trial != nil ? "Probeabo" : "",
             customerNo.ctTrimmed.isEmpty ? "" : "Kundennummer",
             contractNo.ctTrimmed.isEmpty ? "" : "Vertragsnummer",
             payMethod.isEmpty ? "" : "Zahlungsart",
@@ -563,6 +595,7 @@ final class CTFormState {
         c.cancelTerm = termFixed ? .anytime : cancelTerm
         c.mandatory = watch == .mandatory
         c.noWatch = watch == .noWatch
+        c.noCancel = watch == .fixed
         c.isRent = isRent
         c.cancelChannel = cancelChannel
         // Kündigungslink nur beim Weg «Online / Kundenkonto» (wie Web)

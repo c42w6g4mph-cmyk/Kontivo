@@ -141,142 +141,218 @@
     }
    },
    "deadlines": {
-    "header": "3 offen · nächste Frist in 15 Tagen",
-    "headerOk": false,
-    "decisions": [
+    "status": {
+     "kind": "warn",
+     "count": 3,
+     "title": "3 Entscheidungen offen",
+     "sub": "Nächste Frist in 15 Tagen"
+    },
+    "items": [
      {
-      "id": "trial",
-      "trial": true,
-      "line": "Probeabo endet 20.10. · noch 18 Tage",
+      "id": "fix-renew1-2w",
+      "sub": "Kündigung bis 17.10.",
+      "chip": "in 15 Tagen",
       "lvl": "warn",
-      "sub": "155 CHF pro Jahr",
+      "acts": true,
+      "trial": false,
       "keep": "Behalten",
       "kill": "Kündigen"
      },
      {
-      "id": "fix-renew1-2w",
-      "trial": false,
-      "line": "Frist 17.10. · noch 15 Tage",
+      "id": "trial",
+      "sub": "Probeabo bis 20.10.",
+      "chip": "in 18 Tagen",
       "lvl": "warn",
-      "sub": "338 CHF pro Jahr",
+      "acts": true,
+      "trial": true,
       "keep": "Behalten",
       "kill": "Kündigen"
      },
      {
       "id": "fix-renew12-past",
-      "trial": false,
-      "line": "Frist 31.10. · noch 29 Tage",
+      "sub": "Kündigung bis 31.10.",
+      "chip": "in 29 Tagen",
       "lvl": "warn",
-      "sub": "1’068 CHF pro Jahr",
+      "acts": true,
+      "trial": false,
       "keep": "Behalten",
       "kill": "Kündigen"
-     }
-    ],
-    "upcoming": [
+     },
      {
       "id": "h-1m",
-      "text": "Frist 30.11.26",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.11.",
+      "chip": "in 59 Tagen",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "y-1m-kvg",
-      "text": "Frist 30.11.26",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.11.",
+      "chip": "in 59 Tagen",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "quarterly-usd",
-      "text": "Frist 30.11.26",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.11.",
+      "chip": "in 59 Tagen",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "cancelled-per",
-      "text": "gekündigt · endet 30.11.26",
-      "kind": "ended"
+      "sub": "Gekündigt",
+      "chip": "endet 30.11.",
+      "lvl": "end",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "q-3m",
-      "text": "Frist 31.12.26",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.12.",
+      "chip": "in 3 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "p-period-annual",
-      "text": "Frist 14.01.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 14.01.27",
+      "chip": "in 3 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "a-anniv",
-      "text": "Frist 31.01.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.27",
+      "chip": "in 4 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "leap-29",
-      "text": "Frist 31.01.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.27",
+      "chip": "in 4 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "price-change",
-      "text": "Frist 31.01.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.27",
+      "chip": "in 4 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "fix-norenew",
-      "text": "Frist 30.06.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.06.27",
+      "chip": "in 9 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "fix-renew12",
-      "text": "Frist 30.09.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.09.27",
+      "chip": "in 12 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "kept",
-      "text": "Frist 30.09.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.09.27",
+      "chip": "in 12 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      }
     ],
+    "flex": {
+     "count": "9 Verträge",
+     "sub": "Ohne Mindestlaufzeit",
+     "note": "Vertragsende bei Kündigung per heute",
+     "stack": 4,
+     "rows": [
+      {
+       "id": "p-period-monthly",
+       "sub": "Ohne Frist",
+       "chip": "endet 14.10."
+      },
+      {
+       "id": "trial",
+       "sub": "Ohne Frist",
+       "chip": "endet 19.10."
+      },
+      {
+       "id": "notice-k",
+       "sub": "Kündigung bis zum 15. des Monats",
+       "chip": "endet 31.10."
+      },
+      {
+       "id": "no-terms",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 02.11."
+      },
+      {
+       "id": "m-anytime-1m",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 30.11."
+      },
+      {
+       "id": "eom-31",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 30.11."
+      },
+      {
+       "id": "paused",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 30.11."
+      },
+      {
+       "id": "future-start",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 30.11."
+      },
+      {
+       "id": "m-anytime-60d",
+       "sub": "Frist 60 Tage",
+       "chip": "endet 31.12."
+      }
+     ]
+    },
     "folds": [
-     {
-      "key": "any",
-      "title": "Jederzeit kündbar (9)",
-      "rows": [
-       {
-        "id": "m-anytime-1m",
-        "text": "nächste Frist 31.10."
-       },
-       {
-        "id": "m-anytime-60d",
-        "text": "nächste Frist 01.11."
-       },
-       {
-        "id": "p-period-monthly",
-        "text": "zum Periodenende"
-       },
-       {
-        "id": "notice-k",
-        "text": "nächste Frist 15.10."
-       },
-       {
-        "id": "eom-31",
-        "text": "nächste Frist 31.10."
-       },
-       {
-        "id": "trial",
-        "text": "zum Periodenende"
-       },
-       {
-        "id": "paused",
-        "text": "nächste Frist 31.10."
-       },
-       {
-        "id": "future-start",
-        "text": "nächste Frist 31.10."
-       },
-       {
-        "id": "no-terms",
-        "text": "Frist 1 Monat"
-       }
-      ]
-     },
      {
       "key": "unw",
       "title": "Nicht beobachtet (1)",
@@ -420,132 +496,198 @@
     }
    },
    "deadlines": {
-    "header": "3 offen · 1 dringend · nächste Frist heute",
-    "headerOk": false,
-    "decisions": [
+    "status": {
+     "kind": "alert",
+     "count": 3,
+     "title": "3 Entscheidungen offen",
+     "sub": "Nächste Frist heute · 1 dringend"
+    },
+    "items": [
      {
       "id": "q-3m",
-      "trial": false,
-      "line": "Frist 31.12. · heute",
+      "sub": "Kündigung bis 31.12.",
+      "chip": "heute",
       "lvl": "alert",
-      "sub": "25’200 CHF pro Jahr",
+      "acts": true,
+      "trial": false,
       "keep": "Behalten",
       "kill": "Kündigen"
      },
      {
       "id": "p-period-annual",
-      "trial": false,
-      "line": "Frist 14.01.27 · noch 14 Tage",
+      "sub": "Kündigung bis 14.01.27",
+      "chip": "in 14 Tagen",
       "lvl": "warn",
-      "sub": "113 CHF pro Jahr",
+      "acts": true,
+      "trial": false,
       "keep": "Behalten",
       "kill": "Kündigen"
      },
      {
       "id": "fix-renew1-2w",
-      "trial": false,
-      "line": "Frist 17.01.27 · noch 17 Tage",
+      "sub": "Kündigung bis 17.01.27",
+      "chip": "in 17 Tagen",
       "lvl": "warn",
-      "sub": "338 CHF pro Jahr",
+      "acts": true,
+      "trial": false,
       "keep": "Behalten",
       "kill": "Kündigen"
-     }
-    ],
-    "upcoming": [
+     },
      {
       "id": "a-anniv",
-      "text": "Frist 31.01.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.27",
+      "chip": "in 31 Tagen",
+      "lvl": "warn",
+      "acts": true,
+      "trial": false,
+      "keep": "Behalten",
+      "kill": "Kündigen"
      },
      {
       "id": "leap-29",
-      "text": "Frist 31.01.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.27",
+      "chip": "in 31 Tagen",
+      "lvl": "warn",
+      "acts": true,
+      "trial": false,
+      "keep": "Behalten",
+      "kill": "Kündigen"
      },
      {
       "id": "price-change",
-      "text": "Frist 31.01.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.27",
+      "chip": "in 31 Tagen",
+      "lvl": "warn",
+      "acts": true,
+      "trial": false,
+      "keep": "Behalten",
+      "kill": "Kündigen"
      },
      {
       "id": "quarterly-usd",
-      "text": "Frist 28.02.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 28.02.27",
+      "chip": "in 59 Tagen",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "h-1m",
-      "text": "Frist 31.05.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.05.27",
+      "chip": "in 5 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "fix-norenew",
-      "text": "Frist 30.06.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.06.27",
+      "chip": "in 6 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "fix-renew12",
-      "text": "Frist 30.09.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.09.27",
+      "chip": "in 9 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "kept",
-      "text": "Frist 30.09.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.09.27",
+      "chip": "in 9 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "fix-renew12-past",
-      "text": "Frist 31.10.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.10.27",
+      "chip": "in 10 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "y-1m-kvg",
-      "text": "Frist 30.11.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.11.27",
+      "chip": "in 11 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      }
     ],
+    "flex": {
+     "count": "9 Verträge",
+     "sub": "Ohne Mindestlaufzeit",
+     "note": "Vertragsende bei Kündigung per heute",
+     "stack": 4,
+     "rows": [
+      {
+       "id": "p-period-monthly",
+       "sub": "Ohne Frist",
+       "chip": "endet 14.01.27"
+      },
+      {
+       "id": "trial",
+       "sub": "Ohne Frist",
+       "chip": "endet 19.01.27"
+      },
+      {
+       "id": "m-anytime-1m",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.01.27"
+      },
+      {
+       "id": "notice-k",
+       "sub": "Kündigung bis zum 15. des Monats",
+       "chip": "endet 31.01.27"
+      },
+      {
+       "id": "eom-31",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.01.27"
+      },
+      {
+       "id": "paused",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.01.27"
+      },
+      {
+       "id": "future-start",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.01.27"
+      },
+      {
+       "id": "no-terms",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.01.27"
+      },
+      {
+       "id": "m-anytime-60d",
+       "sub": "Frist 60 Tage",
+       "chip": "endet 31.03.27"
+      }
+     ]
+    },
     "folds": [
-     {
-      "key": "any",
-      "title": "Jederzeit kündbar (9)",
-      "rows": [
-       {
-        "id": "m-anytime-1m",
-        "text": "nächste Frist 31.12."
-       },
-       {
-        "id": "m-anytime-60d",
-        "text": "nächste Frist 30.01.27"
-       },
-       {
-        "id": "p-period-monthly",
-        "text": "zum Periodenende"
-       },
-       {
-        "id": "notice-k",
-        "text": "nächste Frist 15.01.27"
-       },
-       {
-        "id": "eom-31",
-        "text": "nächste Frist 31.12."
-       },
-       {
-        "id": "trial",
-        "text": "zum Periodenende"
-       },
-       {
-        "id": "paused",
-        "text": "nächste Frist 31.12."
-       },
-       {
-        "id": "future-start",
-        "text": "nächste Frist 31.12."
-       },
-       {
-        "id": "no-terms",
-        "text": "Frist 1 Monat"
-       }
-      ]
-     },
      {
       "key": "unw",
       "title": "Nicht beobachtet (1)",
@@ -689,128 +831,198 @@
     }
    },
    "deadlines": {
-    "header": "2 offen · 1 dringend · nächste Frist heute",
-    "headerOk": false,
-    "decisions": [
+    "status": {
+     "kind": "alert",
+     "count": 2,
+     "title": "2 Entscheidungen offen",
+     "sub": "Nächste Frist heute · 1 dringend"
+    },
+    "items": [
      {
       "id": "quarterly-usd",
-      "trial": false,
-      "line": "Frist 28.02. · heute",
+      "sub": "Kündigung bis 28.02.",
+      "chip": "heute",
       "lvl": "alert",
-      "sub": "96 CHF pro Jahr",
+      "acts": true,
+      "trial": false,
       "keep": "Behalten",
       "kill": "Kündigen"
      },
      {
       "id": "fix-renew1-2w",
-      "trial": false,
-      "line": "Frist 17.03. · noch 17 Tage",
+      "sub": "Kündigung bis 17.03.",
+      "chip": "in 17 Tagen",
       "lvl": "warn",
-      "sub": "338 CHF pro Jahr",
+      "acts": true,
+      "trial": false,
       "keep": "Behalten",
       "kill": "Kündigen"
-     }
-    ],
-    "upcoming": [
+     },
      {
       "id": "q-3m",
-      "text": "Frist 31.03.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.03.",
+      "chip": "in 31 Tagen",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "h-1m",
-      "text": "Frist 31.05.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.05.",
+      "chip": "in 3 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "fix-norenew",
-      "text": "Frist 30.06.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.06.",
+      "chip": "in 4 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "fix-renew12",
-      "text": "Frist 30.09.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.09.",
+      "chip": "in 7 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "kept",
-      "text": "Frist 30.09.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.09.",
+      "chip": "in 7 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "fix-renew12-past",
-      "text": "Frist 31.10.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.10.",
+      "chip": "in 8 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "y-1m-kvg",
-      "text": "Frist 30.11.27",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.11.",
+      "chip": "in 9 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "p-period-annual",
-      "text": "Frist 14.01.28",
-      "kind": "normal"
+      "sub": "Kündigung bis 14.01.28",
+      "chip": "in 11 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "leap-29",
-      "text": "Frist 28.01.28",
-      "kind": "normal"
+      "sub": "Kündigung bis 28.01.28",
+      "chip": "in 11 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "a-anniv",
-      "text": "Frist 31.01.28",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.28",
+      "chip": "in 11 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "price-change",
-      "text": "Frist 31.01.28",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.28",
+      "chip": "in 11 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      }
     ],
+    "flex": {
+     "count": "9 Verträge",
+     "sub": "Ohne Mindestlaufzeit",
+     "note": "Vertragsende bei Kündigung per heute",
+     "stack": 4,
+     "rows": [
+      {
+       "id": "p-period-monthly",
+       "sub": "Ohne Frist",
+       "chip": "endet 14.03."
+      },
+      {
+       "id": "trial",
+       "sub": "Ohne Frist",
+       "chip": "endet 19.03."
+      },
+      {
+       "id": "no-terms",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 28.03."
+      },
+      {
+       "id": "m-anytime-1m",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.03."
+      },
+      {
+       "id": "notice-k",
+       "sub": "Kündigung bis zum 15. des Monats",
+       "chip": "endet 31.03."
+      },
+      {
+       "id": "eom-31",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.03."
+      },
+      {
+       "id": "paused",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.03."
+      },
+      {
+       "id": "future-start",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.03."
+      },
+      {
+       "id": "m-anytime-60d",
+       "sub": "Frist 60 Tage",
+       "chip": "endet 30.04."
+      }
+     ]
+    },
     "folds": [
-     {
-      "key": "any",
-      "title": "Jederzeit kündbar (9)",
-      "rows": [
-       {
-        "id": "m-anytime-1m",
-        "text": "nächste Frist 28.02."
-       },
-       {
-        "id": "m-anytime-60d",
-        "text": "nächste Frist 01.03."
-       },
-       {
-        "id": "p-period-monthly",
-        "text": "zum Periodenende"
-       },
-       {
-        "id": "notice-k",
-        "text": "nächste Frist 15.03."
-       },
-       {
-        "id": "eom-31",
-        "text": "nächste Frist 28.02."
-       },
-       {
-        "id": "trial",
-        "text": "zum Periodenende"
-       },
-       {
-        "id": "paused",
-        "text": "nächste Frist 28.02."
-       },
-       {
-        "id": "future-start",
-        "text": "nächste Frist 28.02."
-       },
-       {
-        "id": "no-terms",
-        "text": "Frist 1 Monat"
-       }
-      ]
-     },
      {
       "key": "unw",
       "title": "Nicht beobachtet (1)",
@@ -954,123 +1166,188 @@
     }
    },
    "deadlines": {
-    "header": "2 offen · 1 dringend · nächste Frist heute",
-    "headerOk": false,
-    "decisions": [
+    "status": {
+     "kind": "alert",
+     "count": 2,
+     "title": "2 Entscheidungen offen",
+     "sub": "Nächste Frist heute · 1 dringend"
+    },
+    "items": [
      {
       "id": "quarterly-usd",
-      "trial": false,
-      "line": "Frist 29.02. · heute",
+      "sub": "Kündigung bis 29.02.",
+      "chip": "heute",
       "lvl": "alert",
-      "sub": "96 CHF pro Jahr",
+      "acts": true,
+      "trial": false,
       "keep": "Behalten",
       "kill": "Kündigen"
      },
      {
       "id": "fix-renew1-2w",
-      "trial": false,
-      "line": "Frist 17.03. · noch 17 Tage",
+      "sub": "Kündigung bis 17.03.",
+      "chip": "in 17 Tagen",
       "lvl": "warn",
-      "sub": "338 CHF pro Jahr",
+      "acts": true,
+      "trial": false,
       "keep": "Behalten",
       "kill": "Kündigen"
-     }
-    ],
-    "upcoming": [
+     },
      {
       "id": "q-3m",
-      "text": "Frist 31.03.28",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.03.",
+      "chip": "in 31 Tagen",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "h-1m",
-      "text": "Frist 31.05.28",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.05.",
+      "chip": "in 3 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "fix-renew12",
-      "text": "Frist 30.09.28",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.09.",
+      "chip": "in 7 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "kept",
-      "text": "Frist 30.09.28",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.09.",
+      "chip": "in 7 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "fix-renew12-past",
-      "text": "Frist 31.10.28",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.10.",
+      "chip": "in 8 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "y-1m-kvg",
-      "text": "Frist 30.11.28",
-      "kind": "normal"
+      "sub": "Kündigung bis 30.11.",
+      "chip": "in 9 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "p-period-annual",
-      "text": "Frist 14.01.29",
-      "kind": "normal"
+      "sub": "Kündigung bis 14.01.29",
+      "chip": "in 11 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "a-anniv",
-      "text": "Frist 31.01.29",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.29",
+      "chip": "in 11 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "leap-29",
-      "text": "Frist 31.01.29",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.29",
+      "chip": "in 11 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      },
      {
       "id": "price-change",
-      "text": "Frist 31.01.29",
-      "kind": "normal"
+      "sub": "Kündigung bis 31.01.29",
+      "chip": "in 11 Monaten",
+      "lvl": "",
+      "acts": false,
+      "trial": false,
+      "keep": null,
+      "kill": null
      }
     ],
+    "flex": {
+     "count": "9 Verträge",
+     "sub": "Ohne Mindestlaufzeit",
+     "note": "Vertragsende bei Kündigung per heute",
+     "stack": 4,
+     "rows": [
+      {
+       "id": "p-period-monthly",
+       "sub": "Ohne Frist",
+       "chip": "endet 14.03."
+      },
+      {
+       "id": "trial",
+       "sub": "Ohne Frist",
+       "chip": "endet 19.03."
+      },
+      {
+       "id": "no-terms",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 29.03."
+      },
+      {
+       "id": "m-anytime-1m",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.03."
+      },
+      {
+       "id": "notice-k",
+       "sub": "Kündigung bis zum 15. des Monats",
+       "chip": "endet 31.03."
+      },
+      {
+       "id": "eom-31",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.03."
+      },
+      {
+       "id": "paused",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.03."
+      },
+      {
+       "id": "future-start",
+       "sub": "Frist 1 Monat",
+       "chip": "endet 31.03."
+      },
+      {
+       "id": "m-anytime-60d",
+       "sub": "Frist 60 Tage",
+       "chip": "endet 30.04."
+      }
+     ]
+    },
     "folds": [
-     {
-      "key": "any",
-      "title": "Jederzeit kündbar (9)",
-      "rows": [
-       {
-        "id": "m-anytime-1m",
-        "text": "nächste Frist 29.02."
-       },
-       {
-        "id": "m-anytime-60d",
-        "text": "nächste Frist 01.03."
-       },
-       {
-        "id": "p-period-monthly",
-        "text": "zum Periodenende"
-       },
-       {
-        "id": "notice-k",
-        "text": "nächste Frist 15.03."
-       },
-       {
-        "id": "eom-31",
-        "text": "nächste Frist 29.02."
-       },
-       {
-        "id": "trial",
-        "text": "zum Periodenende"
-       },
-       {
-        "id": "paused",
-        "text": "nächste Frist 29.02."
-       },
-       {
-        "id": "future-start",
-        "text": "nächste Frist 29.02."
-       },
-       {
-        "id": "no-terms",
-        "text": "Frist 1 Monat"
-       }
-      ]
-     },
      {
       "key": "unw",
       "title": "Nicht beobachtet (1)",

@@ -20,11 +20,20 @@ public struct CatalogEntry: Codable, Hashable, Sendable, Identifiable {
     public var hint: String
     /// Kündigungslink (Vorschlag fürs Formular, wenn dort noch keiner steht)
     public var cancelURL: String
+    /// Kündigungsadresse mehrzeilig (Web TPL[12], recherchiert 10/2026), "" = keine
+    public var address: String
+    /// Offiziell publizierte E-Mail (TPL[13])
+    public var mail: String
+    /// Telefon (TPL[14])
+    public var tel: String
+    /// Kontaktdaten aus offizieller Quelle (TPL[15]); false → Prüfhinweis
+    public var confirmed: Bool
 
     public var id: String { name }
 
     public init(name: String, country: String, category: String, label: String, web: String, notice: Int, noticeUnit: NoticeUnit,
-                cancelTerm: CancelTerm, cancelChannel: CancelChannel?, mandatory: Bool, hint: String, cancelURL: String = "") {
+                cancelTerm: CancelTerm, cancelChannel: CancelChannel?, mandatory: Bool, hint: String, cancelURL: String = "",
+                address: String = "", mail: String = "", tel: String = "", confirmed: Bool = true) {
         self.name = name
         self.country = country
         self.category = category
@@ -37,7 +46,37 @@ public struct CatalogEntry: Codable, Hashable, Sendable, Identifiable {
         self.mandatory = mandatory
         self.hint = hint
         self.cancelURL = cancelURL
+        self.address = address
+        self.mail = mail
+        self.tel = tel
+        self.confirmed = confirmed
     }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        name = try c.decode(String.self, forKey: .name)
+        country = (try? c.decode(String.self, forKey: .country)) ?? ""
+        category = (try? c.decode(String.self, forKey: .category)) ?? ""
+        label = (try? c.decode(String.self, forKey: .label)) ?? ""
+        web = (try? c.decode(String.self, forKey: .web)) ?? ""
+        notice = (try? c.decode(Int.self, forKey: .notice)) ?? 0
+        noticeUnit = (try? c.decode(NoticeUnit.self, forKey: .noticeUnit)) ?? .months
+        cancelTerm = (try? c.decode(CancelTerm.self, forKey: .cancelTerm)) ?? .anytime
+        cancelChannel = try? c.decode(CancelChannel.self, forKey: .cancelChannel)
+        mandatory = (try? c.decode(Bool.self, forKey: .mandatory)) ?? false
+        hint = (try? c.decode(String.self, forKey: .hint)) ?? ""
+        cancelURL = (try? c.decode(String.self, forKey: .cancelURL)) ?? ""
+        address = (try? c.decode(String.self, forKey: .address)) ?? ""
+        mail = (try? c.decode(String.self, forKey: .mail)) ?? ""
+        tel = (try? c.decode(String.self, forKey: .tel)) ?? ""
+        confirmed = (try? c.decode(Bool.self, forKey: .confirmed)) ?? true
+    }
+
+    /// Hinweis mit Prüfhinweis bei nicht bestätigten Kontaktdaten (Web `tplHint`).
+    public var hintFull: String { hint + (confirmed ? "" : " Kontaktdaten nicht offiziell bestätigt – vor dem Versand prüfen.") }
+
+    /// Kategorie «Steuern & Gebühren» (Serafe, Rundfunkbeitrag): beim Übernehmen «nicht kündbar» statt Pflichtvertrag.
+    public var isFixed: Bool { category == "Steuern & Gebühren" }
 
     /// Land für die Anzeige (`tplFlag`): «CH», «DE» oder «CH · DE».
     public var flag: String { country.isEmpty ? "CH · DE" : country }
@@ -92,6 +131,22 @@ public enum Catalog {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if n.isEmpty { return nil }
         return entries.first { $0.name.lowercased() == n }
+    }
+
+    /// Katalog-Eintrag zu einem bestehenden Vertrag (Web `tplMatch`): exakter Name (Vertragspartner, sonst Bezeichnung);
+    /// bei Länder-Varianten (AXA / AXA Deutschland) entscheidet die Währung (EUR → DE, CHF → CH). Kein unscharfer Treffer.
+    public static func match(names: [String], currency: Currency) -> CatalogEntry? {
+        let cc = currency == .EUR ? "DE" : (currency == .CHF ? "CH" : "")
+        for raw in names {
+            let n = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            if n.isEmpty { continue }
+            let exact = entries.filter { $0.name.lowercased() == n }
+            if exact.isEmpty { continue }
+            let pref = entries.filter { $0.name.lowercased().hasPrefix(n + " ") }
+            let same = (exact + pref).filter { $0.country.isEmpty || $0.country == cc }
+            return same.first ?? exact.first
+        }
+        return nil
     }
 
     /// Katalog-Fenster: Land «CH»/«DE» (internationale immer dabei) oder alle, Suche in Name, Bezeichnung, Kategorie; alphabetisch.

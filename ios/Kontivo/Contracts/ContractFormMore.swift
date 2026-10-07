@@ -17,7 +17,6 @@ struct CTFormMorePage: View {
             Form {
                 CTMorePrices(form: form)
                 CTMoreExtras(form: form)
-                CTMoreDeadlines(form: form)
                 CTMoreCustomer(form: form)
                 CTMoreContact(form: form)
                 CTMoreAddress(form: form)
@@ -171,58 +170,6 @@ private struct CTMoreExtras: View {
     }
 }
 
-// MARK: Fristen
-
-private struct CTMoreDeadlines: View {
-    @Environment(AppModel.self) private var model
-    @Bindable var form: CTFormState
-
-    var body: some View {
-        let today = model.today
-        Section {
-            Picker("In «Fristen» anzeigen", selection: $form.watch) {
-                Text("Ja").tag(CTFormState.Watch.yes)
-                Text("Nein – Pflichtvertrag").tag(CTFormState.Watch.mandatory)
-                Text("Nein – z.B. Miete").tag(CTFormState.Watch.noWatch)
-            }
-            Picker("Kündigungsweg", selection: $form.cancelChannel) {
-                Text("—").tag(CancelChannel?.none)
-                ForEach(CancelChannel.allCases, id: \.self) { ch in
-                    Text(ch.webText).tag(CancelChannel?.some(ch))
-                }
-            }
-            CTOptionalDateRow(title: "Probeabo endet", day: $form.trial, fallback: today.addingMonths(1))
-            if form.cancelChannel == .online {
-                CTField(title: "Kündigungslink", placeholder: "netflix.com/cancelplan", text: $form.cancelURL,
-                        keyboard: .URL, capitalization: .never, autocorrect: false)
-            }
-            Toggle("Mietvertrag", isOn: rentBinding)
-        } header: {
-            Text("Fristen")
-        } footer: {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Pflichtvertrag: nur Wechsel möglich, z.B. Grundversicherung.")
-                if form.cancelChannel == .online {
-                    Text("Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.")
-                }
-                Text("Miete braucht immer einen Brief mit Unterschrift.")
-            }
-        }
-        .listRowBackground(KColor.surface)
-    }
-
-    private var rentBinding: Binding<Bool> {
-        Binding(
-            get: {
-                if let r = form.isRent { return r }
-                let kind = model.data.category(form.categoryID)?.kind
-                return Letter.isRentHeuristic(label: form.label, partner: form.partnerName, kind: kind)
-            },
-            set: { form.isRent = $0 }
-        )
-    }
-}
-
 // MARK: Kundendaten
 
 private struct CTMoreCustomer: View {
@@ -290,13 +237,14 @@ private struct CTMoreContact: View {
 // MARK: Adresse des Vertragspartners
 
 private struct CTMoreAddress: View {
+    @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
 
     var body: some View {
         let noPartner = form.partnerName.ctTrimmed.isEmpty
         Section {
             Group {
-                TextField("Firma, z.B. Sunrise GmbH", text: $form.address.company)
+                TextField(form.partnerName.ctTrimmed.isEmpty ? "Firma (optional)" : "Firma (optional, sonst " + form.partnerName.ctTrimmed + ")", text: $form.address.company)
                     .textContentType(.organizationName)
                 TextField("Zusatz, z.B. Kundendienst oder Postfach", text: $form.address.extra)
                 TextField("Strasse und Nr.", text: $form.address.street)
@@ -318,7 +266,21 @@ private struct CTMoreAddress: View {
             .disabled(noPartner)
             .opacity(noPartner ? 0.5 : 1)
         } header: {
-            Text("Adresse des Vertragspartners")
+            HStack {
+                Text("Adresse des Vertragspartners")
+                Spacer()
+                // Einfügen: Adresse aus Rechnung, Website oder Karten auf die Felder verteilen (Web v86)
+                PasteButton(payloadType: String.self) { items in
+                    guard let t = items.first else { return }
+                    Task { @MainActor in
+                        if !form.pasteAddress(t) { model.toast("Keine Adresse in der Zwischenablage") } else { model.toast("Adresse eingefügt, bitte prüfen") }
+                    }
+                }
+                .labelStyle(.titleOnly)
+                .buttonBorderShape(.capsule)
+                .controlSize(.mini)
+                .disabled(noPartner)
+            }
         } footer: {
             Text(noPartner ? "Zuerst den Vertragspartner eintragen."
                  : "Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.")

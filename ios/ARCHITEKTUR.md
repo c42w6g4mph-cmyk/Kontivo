@@ -145,3 +145,13 @@ Formulare bearbeiten eine Kopie (`Contract`) und übernehmen beim Sichern nur di
 | langes Drücken Pop-up | `.contextMenu` mit Vorschau |
 | Monatswechsel Wischen | `DragGesture` / paging `TabView` |
 | Service Worker, Manifest | entfällt |
+| Kalender auf Entscheidungskarten | seit 07.10.2026: Kalender-Knopf in der Knopfzeile der Fristen-Liste (nur bei Zeilen mit Behalten/Kündigen) |
+| Adresse «Einfügen» (Zwischenablage lesen) | `PasteButton` (keine Rückfrage nötig), Aufteilung `WebImport.addrFromPaste` |
+
+## Nachzug Web v70–v88 (07.10.2026)
+- Fristen-Tab Variante 1: `Calc.deadlineOverview()` liefert `status`, `items` (eine Liste nach Datum, `showActions` = Probeabo, needsAction oder ≤ 61 Tage vor Vertragsende), `flexible` (Ende bei Kündigung heute, `endIfCancelledToday`), `flexStack`, Klappgruppen; Golden-Test gegen das gerenderte DOM (tests/make_golden_texts.py)
+- Nicht kündbar: `Contract.noCancel`, `Calc.isFixed` (= Steuern & Gebühren oder noCancel) ersetzt `isTax` bei allem, was Kündbarkeit betrifft
+- Aufteilung: `SplitShare.percent` ist `Double` (4 Nachkommastellen); Formular mit Beträgen pro Zahlung (`setSplitAmount`), bei 2 Inhabern Slider in 0.50-Schritten (Wert = Betrag der rechten Person)
+- Katalog: Felder `address`, `mail`, `tel`, `confirmed` (make_catalog.py liest TPL[12–15]); `Catalog.match` (Währung → Land), `AppData.catalogFillPlan/applyCatalogFill` («Kontaktdaten ergänzen» in Verwalten); Vorlage füllt Adresse/E-Mail/Telefon nur leer
+- Kosten «Aufteilung und Entwicklung»: `Calc.costEvolution` (Jahresbalken aktuell + bis 2 Vorjahre, Liste mit Anteil und Veränderung, Verlauf), ersetzt den Ring
+- Vertragspartner-Seite: Preisverlauf je Vertrag (`CTPriceChart`), Firma als optional markiert

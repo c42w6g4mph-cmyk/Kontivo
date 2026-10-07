@@ -55,6 +55,10 @@ public struct Calc {
         return taxNames.contains(id)
     }
 
+    /// Nicht kündbar (Web `isFixed`, v88): Steuern & Gebühren automatisch, sonst `noCancel` (z.B. Serafe unter «Wohnen»).
+    /// Keine Frist, nicht in «Fristen», kein Kündigen.
+    public func isFixed(_ c: Contract) -> Bool { isTax(c) || c.noCancel }
+
     /// Mietvertrag: ausdrücklicher Schalter, sonst Heuristik.
     public func isRent(_ c: Contract) -> Bool {
         if let r = c.isRent { return r }
@@ -309,9 +313,9 @@ public struct Calc {
     /// «Sonst verlängert bis»
     public func renewTo(_ c: Contract) -> Day? { renewAfter(c, termEnd(c)) }
 
-    /// Kündigungsfrist (Steuern: keine).
+    /// Kündigungsfrist (nicht kündbar: keine).
     public func noticeDeadline(_ c: Contract) -> Day? {
-        if isTax(c) { return nil }
+        if isFixed(c) { return nil }
         guard let e = termEnd(c) else { return nil }
         return noticeDeadline(for: c, end: e)
     }
@@ -384,7 +388,7 @@ public struct Calc {
 
     /// Entscheidung nötig: Frist in 0–30 Tagen (Steuern filtern die Aufrufer). Seit 04.10.2026: 30 statt 90 Tage.
     public func needsAction(_ c: Contract) -> Bool {
-        if c.cancelPer != nil { return false }
+        if c.cancelPer != nil || isFixed(c) { return false }
         guard let T = termEnd(c) else { return false }
         if isAnytime(c) || c.noWatch { return false }
         if let k = c.keptFor, k == T { return false }
@@ -402,7 +406,7 @@ public struct Calc {
     public func holderShare(_ c: Contract, person: UUID?) -> Double {
         guard let p = person else { return 1 }
         if !c.holderIDs.contains(p) { return 0 }
-        if let sp = c.validSplit { return Double(sp[p] ?? 0) / 100 }
+        if let sp = c.validSplit { return (sp[p] ?? 0) / 100 }
         return 1 / Double(c.holderIDs.count)
     }
 
@@ -415,7 +419,7 @@ public struct Calc {
 
     /// Preiserhöhung angekündigt oder in den letzten 60 Tagen wirksam: Hinweis auf ein mögliches Sonderkündigungsrecht (Detail).
     public func specialCancelHint(_ c: Contract) -> Bool {
-        if !isActive(c) || isTax(c) { return false }
+        if !isActive(c) || isFixed(c) { return false }
         var prev = c.amount
         for p in pricesOf(c) {
             if p.from > today { return p.amount > curPrice(c) }
@@ -462,7 +466,7 @@ public struct Calc {
 
     /// Verträge für den Check: laufend, begonnen, keine Steuern, nicht gekündigt; teuerste zuerst.
     public func reviewList() -> [Contract] {
-        running.filter { !isTax($0) && $0.cancelPer == nil && !notStarted($0) }.stableSorted { monthlyCost($0) > monthlyCost($1) }
+        running.filter { !isFixed($0) && $0.cancelPer == nil && !notStarted($0) }.stableSorted { monthlyCost($0) > monthlyCost($1) }
     }
 
     /// Kündigungsende beim Markieren (Probeabo: Tag vor Probeabo-Ende, sonst termEnd).
@@ -527,47 +531,84 @@ public struct Calc {
         return ref.days(to: today) >= 90 && !active.isEmpty
     }
 
-    /// Zähler im Tab «Fristen»: offene Entscheidungen (Fristen + Probeabos, ohne Steuern).
+    /// Zähler im Tab «Fristen»: offene Entscheidungen (Frist oder Probeabo, jeder Vertrag einmal, ohne nicht kündbare).
     public var deadlineBadgeCount: Int {
-        let a = active
-        return a.filter { needsAction($0) && !isTax($0) }.count + a.filter { trialNeeds($0) && !isTax($0) }.count
+        active.filter { !isFixed($0) && (needsAction($0) || trialNeeds($0)) }.count
+    }
+
+    /// Ende bei Kündigung heute (Web `fEnd` in «Flexibel»): Kündbar-auf-Termin (nextTerm), sonst heute + Frist
+    /// (Tage/Wochen/Monate; «bis zum n.» → Ende dieses bzw. nächsten Monats).
+    public func endIfCancelledToday(_ c: Contract) -> Day {
+        if let T = nextTerm(c) { return T }
+        let n = c.notice
+        if n == 0 { return today }
+        switch c.noticeUnit {
+        case .days: return today.addingDays(n)
+        case .weeks: return today.addingDays(7 * n)
+        case .dayOfMonth: return (today.day <= n ? today : today.firstDayOfMonth.addingMonths(1)).lastDayOfMonth
+        case .months: return today.addingMonths(n)
+        }
     }
 }
 
-// MARK: - Tab «Fristen»
+// MARK: - Tab «Fristen» (Web Variante 1, 06./07.10.2026)
 
 extension Calc {
-    /// Entscheidungskarte (Probeabo oder Frist).
-    public struct DeadlineDecision: Hashable, Sendable {
+    public enum DeadlineItemKind: String, Hashable, Sendable {
+        case trial, open, kept, ended
+    }
+
+    /// Farbe des Chips rechts: gelb (Knöpfe sichtbar), rot (≤ 7 Tage bzw. gekündigt), grün (behalten), neutral.
+    public enum ChipLevel: String, Hashable, Sendable {
+        case none = "", warn, alert, ok, end
+    }
+
+    /// Zeile der Liste «Fristen · nach Datum».
+    public struct DeadlineItem: Hashable, Sendable {
         public var contractID: UUID
-        public var trial: Bool
-        /// Frist bzw. Probeabo-Ende
+        public var kind: DeadlineItemKind
+        /// Sortierdatum: Frist, Probeabo-Ende bzw. «gekündigt per»
         public var date: Day
+        /// Vertragsende zum Termin (offen/behalten)
+        public var end: Day?
         public var days: Int
-        /// ≤ 7 Tage alert, sonst warn
-        public var level: UrgencyLevel
-        /// «Frist 30.11. · noch 29 Tage» / «Probeabo endet 20.10. · heute»
-        public var line: String
-        /// «719 CHF pro Jahr · Pflichtvertrag · pausiert»
-        public var subline: String
-        /// «Behalten»
+        /// «Kündigung bis 16.12.», «Probeabo bis 15.10.», «Behalten · nächste Frist 30.09.27», «Gekündigt»
+        public var sub: String
+        /// «in 2 Monaten» bzw. «endet 17.11.»
+        public var chip: String
+        public var chipLevel: ChipLevel
+        /// Knöpfe Behalten/Kündigen: Probeabo, needsAction (30 Tage vor Frist) oder ≤ 61 Tage vor Vertragsende
+        public var showActions: Bool
+        public var trial: Bool { kind == .trial }
         public var keepTitle: String
         /// «Kündigen» bzw. «Wechseln» (Pflichtvertrag)
         public var cancelTitle: String
     }
 
-    public enum UpcomingKind: String, Hashable, Sendable {
-        case normal, kept, ended
+    /// Zeile in «Flexibel» (aufgeklappt).
+    public struct FlexRow: Hashable, Sendable {
+        public var contractID: UUID
+        /// «Frist 1 Monat», «Kündigung bis zum 5. des Monats», «Ohne Frist»
+        public var sub: String
+        /// Ende bei Kündigung heute
+        public var end: Day
+        /// «endet 31.10.»
+        public var chip: String
     }
 
-    /// Zeile «Kommende Termine».
-    public struct UpcomingRow: Hashable, Sendable {
-        public var contractID: UUID
-        /// Sortierdatum
-        public var date: Day
-        /// «Frist 30.11.26», «behalten · Frist 30.09.27», «gekündigt · endet 30.11.26»
-        public var text: String
-        public var kind: UpcomingKind
+    public enum DeadlineStatusKind: String, Hashable, Sendable {
+        case ok, warn, alert
+    }
+
+    /// Status zentriert unter dem Titel.
+    public struct DeadlineStatus: Hashable, Sendable {
+        public var kind: DeadlineStatusKind
+        /// Zahl im Kreis (bei ok nil = Haken)
+        public var count: Int?
+        /// «Alles erledigt» bzw. «2 Entscheidungen offen»
+        public var title: String
+        /// «Keine offenen Entscheidungen» bzw. «Nächste Frist in 9 Tagen · 1 dringend»
+        public var subtitle: String
     }
 
     /// Vorgemerkter Vertrag aus dem Quartals-Check.
@@ -588,20 +629,16 @@ extension Calc {
     }
 
     public struct DeadlineOverview: Hashable, Sendable {
-        /// Probeabos zuerst, dann Fristen
-        public var decisions: [DeadlineDecision]
+        public var status: DeadlineStatus?
         public var openCount: Int
         public var urgentCount: Int
         public var nextDate: Day?
-        /// Kopfzeile fett («3 offen» bzw. «Alles erledigt»), nil ohne Kopfzeile
-        public var headerBold: String?
-        /// Rest der Kopfzeile (« · 1 dringend · nächste Frist in 5 Tagen» bzw. « · keine offenen Entscheidungen»)
-        public var headerRest: String
-        /// Kopfzeile grün («Alles erledigt»)
-        public var allDone: Bool
-        public var upcoming: [UpcomingRow]
-        /// «Jederzeit kündbar»
-        public var anytime: [FoldRow]
+        /// Eine Liste nach Datum
+        public var items: [DeadlineItem]
+        /// «Flexibel» (kurzfristig kündbar), sortiert nach Ende bei Kündigung heute
+        public var flexible: [FlexRow]
+        /// Logostapel der Karte «Flexibel»: bis zu 4, teuerste zuerst
+        public var flexStack: [UUID]
         /// «Ohne Frist erfasst» (Titelzusatz « · ergänzen»)
         public var withoutNotice: [FoldRow]
         /// «Nicht beobachtet»
@@ -614,49 +651,74 @@ extension Calc {
         public var markedMonthly: Double = 0
 
         public static let markedTitle = "Zum Kündigen vorgemerkt"
-
-        public static let upcomingTitle = "Kommende Termine"
-        public static let anytimeTitle = "Jederzeit kündbar"
+        public static let listTitle = "Fristen"
+        public static let listRight = "nach Datum"
+        public static let flexTitle = "Flexibel"
+        public static let flexSubtitle = "Ohne Mindestlaufzeit"
+        public static let flexNote = "Vertragsende bei Kündigung per heute"
         public static let withoutNoticeTitle = "Ohne Frist erfasst"
         public static let withoutNoticeExtra = " · ergänzen"
         public static let unwatchedTitle = "Nicht beobachtet"
+
+        /// «3 Verträge» / «1 Vertrag»
+        public var flexCountText: String { flexible.count == 1 ? "1 Vertrag" : "\(flexible.count) Verträge" }
     }
 
-    /// Inhalt des Tabs «Fristen» (Grundmenge: aktive Verträge ohne Steuern, inkl. pausierte).
+    /// Inhalt des Tabs «Fristen» (Grundmenge: aktive Verträge ohne nicht kündbare, inkl. pausierte).
     public func deadlineOverview() -> DeadlineOverview {
-        let a = active.filter { !isTax($0) }
+        let a = active.filter { !isFixed($0) }
         let y = today.year
-        let todo = a.filter { needsAction($0) }.stableSorted { (noticeDeadline($0) ?? today) < (noticeDeadline($1) ?? today) }
+        let todo = a.filter { needsAction($0) && !trialNeeds($0) }.stableSorted { (noticeDeadline($0) ?? today) < (noticeDeadline($1) ?? today) }
         let triTodo = a.filter { trialNeeds($0) }.stableSorted { ($0.trial ?? today) < ($1.trial ?? today) }
         let n = todo.count + triTodo.count
 
-        var up: [UpcomingRow] = []
+        // Liste nach Datum
+        var raw: [(c: Contract, d: Day, k: DeadlineItemKind, e: Day?)] = []
+        for c in triTodo { if let d = c.trial { raw.append((c, d, .trial, nil)) } }
         for c in a {
-            if needsAction(c) || trialNeeds(c) || c.noWatch { continue }
-            if let cp = c.cancelPer {
-                up.append(UpcomingRow(contractID: c.id, date: cp, text: "gekündigt · endet " + Format.fmtShort(cp), kind: .ended))
-                continue
-            }
+            if trialNeeds(c) || c.noWatch { continue }
+            if let cp = c.cancelPer { raw.append((c, cp, .ended, nil)); continue }
             if isAnytime(c) { continue }
             guard let T = termEnd(c) else { continue }
             if isKept(c) {
                 let T2 = c.end != nil ? renewAfter(c, T) : nextTerm(c, base: nil, after: T)
                 let d2 = T2.map { noticeDeadline(for: c, end: $0) }
-                up.append(UpcomingRow(contractID: c.id, date: d2 ?? T, text: "behalten" + (d2 != nil ? " · Frist " + Format.fmtShort(d2) : ""), kind: .kept))
+                raw.append((c, d2 ?? T, .kept, T2))
                 continue
             }
             let dl = noticeDeadline(for: c, end: T)
             if dl < today { continue }
-            up.append(UpcomingRow(contractID: c.id, date: dl, text: "Frist " + Format.fmtShort(dl), kind: .normal))
+            raw.append((c, dl, .open, T))
         }
-        up = up.stableSorted { $0.date < $1.date }
-
-        let anytime = a.filter { c in c.cancelPer == nil && !c.noWatch && (isAnytime(c) || (noticeDeadline(c) == nil && c.notice > 0)) }
-            .map { c -> FoldRow in
-                if c.end == nil && c.cancelTerm == .period { return FoldRow(contractID: c.id, text: "zum Periodenende") }
-                if let T = nextTerm(c) { return FoldRow(contractID: c.id, text: "nächste Frist " + Format.ddmm(noticeDeadline(for: c, end: T), currentYear: y)) }
-                return FoldRow(contractID: c.id, text: "Frist " + Format.noticeText(c))
+        raw = raw.stableSorted { $0.d < $1.d }
+        let items = raw.map { x -> DeadlineItem in
+            let c = x.c, dn = today.days(to: x.d)
+            var sub = "", chip = Format.inDays(dn), lvl = ChipLevel.none, acts = false
+            switch x.k {
+            case .ended:
+                sub = "Gekündigt"; chip = "endet " + Format.ddmm(x.d, currentYear: y); lvl = .end
+            case .trial:
+                sub = "Probeabo bis " + Format.ddmm(x.d, currentYear: y); lvl = dn <= 7 ? .alert : .warn; acts = true
+            case .kept:
+                sub = "Behalten · nächste Frist " + Format.ddmm(x.d, currentYear: y); lvl = .ok
+            case .open:
+                sub = "Kündigung bis " + Format.ddmm(x.d, currentYear: y)
+                acts = needsAction(c) || (x.e.map { today.days(to: $0) <= 61 } ?? false)
+                lvl = dn <= 7 ? .alert : (acts ? .warn : .none)
             }
+            return DeadlineItem(contractID: c.id, kind: x.k, date: x.d, end: x.e, days: dn, sub: sub, chip: chip, chipLevel: lvl, showActions: acts,
+                                keepTitle: "Behalten", cancelTitle: c.mandatory ? "Wechseln" : "Kündigen")
+        }
+
+        // Flexibel
+        let anytime = a.filter { c in c.cancelPer == nil && !c.noWatch && (isAnytime(c) || (noticeDeadline(c) == nil && c.notice > 0)) }
+        let flexible = anytime.map { c -> FlexRow in
+            let e = endIfCancelledToday(c), nt = Format.noticeText(c)
+            let sub = nt.isEmpty ? "Ohne Frist" : (c.noticeUnit == .dayOfMonth ? "Kündigung " + nt : "Frist " + nt)
+            return FlexRow(contractID: c.id, sub: sub, end: e, chip: "endet " + Format.ddmm(e, currentYear: y))
+        }.stableSorted { $0.end < $1.end }
+        let stack = anytime.stableSorted { monthlyCost($0) > monthlyCost($1) }.prefix(4).map { $0.id }
+
         let nofrist = a.filter { c in c.cancelPer == nil && !c.noWatch && noticeDeadline(c) == nil && c.notice == 0 && !c.mandatory }
             .map { FoldRow(contractID: $0.id, text: "ergänzen") }
         let unw = a.filter { $0.noWatch && $0.cancelPer == nil }
@@ -665,19 +727,7 @@ extension Calc {
                 return FoldRow(contractID: c.id, text: t.isEmpty ? "" : "Frist " + t)
             }
 
-        var decisions: [DeadlineDecision] = []
-        func card(_ c: Contract, trial: Bool) -> DeadlineDecision? {
-            let dOpt = trial ? c.trial : termEnd(c).map { noticeDeadline(for: c, end: $0) }
-            guard let d = dOpt else { return nil }
-            let dn = today.days(to: d)
-            let line = (trial ? "Probeabo endet " : "Frist ") + Format.ddmm(d, currentYear: y) + " · " + (dn == 0 ? "heute" : "noch " + Format.humanDays(dn))
-            let sub = Format.money0(monthlyCost(c) * 12) + " " + home.rawValue + " pro Jahr" + (c.mandatory ? " · Pflichtvertrag" : "") + (isPaused(c) ? " · pausiert" : "")
-            return DeadlineDecision(contractID: c.id, trial: trial, date: d, days: dn, level: dn <= 7 ? .alert : .warn, line: line, subline: sub,
-                                    keepTitle: "Behalten", cancelTitle: c.mandatory ? "Wechseln" : "Kündigen")
-        }
-        for c in triTodo { if let x = card(c, trial: true) { decisions.append(x) } }
-        for c in todo { if let x = card(c, trial: false) { decisions.append(x) } }
-
+        // Status
         var urgent = 0
         var dates: [Day] = []
         for c in todo {
@@ -693,21 +743,20 @@ extension Calc {
             }
         }
         let nx = dates.min()
-        var bold: String? = nil
-        var rest = ""
-        var done = false
+        var status: DeadlineStatus? = nil
         if n > 0 {
-            bold = "\(n) offen"
-            if urgent > 0 && urgent < n { rest += " · \(urgent) dringend" }
-            if let nx = nx { rest += " · nächste Frist " + Format.inDays(today.days(to: nx)) }
+            var parts: [String] = []
+            if let nx = nx { parts.append("nächste Frist " + Format.inDays(today.days(to: nx))) }
+            if urgent > 0 && urgent < n { parts.append("\(urgent) dringend") }
+            var subt = parts.joined(separator: " · ")
+            if let f = subt.first { subt = String(f).uppercased() + subt.dropFirst() }
+            status = DeadlineStatus(kind: urgent > 0 ? .alert : .warn, count: n, title: n == 1 ? "1 Entscheidung offen" : "\(n) Entscheidungen offen", subtitle: subt)
         } else if !a.isEmpty {
-            bold = "Alles erledigt"
-            rest = " · keine offenen Entscheidungen"
-            done = true
+            status = DeadlineStatus(kind: .ok, count: nil, title: "Alles erledigt", subtitle: "Keine offenen Entscheidungen")
         }
-        let empty = n == 0 && a.isEmpty && up.isEmpty && anytime.isEmpty && nofrist.isEmpty && unw.isEmpty
-        var ov = DeadlineOverview(decisions: decisions, openCount: n, urgentCount: urgent, nextDate: nx, headerBold: bold, headerRest: rest, allDone: done,
-                                  upcoming: up, anytime: anytime, withoutNotice: nofrist, unwatched: unw, isEmpty: empty)
+        let empty = a.isEmpty && items.isEmpty && flexible.isEmpty && nofrist.isEmpty && unw.isEmpty
+        var ov = DeadlineOverview(status: status, openCount: n, urgentCount: urgent, nextDate: nx, items: items, flexible: flexible, flexStack: stack,
+                                  withoutNotice: nofrist, unwatched: unw, isEmpty: empty)
         let marked = a.filter { reviewKill($0) && $0.cancelPer == nil }.stableSorted { monthlyCost($0) > monthlyCost($1) }
         ov.marked = marked.map { c in
             MarkedRow(contractID: c.id, line: Format.money0(monthlyCost(c) * 12) + " " + home.rawValue + " pro Jahr · beim Quartals-Check vorgemerkt",

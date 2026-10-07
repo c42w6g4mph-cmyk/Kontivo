@@ -106,7 +106,8 @@ struct ContractDetailView: View {
         let archived = c.status == .cancelled
         if !archived {
             HStack(spacing: 8) {
-                if c.cancelPer == nil {
+                // Nicht kündbar (Steuern & Gebühren, noCancel): kein Kündigen-Knopf (Web v88)
+                if c.cancelPer == nil && !calc.isFixed(c) {
                     Button { model.startCancel(contractID, trial: false) } label: {
                         Text(CTText.cancelButton(calc.cancVia(c))).lineLimit(1).minimumScaleFactor(0.8)
                             .font(.subheadline.weight(.semibold)).foregroundStyle(.white)
@@ -308,6 +309,9 @@ private struct CTDetailPills: View {
         } else if u.level == .warn, let d = u.days {
             main = Item(text: "Frist " + Format.inDays(d), tone: .warn)
         }
+        if !gone && main == nil && calc.isFixed(c) {
+            main = Item(text: "Nicht kündbar", tone: .neutral)
+        }
         if !gone && calc.isPaused(c), let p = calc.currentPause(c) {
             main = Item(text: p.until.map { "Pausiert bis " + Format.fmtD($0) } ?? "Pausiert seit " + Format.fmtD(p.from), tone: .neutral)
         }
@@ -411,8 +415,13 @@ private struct CTDetailSections: View {
             r.append(CTDetailRow("Vertragsende", Format.fmtD(e) + (missed ? " · Frist verpasst" : "")))
         }
         let nt = Format.noticeText(c)
-        r.append(CTDetailRow("Kündigung", (nt.isEmpty ? "ohne Frist" : nt)
-            + (c.end == nil ? " · " + (c.cancelTerm != .anytime ? "auf " + Format.termText(c.cancelTerm) : "jederzeit") : "")))
+        let fixed = calc.isFixed(c)
+        if fixed {
+            r.append(CTDetailRow("Kündigung", calc.isTax(c) ? "nicht kündbar · Steuern & Gebühren" : "nicht kündbar"))
+        } else {
+            r.append(CTDetailRow("Kündigung", (nt.isEmpty ? "ohne Frist" : nt)
+                + (c.end == nil ? " · " + (c.cancelTerm != .anytime ? "auf " + Format.termText(c.cancelTerm) : "jederzeit") : "")))
+        }
         let u = calc.urgency(c)
         if !gone, let d = u.date, let T = te {
             let days = u.days ?? 0
@@ -423,9 +432,11 @@ private struct CTDetailSections: View {
                 r.append(CTDetailRow("Nächster Termin", "per " + Format.fmtShort(T) + ", kündigen bis " + Format.fmtShort(d) + " (abgelaufen)"))
             }
         }
-        if c.mandatory { r.append(CTDetailRow("Pflichtvertrag", "nur Wechsel möglich")) }
-        if c.noWatch { r.append(CTDetailRow("Frist", "wird nicht beobachtet")) }
-        if !gone, let rt = calc.renewTo(c) {
+        if c.mandatory && !fixed { r.append(CTDetailRow("Pflichtvertrag", "nur Wechsel möglich")) }
+        if c.noWatch && !fixed { r.append(CTDetailRow("Frist", "wird nicht beobachtet")) }
+        if fixed {
+            // keine Verlängerungs-Zeilen
+        } else if !gone, let rt = calc.renewTo(c) {
             r.append(CTDetailRow("Sonst verlängert bis", Format.fmtD(rt)))
         } else if c.renewMonths > 0 {
             r.append(CTDetailRow("Verlängerung", "automatisch um \(c.renewMonths)" + (c.renewMonths == 1 ? " Monat" : " Monate")))

@@ -417,6 +417,14 @@ body.hasplus .topadd{display:inline-flex}
 .brandfoot b{display:block;font-family:ui-rounded,"SF Pro Rounded","Nunito",-apple-system,system-ui,sans-serif;font-size:16px;font-weight:700}
 .brandfoot span{display:block;font-size:12.5px;color:var(--ink3);line-height:1.35}
 /* Fristen: Entscheid */
+.tstat{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;margin:18px 0 26px}
+.tstat i{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;margin-bottom:8px;font-style:normal;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.tstat i svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.tstat.ok i{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.tstat.warn i{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.tstat.alert i{background:color-mix(in srgb,var(--alert) 16%,transparent);color:var(--alert)}
+.tstat b{font-family:ui-rounded,"SF Pro Rounded","Nunito",-apple-system,system-ui,sans-serif;font-size:20px;font-weight:700;color:var(--ink)}
+.tstat span{font-size:14px;color:var(--ink2)}
 .tintro{margin:4px 2px 12px;font-size:14px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tintro b{color:var(--ink);font-weight:600}
 .tintro.ok b{color:var(--ok)}
@@ -426,6 +434,28 @@ body.hasplus .topadd{display:inline-flex}
 .tcard>.card{margin:0;border-left:0;background:transparent;padding-bottom:9px}
 .tcard .tline{font-size:12.5px}
 .tacts{display:flex;gap:8px;padding:0 13px 12px 76px}
+.tlist .tit{border-top:1px solid var(--line)}
+.tlist .tit:first-child{border-top:0}
+.tlist .tit .mrow{border-top:0}
+.tlist .mt{gap:2px}
+.tlist .tacts{padding:0 0 13px 52px;margin-top:-3px}
+.tacts .tk{color:var(--teal)}
+.tchip{flex:none;font-size:12px;font-weight:600;padding:4px 8px;border-radius:8px;background:var(--sunken);color:var(--ink2);white-space:nowrap}
+.tchip.warn{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.tchip.alert,.tchip.end{background:color-mix(in srgb,var(--alert) 15%,transparent);color:var(--alert)}
+.tchip.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.tflex{background:var(--surface);border-radius:var(--r);overflow:hidden}
+.tfx{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px}
+.tstk{display:flex;flex:none}
+.tstk .mark{width:34px;height:34px;border-radius:9px;margin-left:-9px;box-shadow:0 0 0 2px var(--surface);font-size:12px}
+.tstk .mark:first-child{margin-left:0}
+.tfx i{flex:none;width:8px;height:8px;border-right:1.6px solid var(--ink3);border-bottom:1.6px solid var(--ink3);transform:rotate(-45deg);margin-right:4px;transition:transform .15s}
+.tfx[aria-expanded="true"] i{transform:rotate(45deg)}
+.tfnote{margin:0;padding:12px 14px;border-top:1px solid var(--line);font-size:13px;line-height:1.4;color:var(--ink2)}
+.tfe{flex:none;text-align:right;font-size:15px;font-weight:600;color:var(--ink);line-height:1.2}
+.tfe small{display:block;font-size:11.5px;font-weight:500;color:var(--ink3)}
+.tflex .mrows2{border-top:1px solid var(--line);border-radius:0;background:transparent}
+
 .tacts button{flex:1;padding:8px 10px;border-radius:10px;font-size:14px;font-weight:600;background:var(--sunken);color:var(--ink)}
 .skr{margin:0 0 10px;padding:9px 12px;border-radius:10px;background:color-mix(in srgb,var(--warn) 10%,var(--field));font-size:13px;color:var(--ink2);line-height:1.4}
 .dacts{display:flex;gap:8px;margin:2px 0 6px}.dacts button{flex:1;min-width:0;padding:11px 10px;border-radius:11px;font-size:14px;font-weight:600;background:var(--sunken);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dacts button[data-kbtn]{background:var(--teal);color:#fff}
@@ -445,6 +475,35 @@ body.hasplus .topadd{display:inline-flex}
 .pick .tcc{margin-left:auto;font-size:11px;color:var(--ink3);white-space:nowrap;padding-left:8px}
 /* Aufteilung Ring */
 .dcard{background:var(--surface);border-radius:var(--r);padding:12px 14px 2px}
+.aecard{padding:14px 16px 4px}
+.aesegs{margin:0 0 16px}
+.aeh{display:flex;justify-content:space-between;align-items:center;gap:10px}.aemo{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.aechip{font-size:12.5px;font-weight:600;padding:2px 8px;border-radius:9px;white-space:nowrap;color:var(--ink2);background:var(--sunken)}
+.aechip.up{color:var(--warn);background:color-mix(in srgb,var(--warn) 13%,transparent)}.aechip.down{color:var(--ok);background:color-mix(in srgb,var(--ok) 13%,transparent)}
+.aebars{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+.aebr{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2)}.aebr.cur{color:var(--ink)}
+.aey{width:36px;flex:none}.aebr.cur .aey{font-weight:700;color:var(--teal)}
+.aetr{flex:1;min-width:0}.aefill{display:flex;gap:2px;height:9px;border-radius:4px;overflow:hidden;transform-origin:left;animation:aegrow .45s cubic-bezier(.2,.8,.2,1) both}.aebr.cur .aefill{height:15px;border-radius:6px}
+.aefill i{min-width:2px;background:color-mix(in srgb,var(--c),#fff var(--lift));opacity:.45}.aebr.cur .aefill i{opacity:1}
+:root[data-appearance="dark"] .aefill i{opacity:.62}:root[data-appearance="dark"] .aebr.cur .aefill i{opacity:1}
+@media (prefers-color-scheme:dark){:root:not([data-appearance="light"]) .aefill i{opacity:.62}:root:not([data-appearance="light"]) .aebr.cur .aefill i{opacity:1}}
+.aev{width:62px;flex:none;text-align:right;font-variant-numeric:tabular-nums}.aebr.cur .aev{font-weight:700}
+.aenote{font-size:12px;color:var(--ink3);margin:10px 0 0;line-height:1.35}
+.aelist{margin-top:12px}.aelist .mrow:first-child{border-top:0}
+.aerow{align-items:center}.aerow .mn{white-space:normal}
+.aemm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;white-space:normal;margin-top:1px}
+.aec{font-weight:600;color:var(--ink3);white-space:nowrap}.aec.up{color:var(--warn)}.aec.down{color:var(--ok)}
+.aechev{flex:none;color:var(--ink3);font-size:17px;width:12px;text-align:center;transition:transform .2s}.aerow.open .aechev{transform:rotate(90deg)}
+.aerow.dim{opacity:.45}.aedot{display:inline-block;width:8px;height:8px;border-radius:50%;background:color-mix(in srgb,var(--c),#fff var(--lift))}
+.aestack{background:var(--sunken)!important;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;align-items:stretch;justify-items:stretch;gap:3px;padding:7px}.aestack i{border-radius:3px;background:color-mix(in srgb,var(--c),#fff var(--lift))}
+.aeopen{padding:2px 0 12px 49px;animation:aein .22s ease-out both}
+.aecols{display:flex;align-items:flex-end;gap:16px;height:64px}.aecols div{display:flex;align-items:flex-end;justify-content:center;height:100%;width:56px}
+.aecols span{display:block;width:30px;border-radius:5px 5px 2px 2px;background:color-mix(in srgb,var(--c),#fff var(--lift));opacity:.4;transform-origin:bottom;animation:aerise .4s cubic-bezier(.2,.8,.2,1) both}.aecols .cur span{opacity:1}
+.aecl{display:flex;gap:16px;margin-top:5px}.aecl div{width:56px;text-align:center;font-size:11.5px;color:var(--ink2);line-height:1.3}.aecl b{display:block;font-size:12.5px;color:var(--ink);font-weight:600;white-space:nowrap}
+.aeonly{display:block;margin:6px 0 0 auto;color:var(--teal);font-weight:600;font-size:13.5px;padding:8px 0;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.aerest{margin:0 0 6px 49px;animation:aein .22s ease-out both}
+@keyframes aein{from{opacity:0;transform:translateY(-4px)}}@keyframes aegrow{from{transform:scaleX(.6);opacity:0}}@keyframes aerise{from{transform:scaleY(0)}}
+@media (prefers-reduced-motion:reduce){.aefill,.aeopen,.aecols span,.aerest{animation:none}}
 .dsegs{display:flex;justify-content:space-between;gap:8px}
 .pseg{display:flex;background:var(--sunken);padding:2px;border-radius:999px}
 .pseg button{padding:4px 11px;border-radius:999px;font-size:12.5px;color:var(--ink2);font-weight:500;white-space:nowrap}
@@ -633,6 +692,7 @@ body.hasplus .topadd{display:inline-flex}
 @media (max-width:370px){.sortbtn .sortl{display:none}.sortbtn{padding:0 10px}}
 
 /* Kategorie kompakt */
+.catinfo{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;margin-left:7px;border-radius:50%;border:1.4px solid var(--ink3);color:var(--ink2);font:600 11.5px/1 Georgia,serif;font-style:italic;vertical-align:1px;cursor:pointer}
 .catfield{display:flex;align-items:center;gap:11px;width:100%;height:50px;padding:0 13px 0 8px;border-radius:12px;background:var(--field);margin-bottom:13px;text-align:left}
 .catfield .cfi{flex:none;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center}
 .catfield .cfi .cicon{width:19px;height:19px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -808,6 +868,7 @@ body.hasplus .topadd{display:inline-flex}
 .field input[type=date]::-webkit-date-and-time-value{text-align:left}
 .field input.num{text-align:right}
 .flabel{font-size:12.5px;color:var(--ink2);margin:0 0 6px}
+.flabel.flrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:0}.flabel.flrow .mdlink{padding:6px 0}
 /* Formular: Gruppen statt Schritte, «Weitere Angaben» als Unterseite (SwiftUI: Form-Sections + NavigationLink) */
 #sheetForm h3{display:flex;align-items:baseline;gap:8px;font-size:13px;color:var(--ink);font-weight:650;border-bottom:0;padding-bottom:0;margin:22px 0 10px}
 #sheetForm h3:first-child{margin-top:4px}
@@ -847,6 +908,8 @@ body{display:flex;flex-direction:column}
 .ig .igr.two input+input{border-left:1px solid var(--line)}
 .ig .igr.zc input:first-child{flex:0 0 32%}
 .ig .igr input::placeholder{color:var(--ink3)}
+.pehist{font-size:13px;font-weight:600;color:var(--ink2);margin:10px 2px 6px}
+.pehist:first-of-type{margin-top:0}
 .ig .igr input:focus{background:color-mix(in srgb,var(--teal) 6%,transparent)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px}
 .spbox{background:var(--field);border-radius:12px;padding:10px 14px 12px}
@@ -854,11 +917,23 @@ body{display:flex;flex-direction:column}
 .sphead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}.sphead span{display:flex;flex-direction:column;min-width:0}.sphead .r{text-align:right;align-items:flex-end}
 .sphead em{font-style:normal;font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sphead small{font-size:13px;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}.sphead small b{color:var(--ink);font-weight:600}
-.sprange{-webkit-appearance:none;appearance:none;width:100%;height:36px;margin:4px 0 0;background:transparent;touch-action:pan-y}
-.sprange::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--teal) var(--p),var(--line) var(--p))}
-.sprange::-moz-range-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--teal) var(--p),var(--line) var(--p))}
-.sprange::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 .5px rgba(0,0,0,.08)}
-.sprange::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.sphd2{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;margin-bottom:2px}.sphd2 span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sprng{-webkit-appearance:none;appearance:none;display:block;width:100%;height:32px;margin:0;background:transparent;touch-action:pan-y}
+.sprng::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--line)}
+.sprng::-moz-range-track{height:6px;border-radius:3px;background:var(--line)}
+.sprng::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-11px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 .5px rgba(0,0,0,.08)}
+.sprng::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.spticks{display:flex;justify-content:space-between;padding:0 13px;margin:-3px 0 10px}.spticks i{width:1px;height:6px;background:var(--ink3);opacity:.55}
+.spgrid .spcell small.r{text-align:right}
+.spgrid{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));gap:10px}
+.spcell{min-width:0;display:flex;flex-direction:column;gap:5px}
+.spcell em{font-style:normal;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spcell small{font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.spin{display:flex;align-items:center;gap:5px;background:var(--surface);border-radius:10px;padding:0 10px;min-width:0}
+.spin input{flex:1;min-width:0;width:100%;border:0;background:transparent;padding:9px 0;text-align:right;font-size:16px;color:var(--ink);outline:0;box-shadow:none;font-variant-numeric:tabular-nums}
+.spin u{flex:none;text-decoration:none;font-size:12.5px;color:var(--ink2)}
+.spin.ro{background:transparent;border:1px dashed var(--line)}.spin.ro b{flex:1;min-width:0;padding:9px 0;text-align:right;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
+.sptot{margin:8px 0 0;font-size:12.5px;color:var(--ink2)}
 .chip{padding:7px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;color:var(--ink2)}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
 .swatches{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
@@ -1119,6 +1194,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .mdsec{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:16px 4px 6px;font-size:12.5px;font-weight:600;color:var(--ink3)}
 .mdsec em{font-style:normal;font-weight:500}
 .mdlink{color:var(--teal);font-weight:600;font-size:13.5px;padding:8px 0}
+.mdlinks{display:flex;gap:16px}
 .mdnote{font-size:14px;color:var(--ink2);margin:6px 4px 12px;line-height:1.45}
 .mdhint{font-size:12.5px;color:var(--ink3);margin:-6px 4px 12px;line-height:1.45}
 .mdlp .mdhint{margin:8px 0 0}
@@ -1252,6 +1328,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Namen, Logos und Adressen deiner Anbieter</small></span><em id="mdSumP"></em></button>
     <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Personen, Absender und Unterschrift</small></span><em id="mdSumH"></em></button>
     <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
+    <button class="srowbtn" id="tplFill" type="button"><span class="mdt"><b>Kontaktdaten ergänzen</b><small>Adresse, E-Mail, Telefon aus dem Anbieter-Katalog, nur leere Felder</small></span><em></em></button>
     <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Währung</div>
     <p class="note" style="margin:0 0 8px">Hauptwährung für alle Summen</p>
@@ -1385,7 +1462,21 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
       <option value="">— nicht automatisch</option><option value="1">1 Monat</option><option value="3">3 Monate</option>
       <option value="6">6 Monate</option><option value="12">12 Monate</option><option value="24">24 Monate</option></select></div>
   </div>
-  <p class="note" id="tmHint" style="margin:-4px 0 0"></p>
+  <p class="note" id="tmHint" style="margin:-4px 0 14px"></p>
+  <div class="field"><label for="fWatch">In «Fristen» anzeigen</label><select id="fWatch">
+    <option value="">Ja</option>
+    <option value="mand">Ja – Pflichtvertrag (wechseln statt kündigen)</option>
+    <option value="nowatch">Nein – z.B. Miete</option>
+    <option value="fixed">Nein – nicht kündbar (z.B. Serafe, Rundfunkbeitrag)</option></select></div>
+  <div hidden><input type="checkbox" id="fMand"><input type="checkbox" id="fNoWatch"><input type="checkbox" id="fNoCancel"></div>
+  <div class="two">
+    <div class="field"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
+      <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
+    <div class="field"><label for="fTrial">Probeabo endet</label><input id="fTrial" type="date"></div>
+  </div>
+  <div class="field" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="netflix.com/cancelplan" autocomplete="off">
+    <p class="note" style="margin:6px 0 0">Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.</p></div>
+
 
   <button type="button" class="morerow" id="fMoreBtn"><span class="t"><b>Weitere Angaben</b><small id="fMoreN">Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …</small></span><em>›</em></button>
   <div style="height:8px"></div>
@@ -1412,21 +1503,6 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <div class="field"><label for="xNote">Bezeichnung (optional)</label><input id="xNote" type="text" placeholder="z.B. Nebenkostenabrechnung" autocomplete="off" maxlength="60"></div>
   <button class="mini" id="xAdd" style="margin:-6px 0 4px">Sonderzahlung hinzufügen</button>
 
-  <h3>Fristen</h3>
-  <div class="field"><label for="fWatch">In «Fristen» anzeigen</label><select id="fWatch">
-    <option value="">Ja</option>
-    <option value="mand">Nein – Pflichtvertrag</option>
-    <option value="nowatch">Nein – z.B. Miete</option></select>
-    <p class="note" style="margin:6px 0 0">Pflichtvertrag: nur Wechsel möglich, z.B. Grundversicherung.</p></div>
-  <div hidden><input type="checkbox" id="fMand"><input type="checkbox" id="fNoWatch"></div>
-  <div class="two">
-    <div class="field"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
-      <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
-    <div class="field"><label for="fTrial">Probeabo endet</label><input id="fTrial" type="date"></div>
-  </div>
-  <div class="field" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="netflix.com/cancelplan" autocomplete="off">
-    <p class="note" style="margin:6px 0 0">Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.</p></div>
-
   <h3>Kundendaten</h3>
   <div class="two">
     <div class="field"><label for="fCustNo">Kundennummer</label><input id="fCustNo" type="text" autocomplete="off"></div>
@@ -1440,11 +1516,14 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   </div>
 
   <h3>Kontakt &amp; Notiz</h3>
-  <div class="field"><label for="fAddr">Adresse des Vertragspartners — für die Kündigung per Brief</label><textarea id="fAddr" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort" style="min-height:72px"></textarea></div>
-  <div class="field"><label for="fWeb">Website oder Kundenportal</label><input id="fWeb" type="url" inputmode="url" placeholder="swisscom.ch/login" autocomplete="off"></div>
-  <div class="two">
-    <div class="field"><label for="fTel">Telefon</label><input id="fTel" type="tel" autocomplete="off"></div>
-    <div class="field"><label for="fMail">E-Mail</label><input id="fMail" type="email" autocomplete="off"></div>
+  <div class="flabel flrow"><span>Adresse des Vertragspartners</span><button type="button" class="mdlink" id="fAddrPaste">Einfügen</button></div>
+  <div class="sndform ig" id="fAddrG"></div><textarea id="fAddr" hidden></textarea>
+  <p class="note" style="margin:6px 0 14px">Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.</p>
+  <div class="flabel">Kontakt</div>
+  <div class="sndform ig" style="margin-bottom:14px">
+    <div class="igr"><input id="fWeb" type="url" inputmode="url" placeholder="Website oder Kundenportal" aria-label="Website oder Kundenportal" autocomplete="off"></div>
+    <div class="igr"><input id="fTel" type="tel" placeholder="Telefon" aria-label="Telefon" autocomplete="off"></div>
+    <div class="igr"><input id="fMail" type="email" placeholder="E-Mail" aria-label="E-Mail" autocomplete="off"></div>
   </div>
   <div class="field"><label for="fNote">Notiz</label><textarea id="fNote" placeholder="Zugangsweg, Ansprechpartner, Besonderheiten"></textarea></div>
 
@@ -1976,7 +2055,9 @@ function termEnd(c){var e0=parseD(c.end);if(!e0)return nextTerm(c);var r=+c.rene
 function renewAfter(c,T){var e0=parseD(c.end),r=+c.renew||0;if(!e0||!r||!T)return null;var e=e0,g=0;while(e<=T&&g<400){g++;e=addMonthsE(e0,g*r);}return e;}
 /* Steuern lassen sich nicht kündigen: keine Frist, nicht in «Fristen» */
 function isTax(c){return catKey(c.cat)==="Steuern & Gebühren"||/^Steuern/i.test(String(c.cat||""));}
-function noticeDeadline(c){if(isTax(c))return null;var e=termEnd(c);return e?nDl(c,e):null;}
+/* Nicht kündbar: Steuern & Gebühren automatisch, sonst c.noCancel (z.B. Serafe unter «Wohnen»). Keine Frist, nicht in «Fristen», kein Kündigen */
+function isFixed(c){return isTax(c)||!!c.noCancel;}
+function noticeDeadline(c){if(isFixed(c))return null;var e=termEnd(c);return e?nDl(c,e):null;}
 function urgency(c){
   var d=noticeDeadline(c);if(!d)return {lvl:"",days:null,date:null};
   var days=daysBetween(today(),d);
@@ -1995,7 +2076,7 @@ function active(){return Object.keys(state.contracts).map(function(k){var c=Obje
 function archived(){return Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;}).filter(function(c){return c.status==="cancelled"||isEnded(c);});}
 function isKept(c){var T=termEnd(c);return !!(T&&c.keptFor&&c.keptFor===iso(T));}
 function isAnytime(c){return !c.end&&(c.cancTerm==="m"||(c.cancTerm==="p"&&(+c.cycle||1)<=1));}
-function needsAction(c){if(c.cancelPer)return false;var T=termEnd(c);if(!T||isAnytime(c)||c.noWatch)return false;
+function needsAction(c){if(c.cancelPer||isFixed(c))return false;var T=termEnd(c);if(!T||isAnytime(c)||c.noWatch)return false;
   if(c.keptFor&&c.keptFor===iso(T))return false;var d=nDl(c,T),n=daysBetween(today(),d);return n>=0&&n<=30;}
 function trialNeeds(c){var d=parseD(c.trial),t=today();return !!(d&&d>=t&&daysBetween(t,d)<=30&&c.trialKept!==c.trial&&!c.cancelPer);}
 
@@ -2091,7 +2172,7 @@ function renderView(){
   document.getElementById("cArch").textContent=archived().length?archived().length:"";
   var tT0=today();
   var soon30=function(c){var d=noticeDeadline(c);return d&&daysBetween(tT0,d)<=30;};
-  var tCount=a.filter(function(c){return !isTax(c)&&(needsAction(c)||trialNeeds(c));}).length;
+  var tCount=a.filter(function(c){return !isFixed(c)&&(needsAction(c)||trialNeeds(c));}).length;
   document.getElementById("cTerm").textContent=tCount?tCount:"";
 
   if(state.tab==="list"){
@@ -2159,45 +2240,22 @@ function renderView(){
     v.innerHTML=lfbar+out+ab;return;
   }
   if(state.tab==="term"){
-    a=active().filter(function(c){return !isTax(c);});
+    a=active().filter(function(c){return !isFixed(c);});
     var H=esc(state.settings.home),t1=today(),o="";
     var isP=isAnytime;
     var ddmm=function(d){return ("0"+d.getDate()).slice(-2)+"."+("0"+(d.getMonth()+1)).slice(-2)+"."+(d.getFullYear()===t1.getFullYear()?"":String(d.getFullYear()).slice(-2));};
     var todo=a.filter(function(c){return needsAction(c)&&!trialNeeds(c);}).sort(function(x,y){return noticeDeadline(x)-noticeDeadline(y);});
     var triTodo=a.filter(trialNeeds).sort(function(x,y){return parseD(x.trial)-parseD(y.trial);});
     var nTodo=todo.length+triTodo.length;
-    // Kommende Termine
-    var up=[];
-    a.forEach(function(c){
-      if(needsAction(c)||trialNeeds(c)||c.noWatch)return;
-      if(c.cancelPer){var cp=parseD(c.cancelPer);up.push({c:c,d:cp,t:"gekündigt · endet "+fmtShort(cp),k:"end"});return;}
-      if(isP(c))return;
-      var T=termEnd(c);if(!T)return;
-      if(isKept(c)){var T2=c.end?renewAfter(c,T):nextTerm(c,null,T);
-        var d2=T2?nDl(c,T2):null;up.push({c:c,d:d2||T,t:"behalten"+(d2?" · Frist "+fmtShort(d2):""),k:"kept"});return;}
-      var dl=nDl(c,T);if(dl<t1)return;
-      up.push({c:c,d:dl,t:"Frist "+fmtShort(dl),k:""});
-    });
-    up.sort(function(x,y){return x.d-y.d;});
     var anytime=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&(isP(c)||(!noticeDeadline(c)&&(+c.notice||0)>0));});
     var nofrist=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&!noticeDeadline(c)&&!(+c.notice||0)&&!c.mand;});
     var unw=a.filter(function(c){return c.noWatch&&!c.cancelPer;});
     // Kopfzeile
     if(nTodo){var nx=todo.map(noticeDeadline).concat(triTodo.map(function(c){return parseD(c.trial);})).sort(function(x,y){return x-y;})[0];
       var urgent=todo.filter(function(c){return daysBetween(t1,noticeDeadline(c))<=7;}).length+triTodo.filter(function(c){return daysBetween(t1,parseD(c.trial))<=7;}).length;
-      o+='<p class="tintro"><b>'+nTodo+" offen</b>"+(urgent&&urgent<nTodo?" · "+urgent+" dringend":"")+(nx?" · nächste Frist "+inDays(daysBetween(t1,nx)):"")+"</p>";}
-    else if(a.length)o+='<p class="tintro ok"><b>Alles erledigt</b> · keine offenen Entscheidungen</p>';
-    // Entscheidungen
-    var decCard=function(c,trial){
-      var d=trial?parseD(c.trial):nDl(c,termEnd(c)),dn=daysBetween(t1,d),lv=dn<=7?"alert":"warn";
-      var line=(trial?"Probeabo endet ":"Frist ")+ddmm(d)+" · "+(dn===0?"heute":"noch "+humanDays(dn));
-      return '<div class="tcard"><button class="card" data-open="'+esc(c._id)+'">'+markHtml(c)+
-        '<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline '+lv+'">'+line+"</div>"+
-        '<div class="tline2">'+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr"+(c.mand?" · Pflichtvertrag":"")+(isPaused(c)?" · pausiert":"")+"</div></div></button>"+
-        '<div class="tacts"><button data-keep="'+esc(c._id)+'"'+(trial?' data-trial="1"':"")+'>Behalten</button>'+
-        '<button data-kill="'+esc(c._id)+'"'+(trial?' data-trial="1"':"")+'>'+(c.mand?"Wechseln":"Kündigen")+"</button></div></div>";};
-    if(nTodo){o+='<div class="grp" style="margin-top:6px">';
-      triTodo.forEach(function(c){o+=decCard(c,true);});todo.forEach(function(c){o+=decCard(c,false);});o+="</div>";}
+      o+='<div class="tstat'+(urgent?" alert":" warn")+'"><i>'+nTodo+'</i><b>'+(nTodo===1?"1 Entscheidung offen":nTodo+" Entscheidungen offen")+'</b><span>'+(function(t){return t.charAt(0).toUpperCase()+t.slice(1);})([nx?"nächste Frist "+inDays(daysBetween(t1,nx)):"",urgent&&urgent<nTodo?urgent+" dringend":""].filter(Boolean).join(" · "))+"</span></div>";}
+    /* Status zentriert unter dem Titel (SwiftUI: ContentUnavailableView-ähnlich, Symbol + Titel + Untertitel) */
+    else if(a.length)o+='<div class="tstat ok"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12.5 4 4 8-9"/></svg></i><b>Alles erledigt</b><span>Keine offenen Entscheidungen</span></div>';
     var row=function(c,txt,cls){return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst'+(cls?" "+cls:"")+'">'+esc(txt)+"</span></button>";};
     /* Quartals-Check: «Weg damit» vorgemerkte Verträge, bis gekündigt oder «Doch behalten» */
@@ -2206,10 +2264,29 @@ function renderView(){
       o+='<div class="grp"><div class="grphead"><span>Zum Kündigen vorgemerkt</span><span>'+money(mSum)+" "+H+'/Mt.</span></div>'+
         marked.map(function(c){return '<div class="tcard"><button class="card" data-open="'+esc(c._id)+'">'+markHtml(c)+'<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline2">'+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr · beim Quartals-Check vorgemerkt</div></div></button>"+
           '<div class="tacts"><button data-rvkeep="'+esc(c._id)+'">Doch behalten</button><button data-kill="'+esc(c._id)+'">'+(c.mand?"Wechseln":"Kündigen")+"</button></div></div>";}).join("")+"</div>";}
-    if(up.length){
-      o+='<div class="grp"><div class="grphead"><span>Kommende Termine</span></div><div class="mrows mrows2">'+
-        up.map(function(x){return row(x.c,x.t,x.k);}).join("")+"</div></div>";
-    }
+    /* Eine Liste nach Datum (Variante 1): Knöpfe Behalten/Kündigen erst ab 2 Monaten vor Vertragsende (bei längerer Frist ab 30 Tagen vor der Frist, needsAction) oder wenn ein Probeabo endet */
+    var items=[];
+    triTodo.forEach(function(c){items.push({c:c,d:parseD(c.trial),k:"trial"});});
+    a.forEach(function(c){
+      if(trialNeeds(c)||c.noWatch)return;
+      if(c.cancelPer){items.push({c:c,d:parseD(c.cancelPer),k:"end"});return;}
+      if(isP(c))return;
+      var T=termEnd(c);if(!T)return;
+      if(isKept(c)){var T2=c.end?renewAfter(c,T):nextTerm(c,null,T),d2=T2?nDl(c,T2):null;items.push({c:c,d:d2||T,k:"kept",e:T2});return;}
+      var dl=nDl(c,T);if(dl<t1)return;
+      items.push({c:c,d:dl,k:"open",e:T});
+    });
+    items.sort(function(x,y){return x.d-y.d;});
+    var tItem=function(x){var c=x.c,dn=daysBetween(t1,x.d),sub,chip,cc="",acts=false;
+      if(x.k==="end"){sub="Gekündigt";chip="endet "+ddmm(x.d);cc="end";}
+      else if(x.k==="trial"){sub="Probeabo bis "+ddmm(x.d);chip=inDays(dn);cc=dn<=7?"alert":"warn";acts=true;}
+      else if(x.k==="kept"){sub="Behalten · nächste Frist "+ddmm(x.d);chip=inDays(dn);cc="ok";}
+      else{sub="Kündigung bis "+ddmm(x.d);chip=inDays(dn);acts=needsAction(c)||(x.e&&daysBetween(t1,x.e)<=61);cc=dn<=7?"alert":(acts?"warn":"");}
+      var tr=x.k==="trial"?' data-trial="1"':"";
+      return '<div class="tit"><button class="mrow" data-open="'+esc(c._id)+'">'+markHtml(c)+
+        '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">'+esc(sub)+'</span></span><span class="tchip'+(cc?" "+cc:"")+'">'+esc(chip)+"</span></button>"+
+        (acts?'<div class="tacts"><button data-keep="'+esc(c._id)+'"'+tr+'>Behalten</button><button class="tk" data-kill="'+esc(c._id)+'"'+tr+'>'+(c.mand?"Wechseln":"Kündigen")+"</button></div>":"")+"</div>";};
+    if(items.length)o+='<div class="grp"><div class="grphead"><span>Fristen</span><span>nach Datum</span></div><div class="mrows2 tlist">'+items.map(tItem).join("")+"</div></div>";
     var fold=function(key,title,list,txtFn,extra,rowFn){
       if(!list.length)return "";var op=!!(state.tfold||{})[key];
       return '<div class="grp tfg"><button class="tfold" data-tfold="'+key+'" aria-expanded="'+op+'"><span>'+title+" ("+list.length+")"+(extra||"")+"</span><i></i></button>"+
@@ -2217,7 +2294,18 @@ function renderView(){
     /* Frist direkt nachtragen: Zeile öffnet die Datenqualität mit dem Inline-Editor «Kündigungsfrist und Laufzeit» */
     var rowQ=function(c,txt){return '<button class="mrow trow" data-qnotice="'+esc(c._id)+'">'+markHtml(c)+
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst">'+esc(txt)+" ›</span></button>";};
-    o+=fold("any","Jederzeit kündbar",anytime,function(c){if(!c.end&&c.cancTerm==="p")return "zum Periodenende";var T=nextTerm(c);return T?"nächste Frist "+ddmm(nDl(c,T)):"Frist "+noticeText(c);});
+    /* Flexibel: kurzfristig kündbare Verträge als eine Karte mit Logostapel, aufklappbar */
+    if(anytime.length){var fOp=!!(state.tfold||{}).any;
+      /* Ende bei Kündigung heute: Kündbar-auf-Termin (nextTerm) oder bei «jederzeit mit Frist» heute + Frist */
+      var fEnd=function(c){var T=nextTerm(c);if(T)return T;var n=+c.notice||0,t=today(),u=c.noticeU;if(!n)return t;
+        if(u==="d")return new Date(t.getFullYear(),t.getMonth(),t.getDate()+n);if(u==="w")return new Date(t.getFullYear(),t.getMonth(),t.getDate()+7*n);
+        if(u==="k")return new Date(t.getFullYear(),t.getMonth()+(t.getDate()<=n?1:2),0);return addMonths(t,n);};
+      var fRow=function(c){var T=fEnd(c),nt=noticeText(c);
+        return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">'+(nt?(c.noticeU==="k"?"Kündigung "+nt:"Frist "+nt):"Ohne Frist")+'</span></span>'+
+          '<span class="tchip">'+(T?"endet "+ddmm(T):"offen")+"</span></button>";};
+      o+='<div class="grp"><div class="grphead"><span>Flexibel</span></div><div class="tflex'+(fOp?" on":"")+'"><button class="tfx" data-tfold="any" aria-expanded="'+fOp+'"><span class="tstk">'+anytime.slice().sort(function(x,y){return monthlyCost(y)-monthlyCost(x);}).slice(0,4).map(function(c){return markHtml(c);}).join("")+'</span>'+
+        '<span class="mt"><span class="mn">'+anytime.length+(anytime.length===1?" Vertrag":" Verträge")+'</span><span class="mm">Ohne Mindestlaufzeit</span></span><i></i></button>'+
+        (fOp?'<p class="tfnote">Vertragsende bei Kündigung per heute</p><div class="mrows2">'+anytime.slice().sort(function(x,y){return fEnd(x)-fEnd(y);}).map(fRow).join("")+"</div>":"")+"</div></div>";}
     o+=fold("none","Ohne Frist erfasst",nofrist,function(){return "ergänzen";}," · ergänzen",rowQ);
     o+=fold("unw","Nicht beobachtet",unw,function(c){return noticeText(c)?"Frist "+noticeText(c):"";});
     if(state._rvDue)o+='<div class="review rvsmall"><div class="rvh">Quartals-Check</div><p>Brauchst du noch alles? Geh deine Verträge kurz durch.</p>'+
@@ -2446,57 +2534,66 @@ function renderStat(v){
     '<button data-msort="date" aria-pressed="'+(MSO==="date")+'">Datum</button><button data-msort="amt" aria-pressed="'+(MSO==="amt")+'">Betrag</button></span>':"")+'</div><div class="mrows mrows2">'+
     (sm.items.length?openI.map(mrow).join("")+(paidI.length&&openI.length?'<button class="tfold pfold" data-paidtog aria-expanded="'+(!!state.showPaid)+'"><span>Bereits bezahlt ('+paidI.length+')</span><i></i></button>':"")+
       ((state.showPaid||!openI.length)?paidI.map(mrow).join(""):""):'<div class="mempty">In diesem Monat ist nichts fällig.</div>')+"</div></div>";
-  // Aufteilung: Monat oder Jahr
+  /* Aufteilung und Entwicklung (06.10.2026): eine Karte mit Total, Vergleich zum Vorjahr, waagrechten Jahresbalken (aktuelles Jahr
+     und bis zu 2 Vorjahre, nach Gruppen eingefärbt) und darunter der Liste je Gruppe (Top 4 + Übrige). Zeile antippen klappt den
+     Verlauf über die Jahre auf, darin «Nur … anzeigen» setzt den Filter. Monatsansicht: derselbe Monat in den Vorjahren.
+     Vorjahre nur, wenn alle betroffenen Verträge einen Beginn haben (sonst würden sie rückwirkend voll gezählt).
+     SwiftUI: Card mit HStack-Balken (GeometryReader), List mit DisclosureGroup, Mini-Verlauf mit Swift Charts LineMark */
   var SC=state.ss||"year",groups=SC==="month"?gM[sel]:gY;
-  /* Vorjahr je Gruppe für den Vergleich in der Legende (nur Jahresansicht) */
-  var gPrev={};if(SC==="year"){var pf2=new Date(Y-1,0,1),pt2=new Date(Y-1,11,31);
-    pool.forEach(function(c){if(!fltMatch(c,G))return;var f3=holderShare(c);payments(c,pf2,pt2).forEach(function(p){var k=statKey(c,G);gPrev[k]=(gPrev[k]||0)+conv(p.a,c.cur)*f3;});});}
-  var prevTxt=function(k){if(SC!=="year"||gPrev[k]==null||!groups[k])return "";var d=groups[k]-gPrev[k];if(Math.abs(d)<0.5)return ' · wie '+(Y-1);
-    return ' · <span class="'+(d>0?"up":"down")+'">'+(d>0?"+":"−")+nf0.format(Math.abs(d))+'</span> vs. '+(Y-1);};
+  var perOf=function(y){return SC==="month"?[new Date(y,sel,1),new Date(y,sel+1,0)]:[new Date(y,0,1),new Date(y,11,31)];};
+  var grpOf=function(y){var r=perOf(y),g={};pool.forEach(function(c){if(!fltMatch(c,G))return;var f3=holderShare(c),k=statKey(c,G);
+    payments(c,r[0],r[1]).forEach(function(p){g[k]=(g[k]||0)+conv(p.a,c.cur)*f3;});});return g;};
   var keys=Object.keys(groups).filter(function(k){return groups[k]>0.004;}).sort(function(a,b){return groups[b]-groups[a];});
-  var gTot=keys.reduce(function(n,k){return n+groups[k];},0)||1,gMax=groups[keys[0]]||1;
+  var gTot=keys.reduce(function(n,k){return n+groups[k];},0);
   var fmtG=function(n){return SC==="year"?nf0.format(n):money(n);};
   var PAL=["#0E5A5E","#8A6A1F","#1F4E8C","#6B4E9E","#A93227","#2E6A4E","#B0562A","#3F4A55"];
   var colK=function(k,i){return G==="cat"?catColor(k):PAL[i%PAL.length];};
-  var OTH="#9AA0A6";
-  o+='<div class="grp brkgrp"><div class="grphead"><span>Aufteilung '+(SC==="month"?MON[sel]+" "+Y:Y)+"</span></div>"+
-     '<div class="dcard"><div class="dsegs"><div class="pseg" role="group" aria-label="Zeitraum">'+
-       '<button data-ss="year" aria-pressed="'+(SC==="year")+'">Jahr</button><button data-ss="month" aria-pressed="'+(SC==="month")+'">'+MS[sel]+"</button></div>"+
-     '<div class="pseg" role="group" aria-label="Aufteilen nach"><button data-sg="cat" aria-pressed="'+(G==="cat")+'">Kategorie</button>'+
-       '<button data-sg="partner" aria-pressed="'+(G==="partner")+'">Vertragspartner</button></div></div>';
-  if(!keys.length)o+='<div class="empty" style="padding:18px 2px 8px">Im '+MON[sel]+" ist nichts fällig.</div>";
+  var OTH="#9AA0A6",perTxt=function(y){return (SC==="month"?MON[sel]+" ":"")+y;};
+  var noSt=pool.some(function(c){return !c.start&&fltMatch(c,G);});
+  var hist=[];if(!noSt)for(var hy=1;hy<=2;hy++){var gh=grpOf(Y-hy),th=0;Object.keys(gh).forEach(function(k){th+=gh[k];});if(th>0.004)hist.push({y:Y-hy,g:gh,t:th});else break;}
+  var top=keys.slice(0,keys.length>5?4:5),restK=keys.slice(top.length);
+  var segs=top.map(function(k,i){return {k:k,c:colK(k,i)};});if(restK.length)segs.push({k:"Übrige",c:OTH,oth:1});
+  var segV=function(g,sg){if(!sg.oth)return g[sg.k]||0;var t=0;Object.keys(g).forEach(function(k){if(top.indexOf(k)<0)t+=g[k];});return t;};
+  var act=(state.ringSel&&groups[state.ringSel]!=null)?state.ringSel:"";
+  o+='<div class="grp brkgrp"><div class="grphead"><span>Aufteilung und Entwicklung</span></div><div class="dcard aecard">';
+  if(!keys.length){o+='<div class="dsegs">'+segBtns()+'</div><div class="empty" style="padding:18px 2px 8px">Im '+MON[sel]+" ist nichts fällig.</div></div></div>";}
   else{
-    // Ring: Top 4 + Übrige
-    var top=keys.slice(0,keys.length>5?4:5),rest=keys.slice(top.length).reduce(function(n,k){return n+groups[k];},0);
-    var segs=top.map(function(k,i){return {k:k,v:groups[k],c:colK(k,i)};});
-    if(rest>0.004)segs.push({k:"Übrige",v:rest,c:OTH,oth:1});
-    var R=52,C=2*Math.PI*R,acc=0,gap=segs.length>1?2.2:0,act=(state.ringSel&&groups[state.ringSel]!=null)?state.ringSel:"";
-    var svg='<svg class="dn" viewBox="0 0 132 132" aria-hidden="true"><circle class="dtrack" cx="66" cy="66" r="'+R+'"/>';
-    segs.forEach(function(sg){
-      var len=sg.v/gTot*C,dl=Math.max(len-gap,0.6);
-      var dim=act&&act!==sg.k;
-      svg+='<circle class="dseg'+(dim?" dim":"")+(act===sg.k?" on":"")+'" cx="66" cy="66" r="'+R+'" style="--c:'+sg.c+'" stroke-dasharray="'+dl.toFixed(2)+" "+(C-dl).toFixed(2)+'" stroke-dashoffset="'+(-acc).toFixed(2)+'" transform="rotate(-90 66 66)"/>';
-      acc+=len;
-    });
-    svg+="</svg>";
-    var cv=act&&groups[act]!=null?groups[act]:gTot,cl=act&&groups[act]!=null?act:(SC==="year"?"Total "+Y:"Total "+MS[sel]);
-    o+='<div class="drow"><div class="dring">'+svg+'<div class="dctr"><div class="dcl">'+esc(cl)+'</div><div class="dcv">'+fmtG(cv)+'</div><div class="dcu">'+H+"</div></div></div>"+
-       '<div class="dleg">'+segs.map(function(sg){
-         var on=act===sg.k,dim=act&&!on;
-         var attr=sg.oth?'data-sgall aria-expanded="'+(!!state.sgAll)+'"':'data-sf="'+G+"|"+esc(sg.k)+'" aria-pressed="'+on+'"';
-         return '<button class="dlg'+(on?" on":"")+(dim?" dim":"")+'" '+attr+'><i style="--c:'+sg.c+'"></i><span class="dlt"><span class="dln">'+esc(sg.k)+(sg.oth?'<em class="dlx">'+(state.sgAll?"▴":"▾")+"</em>":"")+"</span>"+
-           '<span class="dlv"><b>'+fmtG(sg.v)+"</b> "+H+" · "+Math.round(sg.v/gTot*100)+" %"+(sg.oth?"":prevTxt(sg.k))+"</span></span></button>";}).join("")+"</div></div>";
-    if(state.sgAll&&keys.length>top.length){
-      o+='<div class="dlist">';
-      keys.slice(top.length).forEach(function(k){
-        var on=act===k,dim=!!act&&!on;
-        o+='<button class="dli'+(on?" on":"")+(dim?" dim":"")+'" data-sf="'+G+"|"+esc(k)+'" aria-pressed="'+(!!on)+'">'+
-           '<i style="--c:'+OTH+'"></i><span class="dn1">'+esc(k)+'</span><span class="dv"><b>'+fmtG(groups[k])+"</b> "+H+'<em>'+Math.round(groups[k]/gTot*100)+" %</em></span></button>";
-      });
-      o+="</div>";
-    }
+    var prev=hist[0],chip="";
+    if(prev){var dpc=(gTot-prev.t)/prev.t*100,rp=Math.round(Math.abs(dpc));
+      chip=rp<1?'<span class="aechip">wie '+prev.y+"</span>":'<span class="aechip '+(dpc>0?"up":"down")+'">'+(dpc>0?"↑ ":"↓ ")+rp+" % vs. "+prev.y+"</span>";}
+    var rows=[{y:Y,g:groups,t:gTot,cur:1}].concat(hist),mxT=Math.max.apply(null,rows.map(function(r){return r.t;}))||1;
+    o+='<div class="dsegs aesegs">'+segBtns()+"</div>"+
+      '<div class="aeh"><span class="aemo">'+(SC==="month"?MON[sel]+" ":"Entwicklung ")+(hist.length?hist[hist.length-1].y+"–"+Y:Y)+"</span>"+chip+"</div>"+
+      '<div class="aebars" role="img" aria-label="'+esc(rows.map(function(r){return perTxt(r.y)+": "+fmtG(r.t)+" "+state.settings.home;}).join(", "))+'">'+
+      rows.map(function(r){return '<div class="aebr'+(r.cur?" cur":"")+'"><span class="aey">'+r.y+'</span><span class="aetr"><span class="aefill" style="width:'+(r.t/mxT*100).toFixed(1)+'%">'+
+        segs.map(function(sg){var v=segV(r.g,sg);return v>0.004?'<i style="flex:'+v.toFixed(2)+';--c:'+sg.c+'"></i>':"";}).join("")+'</span></span><span class="aev">'+fmtG(r.t)+"</span></div>";}).join("")+"</div>"+
+      (noSt&&SC==="year"?'<p class="aenote">Vorjahre ausgeblendet: Bei einigen Verträgen fehlt der Vertragsbeginn.</p>':"");
+    var markK=function(sg){if(sg.oth)return '<div class="mark aestack" aria-hidden="true">'+[0,1,2,3].map(function(i){var k=restK[i];return '<i style="--c:'+(k?colK(k,top.length+i):OTH)+'"></i>';}).join("")+"</div>";
+      if(G==="cat")return '<div class="mark" style="background:'+esc(catColor(sg.k))+'">'+catIcon(sg.k)+"</div>";
+      var pc=pool.filter(function(c){return statKey(c,"partner")===sg.k;})[0];
+      if(pc&&pc.logoId&&KBlob.has(pc.logoId))return markHtml(pc);
+      return '<div class="mark" style="background:'+esc(sg.c)+'">'+catIcon(pc?pc.cat||"Sonstiges":"Sonstiges")+"</div>";};
+    var fk=state.flt[G]||"";
+    var hasLogo=function(sg){if(G!=="partner"||sg.oth)return false;var pc=pool.filter(function(c){return statKey(c,"partner")===sg.k;})[0];return !!(pc&&pc.logoId&&KBlob.has(pc.logoId));};
+    var cmpK=function(sg){if(!prev)return "";var v=segV(groups,sg),pv=segV(prev.g,sg);if(pv<0.005)return '<span class="aec">neu</span>';
+      var pc=Math.round((v-pv)/pv*100);if(Math.abs(pc)<1)return '<span class="aec">wie '+prev.y+"</span>";
+      return '<span class="aec '+(pc>0?"up":"down")+'">'+(pc>0?"↑ ":"↓ ")+Math.abs(pc)+" % "+(pc>0?"mehr":"weniger")+"</span>";};
+    var mini=function(sg){var ser=rows.slice().reverse(),vals=ser.map(function(r){return segV(r.g,sg);}),n=vals.length;
+      if(n<2)return '<p class="aenote" style="margin:0 0 4px">Noch keine Vorjahre zum Vergleich.</p>';
+      var mx2=Math.max.apply(null,vals)||1;
+      return '<div class="aecols" style="--c:'+sg.c+'" aria-hidden="true">'+vals.map(function(v,i){return '<div'+(i===n-1?' class="cur"':"")+'><span style="height:'+Math.max(2,v/mx2*100).toFixed(1)+'%"></span></div>';}).join("")+"</div>"+
+        '<div class="aecl">'+vals.map(function(v,i){return "<div>"+ser[i].y+"<b>"+fmtG(v)+"</b></div>";}).join("")+"</div>";};
+    o+='<div class="aelist">'+segs.map(function(sg,i){var v=segV(groups,sg),on=sg.oth?!!state.sgAll:act===sg.k;
+      var attr=sg.oth?'data-sgall aria-expanded="'+(!!state.sgAll)+'"':'data-sf="'+G+"|"+esc(sg.k)+'" aria-expanded="'+on+'"';
+      var dim=fk&&(sg.oth?top.indexOf(fk)>=0:sg.k!==fk),isF=fk&&!sg.oth&&sg.k===fk;
+      var h='<button class="mrow aerow'+(on?" open":"")+(dim?" dim":"")+'" '+attr+">"+markK(sg)+'<span class="mt"><span class="mn">'+esc(sg.k)+'</span><span class="mm aemm">'+(hasLogo(sg)?'<i class="aedot" style="--c:'+sg.c+'"></i>':"")+"<span>"+Math.round(v/gTot*100)+" %</span>"+(prev?"<span>·</span>"+cmpK(sg):"")+"</span></span>"+
+        '<span class="ma"><span><b>'+fmtG(v)+"</b> <u>"+H+'</u></span></span><span class="aechev" aria-hidden="true">›</span></button>';
+      if(on&&!sg.oth)h+='<div class="aeopen">'+mini(sg)+(isF?'<button class="aeonly" data-fdel="'+G+'">Filter aufheben</button>':'<button class="aeonly" data-sfilter="'+G+"|"+esc(sg.k)+'">Nur '+esc(sg.k)+" anzeigen ›</button>")+"</div>";
+      if(on&&sg.oth)h+='<div class="dlist aerest">'+restK.map(function(k){return '<button class="dli" data-sfilter="'+G+"|"+esc(k)+'"><i style="--c:'+OTH+'"></i><span class="dn1">'+esc(k)+'</span><span class="dv"><b>'+fmtG(groups[k])+"</b> "+H+"<em>"+Math.round(groups[k]/gTot*100)+" %</em></span></button>";}).join("")+"</div>";
+      return h;}).join("")+"</div></div></div>";
   }
-  o+="</div>";
+  function segBtns(){return '<div class="pseg" role="group" aria-label="Zeitraum"><button data-ss="year" aria-pressed="'+(SC==="year")+'">Jahr</button><button data-ss="month" aria-pressed="'+(SC==="month")+'">'+MS[sel]+"</button></div>"+
+     '<div class="pseg" role="group" aria-label="Aufteilen nach"><button data-sg="cat" aria-pressed="'+(G==="cat")+'">Kategorie</button><button data-sg="partner" aria-pressed="'+(G==="partner")+'">Vertragspartner</button></div>';}
   v.innerHTML=o+"</div>";
 }
 var TITLES={list:"Verträge",stat:"Kosten",budget:"Budget",term:"Fristen",arch:"Archiv",set:"Mehr"};
@@ -2766,19 +2863,25 @@ function buildCatChips(){
   document.getElementById("fCats").addEventListener("click",function(){openCatPick("c");});
   document.getElementById("iCats").addEventListener("click",function(){openCatPick("i");});
 }
+var TAX_INFO="Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge markierst du unter «In «Fristen» anzeigen».";
+function catInfoIc(){return '<span class="catinfo" role="button" tabindex="0" data-catinfo aria-label="Info: nicht kündbar">i</span>';}
 function paintCatField(pre,cat){
   var ic=document.getElementById(pre+"CatIcon"),nm=document.getElementById(pre+"CatName");
-  if(cat){ic.style.background=catColor(cat);ic.innerHTML=catIcon(cat);nm.textContent=cat;nm.classList.remove("ph");}
+  if(cat){ic.style.background=catColor(cat);ic.innerHTML=catIcon(cat);nm.innerHTML=esc(cat)+(catKey(cat)==="Steuern & Gebühren"?catInfoIc():"");nm.classList.remove("ph");}
   else{ic.style.background="var(--sunken)";ic.innerHTML="";nm.textContent="Kategorie wählen";nm.classList.add("ph");}
 }
-function paintCats(){paintCatField("f",draft.cat);}
+function paintCats(){paintCatField("f",draft.cat);
+  /* Steuern & Gebühren sind immer nicht kündbar: Auswahl fest auf «nicht kündbar» */
+  var w=document.getElementById("fWatch"),tx=catKey(draft.cat||"")==="Steuern & Gebühren";if(!w)return;w.disabled=tx;if(tx)w.value="fixed";else syncWatch();}
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-catinfo]");if(!b)return;e.preventDefault();e.stopPropagation();
+  ask({title:"Nicht kündbar",text:TAX_INFO,alert:true});},true);
 function openCatPick(kind){
   var list=kind==="c"?allCats():INC_CATS,cur=kind==="c"?draft.cat:idraft.cat;
   document.getElementById("pickTitle").textContent="Kategorie";
   var l=document.getElementById("pickList");l.dataset.dim="catpick-"+kind;
   l.innerHTML=list.map(function(k){
     return '<button class="pick pickcat" data-pv="'+esc(k)+'" aria-pressed="'+(cur===k)+'"><span class="pci" style="background:'+catColor(k)+'">'+catIcon(k)+
-      '</span><span class="pcn">'+esc(k)+"</span></button>";}).join("")+
+      '</span><span class="pcn">'+esc(k)+(kind==="c"&&catKey(k)==="Steuern & Gebühren"?catInfoIc():"")+"</span></button>";}).join("")+
     (kind==="c"?'<div class="catadd"><input id="newCat" type="text" placeholder="Eigene Kategorie, z.B. Haustier" autocomplete="off" maxlength="30"><button type="button" id="newCatAdd">Hinzufügen</button></div>':"");
   var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
 }
@@ -2862,43 +2965,59 @@ function paintDocs(){paintOptCounts();
     l.appendChild(row);
   });
 }
-/* Individuelle Aufteilung: draft.split = {Inhaber: %} oder null (= gleich). Schieberegler je Inhaber (bei 2 Inhabern einer),
-   zeigt Prozent und Betrag pro Zahlung; letzter Inhaber = 100 − übrige. SwiftUI: Slider(value:in:step:) mit Label */
-function spAmt(p){var a=parseNum(document.getElementById("fAmt").value)||0,cur=document.getElementById("fCur").value;return money(a*p/100)+" "+esc(cur);}
-function spTxt(p){return '<b>'+Math.round(p)+' %</b> · '+spAmt(p);}
+/* Individuelle Aufteilung: draft.split = {Inhaber: %} oder null (= gleich). Eingabe als Betrag pro Zahlung (auf den Rappen),
+   gespeichert als Prozent mit 4 Nachkommastellen, damit es bei Preisänderungen anteilig bleibt.
+   2 Inhaber: beide Felder editierbar, das andere passt sich an. Ab 3: letzter Inhaber = Rest. SwiftUI: TextField(.decimalPad) je Inhaber */
+function spTotal(){var a=parseNum(document.getElementById("fAmt").value)||0,t=today();(draft.prices||[]).slice().sort(function(x,y){return String(x.from).localeCompare(String(y.from));}).forEach(function(q){var f=parseD(q.from);if(f&&f<=t&&isFinite(+q.amount))a=+q.amount;});return a;}
+function spVal(h){return Math.round(spTotal()*(+draft.split[h]||0))/100;}
+function spPct(h){var p=+draft.split[h]||0;return (Math.round(p*10)/10).toLocaleString("de-CH")+" %";}
 function paintSplit(){
   var hs=holdersSorted(draft.holders||[]),w=document.getElementById("fSplitWrap"),rows=document.getElementById("fSplitRows");
   w.hidden=hs.length<2;if(hs.length<2){draft.split=null;return;}
-  if(draft.split){var ok=hs.every(function(h){return draft.split[h]!=null;});if(!ok){var eq=Math.floor(100/hs.length),sp={};hs.forEach(function(h,i){sp[h]=i===hs.length-1?100-eq*(hs.length-1):eq;});draft.split=sp;}}
+  if(draft.split){var ok=hs.every(function(h){return draft.split[h]!=null;});if(!ok){var sp={};hs.forEach(function(h){sp[h]=100/hs.length;});draft.split=sp;}}
   var ind=!!draft.split;
   document.querySelectorAll("#fSplitSeg button").forEach(function(b){b.setAttribute("aria-pressed",(b.dataset.sp==="ind")===ind);});
   rows.hidden=!ind;if(!ind){rows.innerHTML="";return;}
-  var v=function(h){return Math.round(+draft.split[h]||0);};
-  if(hs.length===2){var a=hs[0],b=hs[1];
-    rows.innerHTML='<div class="spbox"><div class="sphead"><span><em>'+esc(a)+'</em><small data-spv="'+esc(a)+'">'+spTxt(v(a))+'</small></span>'+
-      '<span class="r"><em>'+esc(b)+'</em><small data-spv="'+esc(b)+'">'+spTxt(v(b))+'</small></span></div>'+
-      '<input type="range" class="sprange" min="0" max="100" step="1" data-sph="'+esc(a)+'" value="'+v(a)+'" style="--p:'+v(a)+'%" aria-label="Anteil '+esc(a)+'" aria-valuetext="'+esc(a)+' '+v(a)+' %, '+esc(b)+' '+v(b)+' %"></div>';
-  }else{
-    rows.innerHTML='<div class="spbox">'+hs.map(function(h,i){var last=i===hs.length-1;
-      return '<div class="sprow2"><div class="sphead"><span><em>'+esc(h)+'</em></span><span class="r"><small data-spv="'+esc(h)+'">'+spTxt(v(h))+'</small></span></div>'+
-        (last?'<p class="note" style="margin:2px 0 0">Rest, ergibt sich automatisch</p>':'<input type="range" class="sprange" min="0" max="100" step="1" data-sph="'+esc(h)+'" value="'+v(h)+'" style="--p:'+v(h)+'%" aria-label="Anteil '+esc(h)+'">')+'</div>';}).join("")+'</div>';
-  }
+  var cur=esc(document.getElementById("fCur").value),two=hs.length===2;
+  /* 2 Inhaber: Namen oben, Regler (50-Rappen-Schritte, Wert = Betrag der rechten Person), Felder darunter.
+     Ab 3: nur Felder nebeneinander (3 Spalten bzw. 2×2), ohne Regler. SwiftUI: Slider(step: 0.5) + 2 TextFields */
+  var T0=spTotal(),rmax=Math.ceil(T0*2)/2;
+  rows.innerHTML='<div class="spbox">'+(two?'<div class="sphd2"><span>'+esc(hs[0])+'</span><span>'+esc(hs[1])+'</span></div>'+
+      (T0>0?'<input type="range" class="sprng" min="0" max="'+rmax+'" step="0.5" value="'+spVal(hs[1])+'" data-sprng aria-label="Aufteilung, Betrag '+esc(hs[1])+'"><div class="spticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>':""):"")+
+    '<div class="spgrid" style="--n:'+(hs.length===3?3:2)+'">'+hs.map(function(h,i){var ro=!two&&i===hs.length-1;
+    return '<div class="spcell">'+(two?"":'<em>'+esc(h)+'</em>')+
+      (ro?'<span class="spin ro"><b data-spr="'+esc(h)+'">'+money(spVal(h))+'</b></span>'
+         :'<span class="spin"><input type="text" class="num" inputmode="decimal" data-spa="'+esc(h)+'" value="'+spVal(h).toFixed(2)+'" aria-label="Betrag '+esc(h)+'"></span>')+
+      '<small data-spp="'+esc(h)+'"'+(two&&i===1?' class="r"':"")+'>'+spPct(h)+(ro?" · Rest":"")+'</small></div>';}).join("")+'</div>'+
+    '<p class="sptot" id="spTot"></p></div>';
+  spRefresh();
 }
-/* Werte beim Ziehen aktualisieren, ohne neu zu zeichnen (Regler bleibt greifbar) */
+/* Werte nachführen, ohne neu zu zeichnen (das Feld, in dem getippt wird, bleibt unangetastet) */
 function spRefresh(){var hs=holdersSorted(draft.holders||[]);if(!draft.split||hs.length<2)return;
-  hs.forEach(function(h){var p=Math.round(+draft.split[h]||0);
-    var t=document.querySelector('#fSplitRows [data-spv="'+CSS.escape(h)+'"]');if(t)t.innerHTML=spTxt(p);
-    var r=document.querySelector('#fSplitRows input[data-sph="'+CSS.escape(h)+'"]');if(r){if(+r.value!==p)r.value=p;r.style.setProperty("--p",p+"%");}});
-  if(hs.length===2){var r2=document.querySelector("#fSplitRows input[data-sph]");if(r2)r2.setAttribute("aria-valuetext",hs[0]+" "+Math.round(draft.split[hs[0]])+" %, "+hs[1]+" "+Math.round(draft.split[hs[1]])+" %");}}
+  var ae=document.activeElement,cur=document.getElementById("fCur").value,T=spTotal();
+  if(hs.length===2&&T>0&&!document.querySelector("#fSplitRows [data-sprng]")){paintSplit();return;}
+  hs.forEach(function(h){var q=CSS.escape(h);
+    var t=document.querySelector('#fSplitRows [data-spp="'+q+'"]');if(t)t.textContent=spPct(h)+(hs.length>2&&h===hs[hs.length-1]?" · Rest":"");
+    var i=document.querySelector('#fSplitRows input[data-spa="'+q+'"]');if(i&&i!==ae)i.value=spVal(h).toFixed(2);
+    var r=document.querySelector('#fSplitRows [data-spr="'+q+'"]');if(r)r.textContent=money(spVal(h));});
+  var rg=document.querySelector("#fSplitRows [data-sprng]");if(rg&&rg!==ae){rg.max=Math.ceil(T*2)/2;rg.value=spVal(hs[1]);}
+  var tt=document.getElementById("spTot");if(tt)tt.textContent=T>0?"Total "+money(T)+" "+cur+" pro Zahlung":"Zuerst den Betrag unter «Kosten» eintragen.";}
 document.getElementById("fSplitSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-sp]");if(!b)return;
   if(b.dataset.sp==="eq")draft.split=null;else{draft.split={};}paintSplit();});
-document.getElementById("fSplitRows").addEventListener("input",function(ev){var i=ev.target;if(!i.dataset.sph||!draft.split)return;
-  var hs=holdersSorted(draft.holders||[]),h=i.dataset.sph,v=Math.max(0,Math.min(100,Math.round(+i.value||0)));
-  /* zuerst vom letzten (Rest) nehmen, reicht das nicht, von den übrigen Reglern (von hinten) */
-  draft.split[h]=v;var mids=hs.slice(0,-1).filter(function(x){return x!==h;});
-  var sum=function(){return hs.slice(0,-1).reduce(function(n,x){return n+(+draft.split[x]||0);},0);};
-  for(var k=mids.length-1;k>=0&&sum()>100;k--){var x=mids[k];draft.split[x]=Math.max(0,(+draft.split[x]||0)-(sum()-100));}
-  draft.split[hs[hs.length-1]]=Math.max(0,100-sum());spRefresh();});
+document.getElementById("fSplitRows").addEventListener("input",function(ev){var i=ev.target;
+  if(i.dataset.sprng!=null&&draft.split){var hs2=holdersSorted(draft.holders||[]),T2=spTotal();if(!(T2>0)||hs2.length!==2)return;
+    var b2=Math.min(T2,Math.max(0,+i.value||0)),v2=Math.round(b2/T2*1e6)/1e4;draft.split[hs2[1]]=v2;draft.split[hs2[0]]=Math.round((100-v2)*1e4)/1e4;spRefresh();return;}
+  if(!i.dataset.spa||!draft.split)return;
+  var hs=holdersSorted(draft.holders||[]),h=i.dataset.spa,T=spTotal();if(!(T>0))return;
+  var x=parseNum(i.value);if(x==null)x=0;x=Math.max(0,Math.min(T,x));var v=Math.round(x/T*1e6)/1e4;
+  if(hs.length===2){draft.split[h]=v;draft.split[hs[0]===h?hs[1]:hs[0]]=Math.round((100-v)*1e4)/1e4;spRefresh();return;}
+  /* ab 3: zuerst vom letzten (Rest) nehmen, reicht das nicht, von den übrigen Feldern (von hinten) */
+  draft.split[h]=v;var mids=hs.slice(0,-1).filter(function(y){return y!==h;});
+  var sum=function(){return hs.slice(0,-1).reduce(function(n,y){return n+(+draft.split[y]||0);},0);};
+  for(var k=mids.length-1;k>=0&&sum()>100;k--){var y=mids[k];draft.split[y]=Math.max(0,(+draft.split[y]||0)-(sum()-100));}
+  draft.split[hs[hs.length-1]]=Math.max(0,Math.round((100-sum())*1e4)/1e4);spRefresh();});
+/* Beim Verlassen: Eingabe sauber formatieren (z.B. «30» → «30.00», zu hoch → Total) */
+document.getElementById("fSplitRows").addEventListener("focusout",function(ev){var i=ev.target;if(i.dataset&&i.dataset.spa&&draft.split)i.value=spVal(i.dataset.spa).toFixed(2);});
 ["fAmt","fCur"].forEach(function(id){var e=document.getElementById(id);e.addEventListener("input",spRefresh);e.addEventListener("change",spRefresh);});
 function paintHolders(){
   var el=document.getElementById("fHolders");el.innerHTML="";
@@ -2943,9 +3062,9 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   selVal("fCancF",c&&c.cancF);document.getElementById("fCancUrl").value=(c&&c.cancUrl)||"";syncCancUrl();
   document.getElementById("fTrial").value=(c&&c.trial)||"";
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
-  document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
+  document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);document.getElementById("fNoCancel").checked=!!(c&&c.noCancel);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
   document.getElementById("fSugg").innerHTML="";
-  document.getElementById("fWeb").value=(c&&c.web)||"";var pgA=c&&c.partner&&!c.addr?peGroup(String(c.partner).trim().toLowerCase()):null;document.getElementById("fAddr").value=(c&&c.addr)||(pgA&&pgA.addr)||"";
+  document.getElementById("fWeb").value=(c&&c.web)||"";var pgA=c&&c.partner&&!c.addr?peGroup(String(c.partner).trim().toLowerCase()):null;document.getElementById("fAddr").value=(c&&c.addr)||(pgA&&pgA.addr)||"";fAddrPaint();
   document.getElementById("fTel").value=(c&&c.tel)||"";
   document.getElementById("fMail").value=(c&&c.mail)||"";
   paintHolders();
@@ -2972,7 +3091,8 @@ document.getElementById("fMore").addEventListener("change",paintOptCounts);
 document.getElementById("fPartner").addEventListener("input",paintLogo);
 document.getElementById("fAmt").addEventListener("input",paintDup);document.getElementById("fCur").addEventListener("change",paintDup);
 /* ---------- Anbieterkatalog Schweiz / Deutschland ---------- */
-/* [Name, Land, Kategorie, Bezeichnung, Web, Frist, Einheit, Kündbar per, Kündigung per, Pflicht, Hinweis] */
+/* [Name, Land, Kategorie, Bezeichnung, Web, Frist, Einheit, Kündbar per, Kündigung per, Pflicht, Hinweis, Kündigungslink, Adresse, E-Mail, Telefon, offiziell bestätigt (1/0)]
+   Kontaktdaten recherchiert Okt. 2026; 0 = nur Sekundärquelle, in der App mit Prüfhinweis */
 var H_KVG="Grundversicherung: per 31.12. kündbar, Kündigung muss bis 30.11. eingetroffen sein. Mit Mindestfranchise und Standardmodell (freie Arztwahl) zusätzlich per 30.06., Kündigung bis 31.03. Zusatzversicherungen haben eigene Fristen.";
 var H_VVG="Nach 3 Jahren per Ende Versicherungsjahr kündbar (VVG). Genaue Frist in der Police prüfen.";
 var H_TCH="60 Tage auf Monatsende, frühestens auf Ende der Mindestlaufzeit.";
@@ -2986,61 +3106,61 @@ var H_GKV="Gesetzliche Krankenkasse: 2 Monate zum Monatsende, nach mindestens 12
 var H_VDE="Meist 3 Monate zum Ende des Versicherungsjahres, neuere Verträge oft 1 Monat. Police prüfen.";
 var H_PRF="Frist im Vertrag prüfen.";
 var TPL=[
- ["CSS","CH","Versicherung","Krankenkasse","css.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Helsana","CH","Versicherung","Krankenkasse","helsana.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["SWICA","CH","Versicherung","Krankenkasse","swica.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Sanitas","CH","Versicherung","Krankenkasse","sanitas.com",1,"m","y","Einschreiben",1,H_KVG],
- ["Visana","CH","Versicherung","Krankenkasse","visana.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Concordia","CH","Versicherung","Krankenkasse","concordia.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Groupe Mutuel","CH","Versicherung","Krankenkasse","groupemutuel.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Assura","CH","Versicherung","Krankenkasse","assura.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["KPT","CH","Versicherung","Krankenkasse","kpt.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Atupri","CH","Versicherung","Krankenkasse","atupri.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Sympany","CH","Versicherung","Krankenkasse","sympany.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["ÖKK","CH","Versicherung","Krankenkasse","oekk.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["EGK","CH","Versicherung","Krankenkasse","egk.ch",1,"m","y","Einschreiben",1,H_KVG],
- ["Die Mobiliar","CH","Versicherung","Hausrat & Haftpflicht","mobiliar.ch",3,"m","a","Brief",0,H_VVG],
- ["AXA","CH","Versicherung","Versicherung","axa.ch",3,"m","a","Brief",0,H_VVG],
- ["Zurich","CH","Versicherung","Versicherung","zurich.ch",3,"m","a","Brief",0,H_VVG],
- ["Allianz Suisse","CH","Versicherung","Versicherung","allianz.ch",3,"m","a","Brief",0,H_VVG],
- ["Helvetia","CH","Versicherung","Versicherung","helvetia.ch",3,"m","a","Brief",0,H_VVG],
- ["Baloise","CH","Versicherung","Versicherung","baloise.ch",3,"m","a","Brief",0,H_VVG],
- ["Generali","CH","Versicherung","Versicherung","generali.ch",3,"m","a","Brief",0,H_VVG],
- ["Vaudoise","CH","Versicherung","Versicherung","vaudoise.ch",3,"m","a","Brief",0,H_VVG],
- ["Smile","CH","Versicherung","Versicherung","smile-direct.ch",3,"m","a","E-Mail",0,H_VVG],
- ["TCS","CH","Mobilität","Mitgliedschaft","tcs.ch",0,"m","a","",0,H_PRF],
- ["Swisscom","CH","Mobilfunk & Internet","Handy / Internet","swisscom.ch",60,"d","m","",0,H_TCH],
- ["Sunrise","CH","Mobilfunk & Internet","Handy / Internet","sunrise.ch",60,"d","m","",0,H_TCH],
- ["Salt","CH","Mobilfunk & Internet","Handy","salt.ch",60,"d","m","",0,H_TCH],
- ["Wingo","CH","Mobilfunk & Internet","Handy / Internet","wingo.ch",60,"d","m","",0,H_TCH],
- ["Yallo","CH","Mobilfunk & Internet","Handy","yallo.ch",60,"d","m","",0,H_TCH],
- ["M-Budget Mobile","CH","Mobilfunk & Internet","Handy","",60,"d","m","Brief",0,H_TCH+" Nur schriftlich."],
- ["Coop Mobile","CH","Mobilfunk & Internet","Handy","",60,"d","m","",0,H_TCH],
- ["Quickline","CH","Mobilfunk & Internet","Internet / TV","quickline.ch",0,"m","","",0,H_PRF],
- ["Init7","CH","Mobilfunk & Internet","Internet","init7.net",0,"m","","",0,H_PRF],
- ["SBB Halbtax","CH","Mobilität","Halbtax","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung spätestens 1 Monat vorher auf swisspass.ch."],
- ["SBB GA","CH","Mobilität","Generalabonnement","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung über swisspass.ch; Frist prüfen."],
- ["Mobility","CH","Mobilität","Carsharing","mobility.ch",0,"m","p","Online / Kundenkonto",0,H_PRF],
- ["Serafe","CH","Steuern & Gebühren","Radio- und TV-Abgabe","serafe.ch",0,"m","","",1,"Gesetzliche Abgabe pro Haushalt, nicht kündbar."],
- ["EKZ","CH","Energie & Wasser","Strom","ekz.ch",0,"m","","",1,H_ECH],
- ["EKT","CH","Energie & Wasser","Strom","ekt.ch",0,"m","","",1,H_ECH],
- ["BKW","CH","Energie & Wasser","Strom","bkw.ch",0,"m","","",1,H_ECH],
- ["CKW","CH","Energie & Wasser","Strom","ckw.ch",0,"m","","",1,H_ECH],
- ["ewz","CH","Energie & Wasser","Strom","ewz.ch",0,"m","","",1,H_ECH],
- ["PostFinance","CH","Finanzen","Konto","postfinance.ch",0,"m","m","",0,H_BNK],
- ["UBS","CH","Finanzen","Konto","ubs.com",0,"m","m","",0,H_BNK],
- ["Raiffeisen","CH","Finanzen","Konto","raiffeisen.ch",0,"m","m","",0,H_BNK],
- ["ZKB","CH","Finanzen","Konto","zkb.ch",0,"m","m","",0,H_BNK],
- ["TKB","CH","Finanzen","Konto","tkb.ch",0,"m","m","",0,H_BNK],
- ["Neon","CH","Finanzen","Konto","neon-free.ch",0,"m","m","",0,H_BNK],
- ["Yuh","CH","Finanzen","Konto","yuh.com",0,"m","m","",0,H_BNK],
- ["Migros Fitness","CH","Freizeit & Sport","Fitnessabo","migros-fitness.ch",0,"m","a","",0,H_FIT],
- ["Update Fitness","CH","Freizeit & Sport","Fitnessabo","update-fitness.ch",0,"m","a","",0,H_FIT],
- ["Activ Fitness","CH","Freizeit & Sport","Fitnessabo","activfitness.ch",0,"m","a","",0,H_FIT],
- ["NZZ","CH","Abos & Medien","Zeitung","nzz.ch",0,"m","a","",0,H_PRF],
- ["Tages-Anzeiger","CH","Abos & Medien","Zeitung","tagesanzeiger.ch",0,"m","a","",0,H_PRF],
- ["Teleboy","CH","Abos & Medien","TV","teleboy.ch",0,"m","p","Online / Kundenkonto",0,H_STR],
- ["Zattoo","CH","Abos & Medien","TV","zattoo.com",0,"m","p","Online / Kundenkonto",0,H_STR],
+ ["CSS","CH","Versicherung","Krankenkasse","css.ch",1,"m","y","Einschreiben",1,H_KVG,"","CSS Kranken-Versicherung AG\nTribschenstrasse 21\nPostfach 2568\n6002 Luzern","","+41 58 277 11 11",1],
+ ["Helsana","CH","Versicherung","Krankenkasse","helsana.ch",1,"m","y","Einschreiben",1,H_KVG,"","Helsana Versicherungen AG\nIDPH Kündigungen D-CH\nPostfach\n8081 Zürich","kuendigungen@helsana.ch","+41 43 340 11 11",1],
+ ["SWICA","CH","Versicherung","Krankenkasse","swica.ch",1,"m","y","Einschreiben",1,H_KVG,"","SWICA Krankenversicherung AG\nRömerstrasse 37\n8401 Winterthur","","+41 58 800 99 33",1],
+ ["Sanitas","CH","Versicherung","Krankenkasse","sanitas.com",1,"m","y","Einschreiben",1,H_KVG,"","Sanitas Grundversicherungen AG\nJägergasse 3\nPostfach\n8004 Zürich","info@sanitas.com","+41 844 150 150",1],
+ ["Visana","CH","Versicherung","Krankenkasse","visana.ch",1,"m","y","Einschreiben",1,H_KVG,"","Visana Services AG\nWeltpoststrasse 19\nPostfach\n3000 Bern 16","customerservice-centre@visana.ch","+41 848 848 899",1],
+ ["Concordia","CH","Versicherung","Krankenkasse","concordia.ch",1,"m","y","Einschreiben",1,H_KVG,"","CONCORDIA\nBundesplatz 15\n6002 Luzern","info@concordia.ch","+41 41 228 01 11",1],
+ ["Groupe Mutuel","CH","Versicherung","Krankenkasse","groupemutuel.ch",1,"m","y","Einschreiben",1,H_KVG,"","Groupe Mutuel\nRue des Cèdres 5\n1919 Martigny","kunden@groupemutuel.ch","+41 848 803 111",1],
+ ["Assura","CH","Versicherung","Krankenkasse","assura.ch",1,"m","y","Einschreiben",1,H_KVG,"","Assura-Basis AG\nPostfach 61\n1009 Pully","","+41 800 277 872",1],
+ ["KPT","CH","Versicherung","Krankenkasse","kpt.ch",1,"m","y","Einschreiben",1,H_KVG,"","KPT Krankenkasse AG\nWankdorfallee 3\nPostfach\n3001 Bern","","+41 58 310 91 11",1],
+ ["Atupri","CH","Versicherung","Krankenkasse","atupri.ch",1,"m","y","Einschreiben",1,H_KVG,"","Atupri Gesundheitsversicherung AG\nLaupenstrasse 18\n3008 Bern","info@atupri.ch","+41 800 200 888",1],
+ ["Sympany","CH","Versicherung","Krankenkasse","sympany.ch",1,"m","y","Einschreiben",1,H_KVG,"","Sympany\nPeter Merian-Weg 4\n4002 Basel","","+41 58 262 42 00",1],
+ ["ÖKK","CH","Versicherung","Krankenkasse","oekk.ch",1,"m","y","Einschreiben",1,H_KVG,"","ÖKK\nBahnhofstrasse 13\nPostfach\n7302 Landquart","info@oekk.ch","+41 800 838 000",1],
+ ["EGK","CH","Versicherung","Krankenkasse","egk.ch",1,"m","y","Einschreiben",1,H_KVG,"","EGK-Gesundheitskasse\nBirspark 1\n4242 Laufen","info@egk.ch","+41 61 765 51 11",1],
+ ["Die Mobiliar","CH","Versicherung","Hausrat & Haftpflicht","mobiliar.ch",3,"m","a","Brief",0,H_VVG,"","Schweizerische Mobiliar Versicherungsgesellschaft AG\nBundesgasse 35\n3001 Bern","info@mobiliar.ch","",1],
+ ["AXA","CH","Versicherung","Versicherung","axa.ch",3,"m","a","Brief",0,H_VVG,"","AXA Versicherungen AG\nGeneral-Guisan-Strasse 40\n8400 Winterthur","","+41 800 809 809",1],
+ ["Zurich","CH","Versicherung","Versicherung","zurich.ch",3,"m","a","Brief",0,H_VVG,"","Zürich Versicherungs-Gesellschaft AG\nMythenquai 2\n8002 Zürich","contact@zurich.ch","+41 800 80 80 80",1],
+ ["Allianz Suisse","CH","Versicherung","Versicherung","allianz.ch",3,"m","a","Brief",0,H_VVG,"","Allianz Suisse Versicherungs-Gesellschaft AG\nRichtiplatz 1\n8304 Wallisellen","contact@allianz-suisse.ch","+41 58 358 71 11",1],
+ ["Helvetia","CH","Versicherung","Versicherung","helvetia.ch",3,"m","a","Brief",0,H_VVG,"","Helvetia Versicherungen\nSt. Alban-Anlage 26\n4002 Basel","","+41 58 280 10 00",1],
+ ["Baloise","CH","Versicherung","Versicherung","baloise.ch",3,"m","a","Brief",0,H_VVG,"","Helvetia Versicherungen\nSt. Alban-Anlage 26\n4002 Basel","","+41 58 280 10 00",1],
+ ["Generali","CH","Versicherung","Versicherung","generali.ch",3,"m","a","Brief",0,H_VVG,"","Generali Versicherungen\nSoodmattenstrasse 2\n8134 Adliswil 1","info.ch@generali.com","+41 800 881 882",1],
+ ["Vaudoise","CH","Versicherung","Versicherung","vaudoise.ch",3,"m","a","Brief",0,H_VVG,"","Vaudoise Versicherungen\nPlace de Milan\nCase postale 120\n1001 Lausanne","info@vaudoise.ch","",1],
+ ["Smile","CH","Versicherung","Versicherung","smile-direct.ch",3,"m","a","E-Mail",0,H_VVG,"","smile.direct versicherungen\nZürichstrasse 130\n8600 Dübendorf","info@smile-versicherung.ch","+41 844 848 444",1],
+ ["TCS","CH","Mobilität","Mitgliedschaft","tcs.ch",0,"m","a","",0,H_PRF,"","Touring Club Schweiz\nChemin de Blandonnet 4\n1214 Vernier","","+41 58 827 27 27",1],
+ ["Swisscom","CH","Mobilfunk & Internet","Handy / Internet","swisscom.ch",60,"d","m","",0,H_TCH,"","Swisscom (Schweiz) AG\nAlte Tiefenaustrasse 6\n3050 Bern","","+41 800 800 800",1],
+ ["Sunrise","CH","Mobilfunk & Internet","Handy / Internet","sunrise.ch",60,"d","m","",0,H_TCH,"","Sunrise GmbH\nThurgauerstrasse 101B / Postfach\n8152 Glattpark (Opfikon)","","+41 800 707 505",1],
+ ["Salt","CH","Mobilfunk & Internet","Handy","salt.ch",60,"d","m","",0,H_TCH,"","Salt Mobile SA\nCustomer Communications\nCase postale\n1020 Renens","","+41 800 700 700",1],
+ ["Wingo","CH","Mobilfunk & Internet","Handy / Internet","wingo.ch",60,"d","m","",0,H_TCH,"","Wingo Contact Center\nAlte Tiefenaustrasse 6\n3050 Bern","","+41 900 94 93 92",1],
+ ["Yallo","CH","Mobilfunk & Internet","Handy","yallo.ch",60,"d","m","",0,H_TCH,"","Sunrise GmbH\nThurgauerstrasse 101B / Postfach\n8152 Glattpark (Opfikon)","","+41 840 00 33 77",1],
+ ["M-Budget Mobile","CH","Mobilfunk & Internet","Handy","",60,"d","m","Brief",0,H_TCH+" Nur schriftlich.","","Migros Mobile Contact Center\n3050 Bern","","+41 800 15 17 28",1],
+ ["Coop Mobile","CH","Mobilfunk & Internet","Handy","",60,"d","m","",0,H_TCH,"","Coop Mobile Contact Center\n3050 Bern","","+41 800 746 746",1],
+ ["Quickline","CH","Mobilfunk & Internet","Internet / TV","quickline.ch",0,"m","","",0,H_PRF,"","Quickline AG\nDr. Schneider-Strasse 16\n2560 Nidau","info@quickline.ch","+41 800 84 10 20",1],
+ ["Init7","CH","Mobilfunk & Internet","Internet","init7.net",0,"m","","",0,H_PRF,"","Init7 (Schweiz) AG\nTechnoparkstrasse 5\n8406 Winterthur","","",1],
+ ["SBB Halbtax","CH","Mobilität","Halbtax","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung spätestens 1 Monat vorher auf swisspass.ch.","","Schweizerische Bundesbahnen SBB\nHilfikerstrasse 1\n3000 Bern 65","","+41 848 44 66 88",1],
+ ["SBB GA","CH","Mobilität","Generalabonnement","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung über swisspass.ch; Frist prüfen.","","Schweizerische Bundesbahnen SBB\nHilfikerstrasse 1\n3000 Bern 65","","+41 848 44 66 88",1],
+ ["Mobility","CH","Mobilität","Carsharing","mobility.ch",0,"m","p","Online / Kundenkonto",0,H_PRF,"","Mobility Genossenschaft\nSuurstoffi 16\n6343 Rotkreuz","office@mobility.ch","+41 848 824 812",1],
+ ["Serafe","CH","Steuern & Gebühren","Radio- und TV-Abgabe","serafe.ch",0,"m","","",1,"Gesetzliche Abgabe pro Haushalt, nicht kündbar.","","SERAFE AG\nPostfach\n8010 Zürich","","+41 58 201 31 67",1],
+ ["EKZ","CH","Energie & Wasser","Strom","ekz.ch",0,"m","","",1,H_ECH,"","Elektrizitätswerke des Kantons Zürich\nDreikönigstrasse 18\n8022 Zürich","","+41 58 359 55 22",1],
+ ["EKT","CH","Energie & Wasser","Strom","ekt.ch",0,"m","","",1,H_ECH,"","EKT AG\nBahnhofstrasse 37\n9320 Arbon","","+41 71 440 61 11",1],
+ ["BKW","CH","Energie & Wasser","Strom","bkw.ch",0,"m","","",1,H_ECH,"","BKW Energie AG\nViktoriaplatz 2\n3013 Bern","","+41 844 121 113",1],
+ ["CKW","CH","Energie & Wasser","Strom","ckw.ch",0,"m","","",1,H_ECH,"","CKW AG\nPostfach\n6002 Luzern","","+41 800 88 77 66",1],
+ ["ewz","CH","Energie & Wasser","Strom","ewz.ch",0,"m","","",1,H_ECH,"","ewz\nTramstrasse 35\nPostfach\n8050 Zürich","kundenzentrum@ewz.ch","+41 58 319 47 00",1],
+ ["PostFinance","CH","Finanzen","Konto","postfinance.ch",0,"m","m","",0,H_BNK,"","PostFinance AG\nKonto Services Region Bern\nMingerstrasse 12\n3030 Bern","","+41 58 448 14 14",1],
+ ["UBS","CH","Finanzen","Konto","ubs.com",0,"m","m","",0,H_BNK,"","UBS Switzerland AG\nBahnhofstrasse 45\n8001 Zürich","","",1],
+ ["Raiffeisen","CH","Finanzen","Konto","raiffeisen.ch",0,"m","m","",0,H_BNK,"","Raiffeisen Schweiz Genossenschaft\nRaiffeisenplatz\n9001 St. Gallen","","",1],
+ ["ZKB","CH","Finanzen","Konto","zkb.ch",0,"m","m","",0,H_BNK,"","Zürcher Kantonalbank\nBahnhofstrasse 9\n8010 Zürich","","+41 844 843 823",1],
+ ["TKB","CH","Finanzen","Konto","tkb.ch",0,"m","m","",0,H_BNK,"","Thurgauer Kantonalbank\nBankplatz 1\n8570 Weinfelden","","+41 848 111 444",1],
+ ["Neon","CH","Finanzen","Konto","neon-free.ch",0,"m","m","",0,H_BNK,"","neon Switzerland AG\nBuckhauserstrasse 24\n8048 Zürich","service@neon-free.ch","",1],
+ ["Yuh","CH","Finanzen","Konto","yuh.com",0,"m","m","",0,H_BNK,"","Yuh Ltd\nChemin de la Crétaux 33\nCase postale 1032\n1196 Gland","info@yuh.com","+41 44 825 87 89",1],
+ ["Migros Fitness","CH","Freizeit & Sport","Fitnessabo","migros-fitness.ch",0,"m","a","",0,H_FIT,"","movemi AG\nThurgauerstrasse 32\n8050 Zürich","","",1],
+ ["Update Fitness","CH","Freizeit & Sport","Fitnessabo","update-fitness.ch",0,"m","a","",0,H_FIT,"","update Fitness AG\nAdministration\nMurgtalstrasse 20\n9542 Münchwilen","","+41 840 084 040",1],
+ ["Activ Fitness","CH","Freizeit & Sport","Fitnessabo","activfitness.ch",0,"m","a","",0,H_FIT,"","movemi AG\nACTIV FITNESS Kundenservice\nThurgauerstrasse 32\n8050 Zürich","info@activfitness.ch","+41 44 822 70 00",1],
+ ["NZZ","CH","Abos & Medien","Zeitung","nzz.ch",0,"m","a","",0,H_PRF,"","Neue Zürcher Zeitung AG\nNZZ Service\nPostfach\n8021 Zürich","","+41 44 258 10 00",1],
+ ["Tages-Anzeiger","CH","Abos & Medien","Zeitung","tagesanzeiger.ch",0,"m","a","",0,H_PRF,"","Tamedia Publikationen Deutschschweiz AG\nWerdstrasse 21\nPostfach\n8021 Zürich","","",1],
+ ["Teleboy","CH","Abos & Medien","TV","teleboy.ch",0,"m","p","Online / Kundenkonto",0,H_STR,"","Teleboy AG\nSeestrasse 513\n8038 Zürich","info@teleboy.ch","+41 848 444 888",1],
+ ["Zattoo","CH","Abos & Medien","TV","zattoo.com",0,"m","p","Online / Kundenkonto",0,H_STR,"","Zattoo AG\nBaslerstrasse 60\n8048 Zürich","","",1],
  ["Netflix","","Abos & Medien","Streaming","netflix.com",0,"m","p","Online / Kundenkonto",0,H_STR,"netflix.com/cancelplan"],
  ["Spotify","","Abos & Medien","Musik","spotify.com",0,"m","p","Online / Kundenkonto",0,H_STR,"spotify.com/account/subscription"],
  ["Disney+","","Abos & Medien","Streaming","disneyplus.com",0,"m","p","Online / Kundenkonto",0,H_STR,"disneyplus.com/account/subscription"],
@@ -3056,45 +3176,151 @@ var TPL=[
  ["DAZN","","Abos & Medien","Sport","dazn.com",0,"m","p","Online / Kundenkonto",0,"Jahresabos laufen 12 Monate. "+H_PRF,"dazn.com/account"],
  ["Audible","","Abos & Medien","Hörbücher","audible.de",0,"m","p","Online / Kundenkonto",0,H_STR,"audible.de/account/overview"],
  ["Revolut","","Finanzen","Konto","revolut.com",0,"m","m","",0,H_BNK],
- ["Telekom","DE","Mobilfunk & Internet","Handy / Internet","telekom.de",1,"m","","Online / Kundenkonto",0,H_TDE,"telekom.de/kuendigen"],
- ["Vodafone","DE","Mobilfunk & Internet","Handy / Internet","vodafone.de",1,"m","","Online / Kundenkonto",0,H_TDE,"vodafone.de/kuendigen"],
- ["O2","DE","Mobilfunk & Internet","Handy","o2online.de",1,"m","","Online / Kundenkonto",0,H_TDE,"o2online.de/kuendigung"],
- ["1&1","DE","Mobilfunk & Internet","Handy / Internet","1und1.de",1,"m","","Online / Kundenkonto",0,H_TDE],
- ["Congstar","DE","Mobilfunk & Internet","Handy","congstar.de",1,"m","","Online / Kundenkonto",0,H_TDE],
- ["Techniker Krankenkasse","DE","Versicherung","Krankenkasse","tk.de",2,"m","m","Online / Kundenkonto",1,H_GKV],
- ["AOK","DE","Versicherung","Krankenkasse","aok.de",2,"m","m","Brief",1,H_GKV],
- ["Barmer","DE","Versicherung","Krankenkasse","barmer.de",2,"m","m","Online / Kundenkonto",1,H_GKV],
- ["DAK","DE","Versicherung","Krankenkasse","dak.de",2,"m","m","Online / Kundenkonto",1,H_GKV],
- ["HUK-COBURG","DE","Versicherung","Versicherung","huk.de",3,"m","a","Brief",0,H_VDE],
- ["Allianz","DE","Versicherung","Versicherung","allianz.de",3,"m","a","Brief",0,H_VDE],
- ["ERGO","DE","Versicherung","Versicherung","ergo.de",3,"m","a","Brief",0,H_VDE],
- ["ADAC","DE","Mobilität","Mitgliedschaft","adac.de",3,"m","a","Brief",0,"Mitgliedschaft: Kündigung bis 3 Monate vor Ablauf des Mitgliedsjahres. "+H_PRF],
- ["Deutschlandticket","DE","Mobilität","Deutschlandticket","",10,"k","m","Online / Kundenkonto",0,"Kündigung bis zum 10. des Monats zum Monatsende. Je nach Verkaufsstelle leicht anders."],
- ["BahnCard","DE","Mobilität","BahnCard","bahn.de",0,"m","a","Online / Kundenkonto",0,"Verlängert sich automatisch. Frist vor Ablauf im Kundenkonto prüfen."],
- ["Rundfunkbeitrag","DE","Steuern & Gebühren","Rundfunkbeitrag","rundfunkbeitrag.de",0,"m","","",1,"Gesetzlicher Beitrag pro Wohnung, nicht kündbar. Abmeldung nur bei Umzug."],
- ["EnBW","DE","Energie & Wasser","Strom","enbw.com",1,"m","","Online / Kundenkonto",0,H_EDE],
- ["E.ON","DE","Energie & Wasser","Strom","eon.de",1,"m","","Online / Kundenkonto",0,H_EDE],
- ["Vattenfall","DE","Energie & Wasser","Strom","vattenfall.de",1,"m","","Online / Kundenkonto",0,H_EDE],
- ["Stadtwerke Konstanz","DE","Energie & Wasser","Strom","stadtwerke-konstanz.de",1,"m","","Brief",0,H_EDE],
+ ["Telekom","DE","Mobilfunk & Internet","Handy / Internet","telekom.de",1,"m","","Online / Kundenkonto",0,H_TDE,"telekom.de/kuendigen","Telekom Deutschland GmbH\nLandgrabenweg 149\n53227 Bonn","","+49 800 3301000",1],
+ ["Vodafone","DE","Mobilfunk & Internet","Handy / Internet","vodafone.de",1,"m","","Online / Kundenkonto",0,H_TDE,"vodafone.de/kuendigen","Vodafone GmbH\nKundenservice\n40875 Ratingen","","+49 800 5054741",1],
+ ["O2","DE","Mobilfunk & Internet","Handy","o2online.de",1,"m","","Online / Kundenkonto",0,H_TDE,"o2online.de/kuendigung","Telefónica Germany GmbH & Co. OHG\nKundenbetreuung\n90345 Nürnberg","","+49 40 519006642",1],
+ ["1&1","DE","Mobilfunk & Internet","Handy / Internet","1und1.de",1,"m","","Online / Kundenkonto",0,H_TDE,"","1&1 Telecom GmbH\nElgendorfer Str. 57\n56410 Montabaur","","+49 721 9600",1],
+ ["Congstar","DE","Mobilfunk & Internet","Handy","congstar.de",1,"m","","Online / Kundenkonto",0,H_TDE,"","congstar GmbH\nPostfach 1165\n61466 Kronberg","","+49 221 79700700",1],
+ ["Techniker Krankenkasse","DE","Versicherung","Krankenkasse","tk.de",2,"m","m","Online / Kundenkonto",1,H_GKV,"","Techniker Krankenkasse\nBramfelder Straße 140\n22305 Hamburg","","+49 40 460 660",1],
+ ["AOK","DE","Versicherung","Krankenkasse","aok.de",2,"m","m","Brief",1,H_GKV,"","AOK Baden-Württemberg\nPresselstraße 19\n70191 Stuttgart","","",1],
+ ["Barmer","DE","Versicherung","Krankenkasse","barmer.de",2,"m","m","Online / Kundenkonto",1,H_GKV,"","Barmer\nAxel-Springer-Straße 44\n10969 Berlin","service@barmer.de","+49 202 568 333 1010",1],
+ ["DAK","DE","Versicherung","Krankenkasse","dak.de",2,"m","m","Online / Kundenkonto",1,H_GKV,"","DAK-Gesundheit\nNagelsweg 27-31\n20097 Hamburg","","+49 40 325 325 555",1],
+ ["HUK-COBURG","DE","Versicherung","Versicherung","huk.de",3,"m","a","Brief",0,H_VDE,"","HUK-COBURG\n96444 Coburg","info@huk-coburg.de","+49 9561 96101",1],
+ ["Allianz","DE","Versicherung","Versicherung","allianz.de",3,"m","a","Brief",0,H_VDE,"","Allianz Versicherungs-AG\nKöniginstraße 28\n80802 München","info@allianz.de","+49 800 4100 280",1],
+ ["ERGO","DE","Versicherung","Versicherung","ergo.de",3,"m","a","Brief",0,H_VDE,"","ERGO Versicherung AG\nERGO-Platz 1\n40477 Düsseldorf","service@ergo.de","+49 800 3746 041",1],
+ ["ADAC","DE","Mobilität","Mitgliedschaft","adac.de",3,"m","a","Brief",0,"Mitgliedschaft: Kündigung bis 3 Monate vor Ablauf des Mitgliedsjahres. "+H_PRF,"","ADAC e.V.\nHansastraße 19\n80686 München","service@adac.de","+49 89 558 95 96 97",1],
+ ["Deutschlandticket","DE","Mobilität","Deutschlandticket","",10,"k","m","Online / Kundenkonto",0,"Kündigung bis zum 10. des Monats zum Monatsende. Je nach Verkaufsstelle leicht anders.","","","","",1],
+ ["BahnCard","DE","Mobilität","BahnCard","bahn.de",0,"m","a","Online / Kundenkonto",0,"Verlängert sich automatisch. Frist vor Ablauf im Kundenkonto prüfen.","","DB Fernverkehr AG\nBahnCard-Service\n60643 Frankfurt am Main","","+49 30 2970",1],
+ ["Rundfunkbeitrag","DE","Steuern & Gebühren","Rundfunkbeitrag","rundfunkbeitrag.de",0,"m","","",1,"Gesetzlicher Beitrag pro Wohnung, nicht kündbar. Abmeldung nur bei Umzug.","","ARD ZDF Deutschlandradio Beitragsservice\n50656 Köln","","+49 1806 999 555 10",1],
+ ["EnBW","DE","Energie & Wasser","Strom","enbw.com",1,"m","","Online / Kundenkonto",0,H_EDE,"","EnBW Energie Baden-Württemberg AG\nDurlacher Allee 93\n76131 Karlsruhe","kontakt@enbw.com","+49 721 72586-001",1],
+ ["E.ON","DE","Energie & Wasser","Strom","eon.de",1,"m","","Online / Kundenkonto",0,H_EDE,"","E.ON Energie Deutschland GmbH\nArnulfstraße 203\n80634 München","","+49 871 95386200",1],
+ ["Vattenfall","DE","Energie & Wasser","Strom","vattenfall.de",1,"m","","Online / Kundenkonto",0,H_EDE,"","Vattenfall Europe Sales GmbH\nAmerigo-Vespucci-Platz 2\n20457 Hamburg","","+49 800 102 004 01",1],
+ ["Stadtwerke Konstanz","DE","Energie & Wasser","Strom","stadtwerke-konstanz.de",1,"m","","Brief",0,H_EDE,"","Stadtwerke Konstanz GmbH\nMax-Stromeyer-Straße 21-29\n78467 Konstanz","info@stadtwerke-konstanz.de","+49 7531 803-0",1],
  ["Sparkasse","DE","Finanzen","Konto","sparkasse.de",0,"m","m","",0,H_BNK],
- ["DKB","DE","Finanzen","Konto","dkb.de",0,"m","m","",0,H_BNK],
- ["ING","DE","Finanzen","Konto","ing.de",0,"m","m","",0,H_BNK],
- ["N26","DE","Finanzen","Konto","n26.com",0,"m","m","",0,H_BNK],
- ["Commerzbank","DE","Finanzen","Konto","commerzbank.de",0,"m","m","",0,H_BNK],
- ["McFit","DE","Freizeit & Sport","Fitnessabo","mcfit.com",0,"m","a","",0,H_FIT],
- ["Urban Sports Club","DE","Freizeit & Sport","Sportabo","urbansportsclub.com",0,"m","p","Online / Kundenkonto",0,H_PRF,"urbansportsclub.com/de/profile/membership"],
- ["Südkurier","DE","Abos & Medien","Zeitung","suedkurier.de",0,"m","a","",0,H_PRF]
+ ["DKB","DE","Finanzen","Konto","dkb.de",0,"m","m","",0,H_BNK,"","Deutsche Kreditbank AG\n10919 Berlin","","",1],
+ ["ING","DE","Finanzen","Konto","ing.de",0,"m","m","",0,H_BNK,"","ING-DiBa AG\nTheodor-Heuss-Allee 2\n60486 Frankfurt am Main","","+49 69 50 50 90 69",1],
+ ["N26","DE","Finanzen","Konto","n26.com",0,"m","m","",0,H_BNK,"","N26 Bank SE\nVoltairestraße 8\n10179 Berlin","","",1],
+ ["Commerzbank","DE","Finanzen","Konto","commerzbank.de",0,"m","m","",0,H_BNK,"","Commerzbank AG\n60261 Frankfurt am Main","info@commerzbank.com","+49 69 136 20",1],
+ ["McFit","DE","Freizeit & Sport","Fitnessabo","mcfit.com",0,"m","a","",0,H_FIT,"","RSG Group GmbH\nTannenberg 4\n96132 Schlüsselfeld","","+49 30 837 95500",1],
+ ["Urban Sports Club","DE","Freizeit & Sport","Sportabo","urbansportsclub.com",0,"m","p","Online / Kundenkonto",0,H_PRF,"urbansportsclub.com/de/profile/membership","Urban Sports GmbH\nNovalisstraße 10\n10115 Berlin","","",1],
+ ["Südkurier","DE","Abos & Medien","Zeitung","suedkurier.de",0,"m","a","",0,H_PRF,"","SÜDKURIER GmbH\nKundenbetreuung\nMax-Stromeyer-Straße 178\n78467 Konstanz","","",0],
+ ["Swiss Life", "CH", "Versicherung", "Lebensversicherung", "swisslife.ch", 0, "m", "p", "Einschreiben", 0, "Lebens-/Vorsorgepolicen schriftlich mit Unterschrift kündigen; vorzeitige Auflösung führt zu Rückkaufswert mit Abzügen.", "", "Swiss Life AG\nGeneral-Guisan-Quai 40\nPostfach\n8022 Zürich", "", "+41 43 284 33 11", 1],
+ ["Simpego", "CH", "Versicherung", "Versicherung", "simpego.ch", 1, "d", "a", "E-Mail", 0, "Kündigung per E-Mail/Post muss spätestens 1 Tag vor Ende des Vertragsjahres eingehen; teils tägliches Kündigungsrecht.", "", "Simpego Versicherungen AG\nHohlstrasse 556\n8048 Zürich", "service@simpego.ch", "+41 58 521 11 11", 1],
+ ["Rega", "CH", "Sonstiges", "Gönnerschaft", "portal.rega.ch", 0, "m", "y", "Online / Kundenkonto", 0, "Keine Kündigung nötig: Gönnerschaft erlischt ohne Einzahlung; Austritt auch im Gönnerportal möglich.", "", "Schweizerische Rettungsflugwacht Rega\nRega-Center\nPostfach 1414\n8058 Zürich-Flughafen", "", "+41 844 834 844", 1],
+ ["Digital Republic", "CH", "Mobilfunk & Internet", "Handy / Internet", "digitalrepublic.ch", 0, "m", "p", "Online / Kundenkonto", 0, "Automatische Erneuerung im Kundenportal deaktivieren oder per E-Mail kündigen; endet auf Ende der Tarifperiode.", "", "Digital Republic AG\nSuurstoffi 22\n6343 Rotkreuz", "support@digitalrepublic.ch", "+41 44 500 49 55", 1],
+ ["Aldi Suisse Mobile", "CH", "Mobilfunk & Internet", "Handy", "aldi-mobile.ch", 0, "m", "", "", 0, "Läuft über Sunrise; Kündigungsfrist in AGB prüfen, Kündigung via Hotline/Support.", "", "ALDI SUISSE MOBILE\nc/o Sunrise GmbH\nThurgauerstrasse 101B\n8152 Glattpark (Opfikon)", "aldimobile@customer-center.ch", "+41 900 959 959", 1],
+ ["Lebara", "CH", "Mobilfunk & Internet", "Handy", "lebara.ch", 0, "m", "", "", 0, "Abos teils mit 24 Monaten Laufzeit; Frist im Vertrag prüfen, Kündigung über Kundendienst.", "", "Sunrise GmbH\nThurgauerstrasse 101B / Postfach\n8152 Glattpark (Opfikon)", "", "+41 800 00 68 68", 1],
+ ["iWay", "CH", "Mobilfunk & Internet", "Internet", "iway.ch", 0, "m", "", "", 0, "Kündigungsfrist in AGB bzw. Kundenkonto prüfen.", "", "iWay AG\nBadenerstrasse 569\n8048 Zürich", "info@iway.ch", "+41 43 500 11 11", 1],
+ ["Lyca Mobile", "CH", "Mobilfunk & Internet", "Handy", "lycamobile.ch", 0, "m", "", "Brief", 0, "Prepaid ohne Mindestlaufzeit: Guthaben aufbrauchen; Kündigung bzw. Rufnummernsperre schriftlich mit Rufnummer und SIM-Nummer.", "", "Lycamobile AG\nHermetschloostrasse 73\n8048 Zürich", "", "", 1],
+ ["Energie Kreuzlingen", "CH", "Energie & Wasser", "Strom", "energiekreuzlingen.ch", 0, "m", "", "", 1, "Grundversorgung für Kreuzlingen: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig melden.", "", "Energie Kreuzlingen\nNationalstrasse 27\n8280 Kreuzlingen", "info@energiekreuzlingen.ch", "+41 71 677 61 85", 1],
+ ["IWB", "CH", "Energie & Wasser", "Strom", "iwb.ch/kontakt", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "IWB Industrielle Werke Basel\nMargarethenstrasse 40\n4002 Basel", "", "+41 61 275 51 11", 1],
+ ["Groupe E", "CH", "Energie & Wasser", "Strom", "groupe-e.ch/de/kontakt", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "Groupe E AG\nRoute de Morat 135\n1763 Granges-Paccot", "info@groupe-e.ch", "+41 26 352 52 52", 1],
+ ["Romande Energie", "CH", "Energie & Wasser", "Strom", "romande-energie.ch/contact", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "Romande Energie SA\nRue de Lausanne 53\n1110 Morges", "", "", 1],
+ ["SAK", "CH", "Energie & Wasser", "Strom", "sak.ch/ueber-sak/kontakt", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "St.Gallisch-Appenzellische Kraftwerke AG\nVadianstrasse 50\nPostfach 2041\n9001 St.Gallen", "info@sak.ch", "+41 71 229 51 51", 1],
+ ["Migros Bank", "CH", "Finanzen", "Konto", "migrosbank.ch", 0, "m", "", "Brief", 0, "Konto-Saldierung schriftlich mit Unterschrift oder in der Filiale; Restguthaben-Zielkonto angeben, Karten zurückgeben.", "", "Migros Bank AG\nSeidengasse 12\n8001 Zürich", "kundencenter@migrosbank.ch", "", 1],
+ ["Valiant", "CH", "Finanzen", "Konto", "valiant.ch", 0, "m", "", "Brief", 0, "Konto-Saldierung schriftlich mit Unterschrift oder am Schalter; Zielkonto für Restsaldo angeben.", "", "Valiant Bank AG\nBundesplatz 4\nPostfach\n3001 Bern", "info@valiant.ch", "+41 31 320 91 11", 1],
+ ["Cembra", "CH", "Finanzen", "Kreditkarte", "cembra.ch", 0, "m", "", "Brief", 0, "Kreditkarte jederzeit schriftlich kündbar; Kartennummer angeben, Saldo begleichen, Karte zerschneiden.", "", "Cembra Money Bank AG\nBändliweg 20\n8048 Zürich", "", "", 1],
+ ["Swisscard", "CH", "Finanzen", "Kreditkarte", "swisscard.ch", 0, "m", "", "Brief", 0, "Jederzeit schriftlich kündbar; Bonuspunkte vorher einlösen, Jahresgebühr wird meist nicht zurückerstattet.", "", "Swisscard AECS GmbH\nNeugasse 18\nPostfach\n8810 Horgen", "", "+41 44 659 60 00", 1],
+ ["Viseca", "CH", "Finanzen", "Kreditkarte", "viseca.ch", 0, "m", "", "Brief", 0, "Jederzeit ohne Frist schriftlich kündbar; viele Karten laufen über die Hausbank, dann dort kündigen.", "", "Viseca Card Services SA\nHagenholzstrasse 56\nPostfach 7007\n8050 Zürich", "", "+41 58 958 84 00", 1],
+ ["St.Galler Kantonalbank", "CH", "Finanzen", "Konto", "sgkb.ch", 0, "m", "", "Brief", 0, "Konto-Saldierung schriftlich mit Unterschrift oder in der Geschäftsstelle; Zielkonto für Restsaldo angeben.", "", "St.Galler Kantonalbank AG\nSt. Leonhardstrasse 25\n9001 St. Gallen", "info@sgkb.ch", "+41 844 811 811", 1],
+ ["Swissquote", "CH", "Finanzen", "Konto / Depot", "swissquote.com", 0, "m", "", "Brief", 0, "Kontoschliessung schriftlich mit Unterschrift; Wertschriften vorher verkaufen oder Transfer beauftragen.", "", "Swissquote Bank AG\nChemin de la Crétaux 33\n1196 Gland", "", "+41 44 825 88 88", 1],
+ ["Fitnesspark", "CH", "Freizeit & Sport", "Fitnessabo", "fitnesspark.ch", 2, "m", "p", "Brief", 0, "Schriftlich per Brief 2 Monate vor Ende der Vertragsdauer, sonst automatische Verlängerung; Mitgliedernummer angeben.", "", "movemi AG\nFitnesspark Kundenservice\nThurgauerstrasse 32\n8050 Zürich", "info@fitnesspark.ch", "", 1],
+ ["Kieser Training", "CH", "Freizeit & Sport", "Fitnessabo", "kieser.com/ch-de", 2, "m", "p", "Einschreiben", 0, "Kündigung schriftlich beim Studio, in dem der Vertrag abgeschlossen wurde, 2 Monate vor Laufzeitende.", "", "Kieser Training AG\nHardstrasse 223\n8005 Zürich", "info@kieser.com", "+41 44 296 17 17", 1],
+ ["Thurgauer Zeitung", "CH", "Abos & Medien", "Zeitung", "chmedia.ch/kontakt", 0, "m", "p", "E-Mail", 0, "Abo auf Ende der Laufzeit beim CH Media Aboservice schriftlich oder per E-Mail kündigen.", "", "CH Regionalmedien AG\nAboservice\nFürstenlandstrasse 35\n9001 St. Gallen", "aboservice@chmedia.ch", "+41 58 200 55 55", 1],
+ ["Republik", "CH", "Abos & Medien", "Magazin", "republik.ch", 2, "d", "p", "Online / Kundenkonto", 0, "Online im Konto unter Abonnements kündbar; Jahresmitgliedschaft bis 2 Tage vor Laufzeitende, Monatsabo jederzeit.", "", "Republik AG\nSihlhallenstrasse 1\n8004 Zürich", "kontakt@republik.ch", "+41 44 505 67 80", 1],
+ ["Blick+", "CH", "Abos & Medien", "Zeitung digital", "myservices.blick.ch", 0, "m", "p", "Online / Kundenkonto", 0, "Bei Kreditkarte/TWINT/LSV automatische Verlängerung; via myservices.blick.ch oder Kundenservice auf Periodenende kündigen.", "", "Ringier AG, Ringier Medien Schweiz\nBrühlstrasse 5\n4800 Zofingen", "kundenservice@blick.ch", "+41 58 510 73 02", 1],
+ ["freenet", "DE", "Mobilfunk & Internet", "Handy", "freenet.de/kuendigung", 1, "m", "", "Online / Kundenkonto", 0, "Kündigung online über das Kündigungsformular; massgebend ist der Eingang beim Anbieter.", "", "freenet DLS GmbH\nHollerstraße 126\n24782 Büdelsdorf", "info@freenet-mobilfunk.de", "+49 40 555541000", 1],
+ ["Aldi Talk", "DE", "Mobilfunk & Internet", "Handy", "alditalk.de", 0, "m", "", "Online / Kundenkonto", 0, "Prepaid ohne Laufzeit; schriftliche Anliegen über Kontaktformular im Kundenportal oder in der App.", "", "medion GmbH\nAm Zehnthof 77\n45307 Essen", "medionmobile@medion.com", "", 1],
+ ["Lidl Connect", "DE", "Mobilfunk & Internet", "Handy", "lidl.de/c/faq-kontakt-hilfe/s10007729", 30, "d", "", "E-Mail", 0, "Kündigung per Brief, Fax oder E-Mail; für Rufnummernmitnahme ist eine vollständige Kündigung nötig.", "", "LIDL Connect Kundenbetreuung\nPostfach 100 254\n16285 Schwedt", "lidl-connect-kundenbetreuung@vodafone.de", "+49 211 27742774", 1],
+ ["fraenk", "DE", "Mobilfunk & Internet", "Handy", "fraenk.de", 0, "m", "p", "Online / Kundenkonto", 0, "Reiner App-Tarif ohne Hotline; Kündigung direkt in der fraenk-App.", "", "fraenk Kundenservice\nPostfach 1132\n61466 Kronberg", "", "", 1],
+ ["blau", "DE", "Mobilfunk & Internet", "Handy", "blau.de/service/kuendigen", 1, "m", "", "Online / Kundenkonto", 0, "Kündigung in Mein Blau, telefonisch oder per Brief mit Rufnummer und Unterschrift.", "", "Telefónica Germany GmbH & Co. OHG\nBlau Kundenbetreuung\n90345 Nürnberg", "", "+49 40 519006630", 1],
+ ["winSIM", "DE", "Mobilfunk & Internet", "Handy", "winsim.de/kuendigung", 1, "m", "", "Online / Kundenkonto", 0, "Im Servicebereich «Kündigung vormerken» und innert 7 Tagen telefonisch bestätigen, sonst verfällt sie.", "", "Drillisch Online GmbH\nLindleystraße 10\n60314 Frankfurt am Main", "kontakt@winsim.de", "+49 6181 7074094", 1],
+ ["klarmobil", "DE", "Mobilfunk & Internet", "Handy", "klarmobil.de", 1, "m", "", "Online / Kundenkonto", 0, "Kündigung im Online-Service oder per Einschreiben; schriftliche Bestätigung verlangen.", "", "klarmobil GmbH\nHollerstraße 126\n24782 Büdelsdorf", "", "+49 40 348585300", 1],
+ ["PŸUR", "DE", "Mobilfunk & Internet", "Internet / TV", "pyur.com/kuendigung", 1, "m", "", "Online / Kundenkonto", 0, "Online-Kündigung über mein.pyur.com; Bestätigung kommt per E-Mail oder Post innert ca. 10 Werktagen.", "", "Tele Columbus AG\nPostfach 11 06 08\n10836 Berlin", "", "+49 30 130049902", 1],
+ ["Deutsche Glasfaser", "DE", "Mobilfunk & Internet", "Internet", "deutsche-glasfaser.de", 1, "m", "", "Online / Kundenkonto", 0, "Nach 24 Monaten Mindestlaufzeit monatlich kündbar; Leihrouter danach zurückschicken.", "", "Deutsche Glasfaser Holding GmbH\n40463 Düsseldorf", "", "+49 2861 890600", 1],
+ ["Sky", "DE", "Abos & Medien", "TV", "sky.de/kontakt-hilfe", 1, "m", "", "Online / Kundenkonto", 0, "Sky bittet um Online-Kündigung statt Post; Smartcard und Receiver danach innert 2 Wochen zurücksenden.", "", "Sky Deutschland Fernsehen GmbH & Co. KG\n22033 Hamburg", "", "", 1],
+ ["RTL+", "DE", "Abos & Medien", "Streaming", "plus.rtl.de", 30, "d", "", "Online / Kundenkonto", 0, "Kündigung im Konto unter «Mein Paket»; 30 Tage Frist. Über Amazon/Apple/Telekom gebuchte Abos dort kündigen.", "", "RTL interactive GmbH\nPicassoplatz 1\n50679 Köln", "", "+49 221 45660", 1],
+ ["waipu.tv", "DE", "Abos & Medien", "TV", "waipu.tv", 0, "m", "p", "Online / Kundenkonto", 0, "Kündigung unter Mein waipu.tv › Paket & Optionen; Monatspakete enden mit der laufenden Abrechnungsperiode.", "", "EXARING AG\nLeopoldstraße 236\n80807 München", "", "", 1],
+ ["Der Spiegel", "DE", "Abos & Medien", "Magazin", "spiegel.de", 1, "m", "", "E-Mail", 0, "Print nach Mindestlaufzeit mit 1 Monat (Jahresabo 6 Wochen) Frist; SPIEGEL+ online in «Mein Konto» kündbar.", "", "DER SPIEGEL\nAbonnentenservice\n20637 Hamburg", "aboservice@spiegel.de", "+49 40 30072700", 0],
+ ["Süddeutsche Zeitung", "DE", "Abos & Medien", "Zeitung", "sueddeutsche.de", 4, "w", "m", "Brief", 0, "Kündigung in Textform mit 4 Wochen Frist zum Monatsende; Abonummer angeben, am besten per Einschreiben.", "", "Süddeutsche Zeitung GmbH\nLeserservice\nHultschiner Straße 8\n81677 München", "", "+49 89 21838080", 0],
+ ["IKK classic", "DE", "Versicherung", "Krankenkasse", "ikk-classic.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "IKK classic\n04063 Leipzig", "info@ikk-classic.de", "+49 800 455 1111", 1],
+ ["KKH", "DE", "Versicherung", "Krankenkasse", "kkh.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "Kaufmännische Krankenkasse – KKH\n30125 Hannover", "service@kkh.de", "+49 800 5548640554", 1],
+ ["hkk", "DE", "Versicherung", "Krankenkasse", "hkk.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "hkk Krankenkasse\n28185 Bremen", "info@hkk.de", "+49 421 36550", 1],
+ ["HEK", "DE", "Versicherung", "Krankenkasse", "hek.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "HEK - Hanseatische Krankenkasse\nWandsbeker Zollstraße 86-90\n22041 Hamburg", "kontakt@hek.de", "+49 800 0213213", 1],
+ ["Mobil Krankenkasse", "DE", "Versicherung", "Krankenkasse", "mobil-krankenkasse.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "Mobil Krankenkasse\nFriedenheimer Brücke 29\n80639 München", "info@service.mobil-krankenkasse.de", "+49 800 255 0800", 1],
+ ["SBK", "DE", "Versicherung", "Krankenkasse", "sbk.org", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "SBK Siemens-Betriebskrankenkasse\nSt.-Pöltener-Str. 37\n89522 Heidenheim", "info@sbk.org", "+49 800 072 572 572 50", 1],
+ ["Knappschaft", "DE", "Versicherung", "Krankenkasse", "knappschaft.de", 2, "m", "m", "", 1, "Kein Kündigungsschreiben nötig: Seit 2021 meldet die neue Kasse den Wechsel. 2 Monate zum Monatsende, nach 12 Monaten Bindung.", "", "Deutsche Rentenversicherung Knappschaft-Bahn-See\n44781 Bochum", "", "", 1],
+ ["AXA Deutschland", "DE", "Versicherung", "Versicherung", "axa.de", 3, "m", "a", "Online / Kundenkonto", 0, "Meist 3 Monate vor Ende Versicherungsjahr; Kfz 1 Monat vor Ablauf (oft 30.11.). Kündigungsbutton im Kundenportal.", "", "AXA Konzern AG\n51171 Köln", "service@axa.de", "+49 800 3203205", 1],
+ ["Generali Deutschland", "DE", "Versicherung", "Versicherung", "generali.de", 3, "m", "a", "Brief", 0, "Kündigung an die im Versicherungsschein genannte Gesellschaft; meist 3 Monate vor Ablauf des Versicherungsjahres.", "", "Generali Deutschland AG\nAdenauerring 7\n81737 München", "service@generali.de", "+49 89 5121 0", 1],
+ ["R+V", "DE", "Versicherung", "Versicherung", "ruv.de", 3, "m", "a", "Online / Kundenkonto", 0, "Meist 3 Monate vor Ende Versicherungsjahr; Kfz 1 Monat vor Ablauf (oft 30.11.). Kündigungsbutton im Kundenportal.", "", "R+V Allgemeine Versicherung AG\nRaiffeisenplatz 1\n65189 Wiesbaden", "ruv@ruv.de", "+49 611 5330", 1],
+ ["Debeka", "DE", "Versicherung", "Versicherung", "debeka.de", 3, "m", "a", "Online / Kundenkonto", 0, "Meist 3 Monate vor Ende Versicherungsjahr; Kfz 1 Monat vor Ablauf (oft 30.11.). Kündigungsbutton im Kundenportal.", "", "Debeka Versicherungen\n56058 Koblenz", "kundenservice@debeka.de", "+49 261 498 4664", 1],
+ ["Signal Iduna", "DE", "Versicherung", "Versicherung", "signal-iduna.de", 3, "m", "a", "Online / Kundenkonto", 0, "Meist 3 Monate vor Ende Versicherungsjahr; Kfz 1 Monat vor Ablauf (oft 30.11.). Kündigungsbutton im Kundenportal.", "", "SIGNAL IDUNA\nJoseph-Scherer-Straße 3\n44139 Dortmund", "info@signal-iduna.de", "+49 231 1350", 1],
+ ["DEVK", "DE", "Versicherung", "Versicherung", "devk.de", 3, "m", "a", "Online / Kundenkonto", 0, "Meist 3 Monate vor Ende Versicherungsjahr; Kfz 1 Monat vor Ablauf (oft 30.11.). Kündigungsbutton im Kundenportal.", "", "DEVK Versicherungen\nRiehler Straße 190\n50735 Köln", "info@devk.de", "+49 800 4757757", 1],
+ ["HanseMerkur", "DE", "Versicherung", "Versicherung", "hansemerkur.de/kontakt/kuendigungsservice", 3, "m", "a", "Online / Kundenkonto", 0, "Kündigung in Textform mit Versicherungsnummer und Unterschrift; telefonisch nicht möglich. Frist je nach Sparte.", "", "HanseMerkur\nPostfach\n20352 Hamburg", "info@hansemerkur.de", "+49 40 4119-0", 1],
+ ["CosmosDirekt", "DE", "Versicherung", "Versicherung", "cosmosdirekt.de", 3, "m", "a", "Online / Kundenkonto", 0, "Kündigung über meinCosmosDirekt oder in Textform; Kfz meist 1 Monat vor Ablauf (oft 30.11.), sonst 3 Monate zum Vertragsende.", "", "CosmosDirekt\n66101 Saarbrücken", "info@cosmosdirekt.de", "+49 681 966 68 00", 1],
+ ["WGV", "DE", "Versicherung", "Versicherung", "wgv.de/kundenservice", 3, "m", "a", "Online / Kundenkonto", 0, "Kündigung online über Kundenservice/MeineWGV; Kfz in der Regel 1 Monat vor Ablauf zum 1.1. (Stichtag 30.11.).", "", "WGV Versicherungen\n70164 Stuttgart", "kundenservice@wgv.de", "+49 711 1695-1500", 1],
+ ["VHV", "DE", "Versicherung", "Versicherung", "vhv.de/service/kuendigung", 3, "m", "a", "Online / Kundenkonto", 0, "Kündigung über Kündigungsbutton/Kundenportal oder in Textform; Kfz meist 1 Monat vor Ablauf, sonst 3 Monate zum Vertragsende.", "", "VHV Allgemeine Versicherung AG\nVHV-Platz 1\n30177 Hannover", "info@vhv.de", "+49 511 907-0", 1],
+ ["ACE", "DE", "Mobilität", "Mitgliedschaft", "ace.de/mitgliedschaft/mitgliedschaft-kuendigen", 3, "m", "y", "E-Mail", 0, "Nur zum Jahresende kündbar; Kündigung in Textform muss bis 30.09. beim ACE eingehen.", "", "ACE Auto Club Europa e.V.\nSchmidener Straße 227\n70374 Stuttgart", "mitglieder-service@ace.de", "+49 711 5303 36677", 1],
+ ["EWE", "DE", "Energie & Wasser", "Strom / Gas", "ewe.de", 1, "m", "", "Online / Kundenkonto", 0, "Kündigung über Kundenportal/Kündigungsbutton oder in Textform; Frist laut Vertrag, nach Erstlaufzeit meist 1 Monat.", "", "EWE VERTRIEB GmbH\nCloppenburger Straße 310\n26133 Oldenburg", "info@ewe.de", "+49 441 8000-5555", 1],
+ ["Yello", "DE", "Energie & Wasser", "Strom", "yello.de/kuendigen", 1, "m", "", "Online / Kundenkonto", 0, "Online-Kündigungsformular mit Vertragsnummer; Yello kündigt zum nächstmöglichen Termin.", "", "Yello Strom GmbH\nSiegburger Straße 229\n50679 Köln", "", "", 1],
+ ["LichtBlick", "DE", "Energie & Wasser", "Strom", "lichtblick.de/vertrag-kuendigen", 1, "m", "", "Online / Kundenkonto", 0, "Online-Kündigung über lichtblick.de/vertrag-kuendigen oder Mein Konto; Frist laut Vertrag.", "", "LichtBlick SE\nKlostertor 1\n20097 Hamburg", "kundenservice@lichtblick.de", "+49 40 80803030", 1],
+ ["Octopus Energy", "DE", "Energie & Wasser", "Strom", "octopusenergy.de/contract-cancellation", 30, "d", "", "Online / Kundenkonto", 0, "Ohne Mindestlaufzeit mit 30 Tagen Frist; Kündigung im Octopus-Konto oder per E-Mail, nicht telefonisch.", "", "Octopus Energy Germany GmbH\nAugust-Everding-Straße 25\n81671 München", "hallo@octopusenergy.de", "+49 800 400 8010", 1],
+ ["Tibber", "DE", "Energie & Wasser", "Strom", "tibber.com/de", 0, "m", "", "Online / Kundenkonto", 0, "Kündigung über App/Chat oder per E-Mail; genaue Frist laut Vertragsbedingungen prüfen.", "", "Tibber Deutschland GmbH\nStrelitzer Straße 60\n10115 Berlin", "hello@tibber.com", "", 1],
+ ["HelloFresh", "DE", "Abos & Medien", "Kochbox", "hellofresh.de/cancel-account", 0, "m", "", "Online / Kundenkonto", 0, "Abo im Kundenkonto kündigen bzw. pausieren – vor dem Bearbeitungsstichtag der nächsten Lieferung.", "", "HelloFresh Deutschland SE & Co. KG\nPrinzenstraße 89\n10969 Berlin", "", "", 1],
+ ["Sparkasse Bodensee", "DE", "Finanzen", "Konto", "sparkasse-bodensee.de", 0, "m", "", "Brief", 0, "Girokonto jederzeit ohne Frist kündbar; Kündigung unterschrieben per Brief oder in der Filiale (Hauptstelle Konstanz) abgeben.", "", "Sparkasse Bodensee\nCharlottenstr. 2\n88045 Friedrichshafen", "info@sparkasse-bodensee.de", "+49 7541 704 0", 1],
+ ["Deutsche Bank", "DE", "Finanzen", "Konto", "deutsche-bank.de/kontakt", 0, "m", "", "Brief", 0, "Konto jederzeit kündbar; schriftlich an die kontoführende Filiale oder via 24h-Hotline/Online-Banking.", "", "Deutsche Bank AG\nTaunusanlage 12\n60325 Frankfurt am Main", "deutsche.bank@db.com", "+49 69 910 10000", 1],
+ ["Postbank", "DE", "Finanzen", "Konto", "postbank.de", 0, "m", "", "Brief", 0, "Girokonto jederzeit kündbar, schriftlich an die Postbank oder in der Filiale; Sparkonten haben 3 Monate Frist.", "", "Postbank – eine Niederlassung der Deutsche Bank AG\nBundeskanzlerplatz 6\n53113 Bonn", "direkt@postbank.de", "+49 228 5500 5500", 1],
+ ["HypoVereinsbank", "DE", "Finanzen", "Konto", "hvb.de", 0, "m", "", "Brief", 0, "Konto ohne feste Laufzeit jederzeit fristlos kündbar; schriftlich an die Filiale oder Bank.", "", "UniCredit Bank GmbH\nArabellastraße 12\n81925 München", "info@unicredit.de", "+49 89 378 0", 1],
+ ["Volksbank", "DE", "Finanzen", "Konto", "gestalterbank.de", 0, "m", "", "Brief", 0, "Konto jederzeit kündbar; immer an die eigene kontoführende Volksbank schreiben. Mitgliedschaft/Genossenschaftsanteile separat kündigen.", "", "Volksbank eG – Die Gestalterbank\nAm Riettor 1\n78048 Villingen-Schwenningen", "mail@gestalterbank.de", "+49 7721 802 0", 1],
+ ["comdirect", "DE", "Finanzen", "Konto / Depot", "comdirect.de", 0, "m", "", "Brief", 0, "Konto/Depot jederzeit kündbar; schriftlich an comdirect in Quickborn oder über die Postbox im Online-Banking.", "", "comdirect – eine Marke der Commerzbank AG\nPascalkehre 15\n25451 Quickborn", "info@comdirect.de", "+49 4106 708 25 00", 1],
+ ["Consorsbank", "DE", "Finanzen", "Konto / Depot", "consorsbank.de", 0, "m", "", "Brief", 0, "Konto/Depot jederzeit kündbar; schriftlich an die Consorsbank in Nürnberg oder über das Online-Postfach.", "", "Consorsbank\nBahnhofstraße 55\n90402 Nürnberg", "info@consorsbank.de", "+49 911 369 0", 1],
+ ["Trade Republic", "DE", "Finanzen", "Konto / Depot", "traderepublic.com", 0, "m", "", "Online / Kundenkonto", 0, "Konto/Depot jederzeit in der App kündbar (Profil > Konto schliessen); Depot vorher leeren oder übertragen.", "", "Trade Republic Bank GmbH\nBrunnenstraße 19-21\n10119 Berlin", "", "", 1],
+ ["Targobank", "DE", "Finanzen", "Konto", "targobank.de", 0, "m", "", "Brief", 0, "Konto jederzeit kündbar; Kündigung schriftlich, da Bankaufträge per E-Mail nicht angenommen werden.", "", "TARGOBANK AG\nKasernenstr. 10\n40213 Düsseldorf", "kontakt@targobank.de", "+49 211 8984 0", 1],
+ ["FitX", "DE", "Freizeit & Sport", "Fitnessabo", "mein.fitx.de", 1, "m", "p", "Online / Kundenkonto", 0, "12 Monate Grundlaufzeit, danach monatlich kündbar; online im Mitgliederbereich mein.fitx.de kündigen.", "", "FitX Deutschland GmbH\nRolf-Schwarz-Schütte-Platz 2\n40789 Monheim am Rhein", "", "", 1],
+ ["clever fit", "DE", "Freizeit & Sport", "Fitnessabo", "clever-fit.com", 1, "m", "p", "Brief", 0, "Studios meist Franchise: Kündigung an das eigene Studio richten, nicht an die Zentrale.", "", "clever fit GmbH\nAugsburger Str. 52\n86899 Landsberg am Lech", "info@clever-fit.com", "+49 8191 30526 00", 1],
+ ["Fitness First", "DE", "Freizeit & Sport", "Fitnessabo", "fitnessfirst.de/kuendigung", 1, "m", "p", "Online / Kundenkonto", 0, "Online über fitnessfirst.de/kuendigung kündbar; 1 Monat vor Laufzeitende, sonst Verlängerung.", "", "Fitness First Germany GmbH\nHanauer Landstr. 148a\n60314 Frankfurt am Main", "", "+49 69 408016 555", 1],
+ ["EGYM Wellpass", "DE", "Freizeit & Sport", "Firmenfitness", "de.egym-wellpass.com/de-de/kuendigung", 15, "k", "m", "Online / Kundenkonto", 0, "In der App unter Profil > Meine Mitgliedschaft kündbar; bis zum 15. für das Monatsende.", "", "EGYM Wellpass GmbH\nEinsteinstraße 172\n81677 München", "support@egym-wellpass.com", "", 1],
+ ["DIE ZEIT", "DE", "Abos & Medien", "Zeitung", "abo.zeit.de", 2, "w", "", "Online / Kundenkonto", 0, "Abo nach Mindestlaufzeit mit 2 Wochen Frist kündbar; Kündigungsbutton im Aboportal nutzen.", "", "Zeitverlag Gerd Bucerius GmbH & Co. KG\nBuceriusstraße, Eingang Speersort 1\n20095 Hamburg", "", "", 0],
+ ["WOW", "DE", "Abos & Medien", "Streaming", "wowtv.de/kontakt", 0, "m", "p", "Online / Kundenkonto", 0, "Monatlich zum Ende des Abrechnungszeitraums im WOW-Konto kündbar; Anliegen nicht per Post senden.", "", "Sky Deutschland Fernsehen GmbH & Co. KG\nMedienallee 26\n85774 Unterföhring", "", "+49 89 54 19 27 32", 1]
 ];
-var TPLI={n:0,cc:1,cat:2,lab:3,web:4,no:5,nu:6,tm:7,cf:8,md:9,h:10,url:11};
+var TPLI={n:0,cc:1,cat:2,lab:3,web:4,no:5,nu:6,tm:7,cf:8,md:9,h:10,url:11,addr:12,mail:13,tel:14,ok:15};
+function tplHint(t){return (t[10]||"")+(t[15]===0?" Kontaktdaten nicht offiziell bestätigt – vor dem Versand prüfen.":"");}
+/* Katalog-Eintrag zu einem bestehenden Vertrag: exakter Name; bei Länder-Varianten (AXA / AXA Deutschland) entscheidet die Währung */
+function tplMatch(c){
+  var cc=c.cur==="EUR"?"DE":(c.cur==="CHF"?"CH":"");
+  var names=[c.partner,c.label].map(function(x){return String(x||"").trim().toLowerCase();}).filter(Boolean);
+  for(var i=0;i<names.length;i++){var n=names[i];
+    var exact=TPL.filter(function(t){return t[0].toLowerCase()===n;});
+    if(!exact.length)continue;
+    var pref=TPL.filter(function(t){return t[0].toLowerCase().indexOf(n+" ")===0;});
+    var same=exact.concat(pref).filter(function(t){return !t[1]||t[1]===cc;});
+    return same[0]||exact[0];
+  }
+  return null;
+}
+function tplFillPlan(){
+  var plan=[];
+  Object.keys(state.contracts).forEach(function(k){
+    var c=state.contracts[k];if(c.status==="cancelled")return;
+    var t=tplMatch(c);if(!t)return;
+    var add={};
+    if(!c.addr&&t[12])add.addr=t[12];
+    if(!c.mail&&t[13])add.mail=t[13];
+    if(!c.tel&&t[14])add.tel=t[14];
+    if(!c.web&&t[4])add.web=t[4];
+    if(Object.keys(add).length)plan.push({id:k,c:c,t:t,add:add});
+  });
+  return plan;
+}
 function tplFind(n){n=String(n||"").trim().toLowerCase();return TPL.filter(function(t){return t[0].toLowerCase()===n;})[0]||null;}
 function tplFlag(t){return t[1]||"CH · DE";}
 function paintSugg(){
   var el=document.getElementById("fSugg"),q=(document.getElementById("fPartner").value||document.getElementById("fLabel").value).trim().toLowerCase();
   var st=draft.stdTpl;
   if(st&&st[0]===document.getElementById("fPartner").value.trim()){
-    el.innerHTML='<span class="sl tplh">'+esc(st[10])+"</span>"+(draft.stdDone||!(st[5]||st[7]||st[9])?"":'<button type="button" class="chip" data-std>Übliche Frist übernehmen</button>');return;}
+    el.innerHTML='<span class="sl tplh">'+esc(tplHint(st))+"</span>"+(draft.stdDone||!(st[5]||st[7]||st[9])?"":'<button type="button" class="chip" data-std>Übliche Frist übernehmen</button>');return;}
   var cur=tplFind(document.getElementById("fPartner").value);
-  if(cur&&draft.tplHint===cur[0]){el.innerHTML='<span class="sl tplh">'+esc(cur[10])+"</span>";return;}
+  if(cur&&draft.tplHint===cur[0]){el.innerHTML='<span class="sl tplh">'+esc(tplHint(cur))+"</span>";return;}
   /* exakter Treffer (z.B. «CSS», «O2»), noch nicht übernommen: genau diese Vorlage anbieten */
   if(cur){el.innerHTML='<span class="sl">Vorlage</span><button type="button" class="chip" data-tpl="'+TPL.indexOf(cur)+'">'+esc(cur[0])+" übernehmen</button>";return;}
   if(q.length<2){el.innerHTML="";return;}
@@ -3115,8 +3341,13 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
   syncCancUrl();
   if(t[4]&&!$("fWeb").value)$("fWeb").value=t[4];
   if(t[11]&&!$("fCancUrl").value)$("fCancUrl").value=t[11];
-  if(onlyEmpty){if(t[9]&&!$("fMand").checked&&!$("fNoWatch").checked)$("fMand").checked=true;}
-  else{$("fMand").checked=!!t[9];if(t[9])$("fNoWatch").checked=false;}
+  if(t[14]&&!$("fTel").value)$("fTel").value=t[14];
+  if(t[13]&&!$("fMail").value)$("fMail").value=t[13];
+  if(t[12]&&!$("fAddr").value.trim()){$("fAddr").value=t[12];fAddrPaint();paintOptCounts();}
+  /* Katalog «Steuern & Gebühren» (Serafe, Rundfunkbeitrag): nicht kündbar statt Pflichtvertrag */
+  var tFix=t[2]==="Steuern & Gebühren";
+  if(onlyEmpty){if(tFix&&!$("fMand").checked&&!$("fNoWatch").checked)$("fNoCancel").checked=true;else if(t[9]&&!tFix&&!$("fMand").checked&&!$("fNoWatch").checked&&!$("fNoCancel").checked)$("fMand").checked=true;}
+  else{$("fNoCancel").checked=tFix;$("fMand").checked=!!t[9]&&!tFix;if(t[9]||tFix)$("fNoWatch").checked=false;}
   syncWatch();
   if(t[1]==="DE"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="EUR";
   if(t[1]==="CH"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="CHF";
@@ -3180,10 +3411,10 @@ function updTermHint(){
 document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if(termMode==="open"&&!tp.value&&+this.value>=6){tp.value="p";updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}});
 ["fTermP","fNotice","fNoticeU","fStart","fDue","fCycle","fEnd","fRenew"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updTermHint);el.addEventListener("change",updTermHint);});
 document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(b)setTermMode(b.dataset.tm);});
-function syncWatch(){var m=document.getElementById("fMand").checked,n=document.getElementById("fNoWatch").checked;
-  document.getElementById("fWatch").value=m?"mand":(n?"nowatch":"");}
+function syncWatch(){var m=document.getElementById("fMand").checked,n=document.getElementById("fNoWatch").checked,f=document.getElementById("fNoCancel").checked;
+  document.getElementById("fWatch").value=f?"fixed":(m?"mand":(n?"nowatch":""));}
 document.getElementById("fWatch").addEventListener("change",function(){var v=this.value;
-  document.getElementById("fMand").checked=v==="mand";document.getElementById("fNoWatch").checked=v==="nowatch";});
+  document.getElementById("fMand").checked=v==="mand";document.getElementById("fNoWatch").checked=v==="nowatch";document.getElementById("fNoCancel").checked=v==="fixed";});
 document.getElementById("iLogoTap").addEventListener("click",function(){var d=document.getElementById("oILogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 document.getElementById("logoTap").addEventListener("click",function(){var d=document.getElementById("oLogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 function syncCancUrl(){document.getElementById("fCancUrlW").hidden=document.getElementById("fCancF").value!=="Online / Kundenkonto";}
@@ -3194,11 +3425,17 @@ function paintOptCounts(){
   document.getElementById("oPriceN").textContent=n?n+(n===1?" Änderung":" Änderungen"):"";
   document.getElementById("oDocsN").textContent=d?d+(d===1?" Datei":" Dateien"):"";
   var parts=[n?n+(n===1?" Preisänderung":" Preisänderungen"):"",xn?xn+(xn===1?" Sonderzahlung":" Sonderzahlungen"):"",
-    g("fWatch")==="mand"?"Pflichtvertrag":(g("fWatch")==="nowatch"?"nicht in Fristen":""),g("fCancF")?"Kündigungsweg":"",g("fCancUrl")?"Kündigungslink":"",g("fTrial")?"Probeabo":"",
     g("fCustNo")?"Kundennummer":"",g("fContrNo")?"Vertragsnummer":"",g("fPayM")?"Zahlungsart":"",g("fPayA")?"Belastet über":"",
     g("fAddr")?"Adresse":"",g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",d?d+(d===1?" Datei":" Dateien"):""].filter(Boolean);
   var el=document.getElementById("fMoreN");el.textContent=parts.length?parts.join(" · "):"Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …";el.classList.toggle("on",!!parts.length);
 }
+/* Adresse im Vertragsformular wie auf der Vertragspartner-Seite: Felder Firma/Zusatz/Strasse/PLZ Ort/Land, gespeichert als Text in #fAddr */
+function fAddrPaint(){var pn=document.getElementById("fPartner").value,o=addrSplit(document.getElementById("fAddr").value,pn),F=function(i){var f=PA_F[i],pl=i===0?firmPh(pn):f[2];
+    return '<input id="fa'+f[1].slice(2)+'" data-fa="'+f[0]+'" type="text" autocomplete="off" autocapitalize="words" placeholder="'+esc(pl)+'" aria-label="'+esc(pl)+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';};
+  document.getElementById("fAddrG").innerHTML='<div class="igr">'+F(0)+'</div><div class="igr">'+F(1)+'</div><div class="igr">'+F(2)+'</div><div class="igr two zc">'+F(3)+F(4)+'</div><div class="igr">'+F(5)+'</div>';}
+document.getElementById("fPartner").addEventListener("input",function(){var i=document.querySelector('#fAddrG [data-fa="firm"]');if(i){i.placeholder=firmPh(this.value);i.setAttribute("aria-label",i.placeholder);}});
+document.getElementById("fAddrG").addEventListener("input",function(){var o={};document.querySelectorAll("#fAddrG [data-fa]").forEach(function(i){o[i.dataset.fa]=i.value.trim().replace(/\s+/g," ");});
+  document.getElementById("fAddr").value=addrJoin(o);paintOptCounts();});
 function paintPrices(){paintOptCounts();
   var l=document.getElementById("pList"),ps=pricesOf({prices:draft.prices}),cur=document.getElementById("fCur").value;
   document.getElementById("fAmtL").textContent=ps.length?"Anfangspreis":"Betrag";
@@ -3282,11 +3519,12 @@ document.getElementById("saveForm").addEventListener("click",function(){
     cancTerm:termMode==="open"?(document.getElementById("fTermP").value||""):"",
     mand:document.getElementById("fMand").checked,
     noWatch:document.getElementById("fNoWatch").checked,
+    noCancel:document.getElementById("fNoCancel").checked||undefined,
     custNo:document.getElementById("fCustNo").value.trim(),
     contrNo:document.getElementById("fContrNo").value.trim(),
     holders:holdersSorted(draft.holders),
-    split:(function(){var hs=holdersSorted(draft.holders),sp=draft.split;if(hs.length<2||!sp)return undefined;var o={},sum=0;hs.forEach(function(h){o[h]=Math.round(+sp[h]||0);sum+=o[h];});
-      if(Math.abs(sum-100)>0.6)return undefined;var eq=hs.every(function(h){return Math.abs(o[h]-100/hs.length)<0.6;});return eq?undefined:o;})(),
+    split:(function(){var hs=holdersSorted(draft.holders),sp=draft.split;if(hs.length<2||!sp)return undefined;var o={},sum=0;hs.forEach(function(h){o[h]=Math.round((+sp[h]||0)*1e4)/1e4;sum+=o[h];});
+      if(Math.abs(sum-100)>0.01)return undefined;var eq=hs.every(function(h){return Math.abs(o[h]-100/hs.length)<0.001;});return eq?undefined:o;})(),
     payM:document.getElementById("fPayM").value,
     payA:document.getElementById("fPayA").value.trim(),
     cancF:cF,cancUrl:cF==="Online / Kundenkonto"?document.getElementById("fCancUrl").value.trim():"",/* Kündigungslink nur bei Online */
@@ -3299,7 +3537,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
     status:(prev&&prev.status)||"active",
     cancelledAt:(prev&&prev.cancelledAt)||"",
     t:(prev&&prev.t)||Date.now()
-  });delete c._id;if(c.split===undefined)delete c.split;
+  });delete c._id;if(c.split===undefined)delete c.split;if(!c.noCancel)delete c.noCancel;
   /* Logo eines anderen Vertrags desselben Vertragspartners übernehmen, ausser es wurde im Formular entfernt.
      Keine automatische Logo-Suche im Hintergrund (Logos nur als Vorschlag mit Bestätigung) */
   if(!editId&&!c.logoId&&c.partner&&!draft.logoRemoved){var sib=samePartner(c.partner).filter(function(k){var o=state.contracts[k];return o.logoId&&KBlob.has(o.logoId);})[0];
@@ -3925,8 +4163,8 @@ function termLine(c,u){var T=termEnd(c),t0=today(),D=u.date,tot=Math.max(1,daysB
 function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var c=Object.assign({},state.contracts[idv]);c._id=idv;
   /* gekündigt (Archiv oder «gekündigt per») oder abgelaufen: keine Frist und kein nächster Termin mehr */
-  var gone=c.status==="cancelled"||!!c.cancelPer||endedByTerm(c);
-  var u=gone?{lvl:"",days:null,date:null}:urgency(c),nd=nextDue(c),e=effEnd(c);
+  var gone=c.status==="cancelled"||!!c.cancelPer||endedByTerm(c),fixd=isFixed(c);
+  var u=gone||fixd?{lvl:"",days:null,date:null}:urgency(c),nd=nextDue(c),e=effEnd(c);
   var rt=gone?null:renewTo(c);
   /* Summe aller Zahlungen seit Vertragsbeginn bis heute (occurrences + Sonderzahlungen), nur mit erfasstem Beginn */
   var paidSoFar=null;(function(){var s0=parseD(c.start),t0=today();if(!s0||s0>=t0)return;var sum=0;
@@ -3941,11 +4179,11 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
    ["Laufzeit & Kündigung",[
     c.start?["Beginn",fmtD(c.start)]:null,
     c.end?["Vertragsende",fmtD(iso(e))+(!gone&&termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
-    ["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
+    fixd?["Kündigung",isTax(c)?"nicht kündbar · Steuern & Gebühren":"nicht kündbar"]:["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
     u.date?(u.days>=0&&termEnd(c)?["",termLine(c,u),true]:["Nächster Termin","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)+" (abgelaufen)"]):null,
-    c.mand?["Pflichtvertrag","nur Wechsel möglich"]:null,
-    c.noWatch?["Frist","wird nicht beobachtet"]:null,
-    rt?["Sonst verlängert bis",fmtD(iso(rt))]:(c.renew?["Verlängerung","automatisch um "+c.renew+(+c.renew===1?" Monat":" Monate")]:null),
+    c.mand&&!fixd?["Pflichtvertrag","nur Wechsel möglich"]:null,
+    c.noWatch&&!fixd?["Frist","wird nicht beobachtet"]:null,
+    fixd?null:rt?["Sonst verlängert bis",fmtD(iso(rt))]:(c.renew?["Verlängerung","automatisch um "+c.renew+(+c.renew===1?" Monat":" Monate")]:null),
     c.cancF?["Kündigung per",c.cancF]:null,
     c.cancelPer&&c.cancelledOn?["Gekündigt am",fmtD(c.cancelledOn)]:null,
     c.trial?["Probeabo endet",fmtD(c.trial)]:null]],
@@ -3966,11 +4204,12 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
            isKept(c)?'<span class="pill">Behalten bis nächster Termin</span>':
            u.lvl==="alert"?'<span class="pill alert">Frist '+inDays(u.days)+"</span>":
            u.lvl==="warn"?'<span class="pill warn">Frist '+inDays(u.days)+"</span>":"";
+  if(!gone&&fixd&&!pill)pill='<span class="pill">Nicht kündbar</span>';
   if(!gone&&isPaused(c))pill='<span class="pill">Pausiert '+(c.pausedUntil?"bis "+fmtD(c.pausedUntil):"seit "+fmtD(c.pausedAt||iso(today())))+"</span>";
   var nc=nextChange(c);
   if(nc)pill+='<span class="pill warn">Neuer Preis ab '+fmtD(nc.from)+": "+money(nc.amount)+" "+esc(c.cur)+"</span>";
   /* Preiserhöhung (angekündigt oder in den letzten 60 Tagen): Hinweis auf ein mögliches Sonderkündigungsrecht */
-  var skr=!gone&&!isTax(c)&&(function(){var t=today(),ps=pricesOf(c),prev=+c.amount||0;for(var i=0;i<ps.length;i++){var f=parseD(ps[i].from);
+  var skr=!gone&&!isFixed(c)&&(function(){var t=today(),ps=pricesOf(c),prev=+c.amount||0;for(var i=0;i<ps.length;i++){var f=parseD(ps[i].from);
       if(f>t)return +ps[i].amount>priceAt(c,t);if(daysBetween(f,t)<=60&&+ps[i].amount>prev)return true;prev=+ps[i].amount;}return false;})();
   var ps=pricesOf(c),hist="";
   if(ps.length){
@@ -3989,7 +4228,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       return '<div class="prow"><span class="pd">'+fmtD(x.date)+(x.note?" · "+esc(x.note):"")+(cr?'<span class="tag">Gutschrift</span>':"")+(parseD(x.date)>t2?'<span class="tag fut">geplant</span>':"")+
         '</span><span class="pa'+(cr?" cr":"")+'">'+(cr?"−":"")+money(Math.abs(x.amount))+" "+esc(c.cur)+"</span></div>";}).join("")+"</div>";}
   /* Hauptaktionen (Kündigen, Pausieren) als Leiste oben wie in «Fristen», seltene Aktionen bleiben unten */
-  var acts=(c.cancelPer||c.status==="cancelled"?"":function(){var v=cancVia(c);return '<button type="button" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
+  var acts=(c.cancelPer||c.status==="cancelled"||fixd?"":function(){var v=cancVia(c);return '<button type="button" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
       (v==="online"?"Online kündigen":v==="mail"?"Per E-Mail kündigen":v==="post"?"Kündigungsschreiben":"Kündigen …")+'</button>';}())+
     (c.status!=="cancelled"?'<button type="button" data-act="pause">'+(isPaused(c)?"Fortsetzen":"Pausieren")+"</button>":"");
   var docs=(c.docs||[]).map(function(d,i){return '<div class="doc"><button class="open" data-doc="'+i+'">'+(isPdf(d)?"📄 ":"🖼 ")+esc(d.name)+"</button></div>";}).join("");
@@ -4062,13 +4301,16 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
 /* Hintergrund sperren, solange ein Fenster offen ist (iOS scrollt sonst die Seite dahinter mit) */
 var kLock={y:0,on:false};
 (function(){var b=document.body;
-  function upd(){var on=!!document.querySelector(".sheet.on");if(on===kLock.on)return;kLock.on=on;
+  /* Geschlossene Fenster für VoiceOver und Tastatur unerreichbar (inert). Bei JEDER Änderung nachführen, auch wenn ein Fenster
+     über einem anderen aufgeht (sonst bleibt z.B. das Kündigungsschreiben über dem Detail gesperrt). Den Hintergrund nur
+     sperren/lösen, wenn sich «irgendein Fenster offen» ändert */
+  function upd(){
+    document.querySelectorAll(".sheet").forEach(function(el){var o=el.classList.contains("on");if(el.inert===o)el.inert=!o;el.setAttribute("aria-hidden",o?"false":"true");});
+    var on=!!document.querySelector(".sheet.on");if(on===kLock.on)return;kLock.on=on;
     /* body ist fixiert relativ zum Viewport, html hat aber padding-top = Notch-Inset: Versatz mitrechnen */
     var inset=parseFloat(getComputedStyle(document.documentElement).paddingTop)||0;
     if(on){kLock.y=window.scrollY;b.style.position="fixed";b.style.top=(inset-kLock.y)+"px";b.style.left="0";b.style.right="0";}
-    else{b.style.position="";b.style.top="";b.style.left="";b.style.right="";window.scrollTo(0,kLock.y);}
-    /* geschlossene Fenster für VoiceOver und Tastatur unerreichbar */
-    document.querySelectorAll(".sheet").forEach(function(el){var o=el.classList.contains("on");el.inert=!o;el.setAttribute("aria-hidden",o?"false":"true");});}
+    else{b.style.position="";b.style.top="";b.style.left="";b.style.right="";window.scrollTo(0,kLock.y);}}
   var mo=new MutationObserver(upd);document.querySelectorAll(".sheet").forEach(function(el){mo.observe(el,{attributes:true,attributeFilter:["class"]});el.inert=true;el.setAttribute("aria-hidden","true");});
   /* Escape schliesst das oberste Fenster (iPad-Tastatur) */
   document.addEventListener("keydown",function(e){if(e.key!=="Escape"||!kLock.on)return;
@@ -4100,7 +4342,7 @@ function openCancViaPick(idv,trial){
 /* ---------- Quartals-Check pro Vertrag: c.review = {v: keep|kill, at: Datum}; «kill» landet in «Fristen» unter «Zum Kündigen vorgemerkt» ----------
    SwiftUI: Sheet mit List und Picker(.segmented) pro Zeile */
 function reviewKill(c){return !!(c.review&&c.review.v==="kill");}
-function reviewList(){return running().filter(function(c){return !isTax(c)&&!c.cancelPer&&!notStarted(c);}).sort(function(x,y){return monthlyCost(y)-monthlyCost(x);});}
+function reviewList(){return running().filter(function(c){return !isFixed(c)&&!c.cancelPer&&!notStarted(c);}).sort(function(x,y){return monthlyCost(y)-monthlyCost(x);});}
 function openReview(){
   var H=esc(state.settings.home),list=reviewList(),t0=today();
   document.getElementById("pickTitle").textContent="Quartals-Check";
@@ -4240,6 +4482,8 @@ document.getElementById("view").addEventListener("click",function(ev){
   if(ev.target.closest("[data-fmore]")){var f0=state.flt;if(f0.cat||f0.partner){toast("Erst Kategorie und Vertragspartner zurücksetzen");return;}state.fMore=!state.fMore;renderView();return;}
   if(ev.target.closest("[data-fclear2]")){state.flt.cat=null;state.flt.partner=null;state.fMore=false;state.autoSel=true;renderView();return;}
   if(ev.target.closest("[data-fclear]")){state.flt={cat:null,partner:null,holder:null};state.autoSel=true;renderView();return;}
+  var sff=ev.target.closest("[data-sfilter]");
+  if(sff){var rw=sff.dataset.sfilter,dim=rw.slice(0,rw.indexOf("|"));state.flt[dim]=rw.slice(rw.indexOf("|")+1);state.ringSel="";state.sgAll=false;state.autoSel=true;renderView();window.scrollTo({top:0});return;}
   var sfb=ev.target.closest("[data-sf]");
   if(sfb){var raw=sfb.dataset.sf,val=raw.slice(raw.indexOf("|")+1);
     var y0=window.scrollY;state.ringSel=(state.ringSel===val)?"":val;renderView();window.scrollTo(0,y0);return;}
@@ -4466,7 +4710,7 @@ function qualItems(){
     if(!(+c.cycle>0))add("A","c:"+k+":cycle",Object.assign({why:"Zahlungsweise fehlt"},base));
     if(!parseD(c.due))add("B","c:"+k+":due",Object.assign({why:"Kein Fälligkeitsdatum"},base));
     /* Kündigen: je nach Kündigungsweg; Absender-Bedarf pro Inhaber (2 = Adresse für Brief, 1 = Name für E-Mail). Bereits gekündigte zählen nicht */
-    if(!isTax(c)&&!c.cancelPer){var via=cancVia(c);
+    if(!isFixed(c)&&!c.cancelPer){var via=cancVia(c);
       if(!via)add("D","c:"+k+":via",Object.assign({why:"Kündigungsweg festlegen"},base));
       else{if(!c.custNo&&!c.contrNo)add("D","c:"+k+":ref",Object.assign({why:"Kundennummer fehlt"},base));
         if(via==="online"&&!cancLink(c))add("D","c:"+k+":link",Object.assign({why:"Kündigungslink fehlt"},base));
@@ -4477,7 +4721,7 @@ function qualItems(){
         var lv=via==="post"?2:via==="mail"?1:0;holdersOf(c).forEach(function(h){hUsed[h]=Math.max(hUsed[h]||0,lv);});}}
     /* Frist: nur, wenn der Vertrag überwacht wird; fehlt die Frist oder lässt sich kein Termin berechnen (keine Laufzeit, kein Rhythmus).
        Frist 0 bei Termin auf Quartal/Halbjahr/Jahr/Vertragsjahr oder fester Laufzeit: Kündigung am letzten Tag ist kaum je richtig */
-    if(!c.cancelPer&&!c.noWatch&&!c.mand&&!isTax(c)){var nN=+c.notice||0;
+    if(!c.cancelPer&&!c.noWatch&&!c.mand&&!isFixed(c)){var nN=+c.notice||0;
       if(!noticeDeadline(c)){if(!anyNotice(c))add("B","c:"+k+":notice",Object.assign({why:(!nN&&!c.cancTerm)?"Keine Kündigungsfrist":"Laufzeit oder Rhythmus fehlt"},base));}
       else if(!nN&&(c.end||/^[ayqh]$/.test(c.cancTerm||"")))add("B","c:"+k+":notice",Object.assign({why:"Keine Kündigungsfrist"},base));}
   });
@@ -4705,10 +4949,13 @@ MD_PAGES.pe=function(p){
     '<button class="lbtn main" id="peAuto" type="button">Logo automatisch finden</button><div class="lcands" id="peCands"></div>'+
     '<div class="lbtns2"><button class="lbtn" id="pePaste" type="button">Einfügen</button>'+(assets?'<button class="lbtn" id="peUp" type="button">Hochladen</button>':"")+'<button class="lbtn" id="peGoogle" type="button">Google</button></div>'+
     '<button class="lbtn del" id="peLogoDel" type="button">Bild entfernen</button><p class="mdhint">Gilt für alle Verträge dieses Vertragspartners.</p></div>'+
-    mdSec("Adresse",'<button type="button" class="mdlink" data-mdrun="paddrfind">Suchen</button>')+paForm(addrSplit(g.addr||"",g.name))+
+    mdSec("Adresse",'<span class="mdlinks"><button type="button" class="mdlink" data-mdrun="paddrpaste">Einfügen</button><button type="button" class="mdlink" data-mdrun="paddrfind">Suchen</button></span>')+paForm(addrSplit(g.addr||"",g.name),g.name)+
     '<p class="mdhint" style="margin-top:6px">Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.</p>'+
     mdSec(cntTxt(g.ids.length,"Vertrag","Verträge"),'<em>'+money(g.cost/12)+" "+H0()+"/Mt.</em>")+
     '<div class="mdgrp">'+g.ids.map(function(k){return mdCRow(k,state.contracts[k]);}).join("")+"</div>"+
+    (function(){var wp=g.ids.filter(function(k){return state.contracts[k]&&pricesOf(state.contracts[k]).length;});if(!wp.length)return "";
+      return mdSec("Preisverlauf")+wp.map(function(k){var c=Object.assign({_id:k},state.contracts[k]);
+        return (wp.length>1||g.ids.length>1?'<div class="pehist">'+esc(titleOf(c))+"</div>":"")+priceChart(c);}).join("");})()+
     (others?'<div class="mdgrp mdacts"><button class="mdact" type="button" data-mdgo="pmerge">Mit anderem Vertragspartner zusammenführen …</button></div>':"");
 };
 function paintPeMark(){
@@ -5086,13 +5333,32 @@ function addrSplit(t,name){var L=String(t||"").split(/\n/).map(function(x){retur
   /* ohne PLZ-Zeile: Firma = erste, Strasse = letzte, dazwischen Zusatz */
   if(zi<0){o.firm=L[0]||"";if(L.length>1){o.street=L[L.length-1];o.extra=L.slice(1,-1).join(", ");}return o;}
   /* Länderpräfix (CH-, D-, A-) bleibt bei der PLZ */
-  var m=L[zi].match(/^((?:[A-Z]{1,2}-?)?\d{4,5})\s+(.+)$/);o.zip=m[1];o.city=m[2];o.country=L.slice(zi+1).join(", ");
+  var m=L[zi].match(/^((?:[A-Z]{1,2}-?)?\d{4,5}(?:\s?[A-Z]{2}(?=\s))?)\s+(.+)$/);/* NL: «1075 KZ Amsterdam» */o.zip=m[1];o.city=m[2];o.country=L.slice(zi+1).join(", ");
   var pre=L.slice(0,zi),nn=lnorm(name||""),ln0=pre.length===1?lnorm(pre[0]):"";
   if(pre.length===1&&!/\d/.test(pre[0])&&nn&&ln0&&(ln0.indexOf(nn)>=0||nn.indexOf(ln0)>=0)){o.firm=pre[0];return o;}
   if(pre.length){o.street=pre.pop();}if(pre.length){o.firm=pre.shift();}o.extra=pre.join(", ");return o;}
+/* Eingefügte Adresse (Rechnung, Website, Google/Apple Maps) auf die Felder verteilen. Einzeilig mit Kommas (Maps) wird zu Zeilen.
+   SwiftUI: PasteButton bzw. UIPasteboard + gleiche Aufteilung (addressSplit) */
+function addrFromPaste(t,name){t=String(t||"").replace(/\r/g,"").replace(/\t/g," ").trim();if(!t)return null;
+  if(!/\n/.test(t))t=t.split(/\s*[,;]\s*/).join("\n");
+  var L=t.split(/\n/).map(function(x){return x.trim();}).filter(function(x){return x&&!/^(tel|telefon|phone|fax|e-?mail|www\.|https?:)/i.test(x);});
+  return addrSplit(L.join("\n"),name);}
+function addrLooksPasted(t){t=String(t||"");return /\n/.test(t.trim())||(t.split(",").length>=3)||(/,/.test(t)&&/\b\d{4,5}\s+\S/.test(t));}
+async function clipText(){try{if(!navigator.clipboard||!navigator.clipboard.readText)throw 0;return await navigator.clipboard.readText();}
+  catch(e){toast("Kein Zugriff auf die Zwischenablage. Adresse direkt in ein Feld einfügen, sie wird automatisch verteilt.",4500);return null;}}
+function fAddrFill(o){document.getElementById("fAddr").value=addrJoin(o);fAddrPaint();paintOptCounts();toast("Adresse eingefügt, bitte prüfen");}
+function paFill(o){PA_F.forEach(function(f){var el=document.getElementById(f[1]);if(el)el.value=o[f[0]]||"";});paSave();}
+document.getElementById("fAddrPaste").addEventListener("click",async function(){var t=await clipText();if(t==null)return;var o=addrFromPaste(t,document.getElementById("fPartner").value);
+  if(!o){toast("Zwischenablage ist leer");return;}fAddrFill(o);});
+/* Mehrzeilige Adresse direkt in ein Feld eingefügt: automatisch verteilen */
+document.getElementById("fAddrG").addEventListener("paste",function(e){var t=(e.clipboardData||window.clipboardData).getData("text");if(!addrLooksPasted(t))return;
+  e.preventDefault();var o=addrFromPaste(t,document.getElementById("fPartner").value);if(o)fAddrFill(o);});
+document.getElementById("mdBody").addEventListener("paste",function(e){if(!e.target.closest||!e.target.closest("#paForm")||!pe)return;var t=(e.clipboardData||window.clipboardData).getData("text");if(!addrLooksPasted(t))return;
+  e.preventDefault();var o=addrFromPaste(t,pe.name);if(o)paFill(o);});
 function addrJoin(o){return [o.firm,o.extra,o.street,[o.zip,o.city].filter(Boolean).join(" "),o.country].map(function(x){return String(x||"").trim();}).filter(Boolean).join("\n");}
-function paIn(i,o){var f=PA_F[i];return '<input id="'+f[1]+'" type="text" autocomplete="'+f[3]+'" autocapitalize="words" enterkeyhint="next" placeholder="'+f[2]+'" aria-label="'+f[2]+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';}
-function paForm(o){return '<form id="paForm" class="sndform ig" autocomplete="off" novalidate><div class="igr">'+paIn(0,o)+'</div><div class="igr">'+paIn(1,o)+'</div><div class="igr">'+paIn(2,o)+'</div><div class="igr two zc">'+paIn(3,o)+paIn(4,o)+'</div><div class="igr">'+paIn(5,o)+'</div></form>';}
+function firmPh(n){n=String(n||"").trim();return n?"Firma (optional, sonst "+n+")":"Firma (optional)";}
+function paIn(i,o,ph){var f=PA_F[i],pl=ph||f[2];return '<input id="'+f[1]+'" type="text" autocomplete="'+f[3]+'" autocapitalize="words" enterkeyhint="next" placeholder="'+esc(pl)+'" aria-label="'+esc(pl)+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';}
+function paForm(o,name){return '<form id="paForm" class="sndform ig" autocomplete="off" novalidate><div class="igr">'+paIn(0,o,firmPh(name))+'</div><div class="igr">'+paIn(1,o)+'</div><div class="igr">'+paIn(2,o)+'</div><div class="igr two zc">'+paIn(3,o)+paIn(4,o)+'</div><div class="igr">'+paIn(5,o)+'</div></form>';}
 function paSave(){var o={};PA_F.forEach(function(f){var el=document.getElementById(f[1]);o[f[0]]=el?el.value.trim().replace(/\s+/g," "):"";});peAddrChange(addrJoin(o));}
 function peAddrChange(v){
   var g=pe&&peGroup(pe.key);if(!g)return;v=String(v||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean).join("\n");
@@ -5179,6 +5445,7 @@ document.addEventListener("click",function(ev){
       state.settings.holders=(state.settings.holders||["Ich"]).concat([v]);saveSettings();render();mdPop();toast("Inhaber «"+v+"» angelegt");}
     else if(r==="hedit"){mdFlush();p.edit=!p.edit;paintMd(0);}
     else if(r==="hall"){p.all=1;paintMd(0);}
+    else if(r==="paddrpaste"){clipText().then(function(t){if(t==null||!pe)return;var o=addrFromPaste(t,pe.name);if(!o){toast("Zwischenablage ist leer");return;}paFill(o);});}
     else if(r==="paddrfind"){var gq=peGroup(pe&&pe.key);if(!gq)return;var c0=state.contracts[gq.ids[0]]||{};toast("Suche Adresse …");
       findAddresses(gq.name,domainOf(gq.web||c0.web),c0.cur).then(function(cs){if(!cs||!cs.length){toast("Keine Adresse gefunden. Bitte von Website oder Rechnung übernehmen.");return;}
         document.getElementById("pickTitle").textContent="Adresse wählen";var l=document.getElementById("pickList");l.dataset.dim="addrpe";l._cands=cs;l._pk=gq.key;
@@ -5739,7 +6006,7 @@ document.getElementById("csvBtn").addEventListener("click",async function(){
       c.custNo||"",c.contrNo||"",holdersOf(c).join(", "),c.payM||"",c.payA||"",c.cancF||"",c.web||"",c.tel||"",c.mail||"",c.status||"active",
       c.cancTerm||(c.end?"":"jederzeit"),c.mand?"ja":"",c.note||"",  /* Frist 0 und «jederzeit» ausdrücklich, damit der Import keine Katalogwerte einsetzt */
       extrasOf(c).map(function(x){return x.date+":"+x.amount.toFixed(2)+(x.note?":"+x.note.replace(/[|:]/g," "):"");}).join(" | "),
-      c.addr||"",c.cancUrl||"",(function(){var sp=splitOf(c);return sp?holdersOf(c).map(function(h){return h+":"+Math.round(+sp[h]);}).join(" | "):"";})()]
+      c.addr||"",c.cancUrl||"",(function(){var sp=splitOf(c);return sp?holdersOf(c).map(function(h){return h+":"+String(Math.round(+sp[h]*100)/100);}).join(" | "):"";})()]
       .map(csvField).join(";"));
   });
   /* BOM und CRLF: Excel erkennt so UTF-8 (Umlaute) */
@@ -5754,6 +6021,17 @@ document.getElementById("csvBtn").addEventListener("click",async function(){
 
 /* ---------- Rückfrage ---------- */
 var askRes=null;
+document.getElementById("tplFill").addEventListener("click",async function(){
+  var plan=tplFillPlan();
+  if(!plan.length){await ask({title:"Nichts zu ergänzen",alert:true,text:"Für deine Verträge fehlen keine Kontaktdaten, die der Katalog kennt, oder der Vertragspartner heisst anders als im Katalog."});return;}
+  var unv=plan.filter(function(x){return x.t[15]===0;}).length;
+  var lst=plan.slice(0,12).map(function(x){return "• "+titleOf(x.c)+" → "+x.t[0];}).join("\n")+(plan.length>12?"\n… und "+(plan.length-12)+" weitere":"");
+  var ok=await ask({title:plan.length+(plan.length===1?" Vertrag":" Verträge")+" ergänzen?",ok:"Ergänzen",
+    text:lst+"\n\nNur leere Felder werden gefüllt."+(unv?"\n"+unv+" davon mit nicht offiziell bestätigten Daten – vor dem Versand prüfen.":"")});
+  if(!ok)return;
+  plan.forEach(function(x){putContract(x.id,Object.assign({},state.contracts[x.id],x.add));});
+  render();toast(plan.length+(plan.length===1?" Vertrag":" Verträge")+" ergänzt");
+});
 function ask(o){return new Promise(function(res){
   askRes=res;document.getElementById("askT").textContent=o.title||"";
   document.getElementById("askP").textContent=o.text||"";
@@ -5918,10 +6196,10 @@ function csvToContracts(rows){
       notice:nNum!=null?(noticeVal(nNum,nu)!=null?noticeVal(nNum,nu):Math.max(0,Math.round(Math.abs(nNum)))):(tpl&&col.notice==null?tpl[5]:0),noticeU:nNum!=null?nu:(tpl&&col.notice==null?tpl[6]:"m"),
       renew:String(csvNum(g(r,"renew"))||""),cancTerm:col.cancTerm!=null?csvTerm(g(r,"cancTerm")):(tpl&&!g(r,"end")?tpl[7]||"":""),
       mand:mand,custNo:g(r,"custNo"),contrNo:g(r,"contrNo"),holders:hs,
-      split:(function(){var raw=g(r,"split");if(!raw||hs.length<2)return undefined;var o={};raw.split("|").forEach(function(x){var m=x.trim().match(/^(.+?):\s*(\d+)\s*%?$/);if(m){var nm=hs.filter(function(h){return h.toLowerCase()===m[1].trim().toLowerCase();})[0];if(nm)o[nm]=+m[2];}});
+      split:(function(){var raw=g(r,"split");if(!raw||hs.length<2)return undefined;var o={};raw.split("|").forEach(function(x){var m=x.trim().match(/^(.+?):\s*(\d+(?:[.,]\d+)?)\s*%?$/);if(m){var nm=hs.filter(function(h){return h.toLowerCase()===m[1].trim().toLowerCase();})[0];if(nm)o[nm]=+m[2].replace(",",".");}});
         var sum=0;hs.forEach(function(h){sum+=(+o[h]||0);});return (hs.every(function(h){return o[h]!=null;})&&Math.abs(sum-100)<0.6)?o:undefined;})(),
       payM:g(r,"payM"),payA:g(r,"payA"),cancF:g(r,"cancF")||(tpl?tpl[8]||"":""),cancUrl:g(r,"cancUrl"),trial:"",
-      web:g(r,"web")||(tpl?tpl[4]:""),tel:g(r,"tel"),mail:g(r,"mail"),addr:ad,
+      web:g(r,"web")||(tpl?tpl[4]:""),tel:g(r,"tel")||(tpl?tpl[14]||"":""),mail:g(r,"mail")||(tpl?tpl[13]||"":""),addr:ad||(tpl?tpl[12]||"":""),
       note:[g(r,"note"),g(r,"contact")?"Kontakt: "+g(r,"contact"):"",restTags?"Tags: "+restTags:"",amt===0&&!g(r,"amount")?"Kein Betrag im Import":""].filter(Boolean).join("\n"),
       color:"",logoId:"",logoBg:"",prices:prices,docs:[],
       extras:g(r,"extras").split("|").map(function(p){var m=p.trim().match(/^(\d{4}-\d{2}-\d{2}):(-?[\d.]+):?(.*)$/);return m?{date:m[1],amount:+m[2],note:m[3].trim()}:null;}).filter(Boolean),
