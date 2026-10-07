@@ -1442,9 +1442,11 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 
   <h3>Laufzeit &amp; Kündigung</h3>
   <div class="seg2" id="termSeg" role="group" aria-label="Laufzeit" style="margin:0 0 14px">
-    <button type="button" data-tm="open" aria-pressed="true">Jederzeit kündbar</button>
+    <button type="button" data-tm="open" aria-pressed="true">Flexibel</button>
     <button type="button" data-tm="fixed" aria-pressed="false">Feste Laufzeit</button>
+    <button type="button" data-tm="trial" aria-pressed="false">Probeabo</button>
   </div>
+  <div class="field tmtrial" hidden><label for="fTrial">Probeabo endet</label><input id="fTrial" type="date"></div>
   <div class="two auto">
     <div class="field"><label for="fStart">Vertragsbeginn</label><input id="fStart" type="date"></div>
     <div class="field tmfixed"><label for="fEnd">Vertragsende</label><input id="fEnd" type="date"></div>
@@ -1469,11 +1471,8 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <option value="nowatch">Nein – z.B. Miete</option>
     <option value="fixed">Nein – nicht kündbar (z.B. Serafe, Rundfunkbeitrag)</option></select></div>
   <div hidden><input type="checkbox" id="fMand"><input type="checkbox" id="fNoWatch"><input type="checkbox" id="fNoCancel"></div>
-  <div class="two">
-    <div class="field"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
-      <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
-    <div class="field"><label for="fTrial">Probeabo endet</label><input id="fTrial" type="date"></div>
-  </div>
+  <div class="field"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
+    <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
   <div class="field" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="netflix.com/cancelplan" autocomplete="off">
     <p class="note" style="margin:6px 0 0">Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.</p></div>
 
@@ -3071,7 +3070,7 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";
   paintPrices();
   ["xDate","xAmt","xNote"].forEach(function(i){document.getElementById(i).value="";});setXKind("pay");paintExtras();
-  setTermMode((c&&(c.end||c.renew))?"fixed":"open");
+  setTermMode((c&&(c.end||c.renew))?"fixed":(c&&c.trial&&!c.trialKept?"trial":"open"));
   document.getElementById("oLogo").open=false;document.getElementById("logoTap").setAttribute("aria-expanded","false");
   paintCats();paintSwatches();paintLogo();paintDocs();
   document.getElementById("logoUp").hidden=!assets;
@@ -3336,7 +3335,7 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
   if(t[2]&&allCats().indexOf(t[2])>=0&&!(onlyEmpty&&draft.cat)){draft.cat=t[2];paintCats();}
   if(onlyEmpty){if(t[5]&&!$("fNotice").value.trim()){$("fNotice").value=t[5];$("fNoticeU").value=t[6];}}
   else{$("fNotice").value=t[5]||"";if(t[5])$("fNoticeU").value=t[6];}
-  if(termMode==="open"&&!(onlyEmpty&&$("fTermP").value))$("fTermP").value=t[7]||"";
+  if(termMode!=="fixed"&&!(onlyEmpty&&$("fTermP").value))$("fTermP").value=t[7]||"";
   if(t[8]&&!(onlyEmpty&&$("fCancF").value))$("fCancF").value=t[8];
   syncCancUrl();
   if(t[4]&&!$("fWeb").value)$("fWeb").value=t[4];
@@ -3387,9 +3386,14 @@ function setTermMode(m){termMode=m;
   document.querySelectorAll("#termSeg button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.tm===m);});
   document.querySelectorAll("#sheetForm .tmfixed").forEach(function(el){el.hidden=m!=="fixed";});
   document.querySelectorAll("#sheetForm .tmopen").forEach(function(el){el.hidden=m==="fixed";});
+  document.querySelectorAll("#sheetForm .tmtrial").forEach(function(el){el.hidden=m!=="trial";});
   updTermHint();}
+/* Laufzeit-Art: «Flexibel» (open), «Feste Laufzeit» (fixed), «Probeabo» (trial = Flexibel + Enddatum des Probeabos).
+   Kein neues Feld: trial wie bisher in c.trial. SwiftUI: Picker(.segmented) mit enum TermMode { open, fixed, trial } */
 function updTermHint(){
   var h=document.getElementById("tmHint");
+  if(termMode==="trial"){var tv=document.getElementById("fTrial").value;
+    h.textContent=tv?"Kontivo erinnert dich vor dem "+fmtD(tv)+". Danach gelten Frist und «Kündbar per».":"Datum angeben, an dem das Probeabo endet.";return;}
   if(termMode==="fixed"){
     var fx={end:document.getElementById("fEnd").value,renew:document.getElementById("fRenew").value,
       notice:parseNum(document.getElementById("fNotice").value)||0,noticeU:document.getElementById("fNoticeU").value};
@@ -3408,8 +3412,8 @@ function updTermHint(){
   h.textContent=(tp==="p"&&cyc>1?per:"Nächster Termin: "+per)+fmtD(iso(T))+" · kündigen bis "+fmtD(iso(nDl(tmp,T)))+(tmp.notice?"":" (keine Frist erfasst)")+".";
 }
 /* Turnus auf jährlich/halbjährlich gestellt und noch kein Kündigungstermin: «Ende Periode» vorschlagen */
-document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if(termMode==="open"&&!tp.value&&+this.value>=6){tp.value="p";updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}});
-["fTermP","fNotice","fNoticeU","fStart","fDue","fCycle","fEnd","fRenew"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updTermHint);el.addEventListener("change",updTermHint);});
+document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if(termMode!=="fixed"&&!tp.value&&+this.value>=6){tp.value="p";updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}});
+["fTermP","fNotice","fNoticeU","fStart","fDue","fCycle","fEnd","fRenew","fTrial"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updTermHint);el.addEventListener("change",updTermHint);});
 document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(b)setTermMode(b.dataset.tm);});
 function syncWatch(){var m=document.getElementById("fMand").checked,n=document.getElementById("fNoWatch").checked,f=document.getElementById("fNoCancel").checked;
   document.getElementById("fWatch").value=f?"fixed":(m?"mand":(n?"nowatch":""));}
@@ -3499,6 +3503,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   if(amt==null||amt<0){toast("Betrag prüfen");return;}
   var nV=noticeVal(document.getElementById("fNotice").value,document.getElementById("fNoticeU").value);
   if(nV==null){toast("Kündigungsfrist prüfen");document.getElementById("fNotice").focus();return;}
+  if(termMode==="trial"&&!document.getElementById("fTrial").value){toast("Enddatum des Probeabos angeben");document.getElementById("fTrial").focus();return;}
   var cF=document.getElementById("fCancF").value;
   var prev=editId?state.contracts[editId]:null;
   /* Vom bisherigen Stand ausgehen: Felder ausserhalb des Formulars (Kündigung, Pause, «Behalten», unbekannte) bleiben erhalten.
@@ -3516,7 +3521,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
     notice:nV,
     noticeU:document.getElementById("fNoticeU").value,
     renew:termMode==="fixed"?(document.getElementById("fRenew").value||""):"",
-    cancTerm:termMode==="open"?(document.getElementById("fTermP").value||""):"",
+    cancTerm:termMode!=="fixed"?(document.getElementById("fTermP").value||""):"",
     mand:document.getElementById("fMand").checked,
     noWatch:document.getElementById("fNoWatch").checked,
     noCancel:document.getElementById("fNoCancel").checked||undefined,
@@ -3528,7 +3533,8 @@ document.getElementById("saveForm").addEventListener("click",function(){
     payM:document.getElementById("fPayM").value,
     payA:document.getElementById("fPayA").value.trim(),
     cancF:cF,cancUrl:cF==="Online / Kundenkonto"?document.getElementById("fCancUrl").value.trim():"",/* Kündigungslink nur bei Online */
-    trial:document.getElementById("fTrial").value||"",
+    /* Probeabo-Datum nur in «Probeabo»; Wechsel auf «Flexibel» entfernt es. Bei fester Laufzeit oder bereits behaltenem Probeabo bleibt der alte Wert */
+    trial:termMode==="trial"?(document.getElementById("fTrial").value||""):((prev&&prev.trial&&(termMode==="fixed"||prev.trialKept))?prev.trial:""),
     web:document.getElementById("fWeb").value.trim(),addr:document.getElementById("fAddr").value.trim(),
     tel:document.getElementById("fTel").value.trim(),
     mail:document.getElementById("fMail").value.trim(),
