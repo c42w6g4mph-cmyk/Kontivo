@@ -475,14 +475,18 @@ body.hasplus .topadd{display:inline-flex}
 .skr{margin:0 0 10px;padding:9px 12px;border-radius:10px;background:color-mix(in srgb,var(--warn) 10%,var(--field));font-size:13px;color:var(--ink2);line-height:1.4}
 /* Kennzahlen im Detail */
 .kz{display:flex;gap:8px;margin:2px 0 12px}
-.kzm{flex:1.3;min-width:0;background:var(--field);border-radius:14px;padding:12px 13px;display:flex;flex-direction:column;justify-content:center}
-.kzm small{font-size:12px;color:var(--ink2)}.kzm b{font-size:27px;font-weight:700;letter-spacing:-.02em;line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums}
-.kz u{text-decoration:none;font-size:12px;font-weight:600;color:var(--ink2);margin-left:4px;letter-spacing:0}
-.kz em{display:block;font-style:normal;font-size:12px;color:var(--ink2);margin-top:2px}
+.kzm{flex:1.3;min-width:0;background:var(--field);border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+.kz small{font-size:12px;font-weight:500;color:var(--ink2)}
+.kz b{display:block;font-weight:700;letter-spacing:-.02em;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.1}
+.kzm b{font-size:34px}.kzm b i{font-style:normal;font-size:.55em;font-weight:600;letter-spacing:0}
+.kz u{text-decoration:none;font-size:12px;font-weight:600;color:var(--ink2);margin-left:4px;letter-spacing:.02em}
+.kz em{display:block;font-style:normal;font-size:12px;color:var(--ink2);margin-top:3px}
+.kzbar{display:block;height:6px;border-radius:99px;background:var(--line);margin:10px 0 6px;overflow:hidden}.kzbar i{display:block;height:100%;background:var(--teal);border-radius:99px}
+.kzbar+em{margin-top:0}
 .kzc{flex:1;min-width:0;display:grid;gap:8px}
-.kzt{background:var(--field);border-radius:12px;padding:8px 11px}.kzt b{display:block;font-size:15.5px;font-weight:650;white-space:nowrap;font-variant-numeric:tabular-nums}.kzt small{font-size:11.5px;color:var(--ink2)}
-.kzt em{font-size:11px;margin-top:0}
-@media (max-width:360px){.kzm b{font-size:23px}}
+.kzt{background:var(--field);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;justify-content:center}.kzt b{font-size:20px;margin-top:3px}
+.kzt em{font-size:11px;margin-top:2px}
+@media (max-width:370px){.kzm b{font-size:28px}.kzt b{font-size:17px}}
 .dacts{display:flex;gap:8px;margin:2px 0 6px}.dacts button{flex:1;min-width:0;padding:11px 10px;border-radius:11px;font-size:14px;font-weight:600;background:var(--sunken);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dacts button[data-kbtn]{background:var(--teal);color:#fff}
 .trow .tst{flex:none;font-size:12.5px;color:var(--ink2);white-space:nowrap;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis}
 .trow .tst.kept{color:var(--ok)}
@@ -4247,11 +4251,12 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
      SwiftUI: HStack aus grosser Karte und VStack mit zwei kleinen Karten */
   var kz=(function(){var H=state.settings.home,cu=c.cur||H,mon=curPrice(c)/(+c.cycle||1),fx=cu!==H;
     var ap=function(v){return fx?'<em>≈ '+nf0.format(conv(v,cu))+" "+esc(H)+"</em>":"";};
+    /* Anteil als Balken in der grossen Kachel (Variante 4, 08.10.2026) */
     var sh="";if(!gone&&!isPaused(c)&&!notStarted(c)){var tot=running().filter(function(x){return !notStarted(x);}).reduce(function(n,x){return n+monthlyCost(x);},0);
-      if(tot>0.005)sh='<em>'+Math.round(monthlyCost(c)/tot*100)+" % deiner Fixkosten</em>";}
-    var tile=function(v,lab,extra){return '<div class="kzt"><b>'+v+"</b><small>"+lab+"</small>"+(extra||"")+"</div>";};
-    var cur='<u>'+esc(cu)+"</u>";
-    return '<div class="kz"><div class="kzm"><small>pro Monat</small><b>'+money(mon)+cur+"</b>"+ap(mon)+sh+'</div><div class="kzc">'+
+      if(tot>0.005){var pc=Math.round(monthlyCost(c)/tot*100);sh='<span class="kzbar" aria-hidden="true"><i style="width:'+Math.max(2,Math.min(100,pc))+'%"></i></span><em>'+pc+" % deiner Fixkosten</em>";}}
+    var tile=function(v,lab,extra){return '<div class="kzt"><small>'+lab+"</small><b>"+v+"</b>"+(extra||"")+"</div>";};
+    var cur='<u>'+esc(cu)+"</u>",mt=money(mon),k=mt.lastIndexOf("."),big=k<0?mt:mt.slice(0,k)+"<i>"+mt.slice(k)+"</i>";
+    return '<div class="kz"><div class="kzm"><small>pro Monat</small><div><b>'+big+cur+"</b>"+ap(mon)+sh+'</div></div><div class="kzc">'+
       tile(nf0.format(mon*12)+cur,"pro Jahr",ap(mon*12))+
       (paidSoFar?tile(nf0.format(paidSoFar.sum)+cur,"insgesamt bezahlt"):tile(nd?fmtShort(nd):"—","nächste Zahlung"))+"</div></div>";})();
   var secs=[
