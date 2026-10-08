@@ -1483,8 +1483,9 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="field"><label for="fCycle">Turnus</label><select id="fCycle">
       <option value="1">monatlich</option><option value="2">alle 2 Monate</option><option value="3">quartalsweise</option>
       <option value="6">halbjährlich</option><option value="12">jährlich</option><option value="24">alle 2 Jahre</option></select></div>
-    <div class="field"><label for="fDue">Nächste Zahlung am</label><input id="fDue" type="date"></div>
+    <div class="field"><label for="fDue">Zahlung am</label><input id="fDue" type="date"></div>
   </div>
+  <p class="note" id="fPayHint" style="margin:-4px 0 14px"></p>
 
   <h3>Laufzeit &amp; Kündigung</h3>
   <div class="tmtiles" id="termSeg" role="group" aria-label="Art des Vertrags">
@@ -3104,7 +3105,7 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   document.getElementById("fAmt").value=c?(+c.amount||0).toFixed(2):"";
   document.getElementById("fCur").value=(c&&c.cur)||state.settings.home;
   document.getElementById("fCycle").value=(c&&c.cycle)||"1";
-  document.getElementById("fDue").value=(c&&c.due)||iso(today());
+  document.getElementById("fDue").value=(c&&c.due)||iso(today());setTimeout(updPayHint,0);
   document.getElementById("fStart").value=(c&&c.start)||"";
   document.getElementById("fEnd").value=(c&&c.end)||"";
   document.getElementById("fNotice").value=(c&&c.notice)||"";
@@ -3491,6 +3492,11 @@ function updTermHint(){
 /* Turnus auf jährlich/halbjährlich gestellt und noch kein Kündigungstermin: «Ende Periode» vorschlagen */
 document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if(termMode!=="fixed"&&!tp.value&&+this.value>=6){tp.value="p";updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}});
 ["fTermP","fNotice","fNoticeU","fStart","fDue","fCycle","fEnd","fRenew","fTrial"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updTermHint);el.addEventListener("change",updTermHint);});
+/* Zahlungsregel live unter Turnus/Datum, gleich formuliert wie im Detail */
+function updPayHint(){var h=document.getElementById("fPayHint");if(!h)return;
+  var t={due:document.getElementById("fDue").value,cycle:+document.getElementById("fCycle").value||1,start:document.getElementById("fStart").value},r=payRule(t),n=r?nextDue(t):null;
+  h.textContent=r?"Zahlung "+r+(n?" · nächste am "+fmtShort(n):""):"";h.hidden=!r;}
+["fDue","fCycle","fStart"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updPayHint);el.addEventListener("change",updPayHint);});
 document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(b)setTermMode(b.dataset.tm);});
 /* Nach einer Vorlage: «nicht kündbar» wählt die Kachel «Nicht kündbar», sonst zurück auf «Flexibel» */
 function syncWatch(){var f=document.getElementById("fNoCancel").checked;
@@ -5429,7 +5435,7 @@ function qEditor(o,f){if(f==="notice"||f==="addr"||f==="sender")return qMulti(o,
   if(f==="holder"){var H=holderStats().map(function(h){return h.name;});return '<div class="hseg">'+H.map(function(n){return '<button type="button"'+k+' data-qv="'+esc(n)+'">'+esc(n)+'</button>';}).join("")+(H.length>1?'<button type="button"'+k+' data-qv="*">'+(H.length===2?"Beide":"Alle")+'</button>':"")+'</div>';}
   if(f==="cat")return '<select class="qein"'+k+'><option value="">Kategorie wählen …</option>'+allCats().filter(function(n){return n!=="Sonstiges";}).map(function(n){return '<option>'+esc(n)+'</option>';}).join("")+'</select>';
   if(f==="cycle")return '<select class="qein"'+k+'><option value="">Zahlungsweise wählen …</option>'+Object.keys(CYCLE).map(function(m){return '<option value="'+m+'">'+CYCLE[m]+'</option>';}).join("")+'</select>';
-  if(f==="due")return '<input class="qein" type="date"'+k+' aria-label="Nächste Zahlung">';
+  if(f==="due")return '<input class="qein" type="date"'+k+' aria-label="Zahlung am">';
   if(f==="amount")return '<input class="qein" type="text" inputmode="decimal" placeholder="Betrag in '+esc(c.cur||"CHF")+'"'+k+'>';
   if(f==="ref")return '<input class="qein" type="text" autocomplete="off" placeholder="Kunden- oder Vertragsnummer"'+k+'>';
   if(f==="link")return '<input class="qein" type="url" inputmode="url" autocomplete="off" placeholder="z.B. sunrise.ch/kuendigen"'+k+'>';
