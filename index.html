@@ -6167,6 +6167,7 @@ function sanitizeImport(o){
   if(Array.isArray(s.holders))s.holders=s.holders.filter(function(h){return typeof h==="string"&&h.trim();});
   if(!Array.isArray(s.holders)||!s.holders.length)delete s.holders;
   if(Array.isArray(s.lastHolders))s.lastHolders=s.lastHolders.filter(function(h){return typeof h==="string";});else delete s.lastHolders;
+  if(Array.isArray(s.bankIgn))s.bankIgn=s.bankIgn.filter(function(h){return typeof h==="string";});else delete s.bankIgn;
   if(obj(s.sigs)){Object.keys(s.sigs).forEach(function(h){if(!SIG.test(String(s.sigs[h])))delete s.sigs[h];});}else delete s.sigs;
   if("sig" in s&&!SIG.test(String(s.sig)))delete s.sig;  /* alte globale Unterschrift (migModel) */
   if(Array.isArray(s.catList))s.catList=s.catList.filter(obj).map(function(x){if(badCol(x.c))delete x.c;return x;});
@@ -6409,6 +6410,313 @@ function csvToContracts(rows){
   return {items:out,skipped:skipped,dup:dup,archived:archived,newHolders:Object.keys(newH),cols:Object.keys(col).length,hasAmt:col.amount!=null,hasName:col.partner!=null||col.label!=null,
     newCats:newC.filter(function(x){return out.some(function(c){return c.cat===x.n;});}),cycAdj:adj.n,badDates:bad.n};
 }
+/* ---------- Kontoauszug-Import: Datei lesen, wiederkehrende Zahlungen erkennen ----------
+   Alles lokal, die Datei wird nicht gespeichert. Ergebnis sind nur Vorschläge, Verträge entstehen erst nach Bestätigung.
+   bankRead(ArrayBuffer) → {fmt, bank, tx:[{d:"JJJJ-MM-TT", a:Betrag (Belastung negativ), cur, name, text, cred}], from, to}
+   bankFind(read) → {sugg:[…], known:[…], from, to, n}
+   Formate: CSV (Spalten über Stichwörter, Vorspann/Fusszeilen egal), camt.052/053/054 (ISO 20022), MT940.
+   SwiftUI: gleiche reine Funktionen in KontivoCore/BankImport.swift (XMLParser statt DOMParser). */
+function bankDecode(buf){
+  var b=new Uint8Array(buf);
+  if(b[0]===0xFF&&b[1]===0xFE)return new TextDecoder("utf-16le").decode(buf);
+  if(b[0]===0xFE&&b[1]===0xFF)return new TextDecoder("utf-16be").decode(buf);
+  try{return new TextDecoder("utf-8",{fatal:true}).decode(buf);}catch(e){return new TextDecoder("windows-1252").decode(buf);}
+}
+function bankDate(s){
+  s=String(s||"").trim();var m;
+  if((m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)))return iso(new Date(+m[1],+m[2]-1,+m[3]));
+  if((m=s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{2}|\d{4})\b/))){var y=+m[3];if(y<100)y+=2000;if(+m[2]>12||+m[1]>31)return "";return iso(new Date(y,+m[2]-1,+m[1]));}
+  if((m=s.match(/^(\d{4})(\d{2})(\d{2})$/)))return iso(new Date(+m[1],+m[2]-1,+m[3]));
+  return "";
+}
+/* Betrag: «-1'850.00», «1.180,00-», «CHF -49.90», «−12,99 €» */
+function bankNum(s){
+  var t=String(s==null?"":s).replace(/[A-Za-z€$£\u00a0]/g,"").replace(/−/g,"-").trim(),neg=false;
+  if(!t)return null;
+  if(/-$/.test(t)){neg=true;t=t.slice(0,-1).trim();}
+  if(/^\(.*\)$/.test(t)){neg=true;t=t.slice(1,-1);}
+  var v=parseNum(t);return v==null?null:(neg?-Math.abs(v):v);
+}
+/* ---- CSV ---- */
+var BKCOL={
+  date:["buchungsdatum","buchungstag","buchung","bookingdate","bookedat","datum","date","transactiondate","abschlussdatum","valutadatum","valuta","wertstellung","wertstellungsdatum","valuedate","wert"],
+  amt:["betrag","umsatz","amount","creditdebitamount","betragchf","betrageur","umsatzineur","umsatzinchf","betraginchf","betragineur","montant","importo","betrag€","einzelbetrag"],
+  deb:["belastung","lastschrift","soll","debit","ausgang","lastschriftinchf","belastungchf","belastungeur","belastungen","sollbetrag","debitamount","debit chf"],
+  cre:["gutschrift","haben","credit","eingang","gutschriftinchf","gutschriftchf","gutschrifteur","gutschriften","habenbetrag","creditamount"],
+  cur:["waehrung","whg","whr","currency","devise","valuta waehrung"],
+  name:["beguenstigterzahlungspflichtiger","auftraggeberempfaenger","namezahlungsbeteiligter","partnername","beguenstigterauftraggeber","begunstigterauftraggeber",
+    "empfaengerauftraggeber","zahlungsbeteiligter","gegenpartei","counterparty","payee","merchant","haendler","name","beschreibung1","empfaenger"],
+  payee:["zahlungsempfaengerin","zahlungsempfaenger","empfaengerin","beguenstigter","beguenstigte"],
+  payer:["zahlungspflichtiger","zahlungspflichtigein","zahlungspflichtige","auftraggeber","auftraggeberin"],
+  text:["verwendungszweck","avisierungstext","buchungstext","beschreibung","description","text","paymentreference","zahlungszweck","beschreibung2","beschreibung3",
+    "details","mitteilung","subject","umsatzart","vorgang","texte de notification","libelle"],
+  cred:["glaeubigerid","glaubigerid","creditorid","glaeubigeridentifikation"]
+};
+function bankHead(cells){
+  var h=cells.map(function(x){return csvNorm(x);}),col={},used={};
+  var bad=/ursprung|original|saldo|balance|fremd|gebuehr|auslagen|kurs|rate|detail|nachbuchung/;
+  var pick=function(k,loose){var l=BKCOL[k];
+    for(var a=0;a<l.length;a++)for(var i=0;i<h.length;i++){if(used[i]||!h[i])continue;
+      if(h[i]===csvNorm(l[a])||(loose&&h[i].indexOf(csvNorm(l[a]))===0&&!bad.test(h[i]))){used[i]=1;return i;}}
+    return -1;};
+  col.date=pick("date");col.amt=pick("amt");col.deb=pick("deb",true);col.cre=pick("cre",true);
+  if(col.amt<0)col.amt=pick("amt",true);col.cur=pick("cur",true);col.payee=pick("payee");col.payer=pick("payer");
+  col.name=pick("name");col.cred=pick("cred",true);
+  col.text=[];var t;while((t=pick("text"))>=0)col.text.push(t);
+  col.card=h.some(function(x){return /^(karte|card|cardnumber|kartennummer|kartennr)/.test(x);});
+  col.ok=col.date>=0&&(col.amt>=0||col.deb>=0||col.cre>=0);
+  return col;
+}
+function bankBankOf(h){
+  var s="|"+h.map(function(x){return csvNorm(x);}).join("|")+"|",has=function(x){return s.indexOf("|"+x+"|")>=0;};
+  if(has("avisierungstext"))return "PostFinance";
+  if(has("beschreibung1")&&has("abschlussdatum"))return "UBS";
+  if(has("zkbreferenz"))return "ZKB";
+  if(has("bookedat"))return "Raiffeisen";
+  if(has("wise")&&has("spaces"))return "neon";
+  if(has("glaeubigerid")&&has("auftragskonto"))return "Sparkasse";
+  if(has("auftraggeberempfaenger"))return "ING";
+  if(has("zahlungsempfaengerin"))return "DKB";
+  if(has("umsatzineur")&&has("vorgang"))return "comdirect";
+  if(has("partnername"))return "N26";
+  if(has("beguenstigterauftraggeber")&&has("soll"))return "Deutsche Bank";
+  if(has("namezahlungsbeteiligter"))return "Volksbank";
+  return "";
+}
+function bankCsv(txt){
+  /* Trennzeichen über die ersten Zeilen bestimmen (Vorspann kann kürzer sein) */
+  var lines=txt.replace(/^\ufeff/,"").split(/\r?\n/).slice(0,60),cnt={";":0,",":0,"\t":0};
+  lines.forEach(function(l){var q=false,c={";":0,",":0,"\t":0};for(var i=0;i<l.length;i++){var ch=l[i];if(ch==='"')q=!q;else if(!q&&c[ch]!=null)c[ch]++;}
+    Object.keys(c).forEach(function(k){cnt[k]=Math.max(cnt[k],c[k]);});});
+  var dl=[";","\t",","].sort(function(a,b){return cnt[b]-cnt[a];})[0];
+  var rows=csvParse("sep="+dl+"\n"+txt.replace(/^\ufeff/,"")),hi=-1,col=null;
+  for(var r=0;r<Math.min(rows.length,60);r++){var c=bankHead(rows[r]);if(c.ok){hi=r;col=c;break;}}
+  if(hi<0)return null;
+  var g=function(row,i){return i>=0&&row[i]!=null?String(row[i]).trim():"";},tx=[],pos=0,neg=0;
+  rows.slice(hi+1).forEach(function(row){
+    var d=bankDate(g(row,col.date));if(!d)return;   /* Fusszeilen wie «Kontostand;…» fallen hier weg */
+    var a=null,de=bankNum(g(row,col.deb)),cr=bankNum(g(row,col.cre));
+    if(de!=null&&de!==0)a=-Math.abs(de);else if(cr!=null&&cr!==0)a=Math.abs(cr);
+    if(a==null)a=bankNum(g(row,col.amt));
+    if(a==null||a===0)return;
+    if(a>0)pos++;else neg++;
+    var nm=g(row,col.name);
+    if(col.payee>=0||col.payer>=0){var pe=g(row,col.payee),pr=g(row,col.payer);nm=(a<0?pe:pr)||nm||(a<0?pr:pe);}
+    var text=col.text.map(function(i){return g(row,i);}).filter(Boolean).join(" · ");
+    var cu=g(row,col.cur).toUpperCase().match(/[A-Z]{3}/);
+    tx.push({d:d,a:a,cur:cu?cu[0]:"",name:nm,text:text,cred:g(row,col.cred)});
+  });
+  /* Kreditkarten-Abrechnungen führen Einkäufe positiv */
+  if(col.card&&col.deb<0&&pos>neg*4)tx.forEach(function(t){t.a=-t.a;});
+  var hc=rows[hi].join("|"),cur=/\bCHF\b/i.test(hc)?"CHF":(/EUR|€/i.test(hc)?"EUR":"");
+  if(cur)tx.forEach(function(t){if(!t.cur)t.cur=cur;});
+  return {fmt:"CSV",bank:bankBankOf(rows[hi]),tx:tx};
+}
+/* ---- camt.052/053/054 ---- */
+function bankCamt(txt){
+  var doc=new DOMParser().parseFromString(txt,"application/xml");
+  if(doc.getElementsByTagName("parsererror").length)return null;
+  var all=function(el,n){return Array.prototype.slice.call(el.getElementsByTagNameNS("*",n));};
+  var one=function(el,n){return el?all(el,n)[0]||null:null;};
+  var kid=function(el,n){if(!el)return null;for(var i=0;i<el.children.length;i++)if(el.children[i].localName===n)return el.children[i];return null;};
+  var tx=[],acur=(one(one(doc,"Acct"),"Ccy")||{}).textContent||"";
+  all(doc,"Ntry").forEach(function(n){
+    var st=kid(n,"Sts");if(st&&/PDNG|INFO/.test(st.textContent))return;
+    var amt=kid(n,"Amt"),ind=(kid(n,"CdtDbtInd")||{}).textContent,sg=ind==="DBIT"?-1:1;
+    var bd=kid(n,"BookgDt")||kid(n,"ValDt"),d=bankDate((one(bd,"Dt")||one(bd,"DtTm")||{}).textContent);if(!d)return;
+    var cur=amt?amt.getAttribute("Ccy")||acur:acur,info=(kid(n,"AddtlNtryInf")||{}).textContent||"";
+    var tds=all(n,"TxDtls");
+    if(!tds.length){tx.push({d:d,a:sg*(+amt.textContent),cur:cur,name:"",text:info,cred:""});return;}
+    tds.forEach(function(t){
+      var ta=kid(t,"Amt")||one(one(t,"TxAmt"),"Amt"),v=tds.length>1&&ta?+ta.textContent:+amt.textContent;
+      var ti=(kid(t,"CdtDbtInd")||{}).textContent,s2=ti?(ti==="DBIT"?-1:1):sg;
+      var rp=one(t,"RltdPties"),party=sg<0?kid(rp,"Cdtr"):kid(rp,"Dbtr"),nm=(one(party,"Nm")||{}).textContent||"";
+      if(!nm){var up=sg<0?kid(rp,"UltmtCdtr"):kid(rp,"UltmtDbtr");nm=(one(up,"Nm")||{}).textContent||"";}
+      var us=all(t,"Ustrd").map(function(x){return x.textContent;}).join(" "),ad=(one(t,"AddtlTxInf")||{}).textContent||"";
+      var cred=(one(one(t,"CdtrSchmeId"),"Id")||{}).textContent||"";
+      tx.push({d:d,a:s2*v,cur:cur,name:nm.trim(),text:[us,ad,tds.length>1?"":info].filter(Boolean).join(" · ").trim(),cred:cred.trim()});
+    });
+  });
+  var ver=(txt.match(/camt\.05[234]/)||["camt"])[0];
+  return {fmt:ver,bank:"",tx:tx};
+}
+/* ---- MT940 ---- */
+function bankMt940(txt){
+  var cur=((txt.match(/:60[FM]:[CD]\d{6}([A-Z]{3})/)||[])[1])||"",tx=[];
+  var parts=txt.replace(/\r/g,"").split(/\n(?=:61:)/);
+  parts.slice(1).forEach(function(p){
+    var m=p.match(/^:61:(\d{6})(\d{4})?(R?[CD])[A-Z]?([\d,]+)/);if(!m)return;
+    var d=bankDate("20"+m[1].slice(0,2)+m[1].slice(2,4)+m[1].slice(4,6)),v=+m[4].replace(",",".");
+    var sg=/D/.test(m[3])!==/^R/.test(m[3])?-1:1;
+    var k86=(p.split(/\n:86:/)[1]||"").split(/\n:\d\d[A-Z]?:/)[0].replace(/\n/g,"");
+    var f={};k86.replace(/\?(\d\d)([^?]*)/g,function(_,k,v){f[k]=(f[k]||"")+v;return "";});
+    var purp=["20","21","22","23","24","25","26","27","28","29","60","61","62","63"].map(function(k){return f[k]||"";}).join("");
+    var cred=(purp.match(/CRED\+(\S{8,35}?)(?=[A-Z]{4}\+|$|\s)/)||[])[1]||"";
+    var svwz=(purp.match(/SVWZ\+(.*)$/)||[])[1]||purp.replace(/[A-Z]{4}\+\S*/g," ");
+    tx.push({d:d,a:sg*v,cur:cur,name:((f["32"]||"")+(f["33"]||"")).trim(),text:svwz.trim(),cred:cred});
+  });
+  return {fmt:"MT940",bank:"",tx:tx};
+}
+function bankRead(buf){
+  var txt=typeof buf==="string"?buf:bankDecode(buf),r=null;
+  if(/<\s*(\w+:)?Document[\s>]/.test(txt)&&/camt\.05[234]/.test(txt))r=bankCamt(txt);
+  else if(/(^|\n):20:/.test(txt)&&/\n:61:/.test(txt))r=bankMt940(txt);
+  else r=bankCsv(txt);
+  if(!r||!r.tx.length)return null;
+  r.tx.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
+  r.from=r.tx[0].d;r.to=r.tx[r.tx.length-1].d;
+  return r;
+}
+/* ---- Name aus Buchungstext ---- */
+var BKPRE=/^(?:KAUF\/DIENSTLEISTUNG|KAUF\/ONLINE[- ]SHOPPING|ONLINE[- ]SHOPPING|EINKAUF(?: ZKB)?(?: VISA)?(?: DEBIT)?(?: CARD)?|LASTSCHRIFT|LSV:?|BELASTUNG|E-?RECHNUNG|E-?BILL:?|GIRO (?:AN|AUSLAND|POST|BANK|INTERN)|ZAHLUNG:?|DAUERAUFTRAG:?|SEPA[- ](?:BASIS)?LASTSCHRIFT|FOLGELASTSCHRIFT|ERSTLASTSCHRIFT|KARTENZAHLUNG|DEBITKARTE|UEBERWEISUNG|ÜBERWEISUNG|ZAHLUNGSAUFTRAG|PURCHASE|PAYMENT|VISA-UMSATZ|E-BANKING-AUFTRAG)\b[\s:,.-]*/i;
+function bankNameFrom(t){
+  t=String(t||"").replace(/\s+/g," ").trim();
+  var m=t.match(/(?:Empf(?:ä|ae)nger|Auftraggeber|Beg(?:ü|ue)nstigter)\s*:\s*(.+?)(?=\s+(?:Kto\/IBAN|IBAN|Konto|BLZ|Buchungstext|Verwendungszweck)\b|$)/i);
+  if(m)return m[1].trim();
+  for(var i=0;i<4;i++){var o=t;t=t.replace(BKPRE,"").replace(/^VOM \d{1,2}\.\d{1,2}\.\d{2,4}\s*/i,"").replace(/^KARTEN?\s*NR\.?\s*[X\d* ]+?(?=\s[A-Za-z])\s*/i,"").replace(/^Nr\.\s*[x\d ]+,\s*/i,"");if(o===t)break;}
+  t=t.split(/\s(?:MITTEILUNGEN|REFERENZ|REFERENZEN|ZAHLUNGSGRUND|IBAN|CH\d{2}|DE\d{2}|\d{4,5}\s+[A-ZÄÖÜa-zäöü])|\s·\s|,/)[0];
+  var lg=t.match(/^(.*?\b(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\.V\.|e\.\s?V\.|Genossenschaft))(?:\s|$)/i);if(lg)t=lg[1];
+  return t.split(" ").slice(0,5).join(" ").trim();
+}
+function bankPretty(s){s=String(s||"").trim();if(s&&s===s.toUpperCase()&&/[A-Z]{3}/.test(s))s=s.toLowerCase().replace(/(^|[\s\-\/(])([a-zäöü])/g,function(_,a,b){return a+b.toUpperCase();});return s.replace(/\.com$/i,"");}
+var BKSTOP=["com","www","net","online","payment","payments","europe","international","sca","bv","debit","card","karte","nr","los","gatos","stockholm"];
+function bankTok(s){return ltok(s).filter(function(t){return !/\d/.test(t)&&BKSTOP.indexOf(t)<0;});}
+/* Katalog: alle markanten Wörter des Namens müssen vorkommen; kurze Namen (CSS, O2) nur im Namen, nicht im Freitext */
+var BKALIAS={"Rundfunkbeitrag":/rundfunk|beitragsservice/,"Serafe":/\bserafe\b/,"SBB Halbtax":/halbtax/,"Deutschlandticket":/deutschlandticket|d ticket/,"Die Mobiliar":/\bmobiliar\b/,"Amazon Prime":/amazon prime|prime video|amzn prime/,"Zurich":/zurich (versicherung|insurance|schweiz|lebens)/};
+function bankTpl(name,text,cur){
+  var nn=" "+lnorm(name)+" ",nt=" "+lnorm(name+" "+text)+" ",cc=cur==="EUR"?"DE":(cur==="CHF"?"CH":""),via=BKVIA.test(nn),best=null;
+  var better=function(t){return !best||((t[1]===cc)-(best[1]===cc)||t[0].length-best[0].length)>0;};
+  TPL.forEach(function(t){
+    var al=BKALIAS[t[0]];if(al){if(al.test(nt)&&better(t))best=t;return;}
+    var tk=ltok(t[0]);if(!tk.length||(t[1]&&cc&&t[1]!==cc&&TPL.some(function(o){return o!==t&&o[1]===cc&&ltok(o[0])[0]===tk[0];})))return;
+    /* ein Wort (CSS, Zurich, Netflix): nur im Namen, sonst Fehltreffer über Ortsnamen; bei PayPal & Co. auch im Freitext */
+    var hay=tk.length===1&&!via?nn:nt;
+    if(tk.every(function(x){return hay.indexOf(" "+x+" ")>=0;})&&better(t))best=t;
+  });
+  return best;
+}
+var BKSKIP=/bancomat|geldautomat|bargeld|\batm\b|\bcash\b|umbuchung|\bu(e)?bertrag\b|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b/;
+var BKVIA=/paypal|klarna|amazon|apple com bill|google|stripe|adyen|sumup|wero|twint/;
+/* Kategorie: Katalog, sonst Stichwörter, sonst Branchenregel, sonst Sonstiges */
+var BKCAT=[[/steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Steuern & Gebühren"],
+  [/miete|mietzins|immobilien|hausverwaltung|liegenschaft|wohnbau|wohnung|nebenkosten/,"Wohnen"],
+  [/kita|krippe|schule|kindergarten|musikschule|hort/,"Familie & Bildung"],
+  [/leasing|sbb|halbtax|deutschlandticket|bahn|bvg|parking|parkplatz|garage|tankstelle/,"Mobilität"],
+  [/fitness|sport|verein|club|gym|mcfit|yoga/,"Freizeit & Sport"],
+  [/versicherung|praemie|police|krankenkasse|kranken/,"Versicherung"],
+  [/strom|energie|gas|wasser|stadtwerke|abschlag|akonto/,"Energie & Wasser"],
+  [/swisscom|sunrise|salt|telekom|vodafone|mobilfunk|internet|festnetz/,"Mobilfunk & Internet"],
+  [/netflix|spotify|abo|zeitung|streaming|disney|apple com bill|youtube/,"Abos & Medien"]];
+function bankCat(s){
+  if(s.tpl){var c=catByKey(s.tpl[2]);if(allCats().indexOf(c)>=0)return c;}
+  var t=lnorm(s.name+" "+s.text);
+  for(var i=0;i<BKCAT.length;i++)if(BKCAT[i][0].test(t)){var k=catByKey(BKCAT[i][1]);if(allCats().indexOf(k)>=0)return k;}
+  return "Sonstiges";
+}
+/* ---- Wiederkehrende Belastungen finden ---- */
+function bankCycle(days){var C=[[1,25,36],[2,55,66],[3,84,98],[6,170,195],[12,350,380]];
+  for(var i=0;i<C.length;i++)if(days>=C[i][1]&&days<=C[i][2])return C[i][0];return 0;}
+function bankFind(r,ign){
+  ign=ign||state.settings.bankIgn||[];
+  var D=function(s){return parseD(s);},dd=function(a,b){return Math.round((D(b)-D(a))/864e5);};
+  var groups={},home=state.settings.home;
+  r.tx.forEach(function(t){
+    if(t.a>=0)return;
+    var nm=(t.name||bankNameFrom(t.text)).split(/;|\s·\s/)[0].trim(),tp=bankTpl(nm,t.text,t.cur||home),hay=lnorm(nm+" "+t.text);
+    if(BKSKIP.test(hay))return;
+    var tk=bankTok(nm),key=tp?"tpl:"+tp[0]:(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
+    if(!key)return;key=key+"|"+(t.cur||home);
+    (groups[key]=groups[key]||{key:key,tpl:tp,tx:[],names:{},cur:t.cur||home}).tx.push(t);
+    groups[key].names[nm]=(groups[key].names[nm]||0)+1;
+  });
+  /* Gleiches erstes Wort, ähnlicher Betrag → zusammenführen (NETFLIX.COM / Netflix.com Amsterdam) */
+  var ks=Object.keys(groups);
+  ks.forEach(function(a){ks.forEach(function(b){
+    var A=groups[a],B=groups[b];if(a===b||!A||!B||A.tpl||B.tpl||A.cur!==B.cur||/^cred:/.test(a)||/^cred:/.test(b))return;
+    var fa=a.split(" ")[0],fb=b.split(" ")[0];if(fa!==fb||fa.length<4)return;
+    var ma=A.tx[A.tx.length-1].a,mb=B.tx[B.tx.length-1].a;if(Math.abs(ma-mb)>Math.abs(ma)*0.1)return;
+    A.tx=A.tx.concat(B.tx).sort(function(x,y){return x.d<y.d?-1:1;});Object.keys(B.names).forEach(function(n){A.names[n]=(A.names[n]||0)+B.names[n];});delete groups[b];
+  });});
+  var ref=r.to,span=dd(r.from,r.to),out=[],known=[];
+  Object.keys(groups).forEach(function(k){
+    var g=groups[k],tx=[],seen={};
+    g.tx.forEach(function(t){var id=t.d+"|"+t.a;if(seen[id])return;seen[id]=1;tx.push(t);});
+    var name=g.tpl?g.tpl[0]:bankPretty(Object.keys(g.names).sort(function(a,b){return g.names[b]-g.names[a];})[0]);
+    var am=tx.map(function(t){return Math.round(-t.a*100)/100;}),last=am[am.length-1],n=tx.length;
+    var iv=[];for(var i=1;i<n;i++)iv.push(dd(tx[i-1].d,tx[i].d));
+    var cyc=0,conf="",varies=false,ch=null;
+    if(n>=2){
+      var cs=iv.map(bankCycle),cnt={};cs.forEach(function(c){if(c)cnt[c]=(cnt[c]||0)+1;});
+      cyc=+Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];})[0]||0;
+      /* bei Monatszahlungen darf eine fehlen (Intervall ~2 Monate) */
+      var hit=cs.filter(function(c){return c===cyc||(cyc===1&&c===2);}).length;
+      if(!cyc||hit<iv.length*0.7)return;
+      /* Beträge: höchstens zwei Stufen (Preisänderung) oder ±5 % um den Median, sonst variabel (Einkäufe) */
+      var lv=[];am.forEach(function(v){if(!lv.length||Math.abs(lv[lv.length-1]-v)>0.004)lv.push(v);});
+      var dist={};am.forEach(function(v){dist[v.toFixed(2)]=1;});
+      if(Object.keys(dist).length<=2&&lv.length<=2){
+        if(lv.length===2){var j=am.indexOf(lv[1]);ch={from:tx[j].d,prev:lv[0],amount:lv[1]};}
+      } else {
+        var srt=am.slice().sort(function(a,b){return a-b;}),med=srt[Math.floor(srt.length/2)];
+        if(am.filter(function(v){return Math.abs(v-med)<=med*0.05;}).length<am.length*0.7)return;
+        varies=true;last=med;
+      }
+      /* beendet? letzte Zahlung deutlich länger her als der Rhythmus */
+      if(dd(tx[n-1].d,ref)>cyc*30.5*1.5+7)return;
+      conf=n>=3&&!varies?"hoch":"mittel";
+    } else {
+      /* Einzelzahlung nur bei bekanntem Anbieter oder SEPA-Lastschrift mit Gläubiger-ID; Rhythmus vermutlich jährlich */
+      var t0=tx[0];if(!g.tpl&&(!t0.cred||BKVIA.test(lnorm(name))))return;
+      if(dd(t0.d,ref)<40&&span>40){cyc=1;}else cyc=12;
+      if(g.tpl&&!g.tpl[1]&&cyc===12&&dd(t0.d,ref)>45)return;   /* internationale Monatsabos (Netflix…) mit nur einer Zahlung: eher Einkauf */
+      conf="niedrig";
+    }
+    /* nächste Zahlung: ab letzter Buchung im Rhythmus weiter bis heute */
+    var lastD=D(tx[n-1].d),due=lastD,gg=0,t0d=today();while(due<t0d&&gg++<400)due=addMonthsE(lastD,cyc*gg);
+    var s={id:k,key:k,name:name,cur:g.cur,amount:Math.round(last*100)/100,change:ch,cycle:cyc,due:iso(due),last:tx[n-1].d,first:tx[0].d,n:n,
+      dates:tx.map(function(t){return t.d;}),amounts:am,conf:conf,varies:varies,tpl:g.tpl,text:tx[n-1].text,cred:tx[n-1].cred};
+    s.cat=bankCat(s);
+    s.match=bankMatch(s);
+    if(s.match&&s.match.kind==="known"){known.push(s);return;}
+    if(ign.indexOf(bankIgnKey(s))>=0){s.ignored=true;}
+    out.push(s);
+  });
+  var rank={hoch:0,mittel:1,niedrig:2};
+  out.sort(function(a,b){return (a.match?0:1)-(b.match?0:1)||rank[a.conf]-rank[b.conf]||(b.amount/b.cycle)-(a.amount/a.cycle);});
+  return {sugg:out,known:known,from:r.from,to:r.to,n:r.tx.length,fmt:r.fmt,bank:r.bank};
+}
+function bankIgnKey(s){return s.key.split("|")[0];}
+/* Abgleich mit erfassten Verträgen: gleicher Vertragspartner (Katalogname oder gemeinsames markantes Wort) und gleiche Währung */
+function bankMatch(s){
+  var tk=bankTok(s.name).filter(function(t){return t.length>=4&&LGEN.indexOf(t)<0;}),best=null;
+  Object.keys(state.contracts).forEach(function(id){
+    var c=state.contracts[id];if(c.status==="cancelled"||isEnded(c)||(c.cur||"CHF")!==s.cur)return;
+    var ok=(s.tpl&&lnorm(c.partner)===lnorm(s.tpl[0]))||(tk.length&&bankTok(c.partner+" "+(c.label||"")).some(function(t){return tk.indexOf(t)>=0;}));
+    if(!ok)return;
+    var dm=Math.abs(curPrice(c)/(+c.cycle||1)-s.amount/s.cycle);
+    if(!best||dm<best.dm)best={id:id,dm:dm,c:c};
+  });
+  if(!best)return null;
+  var c=best.c,cp=curPrice(c),same=(+c.cycle||1)===s.cycle;
+  var diff=same?Math.abs(cp-s.amount):Math.abs(cp/(+c.cycle||1)-s.amount/s.cycle)*(+c.cycle||1);
+  if(diff<=Math.max(0.05,cp*0.01)||s.varies)return {id:best.id,kind:"known"};
+  /* nur als Preisänderung melden, wenn der neue Betrag nach dem letzten erfassten Preis beginnt */
+  var from=s.change&&same?s.change.from:s.last;
+  return {id:best.id,kind:"price",old:cp,amount:same?s.amount:Math.round(s.amount/s.cycle*(+c.cycle||1)*100)/100,from:from};
+}
+/* Vorschlag → Vertrag (gleiches Gerüst wie csvToContracts) */
+function bankToContract(s,holders){
+  var t=s.tpl,base=s.change?s.change.prev:s.amount;
+  var c={partner:s.name,label:t?t[3]:"",cat:s.cat,amount:Math.round(base*100)/100,cur:s.cur,cycle:s.cycle,due:s.due,start:"",end:"",
+    notice:t?t[5]:0,noticeU:t?t[6]:"m",renew:"",cancTerm:t?t[7]||"":"",mand:!!(t&&t[9]),custNo:"",contrNo:"",holders:holders.slice(),
+    payM:"",payA:"",cancF:t?t[8]||"":"",cancUrl:t&&t[8]==="Online / Kundenkonto"?t[11]||"":"",trial:"",
+    web:t?t[4]:"",tel:t?t[14]||"":"",mail:t?t[13]||"":"",addr:t?t[12]||"":"",note:"",color:"",logoId:"",logoBg:"",
+    prices:s.change?[{from:s.change.from,amount:s.change.amount}]:[],docs:[],extras:[],status:"active",cancelledAt:"",t:Date.now()};
+  if(c.cat===catByKey("Steuern & Gebühren")){c.noCancel=true;c.mand=false;c.cancTerm="";}
+  return c;
+}
+/* Test-Haken (tests/bank/check.py) */
+window.KontivoBank=function(){return {read:bankRead,find:bankFind,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
 document.getElementById("csvImp").addEventListener("click",function(){document.getElementById("csvFile").click();});
 document.getElementById("csvFile").addEventListener("change",function(ev){
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;
