@@ -29,10 +29,13 @@ E = {
  "paypal": dict(s=[("Disney", 1, 9.99), ("Muster Cloud", 1, 9.49)]),
  "yearlyq": dict(s=[("Muster Wasserwerk", 3, 80), ("Muster Haftpflicht", 12, 120)]),
  "alltag": dict(s=[("Sunrise", 1, 39)]),
+ "kartenbez": dict(s=[("Spotify", 1, 13.95), ("YouTube Premium", 1, 15.9), ("Netflix", 1, 18.9), ("Notion", 1, 9.5), ("Apple", 1, 2.0)]),
+ "camtcodes": dict(s=[("Muster Versicherung", 1, 12.5), ("Muster Versicherung", 1, 12.5), ("Muster Energie", 1, 100.1), ("Neues Fitness", 1, 24.9, "mittel")]),
+ "alias": dict(s=[("Deutschlandticket", 1, 63)]),
  "gepflegt": dict(s=[], k=["Swisscom", "Immo Seeblick", "Die Mobiliar"]),
 }
-JS = """([txt,contracts])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);
- return {sugg:f.sugg.map(function(s){return [s.name,s.cycle,s.amount,s.due,!!s.match]}),
+JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);
+ return {sugg:f.sugg.map(function(s){return [s.name,s.cycle,s.amount,s.due,!!s.match,s.conf]}),
   known:f.known.map(function(s){return (B.state.contracts[s.match.id]||{}).partner}),miss:([]).map(function(id){return B.state.contracts[id].partner})};}"""
 fails = 0
 with sync_playwright() as p:
@@ -41,12 +44,13 @@ with sync_playwright() as p:
     st = {"settings": {"home": "CHF", "onboarded": 9, "holders": ["Sinan"], "rateTs": 9999999999999}, "contracts": {}, "incomes": {}}
     pg.evaluate("s=>localStorage.setItem('vertraege.v1',s)", json.dumps(st)); pg.reload(); pg.wait_for_timeout(400)
     for k, e in E.items():
-        r = pg.evaluate(JS, [C[k]["txt"], C[k].get("contracts")]); errs = []
+        r = pg.evaluate(JS, [C[k]["txt"], C[k].get("contracts"), C[k].get("alias")]); errs = []
         if not r: errs.append("nicht gelesen")
         else:
             got = list(r["sugg"])
-            for nm, cy, am in e["s"]:
-                h = [g for g in got if g[0].lower().startswith(nm.lower()) and g[1] == cy and abs(g[2] - am) < .01]
+            for x in e["s"]:
+                nm, cy, am = x[:3]; cf = x[3] if len(x) > 3 else None
+                h = [g for g in got if g[0].lower().startswith(nm.lower()) and g[1] == cy and abs(g[2] - am) < .01 and (not cf or g[5] == cf)]
                 if not h: errs.append(f"fehlt {nm} {cy}M {am}")
                 else: got.remove(h[0])
                 if h and e.get("nomatch") and h[0][4]: errs.append(f"{nm} fälschlich einem Vertrag zugeordnet")
