@@ -955,6 +955,11 @@ body{display:flex;flex-direction:column}
 .sw{width:36px;height:36px;border-radius:9px;border:2px solid transparent}
 .sw[aria-pressed="true"]{border-color:var(--ink)}
 .logotap{display:flex;flex-direction:column;align-items:center;gap:4px;width:max-content;margin:0 0 12px;padding:0}
+.ftop{display:flex;align-items:center;gap:14px;margin:0 0 12px}.ftop .logotap{margin:0}
+/* Dokumente-Chip (Formular und Detail) */
+.dchip{display:inline-flex;align-items:center;gap:6px;min-height:34px;font-size:13.5px;font-weight:600;color:var(--teal);background:color-mix(in srgb,var(--teal) 13%,transparent);padding:6px 12px;border-radius:99px}
+.dchip svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.dchip[aria-expanded="true"]{background:var(--teal);color:#fff}
 .logotap .mark{width:56px;height:56px;border-radius:14px;font-size:20px}
 .logotap span{font-size:11.5px;color:var(--teal);font-weight:600;line-height:1}
 .logotap[aria-expanded="true"] .mark{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--teal)}
@@ -1419,7 +1424,13 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 
   <div id="fMain">
   <h3>Vertrag</h3>
-  <button type="button" class="logotap" id="logoTap" aria-label="Logo und Farbe ändern" aria-expanded="false"><div class="mark" id="logoPrev">?</div><span>Logo</span></button>
+  <div class="ftop"><button type="button" class="logotap" id="logoTap" aria-label="Logo und Farbe ändern" aria-expanded="false"><div class="mark" id="logoPrev">?</div><span>Logo</span></button>
+    <button type="button" class="dchip" id="fDocsChip" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/></svg><span id="fDocsN">Dokument anhängen</span></button></div>
+  <details class="logodet" id="oDocs"><summary>Dokumente</summary><div class="logopanel">
+    <div class="docs" id="docList"></div>
+    <button class="lbtn main" id="docUp" type="button">Datei anhängen · PDF oder Bild</button>
+    <input type="file" id="docFile" accept="application/pdf,image/png,image/jpeg,image/webp">
+    <p class="mdhint" style="margin:8px 0 0">Zum Beispiel Vertrag, Police oder Rechnung. Bleibt auf diesem Gerät.</p></div></details>
   <details class="logodet" id="oLogo"><summary>Logo &amp; Farbe</summary><div class="logopanel">
     <button class="lbtn main" id="logoAuto" type="button">Logo automatisch finden</button>
     <div class="lcands" id="logoCands"></div>
@@ -1490,7 +1501,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <p class="note" style="margin:6px 0 0">Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.</p></div>
 
 
-  <button type="button" class="morerow" id="fMoreBtn"><span class="t"><b>Weitere Angaben</b><small id="fMoreN">Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …</small></span><em>›</em></button>
+  <button type="button" class="morerow" id="fMoreBtn"><span class="t"><b>Weitere Angaben</b><small id="fMoreN">Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt …</small></span><em>›</em></button>
   <div style="height:8px"></div>
   </div>
 
@@ -1545,10 +1556,6 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   </div>
   <div class="field"><label for="fNote">Notiz</label><textarea id="fNote" placeholder="Zugangsweg, Ansprechpartner, Besonderheiten"></textarea></div>
 
-  <h3>Dokumente<em id="oDocsN"></em></h3>
-  <div class="docs" id="docList"></div>
-  <button class="mini" id="docUp">Datei anhängen — PDF oder Bild</button>
-  <input type="file" id="docFile" accept="application/pdf,image/png,image/jpeg,image/webp">
   <div style="height:8px"></div>
   </div>
 </div>
@@ -1652,6 +1659,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 <div class="sheet" id="sheetDetail" role="dialog" aria-modal="true" aria-label="Vertragsdetails">
   <div class="grab"></div>
   <div id="detailBody"></div>
+  <input type="file" id="docFileD" accept="application/pdf,image/png,image/jpeg,image/webp">
 </div>
 
 
@@ -2975,6 +2983,7 @@ document.getElementById("logoAll").addEventListener("click",function(){
   ids.forEach(function(k){putContract(k,Object.assign({},state.contracts[k],{logoId:draft.logoId,logoBg:draft.logoBg||"#FFFFFF"}));});
   render();paintLogoAll();toast("Logo bei "+ids.length+(ids.length>1?" Verträgen":" Vertrag")+" übernommen");});
 function paintDocs(){paintOptCounts();
+  var n=(draft.docs||[]).length;document.getElementById("fDocsN").textContent=n?cntTxt(n,"Dokument","Dokumente"):"Dokument anhängen";
   var l=document.getElementById("docList");l.innerHTML="";
   (draft.docs||[]).forEach(function(d,i){
     var row=document.createElement("div");row.className="doc";
@@ -3094,6 +3103,7 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   trialD="";
   setTermMode(c&&c.noCancel?"tax":(c&&(c.end||c.renew))?"fixed":(c&&c.trial&&!c.trialKept?"trial":"open"));
   document.getElementById("oLogo").open=false;document.getElementById("logoTap").setAttribute("aria-expanded","false");
+  document.getElementById("oDocs").open=false;document.getElementById("fDocsChip").setAttribute("aria-expanded","false");
   paintCats();paintSwatches();paintLogo();paintDocs();
   document.getElementById("logoUp").hidden=!assets;
   document.getElementById("docUp").hidden=!assets;
@@ -3460,19 +3470,20 @@ function syncWatch(){var f=document.getElementById("fNoCancel").checked;
   if(f&&termMode!=="tax")setTermMode("tax");else if(!f&&termMode==="tax")setTermMode("open");paintOptCounts();}
 ["fMand","fNoWatch"].forEach(function(i){document.getElementById(i).addEventListener("change",paintOptCounts);});
 document.getElementById("iLogoTap").addEventListener("click",function(){var d=document.getElementById("oILogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
-document.getElementById("logoTap").addEventListener("click",function(){var d=document.getElementById("oLogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
+document.getElementById("logoTap").addEventListener("click",function(){var d=document.getElementById("oLogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);if(d.open){document.getElementById("oDocs").open=false;document.getElementById("fDocsChip").setAttribute("aria-expanded","false");}});
+/* Dokumente-Chip neben dem Logo: Liste + «Datei anhängen» als Panel wie beim Logo (SwiftUI: Button mit .sheet bzw. DisclosureGroup) */
+document.getElementById("fDocsChip").addEventListener("click",function(){var d=document.getElementById("oDocs");d.open=!d.open;this.setAttribute("aria-expanded",d.open);if(d.open){document.getElementById("oLogo").open=false;document.getElementById("logoTap").setAttribute("aria-expanded","false");}});
 function syncCancUrl(){document.getElementById("fCancUrlW").hidden=termMode==="tax"||document.getElementById("fCancF").value!=="Online / Kundenkonto";}
 document.getElementById("fCancF").addEventListener("change",syncCancUrl);
 function paintOptCounts(){
   var n=(draft.prices||[]).length,d=(draft.docs||[]).length,xn=(draft.extras||[]).length,g=function(id){return (document.getElementById(id).value||"").trim();};
   document.getElementById("oExtraN").textContent=xn?xn+" erfasst":"";
   document.getElementById("oPriceN").textContent=n?n+(n===1?" Änderung":" Änderungen"):"";
-  document.getElementById("oDocsN").textContent=d?d+(d===1?" Datei":" Dateien"):"";
   var parts=[n?n+(n===1?" Preisänderung":" Preisänderungen"):"",xn?xn+(xn===1?" Sonderzahlung":" Sonderzahlungen"):"",
     g("fCustNo")?"Kundennummer":"",g("fContrNo")?"Vertragsnummer":"",g("fPayM")?"Zahlungsart":"",g("fPayA")?"Belastet über":"",
-    g("fAddr")?"Adresse":"",g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",d?d+(d===1?" Datei":" Dateien"):"",
+    g("fAddr")?"Adresse":"",g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",
     document.getElementById("fMand").checked?"Pflichtvertrag":"",document.getElementById("fNoWatch").checked?"Ohne Erinnerung":""].filter(Boolean);
-  var el=document.getElementById("fMoreN");el.textContent=parts.length?parts.join(" · "):"Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …";el.classList.toggle("on",!!parts.length);
+  var el=document.getElementById("fMoreN");el.textContent=parts.length?parts.join(" · "):"Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt …";el.classList.toggle("on",!!parts.length);
 }
 /* Adresse im Vertragsformular wie auf der Vertragspartner-Seite: Felder Firma/Zusatz/Strasse/PLZ Ort/Land, gespeichert als Text in #fAddr */
 function fAddrPaint(){var pn=document.getElementById("fPartner").value,o=addrSplit(document.getElementById("fAddr").value,pn),F=function(i){var f=PA_F[i],pl=i===0?firmPh(pn):f[2];
@@ -4278,11 +4289,12 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var acts=(c.cancelPer||c.status==="cancelled"||fixd?"":function(){var v=cancVia(c);return '<button type="button" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
       (v==="online"?"Online kündigen":v==="mail"?"Per E-Mail kündigen":v==="post"?"Kündigungsschreiben":"Kündigen …")+'</button>';}())+
     (c.status!=="cancelled"?'<button type="button" data-act="pause">'+(isPaused(c)?"Fortsetzen":"Pausieren")+"</button>":"");
-  var docs=(c.docs||[]).map(function(d,i){return '<div class="doc"><button class="open" data-doc="'+i+'">'+(isPdf(d)?"📄 ":"🖼 ")+esc(d.name)+"</button></div>";}).join("");
+  var nDocs=(c.docs||[]).length;
   document.getElementById("detailBody").innerHTML=
     '<div class="shbar"><button class="shx" data-act="close">Schliessen</button><h2>'+esc(titleOf(c))+'</h2><button class="shok" data-act="edit">Bearbeiten</button></div>'+
     '<div class="detailhead">'+markHtml(c)+'<div style="flex:1;min-width:0"><h2 style="margin:0">'+esc(titleOf(c))+"</h2>"+
-    (metaOf(c)?'<div style="font-size:13px;color:var(--ink2)">'+esc(metaOf(c))+"</div>":"")+"</div>"+
+    (metaOf(c)?'<div style="font-size:13px;color:var(--ink2)">'+esc(metaOf(c))+"</div>":"")+
+    '<button type="button" class="dchip" data-act="docs" style="margin-top:7px">'+CLIP_IC+"<span>"+(nDocs?cntTxt(nDocs,"Dokument","Dokumente"):"Dokument anhängen")+"</span></button></div>"+
     "</div>"+
     (pill?'<div class="pills">'+pill+"</div>":'<div style="height:10px"></div>')+
     (acts?'<div class="dacts">'+acts+"</div>":"")+
@@ -4295,7 +4307,6 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       (c.mail?'<button data-link="mailto:'+esc(c.mail)+'" data-copy="'+esc(c.mail)+'"><span>E-Mail</span><span>'+esc(c.mail)+'</span></button>':"")+'</div>':"")+
     hist+xh+
     (c.note?'<h3 class="dsec">Notiz</h3><div style="font-size:14.5px;white-space:pre-wrap">'+esc(c.note)+"</div>":"")+
-    (docs?'<h3 class="dsec">Dokumente</h3><div class="docs" style="margin-bottom:16px">'+docs+"</div>":"")+
     '<div style="height:14px"></div>'+
     (c.cancelPer?'<button class="ghost" data-act="uncancel">Kündigung zurücknehmen</button>':"")+
     (isKept(c)?'<button class="ghost" data-act="unkeep">Entscheid «Behalten» zurücksetzen</button>':"")+
@@ -4306,14 +4317,13 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       :'<button class="ghost" data-act="cancel">Als gekündigt ins Archiv</button>')+
     '<button class="ghost danger" data-act="delete">Vertrag löschen</button></div></details>';
   var body=document.getElementById("detailBody");
-  body.querySelectorAll("[data-doc]").forEach(function(b){
-    b.addEventListener("click",function(){openDoc((c.docs||[])[+b.dataset.doc]);});});
   body.querySelectorAll("[data-link]").forEach(function(b){
     b.addEventListener("click",function(){openLink(b.dataset.link,b.dataset.copy);});});
   body.querySelectorAll("[data-act]").forEach(function(b){
     b.addEventListener("click",function(){
       var a=b.dataset.act;
       if(a==="close"){closeSheets();return;}
+      if(a==="docs"){openDocsPick(idv);return;}
       if(a==="edit"){closeSheets();setTimeout(function(){openForm(c);},180);}
       else if(a==="dup"){closeSheets();setTimeout(function(){openForm(c,true);},180);}
       else if(a==="pause"){
@@ -4375,6 +4385,32 @@ document.addEventListener("visibilitychange",function(){if(document.visibilitySt
   setTimeout(function(){var T=tr?addDays(parseD(c.trial),-1):termEnd(Object.assign({_id:id},c));
     ask({title:"Gekündigt?",text:"«"+titleOf(c)+"» als gekündigt markieren"+(T?", läuft bis "+fmtD(iso(T)):"")+". Der Vertrag zählt bis zum Ende weiter und wandert danach ins Archiv.",ok:"Ja, gekündigt"})
       .then(function(y){if(y)markCancelled(id,tr);});},400);});
+/* Dokumente aus dem Detail: Liste antippen öffnet die Datei, «Datei anhängen» speichert direkt am Vertrag
+   (ohne Bearbeiten). SwiftUI: Sheet mit List + fileImporter/PhotosPicker, nativ zusätzlich Dokumentscanner */
+var CLIP_IC='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/></svg>';
+var docsFor="";
+function openDocsPick(idv){
+  var c=state.contracts[idv];if(!c)return;docsFor=idv;var ds=c.docs||[];
+  document.getElementById("pickTitle").textContent="Dokumente";
+  var l=document.getElementById("pickList");l.dataset.dim="docs";
+  l.innerHTML=(ds.length?ds.map(function(d,i){return '<button class="pick" data-dopen="'+i+'" type="button"><span>'+(isPdf(d)?"📄 ":"🖼 ")+esc(d.name)+'</span><span>Öffnen ›</span></button>';}).join("")
+      :'<p class="note" style="margin:0 2px 6px">Noch keine Dokumente, zum Beispiel Vertrag, Police oder Rechnung.</p>')+
+    (assets?'<button class="lbtn main" type="button" data-dadd style="margin-top:6px">Datei anhängen · PDF oder Bild</button>':"")+
+    '<p class="note" style="margin:10px 2px 0">Entfernen unter «Bearbeiten». Dateien bleiben auf diesem Gerät.</p>';
+  var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
+}
+document.getElementById("pickList").addEventListener("click",function(ev){if(this.dataset.dim!=="docs")return;
+  var c=state.contracts[docsFor];if(!c)return;var b=ev.target.closest("[data-dopen]");
+  if(b){openDoc((c.docs||[])[+b.dataset.dopen]);return;}
+  if(ev.target.closest("[data-dadd]"))document.getElementById("docFileD").click();});
+document.getElementById("docFileD").addEventListener("change",async function(ev){
+  var f=ev.target.files&&ev.target.files[0];ev.target.value="";var id=docsFor;if(!f||!assets||!state.contracts[id])return;
+  toast("Lade Datei…");
+  try{var r=await assets.upload(f);var c=state.contracts[id];if(!c)return;
+    putContract(id,Object.assign({},c,{docs:(c.docs||[]).concat([{id:r.id,name:f.name,type:f.type||guessType(f.name)}])}));
+    openDetail(id);openDocsPick(id);toast("Angehängt");}
+  catch(e){toast("Upload fehlgeschlagen");}
+});
 function openCancViaPick(idv,trial){
   var c=state.contracts[idv];if(!c)return;
   document.getElementById("pickTitle").textContent="Wie kündigst du «"+titleOf(c)+"»?";
