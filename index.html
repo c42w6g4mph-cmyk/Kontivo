@@ -487,6 +487,10 @@ body.hasplus .topadd{display:inline-flex}
 .kzt{background:var(--field);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;justify-content:center}.kzt b{font-size:20px;margin-top:3px}
 .kzt em{font-size:11px;margin-top:2px}
 @media (max-width:370px){.kzm b{font-size:28px}.kzt b{font-size:17px}}
+.dacts.low{margin:18px 0 0}.dacts.low button[data-kbtn]{background:var(--sunken);color:var(--ink)}
+.dfrist{margin:2px 0 8px;padding:12px 13px;border-radius:14px;background:color-mix(in srgb,var(--warn) 11%,var(--surface))}.dfrist b{display:block;font-size:15px;color:var(--warn)}.dfrist small{display:block;font-size:12.5px;color:var(--ink2);margin-top:2px}
+.dfrist.alert{background:color-mix(in srgb,var(--alert) 9%,var(--surface))}.dfrist.alert b{color:var(--alert)}
+.dfb{display:flex;gap:8px;margin-top:10px}.dfb button{flex:1;min-width:0;padding:10px;border-radius:10px;font-size:14px;font-weight:600;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dfb button[data-kbtn]{background:var(--teal);color:#fff}
 .dacts{display:flex;gap:8px;margin:2px 0 6px}.dacts button{flex:1;min-width:0;padding:11px 10px;border-radius:11px;font-size:14px;font-weight:600;background:var(--sunken);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dacts button[data-kbtn]{background:var(--teal);color:#fff}
 .trow .tst{flex:none;font-size:12.5px;color:var(--ink2);white-space:nowrap;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis}
 .trow .tst.kept{color:var(--ok)}
@@ -4257,6 +4261,8 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var gone=c.status==="cancelled"||!!c.cancelPer||endedByTerm(c),fixd=isFixed(c);
   var u=gone||fixd?{lvl:"",days:null,date:null}:urgency(c),nd=nextDue(c),e=effEnd(c);
   var rt=gone?null:renewTo(c);
+  /* Frist in ≤ 60 Tagen: Hinweis mit «Kündigen» oben, sonst Aktionen dezent unten */
+  var due60=!gone&&!fixd&&!!u.date&&u.days!==null&&u.days>=0&&u.days<=60&&!isAnytime(c)&&!c.noWatch&&!c.cancelPer&&!isKept(c)&&!!termEnd(c);
   /* Summe aller Zahlungen seit Vertragsbeginn bis heute (occurrences + Sonderzahlungen), nur mit erfasstem Beginn */
   var paidSoFar=null;(function(){var s0=parseD(c.start),t0=today();if(!s0||s0>=t0)return;var sum=0;
     payments(c,s0,t0).forEach(function(p){sum+=p.a;});if(sum>0.005)paidSoFar={sum:sum};})();
@@ -4281,7 +4287,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     c.start?["Beginn",fmtD(c.start)]:null,
     c.end?["Vertragsende",fmtD(iso(e))+(!gone&&termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
     fixd?["Kündigung",isTax(c)?"nicht kündbar · Steuern & Gebühren":"nicht kündbar"]:["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
-    u.date?(u.days>=0&&termEnd(c)?["",termLine(c,u),true]:["Nächster Termin","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)+" (abgelaufen)"]):null,
+    u.date&&!due60?(u.days>=0&&termEnd(c)?["",termLine(c,u),true]:["Nächster Termin","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)+" (abgelaufen)"]):null,
     c.mand&&!fixd?["Pflichtvertrag","nur Wechsel möglich"]:null,
     c.noWatch&&!fixd?["Frist","wird nicht beobachtet"]:null,
     fixd?null:rt?["Sonst verlängert bis",fmtD(iso(rt))]:(c.renew?["Verlängerung","automatisch um "+c.renew+(+c.renew===1?" Monat":" Monate")]:null),
@@ -4305,6 +4311,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
            isKept(c)?'<span class="pill">Behalten bis nächster Termin</span>':
            u.lvl==="alert"?'<span class="pill alert">Frist '+inDays(u.days)+"</span>":
            u.lvl==="warn"?'<span class="pill warn">Frist '+inDays(u.days)+"</span>":"";
+  if(due60)pill=pill.replace(/<span class="pill (alert|warn)">Frist [^<]*<\/span>/,"");
   if(!gone&&fixd&&!pill)pill='<span class="pill">Nicht kündbar</span>';
   if(!gone&&isPaused(c))pill='<span class="pill">Pausiert '+(c.pausedUntil?"bis "+fmtD(c.pausedUntil):"seit "+fmtD(c.pausedAt||iso(today())))+"</span>";
   var nc=nextChange(c);
@@ -4329,9 +4336,14 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       return '<div class="prow"><span class="pd">'+fmtD(x.date)+(x.note?" · "+esc(x.note):"")+(cr?'<span class="tag">Gutschrift</span>':"")+(parseD(x.date)>t2?'<span class="tag fut">geplant</span>':"")+
         '</span><span class="pa'+(cr?" cr":"")+'">'+(cr?"−":"")+money(Math.abs(x.amount))+" "+esc(c.cur)+"</span></div>";}).join("")+"</div>";}
   /* Hauptaktionen (Kündigen, Pausieren) als Leiste oben wie in «Fristen», seltene Aktionen bleiben unten */
-  var acts=(c.cancelPer||c.status==="cancelled"||fixd?"":function(){var v=cancVia(c);return '<button type="button" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
-      (v==="online"?"Online kündigen":v==="mail"?"Per E-Mail kündigen":v==="post"?"Kündigungsschreiben":"Kündigen …")+'</button>';}())+
-    (c.status!=="cancelled"&&!fixd&&!c.mand&&!isRent(c)?'<button type="button" data-act="pause">'+(isPaused(c)?"Fortsetzen":"Pausieren")+"</button>":"");
+  var kb=(c.cancelPer||c.status==="cancelled"||fixd?"":function(){var v=cancVia(c);return '<button type="button" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
+      (v==="online"?"Online kündigen":v==="mail"?"Per E-Mail kündigen":v==="post"?"Kündigungsschreiben":"Kündigen …")+'</button>';}()),
+    pb=(c.status!=="cancelled"&&!fixd&&!c.mand&&!isRent(c)?'<button type="button" data-act="pause">'+(isPaused(c)?"Fortsetzen":"Pausieren")+"</button>":""),
+    acts=due60?pb:kb+pb;
+  var fr="";if(due60){var D=u.date,T=termEnd(c),dn=u.days,yy=D.getFullYear()!==today().getFullYear();
+    fr='<div class="dfrist'+(dn<=7?" alert":"")+'"><b>Kündigen bis '+D.getDate()+". "+MON[D.getMonth()]+(yy?" "+D.getFullYear():"")+"</b><small>"+
+      (rt?"sonst verlängert bis "+fmtShort(rt):"Vertragsende "+fmtShort(T))+" · "+(dn===0?"heute":"noch "+dn+(dn===1?" Tag":" Tage"))+"</small>"+
+      '<div class="dfb">'+kb+'<button type="button" data-act="keep">Behalten</button></div></div>';}
   var nDocs=(c.docs||[]).length;
   document.getElementById("detailBody").innerHTML=
     '<div class="shbar"><button class="shx" data-act="close">Schliessen</button><h2>'+esc(titleOf(c))+'</h2><button class="shok" data-act="edit">Bearbeiten</button></div>'+
@@ -4340,7 +4352,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     '<button type="button" class="dchip" data-act="docs" style="margin-top:7px">'+CLIP_IC+"<span>"+(nDocs?cntTxt(nDocs,"Dokument","Dokumente"):"Dokument anhängen")+"</span></button></div>"+
     "</div>"+
     (pill?'<div class="pills">'+pill+"</div>":'<div style="height:10px"></div>')+kz+
-    (acts?'<div class="dacts">'+acts+"</div>":"")+
+    fr+
     (skr?'<p class="skr">Preiserhöhung: In Deutschland und der Schweiz besteht oft ein Sonderkündigungsrecht, meist innert 4–6 Wochen nach der Mitteilung. Massgebend ist dein Vertrag.</p>':"")+
     secs.map(function(sc){var rr=sc[1].filter(Boolean);if(!rr.length)return "";
       return '<h3 class="dsec">'+esc(sc[0])+'</h3><dl class="dgrp">'+rr.map(function(r){if(r[2])return '<div class="dl dtl">'+r[1]+"</div>";return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+(r[0]==="Vertragspartner"?'<button type="button" class="dlink" data-peopen="'+esc(String(r[1]).trim().toLowerCase())+'" data-peid="'+esc(c._id)+'">'+esc(r[1])+" ›</button>":esc(r[1]))+(r[3]?'<span class="dsub">'+esc(r[3])+"</span>":"")+"</dd></div>";}).join("")+"</dl>";}).join("")+
@@ -4350,6 +4362,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       (c.mail?'<button data-link="mailto:'+esc(c.mail)+'" data-copy="'+esc(c.mail)+'"><span>E-Mail</span><span>'+esc(c.mail)+'</span></button>':"")+'</div>':"")+
     hist+xh+
     (c.note?'<h3 class="dsec">Notiz</h3><div style="font-size:14.5px;white-space:pre-wrap">'+esc(c.note)+"</div>":"")+
+    (acts?'<div class="dacts low">'+acts+"</div>":"")+
     '<div style="height:14px"></div>'+
     (c.cancelPer?'<button class="ghost" data-act="uncancel">Kündigung zurücknehmen</button>':"")+
     (isKept(c)?'<button class="ghost" data-act="unkeep">Entscheid «Behalten» zurücksetzen</button>':"")+
@@ -4375,6 +4388,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
         else openPausePick(idv);}
       else if(a==="cancel"){c.status="cancelled";c.cancelledAt=iso(today());putContract(idv,stripId(c));closeSheets();render();toast("Ins Archiv verschoben");}
       else if(a==="uncancel"){var u1=stripId(c);u1.cancelPer="";u1.cancelledOn="";putContract(idv,u1);closeSheets();render();toast("Kündigung zurückgenommen");}
+      else if(a==="keep"){var k2=stripId(c);k2.keptFor=iso(termEnd(c));putContract(idv,k2);closeSheets();render();toast("Behalten — erledigt bis zum nächsten Termin");}
       else if(a==="unkeep"){var u2=stripId(c);u2.keptFor="";putContract(idv,u2);closeSheets();render();toast("Wieder offen");}
       else if(a==="reactivate"){c.status="active";c.cancelledAt="";putContract(idv,stripId(c));closeSheets();render();toast("Wieder aktiv");}
       else if(a==="delete"){ask({title:"Vertrag löschen?",text:"«"+titleOf(c)+"» wird endgültig gelöscht. Angehängte Dateien bleiben erhalten.",ok:"Löschen",danger:true})
