@@ -746,7 +746,13 @@ body.hasplus .topadd{display:inline-flex}
 .bkign{font-size:14px;color:var(--alert);padding:8px 0}.bkdone{font-size:14px;font-weight:600;padding:8px 16px;border-radius:10px;background:var(--ink);color:var(--paper)}
 .bkpr .bkmain{padding:10px 0}.bkpr .bktx small{white-space:normal}
 .bkempty{padding:24px 4px 8px;text-align:center}.bkempty b{font-size:16px}
-.bkknown{margin-top:14px!important}.bkshow{display:block;color:var(--teal);font-size:14px;font-weight:600;padding:10px 0}
+.bkknown{margin-top:18px!important}
+.bkkn .bkmain{cursor:default}.bkkn .bktx b,.bkkn .bkam{color:var(--ink2)}
+.bkok{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--ok) 16%,transparent);margin-right:2px}
+.bkok svg{width:15px;height:15px;fill:none;stroke:var(--ok);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.bkproof{background:var(--surface);border-radius:11px;padding:9px 12px;margin:10px 0 4px;display:flex;flex-direction:column;gap:2px}
+.bkproof span{font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em}.bkproof b{font-size:14px;font-weight:600;color:var(--ink);word-break:break-word}
+.bkproof small{font-size:12.5px;color:var(--ink2);word-break:break-word}.bkshow{display:block;color:var(--teal);font-size:14px;font-weight:600;padding:10px 0}
 .bkpriv{margin:12px 0 4px!important;color:var(--ink3)!important}
 .bkfoot{position:sticky;bottom:0;background:var(--surface);margin:10px -17px 0;padding:10px 17px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 .bkfoot .primary{margin:0}.bkfoot .primary:disabled{opacity:.45}
@@ -6748,7 +6754,7 @@ function bankFind(r,ign){
     /* nächste Zahlung: ab letzter Buchung im Rhythmus weiter bis heute */
     var lastD=D(tx[n-1].d),due=lastD,gg=0,t0d=today();while(due<t0d&&gg++<400)due=addMonthsE(lastD,cyc*gg);
     var s={id:k,key:k,name:name,cur:g.cur,amount:Math.round(last*100)/100,change:ch,cycle:cyc,due:iso(due),last:tx[n-1].d,first:tx[0].d,n:n,
-      dates:tx.map(function(t){return t.d;}),amounts:am,conf:conf,varies:varies,tpl:g.tpl,text:tx[n-1].text,cred:tx[n-1].cred};
+      dates:tx.map(function(t){return t.d;}),amounts:am,conf:conf,varies:varies,tpl:g.tpl,text:tx[n-1].text,cred:tx[n-1].cred,raw:tx[n-1].name||bankNameFrom(tx[n-1].text)};
     s.cat=bankCat(s);
     s.match=bankMatch(s);
     if(s.match&&s.match.kind==="known"){known.push(s);return;}
@@ -6833,9 +6839,20 @@ function bkEditor(it,i){
     '<div class="field"><label for="bkD">Nächste Zahlung</label><input id="bkD" type="date" data-bke="due" value="'+esc(e.due)+'"></div></div>'+
     hs+
     (s.change?'<p class="note bknote">Preis bisher '+money(s.change.prev)+', seit '+bkDay(s.change.from)+' '+money(s.change.amount)+' '+esc(s.cur)+'. Beides kommt in den Preisverlauf.</p>':"")+
+    bkProof(s)+
     (s.tpl?'<p class="note bknote">Kündigungsfrist und Kontaktdaten aus dem Katalog («'+esc(s.tpl[0])+'»).</p>':'<p class="note bknote">Kündigungsfrist ergänzt du danach im Vertrag.</p>')+
     '<div class="bkedb"><button type="button" class="bkign" data-bkign="'+i+'">Nie mehr vorschlagen</button><button type="button" class="bkdone" data-bkopen="'+i+'">Fertig</button></div></div>';
 }
+/* Herkunft: woraus der Vorschlag stammt (Originaltext + letzte Buchungen) */
+function bkProof(s){var k=s.dates.length,from=Math.max(0,k-4),L=[];
+  for(var j=k-1;j>=from;j--)L.push(bkDay(s.dates[j])+" · "+money(s.amounts[j]!=null?s.amounts[j]:s.amount));
+  return '<div class="bkproof"><span>Im Auszug</span><b>«'+esc(String(s.raw||s.name).slice(0,60))+'»</b>'+
+    (s.text&&lnorm(s.text)!==lnorm(s.raw||"")?'<small>'+esc(String(s.text).slice(0,90))+'</small>':"")+
+    '<small>'+esc(L.join("  ·  "))+(k>4?" … ("+k+" Buchungen)":"")+'</small></div>';}
+function bkKnownRow(s){var c=state.contracts[s.match&&s.match.id];if(!c)return "";
+  return '<div class="bkrow bkkn"><div class="bkline"><span class="bkok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>'+
+    '<div class="bkmain">'+markHtml(c)+'<span class="bktx"><b>'+esc(c.partner||titleOf(c))+'</b><small>'+esc((CYCLE[+c.cycle]||"")+" · unverändert")+'</small></span>'+
+    '<span class="bkam">'+money(curPrice(c))+'<small>'+esc(c.cur||"CHF")+'</small></span></div></div></div>';}
 function bkPriceRow(p,i){var s=p.s,m=s.match,c=state.contracts[m.id];
   return '<div class="bkrow bkpr"><div class="bkline"><button type="button" class="bkck" data-bkpon="'+i+'" role="checkbox" aria-checked="'+p.on+'" aria-label="Neuen Preis für '+esc(c.partner)+' übernehmen"></button>'+
     '<div class="bkmain">'+markHtml(c)+'<span class="bktx"><b>'+esc(c.partner||titleOf(c))+(m.amount>m.old?" ist teurer":" ist günstiger")+'</b><small>'+money(m.old)+' → '+money(m.amount)+' '+esc(c.cur||"CHF")+' ab '+bkDay(m.from)+'</small></span></div></div></div>';}
@@ -6848,7 +6865,7 @@ function paintBank(){
   if(sure.length)h+='<h3 class="bkh"><span>Neu gefunden</span><span>'+sure.length+'</span></h3>'+sure.map(function(i){return bkRow(bk.items[i],i);}).join("");
   if(maybe.length)h+='<h3 class="bkh"><span>Vielleicht</span><span>'+maybe.length+'</span></h3><p class="note bknote">Nur eine Zahlung im Auszug. Rhythmus bitte prüfen.</p>'+maybe.map(function(i){return bkRow(bk.items[i],i);}).join("");
   if(!vis.length&&!bk.price.length)h+='<div class="bkempty"><b>Keine neuen Fixkosten gefunden</b><p class="note">'+(r.known.length?"Alle wiederkehrenden Zahlungen sind schon erfasst.":"Wiederkehrende Zahlungen werden erst erkannt, wenn sie mindestens zweimal im Auszug stehen. Am besten einen Auszug über 6–12 Monate exportieren.")+'</p></div>';
-  if(r.known.length)h+='<p class="note bkknown">Bereits erfasst und unverändert: '+esc(r.known.map(function(s){return s.name;}).join(", "))+'.</p>';
+  if(r.known.length)h+='<h3 class="bkh bkknown"><span>Bereits erfasst</span><span>'+r.known.length+'</span></h3>'+r.known.map(bkKnownRow).join("");
   if(nIgn)h+='<button type="button" class="bkshow" data-bkshow>'+(bk.showIgn?"Ausgeblendete verbergen":nIgn+(nIgn===1?" ausgeblendeter Vorschlag":" ausgeblendete Vorschläge")+" zeigen")+'</button>';
   h+='<p class="note bkpriv">Die Datei wurde nur auf diesem Gerät gelesen und nicht gespeichert.</p>';
   b.innerHTML=h;bkFoot();
