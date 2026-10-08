@@ -1407,7 +1407,6 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 <div class="amenu" id="addMenu" role="menu" aria-label="Hinzufügen" inert aria-hidden="true">
   <button role="menuitem" data-am="form"><div>Vertrag erfassen<small>Einzeln, mit Anbieter-Katalog</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
   <button role="menuitem" data-am="bank"><div>Aus Kontoauszug<small>Fixkosten in Bank-Dateien finden – Konto und Kreditkarte auf einmal</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></button>
-  <button role="menuitem" data-am="csv"><div>CSV-Liste importieren<small>Eigene Vertragsliste, z.B. aus Excel – kein Kontoauszug</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg></button>
 </div>
 <div class="minibar" id="miniBar" aria-hidden="true"><span id="miniTitle"></span></div>
 <div class="wrap">
@@ -4779,7 +4778,7 @@ document.getElementById("addBtn").setAttribute("aria-haspopup","menu");
 document.getElementById("addBtn").addEventListener("click",function(){addMenu(!document.getElementById("addMenu").classList.contains("on"));});
 document.getElementById("addDim").addEventListener("click",function(){addMenu(false);});
 document.getElementById("addMenu").addEventListener("click",function(ev){var b=ev.target.closest("[data-am]");if(!b)return;addMenu(false);
-  var k=b.dataset.am;if(k==="form")openForm(null);else if(k==="bank")document.getElementById("bankFile").click();else document.getElementById("csvFile").click();});
+  var k=b.dataset.am;if(k==="form")openForm(null);else if(k==="bank")document.getElementById("bankFile").click();});
 document.addEventListener("keydown",function(ev){if(ev.key==="Escape"&&document.getElementById("addMenu").classList.contains("on")){addMenu(false);ev.stopPropagation();}},true);
 
 document.getElementById("q").addEventListener("input",function(){state.q=this.value;renderView();});
