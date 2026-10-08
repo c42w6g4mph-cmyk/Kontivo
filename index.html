@@ -829,7 +829,7 @@ body.hasplus .topadd{display:inline-flex}
 .pills{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px}
 /* Preisverlauf-Diagramm (Stufenlinie; SwiftUI: Charts LineMark .interpolationMethod(.stepEnd)) */
 .pchart{background:var(--field);border-radius:12px;padding:12px 12px 8px;margin:0 0 8px}
-.pchead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--ink2)}
+.pchead{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--ink2)}
 .pchead b{font-size:14px;font-weight:650;color:var(--ink);white-space:nowrap}
 .pchead b.up{color:var(--warn)}.pchead b.down{color:var(--ok)}
 .pchart svg{display:block;width:100%;height:auto;margin-top:6px;overflow:visible}
@@ -841,7 +841,14 @@ body.hasplus .topadd{display:inline-flex}
 .pchart .pdt.fut{stroke:var(--warn)}
 .pchart .pg{stroke:var(--line);stroke-width:1}
 .pchart .pt{fill:var(--ink3);font-size:10.5px;font-family:inherit}
-.pchart .pv{fill:var(--ink);font-size:11px;font-weight:600;font-family:inherit}
+.pchart .pv{fill:var(--ink2);font-size:11px;font-weight:600;font-family:inherit}.pchart .pv.now{fill:var(--teal);font-size:12.5px;font-weight:700}
+.pchart .pp{fill:var(--ink3);font-size:11px;font-weight:700;font-family:inherit}.pchart .pp.up{fill:var(--warn)}.pchart .pp.down{fill:var(--ok)}
+.pchart .pgd{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}
+.pchart .phit{fill:transparent;cursor:pointer}
+.pbadge{font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink2);white-space:nowrap}
+.pbadge.up{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}.pbadge.down{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.pchwrap{margin-top:8px}.pchwrap .pchart{margin:0}
+.padd{display:block;width:100%;margin:8px 0 0;padding:10px;border-radius:11px;border:1.5px dashed var(--line);color:var(--teal);font-weight:600;font-size:14px;background:none}
 
 /* Zuschneiden */
 .sheet.cropsheet{z-index:66}
@@ -1975,24 +1982,26 @@ function pricesOf(c){return (c.prices||[]).filter(function(p){return p&&parseD(p
   .slice().sort(function(a,b){return a.from<b.from?-1:(a.from>b.from?1:0);});}
 function priceAt(c,d){var p=+c.amount||0;pricesOf(c).forEach(function(e){var f=parseD(e.from);if(f&&f<=d)p=+e.amount;});return p;}
 function curPrice(c){return priceAt(c,today());}
-/* Preisverlauf als kleines Stufen-Diagramm (nur bei mind. 1 Preisänderung) */
-function priceChart(c){
-  var ps=pricesOf(c);if(!ps.length)return "";
+/* Preisverlauf als Stufen-Diagramm (nur bei mind. 1 Preisänderung).
+   Oben: Gesamtveränderung seit Start in Worten. An jedem Punkt: Preis darüber, Datum und Prozent zum vorherigen Preis darunter,
+   alle Beschriftungen auf den Punkt zentriert (am Rand eingerückt). opt.edit: Punkte antippbar (data-pe = Index, 0 = Anfangspreis).
+   SwiftUI: Swift Charts (LineMark .stepStart + PointMark + Annotations) */
+function pctTxt(p){var a=Math.abs(p);return (p>0?"+":p<0?"−":"±")+(a>0&&a<1?a.toLocaleString("de-CH",{maximumFractionDigits:1}):Math.round(a))+" %";}
+function priceChart(c,opt){
+  var ps=pricesOf(c);if(!ps.length)return "";opt=opt||{};
   var t=today(),DAY=864e5;
   var pts=[{d:null,a:+c.amount||0}].concat(ps.map(function(p){return {d:parseD(p.from),a:+p.amount};}));
-  var first=pts[1].d,last=pts[pts.length-1].d;
+  var first=pts[1].d,last=pts[pts.length-1].d,hasSt=false;
   var st=parseD(c.start);
-  if(!st||st>=first){var span=Math.max(180*DAY,(last-first)*.25);st=new Date(first.getTime()-span);}
+  if(!st||st>=first){var span=Math.max(180*DAY,(last-first)*.25);st=new Date(first.getTime()-span);}else hasSt=true;
   pts[0].d=st;
-  var end=new Date(Math.max(t.getTime(),last.getTime()+Math.max(60*DAY,(last-st)*.08)));
-  var W=320,H=96,L=4,R=W-4,T=16,B=H-18;
+  var end=new Date(Math.max(t.getTime(),last.getTime())+Math.max(45*DAY,(Math.max(t,last)-st)*.1));
+  var W=320,H=132,L=4,R=W-4,T=26,B=H-36;
   var vals=pts.map(function(p){return p.a;}),mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
-  if(mx===mn){mx+=1;mn-=1;}var pad=(mx-mn)*.18;mn-=pad;mx+=pad;
+  if(mx===mn){mx+=1;mn-=1;}var pad=(mx-mn)*.08;mn-=pad;mx+=pad;
   function X(d){return L+(R-L)*(d-st)/(end-st||1);}
   function Y(v){return B-(B-T)*(v-mn)/(mx-mn);}
-  var area="",dots="",ni=0;
-  pts.forEach(function(p,i){if(p.d<=t)ni=i;});
-  // Linie bis heute (durchgezogen), danach geplant (gestrichelt)
+  var ni=0;pts.forEach(function(p,i){if(p.d<=t)ni=i;});
   var cut=t<end?t:end,pathP="M"+X(st).toFixed(1)+","+Y(pts[0].a).toFixed(1),pathF="";
   for(var i=1;i<pts.length;i++){
     var x=X(pts[i].d).toFixed(1),yPrev=Y(pts[i-1].a).toFixed(1),y=Y(pts[i].a).toFixed(1);
@@ -2000,25 +2009,28 @@ function priceChart(c){
     else{if(!pathF){pathP+=" H"+X(cut).toFixed(1);pathF="M"+X(cut).toFixed(1)+","+yPrev;}pathF+=" H"+x+" V"+y;}
   }
   if(!pathF)pathP+=" H"+X(end).toFixed(1);else pathF+=" H"+X(end).toFixed(1);
-  area=pathP+" V"+B+" H"+X(st).toFixed(1)+" Z";
-  pts.forEach(function(p,i){if(!i)return;var cl=p.d>t?"pdt fut":(i===ni?"pdt now":"pdt");
-    dots+='<circle class="'+cl+'" cx="'+X(p.d).toFixed(1)+'" cy="'+Y(p.a).toFixed(1)+'" r="3.5"/>';});
-  var yr=function(d){return d.getFullYear();};
-  var sy=yr(st),ey=yr(end);
-  var planned=ni===0,cur=planned?pts[1].a:pts[ni].a,base=pts[0].a,diff=cur-base,pct=base?diff/base*100:0;
-  var cls=diff>0?"up":(diff<0?"down":"");
-  var sign=diff>0?"+":(diff<0?"−":"±");
-  var head='<div class="pchead"><span>'+(planned?"Geplant ab "+fmtD(ps[0].from):"Veränderung bis heute")+'</span><b class="'+cls+'">'+sign+money(Math.abs(diff))+" "+esc(c.cur)+
-    (base?' ('+sign+Math.abs(pct).toLocaleString("de-CH",{maximumFractionDigits:1})+' %)':"")+"</b></div>";
-  var lbl='<text class="pv" x="'+L+'" y="'+(Y(base)-6).toFixed(1)+'">'+money(base)+"</text>"+
-    '<text class="pv" x="'+R+'" y="'+(Y(pts[pts.length-1].a)-6).toFixed(1)+'" text-anchor="end">'+money(pts[pts.length-1].a)+"</text>";
-  var ax='<line class="pg" x1="'+L+'" x2="'+R+'" y1="'+B+'" y2="'+B+'"/>'+
-    '<text class="pt" x="'+L+'" y="'+(H-4)+'">'+(c.start&&parseD(c.start)<first?sy:"Anfang")+"</text>"+
-    '<text class="pt" x="'+R+'" y="'+(H-4)+'" text-anchor="end">'+(end.getTime()===t.getTime()?"heute":ey)+"</text>";
-  if(t>st&&t<end&&X(t)<R-58&&X(t)>L+44)ax+='<text class="pt" x="'+X(t).toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle">heute</text>';
+  var area=pathP+" V"+B+" H"+X(st).toFixed(1)+" Z";
+  /* Beschriftung: von hinten nach vorn, nur wenn genug Abstand zum nächsten beschrifteten Punkt */
+  var show={},lastX=1e9;for(var k=pts.length-1;k>=0;k--){var xk=X(pts[k].d);if(lastX-xk>=66){show[k]=1;lastX=xk;}}
+  var cx=function(x,txt,fs){var hw=String(txt).length*fs*.29;return Math.max(L+hw,Math.min(R-hw,x));};
+  var dots="",lbl="",hit="";
+  pts.forEach(function(p,i){var x=X(p.d),y=Y(p.a),fut=p.d>t,cl="pdt"+(i===ni?" now":"")+(fut?" fut":"");
+    if(i)lbl+='<line class="pgd" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+(y+5).toFixed(1)+'" y2="'+B+'"/>';
+    dots+='<circle class="'+cl+'" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(i===ni?4.5:3.5)+'"/>';
+    if(show[i]){var pv=money(p.a),dt=i?fmtShort(p.d):(hasSt?fmtShort(p.d):"Anfang");
+      lbl+='<text class="pv'+(i===ni?" now":"")+'" x="'+cx(x,pv,11).toFixed(1)+'" y="'+(y-9).toFixed(1)+'" text-anchor="middle">'+pv+"</text>"+
+        '<text class="pt" x="'+cx(x,dt,10.5).toFixed(1)+'" y="'+(B+14)+'" text-anchor="middle">'+dt+"</text>";
+      if(i){var pc=pts[i-1].a?(p.a-pts[i-1].a)/pts[i-1].a*100:0,ptx=pctTxt(pc);
+        lbl+='<text class="pp'+(pc>0?" up":pc<0?" down":"")+'" x="'+cx(x,ptx,11).toFixed(1)+'" y="'+(B+29)+'" text-anchor="middle">'+ptx+"</text>";}}
+    if(opt.edit)hit+='<rect class="phit" data-pe="'+i+'" x="'+(x-22).toFixed(1)+'" y="0" width="44" height="'+H+'" role="button" aria-label="Preis '+(i?"ab "+fmtD(iso(p.d)):"am Anfang")+' bearbeiten"/>';
+  });
+  var planned=ni===0,cur=pts[ni].a,base=pts[0].a,pct=base?(cur-base)/base*100:0;
+  var badge=planned?'<b class="pbadge">geplant ab '+fmtShort(pts[1].d)+"</b>":
+    Math.abs(pct)<.05?'<b class="pbadge">unverändert</b>':'<b class="pbadge '+(pct>0?"up":"down")+'">'+(pct>0?"↑ ":"↓ ")+pctTxt(Math.abs(pct)).replace(/^[+±]/,"")+(pct>0?" teurer":" günstiger")+"</b>";
+  var head='<div class="pchead"><span>'+(hasSt?"seit "+fmtShort(st):"seit Anfang")+"</span>"+badge+"</div>";
   return '<div class="pchart" role="img" aria-label="Preisverlauf von '+money(base)+" auf "+money(pts[pts.length-1].a)+" "+esc(c.cur)+'">'+head+
-    '<svg viewBox="0 0 '+W+" "+H+'" aria-hidden="true">'+ax+'<path class="pa2" d="'+area+'"/><path class="pl" d="'+pathP+'"/>'+
-    (pathF?'<path class="pl fut" d="'+pathF+'"/>':"")+dots+lbl+"</svg></div>";
+    '<svg viewBox="0 0 '+W+" "+H+'" aria-hidden="'+(opt.edit?"false":"true")+'"><path class="pa2" d="'+area+'"/><path class="pl" d="'+pathP+'"/>'+
+    (pathF?'<path class="pl fut" d="'+pathF+'"/>':"")+lbl+dots+hit+"</svg></div>";
 }
 /* Einmalige Sonderzahlungen: extras[{date, amount (Gutschrift negativ), note}] – zählen nach Datum, nie in monthlyCost */
 function extrasOf(c){return (c.extras||[]).filter(function(x){return x&&parseD(x.date)&&isFinite(+x.amount)&&+x.amount!==0;})
@@ -4319,17 +4331,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   /* Preiserhöhung (angekündigt oder in den letzten 60 Tagen): Hinweis auf ein mögliches Sonderkündigungsrecht */
   var skr=!gone&&!isFixed(c)&&(function(){var t=today(),ps=pricesOf(c),prev=+c.amount||0;for(var i=0;i<ps.length;i++){var f=parseD(ps[i].from);
       if(f>t)return +ps[i].amount>priceAt(c,t);if(daysBetween(f,t)<=60&&+ps[i].amount>prev)return true;prev=+ps[i].amount;}return false;})();
-  var ps=pricesOf(c),hist="";
-  if(ps.length){
-    var t=today(),ni=-1;ps.forEach(function(p,i){if(parseD(p.from)<=t)ni=i;});
-    hist='<h3 class="dsec">Preisverlauf</h3>'+priceChart(c)+'<div class="plist"><div class="prow'+(ni<0?" now":"")+'"><span class="pd">'+(c.start?"ab "+fmtD(c.start):"Anfangspreis")+
-      (ni<0?'<span class="tag">aktuell</span>':"")+'</span><span class="pa">'+money(c.amount)+" "+esc(c.cur)+"</span></div>";
-    ps.forEach(function(p,i){var fut=parseD(p.from)>t;
-      hist+='<div class="prow'+(i===ni?" now":"")+'"><span class="pd">ab '+fmtD(p.from)+
-        (i===ni?'<span class="tag">aktuell</span>':(fut?'<span class="tag fut">geplant</span>':""))+
-        '</span><span class="pa">'+money(p.amount)+" "+esc(c.cur)+"</span></div>";});
-    hist+="</div>";
-  }
+  var hist=(pricesOf(c).length?'<div class="pchwrap">'+priceChart(c,{edit:1})+"</div>":"")+'<button type="button" class="padd" data-act="padd">＋ '+(pricesOf(c).length?"Neuer Preis":"Preisänderung erfassen")+"</button>";
   var xs=extrasOf(c),xh="";
   if(xs.length){var t2=today();
     xh='<h3 class="dsec">Sonderzahlungen</h3><div class="plist">'+xs.map(function(x){var cr=x.amount<0;
@@ -4354,13 +4356,13 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     (pill?'<div class="pills">'+pill+"</div>":'<div style="height:10px"></div>')+kz+
     fr+
     (skr?'<p class="skr">Preiserhöhung: In Deutschland und der Schweiz besteht oft ein Sonderkündigungsrecht, meist innert 4–6 Wochen nach der Mitteilung. Massgebend ist dein Vertrag.</p>':"")+
-    secs.map(function(sc){var rr=sc[1].filter(Boolean);if(!rr.length)return "";
-      return '<h3 class="dsec">'+esc(sc[0])+'</h3><dl class="dgrp">'+rr.map(function(r){if(r[2])return '<div class="dl dtl">'+r[1]+"</div>";return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+(r[0]==="Vertragspartner"?'<button type="button" class="dlink" data-peopen="'+esc(String(r[1]).trim().toLowerCase())+'" data-peid="'+esc(c._id)+'">'+esc(r[1])+" ›</button>":esc(r[1]))+(r[3]?'<span class="dsub">'+esc(r[3])+"</span>":"")+"</dd></div>";}).join("")+"</dl>";}).join("")+
+    secs.map(function(sc){var rr=sc[1].filter(Boolean);if(!rr.length)return sc[0]==="Kosten"?'<h3 class="dsec">Kosten</h3>'+hist:"";
+      return '<h3 class="dsec">'+esc(sc[0])+'</h3>'+'<dl class="dgrp">'+rr.map(function(r){if(r[2])return '<div class="dl dtl">'+r[1]+"</div>";return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+(r[0]==="Vertragspartner"?'<button type="button" class="dlink" data-peopen="'+esc(String(r[1]).trim().toLowerCase())+'" data-peid="'+esc(c._id)+'">'+esc(r[1])+" ›</button>":esc(r[1]))+(r[3]?'<span class="dsub">'+esc(r[3])+"</span>":"")+"</dd></div>";}).join("")+"</dl>"+(sc[0]==="Kosten"?hist:"");}).join("")+
     ((c.web||c.tel||c.mail)?'<h3 class="dsec">Kontakt</h3><div class="links">'+
       (c.web?'<button data-link="'+esc(normUrl(c.web))+'" data-copy="'+esc(normUrl(c.web))+'"><span>Website</span><span>'+esc(c.web.replace(/^https?:\/\//i,""))+'</span></button>':"")+
       (c.tel?'<button data-link="tel:'+esc(c.tel.replace(/\s/g,""))+'" data-copy="'+esc(c.tel)+'"><span>Telefon</span><span>'+esc(c.tel)+'</span></button>':"")+
       (c.mail?'<button data-link="mailto:'+esc(c.mail)+'" data-copy="'+esc(c.mail)+'"><span>E-Mail</span><span>'+esc(c.mail)+'</span></button>':"")+'</div>':"")+
-    hist+xh+
+    xh+
     (c.note?'<h3 class="dsec">Notiz</h3><div style="font-size:14.5px;white-space:pre-wrap">'+esc(c.note)+"</div>":"")+
     (acts?'<div class="dacts low">'+acts+"</div>":"")+
     '<div style="height:14px"></div>'+
@@ -4375,11 +4377,13 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var body=document.getElementById("detailBody");
   body.querySelectorAll("[data-link]").forEach(function(b){
     b.addEventListener("click",function(){openLink(b.dataset.link,b.dataset.copy);});});
+  body.querySelectorAll("[data-pe]").forEach(function(r){r.addEventListener("click",function(){openPriceEdit(idv,+r.getAttribute("data-pe"));});});
   body.querySelectorAll("[data-act]").forEach(function(b){
     b.addEventListener("click",function(){
       var a=b.dataset.act;
       if(a==="close"){closeSheets();return;}
       if(a==="docs"){openDocsPick(idv);return;}
+      if(a==="padd"){openPriceEdit(idv,-1);return;}
       if(a==="edit"){closeSheets();setTimeout(function(){openForm(c);},180);}
       else if(a==="dup"){closeSheets();setTimeout(function(){openForm(c,true);},180);}
       else if(a==="pause"){
@@ -4457,6 +4461,37 @@ function delDoc(cid,did,name){
     if(!used&&KBlob.has(did))KBlob.del(did).catch(function(){});
     if(document.getElementById("viewer").classList.contains("on"))document.getElementById("vClose").click();
     openDetail(cid);openDocsPick(cid);toast("Gelöscht");return true;});}
+/* Preis bearbeiten / neu: i=-1 neu, 0 Anfangspreis, k ≥ 1 k-te Preisänderung (sortiert). Öffnet über dem Detail. */
+var priceCtx=null;
+function openPriceEdit(idv,i){
+  var c=state.contracts[idv];if(!c)return;var ps=pricesOf(c),e=i>0?ps[i-1]:null;if(i>0&&!e)return;
+  priceCtx={id:idv,i:i,from:e?e.from:null};
+  var amt=i===0?+c.amount||0:e?+e.amount:null,cy=CYCLE[c.cycle]||"monatlich";
+  document.getElementById("pickTitle").textContent=i<0?"Neuer Preis":i===0?"Anfangspreis":"Preis ändern";
+  var l=document.getElementById("pickList");l.dataset.dim="price";
+  l.innerHTML=(i===0?'<p class="note" style="margin:0 2px 12px">Gilt ab Vertragsbeginn'+(c.start?" ("+fmtD(c.start)+")":"")+".</p>":
+      '<div class="field"><label for="peFrom">Gültig ab</label><input id="peFrom" type="date" value="'+esc(e?e.from:iso(today()))+'"></div>')+
+    '<div class="field"><label for="peAmt">Betrag in '+esc(c.cur||"CHF")+" · "+cy+'</label><input id="peAmt" class="num" type="text" inputmode="decimal" value="'+(amt!=null?amt.toFixed(2):"")+'"></div>'+
+    '<button class="primary" type="button" data-pesave>Sichern</button>'+
+    (i>0?'<button class="ghost danger" type="button" data-pedel>Preisänderung löschen</button>':"");
+  var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
+  if(i<0)setTimeout(function(){var a=document.getElementById("peAmt");if(a)a.focus();},250);
+}
+document.getElementById("pickList").addEventListener("click",function(ev){if(this.dataset.dim!=="price"||!priceCtx)return;
+  var x=priceCtx,c=state.contracts[x.id];if(!c)return;
+  if(ev.target.closest("[data-pedel]")){ask({title:"Preisänderung löschen?",text:"Der Preis ab "+fmtD(x.from)+" wird entfernt.",ok:"Löschen",danger:true}).then(function(y){if(!y)return;
+      var c2=state.contracts[x.id];if(!c2)return;putContract(x.id,Object.assign({},c2,{prices:(c2.prices||[]).filter(function(p){return p.from!==x.from;})}));
+      closePick();openDetail(x.id);toast("Gelöscht");});return;}
+  if(!ev.target.closest("[data-pesave]"))return;
+  var a=parseNum(document.getElementById("peAmt").value);if(a==null||a<0){toast("Betrag prüfen");return;}a=Math.round(a*100)/100;
+  if(x.i===0){putContract(x.id,Object.assign({},c,{amount:a}));closePick();openDetail(x.id);toast("Anfangspreis gesichert");return;}
+  var f=document.getElementById("peFrom").value;if(!f){toast("Datum fehlt");return;}
+  if(c.start&&f<=c.start){toast("Datum muss nach dem Vertragsbeginn liegen");return;}
+  var nps=(c.prices||[]).filter(function(p){return p.from!==x.from&&p.from!==f;});nps.push({from:f,amount:a});
+  var prev=priceAt(Object.assign({},c,{prices:nps.filter(function(p){return p.from!==f;})}),new Date(parseD(f).getTime()-864e5));
+  putContract(x.id,Object.assign({},c,{prices:nps}));closePick();openDetail(x.id);
+  toast(a>prev&&prev>0&&!isFixed(c)?"Preiserhöhung gesichert. Tipp: oft gilt ein Sonderkündigungsrecht.":"Preis ab "+fmtD(f)+" gesichert",a>prev&&prev>0?4000:undefined);
+});
 function openDocsPick(idv){
   var c=state.contracts[idv];if(!c)return;docsFor=idv;var ds=c.docs||[];
   document.getElementById("pickTitle").textContent="Dokumente";
