@@ -281,9 +281,9 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .seg2 button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 /* Art des Vertrags als Kacheln (SwiftUI: LazyVGrid mit 2 Spalten, Auswahl mit Rahmen in Akzentfarbe) */
 .tmtiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 14px}
-.tmtile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 11px;border-radius:12px;background:var(--field);border:1.5px solid transparent;min-height:84px}
-.tmtile svg{width:20px;height:20px;fill:none;stroke:var(--teal);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-bottom:4px}
-.tmtile b{font-size:14.5px;font-weight:600;color:var(--ink)}
+.tmtile{display:flex;align-items:center;gap:9px;text-align:left;padding:12px 11px;border-radius:12px;background:var(--field);border:1.5px solid transparent;min-width:0}
+.tmtile svg{width:20px;height:20px;fill:none;stroke:var(--teal);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tmtile b{font-size:14.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tmtile small{font-size:12px;line-height:1.3;color:var(--ink2)}
 .tmtile[aria-pressed="true"]{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 10%,var(--field))}
 .tmtile:disabled{opacity:.4}
@@ -1457,10 +1457,10 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 
   <h3>Laufzeit &amp; Kündigung</h3>
   <div class="tmtiles" id="termSeg" role="group" aria-label="Art des Vertrags">
-    <button type="button" class="tmtile" data-tm="open" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg><b>Abo</b><small>Ohne Mindestlaufzeit, z.B. Netflix</small></button>
-    <button type="button" class="tmtile" data-tm="fixed" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><b>Mit Laufzeit</b><small>Bindet z.B. 12 oder 24 Monate</small></button>
-    <button type="button" class="tmtile" data-tm="trial" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12v8h14v-8M3 8h18v4H3zM12 8v12"/></svg><b>Probeabo</b><small>Gratis bis zu einem Datum</small></button>
-    <button type="button" class="tmtile" data-tm="tax" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 16.5l5-5"/></svg><b>Gebühr / Steuer</b><small>Nicht kündbar, z.B. Serafe</small></button>
+    <button type="button" class="tmtile" data-tm="open" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg><b>Flexibel</b></button>
+    <button type="button" class="tmtile" data-tm="fixed" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><b>Mindestlaufzeit</b></button>
+    <button type="button" class="tmtile" data-tm="trial" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12v8h14v-8M3 8h18v4H3zM12 8v12"/></svg><b>Probeabo</b></button>
+    <button type="button" class="tmtile" data-tm="tax" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 16.5l5-5"/></svg><b>Nicht kündbar</b></button>
   </div>
   <div class="tmtrial" hidden><div class="flabel">Probeabo dauert</div>
     <div class="chips" id="fTrialD" role="group" aria-label="Dauer des Probeabos"><button type="button" class="chip" data-trd="7d">7 Tage</button><button type="button" class="chip" data-trd="14d">14 Tage</button><button type="button" class="chip" data-trd="1m">1 Monat</button><button type="button" class="chip" data-trd="3m">3 Monate</button><button type="button" class="chip" data-trd="date">Datum …</button></div>
@@ -2881,7 +2881,7 @@ function buildCatChips(){
   document.getElementById("fCats").addEventListener("click",function(){openCatPick("c");});
   document.getElementById("iCats").addEventListener("click",function(){openCatPick("i");});
 }
-var TAX_INFO="Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge: unter «Laufzeit & Kündigung» die Kachel «Gebühr / Steuer» wählen.";
+var TAX_INFO="Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge: unter «Laufzeit & Kündigung» die Kachel «Nicht kündbar» wählen.";
 function catInfoIc(){return '<span class="catinfo" role="button" tabindex="0" data-catinfo aria-label="Info: nicht kündbar">i</span>';}
 function paintCatField(pre,cat){
   var ic=document.getElementById(pre+"CatIcon"),nm=document.getElementById(pre+"CatName");
@@ -3404,7 +3404,7 @@ function openTplPick(){
 }
 document.getElementById("fLabel").addEventListener("input",paintLogo);
 var termMode="open";
-/* Art des Vertrags als Kacheln: «Abo» (open), «Mit Laufzeit» (fixed), «Probeabo» (trial), «Gebühr / Steuer» (tax = c.noCancel).
+/* Art des Vertrags als Kacheln: «Flexibel» (open), «Mindestlaufzeit» (fixed), «Probeabo» (trial), «Nicht kündbar» (tax = c.noCancel); Erklärung im Hinweis #tmHint.
    Kein neues Feld: Probeabo in c.trial, Gebühr in c.noCancel. Jede Art zeigt nur ihre Felder:
    Probeabo nur Dauer + Kündigungsweg (Frist fragt «Ohne Frist erfasst» nach dem Behalten), Gebühr keine Frist und keinen Kündigungsweg.
    SwiftUI: LazyVGrid mit enum ContractKind { abo, term, trial, fee } */
@@ -3431,7 +3431,7 @@ document.getElementById("fTrialD").addEventListener("click",function(ev){var b=e
   paintTrialD();updTermHint();if(trialD==="date")document.getElementById("fTrial").focus();});
 function updTermHint(){
   var h=document.getElementById("tmHint");
-  if(termMode==="tax"){h.textContent="Nicht kündbar: keine Fristen, kein Kündigen. Zählt in Kosten und Budget.";return;}
+  if(termMode==="tax"){h.textContent="Gebühren und Abgaben wie Serafe: keine Fristen, kein Kündigen. Zählt in Kosten und Budget.";return;}
   if(termMode==="trial"){var tv=document.getElementById("fTrial").value;
     h.textContent=tv?"Endet am "+fmtD(tv)+". Kontivo erinnert dich unter «Fristen».":"Wie lange läuft das Probeabo?";return;}
   if(termMode==="fixed"){
@@ -3443,7 +3443,7 @@ function updTermHint(){
     if(TE&&TE>E){h.textContent="Frist für "+fmtD(iso(E))+" verpasst · nächster Termin "+fmtD(iso(TE))+", kündigen bis "+fmtD(iso(nDl(fx,TE)))+".";return;}
     h.textContent="Kündigen bis "+fmtD(iso(nDl(fx,E)))+(rn?", sonst +"+rn+(rn===1?" Monat":" Monate")+".":", Vertrag endet dann.");return;}
   var tp=document.getElementById("fTermP").value,cyc=+document.getElementById("fCycle").value||1;
-  if(!tp){h.textContent=cyc>=3?"Achtung: Bei "+({3:"quartalsweiser",6:"halbjährlicher",12:"jährlicher",24:"zweijährlicher"}[cyc]||"seltener")+" Zahlung ist ein Abo meist nur auf Ende der bezahlten Periode kündbar. Dann «Kündbar per: Ende Periode» wählen.":"Unbefristet — du kannst mit der angegebenen Frist jederzeit kündigen.";return;}
+  if(!tp){h.textContent=cyc>=3?"Achtung: Bei "+({3:"quartalsweiser",6:"halbjährlicher",12:"jährlicher",24:"zweijährlicher"}[cyc]||"seltener")+" Zahlung ist ein Abo meist nur auf Ende der bezahlten Periode kündbar. Dann «Kündbar per: Ende Periode» wählen.":"Ohne Mindestlaufzeit: kündbar mit der angegebenen Frist.";return;}
   var tmp={cancTerm:tp,notice:parseNum(document.getElementById("fNotice").value)||0,noticeU:document.getElementById("fNoticeU").value,
     start:document.getElementById("fStart").value,due:document.getElementById("fDue").value,cycle:+document.getElementById("fCycle").value||1,prices:[],amount:1};
   var T=null;try{T=nextTerm(tmp);}catch(e){}
@@ -3455,7 +3455,7 @@ function updTermHint(){
 document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if(termMode!=="fixed"&&!tp.value&&+this.value>=6){tp.value="p";updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}});
 ["fTermP","fNotice","fNoticeU","fStart","fDue","fCycle","fEnd","fRenew","fTrial"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updTermHint);el.addEventListener("change",updTermHint);});
 document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(b)setTermMode(b.dataset.tm);});
-/* Nach einer Vorlage: «nicht kündbar» wählt die Kachel «Gebühr / Steuer», sonst zurück auf «Abo» */
+/* Nach einer Vorlage: «nicht kündbar» wählt die Kachel «Nicht kündbar», sonst zurück auf «Flexibel» */
 function syncWatch(){var f=document.getElementById("fNoCancel").checked;
   if(f&&termMode!=="tax")setTermMode("tax");else if(!f&&termMode==="tax")setTermMode("open");paintOptCounts();}
 ["fMand","fNoWatch"].forEach(function(i){document.getElementById(i).addEventListener("change",paintOptCounts);});
