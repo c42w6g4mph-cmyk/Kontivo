@@ -27,6 +27,8 @@ with sync_playwright() as p:
     for fn in sorted(os.listdir(S)):
         res = pg.evaluate(JS, base64.b64encode(open(os.path.join(S, fn), "rb").read()).decode())
         exp = DE90 if "comdirect" in fn else (CH if fn.startswith("ch_") else DE)
+        if fn == "de_revolut.csv":  # Revolut liefert nur den Empfänger, ohne Verwendungszweck → «DB Vertrieb» statt «Deutschlandticket»
+            exp = {("DB Vertrieb" if k == "Deutschlandticket" else k): v for k, v in exp.items()}
         if not res: print(f"✗ {fn}: nicht gelesen"); fails += 1; continue
         got = {s["name"]: s for s in res["sugg"]}; errs = []
         for k, (cy, amt, ch) in exp.items():

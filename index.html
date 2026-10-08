@@ -6476,7 +6476,7 @@ function bankNum(s){
 }
 /* ---- CSV ---- */
 var BKCOL={
-  date:["buchungsdatum","buchungstag","buchung","bookingdate","bookedat","datum","date","transactiondate","abschlussdatum","valutadatum","valuta","wertstellung","wertstellungsdatum","valuedate","wert"],
+  date:["buchungsdatum","buchungstag","completeddate","datumdesabschlusses","abschlussdatum","buchung","bookingdate","bookedat","datum","date","transactiondate","transaktionsdatum","starteddate","startdatum","datumdesbeginns","valutadatum","valuta","wertstellung","wertstellungsdatum","valuedate","wert"],
   amt:["betrag","umsatz","amount","creditdebitamount","betragchf","betrageur","umsatzineur","umsatzinchf","betraginchf","betragineur","montant","importo","betrag€","einzelbetrag"],
   deb:["belastung","lastschrift","soll","debit","ausgang","lastschriftinchf","belastungchf","belastungeur","belastungen","sollbetrag","debitamount","debit chf"],
   cre:["gutschrift","haben","credit","eingang","gutschriftinchf","gutschriftchf","gutschrifteur","gutschriften","habenbetrag","creditamount"],
@@ -6487,7 +6487,8 @@ var BKCOL={
   payer:["zahlungspflichtiger","zahlungspflichtigein","zahlungspflichtige","auftraggeber","auftraggeberin"],
   text:["verwendungszweck","avisierungstext","buchungstext","beschreibung","description","text","paymentreference","zahlungszweck","beschreibung2","beschreibung3",
     "details","mitteilung","subject","umsatzart","vorgang","texte de notification","libelle"],
-  cred:["glaeubigerid","glaubigerid","creditorid","glaeubigeridentifikation"]
+  cred:["glaeubigerid","glaubigerid","creditorid","glaeubigeridentifikation"],
+  state:["state","status","zustand"],type:["type","typ","art","transaktionstyp","transactiontype"],prod:["product","produkt"]
 };
 function bankHead(cells){
   var h=cells.map(function(x){return csvNorm(x);}),col={},used={};
@@ -6498,10 +6499,12 @@ function bankHead(cells){
     return -1;};
   col.date=pick("date");col.amt=pick("amt");col.deb=pick("deb",true);col.cre=pick("cre",true);
   if(col.amt<0)col.amt=pick("amt",true);col.cur=pick("cur",true);col.payee=pick("payee");col.payer=pick("payer");
-  col.name=pick("name");col.cred=pick("cred",true);
+  col.name=pick("name");col.cred=pick("cred",true);col.state=pick("state");col.type=pick("type");col.prod=pick("prod");
+  /* Rückfall: irgendeine Spalte mit «datum»/«date» (z.B. «Datum/Uhrzeit») */
+  if(col.date<0)for(var di=0;di<h.length;di++)if(!used[di]&&h[di].length<=24&&!/\d/.test(h[di])&&/^(datum|date)|(datum|date)$/.test(h[di])&&!/geburt|birth|saldo|balance/.test(h[di])){used[di]=1;col.date=di;break;}
   col.text=[];var t;while((t=pick("text"))>=0)col.text.push(t);
   col.card=h.some(function(x){return /^(karte|card|cardnumber|kartennummer|kartennr)/.test(x);});
-  col.ok=col.date>=0&&(col.amt>=0||col.deb>=0||col.cre>=0);
+  col.ok=col.date>=0&&(col.amt>=0||col.deb>=0||col.cre>=0)&&h.filter(Boolean).length>=3;
   return col;
 }
 function bankBankOf(h){
@@ -6518,8 +6521,13 @@ function bankBankOf(h){
   if(has("partnername"))return "N26";
   if(has("beguenstigterauftraggeber")&&has("soll"))return "Deutsche Bank";
   if(has("namezahlungsbeteiligter"))return "Volksbank";
+  if((has("product")||has("produkt"))&&(has("state")||has("status")))return "Revolut";
   return "";
 }
+var BKBADSTATE=/revert|declin|fail|pending|cancel|ausstehend|abgelehnt|rueckgaengig|rückgängig|zurueck|zurück|storniert|fehlgeschlagen|zurückerstattet|in bearbeitung/i;
+var BKBADTYPE=/exchange|umtausch|wechsel|top.?up|aufladung|aufgeladen|einzahlung|^atm$|geldautomat|bargeld|cashback/i;
+var BKBADPROD=/saving|sparen|spar|deposit|pocket|vault|tresor|invest|crypto|krypto/i;
+var bkLastHead="";
 function bankCsv(txt){
   /* Trennzeichen über die ersten Zeilen bestimmen (Vorspann kann kürzer sein) */
   var lines=txt.replace(/^\ufeff/,"").split(/\r?\n/).slice(0,60),cnt={";":0,",":0,"\t":0};
@@ -6528,10 +6536,12 @@ function bankCsv(txt){
   var dl=[";","\t",","].sort(function(a,b){return cnt[b]-cnt[a];})[0];
   var rows=csvParse("sep="+dl+"\n"+txt.replace(/^\ufeff/,"")),hi=-1,col=null;
   for(var r=0;r<Math.min(rows.length,60);r++){var c=bankHead(rows[r]);if(c.ok){hi=r;col=c;break;}}
-  if(hi<0)return null;
+  if(hi<0){var fr=rows.filter(function(r){return r.join("").trim();})[0]||[];bkLastHead=fr.slice(0,10).join(" · ").slice(0,160);return null;}
   var g=function(row,i){return i>=0&&row[i]!=null?String(row[i]).trim():"";},tx=[],pos=0,neg=0;
   rows.slice(hi+1).forEach(function(row){
     var d=bankDate(g(row,col.date));if(!d)return;   /* Fusszeilen wie «Kontostand;…» fallen hier weg */
+    /* Revolut & Co.: nur abgeschlossene Buchungen vom Hauptkonto, kein Umtausch/Aufladen */
+    if(BKBADSTATE.test(g(row,col.state))||BKBADTYPE.test(g(row,col.type))||BKBADPROD.test(g(row,col.prod)))return;
     var a=null,de=bankNum(g(row,col.deb)),cr=bankNum(g(row,col.cre));
     if(de!=null&&de!==0)a=-Math.abs(de);else if(cr!=null&&cr!==0)a=Math.abs(cr);
     if(a==null)a=bankNum(g(row,col.amt));
@@ -6595,7 +6605,7 @@ function bankMt940(txt){
   return {fmt:"MT940",bank:"",tx:tx};
 }
 function bankRead(buf){
-  var txt=typeof buf==="string"?buf:bankDecode(buf),r=null;
+  var txt=typeof buf==="string"?buf:bankDecode(buf),r=null;bkLastHead="";
   if(/<\s*(\w+:)?Document[\s>]/.test(txt)&&/camt\.05[234]/.test(txt))r=bankCamt(txt);
   else if(/(^|\n):20:/.test(txt)&&/\n:61:/.test(txt))r=bankMt940(txt);
   else r=bankCsv(txt);
@@ -6605,7 +6615,7 @@ function bankRead(buf){
   return r;
 }
 /* ---- Name aus Buchungstext ---- */
-var BKPRE=/^(?:KAUF\/DIENSTLEISTUNG|KAUF\/ONLINE[- ]SHOPPING|ONLINE[- ]SHOPPING|EINKAUF(?: ZKB)?(?: VISA)?(?: DEBIT)?(?: CARD)?|LASTSCHRIFT|LSV:?|BELASTUNG|E-?RECHNUNG|E-?BILL:?|GIRO (?:AN|AUSLAND|POST|BANK|INTERN)|ZAHLUNG:?|DAUERAUFTRAG:?|SEPA[- ](?:BASIS)?LASTSCHRIFT|FOLGELASTSCHRIFT|ERSTLASTSCHRIFT|KARTENZAHLUNG|DEBITKARTE|UEBERWEISUNG|ÜBERWEISUNG|ZAHLUNGSAUFTRAG|PURCHASE|PAYMENT|VISA-UMSATZ|E-BANKING-AUFTRAG)\b[\s:,.-]*/i;
+var BKPRE=/^(?:KAUF\/DIENSTLEISTUNG|KAUF\/ONLINE[- ]SHOPPING|ONLINE[- ]SHOPPING|EINKAUF(?: ZKB)?(?: VISA)?(?: DEBIT)?(?: CARD)?|LASTSCHRIFT|LSV:?|BELASTUNG|E-?RECHNUNG|E-?BILL:?|GIRO (?:AN|AUSLAND|POST|BANK|INTERN)|ZAHLUNG:?|DAUERAUFTRAG:?|SEPA[- ](?:BASIS)?LASTSCHRIFT|FOLGELASTSCHRIFT|ERSTLASTSCHRIFT|KARTENZAHLUNG|DEBITKARTE|UEBERWEISUNG|ÜBERWEISUNG|ZAHLUNGSAUFTRAG|PURCHASE|PAYMENT|VISA-UMSATZ|E-BANKING-AUFTRAG|TO|PAYMENT FROM|TRANSFER TO|TRANSFER FROM|ZAHLUNG VON|AN|VON)\b[\s:,.-]*/i;
 function bankNameFrom(t){
   t=String(t||"").replace(/\s+/g," ").trim();
   var m=t.match(/(?:Empf(?:ä|ae)nger|Auftraggeber|Beg(?:ü|ue)nstigter)\s*:\s*(.+?)(?=\s+(?:Kto\/IBAN|IBAN|Konto|BLZ|Buchungstext|Verwendungszweck)\b|$)/i);
@@ -6827,7 +6837,7 @@ document.getElementById("bankFile").addEventListener("change",function(ev){
   var rd=new FileReader();
   rd.onload=async function(){
     var r=null;try{r=bankRead(rd.result);}catch(e){r=null;}
-    if(!r){await ask({title:"Datei nicht erkannt",alert:true,text:"Kontivo liest Kontoauszüge als CSV, camt.053 (XML) oder MT940. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren». PDF-Auszüge gehen nicht."});return;}
+    if(!r){await ask({title:"Datei nicht erkannt",alert:true,text:"Kontivo liest Kontoauszüge als CSV, camt.053 (XML) oder MT940. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren». PDF-Auszüge gehen nicht."+(bkLastHead?" Erste Zeile deiner Datei: «"+bkLastHead+"».":"")});return;}
     var res;try{res=bankFind(r);}catch(e){toast("Die Datei konnte nicht ausgewertet werden");return;}
     res.sugg.forEach(function(s){if(BK_CUR.indexOf(s.cur)<0)s.cur=state.settings.home;});
     openBank(res,r.bank);
@@ -6887,7 +6897,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
   toast([n?n+(n===1?" Vertrag angelegt":" Verträge angelegt"):"",p?p+(p===1?" Preis angepasst":" Preise angepasst"):""].filter(Boolean).join(", ")+" — bitte kurz prüfen",3200);
 });
 /* Test-Haken (tests/bank/check.py) */
-window.KontivoBank=function(){return {read:bankRead,find:bankFind,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
+window.KontivoBank=function(){return {read:bankRead,head:bankHead,find:bankFind,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
 document.getElementById("csvImp").addEventListener("click",function(){document.getElementById("csvFile").click();});
 document.getElementById("csvFile").addEventListener("change",function(ev){
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;

@@ -271,3 +271,26 @@ write("de_commerzbank.sta", "\r\n".join(out) + "\r\n", "windows-1252")
 # 16 camt.053.001.02 (DE, Name direkt unter Cdtr)
 write("de_camt053.xml", camt([[t] for t in DE], "EUR", "02", False))
 print("Musterdateien:", len(os.listdir(D)), "→", D)
+
+# Revolut (App-Bank, Komma-getrennt, Datum mit Uhrzeit, Typ/Produkt/Status; Englisch und Deutsch)
+def revolut(fn, data, cur, head, tp, st_ok, st_bad, prod):
+    rows = [",".join(head)]
+    bal = 5000.0
+    for t in data:
+        card = t["kind"] in ("Karte", "TWINT")
+        typ = tp["atm"] if "Bargeld" in t["kind"] else tp["card"] if card else (tp["topup"] if t["a"] > 0 else tp["transfer"])
+        desc = t["name"].title() if card else (("To " if t["a"] < 0 else "Payment from ") + t["name"])
+        ts = t["d"].strftime("%Y-%m-%d 09:14:03")
+        bal += t["a"]
+        rows.append(",".join([typ, prod, ts, ts, q(desc), f"{t['a']:.2f}", "0.00", cur, st_ok, f"{bal:.2f}"]))
+    # Rauschen: Umtausch, Tresor, abgelehnte Zahlung
+    for d in months(10):
+        ts = d.strftime("%Y-%m-%d 18:02:11")
+        rows.append(",".join([tp["exchange"], prod, ts, ts, q("Exchanged to USD"), "-100.00", "0.00", cur, st_ok, ""]))
+        rows.append(",".join([tp["transfer"], "Savings", ts, ts, q("To " + cur + " Vault"), "-50.00", "0.00", cur, st_ok, ""]))
+        rows.append(",".join([tp["card"], prod, ts, ts, q("Apple.Com/Bill"), "-4.99", "0.00", cur, st_bad, ""]))
+    write(fn, "\n".join(rows) + "\n")
+revolut("ch_revolut.csv", CH, "CHF", ["Type", "Product", "Started Date", "Completed Date", "Description", "Amount", "Fee", "Currency", "State", "Balance"],
+        dict(card="CARD_PAYMENT", transfer="TRANSFER", topup="TOPUP", exchange="EXCHANGE", atm="ATM"), "COMPLETED", "DECLINED", "Current")
+revolut("de_revolut.csv", DE, "EUR", ["Art", "Produkt", "Startdatum", "Abschlussdatum", "Beschreibung", "Betrag", "Gebühr", "Währung", "Status", "Guthaben"],
+        dict(card="Kartenzahlung", transfer="Überweisung", topup="Aufladung", exchange="Umtausch", atm="Geldautomat"), "ABGESCHLOSSEN", "ZURÜCKGESETZT", "Aktuell")
