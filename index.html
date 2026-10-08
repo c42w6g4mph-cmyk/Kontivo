@@ -6505,8 +6505,9 @@ function bankDate(s){
   return "";
 }
 /* Betrag: «-1'850.00», «1.180,00-», «CHF -49.90», «−12,99 €» */
-function bankNum(s){
-  var t=String(s==null?"":s).replace(/−/g,"-").trim(),neg=false;
+function bankNum(s,dec){
+  var t=String(s==null?"":s).replace(/−/g,"-").replace(/^"+|"+$/g,"").trim(),neg=false;
+  if(/\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}/.test(t))return null;   /* Datum, kein Betrag */
   /* Soll/Haben-Kürzel hinten: «39,95 S», «12.50 DR», «20.00 H/CR» */
   var sh=t.match(/([\d\s])(S|H|DR|CR|D|C|Soll|Haben)\.?$/i);if(sh&&/\d/.test(t.slice(0,sh.index+1))){if(/^(S|DR|D|Soll)$/i.test(sh[2]))neg=true;t=t.slice(0,sh.index+1);}
   t=t.replace(/\b(?:CHF|EUR|USD|GBP|SFr|Fr|Fr\.)\.?/gi," ").replace(/[A-Za-z€$£\u00a0]/g,"").trim().replace(/^\+/,"").replace(/^\.+|\.+$/g,"").trim();
@@ -6514,35 +6515,38 @@ function bankNum(s){
   if(/-$/.test(t)){neg=true;t=t.slice(0,-1).trim();}
   if(/^\(.*\)$/.test(t)){neg=true;t=t.slice(1,-1);}
   t=t.replace(/^\+/,"");
+  /* Dezimaltrennzeichen der Datei (bankCsv): «-1.180» bei Komma-Dateien = 1180 */
+  if(dec===",")t=t.replace(/[.'’]/g,"");else if(dec===".")t=t.replace(/[,'’]/g,"");
   var v=parseNum(t);return v==null?null:(neg?-Math.abs(v):v);
 }
 /* ---- CSV ---- */
 var BKCOL={
   date:["buchungsdatum","buchungstag","completeddate","datumdesabschlusses","abschlussdatum","buchung","bookingdate","bookedat","datum","date","transactiondate","transaktionsdatum","starteddate","startdatum","datumdesbeginns","valutadatum","valuta","wertstellung","wertstellungsdatum","valuedate","wert"],
-  amt:["betrag","umsatz","amount","creditdebitamount","betragchf","betrageur","umsatzineur","umsatzinchf","betraginchf","betragineur","montant","importo","betrag€","einzelbetrag"],
+  amt:["betrag","umsatz","amount","transaktionsbetrag","nettobetrag","paymentamount","buchungsbetrag","betraginchf","betragineur","creditdebitamount","betragchf","betrageur","umsatzineur","umsatzinchf","betraginchf","betragineur","montant","importo","betrag€","einzelbetrag"],
   deb:["belastung","lastschrift","soll","debit","ausgang","lastschriftinchf","belastungchf","belastungeur","belastungen","sollbetrag","debitamount","debit chf"],
   cre:["gutschrift","haben","credit","eingang","gutschriftinchf","gutschriftchf","gutschrifteur","gutschriften","habenbetrag","creditamount"],
   cur:["waehrung","whg","whr","currency","devise","valuta waehrung"],
-  name:["empfaengerzahlungspflichtiger","beguenstigterzahlungspflichtiger","auftraggeberempfaenger","namezahlungsbeteiligter","partnername","beguenstigterauftraggeber","begunstigterauftraggeber",
-    "empfaengerauftraggeber","zahlungsbeteiligter","gegenpartei","counterparty","payee","merchant","haendler","name","beschreibung1","empfaenger"],
-  payee:["zahlungsempfaengerin","zahlungsempfaenger","empfaengerin","beguenstigter","beguenstigte"],
-  payer:["zahlungspflichtiger","zahlungspflichtigein","zahlungspflichtige","auftraggeber","auftraggeberin"],
-  text:["verwendungszweck","vorgangverwendungszweck","avisierungstext","buchungstext","beschreibung","description","text","paymentreference","zahlungszweck","beschreibung2","beschreibung3",
+  name:["auftraggeberzahlungsempfaenger","empfaengerzahlungspflichtiger","senderempfaenger","auftraggeberbeguenstigter","nameauftraggeberbeguenstigter","senderorrecipient","counterpartyname","activityname","empfaenger1","beguenstigterzahlungspflichtiger","auftraggeberempfaenger","namezahlungsbeteiligter","partnername","beguenstigterauftraggeber","begunstigterauftraggeber",
+    "empfaengerauftraggeber","zahlungsbeteiligter","gegenpartei","payee","merchant","haendler","name","counterparty","beschreibung1","empfaenger"],
+  payee:["zahlungsempfaengerin","zahlungsempfaenger","empfaengerin","beguenstigter","beguenstigte","payeename","recipient"],
+  payer:["zahlungspflichtiger","zahlungspflichtigein","zahlungspflichtige","auftraggeber","auftraggeberin","payername","sender"],
+  text:["verwendungszweck","vorgangverwendungszweck","transaktionsbeschreibung","transaktionsbeschreibungzusatz","buchungsdetails","reference","paymentreference","erscheintaufihrerabrechnungals","avisierungstext","buchungstext","beschreibung2","beschreibung3","beschreibung","description","text","zahlungszweck",
     "details","mitteilung","subject","umsatzart","vorgang","texte de notification","libelle"],
   cred:["glaeubigerid","glaubigerid","creditorid","glaeubigeridentifikation"],
   mref:["mandatsreferenz","mandatereference","mandatereferenz","mandatsref","mandateid","mandatsid"],
-  sh:["sollhaben","sh","dc","debitcredit","sollhabenkennzeichen","kennzeichen"],state:["state","status","zustand","info"],type:["type","typ","art","transaktionstyp","transactiontype"],prod:["product","produkt"]
+  sh:["sollhaben","sh","dc","debitcredit","sollhabenkennzeichen","kennzeichen","belastunggutschrift","gutschriftbelastung","debitkredit"],
+  sub:["einzelbetrag","betragdetail","betrageinzelzahlung","betrageinzelzahlungchf","einzelbetragchf","betragdetailchf"],state:["state","status","zustand","info"],type:["type","typ","art","transaktionstyp","transactiontype","transaktionen","auftragsart","activitytype","bewegungstyp","umsatzart","umsatztyp","bookingtype","buchungsart"],prod:["product","produkt"]
 };
 function bankHead(cells){
   var h=cells.map(function(x){return csvNorm(x);}),col={},used={};
-  var bad=/ursprung|original|saldo|balance|fremd|gebuehr|auslagen|kurs|rate|detail|nachbuchung/;
+  var bad=/ursprung|original|saldo|balance|fremd|gebuehr|auslagen|kurs|rate|detail|nachbuchung|einzel|gutschriftbelastung|belastunggutschrift|sollhaben|debitkredit/;
   var pick=function(k,loose){var l=BKCOL[k];
     for(var a=0;a<l.length;a++)for(var i=0;i<h.length;i++){if(used[i]||!h[i])continue;
       if(h[i]===csvNorm(l[a])||(loose&&h[i].indexOf(csvNorm(l[a]))===0&&!bad.test(h[i]))){used[i]=1;return i;}}
     return -1;};
-  col.date=pick("date");col.sh=pick("sh");col.amt=pick("amt");col.deb=pick("deb",true);col.cre=pick("cre",true);
+  col.date=pick("date");col.sh=pick("sh");col.sub=pick("sub");col.amt=pick("amt");col.deb=pick("deb",true);col.cre=pick("cre",true);
   if(col.amt<0)col.amt=pick("amt",true);col.cur=pick("cur",true);col.payee=pick("payee");col.payer=pick("payer");
-  col.name=pick("name");col.cred=pick("cred",true);col.state=pick("state");col.type=pick("type");col.prod=pick("prod");col.mref=pick("mref");
+  col.name=pick("name");col.name2=pick("name");col.cred=pick("cred",true);col.state=pick("state");col.type=pick("type");col.prod=pick("prod");col.mref=pick("mref");
   /* Rückfall: irgendeine Spalte mit «datum»/«date» (z.B. «Datum/Uhrzeit») */
   if(col.date<0)for(var di=0;di<h.length;di++)if(!used[di]&&h[di].length<=24&&!/\d/.test(h[di])&&/^(datum|date)|(datum|date)$/.test(h[di])&&!/geburt|birth|saldo|balance/.test(h[di])){used[di]=1;col.date=di;break;}
   col.text=[];var t;while((t=pick("text"))>=0)col.text.push(t);
@@ -6568,7 +6572,7 @@ function bankBankOf(h){
   return "";
 }
 var BKBADSTATE=/revert|declin|fail|pending|vorgemerkt|vormerkung|cancel|ausstehend|abgelehnt|rueckgaengig|rückgängig|zurueck|zurück|storniert|fehlgeschlagen|zurückerstattet|in bearbeitung/i;
-var BKBADTYPE=/exchange|umtausch|wechsel|top.?up|aufladung|aufgeladen|einzahlung|^atm$|geldautomat|bargeld|cashback/i;
+var BKBADTYPE=/exchange|umtausch|wechsel|top.?up|aufladung|aufgeladen|einzahlung|^atm$|geldautomat|bargeld|barauszahlung|auszahlung gaa|cashback|bancomat/i;
 var BKBADPROD=/saving|sparen|spar|deposit|pocket|vault|tresor|invest|crypto|krypto/i;
 var bkLastHead="";
 /* Zahlungsart: dd = Lastschrift/eBill (starkes Vertragssignal), so = Dauerauftrag, card = Karte, tr = Überweisung, "" = unbekannt.
@@ -6603,31 +6607,87 @@ function bankCsv(txt){
   /* jedes Trennzeichen probieren (häufigstes zuerst), das erste mit erkannter Kopfzeile gewinnt */
   var dls=[";","\t",","].sort(function(a,b){return cnt[b]-cnt[a];}),rows=null,hi=-1,col=null,body=txt.replace(/^\ufeff/,"");
   for(var di=0;di<dls.length&&hi<0;di++){var rs=csvParse("sep="+dls[di]+"\n"+body);if(!rows)rows=rs;
-    for(var r=0;r<Math.min(rs.length,60);r++){var c=bankHead(rs[r]);if(c.ok){hi=r;col=c;rows=rs;break;}}}
-  if(hi<0){var fr=rows.filter(function(r){return r.join("").trim();})[0]||[];bkLastHead=fr.slice(0,10).join(" · ").slice(0,160);return null;}
-  var g=function(row,i){return i>=0&&row[i]!=null?String(row[i]).trim():"";},tx=[],pos=0,neg=0;
-  rows.slice(hi+1).forEach(function(row){
-    var d=bankDate(g(row,col.date));if(!d)return;   /* Fusszeilen wie «Kontostand;…» fallen hier weg */
+    for(var r=0;r<Math.min(rs.length,60);r++){var c=bankHead(rs[r]);if(c.ok){hi=r;col=c;rows=rs;col.head=rs[r];break;}}}
+  if(hi<0){col=bankGuessCols(dls,body);if(col){rows=col.rows;hi=-1;}}
+  if(!col){var fr=rows.filter(function(r){return r.join("").trim();})[0]||[];bkLastHead=fr.slice(0,10).join(" · ").slice(0,160);return null;}
+  var g=function(row,i){return i>=0&&row[i]!=null?String(row[i]).replace(/^"+|"+$/g,"").trim():"";},tx=[],pos=0,neg=0,data=rows.slice(hi+1);
+  /* Dezimaltrennzeichen aus den Beträgen der Datei */
+  var dc=0,dd=0;data.slice(0,300).forEach(function(row){[col.amt,col.deb,col.cre,col.sub].forEach(function(i){var v=g(row,i);if(/,\d{1,2}(\D*)$/.test(v))dc++;else if(/\.\d{1,3}(\D*)$/.test(v))dd++;});});
+  var dec=dc>dd?",":(dd?".":"");
+  /* Soll/Haben-Spalte ohne Namen (alte VR/Fiducia: Kopf « ») über die Werte erkennen */
+  if(col.sh<0){var w=(rows[hi]||data[0]||[]).length;for(var ci=0;ci<w&&col.sh<0;ci++){if(ci===col.date||ci===col.amt)continue;
+    var vs=data.slice(0,200).map(function(r){return g(r,ci);}).filter(Boolean);if(vs.length>5&&vs.every(function(v){return /^(S|H)$/i.test(v);}))col.sh=ci;}}
+  /* zwei Namensspalten (Auftraggeber/Empfänger): die mit wechselnden Werten ist der Vertragspartner, die konstante bist du */
+  var nmCol=col.name;if(col.name2>=0&&col.name>=0){var ds=function(i){var o={};data.slice(0,300).forEach(function(r){var v=g(r,i);if(v)o[v]=1;});return Object.keys(o).length;};
+    if(ds(col.name2)>ds(col.name))nmCol=col.name2;}
+  rows=null;
+  data.forEach(function(row){
+    var d=bankDate(g(row,col.date));
+    var ty=g(row,col.type),text=col.text.map(function(i){return g(row,i);}).filter(Boolean).join(" · ");
+    if(!d){
+      /* Einzelposten einer Sammelbuchung (UBS «Einzelbetrag», ZKB «Betrag Detail», TKB «Betrag Einzelzahlung», LUKB ohne Datum) */
+      var last=bankParent(tx),sv=bankNum(g(row,col.sub),dec);if(sv==null)sv=bankNum(g(row,col.deb),dec);if(sv==null)sv=bankNum(g(row,col.amt),dec);
+      if(last&&sv&&(g(row,col.sub)||/sammel|zahlungen|collective/i.test(last.text+" "+last.name))&&row.join("").trim()){
+        last.coll=true;tx.push({d:last.d,a:(last.a<0?-1:1)*Math.abs(sv),cur:last.cur,name:g(row,nmCol),text:text,cred:"",mref:"",kind:last.kind,sub:true});}
+      return;}   /* sonst Fusszeilen wie «Kontostand;…» */
     /* Revolut & Co.: nur abgeschlossene Buchungen vom Hauptkonto, kein Umtausch/Aufladen */
-    if(BKBADSTATE.test(g(row,col.state))||BKBADTYPE.test(g(row,col.type))||BKBADPROD.test(g(row,col.prod)))return;
-    var a=null,de=bankNum(g(row,col.deb)),cr=bankNum(g(row,col.cre));
-    if(de!=null&&de!==0)a=-Math.abs(de);else if(cr!=null&&cr!==0)a=Math.abs(cr);
-    if(a==null)a=bankNum(g(row,col.amt));
-    if(a==null||a===0)return;
-    var shv=g(row,col.sh);if(shv){if(/^(s|d|dr|debit|soll|belastung|-)$/i.test(shv))a=-Math.abs(a);else if(/^(h|c|cr|credit|haben|gutschrift|\+)$/i.test(shv))a=Math.abs(a);}
+    if(BKBADSTATE.test(g(row,col.state))||BKBADTYPE.test(ty)||BKBADPROD.test(g(row,col.prod)))return;
+    var a=null,de=bankNum(g(row,col.deb),dec),cr=bankNum(g(row,col.cre),dec);
+    if(de!=null&&de!==0)a=-Math.abs(de);else if(cr!=null&&cr!==0)a=col.guess?cr:Math.abs(cr);
+    if(a==null)a=bankNum(g(row,col.amt),dec);
+    if(a==null||a===0){
+      /* Einzelposten mit Datum (UBS alt): gehört zur vorherigen Sammelbuchung */
+      var sv2=bankNum(g(row,col.sub),dec),lt=bankParent(tx);
+      if(sv2&&lt&&(lt.coll||/sammel|collective/i.test(lt.text+" "+lt.name+" "+(lt.type||"")))){lt.coll=true;
+        tx.push({d:d,a:(lt.a<0?-1:1)*Math.abs(sv2),cur:lt.cur,name:g(row,nmCol),text:text,type:ty,cred:"",mref:"",kind:bankKind("",ty+" "+text),sub:true});}
+      return;}
+    var shv=g(row,col.sh);if(shv){if(/^(s|d|dr|debit|soll|belastung|-)/i.test(shv))a=-Math.abs(a);else if(/^(h|c|cr|credit|haben|gutschrift|\+)/i.test(shv))a=Math.abs(a);}
     if(a>0)pos++;else neg++;
-    var nm=g(row,col.name);
+    var nm=g(row,nmCol);
     if(col.payee>=0||col.payer>=0){var pe=g(row,col.payee),pr=g(row,col.payer);nm=(a<0?pe:pr)||nm||(a<0?pr:pe);}
-    var text=col.text.map(function(i){return g(row,i);}).filter(Boolean).join(" · ");
     var cu=g(row,col.cur).toUpperCase().match(/[A-Z]{3}/);
-    var ty=g(row,col.type);
-    tx.push({d:d,a:a,cur:cu?cu[0]:"",name:nm,text:text,cred:g(row,col.cred),mref:g(row,col.mref),kind:bankKind("",ty+" "+text)});
+    tx.push({d:d,a:a,cur:cu?cu[0]:"",name:nm,text:text,type:ty,cred:g(row,col.cred),mref:g(row,col.mref),kind:bankKind("",ty+" "+text)});
   });
-  /* Kreditkarten-Abrechnungen führen Einkäufe positiv */
-  if(col.card&&col.deb<0&&pos>neg*4)tx.forEach(function(t){t.a=-t.a;});
-  var hc=rows[hi].join("|"),cur=/\bCHF\b/i.test(hc)?"CHF":(/EUR|€/i.test(hc)?"EUR":"");
+  /* Sammelbuchung mit Einzelposten: nur die Einzelposten zählen */
+  tx=tx.filter(function(t){return !(t.coll&&tx.some(function(x){return x.sub&&x.d===t.d;}));});
+  /* Kreditkarten-Abrechnungen führen Einkäufe positiv: fast alles positiv und die wenigen Belastungen sind Zahlungen an die Karte */
+  var negs=tx.filter(function(t){return t.a<0;});
+  if(pos>neg*3&&negs.length&&negs.filter(function(t){return /zahlung|payment|dank|thank|gutschrift|ausgleich|lastschrift|einzug|erhalten/i.test(t.name+" "+t.text);}).length>=negs.length*0.6)
+    tx.forEach(function(t){t.a=-t.a;});
+  else if(col.card&&col.deb<0&&pos>neg*4)tx.forEach(function(t){t.a=-t.a;});
+  var hc=(col.head||[]).join("|"),cur=/\bCHF\b/i.test(hc)?"CHF":(/EUR|€/i.test(hc)?"EUR":"");
+  if(!cur){var nC=(body.match(/\bCHF\b/g)||[]).length,nE=(body.match(/\bEUR\b|€/g)||[]).length;
+    if(nC!==nE)cur=nC>nE?"CHF":"EUR";
+    else{var iC=(body.match(/\b(?:CH|LI)\d{2}[ \d]{4}/g)||[]).length,iE=(body.match(/\b(?:DE|AT|LU|NL|FR|IT|ES|BE|IE)\d{2}[ \dA-Z]{4}/g)||[]).length;
+      if(iC!==iE)cur=iC>iE?"CHF":"EUR";}}
   if(cur)tx.forEach(function(t){if(!t.cur)t.cur=cur;});
-  return {fmt:"CSV",bank:bankBankOf(rows[hi]),tx:tx};
+  return {fmt:"CSV",bank:col.guess?"":bankBankOf(col.head||[]),tx:tx};
+}
+/* letzte Buchung, die selbst kein Einzelposten ist (Sammelbuchung mit mehreren Posten) */
+function bankParent(tx){for(var i=tx.length-1;i>=0;i--)if(!tx[i].sub)return tx[i];return null;}
+/* Datei ohne Kopfzeile (Targobank u.a.): Spalten über die Werte bestimmen – Datum, Betrag(e), längster Text */
+function bankGuessCols(dls,body){
+  for(var di=0;di<dls.length;di++){
+    var rs=csvParse("sep="+dls[di]+"\n"+body).filter(function(r){return r.length>=3;});if(rs.length<5)continue;
+    var w=Math.max.apply(null,rs.slice(0,50).map(function(r){return r.length;})),S=rs.slice(0,200),cell=function(r,i){return r[i]==null?"":String(r[i]).trim();};
+    var dcol=-1;for(var i=0;i<w;i++){if(S.filter(function(r){return bankDate(cell(r,i));}).length>=S.length*0.7){dcol=i;break;}}
+    if(dcol<0)continue;
+    var nums=[],tcol=-1,tl=0;
+    for(var k=0;k<w;k++){if(k===dcol)continue;var ne=S.filter(function(r){return cell(r,k);});if(!ne.length)continue;
+      var nn=ne.filter(function(r){return bankNum(cell(r,k))!=null&&/\d/.test(cell(r,k))&&!/[A-Za-z]{2}/.test(cell(r,k));}).length;
+      if(nn>=ne.length*0.9&&ne.length>=S.length*0.2)nums.push(k);
+      else{var al=ne.reduce(function(a,r){return a+cell(r,k).length;},0)/ne.length;if(al>tl){tl=al;tcol=k;}}}
+    if(!nums.length||tcol<0)continue;
+    /* Saldo-Spalte (fast immer gefüllt) weglassen, wenn es andere Betragsspalten gibt */
+    if(nums.length>1){var nf=nums.filter(function(k){return S.filter(function(r){return cell(r,k);}).length<S.length*0.95;});if(nf.length)nums=nf;}
+    var c={date:dcol,amt:-1,deb:-1,cre:-1,sh:-1,sub:-1,cur:-1,payee:-1,payer:-1,name:-1,name2:-1,cred:-1,state:-1,type:-1,prod:-1,mref:-1,text:[tcol],card:false,ok:true,guess:true,rows:rs};
+    if(nums.length===1)c.amt=nums[0];else{c.deb=nums[0];c.cre=nums[1];
+      /* Belastungsspalte mit negativen Werten: Vorzeichen übernehmen */
+      if(S.some(function(r){var v=bankNum(cell(r,nums[0]));return v!=null&&v<0;})){c.amt=nums[0];c.deb=-1;}}
+    c.head=[];
+    return c;
+  }
+  return null;
 }
 /* ---- camt.052/053/054 ---- */
 function bankCamt(txt){
@@ -6697,19 +6757,45 @@ function bankRead(buf){
 }
 /* ---- Name aus Buchungstext ---- */
 var BKPRE=/^(?:KAUF\/DIENSTLEISTUNG|KAUF\/ONLINE[- ]SHOPPING|ONLINE[- ]SHOPPING|EINKAUF(?: ZKB)?(?: VISA)?(?: DEBIT)?(?: CARD)?|LASTSCHRIFT|LSV:?|BELASTUNG|E-?RECHNUNG|E-?BILL:?|GIRO (?:AN|AUSLAND|POST|BANK|INTERN)|ZAHLUNG:?|DAUERAUFTRAG:?|SEPA[- ](?:BASIS)?LASTSCHRIFT|FOLGELASTSCHRIFT|ERSTLASTSCHRIFT|KARTENZAHLUNG|DEBITKARTE|UEBERWEISUNG|ÜBERWEISUNG|ZAHLUNGSAUFTRAG|PURCHASE|PAYMENT|VISA-UMSATZ|E-BANKING-AUFTRAG|TO|PAYMENT FROM|TRANSFER TO|TRANSFER FROM|ZAHLUNG VON|AN|VON)\b[\s:,.-]*/i;
+/* Wörter, aus denen nur die Buchungsart besteht («Belastung e-banking / Ref.-Nr. 123», «QR-Rechnung», «Zahlung Debitkarte») */
+var BKTYPEW=("belastung gutschrift zahlung zahlungen einkauf warenbezug und dienstleistung dienstleistungen dauerauftrag lsv lastschrift e banking ebanking "+
+  "verguetungsauftrag verguetung qr rechnung ebill bill debitkarte kreditkarte karte mastercard visa maestro debit card twint bezug kartenzahlung "+
+  "ueberweisung uberweisung sammelauftrag auftrag zahlungsauftrag ref nr referenz purchase payment einzahlung auftragsart finance post giro buchung "+
+  "online shopping kauf sepa basislastschrift folgelastschrift erstlastschrift transfer direct transaction issued by of an die der das im per vom "+
+  "kartennummer kartenverfuegung verfuegung verfugung vergutungsauftrag vergutung lastschriftverfahren standing order ihr ihre karten xxxx xx x").split(" ");
+function bankIsType(p){var w=lnorm(p).split(" ").filter(Boolean);return !w.length||w.every(function(x){return /^\d+$/.test(x)||(x.length<2&&w.length>1)||BKTYPEW.indexOf(x)>=0;});}
+function bankNameClean(n){
+  n=String(n||"").replace(/\s+/g," ").trim();
+  n=n.split(/\s(?:MITTEILUNGEN?|Mitteilungen?:|REFERENZ|Referenz(?:-Nr\.?)?:?|QR-Referenz|Transaktions(?:-Nr\.?|datum)|Karten?-?Nr\.?|Kartennummer|IBAN|Kto\/IBAN|Kto|BLZ|Konto-Nr\.?|CH\d{2}\s?\d|DE\d{2}\s?\d|\d{4,5}\s+[A-ZÄÖÜa-zäöü]{2}|Ref\.|Buchungstext:|Verwendungszweck)/)[0];
+  var lg=n.match(/^(.*?\b(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\.V\.|e\.\s?V\.|Genossenschaft))(?:\s|$)/i);if(lg)n=lg[1];
+  return n.split(" ").slice(0,5).join(" ").trim();
+}
 function bankNameFrom(t){
-  t=String(t||"").replace(/\s+/g," ").trim();
-  var m=t.match(/(?:Empf(?:ä|ae)nger|Auftraggeber|Beg(?:ü|ue)nstigter)\s*:\s*(.+?)(?=\s+(?:Kto\/IBAN|IBAN|Konto|BLZ|Buchungstext|Verwendungszweck)\b|$)/i);
-  if(m)return m[1].trim();
-  for(var i=0;i<4;i++){var o=t;t=t.replace(BKPRE,"").replace(/^VOM \d{1,2}\.\d{1,2}\.\d{2,4}\s*/i,"").replace(/^KARTEN?\s*NR\.?\s*[X\d* ]+?(?=\s[A-Za-z])\s*/i,"").replace(/^Nr\.\s*[x\d ]+,\s*/i,"");if(o===t)break;}
-  t=t.split(/\s(?:MITTEILUNGEN|REFERENZ|REFERENZEN|ZAHLUNGSGRUND|IBAN|CH\d{2}|DE\d{2}|\d{4,5}\s+[A-ZÄÖÜa-zäöü])|\s·\s|,/)[0];
-  var lg=t.match(/^(.*?\b(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\.V\.|e\.\s?V\.|Genossenschaft))(?:\s|$)/i);if(lg)t=lg[1];
-  return t.split(" ").slice(0,5).join(" ").trim();
+  var full=String(t||"").replace(/\r/g,"").split(/\n+/).map(function(x){return x.replace(/\s+/g," ").trim();}).filter(Boolean).join(" , ");
+  /* ausdrückliche Bezeichnungen */
+  var m=full.match(/(?:Empf(?:ä|ae)nger|Auftraggeber|Beg(?:ü|ue)nstigter|Bezugsort|Zahlungsempf(?:ä|ae)nger)\s*:\s*(.+?)(?=\s+(?:Kto\/IBAN|IBAN|Konto|BLZ|Buchungstext|Verwendungszweck|Transaktionsdatum|Karten-?Nr|Referenz)\b|\s*,|$)/i);
+  if(m&&!bankIsType(m[1]))return bankNameClean(m[1]);
+  m=full.match(/(?:issued by|sent money to|received money from|payment to|zahlung an|ebill-zahlung an|e-bill-zahlung an)\s+(.+?)(?=\s+with reference|\s*,|$)/i);
+  if(m)return bankNameClean(m[1]);
+  /* Kartenzahlung «… 12.09.2026 03:14 NETFLIX.COM …»: Händler steht nach Datum und Uhrzeit */
+  m=full.match(/\d{1,2}\.\d{1,2}\.\d{2,4}[ \t]*\/?[ \t]*\d{1,2}:\d{2}(?::\d{2})?[ \t]+([A-Za-zÄÖÜäöü][^,]+)/);
+  if(m){var mm=bankNameClean(m[1].split(/\s*,\s*/)[0]);if(mm&&!bankIsType(mm))return mm;}
+  var parts=full.split(/\s*,\s*|\s+\/\s+|\s·\s/);
+  for(var pi=0;pi<parts.length;pi++){
+    var x=parts[pi];
+    for(var r=0;r<6;r++){var o=x;x=x.replace(BKPRE,"").replace(/^Buchungstext:\s*/i,"").replace(/^VOM \d{1,2}\.\d{1,2}\.\d{2,4}\s*/i,"").replace(/^KARTEN?\s*NR\.?\s*[X\d* ]+?(?=\s[A-Za-z])\s*/i,"")
+      .replace(/^Nr\.\s*[x\d ]+,?\s*/i,"").replace(/^Ref\.?-?Nr\.?\s*[\d ]+/i,"").replace(/^\d{6,}\s*/,"").replace(/^\d{1,2}\.\d{1,2}\.\d{2,4}(\s+\d{1,2}:\d{2}(:\d{2})?)?\s*/,"").trim();if(o===x)break;}
+    /* führende Buchungsart-Wörter weg: «E-Banking Dauerauftrag Immo Seeblick AG» → «Immo Seeblick AG» */
+    var xw=x.split(" ");while(xw.length>1&&bankIsType(xw[0]))xw.shift();x=xw.join(" ");
+    if(!x||bankIsType(x))continue;
+    var c=bankNameClean(x);if(c&&!bankIsType(c))return c;
+  }
+  return "";
 }
 /* Kartenbezeichnungen der Zahlungsdienste: «SQ *Muster Bar», «PAYPAL *SPOTIFY», «GOOGLE *YouTube», «PADDLE.NET* NOTION» */
 var BKPROC=/^(?:SQ|SP|SUMUP|SUM UP|PAYPAL|PP|GOOGLE|GOOGLE PAY|STRIPE|PADDLE(?:\.NET)?|IZ|ZTL|TST|FS|2CO|FASTSPRING|LEMSQZY|LS|DRI|CKO|ADY|ADYEN|NYX|WL|PAYU|MOLLIE|KLARNA|APPLE PAY|WWW)\s?\*\s?(.+)$/i;
 function bankDesc(n){
-  n=String(n||"").replace(/\s+/g," ").trim();var m=n.match(BKPROC);if(m)n=m[1].trim();
+  n=String(n||"").replace(/\s+/g," ").trim().split("//")[0];var m=n.match(BKPROC);if(m)n=m[1].trim();
   if(/^apple\.com\/bill|^apple com bill|^itunes\.com/i.test(n))return "Apple";
   if(/^amzn\s*(mktp|marketplace)|^amazon\s*(mktp|marketplace|\.de|\.ch|eu)/i.test(n))return "Amazon";
   if(/^amzn\s*prime|^amazon\s*prime|^prime video/i.test(n))return "Amazon Prime";
@@ -6719,24 +6805,26 @@ function bankDesc(n){
      .replace(/\s+\b(?:CH|DE|AT|NL|IE|LU|GB|US|SE|CHE|DEU|NLD|IRL|LUX|USA)\b$/,"").trim();
   return n;
 }
-function bankPretty(s){s=String(s||"").trim();if(s&&s===s.toUpperCase()&&/[A-Z]{3}/.test(s))s=s.toLowerCase().replace(/(^|[\s\-\/(])([a-zäöü])/g,function(_,a,b){return a+b.toUpperCase();});return s.replace(/\.com$/i,"");}
+function bankPretty(s){s=String(s||"").trim();if(s&&s===s.toUpperCase()&&/[A-Z]{3}/.test(s))s=s.toLowerCase().replace(/(^|[\s\-\/(])([a-zäöü])/g,function(_,a,b){return a+b.toUpperCase();});
+  s=s.replace(/\bAg\b/g,"AG").replace(/\bGmbh\b/g,"GmbH").replace(/\bSa\b/g,"SA").replace(/\bKg\b/g,"KG").replace(/\bSe\b/g,"SE").replace(/\bEv\b/g,"eV");return s.replace(/\.com$/i,"");}
 var BKSTOP=["com","www","net","online","payment","payments","europe","international","sca","bv","debit","card","karte","nr","los","gatos","stockholm"];
 function bankTok(s){return ltok(s).filter(function(t){return !/\d/.test(t)&&BKSTOP.indexOf(t)<0;});}
 /* Katalog: alle markanten Wörter des Namens müssen vorkommen; kurze Namen (CSS, O2) nur im Namen, nicht im Freitext */
 var BKALIAS={"Rundfunkbeitrag":/rundfunk|beitragsservice/,"Serafe":/\bserafe\b/,"SBB Halbtax":/halbtax/,"Deutschlandticket":/deutschlandticket|d ticket/,"Die Mobiliar":/\bmobiliar\b/,"Amazon Prime":/amazon prime|prime video|amzn prime/,"Zurich":/zurich (versicherung|insurance|schweiz|lebens)/};
 function bankTpl(name,text,cur){
   var nn=" "+lnorm(name)+" ",nt=" "+lnorm(name+" "+text)+" ",cc=cur==="EUR"?"DE":(cur==="CHF"?"CH":""),via=BKVIA.test(nn),best=null;
-  var better=function(t){return !best||((t[1]===cc)-(best[1]===cc)||t[0].length-best[0].length)>0;};
+  var inN=0;
+  var better=function(t,n){if(!best)return true;var d=(n?1:0)-inN;if(d)return d>0;return ((t[1]===cc)-(best[1]===cc)||t[0].length-best[0].length)>0;};
   TPL.forEach(function(t){
-    var al=BKALIAS[t[0]];if(al){if(al.test(nt)&&better(t))best=t;return;}
+    var al=BKALIAS[t[0]];if(al){if(al.test(nt)){var n1=al.test(nn);if(better(t,n1)){best=t;inN=n1?1:0;}}return;}
     var tk=ltok(t[0]);if(!tk.length||(t[1]&&cc&&t[1]!==cc&&TPL.some(function(o){return o!==t&&o[1]===cc&&ltok(o[0])[0]===tk[0];})))return;
     /* ein Wort (CSS, Zurich, Netflix): nur im Namen, sonst Fehltreffer über Ortsnamen; bei PayPal & Co. auch im Freitext */
     var hay=tk.length===1&&!via?nn:nt;
-    if(tk.every(function(x){return hay.indexOf(" "+x+" ")>=0;})&&better(t))best=t;
+    if(tk.every(function(x){return hay.indexOf(" "+x+" ")>=0;})){var n2=tk.every(function(x){return nn.indexOf(" "+x+" ")>=0;});if(better(t,n2)){best=t;inN=n2?1:0;}}
   });
   return best;
 }
-var BKSKIP=/bancomat|geldautomat|bargeld|\batm\b|\bcash\b|umbuchung|\bu(e)?bertrag\b|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b/;
+var BKSKIP=/bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlung gaa|\bgaa\b|\bga \d{4,}|^ga\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b/;
 /* Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant) */
 var BKSHOP=/\b(cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery)\b/;
 /* Alltagseinkäufe (Detailhandel, Tankstellen, Fast Food): nie ein Vertrag, ausser ein Katalogeintrag passt (Migros Bank, Coop Mobile) */
@@ -6767,12 +6855,15 @@ function bankFind(r,ign){
   var groups={},home=state.settings.home;
   r.tx.forEach(function(t){
     if(t.a>=0)return;
-    var nm=(t.name||bankNameFrom(t.text)).split(/;|\s·\s/)[0].trim();
+    var nm=t.name&&!bankIsType(t.name)?bankNameClean(t.name.split(/\s*,\s*/)[0]):bankNameFrom(t.text);
+    nm=nm.split(/;|\s·\s/)[0].trim();
     /* PayPal, Klarna & Co.: eigentlicher Händler steht im Text («Ihr Einkauf bei Muster Cloud») */
     if(BKVIA.test(lnorm(nm))){var vm=String(t.text||"").match(/(?:einkauf bei|purchase at|payment to|zahlung an|abo bei|bei)\s+([^,;·\/]{3,40})/i);if(vm&&!BKVIA.test(lnorm(vm[1])))nm=vm[1].replace(/\s+\d.*$/,"").trim();}
     var nd=bankDesc(nm);if(nd.length>=2)nm=nd;
-    var tp=bankTpl(nm,t.text,t.cur||home),hay=lnorm(nm+" "+t.text);
+    var tp=bankTpl(nm,t.text,t.cur||home),hay=lnorm(nm+" "+t.text+" "+(t.type||""));
     if(!tp&&BKRETAIL.test(lnorm(nm)))return;
+    /* Kartenbezug am Automaten einer Bank («Sparkasse Konstanz», «UBS») = Bargeld */
+    if((t.kind==="card"||(!t.kind&&Math.abs(t.a)%10===0))&&/^(sparkasse|volksbank|raiffeisen|commerzbank|deutsche bank|postbank|hypovereinsbank|targobank|santander|ubs|postfinance|zkb|kantonalbank|migros bank|valiant|atm|geldautomat)\b/.test(lnorm(nm)))return;
     if(BKSKIP.test(hay)||BKSHOP.test(lnorm(nm)))return;
     var tk=bankTok(nm),key=tp?"tpl:"+tp[0]:(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
     if(!key)return;key=key+"|"+(t.cur||home);
@@ -6842,10 +6933,12 @@ function bankFind(r,ign){
     var cyc=0,conf="",varies=false,ch=null;
     if(n>=2){
       var cs=iv.map(bankCycle),cnt={};cs.forEach(function(c){if(c)cnt[c]=(cnt[c]||0)+1;});
-      cyc=+Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];})[0]||0;
-      /* bei Monatszahlungen darf eine fehlen (Intervall ~2 Monate) */
-      var hit=cs.filter(function(c){return c===cyc||(cyc===1&&c===2);}).length;
-      if(!cyc||hit<iv.length*0.7)return;
+      /* kleinster Rhythmus, bei dem ≥ 70 % der Abstände passen; eine fehlende Zahlung (doppelter Abstand) zählt mit
+         (z.B. Quartal mit Sammelauftrag dazwischen, Monat mit ausgelassener Abbuchung) */
+      var dbl={1:2,2:4,3:6,6:12},hit=0;cyc=0;
+      Object.keys(cnt).map(Number).sort(function(a,b){return a-b;}).some(function(c0){
+        var h=cs.filter(function(c){return c===c0||c===dbl[c0];}).length;if(h>=iv.length*0.7&&cnt[c0]>=Math.max(1,iv.length*0.3)){cyc=c0;hit=h;return true;}return false;});
+      if(!cyc)return;
       /* Beträge: höchstens zwei Stufen (Preisänderung) oder ±5 % um den Median, sonst variabel (Einkäufe) */
       var lv=[];am.forEach(function(v){if(!lv.length||Math.abs(lv[lv.length-1]-v)>0.004)lv.push(v);});
       var dist={};am.forEach(function(v){dist[v.toFixed(2)]=1;});
