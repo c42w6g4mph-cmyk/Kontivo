@@ -724,7 +724,7 @@ body.hasplus .topadd{display:inline-flex}
 /* Kopfzeilen der Fenster, Suchzeile */
 #sheetBank{padding-bottom:0}
 #bankFile{display:none}
-.bkentry{border-top:0;margin-bottom:10px}.bkentry .mdt b{display:block;font-size:16px;font-weight:600}.bkentry .mdt small{display:block;font-size:12.5px;color:var(--ink2);line-height:1.4;margin-top:2px}
+
 .bksrc{font-size:12.5px;color:var(--ink2);margin:2px 0 4px}
 .sheet h3.bkh{display:flex;justify-content:space-between;margin:18px 0 2px;border-bottom:0;padding-bottom:0;text-transform:uppercase;letter-spacing:.04em;font-size:12px}
 .bkrow{border-top:1px solid var(--line)}.bkh+.bkrow,.bkh+.bknote+.bkrow{border-top:0}
@@ -1446,7 +1446,6 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="curpick" id="sHome" role="group" aria-label="Hauptwährung"></div>
     <div class="ratefoot"><span class="note" id="rateStamp"></span><button class="mini" id="sRateNow" type="button">Aktualisieren</button></div></div>
   <div class="sgroup"><div class="sgh">Daten</div>
-    <button class="srowbtn bkentry" id="bankImp" type="button"><span class="mdt"><b>Kontoauszug einlesen</b><small>Fixkosten aus Bank-Dateien finden (CSV, camt, MT940, auch mehrere auf einmal). Du entscheidest, was übernommen wird.</small></span><em>›</em></button>
     <input type="file" id="bankFile" multiple accept=".csv,.txt,.xml,.sta,.mt940,.940,text/csv,text/plain,text/xml,application/xml">
     <div class="tiles">
       <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
@@ -7124,7 +7123,6 @@ function bkFoot(){
   var t=[];if(n)t.push(n+(n===1?" Vertrag anlegen":" Verträge anlegen"));if(p)t.push(p+(p===1?" Preis":" Preise")+(n?"":" anpassen"));
   btn.textContent=t.join(" · ")||"Nichts ausgewählt";btn.disabled=!(n||p);
 }
-document.getElementById("bankImp").addEventListener("click",function(){document.getElementById("bankFile").click();});
 /* mehrere Dateien auf einmal (Konto, Kreditkarte, zweites Konto …) → eine gemeinsame Vorschlagsliste */
 function bankMerge(rs){
   if(rs.length===1)return rs[0];
