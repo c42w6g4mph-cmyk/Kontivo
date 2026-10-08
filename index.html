@@ -1023,6 +1023,7 @@ details.logodet>summary{display:none}
 .dl dt{color:var(--ink2);font-size:12.5px;flex:none}
 .dl dd{margin:0;text-align:right;min-width:0;word-break:break-word}
 .dl.dtl{display:block;padding:12px 0 8px}
+.dl dd .dsub{display:block;font-size:12px;color:var(--ink2);margin-top:2px}
 .tlh{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink2);margin-bottom:8px}.tlh .alert{color:var(--alert);font-weight:600}
 .tll{position:relative;height:14px;margin:0 6px}.tll:before{content:"";position:absolute;left:0;right:0;top:6px;height:2px;background:var(--line)}
 .tll i{position:absolute;top:1px;width:12px;height:12px;border-radius:50%}.tll .t0{left:-2px;top:3px;width:8px;height:8px;background:var(--ink3)}
@@ -2025,6 +2026,13 @@ function payments(c,from,to){
 function exLabel(x){return (x.amount<0?"Gutschrift":"Sonderzahlung")+(x.note?" · "+x.note:"");}
 function nextChange(c){var t=today(),n=null;pricesOf(c).forEach(function(e){var f=parseD(e.from);if(!n&&f&&f>t)n=e;});return n;}
 function monthlyCost(c){var m=+c.cycle||1;return conv(curPrice(c),c.cur||"CHF")/m;}
+/* Zahlungsregel für das Detail, z. B. «monatlich am 27.», «jährlich am 1. Januar» */
+function payRule(c){
+  var a=parseD(c.due);if(!a)return "";
+  var m=+c.cycle||1,d=a.getDate(),cy=CYCLE[m]||"monatlich";
+  if(m>=12)return cy+" am "+d+". "+MON[a.getMonth()];
+  return cy+(d>=31?" am Monatsende":" am "+d+".");
+}
 function nextDue(c){
   var t=today(),o=occurrences(c,t,addMonths(t,Math.max(13,(+c.cycle||1)+1)));
   return o.length?o[0]:null;
@@ -4261,8 +4269,8 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       (paidSoFar?tile(nf0.format(paidSoFar.sum)+cur,"insgesamt bezahlt"):tile(nd?fmtShort(nd):"—","nächste Zahlung"))+"</div></div>";})();
   var secs=[
    ["Kosten",[
-    (+c.cycle||1)!==1?["Betrag",money(curPrice(c))+" "+c.cur+" · "+(CYCLE[c.cycle]||"monatlich")]:null,
-    paidSoFar?["Nächste Zahlung",nd?fmtD(iso(nd)):"—"]:null]],
+    (+c.cycle||1)!==1?["Betrag",money(curPrice(c))+" "+c.cur]:null,
+    payRule(c)?["Zahlung",payRule(c),false,(+c.cycle||1)!==1&&nd&&paidSoFar?"nächste am "+fmtShort(nd):""]:null]],
    ["Laufzeit & Kündigung",[
     c.start?["Beginn",fmtD(c.start)]:null,
     c.end?["Vertragsende",fmtD(iso(e))+(!gone&&termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
@@ -4329,7 +4337,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     (acts?'<div class="dacts">'+acts+"</div>":"")+
     (skr?'<p class="skr">Preiserhöhung: In Deutschland und der Schweiz besteht oft ein Sonderkündigungsrecht, meist innert 4–6 Wochen nach der Mitteilung. Massgebend ist dein Vertrag.</p>':"")+
     secs.map(function(sc){var rr=sc[1].filter(Boolean);if(!rr.length)return "";
-      return '<h3 class="dsec">'+esc(sc[0])+'</h3><dl class="dgrp">'+rr.map(function(r){if(r[2])return '<div class="dl dtl">'+r[1]+"</div>";return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+(r[0]==="Vertragspartner"?'<button type="button" class="dlink" data-peopen="'+esc(String(r[1]).trim().toLowerCase())+'" data-peid="'+esc(c._id)+'">'+esc(r[1])+" ›</button>":esc(r[1]))+"</dd></div>";}).join("")+"</dl>";}).join("")+
+      return '<h3 class="dsec">'+esc(sc[0])+'</h3><dl class="dgrp">'+rr.map(function(r){if(r[2])return '<div class="dl dtl">'+r[1]+"</div>";return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+(r[0]==="Vertragspartner"?'<button type="button" class="dlink" data-peopen="'+esc(String(r[1]).trim().toLowerCase())+'" data-peid="'+esc(c._id)+'">'+esc(r[1])+" ›</button>":esc(r[1]))+(r[3]?'<span class="dsub">'+esc(r[3])+"</span>":"")+"</dd></div>";}).join("")+"</dl>";}).join("")+
     ((c.web||c.tel||c.mail)?'<h3 class="dsec">Kontakt</h3><div class="links">'+
       (c.web?'<button data-link="'+esc(normUrl(c.web))+'" data-copy="'+esc(normUrl(c.web))+'"><span>Website</span><span>'+esc(c.web.replace(/^https?:\/\//i,""))+'</span></button>':"")+
       (c.tel?'<button data-link="tel:'+esc(c.tel.replace(/\s/g,""))+'" data-copy="'+esc(c.tel)+'"><span>Telefon</span><span>'+esc(c.tel)+'</span></button>':"")+
