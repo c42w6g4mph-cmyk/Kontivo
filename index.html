@@ -1234,6 +1234,16 @@ from{transform:scale(.6);opacity:0}
 #onb .obchip b{font-family:var(--ob-r);font-size:14.5px;font-weight:600;line-height:1.2;hyphens:auto}
 #onb .obchip small{font-size:11.5px;color:var(--ink3);line-height:1.25}
 #onb .obchip[aria-pressed="true"]{border-color:var(--teal)}
+/* Erster Vertrag v110: Karte «Automatisch finden» + kompakte Vorlagen (Symbol links), passt ohne Scrollen auf 393×852 */
+#onb .obauto{display:flex;gap:14px;align-items:center;width:100%;text-align:left;border:1.5px solid var(--teal);background:color-mix(in srgb,var(--teal) 9%,var(--surface));border-radius:18px;padding:14px 15px;color:var(--ink);flex:none}
+#onb .obauto .ic{width:44px;height:44px;border-radius:13px;flex:none;display:grid;place-items:center;background:var(--teal);color:#fff}
+#onb .obauto .ic svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#onb .obauto b{display:block;font-family:var(--ob-r);font-size:17px;font-weight:700}
+#onb .obauto small{display:block;font-size:13.5px;color:var(--ink2);margin-top:2px;line-height:1.35}
+#onb .obauto:active{transform:scale(.985)}
+#onb .obsec{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);margin:8px 0 -6px;flex:none}
+#onb .obchips.row .obchip{flex-direction:row;align-items:center;gap:9px;padding:8px 10px}
+#onb .obchips.row .obchip .mk{width:27px;height:27px}
 
 #onb .oblist{flex:1;min-height:0;overflow-y:auto;display:grid;gap:14px;align-content:start;padding:6px 2px 0}
 #onb .obli{display:flex;align-items:center;gap:13px}
@@ -7302,7 +7312,10 @@ function obPage(p){
       '<div class="obgrow"></div>'+obNext()+'<button type="button" class="obghost" data-ob="backup">Backup einspielen</button></div>';}
   if(p.k==="start"){
     return '<div class="obscr">'+obTop('<span class="obtab">Letzter Schritt</span>')+'<p class="obt">Womit fangen wir an?</p>'+
-      '<p class="obs">Tipp eine Vorlage an, den Rest ergänzt du.</p><div class="obchips">'+
+      '<p class="obs">Lass Kontivo suchen oder starte mit einer Vorlage.</p>'+
+      '<button type="button" class="obauto" data-ob="bank"><span class="ic">'+obSvg('<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>')+'</span>'+
+        '<span><b>Automatisch finden</b><small>Kontoauszug wählen, Vorschläge bestätigen</small></span></button>'+
+      '<p class="obsec">Mit Vorlage starten</p><p class="obs">Tipp an, was du hast – den Rest ergänzt du.</p><div class="obchips row">'+
       OB_QUICK.map(function(q,j){var cat=obCat(q[1]),e=catEntry(cat);
         return '<button type="button" class="obchip" data-obq="'+j+'" aria-pressed="'+(ob.quick===j)+'"><span class="mk" style="background:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span>'+
           '<span class="tx"><b>'+esc(q[0])+'</b><small>'+esc(cat)+'</small></span></button>';}).join("")+'</div>'+
@@ -7353,6 +7366,8 @@ document.getElementById("onb").addEventListener("click",function(ev){
   if(a==="next"){if(ob.i<ob.pages.length-1)obGo(ob.i+1);else closeOnb();}
   else if(a==="skip"){var st=-1;ob.pages.forEach(function(p,j){if(st<0&&p.k==="setup")st=j;});if(st>=0)obGo(st);else closeOnb();}
   else if(a==="close"||a==="done")closeOnb();
+  /* Kontoauszug: Dateiauswahl muss direkt im Tipp starten (iOS), danach Einführung schliessen */
+  else if(a==="bank"){document.getElementById("bankFile").click();closeOnb();}
   else if(a==="backup"){closeOnb();goTab("set");document.getElementById("bkLoad").click();}
   else if(a==="create"){var q=OB_QUICK[ob.quick];closeOnb();openForm(null);
     document.getElementById("fLabel").value=q[0];draft.cat=obCat(q[1]);paintCats();paintLogo();paintSwatches();}
