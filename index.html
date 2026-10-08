@@ -1396,7 +1396,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 <div class="amdim" id="addDim"></div>
 <div class="amenu" id="addMenu" role="menu" aria-label="Hinzufügen" inert aria-hidden="true">
   <button role="menuitem" data-am="form"><div>Vertrag erfassen<small>Einzeln, mit Anbieter-Katalog</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
-  <button role="menuitem" data-am="bank"><div>Aus Kontoauszug<small>Fixkosten in der Bank-Datei finden (CSV, camt, MT940)</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></button>
+  <button role="menuitem" data-am="bank"><div>Aus Kontoauszug<small>Fixkosten in Bank-Dateien finden – Konto und Kreditkarte auf einmal</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></button>
   <button role="menuitem" data-am="csv"><div>CSV-Liste importieren<small>Eigene Vertragsliste, z.B. aus Excel – kein Kontoauszug</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg></button>
 </div>
 <div class="minibar" id="miniBar" aria-hidden="true"><span id="miniTitle"></span></div>
@@ -1437,8 +1437,8 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="curpick" id="sHome" role="group" aria-label="Hauptwährung"></div>
     <div class="ratefoot"><span class="note" id="rateStamp"></span><button class="mini" id="sRateNow" type="button">Aktualisieren</button></div></div>
   <div class="sgroup"><div class="sgh">Daten</div>
-    <button class="srowbtn bkentry" id="bankImp" type="button"><span class="mdt"><b>Kontoauszug einlesen</b><small>Fixkosten aus einer Bank-Datei finden (CSV, camt, MT940). Du entscheidest, was übernommen wird.</small></span><em>›</em></button>
-    <input type="file" id="bankFile" accept=".csv,.txt,.xml,.sta,.mt940,.940,text/csv,text/plain,text/xml,application/xml">
+    <button class="srowbtn bkentry" id="bankImp" type="button"><span class="mdt"><b>Kontoauszug einlesen</b><small>Fixkosten aus Bank-Dateien finden (CSV, camt, MT940, auch mehrere auf einmal). Du entscheidest, was übernommen wird.</small></span><em>›</em></button>
+    <input type="file" id="bankFile" multiple accept=".csv,.txt,.xml,.sta,.mt940,.940,text/csv,text/plain,text/xml,application/xml">
     <div class="tiles">
       <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
       <button class="tile" id="bkLoad" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg><b>Backup laden</b></button>
@@ -7116,17 +7116,32 @@ function bkFoot(){
   btn.textContent=t.join(" · ")||"Nichts ausgewählt";btn.disabled=!(n||p);
 }
 document.getElementById("bankImp").addEventListener("click",function(){document.getElementById("bankFile").click();});
-document.getElementById("bankFile").addEventListener("change",function(ev){
-  var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;
-  var rd=new FileReader();
-  rd.onload=async function(){
-    var r=null;try{r=bankRead(rd.result);}catch(e){r=null;}
-    if(!r){await ask({title:"Datei nicht erkannt",alert:true,text:"Kontivo liest Kontoauszüge als CSV, camt.053 (XML) oder MT940. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren». PDF-Auszüge gehen nicht."+(bkLastHead?" Erste Zeile deiner Datei: «"+bkLastHead+"».":"")});return;}
-    var res;try{res=bankFind(r);}catch(e){toast("Die Datei konnte nicht ausgewertet werden");return;}
-    res.sugg.forEach(function(s){if(BK_CUR.indexOf(s.cur)<0)s.cur=state.settings.home;});
-    openBank(res,r.bank);
-  };
-  rd.readAsArrayBuffer(f);
+/* mehrere Dateien auf einmal (Konto, Kreditkarte, zweites Konto …) → eine gemeinsame Vorschlagsliste */
+function bankMerge(rs){
+  if(rs.length===1)return rs[0];
+  var tx=[],seen={};
+  rs.forEach(function(r,fi){r.tx.forEach(function(t){
+    /* gleiche Buchung in zwei Exporten desselben Kontos (überlappende Zeiträume) nur einmal */
+    var k=(r.bank||r.fmt)+"|"+t.d+"|"+t.a+"|"+lnorm(t.name+" "+t.text).slice(0,60);
+    if(seen[k]!=null&&seen[k]!==fi)return;seen[k]=fi;tx.push(t);});});
+  tx.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
+  return {fmt:rs.map(function(r){return r.fmt;}).join(", "),bank:"",tx:tx,from:tx[0].d,to:tx[tx.length-1].d,files:rs.length};
+}
+function bankReadFile(f){return new Promise(function(res){var rd=new FileReader();
+  rd.onload=function(){var r=null;try{r=bankRead(rd.result);}catch(e){r=null;}res({f:f,r:r,head:bkLastHead});};
+  rd.onerror=function(){res({f:f,r:null,head:""});};rd.readAsArrayBuffer(f);});}
+document.getElementById("bankFile").addEventListener("change",async function(ev){
+  var fs=Array.prototype.slice.call(ev.target.files||[]);ev.target.value="";if(!fs.length)return;
+  var got=[];for(var i=0;i<fs.length;i++)got.push(await bankReadFile(fs[i]));
+  var ok=got.filter(function(x){return x.r;}),bad=got.filter(function(x){return !x.r;});
+  if(!ok.length){var h=bad.length===1?bad[0].head:"";
+    await ask({title:bad.length>1?"Dateien nicht erkannt":"Datei nicht erkannt",alert:true,text:"Kontivo liest Kontoauszüge als CSV, camt.053 (XML) oder MT940. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren». PDF-Auszüge gehen nicht."+(h?" Erste Zeile deiner Datei: «"+h+"».":"")});return;}
+  var r=bankMerge(ok.map(function(x){return x.r;})),res;
+  try{res=bankFind(r);}catch(e){toast("Die Datei konnte nicht ausgewertet werden");return;}
+  res.sugg.forEach(function(s){if(BK_CUR.indexOf(s.cur)<0)s.cur=state.settings.home;});
+  var label=ok.length>1?ok.length+" Dateien":(ok[0].r.bank||"");
+  openBank(res,label);
+  if(bad.length)toast(bad.length===1?"«"+bad[0].f.name+"» nicht erkannt – übersprungen":bad.length+" Dateien nicht erkannt – übersprungen",3200);
 });
 document.getElementById("bkX").addEventListener("click",function(){closeSheetEl("sheetBank");});
 document.getElementById("bkBody").addEventListener("click",function(e){
@@ -7183,7 +7198,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
   toast([n?n+(n===1?" Vertrag angelegt":" Verträge angelegt"):"",p?p+(p===1?" Preis angepasst":" Preise angepasst"):""].filter(Boolean).join(", ")+" — bitte kurz prüfen",3200);
 });
 /* Test-Haken (tests/bank/check.py) */
-window.KontivoBank=function(){return {read:bankRead,head:bankHead,find:bankFind,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
+window.KontivoBank=function(){return {read:bankRead,merge:bankMerge,head:bankHead,find:bankFind,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
 document.getElementById("csvImp").addEventListener("click",function(){document.getElementById("csvFile").click();});
 document.getElementById("csvFile").addEventListener("change",function(ev){
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;
