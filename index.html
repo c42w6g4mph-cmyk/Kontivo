@@ -6676,6 +6676,8 @@ function bankTpl(name,text,cur){
   return best;
 }
 var BKSKIP=/bancomat|geldautomat|bargeld|\batm\b|\bcash\b|umbuchung|\bu(e)?bertrag\b|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b/;
+/* Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant) */
+var BKSHOP=/\b(cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery)\b/;
 var BKVIA=/paypal|klarna|amazon|apple com bill|google|stripe|adyen|sumup|wero|twint/;
 /* Kategorie: Katalog, sonst Stichwörter, sonst Branchenregel, sonst Sonstiges */
 var BKCAT=[[/steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Steuern & Gebühren"],
@@ -6703,7 +6705,7 @@ function bankFind(r,ign){
   r.tx.forEach(function(t){
     if(t.a>=0)return;
     var nm=(t.name||bankNameFrom(t.text)).split(/;|\s·\s/)[0].trim(),tp=bankTpl(nm,t.text,t.cur||home),hay=lnorm(nm+" "+t.text);
-    if(BKSKIP.test(hay))return;
+    if(BKSKIP.test(hay)||BKSHOP.test(lnorm(nm)))return;
     var tk=bankTok(nm),key=tp?"tpl:"+tp[0]:(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
     if(!key)return;key=key+"|"+(t.cur||home);
     (groups[key]=groups[key]||{key:key,tpl:tp,tx:[],names:{},cur:t.cur||home}).tx.push(t);
@@ -6734,9 +6736,19 @@ function bankFind(r,ign){
       /* Beträge: höchstens zwei Stufen (Preisänderung) oder ±5 % um den Median, sonst variabel (Einkäufe) */
       var lv=[];am.forEach(function(v){if(!lv.length||Math.abs(lv[lv.length-1]-v)>0.004)lv.push(v);});
       var dist={};am.forEach(function(v){dist[v.toFixed(2)]=1;});
+      /* ohne Katalog/Gläubiger-ID braucht der Name ein markantes Wort (nicht «M», «SB 12») */
+      if(!g.tpl&&!tx[0].cred&&!lusable(name))return;
+      var nlv=function(v){return am.filter(function(x){return Math.abs(x-v)<=0.004;}).length;};
       if(Object.keys(dist).length<=2&&lv.length<=2){
-        if(lv.length===2){var j=am.indexOf(lv[1]);ch={from:tx[j].d,prev:lv[0],amount:lv[1]};}
+        if(lv.length===2){
+          /* Preisänderung nur, wenn der alte Preis mindestens zweimal vorkommt und sich höchstens um 35 % ändert;
+             zwei verschiedene Beträge allein sind eher Einkäufe */
+          if(nlv(lv[0])<2||Math.abs(lv[1]-lv[0])>lv[0]*0.35){
+            if(n<3||Math.abs(lv[1]-lv[0])>lv[0]*0.05)return;
+          } else {var j=am.indexOf(lv[1]);ch={from:tx[j].d,prev:lv[0],amount:lv[1]};}
+        }
       } else {
+        if(n<3)return;
         var srt=am.slice().sort(function(a,b){return a-b;}),med=srt[Math.floor(srt.length/2)];
         if(am.filter(function(v){return Math.abs(v-med)<=med*0.05;}).length<am.length*0.7)return;
         varies=true;last=med;

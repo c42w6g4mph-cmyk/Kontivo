@@ -52,6 +52,15 @@ for d in months(8):
 for i, d in enumerate(months(16)):
     ch(d, -round(R.uniform(15, 60), 2), "TWINT an Lara", "TWINT AN +41790000000", "TWINT")
 ch(dt.date(2026, 4, 9), -249.00, "Galaxus", "Digitec Galaxus AG Zürich", "Karte")
+# Fallen: kein Vertrag (Kurzname «M», zwei verschiedene Beträge im Monatsabstand, Café mit Katalognamen)
+for i, d in enumerate(months(14, start=dt.date(2026, 4, 1))):
+    ch(d, -[23.40, 61.85, 18.20, 44.10, 37.95, 29.60][i % 6], "M", "M KREUZLINGEN", "Karte")
+ch(dt.date(2026, 8, 20), -12.50, "M", "M", "Karte")
+ch(dt.date(2026, 9, 20), -12.50, "M", "M", "Karte")
+ch(dt.date(2026, 8, 3), -45.20, "Manor AG", "Manor Kreuzlingen", "Karte")
+ch(dt.date(2026, 9, 3), -89.90, "Manor AG", "Manor Kreuzlingen", "Karte")
+ch(dt.date(2026, 8, 11), -6.80, "NZZ Café", "NZZ Cafe Zürich", "Karte")
+ch(dt.date(2026, 9, 11), -6.80, "NZZ Café", "NZZ Cafe Zürich", "Karte")
 CH.sort(key=lambda x: x["d"])
 
 # ---------- Buchungen Deutschland (EUR) ----------
