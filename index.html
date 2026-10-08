@@ -747,9 +747,7 @@ body.hasplus .topadd{display:inline-flex}
 .bkpr .bkmain{padding:10px 0}.bkpr .bktx small{white-space:normal}
 .bkempty{padding:24px 4px 8px;text-align:center}.bkempty b{font-size:16px}
 .bkknown{margin-top:18px!important}
-.bksum{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--ok) 10%,var(--surface));border-radius:12px;padding:10px 12px;margin:8px 0 6px;font-size:14px;color:var(--ink)}
-.bksum span+span{color:var(--ink2)}.bksum b{color:var(--ok)}
-.bkno{background:var(--sunken)}.bkmiss .bktx b,.bkmiss .bkam{color:var(--ink3)}
+
 .bkkn .bkmain{cursor:default}.bkkn .bktx b,.bkkn .bkam{color:var(--ink2)}
 .bkok{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--ok) 16%,transparent);margin-right:2px}
 .bkok svg{width:15px;height:15px;fill:none;stroke:var(--ok);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -6696,6 +6694,8 @@ function bankTpl(name,text,cur){
 var BKSKIP=/bancomat|geldautomat|bargeld|\batm\b|\bcash\b|umbuchung|\bu(e)?bertrag\b|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b/;
 /* Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant) */
 var BKSHOP=/\b(cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery)\b/;
+/* Alltagseinkäufe (Detailhandel, Tankstellen, Fast Food): nie ein Vertrag, ausser ein Katalogeintrag passt (Migros Bank, Coop Mobile) */
+var BKRETAIL=/\b(migros|migrolino|coop|denner|aldi|lidl|rewe|edeka|kaufland|netto|penny|spar|volg|landi|manor|globus|jumbo|obi|bauhaus|hornbach|ikea|dm|rossmann|mueller|douglas|zalando|galaxus|digitec|interdiscount|mediamarkt|media markt|saturn|fust|brack|shell|bp|avia|aral|esso|tamoil|agrola|socar|jet|starbucks|mcdonald s?|mcdonalds|burger king|subway|k kiosk|valora|avec|tchibo|decathlon|h und m|zara|c und a|tk maxx|primark)\b/;
 var BKVIA=/paypal|klarna|amazon|apple com bill|google|stripe|adyen|sumup|wero|twint/;
 /* Kategorie: Katalog, sonst Stichwörter, sonst Branchenregel, sonst Sonstiges */
 var BKCAT=[[/steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Steuern & Gebühren"],
@@ -6726,6 +6726,7 @@ function bankFind(r,ign){
     /* PayPal, Klarna & Co.: eigentlicher Händler steht im Text («Ihr Einkauf bei Muster Cloud») */
     if(BKVIA.test(lnorm(nm))){var vm=String(t.text||"").match(/(?:einkauf bei|purchase at|payment to|zahlung an|abo bei|bei)\s+([^,;·\/]{3,40})/i);if(vm&&!BKVIA.test(lnorm(vm[1])))nm=vm[1].replace(/\s+\d.*$/,"").trim();}
     var tp=bankTpl(nm,t.text,t.cur||home),hay=lnorm(nm+" "+t.text);
+    if(!tp&&BKRETAIL.test(lnorm(nm)))return;
     if(BKSKIP.test(hay)||BKSHOP.test(lnorm(nm)))return;
     var tk=bankTok(nm),key=tp?"tpl:"+tp[0]:(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
     if(!key)return;key=key+"|"+(t.cur||home);
@@ -6808,12 +6809,13 @@ function bankFind(r,ign){
       } else {
         if(n<3)return;
         var srt=am.slice().sort(function(a,b){return a-b;}),med=srt[Math.floor(srt.length/2)];
-        if(am.filter(function(v){return Math.abs(v-med)<=med*0.05;}).length<am.length*0.7)return;
+        if(am.filter(function(v){return Math.abs(v-med)<=med*0.10;}).length<am.length*0.7)return;
         varies=true;last=med;
       }
       /* beendet? letzte Zahlung deutlich länger her als der Rhythmus */
       if(dd(tx[n-1].d,ref)>cyc*30.5*1.5+7)return;
-      conf=n>=3&&!varies?"hoch":"mittel";
+      /* wie Plaid «mature»: erst ab 3 Zahlungen sicher; Quartal/Jahr ab 2. Monatlich mit 2 Zahlungen = «Vielleicht» */
+      conf=(n>=3||cyc>=3)?(varies?"mittel":"hoch"):"niedrig";
     } else {
       /* Einzelzahlung nur bei bekanntem Anbieter oder SEPA-Lastschrift mit Gläubiger-ID; Rhythmus vermutlich jährlich */
       var t0=tx[0];if(!g.tpl&&(!t0.cred||BKVIA.test(lnorm(name))))return;
@@ -6828,13 +6830,9 @@ function bankFind(r,ign){
       dates:tx.map(function(t){return t.d;}),amounts:am,conf:conf,varies:varies,tpl:g.tpl,text:tx[n-1].text,cred:tx[n-1].cred,raw:tx[n-1].name||bankNameFrom(tx[n-1].text)};
     return s;
   }
-  /* laufende Verträge in den Währungen des Auszugs, die nicht vorkommen (z.B. anderes Konto) */
-  var curs={};r.tx.forEach(function(t){curs[t.cur||home]=1;});
-  var missing=Object.keys(state.contracts).filter(function(id){var c=state.contracts[id];
-    return !used[id]&&c.status!=="cancelled"&&!isEnded(c)&&!c.paused&&curs[c.cur||"CHF"]&&!(c.start&&c.start>r.to);});
   var rank={hoch:0,mittel:1,niedrig:2};
   out.sort(function(a,b){return (a.match?0:1)-(b.match?0:1)||rank[a.conf]-rank[b.conf]||(b.amount/b.cycle)-(a.amount/a.cycle);});
-  return {sugg:out,known:known,missing:missing,from:r.from,to:r.to,n:r.tx.length,fmt:r.fmt,bank:r.bank};
+  return {sugg:out,known:known,from:r.from,to:r.to,n:r.tx.length,fmt:r.fmt,bank:r.bank};
 }
 function bankIgnKey(s){return s.key.split("|")[0];}
 /* Abgleich mit erfassten Verträgen: gleicher Vertragspartner (Katalogname oder gemeinsames markantes Wort) und gleiche Währung */
@@ -6944,17 +6942,13 @@ function paintBank(){
   var sure=vis.filter(function(i){return bk.items[i].s.conf!=="niedrig";}),maybe=vis.filter(function(i){return bk.items[i].s.conf==="niedrig";});
   var nIgn=bk.items.filter(function(it){return it.s.ignored;}).length;
   var h='<p class="bksrc">'+esc([bk.label||r.bank||r.fmt,r.n+" Buchungen",bkMon(r.from)+" – "+bkMon(r.to)].join(" · "))+'</p>';
-  var nk=r.known.length+bk.price.length,nm=(r.missing||[]).length;
-  if(nk||nm)h+='<div class="bksum"><span><b>'+nk+'</b> deiner Verträge im Auszug gefunden</span>'+(nm?'<span>'+nm+' nicht im Auszug</span>':"")+'</div>';
   if(bk.price.length)h+='<h3 class="bkh"><span>Preisänderung</span><span>'+bk.price.length+'</span></h3>'+bk.price.map(bkPriceRow).join("");
   if(sure.length)h+='<h3 class="bkh"><span>Neu gefunden</span><span>'+sure.length+'</span></h3>'+sure.map(function(i){return bkRow(bk.items[i],i);}).join("");
-  if(maybe.length)h+='<h3 class="bkh"><span>Vielleicht</span><span>'+maybe.length+'</span></h3><p class="note bknote">Nur eine Zahlung im Auszug. Rhythmus bitte prüfen.</p>'+maybe.map(function(i){return bkRow(bk.items[i],i);}).join("");
+  if(maybe.length)h+='<h3 class="bkh"><span>Vielleicht</span><span>'+maybe.length+'</span></h3><p class="note bknote">Erst 1–2 Zahlungen im Auszug. Rhythmus bitte prüfen.</p>'+maybe.map(function(i){return bkRow(bk.items[i],i);}).join("");
   if(!vis.length&&!bk.price.length)h+='<div class="bkempty"><b>Keine neuen Fixkosten gefunden</b><p class="note">'+(r.known.length?"Alle wiederkehrenden Zahlungen sind schon erfasst.":"Wiederkehrende Zahlungen werden erst erkannt, wenn sie mindestens zweimal im Auszug stehen. Am besten einen Auszug über 6–12 Monate exportieren.")+'</p></div>';
-  if(r.known.length)h+='<h3 class="bkh bkknown"><span>Bereits erfasst</span><span>'+r.known.length+'</span></h3>'+r.known.map(bkKnownRow).join("");
-  var miss=(r.missing||[]).filter(function(id){return state.contracts[id];});
-  if(miss.length)h+='<button type="button" class="bkshow" data-bkmiss aria-expanded="'+!!bk.showMiss+'">'+(bk.showMiss?"Nicht im Auszug ausblenden":miss.length+(miss.length===1?" Vertrag":" Verträge")+" nicht im Auszug zeigen")+'</button>'+
-    (bk.showMiss?'<p class="note bknote">Kein passender Betrag gefunden – meist über ein anderes Konto oder ausserhalb des Zeitraums bezahlt.</p>'+miss.map(function(id){var c=state.contracts[id];
-      return '<div class="bkrow bkkn bkmiss"><div class="bkline"><span class="bkok bkno" aria-hidden="true"></span><div class="bkmain">'+markHtml(c)+'<span class="bktx"><b>'+esc(c.partner||titleOf(c))+'</b><small>'+esc(CYCLE[+c.cycle]||"")+'</small></span><span class="bkam">'+money(curPrice(c))+'<small>'+esc(c.cur||"CHF")+'</small></span></div></div></div>';}).join(""):"");
+  /* bereits in Kontivo erfasst: standardmässig eingeklappt */
+  if(r.known.length)h+='<button type="button" class="bkshow bkknown" data-bkknown aria-expanded="'+!!bk.showKnown+'">'+(bk.showKnown?"Bereits erfasste ausblenden":r.known.length+(r.known.length===1?" bereits erfasster Vertrag":" bereits erfasste Verträge")+" zeigen")+'</button>'+
+    (bk.showKnown?r.known.map(bkKnownRow).join(""):"");
   if(nIgn)h+='<button type="button" class="bkshow" data-bkshow>'+(bk.showIgn?"Ausgeblendete verbergen":nIgn+(nIgn===1?" ausgeblendeter Vorschlag":" ausgeblendete Vorschläge")+" zeigen")+'</button>';
   h+='<p class="note bkpriv">Die Datei wurde nur auf diesem Gerät gelesen und nicht gespeichert.</p>';
   b.innerHTML=h;bkFoot();
@@ -6992,7 +6986,7 @@ document.getElementById("bkBody").addEventListener("click",function(e){
     if(L.indexOf(k)<0){L.push(k);state.settings.bankIgn=L;saveSettings();}
     it3.s.ignored=true;it3.on=false;bk.open=-1;paintBank();toast("«"+it3.ed.name+"» wird nicht mehr vorgeschlagen");return;}
   if(t.dataset.bkshow!=null){bk.showIgn=!bk.showIgn;paintBank();return;}
-  if(t.dataset.bkmiss!=null){bk.showMiss=!bk.showMiss;paintBank();return;}
+  if(t.dataset.bkknown!=null){bk.showKnown=!bk.showKnown;paintBank();return;}
 });
 /* Eingaben direkt ins Modell; Zeile oben nachführen, ohne das Feld neu zu zeichnen (Fokus bleibt) */
 function bkInput(e){

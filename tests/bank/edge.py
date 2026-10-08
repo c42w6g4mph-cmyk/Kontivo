@@ -28,11 +28,12 @@ E = {
  "camt054": dict(s=[("Swisscom", 1, 79)]),
  "paypal": dict(s=[("Disney", 1, 9.99), ("Muster Cloud", 1, 9.49)]),
  "yearlyq": dict(s=[("Muster Wasserwerk", 3, 80), ("Muster Haftpflicht", 12, 120)]),
- "gepflegt": dict(s=[], k=["Swisscom", "Immo Seeblick", "Die Mobiliar"], miss=["Netflix"]),
+ "alltag": dict(s=[("Sunrise", 1, 39)]),
+ "gepflegt": dict(s=[], k=["Swisscom", "Immo Seeblick", "Die Mobiliar"]),
 }
 JS = """([txt,contracts])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);
  return {sugg:f.sugg.map(function(s){return [s.name,s.cycle,s.amount,s.due,!!s.match]}),
-  known:f.known.map(function(s){return (B.state.contracts[s.match.id]||{}).partner}),miss:(f.missing||[]).map(function(id){return B.state.contracts[id].partner})};}"""
+  known:f.known.map(function(s){return (B.state.contracts[s.match.id]||{}).partner}),miss:([]).map(function(id){return B.state.contracts[id].partner})};}"""
 fails = 0
 with sync_playwright() as p:
     b = p.chromium.launch(); ctx = b.new_context(); ctx.add_init_script("window.__KONTIVO_TODAY='2026-10-08';")
