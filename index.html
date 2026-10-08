@@ -711,6 +711,34 @@ body.hasplus .topadd{display:inline-flex}
 .pickreset span:first-child{color:var(--alert)}
 
 /* Kopfzeilen der Fenster, Suchzeile */
+#sheetBank{padding-bottom:0}
+#bankFile{display:none}
+.bkentry{border-top:0;margin-bottom:10px}.bkentry .mdt b{display:block;font-size:16px;font-weight:600}.bkentry .mdt small{display:block;font-size:12.5px;color:var(--ink2);line-height:1.4;margin-top:2px}
+.bksrc{font-size:12.5px;color:var(--ink2);margin:2px 0 4px}
+.sheet h3.bkh{display:flex;justify-content:space-between;margin:18px 0 2px;border-bottom:0;padding-bottom:0;text-transform:uppercase;letter-spacing:.04em;font-size:12px}
+.bkrow{border-top:1px solid var(--line)}.bkh+.bkrow,.bkh+.bknote+.bkrow{border-top:0}
+.bkline{display:flex;align-items:center;gap:10px}
+.bkck{width:26px;height:26px;border-radius:50%;border:1.6px solid var(--ink3);flex:none;display:flex;align-items:center;justify-content:center;padding:0}
+.bkck[aria-checked="true"]{background:var(--teal);border-color:var(--teal)}
+.bkck[aria-checked="true"]::after{content:"";width:10px;height:6px;border:2.2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.bkmain{flex:1;min-width:0;display:flex;align-items:center;gap:11px;padding:10px 0;text-align:left}
+.bkmain .mark{width:36px;height:36px;border-radius:9px}
+.bktx{flex:1;min-width:0}.bktx b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bktx small{display:block;font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bkam{text-align:right;font-weight:600;white-space:nowrap;font-size:15px}.bkam small{display:block;font-weight:400;font-size:12px;color:var(--ink2)}
+.bkrow.open{background:var(--field);border-radius:13px;margin:4px -10px;padding:0 10px 12px;border-top:0}.bkrow.open+.bkrow{border-top:0}
+.bked .field input,.bked .field select{background:var(--surface)}
+.bked .hseg{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}.bked .hseg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.bk2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bk2 .field{min-width:0}
+.bknote{margin:4px 0 8px!important}
+.bkedb{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.bkign{font-size:14px;color:var(--alert);padding:8px 0}.bkdone{font-size:14px;font-weight:600;padding:8px 16px;border-radius:10px;background:var(--ink);color:var(--paper)}
+.bkpr .bkmain{padding:10px 0}.bkpr .bktx small{white-space:normal}
+.bkempty{padding:24px 4px 8px;text-align:center}.bkempty b{font-size:16px}
+.bkknown{margin-top:14px!important}.bkshow{display:block;color:var(--teal);font-size:14px;font-weight:600;padding:10px 0}
+.bkpriv{margin:12px 0 4px!important;color:var(--ink3)!important}
+.bkfoot{position:sticky;bottom:0;background:var(--surface);margin:10px -17px 0;padding:10px 17px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.bkfoot .primary{margin:0}.bkfoot .primary:disabled{opacity:.45}
 .shbar{display:flex;align-items:center;gap:10px;position:sticky;top:-8px;z-index:3;background:var(--surface);margin:-2px -17px 4px;padding:6px 17px 10px;border-bottom:1px solid var(--line)}
 .shbar h2{flex:1;text-align:center;margin:0!important;font-size:18px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .shx{font-size:16px;color:var(--ink2);padding:6px 0;min-width:78px;text-align:left}
@@ -1385,6 +1413,8 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="curpick" id="sHome" role="group" aria-label="Hauptwährung"></div>
     <div class="ratefoot"><span class="note" id="rateStamp"></span><button class="mini" id="sRateNow" type="button">Aktualisieren</button></div></div>
   <div class="sgroup"><div class="sgh">Daten</div>
+    <button class="srowbtn bkentry" id="bankImp" type="button"><span class="mdt"><b>Kontoauszug einlesen</b><small>Fixkosten aus einer Bank-Datei finden (CSV, camt, MT940). Du entscheidest, was übernommen wird.</small></span><em>›</em></button>
+    <input type="file" id="bankFile" accept=".csv,.txt,.xml,.sta,.mt940,.940,text/csv,text/plain,text/xml,application/xml">
     <div class="tiles">
       <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
       <button class="tile" id="bkLoad" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg><b>Backup laden</b></button>
@@ -1406,7 +1436,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <details class="legal"><summary>Datenschutz</summary>
     <p class="note">Kontivo hat kein Benutzerkonto, keine Werbung, kein Tracking und keine Analyse. Deine Verträge, Logos und Dokumente werden nur lokal auf diesem Gerät gespeichert und nicht an Kontivo übermittelt.</p>
     <p class="note">Für einzelne Funktionen ruft die App externe Dienste auf. Dabei wird technisch bedingt deine IP-Adresse übertragen:</p>
-    <p class="note">• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.<br>• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst), images.weserv.nl und unavatar.io.<br>• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).<br>• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.<br>• Handschrift-Schriften für Namenszug-Vorschläge sind in der App enthalten (SIL Open Font License), dafür wird nichts geladen.</p>
+    <p class="note">• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.<br>• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst), images.weserv.nl und unavatar.io.<br>• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).<br>• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.<br>• Kontoauszug einlesen: Die Datei wird nur auf dem Gerät gelesen, nicht gespeichert und nicht übertragen.<br>• Handschrift-Schriften für Namenszug-Vorschläge sind in der App enthalten (SIL Open Font License), dafür wird nichts geladen.</p>
     <p class="note">Backups und CSV-Dateien erstellst und speicherst du selbst. Ohne Backup gehen deine Daten beim Löschen der App oder der Website-Daten verloren. Mit «Alle Daten löschen» entfernst du alles vom Gerät.</p></details>
     <details class="legal"><summary>Marken und Logos</summary>
     <p class="note">Logos, Marken und Firmennamen gehören ihren jeweiligen Inhabern. Sie werden nur zur Wiedererkennung deiner eigenen Verträge angezeigt. Kontivo steht in keiner Verbindung zu den genannten Anbietern und wird von ihnen weder unterstützt noch gesponsert.</p></details></div>
@@ -1655,6 +1685,13 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <h2 id="pickTitle">Filter</h2>
   <div class="picklist" id="pickList"></div>
   <button class="ghost" id="pickClose">Schliessen</button>
+</div>
+
+<!-- Kontoauszug: Vorschläge prüfen -->
+<div class="sheet" id="sheetBank" role="dialog" aria-modal="true" aria-labelledby="bkT">
+  <div class="shbar"><button class="shx" id="bkX" type="button">Abbrechen</button><h2 id="bkT">Vorschläge</h2><span class="shok" aria-hidden="true"></span></div>
+  <div id="bkBody"></div>
+  <div class="bkfoot"><button class="primary" id="bkGo" type="button">Verträge anlegen</button></div>
 </div>
 
 <!-- Kündigungsschreiben -->
@@ -2925,7 +2962,7 @@ document.addEventListener("click",function(ev){if(!ev.target.closest("#xAll"))re
 function openSheet(el){document.getElementById("scrim").classList.add("on");el.classList.add("on");el.scrollTop=0;}
 function closeSheets(){
   document.getElementById("scrim").classList.remove("on");
-  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetLetter","sheetSig","sheetSigPick"].forEach(function(i){document.getElementById(i).classList.remove("on");});
+  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetLetter","sheetSig","sheetSigPick","sheetBank"].forEach(function(i){document.getElementById(i).classList.remove("on");});
   document.getElementById("csvOut").innerHTML="";
   webWaitClear();/* offene Logo-Suche (Google) endet mit dem Formular */
 }
@@ -6715,6 +6752,140 @@ function bankToContract(s,holders){
   if(c.cat===catByKey("Steuern & Gebühren")){c.noCancel=true;c.mand=false;c.cancTerm="";}
   return c;
 }
+/* ---------- Kontoauszug: Vorschläge prüfen (#sheetBank) ----------
+   Checkliste (Variante 1) mit Inline-Bearbeitung (Variante 5): Zeile antippen klappt Felder auf.
+   bk.items[i] = {s: Vorschlag, on, ed: {name, amount, cycle, cat, holders, due}}, bk.price[i] = {s, on}
+   SwiftUI: List mit Sections, DisclosureGroup pro Zeile, Toggle als Häkchen. */
+var bk=null,BK_CUR=["CHF","EUR","USD","GBP","TRY"];
+function bkHolders(){var HL=state.settings.holders||["Ich"],lh=(state.settings.lastHolders||[]).filter(function(h){return HL.indexOf(h)>=0;});return lh.length?lh:[HL[0]];}
+function openBank(res,label){
+  var H=bkHolders();
+  bk={res:res,label:label,open:-1,showIgn:false,
+    items:res.sugg.filter(function(s){return !s.match;}).map(function(s){
+      return {s:s,on:s.conf!=="niedrig"&&!s.ignored,ed:{name:s.name,amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
+    price:res.sugg.filter(function(s){return s.match&&s.match.kind==="price";}).map(function(s){return {s:s,on:true};})};
+  paintBank();openSheet(document.getElementById("sheetBank"));
+}
+function bkMon(d){var p=String(d).split("-");return MON[+p[1]-1].slice(0,3)+" "+p[0].slice(2);}
+function bkDay(d){var p=String(d).split("-");return (+p[2])+"."+(+p[1])+"."+p[0].slice(2);}
+function bkSub(it){var s=it.s,e=it.ed;
+  var t=(CYCLE[e.cycle]||"alle "+e.cycle+" Monate")+(s.conf==="niedrig"?" (vermutet) · 1 Zahlung am "+bkDay(s.last):" · "+s.n+"× seit "+bkMon(s.first));
+  if(s.change&&Math.abs(e.amount-s.change.amount)<0.005)t+=" · neuer Preis ab "+bkDay(s.change.from);
+  else if(s.varies)t+=" · Betrag schwankt";
+  return t;}
+function bkRow(it,i){
+  var e=it.ed,cur=it.s.cur,op=bk.open===i;
+  return '<div class="bkrow'+(op?" open":"")+'"><div class="bkline">'+
+    '<button type="button" class="bkck" data-bkon="'+i+'" role="checkbox" aria-checked="'+it.on+'" aria-label="'+esc(e.name)+' übernehmen"></button>'+
+    '<button type="button" class="bkmain" data-bkopen="'+i+'" aria-expanded="'+op+'">'+markHtml({partner:e.name,cat:e.cat})+
+      '<span class="bktx"><b>'+esc(e.name)+'</b><small>'+esc(bkSub(it))+'</small></span>'+
+      '<span class="bkam">'+money(e.amount)+'<small>'+esc(cur)+'</small></span></button></div>'+
+    (op?bkEditor(it,i):"")+'</div>';
+}
+function bkEditor(it,i){
+  var e=it.ed,s=it.s,HL=state.settings.holders||["Ich"],cyc=[1,2,3,6,12,24];if(cyc.indexOf(e.cycle)<0)cyc.push(e.cycle);
+  var hs="";
+  if(HL.length>1){var all=HL.every(function(h){return e.holders.indexOf(h)>=0;});
+    hs='<div class="field"><label>Inhaber</label><div class="hseg">'+HL.map(function(h){return '<button type="button" data-bkh="'+esc(h)+'" aria-pressed="'+(!all&&e.holders.length===1&&e.holders[0]===h)+'">'+esc(h)+'</button>';}).join("")+
+      '<button type="button" data-bkh="*" aria-pressed="'+all+'">'+(HL.length===2?"Beide":"Alle")+'</button></div></div>';}
+  return '<div class="bked" data-bki="'+i+'">'+
+    '<div class="field"><label for="bkN">Vertragspartner</label><input id="bkN" data-bke="name" value="'+esc(e.name)+'" autocomplete="off"></div>'+
+    '<div class="bk2"><div class="field"><label for="bkA">Betrag ('+esc(s.cur)+')</label><input id="bkA" class="num" data-bke="amount" inputmode="decimal" value="'+esc(String(e.amount))+'"></div>'+
+    '<div class="field"><label for="bkC">Turnus</label><select id="bkC" data-bke="cycle">'+cyc.map(function(c){return '<option value="'+c+'"'+(c===e.cycle?" selected":"")+'>'+esc(CYCLE[c]||"alle "+c+" Monate")+'</option>';}).join("")+'</select></div></div>'+
+    '<div class="bk2"><div class="field"><label for="bkK">Kategorie</label><select id="bkK" data-bke="cat">'+allCats().map(function(c){return '<option'+(c===e.cat?" selected":"")+'>'+esc(c)+'</option>';}).join("")+'</select></div>'+
+    '<div class="field"><label for="bkD">Nächste Zahlung</label><input id="bkD" type="date" data-bke="due" value="'+esc(e.due)+'"></div></div>'+
+    hs+
+    (s.change?'<p class="note bknote">Preis bisher '+money(s.change.prev)+', seit '+bkDay(s.change.from)+' '+money(s.change.amount)+' '+esc(s.cur)+'. Beides kommt in den Preisverlauf.</p>':"")+
+    (s.tpl?'<p class="note bknote">Kündigungsfrist und Kontaktdaten aus dem Katalog («'+esc(s.tpl[0])+'»).</p>':'<p class="note bknote">Kündigungsfrist ergänzt du danach im Vertrag.</p>')+
+    '<div class="bkedb"><button type="button" class="bkign" data-bkign="'+i+'">Nie mehr vorschlagen</button><button type="button" class="bkdone" data-bkopen="'+i+'">Fertig</button></div></div>';
+}
+function bkPriceRow(p,i){var s=p.s,m=s.match,c=state.contracts[m.id];
+  return '<div class="bkrow bkpr"><div class="bkline"><button type="button" class="bkck" data-bkpon="'+i+'" role="checkbox" aria-checked="'+p.on+'" aria-label="Neuen Preis für '+esc(c.partner)+' übernehmen"></button>'+
+    '<div class="bkmain">'+markHtml(c)+'<span class="bktx"><b>'+esc(c.partner||titleOf(c))+(m.amount>m.old?" ist teurer":" ist günstiger")+'</b><small>'+money(m.old)+' → '+money(m.amount)+' '+esc(c.cur||"CHF")+' ab '+bkDay(m.from)+'</small></span></div></div></div>';}
+function paintBank(){
+  var r=bk.res,b=document.getElementById("bkBody"),vis=bk.items.map(function(it,i){return i;}).filter(function(i){return bk.showIgn||!bk.items[i].s.ignored;});
+  var sure=vis.filter(function(i){return bk.items[i].s.conf!=="niedrig";}),maybe=vis.filter(function(i){return bk.items[i].s.conf==="niedrig";});
+  var nIgn=bk.items.filter(function(it){return it.s.ignored;}).length;
+  var h='<p class="bksrc">'+esc([bk.label||r.bank||r.fmt,r.n+" Buchungen",bkMon(r.from)+" – "+bkMon(r.to)].join(" · "))+'</p>';
+  if(bk.price.length)h+='<h3 class="bkh"><span>Preisänderung</span><span>'+bk.price.length+'</span></h3>'+bk.price.map(bkPriceRow).join("");
+  if(sure.length)h+='<h3 class="bkh"><span>Neu gefunden</span><span>'+sure.length+'</span></h3>'+sure.map(function(i){return bkRow(bk.items[i],i);}).join("");
+  if(maybe.length)h+='<h3 class="bkh"><span>Vielleicht</span><span>'+maybe.length+'</span></h3><p class="note bknote">Nur eine Zahlung im Auszug. Rhythmus bitte prüfen.</p>'+maybe.map(function(i){return bkRow(bk.items[i],i);}).join("");
+  if(!vis.length&&!bk.price.length)h+='<div class="bkempty"><b>Keine neuen Fixkosten gefunden</b><p class="note">'+(r.known.length?"Alle wiederkehrenden Zahlungen sind schon erfasst.":"Wiederkehrende Zahlungen werden erst erkannt, wenn sie mindestens zweimal im Auszug stehen. Am besten einen Auszug über 6–12 Monate exportieren.")+'</p></div>';
+  if(r.known.length)h+='<p class="note bkknown">Bereits erfasst und unverändert: '+esc(r.known.map(function(s){return s.name;}).join(", "))+'.</p>';
+  if(nIgn)h+='<button type="button" class="bkshow" data-bkshow>'+(bk.showIgn?"Ausgeblendete verbergen":nIgn+(nIgn===1?" ausgeblendeter Vorschlag":" ausgeblendete Vorschläge")+" zeigen")+'</button>';
+  h+='<p class="note bkpriv">Die Datei wurde nur auf diesem Gerät gelesen und nicht gespeichert.</p>';
+  b.innerHTML=h;bkFoot();
+}
+function bkFoot(){
+  var n=bk.items.filter(function(it){return it.on&&(bk.showIgn||!it.s.ignored);}).length,p=bk.price.filter(function(x){return x.on;}).length,btn=document.getElementById("bkGo");
+  var t=[];if(n)t.push(n+(n===1?" Vertrag anlegen":" Verträge anlegen"));if(p)t.push(p+(p===1?" Preis":" Preise")+(n?"":" anpassen"));
+  btn.textContent=t.join(" · ")||"Nichts ausgewählt";btn.disabled=!(n||p);
+}
+document.getElementById("bankImp").addEventListener("click",function(){document.getElementById("bankFile").click();});
+document.getElementById("bankFile").addEventListener("change",function(ev){
+  var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;
+  var rd=new FileReader();
+  rd.onload=async function(){
+    var r=null;try{r=bankRead(rd.result);}catch(e){r=null;}
+    if(!r){await ask({title:"Datei nicht erkannt",alert:true,text:"Kontivo liest Kontoauszüge als CSV, camt.053 (XML) oder MT940. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren». PDF-Auszüge gehen nicht."});return;}
+    var res;try{res=bankFind(r);}catch(e){toast("Die Datei konnte nicht ausgewertet werden");return;}
+    res.sugg.forEach(function(s){if(BK_CUR.indexOf(s.cur)<0)s.cur=state.settings.home;});
+    openBank(res,r.bank);
+  };
+  rd.readAsArrayBuffer(f);
+});
+document.getElementById("bkX").addEventListener("click",function(){closeSheetEl("sheetBank");});
+document.getElementById("bkBody").addEventListener("click",function(e){
+  var t=e.target.closest("button");if(!t||!bk)return;
+  if(t.dataset.bkon!=null){var it=bk.items[+t.dataset.bkon];it.on=!it.on;t.setAttribute("aria-checked",it.on);bkFoot();return;}
+  if(t.dataset.bkpon!=null){var p=bk.price[+t.dataset.bkpon];p.on=!p.on;t.setAttribute("aria-checked",p.on);bkFoot();return;}
+  if(t.dataset.bkopen!=null){var i=+t.dataset.bkopen;bk.open=bk.open===i?-1:i;paintBank();
+    var row=document.querySelector("#bkBody .bkrow.open");if(row)row.scrollIntoView({block:"nearest",behavior:"smooth"});return;}
+  if(t.dataset.bkh!=null){var ed=t.closest(".bked"),it2=bk.items[+ed.dataset.bki],v=t.dataset.bkh;
+    it2.ed.holders=v==="*"?(state.settings.holders||["Ich"]).slice():[v];it2.on=true;
+    ed.querySelectorAll("[data-bkh]").forEach(function(x){x.setAttribute("aria-pressed",x===t);});
+    var ck=ed.parentNode.querySelector("[data-bkon]");if(ck)ck.setAttribute("aria-checked","true");bkFoot();return;}
+  if(t.dataset.bkign!=null){var it3=bk.items[+t.dataset.bkign],k=bankIgnKey(it3.s),L=state.settings.bankIgn||[];
+    if(L.indexOf(k)<0){L.push(k);state.settings.bankIgn=L;saveSettings();}
+    it3.s.ignored=true;it3.on=false;bk.open=-1;paintBank();toast("«"+it3.ed.name+"» wird nicht mehr vorgeschlagen");return;}
+  if(t.dataset.bkshow!=null){bk.showIgn=!bk.showIgn;paintBank();return;}
+});
+/* Eingaben direkt ins Modell; Zeile oben nachführen, ohne das Feld neu zu zeichnen (Fokus bleibt) */
+function bkInput(e){
+  var f=e.target.dataset.bke;if(!f||!bk)return;
+  var ed=e.target.closest(".bked"),i=+ed.dataset.bki,it=bk.items[i],v=e.target.value;
+  if(f==="amount"){var n=parseNum(v);if(n==null||n<0)return;it.ed.amount=Math.round(n*100)/100;}
+  else if(f==="cycle")it.ed.cycle=+v;
+  else if(f==="name"){if(!v.trim())return;it.ed.name=v.trim();}
+  else it.ed[f]=v;
+  it.on=true;
+  var row=ed.parentNode,ck=row.querySelector("[data-bkon]");if(ck)ck.setAttribute("aria-checked","true");
+  row.querySelector(".bktx b").textContent=it.ed.name;row.querySelector(".bktx small").textContent=bkSub(it);
+  row.querySelector(".bkam").firstChild.textContent=money(it.ed.amount);
+  if(f==="cat")row.querySelector(".mark").outerHTML=markHtml({partner:it.ed.name,cat:it.ed.cat});
+  bkFoot();
+}
+document.getElementById("bkBody").addEventListener("input",bkInput);
+document.getElementById("bkBody").addEventListener("change",bkInput);
+document.getElementById("bkGo").addEventListener("click",function(){
+  if(!bk)return;var n=0,p=0,stamp=uid();
+  bk.items.forEach(function(it,k){
+    if(!it.on||(it.s.ignored&&!bk.showIgn))return;
+    var s=Object.assign({},it.s,{name:it.ed.name,cycle:it.ed.cycle,cat:it.ed.cat,due:it.ed.due||it.s.due});
+    /* Betrag geändert: bei erkannter Preisänderung ist es der neue Preis, sonst der einzige */
+    if(s.change){if(Math.abs(it.ed.amount-s.change.amount)>0.004){if(Math.abs(it.ed.amount-s.change.prev)<0.005)s.change=null;else s.change=Object.assign({},s.change,{amount:it.ed.amount});}}
+    s.amount=it.ed.amount;
+    var c=bankToContract(s,it.ed.holders);if(s.tpl&&lnorm(it.ed.name)!==lnorm(it.s.name)){c.label=c.label||s.tpl[3];}
+    state.contracts[stamp+k]=c;n++;
+  });
+  bk.price.forEach(function(x){if(!x.on)return;var m=x.s.match,c=state.contracts[m.id];if(!c)return;
+    var pr=(c.prices||[]).filter(function(q){return q.from!==m.from;});pr.push({from:m.from,amount:m.amount});
+    pr.sort(function(a,b){return a.from<b.from?-1:1;});c.prices=pr;p++;});
+  var H=bk.items.filter(function(it){return it.on;}).map(function(it){return it.ed.holders;})[0];
+  if(H&&(state.settings.holders||[]).length>1)state.settings.lastHolders=H.slice();
+  saveLocal();bk=null;closeSheets();goTab("list");render();
+  toast([n?n+(n===1?" Vertrag angelegt":" Verträge angelegt"):"",p?p+(p===1?" Preis angepasst":" Preise angepasst"):""].filter(Boolean).join(", ")+" — bitte kurz prüfen",3200);
+});
 /* Test-Haken (tests/bank/check.py) */
 window.KontivoBank=function(){return {read:bankRead,find:bankFind,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
 document.getElementById("csvImp").addEventListener("click",function(){document.getElementById("csvFile").click();});
