@@ -757,6 +757,21 @@ body.hasplus .topadd{display:inline-flex}
 .bkproof span{font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em}.bkproof b{font-size:14px;font-weight:600;color:var(--ink);word-break:break-word}
 .bkproof small{font-size:12.5px;color:var(--ink2);word-break:break-word}.bkshow{display:block;color:var(--teal);font-size:14px;font-weight:600;padding:10px 0}
 .bkpriv{margin:12px 0 4px!important;color:var(--ink3)!important}
+/* Ladeanzeige Kontoauszug (Variante 2: Logo + Schritte; nativ: ProgressView-Liste im Sheet) */
+.bkload{display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 8px 18px}
+.bklogo{position:relative;width:84px;height:84px;margin-bottom:22px}.bklogo img{position:relative;z-index:1;width:84px;height:84px;border-radius:20px;display:block}
+.bklogo::before,.bklogo::after{content:"";position:absolute;inset:0;border-radius:24px;background:var(--teal);opacity:0;animation:bkpulse 1.8s ease-out infinite}
+.bklogo::after{animation-delay:.9s}
+@keyframes bkpulse{0%{transform:scale(1);opacity:.45}100%{transform:scale(1.6);opacity:0}}
+@keyframes bkspin{to{transform:rotate(360deg)}}
+.sheet .bkload h3{font-size:21px;font-weight:700;margin:0 0 6px;color:var(--ink);border:0;padding:0;text-transform:none;letter-spacing:-.01em}
+.bkload>p{color:var(--ink2);font-size:15px;margin:0 0 22px;line-height:1.4}
+.bksteps{list-style:none;padding:0;margin:0;width:100%;max-width:300px;text-align:left;display:grid;gap:14px}
+.bksteps li{display:flex;align-items:center;gap:12px;font-size:16px;color:var(--ink3)}.bksteps li.done{color:var(--ink)}.bksteps li.now{color:var(--ink);font-weight:600}
+.bksteps i{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;border:2px solid var(--line);font-style:normal;font-size:13px;line-height:1}
+.bksteps .done i{background:var(--ok);border-color:var(--ok);color:#fff}
+.bksteps .now i{border-color:color-mix(in srgb,var(--teal) 25%,transparent);border-top-color:var(--teal);animation:bkspin .8s linear infinite}
+@media (prefers-reduced-motion:reduce){.bklogo::before,.bklogo::after{animation:none}.bksteps .now i{animation-duration:2.4s}}
 .bkfoot{position:sticky;bottom:0;background:var(--surface);margin:10px -17px 0;padding:10px 17px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 .bkfoot .primary{margin:0}.bkfoot .primary:disabled{opacity:.45}
 .shbar{display:flex;align-items:center;gap:10px;position:sticky;top:-8px;z-index:3;background:var(--surface);margin:-2px -17px 4px;padding:6px 17px 10px;border-bottom:1px solid var(--line)}
@@ -7193,20 +7208,40 @@ function bankMerge(rs){
 function bankReadFile(f){return new Promise(function(res){var rd=new FileReader();
   rd.onload=function(){var r=null;try{r=bankRead(rd.result);}catch(e){r=null;}res({f:f,r:r,head:bkLastHead});};
   rd.onerror=function(){res({f:f,r:null,head:""});};rd.readAsArrayBuffer(f);});}
+/* Ladeanzeige: Fenster sofort öffnen, Schritte nacheinander abhaken (Variante 2, 09.10.2026) */
+var bkRun=0;
+function bkLoad(step,nTx){var L=["Kontoauszug lesen","Wiederkehrende Zahlungen suchen","Mit deinen Verträgen abgleichen"];
+  if(nTx!=null)L[0]=nTx+(nTx===1?" Buchung gelesen":" Buchungen gelesen");
+  document.getElementById("bkT").textContent="Kontoauszug";
+  var g=document.getElementById("bkGo");g.textContent="Bitte kurz warten …";g.disabled=true;
+  var fav=document.querySelector('link[rel="icon"]');
+  document.getElementById("bkBody").innerHTML='<div class="bkload" role="status" aria-live="polite"><div class="bklogo"><img src="'+(fav?fav.href:"icon-192.png")+'" alt=""></div>'+
+    '<h3>Kontivo sucht deine Fixkosten</h3><p>Das dauert nur einen Moment.<br>Die Datei bleibt auf diesem Gerät.</p><ul class="bksteps">'+
+    L.map(function(t,i){var c=i<step?"done":i===step?"now":"";return '<li class="'+c+'"><i aria-hidden="true">'+(i<step?"✓":"")+"</i>"+esc(t)+"</li>";}).join("")+"</ul></div>";}
+/* dem Browser Zeit zum Zeichnen geben, bevor gerechnet wird */
+function bkPaint(){return new Promise(function(r){requestAnimationFrame(function(){setTimeout(r,30);});});}
+function bkWait(ms){return new Promise(function(r){setTimeout(r,ms);});}
 document.getElementById("bankFile").addEventListener("change",async function(ev){
   var fs=Array.prototype.slice.call(ev.target.files||[]);ev.target.value="";if(!fs.length)return;
+  var run=++bkRun,t0=Date.now(),sh=document.getElementById("sheetBank");bk=null;
+  bkLoad(0);openSheet(sh);await bkPaint();
   var got=[];for(var i=0;i<fs.length;i++)got.push(await bankReadFile(fs[i]));
+  if(run!==bkRun||!sh.classList.contains("on"))return;  /* abgebrochen */
   var ok=got.filter(function(x){return x.r;}),bad=got.filter(function(x){return !x.r;});
-  if(!ok.length){var h=bad.length===1?bad[0].head:"";
+  if(!ok.length){closeSheetEl("sheetBank");var h=bad.length===1?bad[0].head:"";
     await ask({title:bad.length>1?"Dateien nicht erkannt":"Datei nicht erkannt",alert:true,text:"Kontivo liest Kontoauszüge als CSV, camt.053 (XML) oder MT940. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren». PDF-Auszüge gehen nicht."+(h?" Erste Zeile deiner Datei: «"+h+"».":"")});return;}
   var r=bankMerge(ok.map(function(x){return x.r;})),res;
-  try{res=bankFind(r);}catch(e){toast("Die Datei konnte nicht ausgewertet werden");return;}
+  bkLoad(1,r.tx.length);await bkPaint();await bkWait(Math.max(0,450-(Date.now()-t0)));
+  try{res=bankFind(r);}catch(e){closeSheetEl("sheetBank");toast("Die Datei konnte nicht ausgewertet werden");return;}
+  bkLoad(2,r.tx.length);await bkPaint();await bkWait(Math.max(0,900-(Date.now()-t0)));
+  if(run!==bkRun||!sh.classList.contains("on"))return;
+  document.getElementById("bkT").textContent="Vorschläge";
   res.sugg.forEach(function(s){if(BK_CUR.indexOf(s.cur)<0)s.cur=state.settings.home;});
   var label=ok.length>1?ok.length+" Dateien":(ok[0].r.bank||"");
   openBank(res,label);
   if(bad.length)toast(bad.length===1?"«"+bad[0].f.name+"» nicht erkannt – übersprungen":bad.length+" Dateien nicht erkannt – übersprungen",3200);
 });
-document.getElementById("bkX").addEventListener("click",function(){closeSheetEl("sheetBank");});
+document.getElementById("bkX").addEventListener("click",function(){bkRun++;closeSheetEl("sheetBank");});
 document.getElementById("bkBody").addEventListener("click",function(e){
   var t=e.target.closest("button");if(!t||!bk)return;
   if(t.dataset.bkon!=null){var it=bk.items[+t.dataset.bkon];it.on=!it.on;t.setAttribute("aria-checked",it.on);bkFoot();return;}
