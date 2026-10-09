@@ -14,6 +14,8 @@ public struct Calc {
     public init(data: AppData, today: Day) {
         self.data = data
         self.today = today
+        // Zahlenformat der Summen folgt der Hauptwährung (Web `numStyle`)
+        Format.homeCurrency = data.settings.homeCurrency
         var k: [UUID: CategoryKind] = [:]
         for c in data.categories { if let kind = c.kind { k[c.id] = kind } }
         kinds = k
@@ -176,7 +178,19 @@ public struct Calc {
         return out
     }
 
-    /// Nächste Zahlung: erster Termin in [heute, heute + max(13, Turnus + 1) Monate].
+    /// Zahlungsregel für Detail und Formular (Web `payRule`, v96/v97): «monatlich am 27.», «monatlich am Monatsende» (Tag 31),
+    /// «quartalsweise am 15.», ab jährlich mit Monat: «jährlich am 1. Januar». Ohne Fälligkeit "".
+    public static func payRule(cycle: Int, due: Day?) -> String {
+        guard let a = due else { return "" }
+        let m = cycle > 0 ? cycle : 1
+        let cy = Format.cycleTextOrMonthly(m)
+        if m >= 12 { return cy + " am \(a.day). " + Format.monthNames[a.month - 1] }
+        return cy + (a.day >= 31 ? " am Monatsende" : " am \(a.day).")
+    }
+
+    public func payRule(_ c: Contract) -> String { Calc.payRule(cycle: c.cycle, due: c.due) }
+
+    /// Nächste Zahlung: erster Termin in [heute, heute + max(13, Zahlungsrhythmus + 1) Monate].
     public func nextDue(_ c: Contract) -> Day? {
         occurrences(c, from: today, to: today.addingMonths(Swift.max(13, c.cycleForCalc + 1))).first
     }
@@ -555,7 +569,8 @@ public struct Calc {
 
 extension Calc {
     public enum DeadlineItemKind: String, Hashable, Sendable {
-        case trial, open, kept, ended
+        /// keptEnd: behalten, kein weiterer Termin (Vertrag läuft aus) – «Behalten · läuft bis …» (Web 08d11a2)
+        case trial, open, kept, keptEnd, ended
     }
 
     /// Farbe des Chips rechts: gelb (Knöpfe sichtbar), rot (≤ 7 Tage bzw. gekündigt), grün (behalten), neutral.
@@ -572,7 +587,7 @@ extension Calc {
         /// Vertragsende zum Termin (offen/behalten)
         public var end: Day?
         public var days: Int
-        /// «Kündigung bis 16.12.», «Probeabo bis 15.10.», «Behalten · nächste Frist 30.09.27», «Gekündigt»
+        /// «Kündigung bis 16.12.», «Probeabo bis 15.10.», «Behalten · nächste Frist 30.09.27», «Behalten · läuft bis 31.12.», «Gekündigt»
         public var sub: String
         /// «in 2 Monaten» bzw. «endet 17.11.»
         public var chip: String
@@ -683,7 +698,7 @@ extension Calc {
             if isKept(c) {
                 let T2 = c.end != nil ? renewAfter(c, T) : nextTerm(c, base: nil, after: T)
                 let d2 = T2.map { noticeDeadline(for: c, end: $0) }
-                raw.append((c, d2 ?? T, .kept, T2))
+                raw.append((c, d2 ?? T, d2 != nil ? .kept : .keptEnd, T2))
                 continue
             }
             let dl = noticeDeadline(for: c, end: T)
@@ -701,6 +716,8 @@ extension Calc {
                 sub = "Probeabo bis " + Format.ddmm(x.d, currentYear: y); lvl = dn <= 7 ? .alert : .warn; acts = true
             case .kept:
                 sub = "Behalten · nächste Frist " + Format.ddmm(x.d, currentYear: y); lvl = .ok
+            case .keptEnd:
+                sub = "Behalten · läuft bis " + Format.ddmm(x.d, currentYear: y); lvl = .ok
             case .open:
                 sub = "Kündigung bis " + Format.ddmm(x.d, currentYear: y)
                 acts = needsAction(c) || (x.e.map { today.days(to: $0) <= 61 } ?? false)
@@ -927,7 +944,8 @@ extension Calc {
         if data.contracts.contains(where: { $0.start == nil && matches($0, filter) }) { yd = nil }
         var ydText = "—"
         if let d = yd {
-            ydText = Swift.abs(d) < 0.05 ? "±0 %" : (d > 0 ? "+" : Format.minus) + Format.fixed1(Swift.abs(d)) + " %"
+            ydText = Swift.abs(d) < 0.05 ? "±0 %" : (d > 0 ? "+" : Format.minus)
+                + Format.number(Swift.abs(d), minFractionDigits: 1, maxFractionDigits: 1, style: Format.numberStyle(nil)) + " %"
         }
         let noStart = data.contracts.filter { $0.start == nil && $0.status != .cancelled }.count
         var hint: String? = nil

@@ -121,8 +121,8 @@ struct KBBudgetPersonBar: View {
         let binding = Binding<UUID?>(get: { model.budgetPerson }, set: { model.budgetPerson = $0 })
         return HStack(spacing: 6) {
             Menu {
-                Picker("Inhaber", selection: binding) {
-                    Text("Alle Inhaber").tag(UUID?.none)
+                Picker("Person", selection: binding) {
+                    Text("Alle Personen").tag(UUID?.none)
                     ForEach(persons) { p in
                         Text(verbatim: p.name).tag(UUID?.some(p.id))
                     }
@@ -132,10 +132,10 @@ struct KBBudgetPersonBar: View {
                     Text("Gemeinsame Verträge und Einnahmen zählen anteilig.")
                 }
             } label: {
-                KBSelectLabel(title: name.isEmpty ? "Inhaber" : namer.display(name), isOn: selected != nil)
+                KBSelectLabel(title: name.isEmpty ? "Person" : namer.display(name), isOn: selected != nil)
             }
-            .accessibilityLabel("Inhaber")
-            .accessibilityValue(Text(verbatim: name.isEmpty ? "Alle Inhaber" : name))
+            .accessibilityLabel("Person")
+            .accessibilityValue(Text(verbatim: name.isEmpty ? "Alle Personen" : name))
             if selected != nil {
                 KBClearButton(label: "Filter zurücksetzen") { model.budgetPerson = nil }
             }
@@ -417,7 +417,7 @@ struct KBBudgetIncomeList: View {
                         .lineLimit(1)
                     Spacer(minLength: 8)
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(verbatim: Format.money(r.amount))
+                        Text(verbatim: Format.money(r.amount, i.currency))
                             .font(.body.weight(.semibold).monospacedDigit())
                             .foregroundStyle(KColor.ink)
                         if i.currency != home {

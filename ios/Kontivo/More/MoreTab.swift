@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import KontivoCore
 
-/// Tab «Mehr»: Darstellung, Verwalten, Währung, Daten, Hilfe, Rechtliches (Reihenfolge wie die Web-App seit 06.10.2026).
+/// Tab «Mehr»: Darstellung, Währung, Verwalten, Daten, Hilfe, Rechtliches (Reihenfolge wie die Web-App seit v119).
 struct MoreTab: View {
     @Environment(AppModel.self) private var model
     @State private var flow = MoreDataFlow()
@@ -14,8 +14,8 @@ struct MoreTab: View {
         ScrollView {
             VStack(spacing: 12) {
                 MoreThemeGroup()
-                MoreManageGroup()
                 MoreCurrencyGroup(expanded: $moreCurrencies)
+                MoreManageGroup()
                 MoreDataGroup(flow: flow)
                 MoreHelpGroup()
                 MoreLegalGroup()
@@ -44,6 +44,9 @@ struct MoreTab: View {
         .onAppear {
             if MoreCurrencyPicker.more.contains(model.data.settings.homeCurrency) { moreCurrencies = true }
             checkPending()
+            #if DEBUG
+            MoreUITestSeed.applyIfNeeded(model)
+            #endif
         }
         .onChange(of: requests.token) { _, _ in checkPending() }
         .onChange(of: model.data.settings.homeCurrency) { _, c in
@@ -251,45 +254,144 @@ struct MoreCurrencyGroup: View {
 
 // MARK: - Verwalten
 
-/// Zusammenfassungen rechts in «Verwalten» (wie `paintMdSummary`)
+/// Werte rechts in «Verwalten» (wie `paintMdSummary`/`paintVkRow`, iOS-Listenstil seit Web v121)
 struct MoreManageSummary {
+    /// «27 Anbieter», «2 Dubletten» (orange) bzw. «–»
     var partners: String
     var partnerWarn: Bool
+    /// Vornamen bis 2 Personen («Sinan, Lara»), sonst «3 Personen»
     var persons: String
+    /// «12 Gruppen»
     var categories: String
-    var quality: String
-    var qualityTone: MoreRow.Tone
-    var qualityBold: Bool
-    var qualitySubtitle: String
+    /// Vollständigkeit
+    var completeness: CompletenessReport
 
     @MainActor init(model: AppModel) {
         let data = model.data
         let today = model.today
         let groups = Partners.groups(data, today: today)
         let dups = groups.filter { $0.isDuplicate }.count
-        partners = dups > 0 ? Format.count(dups, "Dublette", "Dubletten") : (groups.isEmpty ? "–" : "\(groups.count)")
+        partners = dups > 0 ? Format.count(dups, "Dublette", "Dubletten") : (groups.isEmpty ? "–" : Format.count(groups.count, "Anbieter", "Anbieter"))
         partnerWarn = dups > 0
-
         let names = data.persons.map { $0.name }
-        persons = names.count <= 2 ? names.joined(separator: ", ") : "\(names.count) Personen"
-        categories = "\(data.categories.count)"
-
-        let running = model.calc.active.count
+        persons = names.count <= 2 ? names.map { Format.firstName($0) }.joined(separator: ", ") : "\(names.count) Personen"
+        categories = Format.count(data.categories.count, "Gruppe", "Gruppen")
         let files = model.files
-        let report = Quality.report(data, today: today, hasFile: { files.has($0) })
-        let open = report.affectedCount
-        if running == 0 {
-            quality = "–"
-            qualityTone = .plain
-        } else if open > 0 {
-            quality = Format.count(open, "Eintrag offen", "Einträge offen")
-            qualityTone = .warn
-        } else {
-            quality = "Sauber gepflegt ✓"
-            qualityTone = .ok
+        completeness = Completeness.report(data, today: today, hasFile: { files.has($0) })
+    }
+}
+
+/// Farbiges Symbol links (wie `.mgi` der Web-App)
+struct MoreManageIcon: View {
+    let symbol: String
+    let color: Color
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(.white)
+            .frame(width: 30, height: 30)
+            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(color))
+            .accessibilityHidden(true)
+    }
+}
+
+/// Zeile im iOS-Listenstil: Symbol, Titel, Wert bzw. Plakette, Pfeil (`.mgr`)
+struct MoreManageRow: View {
+    let symbol: String
+    let color: Color
+    let title: String
+    var value: String = ""
+    var valueColor: Color = KColor.ink3
+    var valueBold = false
+    /// Plakette statt Wert (Vollständigkeit): grün bzw. orange
+    var badge: String? = nil
+    var badgeWarn = false
+    var first = false
+    var accessibility: String? = nil
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                MoreManageIcon(symbol: symbol, color: color)
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(KColor.ink)
+                    .lineLimit(1)
+                Spacer(minLength: 8)
+                if let b = badge, !b.isEmpty {
+                    Text(b)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(badgeWarn ? KColor.warn : KColor.ok)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill((badgeWarn ? KColor.warn : KColor.ok).opacity(0.14)))
+                        .lineLimit(1)
+                } else if !value.isEmpty {
+                    Text(value)
+                        .font(.body.weight(valueBold ? .semibold : .regular))
+                        .foregroundStyle(valueColor)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(KColor.ink3)
+                    .accessibilityHidden(true)
+            }
+            .padding(.top, first ? 0 : 9)
+            .padding(.bottom, 9)
+            .contentShape(Rectangle())
         }
-        qualityBold = running > 0
-        qualitySubtitle = running > 0 && open == 0 ? "Alles da, nichts fehlt. Gut gemacht." : "Was bei deinen Verträgen noch fehlt"
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibility ?? ([title, badge ?? value].filter { !$0.isEmpty }.joined(separator: ", ")))
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
+/// Farben der Symbole (Web `.mgi.i1`–`.i4`)
+enum MoreManageColors {
+    static let partners = Color(hex: "#0E5A5E")
+    static let persons = Color(hex: "#6B4BA0")
+    static let categories = Color(hex: "#B4612A")
+    static let ready = Color(hex: "#2E6A4E")
+    static let open = Color(hex: "#9A6710")
+}
+
+/// Die vier Zeilen «Vertragspartner», «Personen», «Kategorien», «Vollständigkeit» (Mehr und Übersicht «Verwalten»)
+struct MoreManageRows: View {
+    @Environment(AppModel.self) private var model
+    /// Zeile antippen: Ziel öffnen
+    let onOpen: (ManageRoute) -> Void
+
+    var body: some View {
+        let sum = MoreManageSummary(model: model)
+        let vk = sum.completeness
+        VStack(spacing: 0) {
+            MoreManageRow(symbol: "building.2.fill", color: MoreManageColors.partners, title: "Vertragspartner", value: sum.partners,
+                          valueColor: sum.partnerWarn ? KColor.warn : KColor.ink3, valueBold: sum.partnerWarn, first: true) {
+                onOpen(.partners)
+            }
+            .accessibilityIdentifier("more.partners")
+            MoreLine().padding(.leading, 42)
+            MoreManageRow(symbol: "person.2.fill", color: MoreManageColors.persons, title: "Personen", value: sum.persons) {
+                onOpen(.persons)
+            }
+            .accessibilityIdentifier("more.persons")
+            MoreLine().padding(.leading, 42)
+            MoreManageRow(symbol: "square.grid.2x2.fill", color: MoreManageColors.categories, title: "Kategorien", value: sum.categories) {
+                onOpen(.categories)
+            }
+            .accessibilityIdentifier("more.categories")
+            MoreLine().padding(.leading, 42)
+            MoreManageRow(symbol: "checkmark", color: vk.open > 0 ? MoreManageColors.open : MoreManageColors.ready, title: Completeness.title,
+                          badge: Completeness.badge(vk), badgeWarn: vk.open > 0, accessibility: Completeness.accessibilityLabel(vk)) {
+                onOpen(.completeness(only: nil))
+            }
+            .accessibilityIdentifier("more.completeness")
+        }
     }
 }
 
@@ -297,28 +399,34 @@ struct MoreManageGroup: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        let sum = MoreManageSummary(model: model)
         MoreGroup(title: "Verwalten") {
-            MoreRow(title: "Vertragspartner", subtitle: "Namen, Logos und Adressen deiner Anbieter",
-                    trailing: sum.partners, tone: sum.partnerWarn ? .warn : .plain, bold: sum.partnerWarn, first: true) {
-                model.present(.manage(.partners))
-            }
-            MoreLine()
-            MoreRow(title: "Inhaber", subtitle: "Personen, Absender und Unterschrift", trailing: sum.persons) {
-                model.present(.manage(.persons))
-            }
-            MoreLine()
-            MoreRow(title: "Kategorien", subtitle: "Gruppen für deine Verträge: Name, Farbe, Reihenfolge", trailing: sum.categories) {
-                model.present(.manage(.categories))
-            }
-            MoreLine()
-            MoreRow(title: "Datenqualität", subtitle: sum.qualitySubtitle, trailing: sum.quality,
-                    tone: sum.qualityTone, bold: sum.qualityBold) {
-                model.present(.manage(.quality))
+            MoreManageRows { route in model.present(.manage(route)) }
+        }
+    }
+}
+
+#if DEBUG
+/// UI-Test «Vollständigkeit»: Startargument «-uiVkTerm» entfernt bei «Stadtwerke Konstanz» die Kündigungsfrist,
+/// damit der Ablauf eine Fristen-Frage stellt (Beispieldaten haben sonst keine).
+@MainActor
+enum MoreUITestSeed {
+    private static var done = false
+
+    static func applyIfNeeded(_ model: AppModel) {
+        guard !done, model.uiTestMode, ProcessInfo.processInfo.arguments.contains("-uiVkTerm") else { return }
+        done = true
+        guard let p = model.data.partners.first(where: { $0.name == "Stadtwerke Konstanz" }),
+              let c = model.data.contracts.first(where: { $0.partnerID == p.id }) else { return }
+        model.update { d in
+            if let i = d.contractIndex(c.id) {
+                d.contracts[i].notice = 0
+                d.contracts[i].cancelTerm = .anytime
+                d.contracts[i].end = nil
             }
         }
     }
 }
+#endif
 
 // MARK: - Daten
 
@@ -397,7 +505,7 @@ enum MoreTexts {
     static let privacy = [
         "Kontivo hat kein Benutzerkonto, keine Werbung, kein Tracking und keine Analyse. Deine Verträge, Logos und Dokumente werden nur lokal auf diesem Gerät gespeichert und nicht an Kontivo übermittelt.",
         "Für einzelne Funktionen ruft die App externe Dienste auf. Dabei wird technisch bedingt deine IP-Adresse übertragen:",
-        "• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.\n• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst) und unavatar.io; das App-Symbol wird direkt von der Website des Anbieters geladen. Ein eingefügter Bild-Link wird direkt von dieser Adresse geladen.\n• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).\n• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.\n• Handschrift-Schriften für Namenszug-Vorschläge sind in der App enthalten (SIL Open Font License), dafür wird nichts geladen.",
+        "• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.\n• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst) und unavatar.io; das App-Symbol wird direkt von der Website des Anbieters geladen. Ein eingefügter Bild-Link wird direkt von dieser Adresse geladen.\n• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).\n• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.\n• Kontoauszug einlesen: Die Datei wird nur auf dem Gerät gelesen, nicht gespeichert und nicht übertragen.\n• Handschrift-Schriften für Namenszug-Vorschläge sind in der App enthalten (SIL Open Font License), dafür wird nichts geladen.",
         "Backups und CSV-Dateien erstellst und speicherst du selbst. Ohne Backup gehen deine Daten beim Löschen der App verloren. Mit «Alle Daten löschen» entfernst du alles vom Gerät.",
     ]
 

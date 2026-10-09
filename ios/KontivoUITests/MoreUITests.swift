@@ -1,6 +1,6 @@
 import XCTest
 
-/// f) Mehr: Darstellung; Verwalten → Kategorien, Inhaber/Absender, Datenqualität
+/// f) Mehr: Darstellung; Verwalten → Kategorien, Personen/Absender, Datenqualität (über Vollständigkeit)
 /// g) Alle Daten löschen
 final class MoreUITests: KontivoUITestCase {
 
@@ -45,15 +45,15 @@ final class MoreUITests: KontivoUITestCase {
         waitUntil("Verwalten geschlossen") { !self.navExists("Kategorien") }
     }
 
-    func testInhaberAnlegenUndAbsender() {
+    func testPersonAnlegenUndAbsender() {
         launch("-uiDemo", "-uiTab", "more")
-        tap(buttonStarting("Inhaber"), "Zeile Inhaber")
-        waitNav("Inhaber")
-        tap(button("Inhaber hinzufügen"), "Inhaber hinzufügen")
-        waitNav("Neuer Inhaber")
+        tap(buttonStarting("Personen"), "Zeile Personen")
+        waitNav("Personen")
+        tap(button("Person hinzufügen"), "Person hinzufügen")
+        waitNav("Neue Person")
         enter(textField("Name"), "Mia", "Name")
         tapContent("Hinzufügen")
-        waitNav("Inhaber")
+        waitNav("Personen")
 
         // Personenkarte
         tap(buttonStarting("Mia"), "Person Mia")
@@ -75,7 +75,10 @@ final class MoreUITests: KontivoUITestCase {
 
     func testDatenqualitaetInlineWert() {
         launch("-uiDemo", "-uiTab", "more")
-        tap(buttonStarting("Datenqualität"), "Zeile Datenqualität")
+        // Seit Web v120 über Vollständigkeit → «Alle Prüfungen im Detail»
+        tap(button("more.completeness"), "Zeile Vollständigkeit")
+        waitNav("Vollständigkeit")
+        tap(button("Alle Prüfungen im Detail"), "Alle Prüfungen im Detail")
         waitNav("Datenqualität")
         tap(buttonStarting("Kündigungsweg gewählt"), "Kriterium Kündigungsweg")
         waitNav("Kündigungsweg gewählt")

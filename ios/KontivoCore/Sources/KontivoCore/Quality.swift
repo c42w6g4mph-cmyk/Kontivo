@@ -52,9 +52,9 @@ public struct QualityIssue: Hashable, Sendable, Identifiable {
     public var key: String
     /// Anzeigename (Vertrag: Bezeichnung → Vertragspartner → «Ohne Namen»)
     public var name: String
-    /// Zusatz (Vertragspartner, «Einnahme», «n Verträge», «Inhaber · für Kündigung per Brief»)
+    /// Zusatz (Vertragspartner, «Einnahme», «n Verträge», «Person · für Kündigung per Brief»)
     public var subtitle: String
-    /// Grund («Kein Inhaber» …)
+    /// Grund («Keine Person» …)
     public var reason: String
     /// Absender-Bedarf: 2 = Adresse (Brief), 1 = nur Name (E-Mail); sonst 0
     public var senderLevel: Int
@@ -132,9 +132,9 @@ public enum Quality {
     /// Checkliste (Reihenfolge der Anzeige: A, B, D, C).
     public static let checklist: [QualityChecklistGroup] = [
         QualityChecklistGroup(group: .A, title: "Kosten und Budget", rows: [
-            QualityChecklistRow(field: "holder", title: "Inhaber"), QualityChecklistRow(field: "amount", title: "Betrag"),
-            QualityChecklistRow(field: "cat", title: "Kategorie"), QualityChecklistRow(field: "cycle", title: "Zahlungsweise"),
-            QualityChecklistRow(field: "inc", title: "Einnahmen: Betrag, Inhaber"),
+            QualityChecklistRow(field: "holder", title: "Person"), QualityChecklistRow(field: "amount", title: "Betrag"),
+            QualityChecklistRow(field: "cat", title: "Kategorie"), QualityChecklistRow(field: "cycle", title: "Zahlungsrhythmus"),
+            QualityChecklistRow(field: "inc", title: "Einnahmen: Betrag, Person"),
         ]),
         QualityChecklistGroup(group: .B, title: "Fristen", rows: [
             QualityChecklistRow(field: "due", title: "Fälligkeit"), QualityChecklistRow(field: "notice", title: "Kündigungsfrist und Laufzeit"),
@@ -142,7 +142,7 @@ public enum Quality {
         QualityChecklistGroup(group: .D, title: "Kündigen", rows: [
             QualityChecklistRow(field: "via", title: "Kündigungsweg gewählt"), QualityChecklistRow(field: "ref", title: "Kunden- oder Vertragsnummer"),
             QualityChecklistRow(field: "link", title: "Link (Online)"), QualityChecklistRow(field: "mail", title: "E-Mail-Adresse (E-Mail)"),
-            QualityChecklistRow(field: "addr", title: "Adresse des Vertragspartners (Brief)"), QualityChecklistRow(field: "sender", title: "Absender der Inhaber"),
+            QualityChecklistRow(field: "addr", title: "Adresse des Vertragspartners (Brief)"), QualityChecklistRow(field: "sender", title: "Absender der Personen"),
         ]),
         QualityChecklistGroup(group: .C, title: "Vertragspartner", rows: [
             QualityChecklistRow(field: "logo", title: "Logo"),
@@ -182,7 +182,7 @@ public enum Quality {
             let nm = !c.label.isEmpty ? c.label : (!pn.isEmpty ? pn : "Ohne Namen")
             let sub = (!pn.isEmpty && !c.label.isEmpty) ? pn : ""
             let s = QualitySubject.contract(c.id)
-            if c.holderIDs.isEmpty { add(.A, s, .holder, name: nm, sub: sub, why: "Kein Inhaber") }
+            if c.holderIDs.isEmpty { add(.A, s, .holder, name: nm, sub: sub, why: "Keine Person") }
             if !(c.amount > 0) { add(.A, s, .amount, name: nm, sub: sub, why: "Betrag fehlt oder ist 0") }
             if let cid = c.categoryID {
                 if !catIDs.contains(cid) {
@@ -194,7 +194,7 @@ public enum Quality {
             } else {
                 add(.A, s, .cat, name: nm, sub: sub, why: "Keine Kategorie")
             }
-            if !(c.cycle > 0) { add(.A, s, .cycle, name: nm, sub: sub, why: "Zahlungsweise fehlt") }
+            if !(c.cycle > 0) { add(.A, s, .cycle, name: nm, sub: sub, why: "Zahlungsrhythmus fehlt") }
             if c.due == nil { add(.B, s, .due, name: nm, sub: sub, why: "Kein Fälligkeitsdatum") }
             if c.cancelPer == nil, let pid = c.partnerID { relevantPartners.insert(pid) }
             // Kündigen: je nach Kündigungsweg (nicht bei Steuern und bereits gekündigten)
@@ -235,7 +235,7 @@ public enum Quality {
         }
         for i in data.incomes {
             let s = QualitySubject.income(i.id)
-            if i.holderID == nil { add(.A, s, .holder, name: i.title, sub: "Einnahme", why: "Kein Inhaber") }
+            if i.holderID == nil { add(.A, s, .holder, name: i.title, sub: "Einnahme", why: "Keine Person") }
             if !(i.amount > 0) { add(.A, s, .amount, name: i.title, sub: "Einnahme", why: "Betrag fehlt oder ist 0") }
         }
         let partners = data.partners.filter { relevantPartners.contains($0.id) }.stableSorted { Format.lessDE($0.name, $1.name) }
@@ -253,9 +253,9 @@ public enum Quality {
             let o = data.resolvedSender(h)
             let s = QualitySubject.person(h)
             if lv >= 2 && !o.isComplete {
-                add(.D, s, .sender, name: person.name, sub: "Inhaber · für Kündigung per Brief", why: "Absender unvollständig", level: 2)
+                add(.D, s, .sender, name: person.name, sub: "Person · für Kündigung per Brief", why: "Absender unvollständig", level: 2)
             } else if lv == 1 && o.first.isEmpty && o.last.isEmpty {
-                add(.D, s, .sender, name: person.name, sub: "Inhaber · für Kündigung per E-Mail", why: "Name des Absenders fehlt", level: 1)
+                add(.D, s, .sender, name: person.name, sub: "Person · für Kündigung per E-Mail", why: "Name des Absenders fehlt", level: 1)
             }
         }
         return QualityReport(A: out[.A] ?? [], B: out[.B] ?? [], C: out[.C] ?? [], D: out[.D] ?? [], ignoredCount: nIg,

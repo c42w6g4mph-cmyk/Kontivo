@@ -109,19 +109,19 @@ struct MDPersonsPage: View {
                             .foregroundStyle(KColor.teal)
                             .frame(width: 36, height: 36)
                             .accessibilityHidden(true)
-                        Text("Inhaber hinzufügen").font(.body.weight(.semibold)).foregroundStyle(KColor.teal)
+                        Text("Person hinzufügen").font(.body.weight(.semibold)).foregroundStyle(KColor.teal)
                     }
                 }
                 .mdRow()
             } header: {
                 Text("Personen")
             } footer: {
-                Text("Inhaber sind die Personen in deinem Haushalt. Tippe auf eine Person für Absender, Unterschrift und Verträge."
+                Text("Hier verwaltest du die Personen in deinem Haushalt. Tippe auf eine Person für Absender, Unterschrift und Verträge."
                      + (stats.count < 2 ? " Mit zwei oder mehr Personen kannst du Verträge gemeinsam oder getrennt zuordnen." : ""))
             }
         }
         .mdListStyle()
-        .navigationTitle("Inhaber")
+        .navigationTitle("Personen")
     }
 }
 
@@ -154,7 +154,7 @@ struct MDPersonNewPage: View {
             }
         }
         .mdListStyle()
-        .navigationTitle("Neuer Inhaber")
+        .navigationTitle("Neue Person")
         .task {
             try? await Task.sleep(nanoseconds: 450_000_000)
             focused = true
@@ -168,13 +168,13 @@ struct MDPersonNewPage: View {
             return
         }
         if model.data.persons.contains(where: { $0.name.lowercased() == v.lowercased() }) {
-            model.toast("Diesen Inhaber gibt es schon")
+            model.toast("Diese Person gibt es schon")
             return
         }
         if model.update({ _ = try $0.addPerson(v) }) {
             focused = false
             nav.pop()
-            model.toast("Inhaber «\(v)» angelegt")
+            model.toast("Person «\(v)» angelegt")
         }
     }
 }
@@ -203,7 +203,7 @@ struct MDPersonPage: View {
                 List { Section { MDHint("Diese Person gibt es nicht mehr.").mdPlainRow() } }.mdListStyle()
             }
         }
-        .navigationTitle(model.data.person(personID)?.name ?? "Inhaber")
+        .navigationTitle(model.data.person(personID)?.name ?? "Person")
     }
 
     private func page(_ p: Person) -> some View {
@@ -217,7 +217,7 @@ struct MDPersonPage: View {
             entriesSection
             if editing {
                 Section {
-                    MDActionRow(title: "Inhaber löschen", destructive: true) { deleteTapped(p) }
+                    MDActionRow(title: "Person löschen", destructive: true) { deleteTapped(p) }
                 }
             }
         }
@@ -253,7 +253,7 @@ struct MDPersonPage: View {
                 Button("Löschen", role: .destructive) { deleteNow() }
                 Button("Abbrechen", role: .cancel) {}
             } message: {
-                Text("Der Inhaber ist nirgends zugeordnet.")
+                Text("Die Person ist nirgends zugeordnet.")
             }
     }
 
@@ -465,7 +465,7 @@ struct MDPersonPage: View {
 
     private func deleteTapped(_ p: Person) {
         if model.data.persons.count <= 1 {
-            model.toast("Mindestens ein Inhaber ist nötig")
+            model.toast("Mindestens eine Person ist nötig")
             return
         }
         commitName()
@@ -482,7 +482,7 @@ struct MDPersonPage: View {
         if model.update({ try $0.deletePerson(personID, transferTo: nil) }) {
             model.mdMovePersonFilters(from: personID, to: nil)
             nav.pop()
-            model.toast("Inhaber gelöscht")
+            model.toast("Person gelöscht")
         }
     }
 }
@@ -505,7 +505,7 @@ struct MDPersonDeletePage: View {
                 List { Section { MDHint("Diese Person gibt es nicht mehr.").mdPlainRow() } }.mdListStyle()
             }
         }
-        .navigationTitle("Inhaber löschen")
+        .navigationTitle("Person löschen")
     }
 
     private func content(_ p: Person) -> some View {
@@ -526,11 +526,11 @@ struct MDPersonDeletePage: View {
                 }
                 option(on: to == nil, action: { to = nil }) {
                     MDInitial(text: "–", dimmed: true)
-                    MDTitleSub(title: "Ohne Inhaber lassen", subtitle: "Gemeinsame Einträge behalten die übrigen Inhaber")
+                    MDTitleSub(title: "Ohne Person lassen", subtitle: "Gemeinsame Einträge behalten die übrigen Personen")
                 }
             }
             Section {
-                MDMainButton(title: "Inhaber löschen", destructive: true) { delete() }
+                MDMainButton(title: "Person löschen", destructive: true) { delete() }
             }
         }
         .mdListStyle()
@@ -560,7 +560,7 @@ struct MDPersonDeletePage: View {
         if model.update({ try $0.deletePerson(personID, transferTo: to) }) {
             model.mdMovePersonFilters(from: personID, to: to)
             nav.pop(2)
-            model.toast(toName.map { "Gelöscht, Einträge an «\($0)» übertragen" } ?? "Inhaber gelöscht")
+            model.toast(toName.map { "Gelöscht, Einträge an «\($0)» übertragen" } ?? "Person gelöscht")
         }
     }
 }
@@ -858,7 +858,7 @@ struct MDAssignPage: View {
                     ForEach(d.persons) { p in
                         Chip(title: p.name, isOn: filter == .person(p.id)) { filter = .person(p.id) }
                     }
-                    Chip(title: "Ohne Inhaber" + (noneCount > 0 ? " · \(noneCount)" : ""), isOn: filter == .unassigned) { filter = .unassigned }
+                    Chip(title: "Ohne Person" + (noneCount > 0 ? " · \(noneCount)" : ""), isOn: filter == .unassigned) { filter = .unassigned }
                 }
                 .mdPlainRow()
             }
@@ -886,7 +886,7 @@ struct MDAssignPage: View {
 
     private func emptyText(_ d: AppData) -> String {
         switch filter {
-        case .unassigned: return "Alle Einträge haben einen Inhaber."
+        case .unassigned: return "Alle Einträge sind einer Person zugeordnet."
         case .person(let p): return "«" + (d.person(p)?.name ?? "") + "» ist nichts zugeordnet."
         case .all: return "Noch keine Verträge oder Einnahmen."
         }

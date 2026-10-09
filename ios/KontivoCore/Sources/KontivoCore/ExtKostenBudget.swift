@@ -17,10 +17,10 @@ public enum KBText {
         "\(n)" + (n == 1 ? " beendeter Vertrag" : " beendete Verträge") + " nicht mitgezählt"
     }
 
-    /// Betrag aus einem Eingabefeld lesen: gemeinsamer Zahlenleser `Format.parseNum` (1:1 Web-`parseNum`).
+    /// Betrag aus einem Eingabefeld lesen: `Format.parseAmount` (1:1 Web-`parseAmt`, «1.234» = Tausender).
     /// Leer oder unlesbar → nil.
     public static func parseAmount(_ s: String) -> Double? {
-        Format.parseNum(s)
+        Format.parseAmount(s)
     }
 }
 

@@ -74,7 +74,7 @@ struct KBCostFilterBar: View {
     private func holderSelect(_ f: Calc.CostFilter) -> some View {
         let name = f.person.flatMap { model.data.person($0)?.name } ?? ""
         let shown = name.utf16.count > 12 ? Format.firstName(name) : name
-        return KBSelectButton(title: shown.isEmpty ? "Alle Inhaber" : shown, isOn: f.person != nil) {
+        return KBSelectButton(title: shown.isEmpty ? "Alle Personen" : shown, isOn: f.person != nil) {
             pick = KBPickDim(dim: .holder)
         }
     }
@@ -177,7 +177,7 @@ struct KBFilterPickSheet: View {
         switch dim {
         case .category: return "Kategorie"
         case .partner: return "Vertragspartner"
-        case .holder: return "Inhaber"
+        case .holder: return "Person"
         }
     }
 
@@ -185,7 +185,7 @@ struct KBFilterPickSheet: View {
         switch dim {
         case .category: return "Alle Kategorien"
         case .partner: return "Alle Vertragspartner"
-        case .holder: return "Alle Inhaber"
+        case .holder: return "Alle Personen"
         }
     }
 

@@ -65,7 +65,7 @@ public struct CSVImportPreview: Sendable {
         var t = ""
         if archived > 0 { t += "\(archived) davon sind bereits beendet und kommen ins Archiv.\n" }
         if !skipInfo.isEmpty { t += "Übersprungen: " + skipInfo.joined(separator: ", ") + ".\n" }
-        if !newHolderNames.isEmpty { t += "Neue Inhaber: " + newHolderNames.joined(separator: ", ") + ".\n" }
+        if !newHolderNames.isEmpty { t += "Neue Personen: " + newHolderNames.joined(separator: ", ") + ".\n" }
         if !newCategoryNames.isEmpty { t += "Neue Kategorien: " + newCategoryNames.joined(separator: ", ") + ".\n" }
         if adjustedCycles > 0 { t += Format.count(adjustedCycles, "Zahlungsrhythmus", "Zahlungsrhythmen") + " angepasst.\n" }
         if badDates > 0 { t += (badDates == 1 ? "1 ungültiges Datum" : "\(badDates) ungültige Daten") + " ignoriert.\n" }
@@ -92,7 +92,9 @@ public enum CSV {
         ["Vertragspartner", "Bezeichnung", "Kategorie", "Betrag", "Waehrung", "Turnus_Monate", "ProMonat_" + home.rawValue,
          "NaechsteZahlung", "Beginn", "Ende", "Kuendigungsfrist", "Einheit", "Verlaengerung", "KuendigenBis", "Preisverlauf",
          "Kundennummer", "Vertragsnummer", "Inhaber", "Zahlungsart", "BelastetUeber", "KuendigungPer", "Website", "Telefon", "EMail",
-         "Status", "KuendbarPer", "Pflichtvertrag", "Notiz", "Sonderzahlungen", "Adresse", "KuendigungsLink", "Aufteilung"]
+         "Status", "KuendbarPer", "Pflichtvertrag", "Notiz", "Sonderzahlungen", "Adresse", "KuendigungsLink", "Aufteilung",
+         // Zustände für den Rundlauf Export → Import (Web 08d11a2/9b5dc06)
+         "NichtKuendbar", "Probeabo", "GekuendigtPer", "GekuendigtAm", "NichtErinnern", "BehaltenBis", "PausiertSeit", "PausiertBis", "ProbeaboBehalten"]
     }
 
     /// Alle Verträge als CSV-Text (mit BOM, CRLF).
@@ -108,13 +110,18 @@ public enum CSV {
             }.joined(separator: " | ")
             let fields: [String] = [
                 p?.name ?? "", c.label, data.category(c.categoryID)?.name ?? "", Format.fixed2(calc.curPrice(c)), c.currency.rawValue, String(c.cycle),
-                Format.fixed2(calc.monthlyCost(c)), calc.nextDue(c)?.iso ?? "", c.start?.iso ?? "", calc.effEnd(c)?.iso ?? "",
+                // Ende roh (nicht fortgeschrieben), damit der Import denselben Vertrag ergibt (Web 9b5dc06)
+                Format.fixed2(calc.monthlyCost(c)), calc.nextDue(c)?.iso ?? "", c.start?.iso ?? "", c.end?.iso ?? "",
                 String(c.notice), c.noticeUnit.rawValue, c.renewMonths == 0 ? "" : String(c.renewMonths),
                 calc.urgency(c).date?.iso ?? "", prices, c.customerNo, c.contractNo, data.holderNames(of: c).joined(separator: ", "),
                 c.payMethod, c.payAccount, c.cancelChannel?.webText ?? "", p?.web ?? "", c.tel, c.mail, c.status.rawValue,
                 // Frist 0 und «jederzeit» ausdrücklich, damit der Import keine Katalogwerte einsetzt (wie Web)
                 c.cancelTerm == .anytime ? (c.end == nil ? "jederzeit" : "") : c.cancelTerm.rawValue,
                 c.mandatory ? "ja" : "", c.note, extras, p?.address.text ?? "", c.cancelURL, splitText(c, data),
+                c.noCancel ? "ja" : "", c.trial?.iso ?? "",
+                c.cancelPer?.iso ?? "", c.cancelledOn?.iso ?? "", c.noWatch ? "ja" : "", c.keptFor?.iso ?? "",
+                // Web: eine Pause (paused/pausedAt/pausedUntil) – hier die letzte
+                c.pauses.last?.from.iso ?? "", c.pauses.last?.until?.iso ?? "", c.trialKept != nil ? "ja" : "",
             ]
             rows.append(fields.map { quote($0) }.joined(separator: ";"))
         }
@@ -471,8 +478,32 @@ public enum CSV {
         ("contact", ["kontaktdaten", "kontakt", "ansprechpartner"]),
         ("dueDay", ["abbuchungstag", "zahltagimmonat"]),
         ("status", ["status"]),
+        ("noCancel", ["nichtkuendbar"]),
+        ("cancelPer", ["gekuendigtper"]),
+        ("cancelledOn", ["gekuendigtam"]),
+        ("noWatch", ["nichterinnern"]),
+        ("keptFor", ["behaltenbis"]),
+        ("pausedAt", ["pausiertseit"]),
+        ("pausedUntil", ["pausiertbis"]),
+        ("trialKept", ["probeabobehalten"]),
+        ("trial", ["probeabo", "probeabobis"]),
         ("extras", ["sonderzahlungen", "einmalzahlungen"]),
     ]
+
+    /// Kündigungsweg aus freiem Text auf die Formularwerte abbilden (Web `csvVia`): «Einschreiben», «Brief», «E-Mail»,
+    /// «Online / Kundenkonto»; sonst der Text unverändert (dann ohne Kündigungsweg).
+    public static func via(_ x: String) -> CancelChannel? {
+        let n = norm(x)
+        if n.isEmpty { return nil }
+        if RX.test("einschreib|registered", n) { return .registered }
+        if RX.test("brief|post|letter", n) { return .letter }
+        if RX.test("mail", n) { return .email }
+        if RX.test("online|konto|portal|web|app|link", n) { return .online }
+        return CancelChannel(webText: x.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+
+    /// Ja-Spalte (Web `yes`): «ja», «yes», «1», «true», «x».
+    static func yes(_ x: String) -> Bool { RX.test("^(ja|yes|1|true|x)$", norm(x)) }
 
     /// Duplikat-Schlüssel: Vertragspartner, Bezeichnung, Betrag, Turnus, Beginn.
     static func dupKey(partner: String, label: String, amount: Double, cycle: Int, start: Day?) -> String {
@@ -637,7 +668,9 @@ public enum CSV {
             c.end = dateCounted("end")
             // Katalogwerte für Frist / Kündbar per nur, wenn die Spalte fehlt (leer, 0 oder «jederzeit» sind bewusste Angaben)
             if let n = nNum {
-                c.notice = Int(n)
+                // wie Web: noticeVal, sonst gerundeter Betrag ≥ 0
+                let ok = n >= 0 && n.rounded(.down) == n && n < 1e6 && (nu != .dayOfMonth || (n >= 1 && n <= 28))
+                c.notice = ok ? Int(n) : Int(Swift.min(1e6, Format.jsRound(Swift.abs(n))))
                 c.noticeUnit = nu
             } else if let t = tpl, col["notice"] == nil {
                 c.notice = t.notice
@@ -655,8 +688,11 @@ public enum CSV {
             c.contractNo = g(r, "contrNo")
             c.payMethod = g(r, "payM")
             c.payAccount = g(r, "payA")
-            c.cancelChannel = CancelChannel(webText: g(r, "cancF")) ?? tpl?.cancelChannel
+            // Katalog nur ohne Angabe; unbekannter Text bleibt ohne Kündigungsweg (Web `csvVia(x)||tpl[8]`)
+            c.cancelChannel = g(r, "cancF").isEmpty ? tpl?.cancelChannel : via(g(r, "cancF"))
             c.cancelURL = g(r, "cancUrl")
+            c.trial = date(g(r, "trial"))
+            if yes(g(r, "noCancel")) { c.noCancel = true }
             // Leere Kontaktdaten aus dem Katalog (Web b520636)
             c.tel = g(r, "tel").isEmpty ? (tpl?.tel ?? "") : g(r, "tel")
             c.mail = g(r, "mail").isEmpty ? (tpl?.mail ?? "") : g(r, "mail")
@@ -675,6 +711,20 @@ public enum CSV {
                 c.status = .cancelled
                 c.cancelledAt = today
             }
+            // Zustände aus dem eigenen Export (gekündigt, nicht erinnern, behalten, pausiert, Probeabo behalten)
+            if let cp = date(g(r, "cancelPer")) {
+                c.cancelPer = cp
+                if let co = date(g(r, "cancelledOn")) { c.cancelledOn = co }
+            }
+            if yes(g(r, "noWatch")) { c.noWatch = true }
+            if let kf = date(g(r, "keptFor")) { c.keptFor = kf }
+            // Web setzt trialKept = true; nativ ist «behalten» das Datum des Probeabo-Endes (sonst bliebe die Frage offen)
+            if yes(g(r, "trialKept")), let tr = c.trial { c.trialKept = tr }
+            if let pa = date(g(r, "pausedAt")) { c.pauses = [Pause(from: pa, until: date(g(r, "pausedUntil")))] }
+            if c.noCancel {
+                c.mandatory = false
+                c.cancelTerm = .anytime
+            }
             // Nächste Zahlung aus Beginn, Turnus und Abbuchungstag
             if c.due == nil {
                 var s0 = c.start ?? today
@@ -689,8 +739,8 @@ public enum CSV {
                 }
                 c.due = dd
             }
-            // Abgelaufene Verträge direkt ins Archiv
-            if let e = c.end, e < today, c.status != .cancelled {
+            // Abgelaufene Verträge direkt ins Archiv (verlängert sich automatisch und nicht gekündigt: läuft weiter)
+            if let e = c.end, e < today, c.status != .cancelled, !(c.renewMonths > 0 && c.cancelPer == nil) {
                 c.status = .cancelled
                 c.cancelledAt = e
                 res.archived += 1

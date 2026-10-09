@@ -64,7 +64,7 @@ struct IncomesAllView: View {
                 }
                 Spacer(minLength: 8)
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(verbatim: Format.money(calc.curPrice(i)))
+                    Text(verbatim: Format.money(calc.curPrice(i), i.currency))
                         .font(.body.weight(.semibold).monospacedDigit())
                         .foregroundStyle(KColor.ink)
                     if i.currency != calc.home {

@@ -89,7 +89,8 @@ struct MoneyText: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 3) {
-            Text(Format.money(amount)).font(font).monospacedDigit()
+            // Zahlenformat nach Währung (EUR «1.234,50», CHF «1’234.50»)
+            Text(Format.money(amount, Currency(rawValue: currency))).font(font).monospacedDigit()
             Text(currency).font(currencyFont).foregroundStyle(KColor.ink2)
         }
         .accessibilityElement(children: .combine)
