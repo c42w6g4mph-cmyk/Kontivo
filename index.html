@@ -3638,11 +3638,22 @@ function tplSumItems(a,b){var I=[],ch=function(i){return a[i]!==b[i];};
   if(k.length)I.push(k.length>2?"Kontaktdaten":k.join(", "));
   if(!a.fMand&&b.fMand)I.push("Pflichtvertrag");if(!a.fNoCancel&&b.fNoCancel)I.push("nicht kündbar");
   return I;}
+/* Katalog gewählt, noch kein Logo: wie bei Internet-Treffern ein Logo vorschlagen (im Entwurf sichtbar, gilt erst mit «Sichern»).
+   Zuerst Website-Symbol der Katalog-Domain, sonst die normale Logo-Suche. SwiftUI: Task nach applyTemplate */
+async function tplLogo(t){
+  if(!t||(draft.logoId&&KBlob.has(draft.logoId))||!assets||navigator.onLine===false)return;
+  var d0=draft,n0=document.getElementById("fPartner").value.trim(),r=null;
+  try{if(t[4]){var sc=await siteCand(regDom(t[4]),3);if(sc){var a=await takeLogo(sc);if(a&&a.id)r=a;}}
+    if(!r)r=await autoLogo(t[0],document.getElementById("fCur").value,null,t[4]||"");}catch(e){r=null;}
+  var same=draft===d0&&document.getElementById("sheetForm").classList.contains("on")&&document.getElementById("fPartner").value.trim()===n0;
+  if(!same||!r||(draft.logoId&&KBlob.has(draft.logoId)))return;
+  draft.logoId=r.id;draft.logoBg=r.bg;draft.tplLogo=r.id;paintLogo();paintSwatches();
+  if(draft.tplSum&&draft.tplSum.indexOf("Logo")<0){draft.tplSum.unshift("Logo");paintSugg();}}
 function tplUndo(){var o=draft.tplUndo,a=draft.tplAfter||{},cur=tplSnap();if(!o)return;
   /* nur zurücksetzen, was seit dem Übernehmen nicht von Hand geändert wurde */
   var same=function(k){return a[k]===undefined||cur[k]===a[k];};
   TPL_IDS.forEach(function(i){if(same(i))document.getElementById(i).value=o[i];});TPL_CHK.forEach(function(i){if(same(i))document.getElementById(i).checked=o[i];});
-  if(same("cat"))draft.cat=o.cat;draft.tplUndo=null;draft.tplAfter=null;draft.tplSum=null;draft.tplHint="";
+  if(same("cat"))draft.cat=o.cat;if(draft.tplLogo&&draft.logoId===draft.tplLogo){draft.logoId="";draft.logoBg="";}draft.tplLogo=null;draft.tplUndo=null;draft.tplAfter=null;draft.tplSum=null;draft.tplHint="";
   paintCats();if(same("termMode"))setTermMode(o.termMode);["fEnd","fRenew","fTrial"].forEach(function(i){if(same(i))document.getElementById(i).value=o[i];});
   fAddrPaint();syncWatch();syncCancUrl();updTermHint();paintLogo();paintSwatches();paintSugg();paintOptCounts();toast("Katalogdaten entfernt");}
 function applyTpl(t,keepName,quiet,onlyEmpty){
@@ -3678,7 +3689,7 @@ document.getElementById("sheetForm").addEventListener("click",function(ev){if(ev
 document.getElementById("fSugg").addEventListener("click",function(ev){
   if(ev.target.closest("[data-tplundo]")){tplUndo();return;}
   if(ev.target.closest("[data-std]")&&draft.stdTpl){var st=draft.stdTpl;applyTpl(st,true,false,true);draft.stdTpl=st;draft.stdDone=true;paintSugg();return;}
-  var b=ev.target.closest("[data-tpl]");if(!b)return;applyTpl(TPL[+b.dataset.tpl]);
+  var b=ev.target.closest("[data-tpl]");if(!b)return;applyTpl(TPL[+b.dataset.tpl]);tplLogo(TPL[+b.dataset.tpl]);
 });
 var tplCC="",tplQ="";
 function tplRows(){
@@ -4969,7 +4980,7 @@ document.getElementById("pickList").addEventListener("click",function(ev){
   if(pd==="tplpick"){
     var tc=ev.target.closest("[data-tcc]");
     if(tc){tplCC=tc.dataset.tcc;this.querySelectorAll("[data-tcc]").forEach(function(x){x.setAttribute("aria-pressed",x===tc);});document.getElementById("tplRows").innerHTML=tplRows();return;}
-    var tp=ev.target.closest("[data-tplp]");if(!tp)return;applyTpl(TPL[+tp.dataset.tplp]);closePick();return;
+    var tp=ev.target.closest("[data-tplp]");if(!tp)return;applyTpl(TPL[+tp.dataset.tplp]);closePick();tplLogo(TPL[+tp.dataset.tplp]);return;
   }
   if(pd.indexOf("cvia-")===0){var cid=pd.slice(5),ctr=/-t$/.test(cid);if(ctr)cid=cid.slice(0,-2);var cb=ev.target.closest("[data-pv]");if(!cb)return;var cc=state.contracts[cid];if(!cc)return;
     var txt={online:"Online / Kundenkonto",mail:"E-Mail",post:"Brief"}[cb.dataset.pv];putContract(cid,Object.assign({},cc,{cancF:txt}));closePick();render();
