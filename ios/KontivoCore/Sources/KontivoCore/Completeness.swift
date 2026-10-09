@@ -256,7 +256,8 @@ public enum Completeness {
     /// «Üblich bei Swisscom: 60 Tage auf Monatsende» (nur mit Frist im Katalog)
     public static func catalogHint(_ t: CatalogEntry?) -> String? {
         guard let t = t, t.notice > 0 else { return nil }
-        let units: [NoticeUnit: String] = [.months: "Monate", .weeks: "Wochen", .days: "Tage", .dayOfMonth: ". im Monat"]
+        let one = t.notice == 1
+        let units: [NoticeUnit: String] = [.months: one ? "Monat" : "Monate", .weeks: one ? "Woche" : "Wochen", .days: one ? "Tag" : "Tage", .dayOfMonth: ". im Monat"]
         let terms: [CancelTerm: String] = [.monthEnd: "auf Monatsende", .quarterEnd: "auf Quartalsende", .yearEnd: "auf Jahresende",
                                            .contractYear: "auf Ende Vertragsjahr", .period: "auf Ende Periode", .halfYearEnd: "auf Halbjahresende"]
         var s = "Üblich bei " + t.name + ": \(t.notice) " + (units[t.noticeUnit] ?? "")
