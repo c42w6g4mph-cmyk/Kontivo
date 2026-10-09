@@ -60,8 +60,10 @@ targets:
           - Zeyada.ttf
           - Qwigley-Regular.ttf
           - Bilbo-Regular.ttf
-        # Nur Berechtigungen, die die App wirklich nutzt (Kalender: Frist eintragen; Fotos: «Bild sichern» im Teilen-Menü)
+        # Nur Berechtigungen, die die App wirklich nutzt (Kalender: Frist eintragen; Fotos: «Bild sichern» im Teilen-Menü;
+        # Face ID: «App-Sperre» unter Mehr). Mitteilungen brauchen keinen Eintrag.
         NSCalendarsWriteOnlyAccessUsageDescription: Kontivo trägt Kündigungsfristen auf deinen Wunsch in den Kalender ein.
+        NSFaceIDUsageDescription: Kontivo nutzt Face ID für die App-Sperre, damit nur du deine Verträge siehst.
         NSPhotoLibraryAddUsageDescription: Kontivo speichert Bilder auf deinen Wunsch in deiner Fotomediathek.
         LSSupportsOpeningDocumentsInPlace: false
         UISupportsDocumentBrowser: false

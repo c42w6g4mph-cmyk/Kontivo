@@ -149,23 +149,11 @@ struct DocumentViewer: View {
         }
     }
 
-    /// «Per Mail senden»: Mail mit PDF-Anhang; nach dem Senden Rückfrage «Gekündigt?» (nicht bei Miete).
+    /// «Per Mail senden»: Mail mit PDF-Anhang (ohne Mail-Konto Teilen-Menü); danach Rückfrage «Gekündigt?» (nicht bei Miete).
     private func sendMail(_ info: LetterDocumentInfo) {
-        guard let data = fileData else { return }
-        guard MFMailComposeViewController.canSendMail() else {
-            model.toast("Auf diesem Gerät ist kein Mail-Konto eingerichtet. Tippe auf «Teilen».")
-            return
-        }
-        let draft = MailDraft(to: info.recipient.isEmpty ? [] : [info.recipient],
-                              subject: info.subject,
-                              body: info.attachmentMailBody,
-                              attachment: data,
-                              attachmentName: shareName,
-                              attachmentType: "application/pdf",
-                              cancelContractID: info.isRent ? nil : ref.letterContractID,
-                              cancelTrial: ref.letterTrial)
-        // Doppeltippen: nur öffnen, solange der Viewer zuoberst liegt
-        CancelWindowFlow.present(model, .mail(draft), over: .document(ref))
+        guard let data = fileData, CancelWindowFlow.isTop(model, .document(ref)) else { return }
+        LetterActions.sendMail(model, pdf: data, fileName: shareName, info: info,
+                               contractID: ref.letterContractID, trial: ref.letterTrial, over: .document(ref))
     }
 
     /// «Als E-Mail-Text»: Text in die Zwischenablage, dann Mail ohne Anhang.
@@ -195,23 +183,7 @@ struct DocumentViewer: View {
 
     private func printDocument() {
         guard let data = fileData else { return }
-        guard UIPrintInteractionController.canPrint(data) else {
-            model.toast("Drucken ist für diese Datei nicht möglich")
-            return
-        }
-        let pic = UIPrintInteractionController.shared
-        let info = UIPrintInfo(dictionary: nil)
-        info.outputType = resolvedType.hasPrefix("image/") ? .photo : .general
-        info.jobName = shareName
-        pic.printInfo = info
-        pic.printingItem = data
-        if UIDevice.current.userInterfaceIdiom == .pad, let top = CancelFlowUI.topViewController(), let v = top.view {
-            // iPad: Druckdialog als Popover über der Aktionsleiste
-            let rect = CGRect(x: v.bounds.midX - 1, y: v.bounds.maxY - 90, width: 2, height: 2)
-            _ = pic.present(from: rect, in: v, animated: true, completionHandler: nil)
-        } else {
-            _ = pic.present(animated: true, completionHandler: nil)
-        }
+        LetterActions.printPDF(model, data: data, jobName: shareName, photo: resolvedType.hasPrefix("image/"))
     }
 }
 

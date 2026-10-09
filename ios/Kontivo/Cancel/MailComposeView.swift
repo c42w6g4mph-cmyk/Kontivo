@@ -101,10 +101,16 @@ private struct MailUnavailableView: View {
                     }
                     .buttonStyle(.borderedProminent)
                 } else {
-                    Text("Tippe im Dokument auf «Teilen», um das PDF mit einer anderen App zu senden.")
+                    Text("Sende das PDF mit einer anderen App.")
                         .font(.subheadline)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(KColor.ink2)
+                    Button {
+                        shareAttachment()
+                    } label: {
+                        Label("PDF teilen", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
             }
             .padding(28)
@@ -116,6 +122,18 @@ private struct MailUnavailableView: View {
                     Button("Schliessen") { CancelWindowFlow.dismiss(model, ifTop: .mail(draft)) }
                 }
             }
+        }
+    }
+
+    /// Ohne Mail-Konto: Fenster schliessen, dann Teilen-Menü mit dem Anhang
+    private func shareAttachment() {
+        guard let pdf = draft.attachment else { return }
+        let m = model
+        let d = draft
+        guard CancelWindowFlow.dismiss(m, ifTop: .mail(d)) else { return }
+        CancelWindowFlow.afterDismiss(m, keepStack: false) {
+            LetterActions.share(m, pdf: pdf, fileName: LetterActions.pdfName(d.attachmentName),
+                                askContractID: d.cancelContractID, trial: d.cancelTrial)
         }
     }
 

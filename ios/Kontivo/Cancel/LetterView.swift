@@ -119,6 +119,29 @@ struct LetterView: View {
                     .padding(.vertical, 6)
             }
             .buttonStyle(.borderedProminent)
+            // Direkt verschicken bzw. drucken (PDF wird erstellt, ohne Vorschau)
+            HStack(spacing: 10) {
+                Button {
+                    createPDF(.mail)
+                } label: {
+                    Label("Per Mail senden", systemImage: "envelope")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                }
+                .accessibilityIdentifier("letter.mail")
+                Button {
+                    createPDF(.print)
+                } label: {
+                    Label("Drucken", systemImage: "printer")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                }
+                .accessibilityIdentifier("letter.print")
+            }
+            .buttonStyle(.bordered)
+            .padding(.top, 10)
         }
         .listRowBackground(Color.clear)
         .listRowInsets(EdgeInsets())
@@ -360,8 +383,8 @@ struct LetterView: View {
         model.update { $0.setPartnerAddress(pid, addr) }
     }
 
-    /// «PDF erstellen» (Reihenfolge der Prüfungen wie in der Web-App).
-    private func createPDF() {
+    /// «PDF erstellen» (Reihenfolge der Prüfungen wie in der Web-App); `intent`: danach Vorschau, Mail oder Drucken.
+    private func createPDF(_ intent: LetterIntent = .view) {
         guard let c = model.data.contract(contractID) else { return }
         // Doppeltippen: läuft schon eine Rückfrage oder liegt der Viewer schon darüber, nichts tun
         guard ask == nil, CancelWindowFlow.isTop(model, .letter(contractID, trial: trial)) else { return }
@@ -424,7 +447,7 @@ struct LetterView: View {
         let missing = Letter.signersMissingAddress(signers, data: data).map { data.person($0)?.name ?? "" }
         let job = LetterJob(input: input, toCount: to.count, missingNames: missing, info: info,
                             fileName: Letter.pdfFileName(c, data: data, today: model.today),
-                            title: Letter.viewerTitle(c, data: data))
+                            title: Letter.viewerTitle(c, data: data), intent: intent)
         proceed(job, from: 0)
     }
 
@@ -466,10 +489,18 @@ struct LetterView: View {
             model.toast("PDF konnte nicht erstellt werden")
             return
         }
-        let ref = DocumentRef(data: pdf, type: "application/pdf", title: job.title, fileName: job.fileName,
-                              letterContractID: contractID, letterTrial: trial)
-        LetterDocumentStore.put(ref.id, job.info)
-        CancelWindowFlow.present(model, .document(ref), over: me)
+        switch job.intent {
+        case .view:
+            let ref = DocumentRef(data: pdf, type: "application/pdf", title: job.title, fileName: job.fileName,
+                                  letterContractID: contractID, letterTrial: trial)
+            LetterDocumentStore.put(ref.id, job.info)
+            CancelWindowFlow.present(model, .document(ref), over: me)
+        case .mail:
+            LetterActions.sendMail(model, pdf: pdf, fileName: job.fileName, info: job.info,
+                                   contractID: contractID, trial: trial, over: me)
+        case .print:
+            LetterActions.printPDF(model, data: pdf, jobName: LetterActions.pdfName(job.fileName))
+        }
     }
 }
 
@@ -504,6 +535,12 @@ private struct LetterJob {
     var info: LetterDocumentInfo
     var fileName: String
     var title: String
+    var intent: LetterIntent = .view
+}
+
+/// Was nach «PDF erstellen» passiert: Vorschau (mit allen Aktionen), direkt Mail mit Anhang oder direkt Drucken.
+private enum LetterIntent {
+    case view, mail, print
 }
 
 private struct LetterAsk {

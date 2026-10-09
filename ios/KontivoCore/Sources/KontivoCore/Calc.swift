@@ -700,7 +700,8 @@ extension Calc {
             case .trial:
                 sub = "Probeabo bis " + Format.ddmm(x.d, currentYear: y); lvl = dn <= 7 ? .alert : .warn; acts = true
             case .kept:
-                sub = "Behalten · nächste Frist " + Format.ddmm(x.d, currentYear: y); lvl = .ok
+                // Web v133 «keptEnd»: ohne weiteren Termin (befristet ohne Verlängerung) «läuft bis» statt «nächste Frist»
+                sub = (x.e != nil ? "Behalten · nächste Frist " : "Behalten · läuft bis ") + Format.ddmm(x.d, currentYear: y); lvl = .ok
             case .open:
                 sub = "Kündigung bis " + Format.ddmm(x.d, currentYear: y)
                 acts = needsAction(c) || (x.e.map { today.days(to: $0) <= 61 } ?? false)

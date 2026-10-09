@@ -17,6 +17,7 @@ struct MoreTab: View {
                 MoreManageGroup()
                 MoreCurrencyGroup(expanded: $moreCurrencies)
                 MoreDataGroup(flow: flow)
+                NativeMoreGroup() // Bereich native: Erinnerungen und App-Sperre (Native/NativeMoreGroup.swift)
                 MoreHelpGroup()
                 MoreLegalGroup()
                 MoreBrandFooter()
