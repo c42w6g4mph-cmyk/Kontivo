@@ -738,7 +738,7 @@ final class CTFormState {
 
     /// Live-Hinweis unter «Zahlung am» (Web updPayHint): «Zahlung monatlich am 15. · nächste am 15.10.26»
     func payHint(_ data: AppData, today: Day) -> String {
-        let r = CTLocalCalc.payRule(due: due, cycle: cycle)
+        let r = Calc.payRule(cycle: cycle, due: due)
         if r.isEmpty { return "" }
         var tmp = Contract()
         tmp.amount = 1

@@ -205,7 +205,7 @@ struct BankReviewView: View {
     }
 
     private func priceRow(_ p: BankReview.PriceRow) -> some View {
-        let c = UUID(uuidString: p.m.contractID).flatMap { model.data.contract($0) }
+        let c = model.data.contract(p.m.contractID)
         let old = c.map { model.calc.curPrice($0) } ?? p.m.suggestion.amount
         let name = c.map { n in model.data.partnerName(of: n).isEmpty ? model.data.title(of: n) : model.data.partnerName(of: n) } ?? p.m.suggestion.name
         let cur = c?.currency.rawValue ?? p.m.suggestion.currency
@@ -225,7 +225,7 @@ struct BankReviewView: View {
     }
 
     @ViewBuilder private func knownRow(_ k: BankKnown) -> some View {
-        if let id = UUID(uuidString: k.contractID), let c = model.data.contract(id) {
+        if case let id = k.contractID, let c = model.data.contract(id) {
             HStack(spacing: 10) {
                 ZStack {
                     Circle().fill(KColor.ok.opacity(0.16))

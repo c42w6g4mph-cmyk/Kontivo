@@ -305,12 +305,12 @@ struct CTListContent {
             for c in a.ctStableSorted(by: byCost) {
                 // Schlüssel in der Reihenfolge der Inhaber-Liste (A & B = B & A)
                 let names = data.persons.filter { c.holderIDs.contains($0.id) }.map(\.name)
-                let k = names.isEmpty ? "Ohne Inhaber" : names.joined(separator: " & ")
+                let k = names.isEmpty ? "Ohne Person" : names.joined(separator: " & ")
                 if by[k] == nil { order.append(k) }
                 by[k, default: []].append(c)
             }
             let de = Locale(identifier: "de_CH")
-            let none = "Ohne Inhaber"
+            let none = "Ohne Person"
             // «Ohne Inhaber» am Ende, sonst alphabetisch
             for k in order.ctStableSorted(by: { x, y in
                 if (x == none) != (y == none) { return y == none }

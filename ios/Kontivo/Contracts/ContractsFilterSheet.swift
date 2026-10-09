@@ -18,7 +18,7 @@ struct CTFilterSheet: View {
                         row("Vertragspartner", f.partner ?? "Alle")
                     }
                     NavigationLink(value: Calc.FilterDimension.holder) {
-                        row("Inhaber", f.person.flatMap { model.data.person($0)?.name } ?? "Alle")
+                        row("Person", f.person.flatMap { model.data.person($0)?.name } ?? "Alle")
                     }
                 }
                 .listRowBackground(KColor.surface)
@@ -130,7 +130,7 @@ struct CTFilterValues: View {
         switch dim {
         case .category: return "Kategorie"
         case .partner: return "Vertragspartner"
-        case .holder: return "Inhaber"
+        case .holder: return "Person"
         }
     }
 
@@ -138,7 +138,7 @@ struct CTFilterValues: View {
         switch dim {
         case .category: return "Alle Kategorien"
         case .partner: return "Alle Vertragspartner"
-        case .holder: return "Alle Inhaber"
+        case .holder: return "Alle Personen"
         }
     }
 

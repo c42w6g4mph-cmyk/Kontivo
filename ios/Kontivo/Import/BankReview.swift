@@ -28,7 +28,7 @@ final class BankReview {
     struct PriceRow: Identifiable {
         var m: BankPriceMatch
         var on: Bool
-        var id: String { m.contractID + "|" + m.from.iso }
+        var id: String { m.contractID.uuidString + "|" + m.from.iso }
     }
 
     let file: BankFile
@@ -211,7 +211,7 @@ final class BankReview {
                 if let id = try? d.saveContract(c, today: today) { out.created.append(id) }
             }
             for p in chosenPrices {
-                guard let cid = UUID(uuidString: p.m.contractID), let i = d.contractIndex(cid) else { continue }
+                guard case let cid = p.m.contractID, let i = d.contractIndex(cid) else { continue }
                 var pr = d.contracts[i].prices.filter { $0.from != p.m.from }
                 pr.append(PriceChange(from: p.m.from, amount: p.m.amount))
                 d.contracts[i].prices = pr.sorted { $0.from < $1.from }

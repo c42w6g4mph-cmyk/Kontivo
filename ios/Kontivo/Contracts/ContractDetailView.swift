@@ -398,7 +398,7 @@ private struct CTDetailSections: View {
             r.append(CTDetailRow("Betrag", Format.money(calc.curPrice(c)) + " " + c.currency.rawValue))
         }
         // TODO(core): `Calc.payRule` statt der lokalen Hilfe
-        let rule = CTLocalCalc.payRule(due: c.due, cycle: c.cycle)
+        let rule = Calc.payRule(cycle: c.cycle, due: c.due)
         if !rule.isEmpty {
             var row = CTDetailRow("Zahlung", rule)
             if c.cycleForCalc != 1, let nd = calc.nextDue(c), CTLocalCalc.paidSoFar(c, calc: calc) != nil {
