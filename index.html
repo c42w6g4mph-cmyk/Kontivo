@@ -4540,7 +4540,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     '<div class="shbar"><button class="shx" data-act="close">Schliessen</button><h2>'+esc(titleOf(c))+'</h2><button type="button" class="dmbtn" data-act="menu" aria-label="Aktionen" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg></button><button class="shok" data-act="edit">Bearbeiten</button>'+menu+'</div>'+
     '<div class="detailhead">'+markHtml(c)+'<div style="flex:1;min-width:0"><h2 style="margin:0">'+esc(titleOf(c))+"</h2>"+
     (metaOf(c)?'<div style="font-size:13px;color:var(--ink2)">'+esc(metaOf(c))+"</div>":"")+
-    (nDocs?'<button type="button" class="dchip" data-act="docs" style="margin-top:7px">'+CLIP_IC+"<span>"+cntTxt(nDocs,"Dokument","Dokumente")+"</span></button>":"")+"</div>"+
+    '<button type="button" class="dchip" data-act="docs" style="margin-top:7px">'+CLIP_IC+"<span>"+(nDocs?cntTxt(nDocs,"Dokument","Dokumente"):"Dokument anhängen")+"</span></button></div>"+
     "</div>"+
     (pill?'<div class="pills">'+pill+"</div>":'<div style="height:10px"></div>')+kz+
     vkHintHtml(idv)+fr+
@@ -4681,7 +4681,8 @@ function openDocsPick(idv){
   var l=document.getElementById("pickList");l.dataset.dim="docs";
   l.innerHTML=(ds.length?ds.map(function(d,i){return '<div class="docrow"><button class="pick" data-dopen="'+i+'" type="button"><span>'+(isPdf(d)?"📄 ":"🖼 ")+esc(d.name)+'</span><span>Öffnen ›</span></button></div>';}).join("")
       :'<p class="note" style="margin:0 2px 6px">Noch keine Dokumente, zum Beispiel Vertrag, Police oder Rechnung.</p>')+
-    '<p class="note" style="margin:10px 2px 0">Anhängen und Löschen unter «Bearbeiten».</p>';
+    (assets?'<button class="lbtn main" type="button" data-dadd style="margin-top:6px">Datei anhängen · PDF oder Bild</button>':"")+
+    '<p class="note" style="margin:10px 2px 0">Dateien bleiben auf diesem Gerät.'+(ds.length?' Löschen unter «Bearbeiten».':'')+'</p>';
   var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
 }
 document.getElementById("pickList").addEventListener("click",function(ev){if(this.dataset.dim!=="docs")return;
