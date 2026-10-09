@@ -50,7 +50,7 @@ struct BankImportSheet: View {
         let parts = [n > 0 ? (n == 1 ? "1 Vertrag angelegt" : "\(n) Verträge angelegt") : "",
                      p > 0 ? (p == 1 ? "1 Preis angepasst" : "\(p) Preise angepasst") : ""].filter { !$0.isEmpty }
         model.toast(parts.joined(separator: ", ") + " — bitte kurz prüfen", seconds: 3.2)
-        let open = BankReview.incompleteCount(out.created, data: model.data)
+        let open = BankReview.incompleteCount(out.created, data: model.data, today: model.today)
         guard open > 0 else { return }
         let m = model
         Task { @MainActor in

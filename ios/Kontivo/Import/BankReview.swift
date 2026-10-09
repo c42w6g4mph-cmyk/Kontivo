@@ -232,12 +232,10 @@ final class BankReview {
         return p.id
     }
 
-    /// Neue Verträge, bei denen noch Angaben fehlen (Logo oder Kündigungsfrist) – Anlass für «Fast fertig!».
-    /// Annäherung an Web `vkNeeds` (Kern «Vollständigkeit» kann das ersetzen).
-    static func incompleteCount(_ ids: [UUID], data: AppData) -> Int {
-        ids.compactMap { data.contract($0) }.filter { c in
-            data.logo(of: c) == nil || (c.notice == 0 && !c.noCancel && !c.noWatch && !c.mandatory)
-        }.count
+    /// Neue Verträge, bei denen noch Angaben fehlen – Anlass für «Fast fertig!» (wie Web: `vkNeeds().per` der neuen Verträge)
+    static func incompleteCount(_ ids: [UUID], data: AppData, today: Day) -> Int {
+        let r = Completeness.report(data, today: today)
+        return ids.filter { !(r.per[$0] ?? []).isEmpty }.count
     }
 
     // MARK: Texte

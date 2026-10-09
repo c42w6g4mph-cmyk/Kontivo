@@ -12,6 +12,7 @@ struct ContractDetailView: View {
     @State private var showPause = false
     @State private var askDelete = false
     @State private var showDocs = false
+    @State private var calendarFor: UUID?
 
     init(contractID: UUID) {
         self.contractID = contractID
@@ -57,6 +58,7 @@ struct ContractDetailView: View {
                 }
             }
         }
+        .deadlineCalendar(contractID: $calendarFor)
         .sheet(isPresented: $showPause) {
             CTPauseSheet(contractID: contractID, onPaused: { model.dismissAll() })
                 .environment(model)
@@ -163,6 +165,9 @@ struct ContractDetailView: View {
                 } else {
                     Button("Pausieren") { showPause = true }
                 }
+            }
+            if DeadlineCalendar.canAdd(c, calc: model.calc) {
+                Button { calendarFor = c.id } label: { Label(DeadlineCalendar.menuTitle, systemImage: DeadlineCalendar.symbol) }
             }
             Button("Duplizieren") {
                 model.present(.contractForm(.duplicate(contractID)))
