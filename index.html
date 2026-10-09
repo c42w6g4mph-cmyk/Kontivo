@@ -775,6 +775,13 @@ body.hasplus .topadd{display:inline-flex}
 .bkfoot{position:sticky;bottom:0;background:var(--surface);margin:10px -17px 0;padding:10px 17px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 .bkfoot .primary{margin:0}.bkfoot .primary:disabled{opacity:.45}
 .shbar{display:flex;align-items:center;gap:10px;position:sticky;top:-8px;z-index:3;background:var(--surface);margin:-2px -17px 4px;padding:6px 17px 10px;border-bottom:1px solid var(--line)}
+.dmbtn{flex:none;width:34px;height:34px;border-radius:50%;background:var(--sunken);color:var(--teal);display:grid;place-items:center;margin-right:-2px}
+.dmbtn svg{width:20px;height:20px;fill:currentColor}
+.dmenu{position:absolute;right:12px;top:calc(100% + 6px);width:min(250px,calc(100% - 24px));background:var(--surface);border-radius:14px;box-shadow:0 14px 44px rgba(0,0,0,.26),0 0 0 .5px var(--line);z-index:20;overflow:hidden;animation:dmin .16s ease-out;transform-origin:top right}
+.dmenu button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:48px;padding:11px 16px;border-bottom:.5px solid var(--line);font-size:16px;text-align:left;color:var(--ink)}
+.dmenu button:last-child{border-bottom:0}.dmenu button:active{background:var(--sunken)}.dmenu small{font-size:13px;color:var(--ink3)}.dmenu .red{color:var(--alert)}
+@keyframes dmin{from{opacity:0;transform:scale(.85)}}
+@media (prefers-reduced-motion:reduce){.dmenu{animation:none}}
 .shbar h2{flex:1;text-align:center;margin:0!important;font-size:18px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .shx{font-size:16px;color:var(--ink2);padding:6px 0;min-width:78px;text-align:left}
 .shok{font-size:16px;font-weight:700;color:var(--teal);padding:6px 0;min-width:78px;text-align:right}
@@ -4455,18 +4462,26 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     xh='<h3 class="dsec">Sonderzahlungen</h3><div class="plist">'+xs.map(function(x){var cr=x.amount<0;
       return '<div class="prow"><span class="pd">'+fmtD(x.date)+(x.note?" · "+esc(x.note):"")+(cr?'<span class="tag">Gutschrift</span>':"")+(parseD(x.date)>t2?'<span class="tag fut">geplant</span>':"")+
         '</span><span class="pa'+(cr?" cr":"")+'">'+(cr?"−":"")+money(Math.abs(x.amount),c.cur)+" "+esc(c.cur)+"</span></div>";}).join("")+"</div>";}
-  /* Hauptaktionen (Kündigen, Pausieren) als Leiste oben wie in «Fristen», seltene Aktionen bleiben unten */
-  var kb=(c.cancelPer||c.status==="cancelled"||fixd?"":function(){var v=cancVia(c);return '<button type="button" data-kbtn data-act="'+(v==="online"?"konline":v==="mail"?"kmail":v==="post"?"ktext":"kvia")+'">'+
-      (v==="online"?"Online kündigen":v==="mail"?"Per E-Mail kündigen":v==="post"?"Kündigungsschreiben":"Kündigen …")+'</button>';}()),
-    pb=(c.status!=="cancelled"&&!fixd&&!c.mand&&!isRent(c)?'<button type="button" data-act="pause">'+(isPaused(c)?"Fortsetzen":"Pausieren")+"</button>":""),
-    acts=due60?pb:kb+pb;
+  /* Aktionen im Menü ••• oben rechts (Variante 4, 09.10.2026; nativ: Menu in der Toolbar). Kündigen zusätzlich im Fristen-Kasten */
+  var kv=cancVia(c),kact=kv==="online"?"konline":kv==="mail"?"kmail":kv==="post"?"ktext":"kvia",kword=c.mand?"Wechseln":"Kündigen",
+    kok=!(c.cancelPer||c.status==="cancelled"||fixd),
+    kb=kok?'<button type="button" data-kbtn data-act="'+kact+'">'+kword+"</button>":"",
+    mi=function(act,t,sub,cl){return '<button type="button" role="menuitem" data-act="'+act+'"'+(cl?' class="'+cl+'"':"")+(act===kact&&kok?" data-kbtn":"")+'><span>'+t+"</span>"+(sub?"<small>"+sub+"</small>":"")+"</button>";},
+    menu='<div class="dmenu" id="dMenu" role="menu" hidden>'+
+      (kok?mi(kact,kword,{online:"online",mail:"per E-Mail",post:"per Brief"}[kv]||"Weg wählen"):"")+
+      (c.cancelPer?mi("uncancel","Kündigung zurücknehmen"):"")+
+      (isKept(c)?mi("unkeep","«Behalten» zurücksetzen"):"")+
+      (c.status!=="cancelled"&&!fixd&&!c.mand&&!isRent(c)?mi("pause",isPaused(c)?"Fortsetzen":"Pausieren"):"")+
+      mi("dup","Duplizieren")+
+      (c.status==="cancelled"?mi("reactivate","Wieder aktiv setzen"):mi("cancel","Ins Archiv"))+
+      mi("delete","Löschen","","red")+"</div>";
   var fr="";if(due60){var D=u.date,T=termEnd(c),dn=u.days,yy=D.getFullYear()!==today().getFullYear();
     fr='<div class="dfrist'+(dn<=7?" alert":"")+'"><b>'+(c.mand?"Wechseln bis ":"Kündigen bis ")+D.getDate()+". "+MON[D.getMonth()]+(yy?" "+D.getFullYear():"")+"</b><small>"+
       (rt?"sonst verlängert bis "+fmtShort(rt):"Vertragsende "+fmtShort(T))+" · "+(dn===0?"heute":"noch "+dn+(dn===1?" Tag":" Tage"))+"</small>"+
       '<div class="dfb">'+kb+'<button type="button" data-act="keep">Behalten</button></div></div>';}
   var nDocs=(c.docs||[]).length;
   document.getElementById("detailBody").innerHTML=
-    '<div class="shbar"><button class="shx" data-act="close">Schliessen</button><h2>'+esc(titleOf(c))+'</h2><button class="shok" data-act="edit">Bearbeiten</button></div>'+
+    '<div class="shbar"><button class="shx" data-act="close">Schliessen</button><h2>'+esc(titleOf(c))+'</h2><button type="button" class="dmbtn" data-act="menu" aria-label="Aktionen" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg></button><button class="shok" data-act="edit">Bearbeiten</button>'+menu+'</div>'+
     '<div class="detailhead">'+markHtml(c)+'<div style="flex:1;min-width:0"><h2 style="margin:0">'+esc(titleOf(c))+"</h2>"+
     (metaOf(c)?'<div style="font-size:13px;color:var(--ink2)">'+esc(metaOf(c))+"</div>":"")+
     '<button type="button" class="dchip" data-act="docs" style="margin-top:7px">'+CLIP_IC+"<span>"+(nDocs?cntTxt(nDocs,"Dokument","Dokumente"):"Dokument anhängen")+"</span></button></div>"+
@@ -4482,23 +4497,16 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       (c.mail?'<button data-link="mailto:'+esc(c.mail)+'" data-copy="'+esc(c.mail)+'"><span>E-Mail</span><span>'+esc(c.mail)+'</span></button>':"")+'</div>':"")+
     xh+
     (c.note?'<h3 class="dsec">Notiz</h3><div style="font-size:14.5px;white-space:pre-wrap">'+esc(c.note)+"</div>":"")+
-    (acts?'<div class="dacts low">'+acts+"</div>":"")+
-    '<div style="height:14px"></div>'+
-    (c.cancelPer?'<button class="ghost" data-act="uncancel">Kündigung zurücknehmen</button>':"")+
-    (isKept(c)?'<button class="ghost" data-act="unkeep">Entscheid «Behalten» zurücksetzen</button>':"")+
-    '<details class="opt moreact"><summary>Weitere Aktionen</summary><div class="optbody">'+
-    '<button class="ghost" data-act="dup">Duplizieren</button>'+
-    (c.status==="cancelled"
-      ?'<button class="ghost" data-act="reactivate">Wieder aktiv setzen</button>'
-      :'<button class="ghost" data-act="cancel">Als gekündigt ins Archiv</button>')+
-    '<button class="ghost danger" data-act="delete">Vertrag löschen</button></div></details>';
+    '<div style="height:18px"></div>';
   var body=document.getElementById("detailBody");
   body.querySelectorAll("[data-link]").forEach(function(b){
     b.addEventListener("click",function(){openLink(b.dataset.link,b.dataset.copy);});});
   body.querySelectorAll("[data-pe]").forEach(function(r){r.addEventListener("click",function(){openPriceEdit(idv,+r.getAttribute("data-pe"));});});
   body.querySelectorAll("[data-act]").forEach(function(b){
     b.addEventListener("click",function(){
-      var a=b.dataset.act;
+      var a=b.dataset.act,dm=document.getElementById("dMenu");
+      if(a==="menu"){var on=dm.hidden;dm.hidden=!on;b.setAttribute("aria-expanded",on);if(on){var f=dm.querySelector("button");if(f)f.focus();}return;}
+      if(dm){dm.hidden=true;var mb=document.querySelector("#detailBody .dmbtn");if(mb)mb.setAttribute("aria-expanded","false");}
       if(a==="close"){closeSheets();return;}
       if(a==="docs"){openDocsPick(idv);return;}
       if(a==="padd"){openPriceEdit(idv,-1);return;}
@@ -7241,6 +7249,9 @@ document.getElementById("bankFile").addEventListener("change",async function(ev)
   openBank(res,label);
   if(bad.length)toast(bad.length===1?"«"+bad[0].f.name+"» nicht erkannt – übersprungen":bad.length+" Dateien nicht erkannt – übersprungen",3200);
 });
+/* Aktionsmenü im Detail: Tippen daneben schliesst */
+document.addEventListener("click",function(e){var dm=document.getElementById("dMenu");if(!dm||dm.hidden)return;
+  if(e.target.closest("#dMenu")||e.target.closest(".dmbtn"))return;dm.hidden=true;var mb=document.querySelector("#detailBody .dmbtn");if(mb)mb.setAttribute("aria-expanded","false");},true);
 document.getElementById("bkX").addEventListener("click",function(){bkRun++;closeSheetEl("sheetBank");});
 document.getElementById("bkBody").addEventListener("click",function(e){
   var t=e.target.closest("button");if(!t||!bk)return;
