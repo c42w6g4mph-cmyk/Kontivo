@@ -1,5 +1,4 @@
 import SwiftUI
-import EventKitUI
 import KontivoCore
 
 /// Tab «Fristen» (Variante 1): Status, eine Liste nach Datum mit «Behalten» / «Kündigen» nur bei anstehenden Fristen,
@@ -9,7 +8,8 @@ struct DeadlinesTab: View {
     @State private var openFolds: Set<String> = []
     @State private var killTarget: DeadlineKillTarget?
     @State private var killAction: DeadlineKillAction?
-    @State private var eventRequest: DeadlineEventRequest?
+    /// «In Kalender» (Knopf in der Knopfzeile bzw. langes Drücken auf eine Zeile)
+    @State private var calendarTarget: DeadlineCalendarTarget?
     @State private var showReview = false
 
     var body: some View {
@@ -39,10 +39,7 @@ struct DeadlinesTab: View {
             }
             .environment(model)
         }
-        .sheet(item: $eventRequest) { r in
-            DeadlineEventEditor(request: r) { action in eventDone(action) }
-                .ignoresSafeArea()
-        }
+        .deadlineCalendar($calendarTarget)
         .sheet(isPresented: $showReview) {
             DeadlineReviewSheet().environment(model)
         }
@@ -65,6 +62,7 @@ struct DeadlinesTab: View {
                         if item.offset > 0 { Divider().padding(.leading, 65) }
                         if let c = model.data.contract(item.element.contractID) {
                             DeadlineItemRow(item: item.element, contract: c, data: model.data,
+                                            canCalendar: DeadlineCalendar.deadline(for: item.element, contract: c) != nil,
                                             onOpen: { model.present(.contractDetail(c.id)) },
                                             onKeep: { keep(item.element) },
                                             onKill: { killTarget = DeadlineKillTarget(contractID: c.id, trial: item.element.trial) },
@@ -113,8 +111,9 @@ struct DeadlinesTab: View {
                         .buttonStyle(.plain)
                         HStack(spacing: 8) {
                             DeadlineActionButton(title: m.keepTitle) {
-                                let id = c.id
-                                if model.update({ $0.clearReview(id) }) { model.toast("Bleibt") }
+                                // Web data-rvkeep: Antwort «Brauche ich» mit heutigem Datum, Toast «Behalten»
+                                let id = c.id, day = model.today
+                                if model.update({ $0.setReview(id, .keep, today: day) }) { model.toast("Behalten") }
                             }
                             DeadlineActionButton(title: m.cancelTitle, accent: true) {
                                 killTarget = DeadlineKillTarget(contractID: c.id, trial: false)
@@ -277,14 +276,9 @@ struct DeadlinesTab: View {
 
     private func addToCalendar(_ d: Calc.DeadlineItem) {
         // Doppeltippen: nur ein Kalenderdialog
-        guard eventRequest == nil, let c = model.data.contract(d.contractID) else { return }
-        let info = DeadlineCalendar.info(trial: d.trial, date: d.date, contract: c, calc: model.calc, data: model.data)
-        eventRequest = DeadlineCalendar.prepare(info)
-    }
-
-    private func eventDone(_ action: EKEventEditViewAction) {
-        eventRequest = nil
-        if action == .saved { model.toast("Termin im Kalender eingetragen") }
+        guard calendarTarget == nil, let c = model.data.contract(d.contractID),
+              let dl = DeadlineCalendar.deadline(for: d, contract: c) else { return }
+        calendarTarget = DeadlineCalendarTarget(contractID: c.id, deadline: dl)
     }
 }
 
@@ -354,6 +348,8 @@ private struct DeadlineItemRow: View {
     let item: Calc.DeadlineItem
     let contract: Contract
     let data: AppData
+    /// Frist für «In Kalender» vorhanden (nicht bei «Gekündigt» und «Behalten · läuft bis»)
+    let canCalendar: Bool
     let onOpen: () -> Void
     let onKeep: () -> Void
     let onKill: () -> Void
@@ -385,19 +381,32 @@ private struct DeadlineItemRow: View {
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
             .accessibilityHint("Öffnet die Vertragsdetails")
+            // «In Kalender» für jede Frist: langes Drücken (Zeilen ohne Knöpfe) bzw. Kalender-Knopf in der Knopfzeile
+            .contextMenu {
+                Button(action: onOpen) { Label("Details", systemImage: "doc.text") }
+                if canCalendar {
+                    Button(action: onCalendar) { Label(DeadlineCalendar.menuTitle, systemImage: DeadlineCalendar.symbol) }
+                }
+            }
+            .accessibilityActions {
+                if canCalendar { Button(DeadlineCalendar.menuTitle, action: onCalendar) }
+            }
             if item.showActions {
                 HStack(spacing: 8) {
                     DeadlineActionButton(title: item.keepTitle, action: onKeep)
                     DeadlineActionButton(title: item.cancelTitle, accent: true, action: onKill)
                     Button(action: onCalendar) {
-                        Image(systemName: "calendar.badge.plus")
+                        Image(systemName: DeadlineCalendar.symbol)
                             .font(.system(size: 17, weight: .regular))
                             .foregroundStyle(KColor.teal)
                             .frame(width: 38, height: 36)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("In den Kalender eintragen")
+                    .accessibilityLabel(DeadlineCalendar.menuTitle)
+                    .accessibilityIdentifier("deadlines.calendar")
+                    .opacity(canCalendar ? 1 : 0)
+                    .disabled(!canCalendar)
                 }
                 .padding(.leading, 13 + 40 + 12)
                 .padding(.trailing, 13)

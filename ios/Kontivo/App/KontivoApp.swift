@@ -6,9 +6,14 @@ struct KontivoApp: App {
     @State private var model = AppModel()
     @Environment(\.scenePhase) private var scenePhase
 
+    /// Bereich native: Empfänger für Mitteilungen vor dem Ende des Starts setzen (Tippen auf eine Erinnerung)
+    init() { NativeBoot.start() }
+
     var body: some Scene {
         WindowGroup {
             RootView()
+                // Bereich native: Erinnerungen planen, Erinnerung öffnet Vertrag, App-Sperre (Native/NativeHooks.swift)
+                .kontivoNative()
                 .environment(model)
                 // Darstellung über das UIKit-Fenster (preferredColorScheme(nil) hebt «Dunkel» unter iOS 17 nicht zuverlässig auf)
                 .onAppear { KontivoApp.applyInterfaceStyle(model.interfaceStyle) }
