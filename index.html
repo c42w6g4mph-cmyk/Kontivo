@@ -772,6 +772,49 @@ body.hasplus .topadd{display:inline-flex}
 .bksteps .done i{background:var(--ok);border-color:var(--ok);color:#fff}
 .bksteps .now i{border-color:color-mix(in srgb,var(--teal) 25%,transparent);border-top-color:var(--teal);animation:bkspin .8s linear infinite}
 @media (prefers-reduced-motion:reduce){.bklogo::before,.bklogo::after{animation:none}.bksteps .now i{animation-duration:2.4s}}
+/* Vollständigkeit (Ablauf; nativ: Sheet mit NavigationStack, Gauge, LazyVGrid) */
+.vkring{--p:0%;flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--teal) 0 var(--p),var(--line) 0)}
+.vkring b{width:36px;height:36px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:11.5px;font-weight:700;color:var(--ink)}
+.vkring.big{width:150px;height:150px;margin:14px auto 16px}.vkring.big b{width:122px;height:122px;font-size:34px}
+.vkrow0{justify-content:flex-start}.vkrow0 .mdt{flex:1;min-width:0}
+#sheetVk{min-height:86vh}
+#vkBody{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.vkc{text-align:center;padding-top:4px}
+.vkh{font-size:22px;font-weight:700;margin:4px 0 6px;color:var(--ink)}
+.vkp{color:var(--ink2);font-size:15px;line-height:1.45;margin:0 auto 14px;max-width:320px}.vkp.l{text-align:left;max-width:none}
+.vkdone{color:var(--ok);font-weight:600;font-size:14.5px;margin:0 0 4px}
+.vkbtn{display:block;width:100%;padding:15px;border-radius:14px;background:var(--tealFill);color:#fff;font-weight:600;font-size:16px;margin-top:12px}
+.vkbtn:disabled{opacity:.55}.vkbtn.g{background:var(--sunken);color:var(--ink)}
+.vklink{display:block;margin:14px auto 0;color:var(--ink3);font-size:14.5px;padding:8px}
+.vkprog{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin:2px 0 6px}.vkprog i{display:block;height:100%;background:var(--teal);border-radius:9px;transition:width .3s}
+.vkpl{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:var(--ink2);margin:0 0 16px}
+.vkgain{padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok);font-weight:700;font-size:12.5px}
+.vkq{font-size:21px;font-weight:700;margin:6px 0 6px;color:var(--ink);line-height:1.25}
+.vkwho{display:flex;align-items:center;gap:12px;margin-bottom:4px}.vkwho .mark{width:44px;height:44px;border-radius:11px}.vkwho b{display:block;font-size:16.5px}.vkwho small{color:var(--ink3);font-size:13px}
+.vko{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 14px;border-radius:13px;background:var(--field);border:1.5px solid transparent;margin-bottom:8px;min-height:56px}
+.vko.on{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 9%,var(--field))}
+.vko b{display:block;font-size:16px;font-weight:600;color:var(--ink)}.vko small{display:block;font-size:12.5px;color:var(--ink3)}
+.vki{width:30px;height:30px;border-radius:9px;background:var(--surface);display:grid;place-items:center;color:var(--teal);font-weight:700;flex:none}
+.vkf{display:grid;gap:6px;margin:8px 0 2px}.vkf label{font-size:13px;color:var(--ink2);margin-top:6px}
+.vkf input,.vkf select{width:100%;padding:12px;border-radius:11px;border:0;background:var(--field);font-size:16px;color:var(--ink);-webkit-appearance:none;appearance:none}
+.vkrow{display:flex;gap:8px}.vkrow>*{flex:1;min-width:0}.vkrow input.num{flex:0 0 90px;text-align:right}
+.vksb{flex:0 0 auto!important;padding:0 16px;border-radius:11px;background:var(--sunken);font-weight:600;color:var(--teal)}
+.vkchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.vkgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:4px 0 4px}
+.vkt{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px 9px;border-radius:14px;background:var(--field);border:2px solid var(--teal);min-height:104px;justify-content:center}
+.vkt img{width:52px;height:52px;object-fit:contain;border-radius:12px;background:#fff}
+.vkt.off{border-color:transparent;opacity:.5}.vkt.none{border-color:transparent;border-style:dashed}
+.vkt .vkn{font-size:12.5px;color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vkt small{font-size:11.5px;color:var(--teal);font-weight:600}
+.vkck{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--tealFill);color:#fff;font-size:11px;display:grid;place-items:center}
+.vkt.off .vkck{display:none}
+.vkno{width:52px;height:52px;border-radius:12px;background:var(--sunken);display:grid;place-items:center;color:var(--ink3);font-size:22px;font-weight:700}
+.vkspin{width:26px;height:26px;margin:13px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--teal);animation:bkspin .8s linear infinite}
+.vkok{width:110px;height:110px;border-radius:50%;margin:24px auto 16px;background:var(--ok);display:grid;place-items:center;color:#fff;font-size:54px;box-shadow:0 0 0 14px color-mix(in srgb,var(--ok) 15%,transparent);animation:vkpop .4s cubic-bezier(.2,1.4,.4,1)}
+@keyframes vkpop{from{transform:scale(.6);opacity:0}}
+.vkl{list-style:none;padding:0;margin:6px auto 0;max-width:300px;text-align:left;display:grid;gap:9px}.vkl li{display:flex;gap:10px;font-size:15px;color:var(--ink)}.vkl li span{color:var(--ok);font-weight:700}
+.vkhint{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 13px;border-radius:14px;background:color-mix(in srgb,var(--teal) 9%,var(--surface));margin:2px 0 10px}
+.vkhint b{display:block;color:var(--teal);font-size:15px}.vkhint small{display:block;color:var(--ink2);font-size:13px;line-height:1.35}.vkhint em{margin-left:auto;font-style:normal;color:var(--teal);font-weight:600;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.vkok,.vkspin{animation:none}}
 .bkfoot{position:sticky;bottom:0;background:var(--surface);margin:10px -17px 0;padding:10px 17px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 .bkfoot .primary{margin:0}.bkfoot .primary:disabled{opacity:.45}
 .shbar{display:flex;align-items:center;gap:10px;position:sticky;top:-8px;z-index:3;background:var(--surface);margin:-2px -17px 4px;padding:6px 17px 10px;border-bottom:1px solid var(--line)}
@@ -1467,8 +1510,9 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Namen, Logos und Adressen deiner Anbieter</small></span><em id="mdSumP"></em></button>
     <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Personen</b><small>Namen, Absender und Unterschrift</small></span><em id="mdSumH"></em></button>
     <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
-    <button class="srowbtn" id="tplFill" type="button"><span class="mdt"><b>Kontaktdaten ergänzen</b><small>Adresse, E-Mail, Telefon aus dem Anbieter-Katalog, nur leere Felder</small></span><em></em></button>
-    <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
+    <button class="srowbtn vkrow0" id="vkOpen" type="button"><span id="vkRingWrap"></span><span class="mdt"><b>Vollständigkeit</b><small id="vkSub"></small></span><em>›</em></button>
+    <button class="srowbtn" id="tplFill" type="button" hidden><span class="mdt"><b>Kontaktdaten ergänzen</b><small>Adresse, E-Mail, Telefon aus dem Anbieter-Katalog, nur leere Felder</small></span><em></em></button>
+    <button class="srowbtn" data-md="qual" type="button" hidden><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Daten</div>
     <input type="file" id="bankFile" multiple accept=".csv,.txt,.xml,.sta,.mt940,.940,text/csv,text/plain,text/xml,application/xml">
     <div class="tiles">
@@ -1744,6 +1788,12 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 </div>
 
 <!-- Kontoauszug: Vorschläge prüfen -->
+<!-- Vollständigkeit -->
+<div class="sheet" id="sheetVk" role="dialog" aria-modal="true" aria-labelledby="vkT">
+  <div class="shbar"><button class="shx" id="vkBack" type="button" aria-label="Zurück">‹ Zurück</button><h2 id="vkT">Vollständigkeit</h2><button class="shok" id="vkLater" type="button">Später</button></div>
+  <div id="vkBody"></div>
+</div>
+
 <div class="sheet" id="sheetBank" role="dialog" aria-modal="true" aria-labelledby="bkT">
   <div class="shbar"><button class="shx" id="bkX" type="button">Abbrechen</button><h2 id="bkT">Vorschläge</h2><span class="shok" aria-hidden="true"></span></div>
   <div id="bkBody"></div>
@@ -2798,6 +2848,7 @@ function paintFab(){
   document.getElementById("view").hidden=isSet;
   if(isSet&&sp.hidden)fillSettings();
   sp.hidden=!isSet;
+  if(isSet){try{paintVkRow();}catch(e){}}
   document.getElementById("pageTitle").textContent=TITLES[state.tab]||"Verträge";
   if(state.tab!=="stat"&&state.tab!=="budget")setTopYear(null);
   updMini();
@@ -4487,7 +4538,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     '<button type="button" class="dchip" data-act="docs" style="margin-top:7px">'+CLIP_IC+"<span>"+(nDocs?cntTxt(nDocs,"Dokument","Dokumente"):"Dokument anhängen")+"</span></button></div>"+
     "</div>"+
     (pill?'<div class="pills">'+pill+"</div>":'<div style="height:10px"></div>')+kz+
-    fr+
+    vkHintHtml(idv)+fr+
     (skr?'<p class="skr">Preiserhöhung: In Deutschland und der Schweiz besteht oft ein Sonderkündigungsrecht, meist innert 4–6 Wochen nach der Mitteilung. Massgebend ist dein Vertrag.</p>':"")+
     secs.map(function(sc){var rr=sc[1].filter(Boolean);if(!rr.length)return sc[0]==="Kosten"?'<h3 class="dsec">Kosten</h3>'+hist:"";
       return '<h3 class="dsec">'+esc(sc[0])+'</h3>'+'<dl class="dgrp">'+rr.map(function(r){if(r[2])return '<div class="dl dtl">'+r[1]+"</div>";return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+(r[0]==="Vertragspartner"?'<button type="button" class="dlink" data-peopen="'+esc(String(r[1]).trim().toLowerCase())+'" data-peid="'+esc(c._id)+'">'+esc(r[1])+" ›</button>":esc(r[1]))+(r[3]?'<span class="dsub">'+esc(r[3])+"</span>":"")+"</dd></div>";}).join("")+"</dl>"+(sc[0]==="Kosten"?hist:"");}).join("")+
@@ -4508,6 +4559,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       if(a==="menu"){var on=dm.hidden;dm.hidden=!on;b.setAttribute("aria-expanded",on);if(on){var f=dm.querySelector("button");if(f)f.focus();}return;}
       if(dm){dm.hidden=true;var mb=document.querySelector("#detailBody .dmbtn");if(mb)mb.setAttribute("aria-expanded","false");}
       if(a==="close"){closeSheets();return;}
+      if(a==="vk"){closeSheets();setTimeout(function(){openVk(idv);},180);return;}
       if(a==="docs"){openDocsPick(idv);return;}
       if(a==="padd"){openPriceEdit(idv,-1);return;}
       if(a==="edit"){closeSheets();setTimeout(function(){openForm(c);},180);}
@@ -5155,6 +5207,7 @@ function paintMdQual(){
   b.innerHTML=h;
 }
 function paintMdSummary(){
+  try{paintVkRow();}catch(e){}
   var pg=partnerGroups(),d=pg.filter(function(o){return o.dup;}).length;
   var e1=document.getElementById("mdSumP");if(!e1)return;
   e1.textContent=d?d+(d===1?" Dublette":" Dubletten"):(pg.length?pg.length+"":"–");
@@ -7305,6 +7358,10 @@ document.getElementById("bkGo").addEventListener("click",function(){
   if(H&&(state.settings.holders||[]).length>1)state.settings.lastHolders=H.slice();
   saveLocal();bk=null;closeSheets();goTab("list");render();
   toast([n?n+(n===1?" Vertrag angelegt":" Verträge angelegt"):"",p?p+(p===1?" Preis angepasst":" Preise angepasst"):""].filter(Boolean).join(", ")+" — bitte kurz prüfen",3200);
+  /* direkt danach fehlen die meisten Angaben: Vervollständigen anbieten */
+  if(n){var vn=vkNeeds(),open0=0;Object.keys(vn.per).forEach(function(k){if(k.indexOf(stamp)===0&&vn.per[k].length)open0++;});
+    if(open0)setTimeout(function(){ask({title:"Fast fertig!",ok:"Jetzt vervollständigen",no:"Später",
+      text:"Bei "+cntTxt(open0,"neuem Vertrag","neuen Verträgen")+" fehlen noch Angaben wie Logo oder Kündigungsfrist. In einer Minute erledigt – dann erinnert Kontivo dich rechtzeitig."}).then(function(y){if(y)openVk();});},900);}
 });
 /* Test-Haken (tests/bank/check.py) */
 window.KontivoBank=function(){return {read:bankRead,merge:bankMerge,head:bankHead,find:bankFind,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
@@ -7479,6 +7536,226 @@ document.getElementById("onb").addEventListener("touchend",function(e){if(ob.x0=
   var p=ob.pages[ob.i].k;if(dx<0&&(p==="start"))return;
   obGo(ob.i+(dx<0?1:-1));},{passive:true});
 document.getElementById("onbOpen").addEventListener("click",function(){openOnb(false);});
+/* ---------- Vollständigkeit (09.10.2026) ----------
+   Ein zentraler Ablauf statt Prüfliste: 1 Logos (Raster), 2 Fristen (eine Frage pro Vertrag), 3 Absender (pro Person).
+   Kündigungsweg und Kontaktdaten kommen still aus dem Katalog (beim Start bestätigt), Kundennummer/Partneradresse fragt erst der Brief.
+   «Startklar» = Logo (oder bewusst keins), berechenbare Frist (wenn überwacht), Absender der Personen (ausser Kündigung online).
+   Nativ: eigenes Sheet mit NavigationStack, gleiche Regeln in KontivoCore. */
+function vkSkip(){var o=state.settings.logoSkip;return (o&&typeof o==="object"&&!Array.isArray(o))?o:{};}
+function vkTermNeed(c,k){
+  if(c.cancelPer||c.noWatch||c.mand||isFixed(c))return false;
+  if(qIgn()["c:"+k+":notice"])return false;
+  var nN=+c.notice||0;
+  if(!noticeDeadline(c))return !anyNotice(c);
+  return !nN&&!!(c.end||/^[ayqh]$/.test(c.cancTerm||""));
+}
+function vkNeeds(only){
+  var groups={},sk=vkSkip(),out={per:{},logo:[],term:[],snd:[],total:0,ready:0};
+  partnerGroups().forEach(function(g){groups[g.key]=g;});
+  var lg={},sh={};
+  Object.keys(state.contracts).forEach(function(k){
+    var c=state.contracts[k];if(!isActiveC(c)||c.cancelPer)return;
+    if(only&&k!==only)return;
+    var r=[],pk=String(c.partner||"").trim().toLowerCase(),g=groups[pk];
+    if(pk&&g&&!g.logoC&&!sk[pk]){r.push("logo");lg[pk]=g;}
+    if(vkTermNeed(c,k)){r.push("term");out.term.push(k);}
+    if(!isFixed(c)&&cancVia(c)!=="online")holdersOf(c).forEach(function(h){if(!sndOk(h)){if(r.indexOf("snd")<0)r.push("snd");sh[h]=1;}});
+    out.total++;if(!r.length)out.ready++;out.per[k]=r;
+  });
+  out.logo=Object.keys(lg).map(function(k){return lg[k];});
+  out.snd=holdersSorted(Object.keys(sh));
+  return out;
+}
+function vkPct(n){return n.total?Math.round(n.ready/n.total*100):100;}
+function vkRingHtml(p,cls){return '<span class="vkring'+(cls?" "+cls:"")+'" style="--p:'+p+'%"><b>'+p+"%</b></span>";}
+/* Zeile unter «Mehr» */
+/* Hinweis im Vertragsdetail, nur wenn etwas fehlt */
+function vkHintHtml(id){var c=state.contracts[id];if(!c||!isActiveC(c)||c.cancelPer)return "";var r=(vkNeeds(id).per[id])||[];if(!r.length)return "";
+  var L={logo:"Logo",term:"Kündigungsfrist",snd:"Absender-Adresse"},why=r.indexOf("term")>=0?"dann erinnert Kontivo rechtzeitig":r.indexOf("snd")>=0?"dann ist die Kündigung startklar":"dann sieht der Vertrag komplett aus";
+  return '<button type="button" class="vkhint" data-act="vk"><span aria-hidden="true">✨</span><span><b>'+(r.length===1?"1 Angabe fehlt noch":r.length+" Angaben fehlen noch")+"</b><small>"+r.map(function(x){return L[x];}).join(" · ")+" – "+why+"</small></span><em>Ergänzen ›</em></button>";}
+function paintVkRow(){var el=document.getElementById("vkOpen");if(!el)return;var n=vkNeeds();
+  document.getElementById("vkRingWrap").innerHTML=vkRingHtml(vkPct(n));
+  document.getElementById("vkSub").textContent=!n.total?"Noch keine laufenden Verträge":n.ready===n.total?"Alle Verträge startklar":
+    n.ready+" von "+cntTxt(n.total,"Vertrag","Verträgen")+" startklar";}
+
+var vk=null;
+/* Katalog-Ergänzungen: Kontaktdaten wie «Kontaktdaten ergänzen» plus Kündigungsweg, nur leere Felder */
+function vkAutoPlan(){var plan=tplFillPlan(),ids={};plan.forEach(function(x){ids[x.id]=x;});
+  Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k];if(c.status==="cancelled"||c.cancF||isFixed(c))return;var t=tplMatch(c);if(!t||!t[8])return;
+    if(!ids[k]){ids[k]={id:k,c:c,t:t,add:{}};plan.push(ids[k]);}ids[k].add.cancF=t[8];});
+  return plan;}
+function openVk(only){
+  var n=vkNeeds(only);
+  vk={only:only||null,n0:n,step:"start",auto:only?[]:vkAutoPlan(),logos:[],li:-1,terms:n.term.slice(),ti:0,snds:n.snd.slice(),si:0,tmode:"",busy:false};
+  var sh=document.getElementById("sheetVk");
+  if(only){vk.auto=[];vkNext("start");}else paintVk();
+  openSheet(sh);
+}
+function vkQCount(){return (vk.logos.length||vk.n0.logo.length?1:0)+vk.terms.length+vk.snds.length;}
+function vkHead(title,back,right){document.getElementById("vkT").textContent=title||"Vollständigkeit";
+  document.getElementById("vkBack").hidden=!back;document.getElementById("vkLater").textContent=right||"Später";}
+function vkProg(idx,label){var tot=vkQCount(),n=vkNeeds(vk.only),p=vkPct(n);
+  return '<div class="vkprog" aria-hidden="true"><i style="width:'+Math.round(Math.min(1,idx/Math.max(1,tot))*100)+'%"></i></div>'+
+    '<p class="vkpl"><span>'+esc(label)+"</span>"+(vk.only?'<span class="vkgain">'+(n.ready===n.total?"startklar":"fast startklar")+"</span>":p>0?'<span class="vkgain">'+p+" % startklar</span>":"")+"</p>";}
+function paintVk(){
+  var b=document.getElementById("vkBody"),n=vkNeeds(vk.only),p=vkPct(n);
+  if(vk.step==="start"){vkHead("Vollständigkeit",false,"Später");
+    var q=n.logo.length?1:0;q+=n.term.length+n.snd.length;var na=vk.auto.length;
+    if(!n.total){b.innerHTML='<div class="vkc"><p class="vkh">Noch keine Verträge</p><p class="vkp">Sobald du Verträge erfasst, zeigt Kontivo hier, was noch fehlt.</p></div>';return;}
+    if(!q&&!na){vk.step="end";paintVk();return;}
+    var mins=Math.max(1,Math.round((n.term.length*15+n.snd.length*30+(n.logo.length?20:0))/60));
+    b.innerHTML='<div class="vkc">'+vkRingHtml(p,"big")+
+      '<p class="vkh">'+(p>=75?"Fast geschafft!":p>=40?"Gute Basis!":"Los geht’s!")+'</p>'+
+      '<p class="vkp">'+(q?"Noch <b>"+cntTxt(q,"kurze Frage","kurze Fragen")+"</b>, dann behält Kontivo jede Frist im Blick und bereitet Kündigungen für dich vor."
+        :"Kontivo kann die fehlenden Angaben selbst ergänzen.")+"</p>"+
+      (na?'<p class="vkdone">✓ '+cntTxt(na,"Vertrag","Verträge")+" ergänzt Kontivo aus dem Anbieter-Katalog</p>":"")+
+      '<button class="vkbtn" type="button" data-vk="go">'+(q?"Los geht’s · ca. "+mins+(mins===1?" Minute":" Minuten"):"Ergänzen")+"</button>"+
+      '<button class="vkbtn g" type="button" data-vk="close">Später</button>'+
+      '<button class="vklink" type="button" data-vk="detail">Alle Prüfungen im Detail</button></div>';return;}
+  if(vk.step==="logo"){vkHead("Logos",!vk.only,"Später");
+    var on=vk.logos.filter(function(x){return x.st==="ok"&&x.on;}).length,load=vk.logos.some(function(x){return x.st==="load";});
+    if(vk.pick!=null){paintVkPick();return;}
+    b.innerHTML=vkProg(0,"Schritt 1 · Logos")+
+      (function(){var anyOk=vk.logos.some(function(x){return x.st==="ok";});
+        return '<p class="vkq">'+(anyOk||load?"Passen diese Logos?":"Logos ergänzen")+'</p><p class="vkp l">'+(navigator.onLine===false?"Ohne Internet findet Kontivo keine Logos. Du kannst den Schritt überspringen.":anyOk||load?"Tippe ein Logo an, um es zu ändern. Falsche abwählen geht auch.":"Für diese Vertragspartner hat Kontivo nichts gefunden. Tippe an, um selbst zu suchen.")+"</p>";})()+
+      '<div class="vkgrid">'+vk.logos.map(function(x,i){var img=x.st==="ok"?(x.cands[x.sel].thumb||x.cands[x.sel].url):"";
+        return '<button type="button" class="vkt'+(x.st==="ok"&&!x.on?" off":"")+(x.st!=="ok"?" none":"")+'" data-vkl="'+i+'" aria-pressed="'+(x.st==="ok"&&x.on)+'">'+
+          (x.st==="ok"?'<span class="vkck" aria-hidden="true">✓</span><img src="'+esc(img)+'" alt="" referrerpolicy="no-referrer">':
+           x.st==="load"?'<span class="vkspin" aria-hidden="true"></span>':x.st==="skip"?'<span class="vkno">–</span>':'<span class="vkno">?</span>')+
+          "<span class=\"vkn\">"+esc(x.name)+"</span>"+(x.st==="none"?"<small>Suchen</small>":x.st==="skip"?"<small>ohne Logo</small>":"")+"</button>";}).join("")+"</div>"+
+      '<button class="vkbtn" type="button" data-vk="logogo"'+(load?" disabled":"")+">"+(load?"Kontivo sucht Logos …":on?(on===1?"1 Logo übernehmen":on+" Logos übernehmen"):"Weiter")+"</button>";return;}
+  if(vk.step==="term"){var id=vk.terms[vk.ti],c=state.contracts[id];if(!c){vkNext("term");return;}
+    vkHead("Fristen",true,"Später");
+    var t=tplMatch(c),nm=String(c.partner||"").trim()||titleOf(c),idx=(vk.logos.length?1:0)+vk.ti;
+    var m=vk.tmode,d=vk.tdraft||{};
+    var nu=function(sel){return '<select id="vkNU">'+[["m","Monate"],["w","Wochen"],["d","Tage"]].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===sel?" selected":"")+">"+o[1]+"</option>";}).join("")+"</select>";};
+    var tp=function(sel){return '<select id="vkTP">'+[["","jederzeit"],["m","auf Monatsende"],["q","auf Quartalsende"],["y","auf Jahresende"],["a","auf Ende Vertragsjahr"],["p","auf Ende Zahlungsperiode"]].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===sel?" selected":"")+">"+o[1]+"</option>";}).join("")+"</select>";};
+    var rn=function(sel){return '<select id="vkRN">'+[["","nicht automatisch"],["1","um 1 Monat"],["12","um 12 Monate"],["24","um 24 Monate"]].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===String(sel)?" selected":"")+">"+o[1]+"</option>";}).join("")+"</select>";};
+    var opt=function(k,ic,txt,sub){return '<button type="button" class="vko'+(m===k?" on":"")+'" data-vkm="'+k+'" aria-pressed="'+(m===k)+'"><span class="vki" aria-hidden="true">'+ic+"</span><span><b>"+txt+"</b>"+(sub?"<small>"+sub+"</small>":"")+"</span></button>";};
+    var hint=t&&t[5]?"Üblich bei "+esc(t[0])+": "+t[5]+" "+({m:"Monate",w:"Wochen",d:"Tage",k:". im Monat"}[t[6]]||"")+(t[7]?" "+({m:"auf Monatsende",q:"auf Quartalsende",y:"auf Jahresende",a:"auf Ende Vertragsjahr",p:"auf Ende Periode",h:"auf Halbjahresende"}[t[7]]||""):""):"";
+    var fields="";
+    if(m==="open")fields='<div class="vkf"><label>Kündigungsfrist</label><div class="vkrow"><input id="vkN" class="num" inputmode="numeric" value="'+esc(d.notice!=null?d.notice:"")+'" placeholder="1">'+nu(d.noticeU||"m")+"</div>"+
+      '<label>Kündbar</label>'+tp(d.cancTerm||"")+"</div>";
+    if(m==="fixed")fields='<div class="vkf"><label>Läuft bis</label><input id="vkE" type="date" value="'+esc(d.end||"")+'">'+
+      '<label>Verlängert sich danach</label>'+rn(d.renew!=null?d.renew:"12")+
+      '<label>Kündigungsfrist</label><div class="vkrow"><input id="vkN" class="num" inputmode="numeric" value="'+esc(d.notice!=null?d.notice:"")+'" placeholder="3">'+nu(d.noticeU||"m")+"</div></div>";
+    b.innerHTML=vkProg(idx,"Frage "+(idx+1)+" von "+vkQCount())+
+      '<div class="vkwho">'+markHtml(c)+'<span><b>'+esc(nm)+"</b><small>"+esc((c.label&&c.label!==nm?c.label+" · ":"")+money(curPrice(c),c.cur)+" "+c.cur+" "+(CYCLE[c.cycle]||""))+"</small></span></div>"+
+      '<p class="vkq">Wie ist «'+esc(nm)+'» kündbar?</p><p class="vkp l">Damit Kontivo dich rechtzeitig vor der Frist erinnert.'+(hint?" "+hint+".":"")+"</p>"+
+      opt("open","↺","Jederzeit kündbar","z.B. Abo, Handy ohne Mindestlaufzeit")+
+      opt("fixed","▦","Feste Laufzeit","läuft bis zu einem Datum, verlängert sich oft")+
+      opt("tax","✕","Nicht kündbar","z.B. Steuern, Gebühren")+fields+
+      (m&&m!=="tax"?'<button class="vkbtn" type="button" data-vk="termsave">Weiter</button>':"")+
+      '<button class="vklink" type="button" data-vk="termskip">Weiss ich nicht · überspringen</button>';return;}
+  if(vk.step==="snd"){var h=vk.snds[vk.si],o=sndOf(h),idx2=(vk.logos.length?1:0)+vk.terms.length+vk.si;
+    vkHead("Adresse",true,"Später");
+    var others=(state.settings.holders||[]).filter(function(x){return x!==h&&sndOk(x);});
+    b.innerHTML=vkProg(idx2,"Frage "+(idx2+1)+" von "+vkQCount())+
+      '<p class="vkq">'+((state.settings.holders||[]).length>1?"Adresse von "+esc(h):"Deine Adresse")+"</p>"+
+      '<p class="vkp l">Kommt als Absender in jeden Kündigungsbrief. Einmal eintragen, fertig.</p>'+
+      (others.length?'<div class="vkchips">'+others.map(function(x){return '<button type="button" class="chip" data-vksame="'+esc(x)+'">Gleich wie '+esc(x)+"</button>";}).join("")+"</div>":"")+
+      '<div class="vkf">'+[0,1,2].map(function(i){return hsIn(i,o);}).join("")+'<div class="vkrow">'+hsIn(3,o)+hsIn(4,o)+"</div></div>"+
+      '<button class="vkbtn" type="button" data-vk="sndsave">Weiter</button>'+
+      '<button class="vklink" type="button" data-vk="sndskip">Später eintragen</button>';return;}
+  if(vk.step==="end"){vkHead(vk.only?"Startklar":"Vollständigkeit",false,"Fertig");var all=n.ready===n.total;
+    b.innerHTML='<div class="vkc">'+(all?'<div class="vkok" aria-hidden="true">✓</div><p class="vkh">'+(vk.only?"Startklar!":"100 % – alles komplett!")+"</p>"
+      :vkRingHtml(p,"big")+'<p class="vkh">'+p+' % – gut gemacht!</p>')+
+      '<p class="vkp">'+(all?"Deine Verträge sind bereit.":"Den Rest kannst du jederzeit unter Mehr → Vollständigkeit ergänzen.")+"</p>"+
+      '<ul class="vkl"><li><span>✓</span>Kontivo erinnert dich vor jeder Frist</li><li><span>✓</span>Kündigungen sind mit einem Tipp vorbereitet</li><li><span>✓</span>Kosten und Budget stimmen</li></ul>'+
+      '<button class="vkbtn" type="button" data-vk="close">Fertig</button></div>';return;}
+}
+/* Logo-Auswahl für eine Kachel: andere Treffer, selbst suchen, kein Logo */
+function paintVkPick(){var x=vk.logos[vk.pick],b=document.getElementById("vkBody");vkHead(x.name,true,"Später");
+  b.innerHTML='<p class="vkq">Logo für «'+esc(x.name)+'»</p>'+
+    (x.cands.length?'<div class="vkgrid">'+x.cands.slice(0,9).map(function(w,i){return '<button type="button" class="vkt'+(x.st==="ok"&&i===x.sel?"":" off")+'" data-vkc="'+i+'"><img src="'+esc(w.thumb||w.url)+'" alt="" referrerpolicy="no-referrer"><small>'+esc(LSRC[w.src]||"")+"</small></button>";}).join("")+"</div>"
+      :'<p class="vkp l">Kontivo hat noch nichts gefunden. Versuch es mit einem anderen Namen.</p>')+
+    '<div class="vkf"><label for="vkS">Selbst suchen</label><div class="vkrow"><input id="vkS" type="search" enterkeyhint="search" value="'+esc(x.q||x.name)+'"><button type="button" class="vksb" data-vk="psearch">Suchen</button></div></div>'+
+    '<button class="vkbtn g" type="button" data-vk="pnone">Ohne Logo</button>'+
+    '<button class="vklink" type="button" data-vk="pback">Zurück zur Übersicht</button>';}
+async function vkFindLogos(){
+  var list=vk.logos,i=0;
+  async function one(x){var c0=state.contracts[x.g.ids[0]]||{},cs=[];
+    try{cs=await allCands(x.name,c0.cur||"CHF",null,x.g.web||"",false);}catch(e){cs=[];}
+    x.cands=cs||[];x.sel=0;x.st=x.cands.length?"ok":"none";x.on=x.st==="ok"&&x.cands[0].score>=3;
+    if(vk&&vk.step==="logo"&&vk.pick==null)paintVk();}
+  if(navigator.onLine===false){list.forEach(function(x){x.st="none";});paintVk();return;}
+  var workers=[0,1,2,3].map(async function(){while(i<list.length){var x=list[i++];await one(x);}});
+  await Promise.all(workers);
+}
+function vkNext(from){
+  var n=vkNeeds(vk.only);
+  if(from==="start"){if(!vk.only&&vk.auto.length){vk.auto.forEach(function(x){var c=state.contracts[x.id];if(c)putContract(x.id,Object.assign({},c,x.add));});vk.auto=[];render();}
+    n=vkNeeds(vk.only);vk.terms=n.term.slice();vk.snds=n.snd.slice();
+    if(n.logo.length){vk.step="logo";vk.logos=n.logo.map(function(g){return {g:g,pk:g.key,name:g.name,st:"load",cands:[],sel:0,on:false};});vk.pick=null;paintVk();vkFindLogos();return;}
+    from="logo";}
+  if(from==="logo"){if(vk.terms.length){vk.step="term";vk.ti=0;vkTermInit();paintVk();return;}from="term";}
+  if(from==="term"){if(vk.ti<vk.terms.length-1&&vk.step==="term"){vk.ti++;vkTermInit();paintVk();return;}
+    if(vk.snds.length){vk.step="snd";vk.si=0;paintVk();return;}from="snd";}
+  if(from==="snd"&&vk.step==="snd"&&vk.si<vk.snds.length-1){vk.si++;paintVk();return;}
+  vk.step="end";paintVk();render();
+}
+/* Vorbelegung aus dem Katalog bzw. vorhandenen Werten */
+function vkTermInit(){var c=state.contracts[vk.terms[vk.ti]]||{},t=tplMatch(c);
+  vk.tdraft={notice:c.notice||(t&&t[5])||"",noticeU:c.noticeU||(t&&t[6])||"m",cancTerm:c.cancTerm||(t&&t[7])||"",end:c.end||"",renew:c.renew!=null&&c.renew!==""?c.renew:12};
+  vk.tmode=c.end?"fixed":(c.notice||c.cancTerm||(t&&(t[5]||t[7])))?"open":"";}
+function vkTermSave(){var id=vk.terms[vk.ti],c=state.contracts[id];if(!c)return;var nc=Object.assign({},c),$=function(x){return document.getElementById(x);};
+  if(vk.tmode==="tax"){nc.noCancel=true;delete nc.mand;}
+  else{var nv=parseNum($("vkN")&&$("vkN").value);if(!(nv>0)){toast("Bitte die Kündigungsfrist eintragen");if($("vkN"))$("vkN").focus();return;}
+    nc.notice=Math.round(nv);nc.noticeU=$("vkNU").value;delete nc.noCancel;
+    if(vk.tmode==="open"){nc.cancTerm=$("vkTP").value;nc.end="";nc.renew="";}
+    else{var e=$("vkE").value;if(!parseD(e)){toast("Bitte das Datum eintragen, bis wann der Vertrag läuft");$("vkE").focus();return;}
+      nc.end=e;nc.renew=$("vkRN").value?+$("vkRN").value:"";nc.cancTerm="";}}
+  putContract(id,nc);
+  if(vk.tmode!=="tax"&&vkTermNeed(nc,id)){toast("Damit lässt sich noch keine Frist berechnen – bitte prüfen");return;}
+  vkNext("term");}
+function vkSndSave(){var h=vk.snds[vk.si],v={},$=function(x){return document.getElementById(x);};
+  HS_F.forEach(function(f){var e=$(f[1]);if(e)v[f[0]]=e.value.trim();});
+  var o=Object.assign({},sndRaw(h),v);delete o.same;
+  if(!((o.first||o.last)&&o.street&&o.city)){toast("Bitte Name, Strasse und Ort eintragen");return;}
+  setSnd(h,o);vkNext("snd");}
+async function vkLogoApply(){var sel=vk.logos.filter(function(x){return x.st==="ok"&&x.on;});
+  if(!sel.length){vkNext("logo");return;}
+  vk.busy=true;var btn=document.querySelector('#vkBody [data-vk="logogo"]');
+  for(var a=0;a<sel.length;a++){var x=sel[a];if(btn){btn.disabled=true;btn.textContent="Übernehme "+(a+1)+"/"+sel.length+" …";}
+    var lg=null;try{lg=await takeLogo(x.cands[x.sel]);}catch(e){lg=null;}if(!lg||!lg.id)continue;
+    x.g.ids.forEach(function(k){var c=state.contracts[k];if(c&&!(c.logoId&&KBlob.has(c.logoId)))putContract(k,Object.assign({},c,{logoId:lg.id,logoBg:lg.bg||"#FFFFFF"}));});}
+  vk.busy=false;render();vkNext("logo");}
+document.getElementById("vkBody").addEventListener("click",async function(e){
+  if(!vk)return;var t=e.target.closest("button");if(!t||vk.busy)return;
+  var a=t.dataset.vk;
+  if(t.dataset.vkm){vk.tmode=t.dataset.vkm;if(vk.tmode==="tax"){vkTermSave();return;}
+    /* aktuelle Eingaben beim Wechsel behalten */
+    var d=vk.tdraft||{},$=function(x){return document.getElementById(x);};if($("vkN"))d.notice=$("vkN").value;if($("vkNU"))d.noticeU=$("vkNU").value;if($("vkTP"))d.cancTerm=$("vkTP").value;if($("vkE"))d.end=$("vkE").value;if($("vkRN"))d.renew=$("vkRN").value;
+    paintVk();var f=document.getElementById(vk.tmode==="fixed"?"vkE":"vkN");if(f&&!f.value)f.focus();return;}
+  if(t.dataset.vkl!=null){var x=vk.logos[+t.dataset.vkl];if(x.st==="load")return;vk.pick=+t.dataset.vkl;paintVkPick();return;}
+  if(t.dataset.vkc!=null){var y=vk.logos[vk.pick];y.sel=+t.dataset.vkc;y.st="ok";y.on=true;vk.pick=null;paintVk();return;}
+  if(t.dataset.vksame){var h=vk.snds[vk.si];setSnd(h,Object.assign({},sndRaw(h),{same:t.dataset.vksame}));vkNext("snd");return;}
+  if(a==="go"){vkNext("start");return;}
+  if(a==="close"){closeSheetEl("sheetVk");vk=null;render();return;}
+  if(a==="detail"){closeSheetEl("sheetVk");vk=null;setTimeout(function(){openMd("qual");},200);return;}
+  if(a==="logogo"){vkLogoApply();return;}
+  if(a==="termsave"){vkTermSave();return;}
+  if(a==="termskip"){vkNext("term");return;}
+  if(a==="sndsave"){vkSndSave();return;}
+  if(a==="sndskip"){vkNext("snd");return;}
+  if(a==="pback"){vk.pick=null;paintVk();return;}
+  if(a==="pnone"){var z=vk.logos[vk.pick],S=Object.assign({},vkSkip());S[z.pk]=1;state.settings.logoSkip=S;saveSettings();z.st="skip";z.on=false;vk.pick=null;paintVk();return;}
+  if(a==="psearch"){var w=vk.logos[vk.pick],q=(document.getElementById("vkS").value||"").trim();if(!q)return;
+    if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
+    w.q=q;t.disabled=true;t.textContent="Sucht …";var cs=[];try{cs=await allCands(q,(state.contracts[w.g.ids[0]]||{}).cur||"CHF",null,"",true);}catch(err){cs=[];}
+    if(vk&&vk.pick!=null){if(cs.length){w.cands=cs;w.sel=0;}else toast("Nichts gefunden");paintVkPick();}return;}
+});
+document.getElementById("vkBody").addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.id==="vkS"){e.preventDefault();var b=document.querySelector('#vkBody [data-vk="psearch"]');if(b)b.click();}});
+document.getElementById("vkLater").addEventListener("click",function(){closeSheetEl("sheetVk");vk=null;render();});
+document.getElementById("vkBack").addEventListener("click",function(){if(!vk)return;
+  if(vk.step==="logo"&&vk.pick!=null){vk.pick=null;paintVk();return;}
+  if(vk.step==="term"&&vk.ti>0){vk.ti--;vkTermInit();paintVk();return;}
+  if(vk.step==="snd"&&vk.si>0){vk.si--;paintVk();return;}
+  if(vk.step==="snd"&&vk.terms.length){vk.step="term";vk.ti=vk.terms.length-1;vkTermInit();paintVk();return;}
+  if((vk.step==="snd"||vk.step==="term")&&vk.logos.length){vk.step="logo";vk.pick=null;paintVk();return;}
+  if(!vk.only){vk.step="start";paintVk();}});
+document.getElementById("vkOpen").addEventListener("click",function(){openVk();});
+
 /* ---------- Start ---------- */
 async function boot(){
   try{await KBlob.ready;}catch(e){}
