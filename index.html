@@ -7014,13 +7014,15 @@ function bankTpl(name,text,cur){
     var tk=ltok(t[0]);if(!tk.length||(t[1]&&cc&&t[1]!==cc&&TPL.some(function(o){return o!==t&&o[1]===cc&&ltok(o[0])[0]===tk[0];})))return;
     /* ein Wort (CSS, Zurich, Netflix): nur im Namen, sonst Fehltreffer über Ortsnamen; bei PayPal & Co. auch im Freitext */
     var hay=tk.length===1&&!via?nn:nt;
+    /* ein Wort: muss vorne im Namen stehen (davor nur Allerweltswörter) – «Garten Center Spiegel» ist nicht «Der Spiegel» */
+    if(tk.length===1&&!via){var nt2=bankTok(name),ix=nt2.indexOf(tk[0]);if(ix>0&&nt2.slice(0,ix).some(function(w){return w.length>3&&LGEN.indexOf(w)<0&&!/^(lastschrift|zahlung|erechnung|ebill|dauerauftrag|gutschrift|belastung|einkauf|kauf|abo|abonnement|rechnung)$/.test(w);}))return;}
     if(tk.every(function(x){return hay.indexOf(" "+x+" ")>=0;})){var n2=tk.every(function(x){return nn.indexOf(" "+x+" ")>=0;});if(better(t,n2)){best=t;inN=n2?1:0;}}
   });
   return best;
 }
 var BKSKIP=/bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlung gaa|\bgaa\b|\bga \d{4,}|^ga\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b/;
 /* Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant) */
-var BKSHOP=/\b(cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery)\b/;
+var BKSHOP=/\b(cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|blumen|baumarkt)\b/;
 /* Alltagseinkäufe (Detailhandel, Tankstellen, Fast Food): nie ein Vertrag, ausser ein Katalogeintrag passt (Migros Bank, Coop Mobile) */
 var BKRETAIL=/\b(migros|migrolino|coop|denner|aldi|lidl|rewe|edeka|kaufland|netto|penny|spar|volg|landi|manor|globus|jumbo|obi|bauhaus|hornbach|ikea|dm|rossmann|mueller|douglas|zalando|galaxus|digitec|interdiscount|mediamarkt|media markt|saturn|fust|brack|shell|bp|avia|aral|esso|tamoil|agrola|socar|jet|starbucks|mcdonald s?|mcdonalds|burger king|subway|k kiosk|valora|avec|tchibo|decathlon|h und m|zara|c und a|tk maxx|primark)\b/;
 var BKVIA=/paypal|klarna|amazon|apple com bill|google|stripe|adyen|sumup|wero|twint/;
