@@ -2343,7 +2343,12 @@ function saveLocal(){
     toast("Nicht gespeichert – deine Daten sind beschädigt. Unter Mehr → Daten ein Backup einspielen.",4000);toastLock=Date.now()+4000;return;}
   if(!state.settings.dataVer)state.settings.dataVer=DATA_VER;/* neue oder geleerte Daten: keine Migration mehr nötig */
   try{localStorage.setItem(LS,JSON.stringify({settings:state.settings,contracts:state.contracts,incomes:state.incomes}));saveErr=false;}
-  catch(e){if(!saveErr){saveErr=true;toast("Speichern fehlgeschlagen – Gerätespeicher voll? Bitte ein Backup erstellen.",5000);toastLock=Date.now()+5000;}}}
+  catch(e){
+    /* Speicher voll: Arbeitsstand auf den zuletzt gespeicherten zurücksetzen, damit nichts gesichert wirkt, was es nicht ist */
+    try{var r0=localStorage.getItem(LS);if(r0){var o0=JSON.parse(r0);state.contracts=o0.contracts||{};state.incomes=o0.incomes||{};if(o0.settings)state.settings=Object.assign({home:"CHF",rates:{},holders:["Ich"]},o0.settings);}}catch(e2){}
+    setTimeout(function(){try{render();}catch(e3){}},0);
+    if(!saveErr){saveErr=true;setTimeout(function(){ask({title:"Nicht gespeichert",alert:true,
+      text:"Der Speicher auf diesem Gerät ist voll. Deine letzte Änderung wurde nicht übernommen.\n\nErstelle unter Mehr → Daten ein Backup und entferne nicht mehr benötigte Dokumente oder Unterschriften."}).then(function(){saveErr=false;});},250);}}}
 var loadBad=null;
 function loadLocal(){var r=null;try{r=localStorage.getItem(LS);if(!r)return;var o=JSON.parse(r);
   if(!o||typeof o!=="object"||Array.isArray(o))throw new Error("kein Objekt");
@@ -6067,6 +6072,9 @@ async function autoRate(force){
   if(force)toast("Kurse aktualisiert");
 }
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")autoRate(false);});
+/* In einem anderen Fenster geändert: Stand übernehmen statt ihn später zu überschreiben */
+window.addEventListener("storage",function(e){if(e.key!==LS||e.storageArea!==localStorage||loadBad!=null||!e.newValue)return;
+  loadLocal();render();toast("In einem anderen Fenster geändert – aktualisiert");});
 /* ---------- Logos automatisch finden (Wikipedia, App Store) ---------- */
 /* Namensvergleich: Rechtsformen/Artikel/Länder zählen nie; generische Wörter (Versicherung, Energie …) müssen passen,
    wenn man sie eingibt, dürfen beim Treffer aber zusätzlich stehen; Ortsbegriffe allein reichen nie */
@@ -6350,6 +6358,7 @@ document.getElementById("bkSave").addEventListener("click",async function(){
 document.getElementById("bkLoad").addEventListener("click",function(){document.getElementById("bkFile").click();});
 document.getElementById("bkFile").addEventListener("change",function(ev){
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;
+  if(f.size>300e6){toast("Die Datei ist zu gross für ein Kontivo-Backup");return;}
   var rd=new FileReader();
   rd.onload=async function(){
     var o;try{o=JSON.parse(rd.result);}catch(e){toast("Keine gültige Backup-Datei");return;}
@@ -7304,7 +7313,7 @@ function bankMerge(rs){
   tx.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
   return {fmt:rs.map(function(r){return r.fmt;}).join(", "),bank:"",tx:tx,from:tx[0].d,to:tx[tx.length-1].d,files:rs.length};
 }
-function bankReadFile(f){return new Promise(function(res){var rd=new FileReader();
+function bankReadFile(f){return new Promise(function(res){if(f.size>20e6){res({f:f,r:null,head:"",big:true});return;}var rd=new FileReader();
   rd.onload=function(){var r=null;try{r=bankRead(rd.result);}catch(e){r=null;}res({f:f,r:r,head:bkLastHead});};
   rd.onerror=function(){res({f:f,r:null,head:""});};rd.readAsArrayBuffer(f);});}
 /* Ladeanzeige: Fenster sofort öffnen, Schritte nacheinander abhaken (Variante 2, 09.10.2026) */
@@ -7327,6 +7336,7 @@ document.getElementById("bankFile").addEventListener("change",async function(ev)
   var got=[];for(var i=0;i<fs.length;i++)got.push(await bankReadFile(fs[i]));
   if(run!==bkRun||!sh.classList.contains("on"))return;  /* abgebrochen */
   var ok=got.filter(function(x){return x.r;}),bad=got.filter(function(x){return !x.r;});
+  if(!ok.length&&bad.every(function(x){return x.big;})){closeSheetEl("sheetBank");toast("Die Datei ist zu gross (über 20 MB)",3200);return;}
   if(!ok.length){closeSheetEl("sheetBank");var h=bad.length===1?bad[0].head:"";
     await ask({title:bad.length>1?"Dateien nicht erkannt":"Datei nicht erkannt",alert:true,text:"Kontivo liest Kontoauszüge als CSV, camt.053 (XML) oder MT940. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren». PDF-Auszüge gehen nicht."+(h?" Erste Zeile deiner Datei: «"+h+"».":"")});return;}
   var r=bankMerge(ok.map(function(x){return x.r;})),res;
@@ -7406,6 +7416,7 @@ window.KontivoBank=function(){return {read:bankRead,merge:bankMerge,head:bankHea
 document.getElementById("csvImp").addEventListener("click",function(){document.getElementById("csvFile").click();});
 document.getElementById("csvFile").addEventListener("change",function(ev){
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;
+  if(f.size>20e6){toast("Die Datei ist zu gross (über 20 MB)");return;}
   var rd=new FileReader();
   rd.onload=async function(){
     /* zuerst UTF-8 (streng), sonst Windows-1252 (Excel «CSV (Trennzeichen-getrennt)»); SwiftUI: .utf8, Rückfall .windowsCP1252 */
