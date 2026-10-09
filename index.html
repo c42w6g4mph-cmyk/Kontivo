@@ -1285,15 +1285,22 @@ from{opacity:.3;transform:translateX(-16px)}to{opacity:1;transform:none}
 #onb .obgrow{flex:1}
 /* Willkommen */
 #onb .obwel{align-items:center;text-align:center;gap:9px;padding-top:4vh;container-type:inline-size}
-#splash{position:fixed;inset:0;z-index:9999;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;animation:splOut .45s ease 1.5s forwards}
-#splash .splLogo{width:96px;height:96px;border-radius:22px;box-shadow:0 14px 34px rgba(14,90,94,.3);animation:splPop .6s cubic-bezier(.2,1.4,.4,1) both}
-#splash .splWm{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;font-weight:700;font-size:36px;letter-spacing:-.01em;color:var(--ink);display:inline-flex;align-items:baseline;animation:splUp .45s ease .18s both}
+#splash{position:fixed;inset:0;z-index:9999;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;animation:splOut .5s ease 2s forwards}
+#splash .splLw{position:relative;width:96px;height:96px;animation:splExit .5s ease 2s forwards}
+#splash .splLogo{position:relative;width:96px;height:96px;border-radius:22px;box-shadow:0 14px 34px rgba(14,90,94,.3);animation:splPop .7s cubic-bezier(.2,1.4,.4,1) both}
+#splash .splRing{position:absolute;inset:0;border-radius:26px;border:2px solid var(--teal);opacity:0;animation:splRing 1.1s ease-out .35s forwards}
+#splash .splRing.r2{animation-delay:.6s}
+#splash .splWm{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;font-weight:700;font-size:36px;letter-spacing:-.01em;color:var(--ink);display:inline-flex;align-items:baseline}
+#splash .splWm>span{display:inline-block;animation:splUp .45s cubic-bezier(.2,1.2,.4,1) both;animation-delay:calc(.45s + var(--i,0)*.06s)}
+#splash .splKw{--i:-1}
 #splash .splK{height:.72em;width:auto;margin-right:-.055em;overflow:visible}
-#splash .splSl{font-size:14px;color:var(--ink2);animation:splUp .45s ease .32s both}
-@keyframes splPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
-@keyframes splUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#splash .splSl{font-size:14px;color:var(--ink2);animation:splUp .5s ease 1s both}
+@keyframes splPop{0%{opacity:0;transform:scale(.5) rotate(-10deg)}60%{opacity:1;transform:scale(1.07) rotate(2deg)}100%{opacity:1;transform:none}}
+@keyframes splRing{0%{opacity:.55;transform:scale(.9)}100%{opacity:0;transform:scale(1.9)}}
+@keyframes splUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes splExit{to{transform:scale(1.12)}}
 @keyframes splOut{to{opacity:0;visibility:hidden}}
-@media (prefers-reduced-motion:reduce){#splash .splLogo,#splash .splWm,#splash .splSl{animation:none}#splash{animation-delay:1s}}
+@media (prefers-reduced-motion:reduce){#splash .splLogo,#splash .splWm>span,#splash .splSl,#splash .splLw{animation:none}#splash .splRing{display:none}#splash{animation-delay:1.2s}}
 #onb .oblogo{width:84px;height:84px;border-radius:19px;box-shadow:0 12px 30px rgba(14,90,94,.3);animation:obPop .6s cubic-bezier(.2,1.4,.4,1)}
 from{transform:scale(.6);opacity:0}
 #onb .obwel .obwt{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:max(22px,4.5vh);font-size:clamp(30px,9vw,36px);font-weight:700;letter-spacing:-.01em;line-height:1.1}
@@ -1490,7 +1497,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 </head>
 <body>
 <!-- Intro beim Öffnen (~1 s, nur CSS, blockiert keine Tipps). SwiftUI: eigene SplashView mit .transition(.opacity) -->
-<div id="splash" aria-hidden="true"><img class="splLogo" src="apple-touch-icon.png" alt=""><div class="splWm"><svg class="splK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="splKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="splKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#splKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#splKc)"/></svg>ontivo</div><div class="splSl">Deine Verträge, ganz entspannt.</div></div>
+<div id="splash" aria-hidden="true"><div class="splLw"><span class="splRing"></span><span class="splRing r2"></span><img class="splLogo" src="apple-touch-icon.png" alt=""></div><div class="splWm"><span class="splKw"><svg class="splK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="splKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="splKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#splKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#splKc)"/></svg></span><span style="--i:0">o</span><span style="--i:1">n</span><span style="--i:2">t</span><span style="--i:3">i</span><span style="--i:4">v</span><span style="--i:5">o</span></div><div class="splSl">Deine Verträge, ganz entspannt.</div></div>
 
 <div class="amdim" id="addDim"></div>
 <div class="amenu" id="addMenu" role="menu" aria-label="Hinzufügen" inert aria-hidden="true">
@@ -7813,7 +7820,7 @@ document.getElementById("vkOpen").addEventListener("click",function(){openVk();}
 
 /* Intro entfernen, sobald ausgeblendet (Rückfall: nach 2 s) */
 (function(){var sp=document.getElementById("splash");if(!sp)return;var rm=function(){if(sp.parentNode)sp.parentNode.removeChild(sp);};
-  sp.addEventListener("animationend",function(e){if(e.target===sp)rm();});setTimeout(rm,2600);})();
+  sp.addEventListener("animationend",function(e){if(e.target===sp)rm();});setTimeout(rm,3200);})();
 /* ---------- Start ---------- */
 async function boot(){
   try{await KBlob.ready;}catch(e){}
