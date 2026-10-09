@@ -1162,6 +1162,10 @@ details.logodet>summary{display:none}
 .tlx b{font-weight:600;color:var(--ink)}.tlx small{display:block;font-size:11.5px;color:var(--ink2)}
 .detailhead{display:flex;align-items:center;gap:15px;margin:14px 0 6px}
 .detailhead .mark{width:76px;height:76px;border-radius:17px;font-size:28px}
+.ddoc{flex:none;display:grid;justify-items:center;gap:4px;min-width:56px;color:var(--teal);font-size:11.5px;font-weight:600;line-height:1.1}
+.ddoc i{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--teal) 13%,transparent)}
+.ddoc svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ddoc.on i{background:var(--tealFill);color:#fff}
 .detailhead h2{overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}/* lange Komposita umbrechen statt abschneiden */
 .pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:999px;background:var(--sunken);color:var(--ink2)}
 .pill.alert{background:color-mix(in srgb,var(--alert) 16%,transparent);color:var(--alert);font-weight:600}
@@ -4540,7 +4544,9 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     '<div class="shbar"><button class="shx" data-act="close">Schliessen</button><h2>'+esc(titleOf(c))+'</h2><button type="button" class="dmbtn" data-act="menu" aria-label="Aktionen" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg></button><button class="shok" data-act="edit">Bearbeiten</button>'+menu+'</div>'+
     '<div class="detailhead">'+markHtml(c)+'<div style="flex:1;min-width:0"><h2 style="margin:0">'+esc(titleOf(c))+"</h2>"+
     (metaOf(c)?'<div style="font-size:13px;color:var(--ink2)">'+esc(metaOf(c))+"</div>":"")+
-    '<button type="button" class="dchip" data-act="docs" style="margin-top:7px">'+CLIP_IC+"<span>"+(nDocs?cntTxt(nDocs,"Dokument","Dokumente"):"Dokument anhängen")+"</span></button></div>"+
+    "</div>"+
+    /* Dokumente: runder Knopf rechts mit Beschriftung (Variante A); gefüllt, sobald Dokumente da sind. SwiftUI: Button mit VStack(Circle + Text) */
+    '<button type="button" class="ddoc'+(nDocs?" on":"")+'" data-act="docs" aria-label="'+(nDocs?cntTxt(nDocs,"Dokument","Dokumente")+" anzeigen":"Dokument anhängen")+'"><i>'+CLIP_IC+"</i><span>"+(nDocs?cntTxt(nDocs,"Datei","Dateien"):"Anhängen")+"</span></button>"+
     "</div>"+
     (pill?'<div class="pills">'+pill+"</div>":'<div style="height:10px"></div>')+kz+
     vkHintHtml(idv)+fr+
