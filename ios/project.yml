@@ -60,9 +60,12 @@ targets:
           - Zeyada.ttf
           - Qwigley-Regular.ttf
           - Bilbo-Regular.ttf
-        # Nur Berechtigungen, die die App wirklich nutzt (Kalender: Frist eintragen; Fotos: «Bild sichern» im Teilen-Menü)
+        # Nur Berechtigungen, die die App wirklich nutzt (Kalender: Frist eintragen; Fotos: «Bild sichern» im Teilen-Menü;
+        # Kamera und Fotos: Kontoauszug fotografieren bzw. wählen – Texterkennung nur auf dem Gerät)
         NSCalendarsWriteOnlyAccessUsageDescription: Kontivo trägt Kündigungsfristen auf deinen Wunsch in den Kalender ein.
         NSPhotoLibraryAddUsageDescription: Kontivo speichert Bilder auf deinen Wunsch in deiner Fotomediathek.
+        NSCameraUsageDescription: Kontivo fotografiert auf deinen Wunsch deinen Kontoauszug, um Fixkosten zu finden. Das Bild wird nur auf diesem Gerät gelesen und nicht gespeichert.
+        NSPhotoLibraryUsageDescription: Kontivo liest auf deinen Wunsch Fotos deines Kontoauszugs, um Fixkosten zu finden. Die Bilder werden nur auf diesem Gerät gelesen und nicht gespeichert.
         LSSupportsOpeningDocumentsInPlace: false
         UISupportsDocumentBrowser: false
     settings:

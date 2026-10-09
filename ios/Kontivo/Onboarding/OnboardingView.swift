@@ -59,7 +59,7 @@ struct OnboardingView: View {
         case .setup:
             OnbSetupPage(home: $home, moreOpen: $moreOpen, name: $name, onNext: { next(from: i) }, onBackup: backup)
         case .start:
-            OnbStartPage(items: OnbQuick.items(model.data), quick: $quick, onCreate: create, onDone: { close() })
+            OnbStartPage(items: OnbQuick.items(model.data), quick: $quick, onBank: bank, onCreate: create, onDone: { close() })
         }
     }
 
@@ -147,6 +147,12 @@ struct OnboardingView: View {
     private func backup() {
         close()
         MoreRequests.openBackupImport(model, delay: 0.9)
+    }
+
+    /// «Automatisch finden»: Einführung schliessen, danach Datei-/Foto-Auswahl für den Kontoauszug (Web: `bankFile.click()` + `closeOnb`)
+    private func bank(_ source: BankPickSource) {
+        let m = model
+        close(then: { BankImportCenter.shared.pick(source, model: m) })
     }
 
     /// «{Vorlage} erfassen»: schliessen und das Formular «Neuer Vertrag» mit Bezeichnung und Kategorie öffnen
