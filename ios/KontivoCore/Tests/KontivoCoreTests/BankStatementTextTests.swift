@@ -239,7 +239,7 @@ final class BankStatementTextTests: XCTestCase {
         XCTAssertEqual(r.items.first?.ignored, true)
         XCTAssertEqual(r.ignoredCount, 1)
         // Einstellungen bleiben beim Speichern erhalten
-        let back = try KontivoJSON.decode(data.encoded())
+        let back = try AppData.decode(data.encoded())
         XCTAssertEqual(back.settings.bankIgn, ["muster streaming"])
         XCTAssertEqual(back.settings.bankAlias["muster streaming"], BankAlias(n: "Muster TV", c: "Abos & Medien"))
     }
