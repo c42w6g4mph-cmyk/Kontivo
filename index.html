@@ -4512,7 +4512,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   /* Preiserhöhung (angekündigt oder in den letzten 60 Tagen): Hinweis auf ein mögliches Sonderkündigungsrecht */
   var skr=!gone&&!isFixed(c)&&(function(){var t=today(),ps=pricesOf(c),prev=+c.amount||0;for(var i=0;i<ps.length;i++){var f=parseD(ps[i].from);
       if(f>t)return +ps[i].amount>priceAt(c,t);if(daysBetween(f,t)<=60&&+ps[i].amount>prev)return true;prev=+ps[i].amount;}return false;})();
-  var hist=(pricesOf(c).length?'<div class="pchwrap">'+priceChart(c,{edit:1})+"</div>":"")+'<button type="button" class="padd" data-act="padd">＋ '+(pricesOf(c).length?"Neuer Preis":"Preisänderung erfassen")+"</button>";
+  var hist=(pricesOf(c).length?'<div class="pchwrap">'+priceChart(c,{edit:1})+"</div>":"");/* Preisänderungen erfassen nur im Bearbeiten-Modus (Weitere Angaben); Punkte im Diagramm bleiben antippbar */
   var xs=extrasOf(c),xh="";
   if(xs.length){var t2=today();
     xh='<h3 class="dsec">Sonderzahlungen</h3><div class="plist">'+xs.map(function(x){var cr=x.amount<0;
