@@ -45,7 +45,7 @@ enum DeadlineCalendar {
         case .kept:
             guard item.end != nil else { return nil }
             return ReminderDeadline(contractID: c.id, kind: .notice, date: item.date, end: item.end, mandatory: c.mandatory)
-        case .ended:
+        case .keptEnd, .ended:
             return nil
         }
     }
