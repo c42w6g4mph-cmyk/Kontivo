@@ -1285,6 +1285,15 @@ from{opacity:.3;transform:translateX(-16px)}to{opacity:1;transform:none}
 #onb .obgrow{flex:1}
 /* Willkommen */
 #onb .obwel{align-items:center;text-align:center;gap:9px;padding-top:4vh;container-type:inline-size}
+#splash{position:fixed;inset:0;z-index:9999;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;animation:splOut .35s ease .9s forwards}
+#splash .splLogo{width:96px;height:96px;border-radius:22px;box-shadow:0 14px 34px rgba(14,90,94,.3);animation:splPop .6s cubic-bezier(.2,1.4,.4,1) both}
+#splash .splWm{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;font-weight:700;font-size:36px;letter-spacing:-.01em;color:var(--ink);display:inline-flex;align-items:baseline;animation:splUp .45s ease .18s both}
+#splash .splK{height:.72em;width:auto;margin-right:-.055em;overflow:visible}
+#splash .splSl{font-size:14px;color:var(--ink2);animation:splUp .45s ease .32s both}
+@keyframes splPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes splUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes splOut{to{opacity:0;visibility:hidden}}
+@media (prefers-reduced-motion:reduce){#splash .splLogo,#splash .splWm,#splash .splSl{animation:none}#splash{animation-delay:.5s}}
 #onb .oblogo{width:84px;height:84px;border-radius:19px;box-shadow:0 12px 30px rgba(14,90,94,.3);animation:obPop .6s cubic-bezier(.2,1.4,.4,1)}
 from{transform:scale(.6);opacity:0}
 #onb .obwel .obwt{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:max(22px,4.5vh);font-size:clamp(30px,9vw,36px);font-weight:700;letter-spacing:-.01em;line-height:1.1}
@@ -1480,6 +1489,8 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 </style>
 </head>
 <body>
+<!-- Intro beim Öffnen (~1 s, nur CSS, blockiert keine Tipps). SwiftUI: eigene SplashView mit .transition(.opacity) -->
+<div id="splash" aria-hidden="true"><img class="splLogo" src="apple-touch-icon.png" alt=""><div class="splWm"><svg class="splK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="splKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="splKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#splKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#splKc)"/></svg>ontivo</div><div class="splSl">Deine Verträge, ganz entspannt.</div></div>
 
 <div class="amdim" id="addDim"></div>
 <div class="amenu" id="addMenu" role="menu" aria-label="Hinzufügen" inert aria-hidden="true">
@@ -7434,10 +7445,10 @@ var OB_ICON={
   set:'<g class="dots"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></g>'};
 var OB_PAGES=[
   {k:"welcome"},
-  {k:"tab",tab:"list",t:"Alle Verträge im Blick",b:["Alle Vertragsdetails auf einen Blick","Flexibel in EUR, CHF, USD und mehr","Monatliche Fixkosten sofort sichtbar"]},
+  {k:"tab",tab:"list",t:"Alle Verträge im Blick",b:["Alle Vertragsdetails auf einen Blick","Per Kontoauszug in Minuten erfasst","Monatliche Fixkosten sofort sichtbar"]},
   {k:"tab",tab:"stat",t:"Jeden Monat im Voraus geplant",b:["Alle Abbuchungen übersichtlich geplant","Bezahlt oder offen sofort erkennen","Keine Überraschungen im Briefkasten"]},
   {k:"tab",tab:"budget",t:"Weisst du, was dir bleibt?",b:["Einnahmen minus Fixkosten klar berechnet","Monatlich und jährlich auf einen Blick"]},
-  {k:"tab",tab:"term",t:"Keine ungewollten Vertragsverlängerungen",b:["Kündigungsfristen automatisch berechnet","Rechtzeitig vor Fristablauf informiert","Einfach entscheiden: behalten oder kündigen"]},
+  {k:"tab",tab:"term",t:"Keine ungewollten Vertragsverlängerungen",b:["Kündigungsfristen automatisch berechnet","Rechtzeitig vor Fristablauf informiert","Kündigen mit einem Tipp – Schreiben fertig"]},
   {k:"tips"},
   {k:"setup",first:true},
   {k:"start",first:true}];
@@ -7474,7 +7485,7 @@ function obPage(p){
       '<p class="obslogan">Deine Verträge, ganz entspannt.</p>'+
       '<p class="obt obwt"><span>Willkommen bei</span><b class="obwm" aria-label="Kontivo"><svg class="obK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="obKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="obKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#obKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#obKc)"/></svg>ontivo</b></p>'+
       '<p class="obs">Maximale Transparenz über alles,<br>was jeden Monat fix weggeht.</p>'+
-      '<div class="obprom"><span>'+ck+'Fixkosten, Budget &amp; Fristen im Blick</span><span>'+ck+'Smart gedacht – einfach gemacht</span><span>'+ck+'Ohne Bankanbindung – ganz privat</span><span>'+ck+'Für dich, deine Familie oder deine WG</span></div>'+
+      '<div class="obprom"><span>'+ck+'Fixkosten, Budget &amp; Fristen im Blick</span><span>'+ck+'Kontoauszug rein – Fixkosten erkannt</span><span>'+ck+'Ohne Bankanbindung – ganz privat</span><span>'+ck+'Für dich, deine Familie oder deine WG</span></div>'+
       '<div class="obgrow"></div>'+obNext("Los geht’s")+
       (ob.first?'<button type="button" class="obghost" data-ob="backup">Ich habe schon ein Backup</button>':'<button type="button" class="obghost" data-ob="close">Schliessen</button>')+'</div>';}
   if(p.k==="tab"){
@@ -7789,6 +7800,9 @@ document.getElementById("vkBack").addEventListener("click",function(){if(!vk)ret
   if(!vk.only){vk.step="start";paintVk();}});
 document.getElementById("vkOpen").addEventListener("click",function(){openVk();});
 
+/* Intro entfernen, sobald ausgeblendet (Rückfall: nach 2 s) */
+(function(){var sp=document.getElementById("splash");if(!sp)return;var rm=function(){if(sp.parentNode)sp.parentNode.removeChild(sp);};
+  sp.addEventListener("animationend",function(e){if(e.target===sp)rm();});setTimeout(rm,2000);})();
 /* ---------- Start ---------- */
 async function boot(){
   try{await KBlob.ready;}catch(e){}
