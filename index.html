@@ -2143,7 +2143,7 @@ function markHtml(c,cls){
 
 /* ---------- Rechnen ---------- */
 function pricesOf(c){return (c.prices||[]).filter(function(p){return p&&parseD(p.from)&&isFinite(+p.amount);})
-  .slice().sort(function(a,b){return a.from<b.from?-1:(a.from>b.from?1:0);});}
+  .slice().sort(function(a,b){return parseD(a.from)-parseD(b.from);});}/* nach echtem Datum, nicht nach Text */
 function priceAt(c,d){var p=+c.amount||0;pricesOf(c).forEach(function(e){var f=parseD(e.from);if(f&&f<=d)p=+e.amount;});return p;}
 function curPrice(c){return priceAt(c,today());}
 /* Preisverlauf als Stufen-Diagramm (nur bei mind. 1 Preisänderung).
@@ -2188,10 +2188,12 @@ function priceChart(c,opt){
         lbl+='<text class="pp'+(pc>0?" up":pc<0?" down":"")+'" x="'+cx(x,ptx,11).toFixed(1)+'" y="'+(B+29)+'" text-anchor="middle">'+ptx+"</text>";}}
     if(opt.edit)hit+='<rect class="phit" data-pe="'+i+'" x="'+(x-22).toFixed(1)+'" y="0" width="44" height="'+H+'" role="button" aria-label="Preis '+(i?"ab "+fmtD(iso(p.d)):"am Anfang")+' bearbeiten"/>';
   });
-  var planned=ni===0,cur=pts[ni].a,base=pts[0].a,pct=base?(cur-base)/base*100:0;
+  var planned=ni===0,cur=pts[ni].a,base=pts[0].a,pct=base?(cur-base)/base*100:0,since=hasSt?"seit "+fmtShort(st):"seit Anfang";
+  /* Gesamt seit Beginn gleich, aber zwischendurch geändert: letzte Änderung zeigen (sonst stünde «unverändert» trotz Erhöhung) */
+  if(!planned&&Math.abs(pct)<.05){for(var j=ni;j>0;j--){var pa=pts[j-1].a;if(pa&&Math.abs(pts[j].a-pa)/pa*100>=.05){pct=(cur-pa)/pa*100;since="zuletzt am "+fmtShort(pts[j].d);break;}}}
   var badge=planned?'<b class="pbadge">geplant ab '+fmtShort(pts[1].d)+"</b>":
     Math.abs(pct)<.05?'<b class="pbadge">unverändert</b>':'<b class="pbadge '+(pct>0?"up":"down")+'">'+(pct>0?"↑ ":"↓ ")+pctTxt(Math.abs(pct)).replace(/^[+±]/,"")+(pct>0?" teurer":" günstiger")+"</b>";
-  var head='<div class="pchead"><span>'+(hasSt?"seit "+fmtShort(st):"seit Anfang")+"</span>"+badge+"</div>";
+  var head='<div class="pchead"><span>'+since+"</span>"+badge+"</div>";
   return '<div class="pchart" role="img" aria-label="Preisverlauf von '+money(base,c.cur)+" auf "+money(pts[pts.length-1].a,c.cur)+" "+esc(c.cur)+'">'+head+
     '<svg viewBox="0 0 '+W+" "+H+'" aria-hidden="'+(opt.edit?"false":"true")+'"><path class="pa2" d="'+area+'"/><path class="pl" d="'+pathP+'"/>'+
     (pathF?'<path class="pl fut" d="'+pathF+'"/>':"")+lbl+dots+hit+"</svg></div>";
