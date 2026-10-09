@@ -2189,8 +2189,7 @@ function priceChart(c,opt){
     if(opt.edit)hit+='<rect class="phit" data-pe="'+i+'" x="'+(x-22).toFixed(1)+'" y="0" width="44" height="'+H+'" role="button" aria-label="Preis '+(i?"ab "+fmtD(iso(p.d)):"am Anfang")+' bearbeiten"/>';
   });
   var planned=ni===0,cur=pts[ni].a,base=pts[0].a,pct=base?(cur-base)/base*100:0,since=hasSt?"seit "+fmtShort(st):"seit Anfang";
-  /* Gesamt seit Beginn gleich, aber zwischendurch geändert: letzte Änderung zeigen (sonst stünde «unverändert» trotz Erhöhung) */
-  if(!planned&&Math.abs(pct)<.05){for(var j=ni;j>0;j--){var pa=pts[j-1].a;if(pa&&Math.abs(pts[j].a-pa)/pa*100>=.05){pct=(cur-pa)/pa*100;since="zuletzt am "+fmtShort(pts[j].d);break;}}}
+  /* Plakette = Vergleich heute zum Anfang (Entscheid Sinan: auch «unverändert», wenn zwischendurch geändert) */
   var badge=planned?'<b class="pbadge">geplant ab '+fmtShort(pts[1].d)+"</b>":
     Math.abs(pct)<.05?'<b class="pbadge">unverändert</b>':'<b class="pbadge '+(pct>0?"up":"down")+'">'+(pct>0?"↑ ":"↓ ")+pctTxt(Math.abs(pct)).replace(/^[+±]/,"")+(pct>0?" teurer":" günstiger")+"</b>";
   var head='<div class="pchead"><span>'+since+"</span>"+badge+"</div>";
