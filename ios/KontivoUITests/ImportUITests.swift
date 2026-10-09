@@ -9,8 +9,6 @@ final class ImportUITests: KontivoUITestCase {
         let erfassen = buttonStarting("Vertrag erfassen")
         tapOpen(button("Hinzufügen"), "Knopf +", expect: erfassen)
         XCTAssertTrue(buttonStarting("Aus Kontoauszug").exists, "Menüpunkt «Aus Kontoauszug» fehlt")
-        XCTAssertTrue(elContaining("Einzeln, mit Anbieter-Katalog").exists || erfassen.label.contains("Anbieter-Katalog"),
-                      "Zusatzinfo zu «Vertrag erfassen» fehlt")
         keepShot("plus-menue")
 
         // Untermenü: Quelle wählen

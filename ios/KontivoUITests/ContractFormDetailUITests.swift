@@ -6,7 +6,7 @@ import XCTest
 final class ContractFormDetailUITests: KontivoUITestCase {
 
     private func openNewForm() {
-        tapOpen(button("Vertrag anlegen"), "Knopf +", expect: textField("form.label"))
+        openPlusMenuItem("Vertrag erfassen", expect: textField("form.label"))
         waitNav("Neuer Vertrag")
     }
 

@@ -381,7 +381,7 @@ private struct DeadlineItemRow: View {
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
             .accessibilityHint("Öffnet die Vertragsdetails")
-            // «In Kalender» für jede Frist: langes Drücken (Zeilen ohne Knöpfe) bzw. Kalender-Knopf in der Knopfzeile
+            // «In Kalender» für jede Frist per langem Drücken (Zeile bleibt wie im Web ohne Zusatzknopf)
             .contextMenu {
                 Button(action: onOpen) { Label("Details", systemImage: "doc.text") }
                 if canCalendar {
@@ -395,18 +395,6 @@ private struct DeadlineItemRow: View {
                 HStack(spacing: 8) {
                     DeadlineActionButton(title: item.keepTitle, action: onKeep)
                     DeadlineActionButton(title: item.cancelTitle, accent: true, action: onKill)
-                    Button(action: onCalendar) {
-                        Image(systemName: DeadlineCalendar.symbol)
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundStyle(KColor.teal)
-                            .frame(width: 38, height: 36)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(DeadlineCalendar.menuTitle)
-                    .accessibilityIdentifier("deadlines.calendar")
-                    .opacity(canCalendar ? 1 : 0)
-                    .disabled(!canCalendar)
                 }
                 .padding(.leading, 13 + 40 + 12)
                 .padding(.trailing, 13)

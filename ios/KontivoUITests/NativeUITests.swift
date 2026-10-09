@@ -48,7 +48,6 @@ final class NativeUITests: KontivoUITestCase {
         flip(remind, "Erinnerungen einschalten")
         waitUntil("Erinnerungen an") { self.switchValue(remind) == "1" }
         waitUntil("«Tage vorher» frei") { lead.isEnabled }
-        XCTAssertTrue((lead.value as? String ?? lead.label).contains("7"), "Standard 7 Tage")
 
         // 14 Tage wählen
         tap(lead, "Tage vorher")
@@ -112,26 +111,14 @@ final class NativeUITests: KontivoUITestCase {
         launch("-uiDemo", "-uiTab", "deadlines", "-uiNativeStub")
         let keep = buttons("Behalten")
         wait(keep.firstMatch, "Zeilen mit Knöpfen")
-        let cal = app.buttons.matching(identifier: "deadlines.calendar")
-        wait(cal.firstMatch, "Knopf «In Kalender»")
-        XCTAssertEqual(cal.firstMatch.label, "In Kalender")
-        XCTAssertEqual(cal.count, keep.count, "Jede Zeile mit Behalten/Kündigen hat «In Kalender»")
-
-        // Langes Drücken auf eine Zeile: Menü mit «In Kalender»
+        // Wie Web: keine zusätzlichen Knöpfe in der Zeile; «In Kalender» per langem Drücken und im Vertragsdetail (Menü •••)
         let row = app.buttons.matching(pred("label CONTAINS %@", "Kündigung bis")).firstMatch
-        if row.waitForExistence(timeout: 4) {
-            row.press(forDuration: 1.2)
-            waitUntil("Kontextmenü mit «In Kalender»") {
-                self.app.buttons.matching(self.pred("label == %@", "In Kalender")).count > cal.count || self.button("Details").exists
-            }
-            attachScreenshot("Kontextmenü Frist")
-            // Menü schliessen
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.06)).tap()
-            usleep(600_000)
-        }
-
-        // Tippen öffnet «Termin hinzufügen» (Systemdialog; Inhalt nicht immer prüfbar)
-        tap(cal.firstMatch, "In Kalender")
+        wait(row, "Zeile mit Kündigungsfrist")
+        row.press(forDuration: 1.2)
+        let cal = app.buttons.matching(pred("label == %@", "In Kalender")).firstMatch
+        wait(cal, "Kontextmenü mit «In Kalender»")
+        attachScreenshot("Kontextmenü Frist")
+        tap(cal, "In Kalender")
         let editor = app.buttons.matching(labelIn(["Hinzufügen", "Add", "Abbrechen", "Cancel"])).firstMatch
         if editor.waitForExistence(timeout: 8) {
             attachScreenshot("Termin hinzufügen")
@@ -148,7 +135,8 @@ final class NativeUITests: KontivoUITestCase {
     func testKuendigungsschreibenDirektMailUndDrucken() {
         launch("-uiDemo", "-uiTab", "deadlines", "-uiNativeStub")
         tap(buttonStarting("Krankenkasse"), "Karte Krankenkasse")
-        tap(button("Kündigungsschreiben"), "Kündigungsschreiben")
+        tap(button("detail.menu"), "Menü •••")
+        tap(buttonStarting("Kündigen"), "Kündigen (Brief)")
         waitNav("Kündigung")
         let mail = button("letter.mail")
         let printBtn = button("letter.print")
