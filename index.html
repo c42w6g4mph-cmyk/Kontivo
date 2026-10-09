@@ -2181,10 +2181,10 @@ function priceChart(c,opt){
   pts.forEach(function(p,i){var x=X(p.d),y=Y(p.a),fut=p.d>t,cl="pdt"+(i===ni?" now":"")+(fut?" fut":"");
     if(i)lbl+='<line class="pgd" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+(y+5).toFixed(1)+'" y2="'+B+'"/>';
     dots+='<circle class="'+cl+'" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(i===ni?4.5:3.5)+'"/>';
-    if(show[i]){var pv=money(p.a,c.cur),dt=i?fmtShort(p.d):(hasSt?fmtShort(p.d):"Anfang");
+    if(show[i]){var pv=p.a?money(p.a,c.cur):"gratis",dt=i?fmtShort(p.d):(hasSt?fmtShort(p.d):"Anfang");
       lbl+='<text class="pv'+(i===ni?" now":"")+'" x="'+cx(x,pv,11).toFixed(1)+'" y="'+(y-9).toFixed(1)+'" text-anchor="middle">'+pv+"</text>"+
         '<text class="pt" x="'+cx(x,dt,10.5).toFixed(1)+'" y="'+(B+14)+'" text-anchor="middle">'+dt+"</text>";
-      if(i){var pc=pts[i-1].a?(p.a-pts[i-1].a)/pts[i-1].a*100:0,ptx=pctTxt(pc);
+      if(i&&pts[i-1].a){/* nach einer Gratis-Phase (Preis 0) keine Prozentangabe */var pc=pts[i-1].a?(p.a-pts[i-1].a)/pts[i-1].a*100:0,ptx=pctTxt(pc);
         lbl+='<text class="pp'+(pc>0?" up":pc<0?" down":"")+'" x="'+cx(x,ptx,11).toFixed(1)+'" y="'+(B+29)+'" text-anchor="middle">'+ptx+"</text>";}}
     if(opt.edit)hit+='<rect class="phit" data-pe="'+i+'" x="'+(x-22).toFixed(1)+'" y="0" width="44" height="'+H+'" role="button" aria-label="Preis '+(i?"ab "+fmtD(iso(p.d)):"am Anfang")+' bearbeiten"/>';
   });
