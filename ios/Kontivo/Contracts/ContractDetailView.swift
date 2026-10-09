@@ -1,7 +1,9 @@
 import SwiftUI
 import KontivoCore
 
-/// Vertragsdetail (openDetail): Kopf, Pillen, Abschnitte, Preisverlauf, Sonderzahlungen, Notiz, Dokumente und Aktionen.
+/// Vertragsdetail (openDetail) als reine Ansicht (Web v125–v141): Kopf mit Dokumente-Knopf, Pillen, Kennzahlen,
+/// Hinweis «Angaben fehlen», Fristen-Kasten (nur bei Frist ≤ 60 Tage), Abschnitte mit Preisverlauf, Sonderzahlungen, Notiz.
+/// Aktionen im Menü ••• oben (Web 4be2078). Bearbeiten (inkl. Preise, Dokumente löschen) nur im Formular.
 struct ContractDetailView: View {
     let contractID: UUID
     @Environment(AppModel.self) private var model
@@ -9,7 +11,7 @@ struct ContractDetailView: View {
     @State private var scrolled = false
     @State private var showPause = false
     @State private var askDelete = false
-    @State private var moreOpen = false
+    @State private var showDocs = false
 
     init(contractID: UUID) {
         self.contractID = contractID
@@ -42,6 +44,11 @@ struct ContractDetailView: View {
                         .animation(.easeInOut(duration: 0.15), value: scrolled)
                         .accessibilityHidden(!scrolled)
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    if let c = model.data.contract(contractID) {
+                        actionsMenu(c)
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Bearbeiten") {
                         model.present(.contractForm(.edit(contractID)))
@@ -54,6 +61,12 @@ struct ContractDetailView: View {
             CTPauseSheet(contractID: contractID, onPaused: { model.dismissAll() })
                 .environment(model)
         }
+        .sheet(isPresented: $showDocs) {
+            CTDetailDocsSheet(contractID: contractID)
+                .environment(model)
+                .environment(\.locale, Locale(identifier: "de_CH"))
+                .presentationDetents([.medium, .large])
+        }
         .alert("Vertrag löschen?", isPresented: $askDelete) {
             Button("Löschen", role: .destructive) { deleteContract() }
             Button("Abbrechen", role: .cancel) {}
@@ -65,17 +78,26 @@ struct ContractDetailView: View {
     // MARK: Inhalt
 
     private func content(_ c: Contract) -> some View {
-        ScrollView {
+        let calc = model.calc
+        let due60 = CTDetailState.due60(c, calc: calc)
+        return ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                CTDetailHeader(contract: c)
+                CTDetailHeader(contract: c) { showDocs = true }
                     .background(
                         GeometryReader { g in
                             Color.clear.preference(key: CTDetailScrollKey.self, value: g.frame(in: .named("ctDetail")).minY)
                         }
                     )
-                CTDetailPills(contract: c)
-                quickActions(c)
-                if model.calc.specialCancelHint(c) {
+                CTDetailPills(contract: c, due60: due60)
+                CTDetailKeyFigures(contract: c)
+                CTDetailCompletenessHint(contract: c)
+                if due60 {
+                    CTDetailDeadlineBox(contract: c, onCancel: { model.startCancel(contractID, trial: false) }, onKeep: {
+                        let t = model.today
+                        run({ $0.keep(contractID, trial: false, today: t) }, toast: AppData.keepToast)
+                    })
+                }
+                if calc.specialCancelHint(c) {
                     Text(verbatim: Calc.specialCancelText)
                         .font(.footnote).foregroundStyle(KColor.ink2)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -84,8 +106,7 @@ struct ContractDetailView: View {
                         .padding(.bottom, 10)
                         .accessibilityIdentifier("detail.skr")
                 }
-                CTDetailSections(contract: c)
-                actions(c)
+                CTDetailSections(contract: c, due60: due60)
             }
             .padding(.horizontal, KMetric.gutter)
             .padding(.bottom, 32)
@@ -98,91 +119,72 @@ struct ContractDetailView: View {
         }
     }
 
-    // MARK: Aktionsleiste unter den Pillen (Web .dacts): Kündigungsweg und Pausieren/Fortsetzen
+    // MARK: Menü ••• (Web 4be2078): Kündigen mit Weg, Pausieren, Duplizieren, Archiv, Löschen
 
-    @ViewBuilder
-    private func quickActions(_ c: Contract) -> some View {
+    private func actionsMenu(_ c: Contract) -> some View {
         let calc = model.calc
+        let fixd = calc.isFixed(c)
         let archived = c.status == .cancelled
-        if !archived {
-            HStack(spacing: 8) {
-                // Nicht kündbar (Steuern & Gebühren, noCancel): kein Kündigen-Knopf (Web v88)
-                if c.cancelPer == nil && !calc.isFixed(c) {
-                    Button { model.startCancel(contractID, trial: false) } label: {
-                        Text(CTText.cancelButton(calc.cancVia(c))).lineLimit(1).minimumScaleFactor(0.8)
-                            .font(.subheadline.weight(.semibold)).foregroundStyle(.white)
-                            .frame(maxWidth: .infinity).padding(.vertical, 11)
-                            .background(KColor.teal, in: RoundedRectangle(cornerRadius: 11))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("detail.cancel")
-                }
-                Button {
-                    if calc.isPaused(c) {
-                        let t = model.today
-                        run({ $0.resume(contractID, today: t) }, toast: "Fortgesetzt")
-                    } else {
-                        showPause = true
-                    }
-                } label: {
-                    Text(calc.isPaused(c) ? "Fortsetzen" : "Pausieren").lineLimit(1)
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink)
-                        .frame(maxWidth: .infinity).padding(.vertical, 11)
-                        .background(KColor.field, in: RoundedRectangle(cornerRadius: 11))
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("detail.pause")
+        let kok = !(c.cancelPer != nil || archived || fixd)
+        let kword = c.mandatory ? "Wechseln" : "Kündigen"
+        let via: String = {
+            switch calc.cancVia(c) {
+            case .online: return "online"
+            case .mail: return "per E-Mail"
+            case .post: return "per Brief"
+            case .none: return "Weg wählen"
             }
-            .padding(.top, 2).padding(.bottom, 8)
-        }
-    }
-
-    // MARK: Aktionen (Knöpfe unten)
-
-    @ViewBuilder
-    private func actions(_ c: Contract) -> some View {
-        let calc = model.calc
-        let archived = c.status == .cancelled
-        VStack(spacing: 10) {
+        }()
+        return Menu {
+            if kok {
+                Button {
+                    model.startCancel(contractID, trial: false)
+                } label: {
+                    Text(kword)
+                    Text(via)
+                }
+            }
             if c.cancelPer != nil {
-                CTActionButton(title: "Kündigung zurücknehmen") {
+                Button("Kündigung zurücknehmen") {
                     run({ $0.undoCancel(contractID) }, toast: "Kündigung zurückgenommen")
                 }
             }
             if calc.isKept(c) {
-                CTActionButton(title: "Entscheid «Behalten» zurücksetzen") {
+                Button("«Behalten» zurücksetzen") {
                     run({ $0.unkeep(contractID) }, toast: "Wieder offen")
                 }
             }
-            DisclosureGroup(isExpanded: $moreOpen) {
-                VStack(spacing: 10) {
-                    CTActionButton(title: "Duplizieren") {
-                        model.present(.contractForm(.duplicate(contractID)))
+            if !archived && !fixd && !c.mandatory && !calc.isRent(c) {
+                if calc.isPaused(c) {
+                    Button("Fortsetzen") {
+                        let t = model.today
+                        run({ $0.resume(contractID, today: t) }, toast: "Fortgesetzt")
                     }
-                    if archived {
-                        CTActionButton(title: "Wieder aktiv setzen") {
-                            run({ $0.reactivate(contractID) }, toast: "Wieder aktiv")
-                        }
-                    } else {
-                        CTActionButton(title: "Als gekündigt ins Archiv") {
-                            let t = model.today
-                            run({ $0.archive(contractID, today: t) }, toast: "Ins Archiv verschoben")
-                        }
-                    }
-                    CTActionButton(title: "Vertrag löschen", role: .destructive) {
-                        askDelete = true
-                    }
+                } else {
+                    Button("Pausieren") { showPause = true }
                 }
-                .padding(.top, 10)
-            } label: {
-                Text("Weitere Aktionen")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(KColor.ink2)
             }
-            .tint(KColor.ink2)
-            .padding(.top, 6)
+            Button("Duplizieren") {
+                model.present(.contractForm(.duplicate(contractID)))
+            }
+            if archived {
+                Button("Wieder aktiv setzen") {
+                    run({ $0.reactivate(contractID) }, toast: "Wieder aktiv")
+                }
+            } else {
+                Button("Ins Archiv") {
+                    let t = model.today
+                    run({ $0.archive(contractID, today: t) }, toast: "Ins Archiv verschoben")
+                }
+            }
+            Button("Löschen", role: .destructive) {
+                askDelete = true
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .accessibilityLabel("Aktionen")
         }
-        .padding(.top, 22)
+        .accessibilityIdentifier("detail.menu")
     }
 
     /// Aktion ausführen; danach schliessen wie Web (`closeSheets(); render(); toast(…)`)
@@ -197,6 +199,22 @@ struct ContractDetailView: View {
         model.update { $0.deleteContract(id) }
         model.toast("Gelöscht")
         dismiss()
+    }
+}
+
+/// Zustände, die mehrere Teile des Details brauchen
+enum CTDetailState {
+    /// Gekündigt (Archiv oder «gekündigt per») oder abgelaufen: keine Frist und kein nächster Termin mehr
+    static func gone(_ c: Contract, calc: Calc) -> Bool {
+        c.status == .cancelled || c.cancelPer != nil || calc.endedByTerm(c)
+    }
+
+    /// Frist in ≤ 60 Tagen: Kasten «Kündigen bis …» mit Kündigen/Behalten oben (Web due60)
+    static func due60(_ c: Contract, calc: Calc) -> Bool {
+        if gone(c, calc: calc) || calc.isFixed(c) { return false }
+        let u = calc.urgency(c)
+        guard u.date != nil, let d = u.days, d >= 0, d <= 60 else { return false }
+        return !calc.isAnytime(c) && !c.noWatch && c.cancelPer == nil && !calc.isKept(c) && calc.termEnd(c) != nil
     }
 }
 
@@ -237,6 +255,7 @@ struct CTActionButton: View {
 private struct CTDetailHeader: View {
     @Environment(AppModel.self) private var model
     let contract: Contract
+    let onDocs: () -> Void
 
     var body: some View {
         let data = model.data
@@ -254,11 +273,12 @@ private struct CTDetailHeader: View {
                         .foregroundStyle(KColor.ink2)
                 }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
             Spacer(minLength: 0)
+            CTDetailDocsButton(count: contract.documents.count, action: onDocs)
         }
         .padding(.top, 12)
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
     }
 }
 
@@ -267,9 +287,10 @@ private struct CTDetailHeader: View {
 private struct CTDetailPills: View {
     @Environment(AppModel.self) private var model
     let contract: Contract
+    let due60: Bool
 
     var body: some View {
-        let pills = CTDetailPills.pills(contract, calc: model.calc)
+        let pills = CTDetailPills.pills(contract, calc: model.calc, due60: due60)
         if pills.isEmpty {
             Color.clear.frame(height: 10)
         } else {
@@ -279,6 +300,7 @@ private struct CTDetailPills: View {
                 }
             }
             .padding(.top, 12)
+            .padding(.bottom, 10)
         }
     }
 
@@ -288,11 +310,12 @@ private struct CTDetailPills: View {
     }
 
     /// Rangfolge wie die Web-App (openDetail): Archiv → gekündigt per → befristet abgelaufen → behalten → Frist rot/orange;
-    /// «Pausiert …» nur bei nicht gekündigten/abgelaufenen Verträgen.
-    static func pills(_ c: Contract, calc: Calc) -> [Item] {
+    /// Frist-Pille entfällt, wenn der Kasten «Kündigen bis …» erscheint; «Pausiert …» nur bei nicht gekündigten/abgelaufenen Verträgen.
+    static func pills(_ c: Contract, calc: Calc, due60: Bool) -> [Item] {
         var main: Item?
         let archived = c.status == .cancelled
-        let gone = archived || c.cancelPer != nil || calc.endedByTerm(c)
+        let gone = CTDetailState.gone(c, calc: calc)
+        let fixd = calc.isFixed(c)
         let u = calc.urgency(c)
         if archived {
             main = Item(text: "Gekündigt" + (c.cancelledAt.map { " am " + Format.fmtD($0) } ?? ""), tone: .neutral)
@@ -304,12 +327,12 @@ private struct CTDetailPills: View {
             main = Item(text: "Zum Kündigen vorgemerkt", tone: .warn)
         } else if calc.isKept(c) {
             main = Item(text: "Behalten bis nächster Termin", tone: .neutral)
-        } else if u.level == .alert, let d = u.days {
+        } else if !fixd && !due60 && u.level == .alert, let d = u.days {
             main = Item(text: "Frist " + Format.inDays(d), tone: .alert)
-        } else if u.level == .warn, let d = u.days {
+        } else if !fixd && !due60 && u.level == .warn, let d = u.days {
             main = Item(text: "Frist " + Format.inDays(d), tone: .warn)
         }
-        if !gone && main == nil && calc.isFixed(c) {
+        if !gone && main == nil && fixd {
             main = Item(text: "Nicht kündbar", tone: .neutral)
         }
         if !gone && calc.isPaused(c), let p = calc.currentPause(c) {
@@ -330,24 +353,26 @@ private struct CTDetailSections: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openURL) private var openURL
     let contract: Contract
+    let due60: Bool
 
     var body: some View {
         let c = contract
         let data = model.data
         let calc = model.calc
         VStack(alignment: .leading, spacing: 0) {
-            CTDetailGroup(title: "Kosten", rows: costRows(c, calc: calc, data: data))
+            // Kosten: Zeilen und Preisverlauf (nur Ansicht; Preise erfassen nur unter «Bearbeiten»)
+            SectionHead(title: "Kosten")
+            let cr = costRows(c, calc: calc)
+            if !cr.isEmpty {
+                KCard { CTDetailRowsView(rows: cr) }
+            }
+            if !calc.pricesOf(c).isEmpty {
+                CTPriceChart(contract: c, today: calc.today)
+                    .padding(.top, cr.isEmpty ? 0 : 8)
+            }
             CTDetailGroup(title: "Laufzeit & Kündigung", rows: termRows(c, calc: calc))
             assignment(c, data: data)
             contact(c, data: data)
-            if !c.prices.isEmpty {
-                SectionHead(title: "Preisverlauf")
-                KCard(padding: 14) {
-                    CTPriceChart(contract: c, today: calc.today)
-                }
-                priceList(c, calc: calc)
-                    .padding(.top, 8)
-            }
             let xs = calc.extrasOf(c)
             if !xs.isEmpty {
                 SectionHead(title: "Sonderzahlungen")
@@ -363,43 +388,23 @@ private struct CTDetailSections: View {
                     .padding(14)
                     .background(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).fill(KColor.surface))
             }
-            if !c.documents.isEmpty {
-                SectionHead(title: "Dokumente")
-                KCard {
-                    ForEach(Array(c.documents.enumerated()), id: \.element.id) { i, d in
-                        if i > 0 { Divider().padding(.leading, 14) }
-                        Button {
-                            model.present(.document(DocumentRef(fileID: d.id, type: d.type, title: d.name, fileName: d.name)))
-                        } label: {
-                            Label {
-                                Text(d.name).foregroundStyle(KColor.ink).lineLimit(1)
-                            } icon: {
-                                Image(systemName: CTText.isPDF(d) ? "doc.richtext" : "photo")
-                                    .foregroundStyle(KColor.teal)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 14).padding(.vertical, 12)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
         }
     }
 
-    private func costRows(_ c: Contract, calc: Calc, data: AppData) -> [CTDetailRow] {
-        let home = data.settings.homeCurrency
-        var r: [CTDetailRow] = [
-            CTDetailRow("Betrag", Format.money(calc.curPrice(c)) + " " + c.currency.rawValue + " · " + Format.cycleTextOrMonthly(c.cycle))
-        ]
-        if !(c.cycleForCalc == 1 && c.currency == home) {
-            r.append(CTDetailRow("Ø pro Monat", Format.money(calc.monthlyCost(c)) + " " + home.rawValue))
+    /// Web: «Betrag» nur bei nicht monatlicher Zahlung; «Zahlung» = Zahlungsregel (+ «nächste am …»)
+    private func costRows(_ c: Contract, calc: Calc) -> [CTDetailRow] {
+        var r: [CTDetailRow] = []
+        if c.cycleForCalc != 1 {
+            r.append(CTDetailRow("Betrag", Format.money(calc.curPrice(c)) + " " + c.currency.rawValue))
         }
-        r.append(CTDetailRow("Pro Jahr", Format.money(calc.monthlyCost(c) * 12) + " " + home.rawValue))
-        r.append(CTDetailRow("Nächste Zahlung", Format.fmtD(calc.nextDue(c))))
-        if let p = calc.paidSoFar(c) {
-            r.append(CTDetailRow("Bisher bezahlt", Format.money0(p.sum) + " " + home.rawValue + " seit " + String(p.sinceYear)))
+        // TODO(core): `Calc.payRule` statt der lokalen Hilfe
+        let rule = CTLocalCalc.payRule(due: c.due, cycle: c.cycle)
+        if !rule.isEmpty {
+            var row = CTDetailRow("Zahlung", rule)
+            if c.cycleForCalc != 1, let nd = calc.nextDue(c), CTLocalCalc.paidSoFar(c, calc: calc) != nil {
+                row.sub = "nächste am " + Format.fmtShort(nd)
+            }
+            r.append(row)
         }
         return r
     }
@@ -407,15 +412,14 @@ private struct CTDetailSections: View {
     private func termRows(_ c: Contract, calc: Calc) -> [CTDetailRow] {
         var r: [CTDetailRow] = []
         let te = calc.termEnd(c)
-        // gekündigt (Archiv oder «gekündigt per») oder abgelaufen: keine Frist, kein nächster Termin, keine Verlängerung mehr
-        let gone = c.status == .cancelled || c.cancelPer != nil || calc.endedByTerm(c)
+        let gone = CTDetailState.gone(c, calc: calc)
+        let fixed = calc.isFixed(c)
         if let s = c.start { r.append(CTDetailRow("Beginn", Format.fmtD(s))) }
         if c.end != nil, let e = calc.effEnd(c) {
             let missed = !gone && (te.map { $0 > e } ?? false)
             r.append(CTDetailRow("Vertragsende", Format.fmtD(e) + (missed ? " · Frist verpasst" : "")))
         }
         let nt = Format.noticeText(c)
-        let fixed = calc.isFixed(c)
         if fixed {
             r.append(CTDetailRow("Kündigung", calc.isTax(c) ? "nicht kündbar · Steuern & Gebühren" : "nicht kündbar"))
         } else {
@@ -423,12 +427,12 @@ private struct CTDetailSections: View {
                 + (c.end == nil ? " · " + (c.cancelTerm != .anytime ? "auf " + Format.termText(c.cancelTerm) : "jederzeit") : "")))
         }
         let u = calc.urgency(c)
-        if !gone, let d = u.date, let T = te {
+        if !gone && !fixed && !due60, let d = u.date {
             let days = u.days ?? 0
-            if days >= 0 {
+            if days >= 0, let T = te {
                 // Mini-Zeitstrahl heute → kündigen bis → Ende (Web termLine)
                 r.append(CTDetailRow(timeline: CTTimeline(today: calc.today, deadline: d, end: T, anytime: calc.isAnytime(c), days: days)))
-            } else {
+            } else if let T = te {
                 r.append(CTDetailRow("Nächster Termin", "per " + Format.fmtShort(T) + ", kündigen bis " + Format.fmtShort(d) + " (abgelaufen)"))
             }
         }
@@ -451,7 +455,7 @@ private struct CTDetailSections: View {
         var rows: [CTDetailRow] = []
         if let cat = data.category(c.categoryID) { rows.append(CTDetailRow("Kategorie", cat.name)) }
         let hn = data.holdersText(of: c)
-        if !hn.isEmpty { rows.append(CTDetailRow("Inhaber", hn)) }
+        if !hn.isEmpty { rows.append(CTDetailRow(c.holderIDs.count > 1 ? "Personen" : "Person", hn)) }
         if !c.customerNo.isEmpty { rows.append(CTDetailRow("Kundennummer", c.customerNo)) }
         if !c.contractNo.isEmpty { rows.append(CTDetailRow("Vertragsnummer", c.contractNo)) }
         if !c.payMethod.isEmpty { rows.append(CTDetailRow("Zahlungsart", c.payMethod)) }
@@ -543,24 +547,6 @@ private struct CTDetailSections: View {
         }
     }
 
-    private func priceList(_ c: Contract, calc: Calc) -> some View {
-        let ps = calc.pricesOf(c)
-        var ni = -1
-        for (i, p) in ps.enumerated() where p.from <= calc.today { ni = i }
-        return KCard {
-            CTPriceRow(label: c.start.map { "ab " + Format.fmtD($0) } ?? "Anfangspreis",
-                       amount: Format.money(c.amount) + " " + c.currency.rawValue,
-                       tag: ni < 0 ? .current : nil, isCurrent: ni < 0)
-            ForEach(Array(ps.enumerated()), id: \.offset) { i, p in
-                Divider().padding(.leading, 14)
-                CTPriceRow(label: "ab " + Format.fmtD(p.from),
-                           amount: Format.money(p.amount) + " " + c.currency.rawValue,
-                           tag: i == ni ? .current : (p.from > calc.today ? .planned : nil),
-                           isCurrent: i == ni)
-            }
-        }
-    }
-
     static func stripScheme(_ s: String) -> String {
         var t = s
         for p in ["https://", "http://", "HTTPS://", "HTTP://"] where t.hasPrefix(p) {
@@ -576,6 +562,8 @@ struct CTDetailRow: Identifiable {
     let id = UUID()
     let label: String
     let value: String
+    /// Zusatz unter dem Wert (z.B. «nächste am 15.10.26»)
+    var sub = ""
     var timeline: CTTimeline?
     init(_ label: String, _ value: String) {
         self.label = label
@@ -689,12 +677,20 @@ private struct CTDetailRowsView: View {
                     .font(.subheadline)
                     .foregroundStyle(KColor.ink2)
                 Spacer(minLength: 8)
-                Text(r.value)
-                    .font(.body)
-                    .foregroundStyle(KColor.ink)
-                    .multilineTextAlignment(.trailing)
-                    .monospacedDigit()
-                    .textSelection(.enabled)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(r.value)
+                        .font(.body)
+                        .foregroundStyle(KColor.ink)
+                        .multilineTextAlignment(.trailing)
+                        .monospacedDigit()
+                        .textSelection(.enabled)
+                    if !r.sub.isEmpty {
+                        Text(r.sub)
+                            .font(.footnote)
+                            .foregroundStyle(KColor.ink2)
+                            .monospacedDigit()
+                    }
+                }
             }
             .padding(.horizontal, 14).padding(.vertical, 11)
             .accessibilityElement(children: .combine)

@@ -3,10 +3,12 @@ import PhotosUI
 import UniformTypeIdentifiers
 import KontivoCore
 
-/// Unterseite «Weitere Angaben»: Preisänderungen, Sonderzahlungen, Fristen, Kundendaten, Kontakt & Notiz, Adresse, Dokumente.
+/// Unterseite «Weitere Angaben»: Preisänderungen, Sonderzahlungen, Erinnerung und Wechsel, Kundendaten,
+/// Adresse des Vertragspartners, Kontakt & Notiz (Dokumente seit Web 6e77e47 als Chip auf der Hauptseite).
 struct CTFormMorePage: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
+    @FocusState private var addressFocused: Bool
 
     init(form: CTFormState) {
         self.form = form
@@ -14,55 +16,36 @@ struct CTFormMorePage: View {
 
     var body: some View {
         GeometryReader { geo in
-            Form {
-                CTMorePrices(form: form)
-                CTMoreExtras(form: form)
-                CTMoreCustomer(form: form)
-                CTMoreContact(form: form)
-                CTMoreAddress(form: form)
-                CTMoreDocuments(form: form)
+            ScrollViewReader { proxy in
+                Form {
+                    CTMorePrices(form: form)
+                    CTMoreExtras(form: form)
+                    CTMoreReminder(form: form)
+                    CTMoreCustomer(form: form)
+                    CTMoreAddress(form: form, focused: $addressFocused)
+                    CTMoreContact(form: form)
+                }
+                .scrollContentBackground(.hidden)
+                .scrollDismissesKeyboard(.interactively)
+                .contentMargins(.horizontal, max(KMetric.gutter, (geo.size.width - KMetric.maxContent) / 2), for: .scrollContent)
+                .onAppear { scrollToAddress(proxy) }
+                .onChange(of: form.focusAddress) { _, on in if on { scrollToAddress(proxy) } }
             }
-            .scrollContentBackground(.hidden)
-            .scrollDismissesKeyboard(.interactively)
-            .contentMargins(.horizontal, max(KMetric.gutter, (geo.size.width - KMetric.maxContent) / 2), for: .scrollContent)
         }
         .kPageBackground()
         .kKeyboardDone()
-        .fileImporter(isPresented: $form.showFileImporter, allowedContentTypes: [.pdf, .png, .jpeg, .webP, .heic, .image]) { result in
-            importFile(result)
-        }
-        .onChange(of: form.docPhoto) { _, item in
-            guard let item else { return }
-            loadDocPhoto(item)
-        }
     }
 
-    private func importFile(_ result: Result<URL, Error>) {
-        guard case .success(let url) = result else {
-            if case .failure = result { model.toast("Upload fehlgeschlagen") }
-            return
-        }
-        let scoped = url.startAccessingSecurityScopedResource()
-        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-        guard let data = try? Data(contentsOf: url), !data.isEmpty else {
-            model.toast("Upload fehlgeschlagen")
-            return
-        }
-        let ext = url.pathExtension.lowercased()
-        let type = UTType(filenameExtension: ext)?.preferredMIMEType ?? CTMoreDocuments.guessType(ext)
-        form.attach(data, name: url.lastPathComponent, type: type, model: model)
-    }
+    static let addressAnchor = "ct.more.address"
 
-    private func loadDocPhoto(_ item: PhotosPickerItem) {
-        let today = model.today
-        Task {
-            let data = try? await item.loadTransferable(type: Data.self)
-            form.docPhoto = nil
-            guard let d = data, let img = UIImage(data: d), let jpg = img.jpegData(compressionQuality: 0.85) else {
-                model.toast("Upload fehlgeschlagen")
-                return
-            }
-            form.attach(jpg, name: "Foto " + Format.fmtShort(today) + ".jpg", type: "image/jpeg", model: model)
+    /// «Erfassen/Ändern» beim Kündigungsweg Brief: zur Adresse scrollen und das erste Feld fokussieren
+    private func scrollToAddress(_ proxy: ScrollViewProxy) {
+        guard form.focusAddress else { return }
+        form.focusAddress = false
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            withAnimation { proxy.scrollTo(CTFormMorePage.addressAnchor, anchor: .center) }
+            if !form.partnerName.ctTrimmed.isEmpty { addressFocused = true }
         }
     }
 }
@@ -99,20 +82,36 @@ private struct CTMorePrices: View {
             CTOptionalDateRow(title: "Gültig ab", day: $form.priceFrom, fallback: today)
             LabeledContent("Neuer Betrag") {
                 TextField("74.90", text: $form.priceAmountText)
+                    .accessibilityIdentifier("form.priceAmount")
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .monospacedDigit()
             }
             Button("Preisänderung hinzufügen") {
-                model.toast(form.addPrice())
+                add(force: false)
             }
             .fontWeight(.semibold)
+            .accessibilityIdentifier("form.priceAdd")
         } header: {
             CTMoreHeader(title: "Preisänderungen", count: n > 0 ? "\(n)" + (n == 1 ? " Änderung" : " Änderungen") : "")
         } footer: {
             Text("Der Betrag unter «Kosten» ist der Anfangspreis. Jede Änderung gilt ab ihrem Datum.")
         }
         .listRowBackground(KColor.surface)
+    }
+
+    /// Vormerken; «Preis bleibt gleich» fragt nicht blockierend nach («Trotzdem hinzufügen»)
+    private func add(force: Bool) {
+        switch form.addPrice(force: force) {
+        case .toast(let t, let long):
+            model.toast(t, seconds: long ? 4 : 2.4)
+        case .confirmSame(let title, let message):
+            let f = form
+            let m = model
+            model.ask(title: title, message: message, ok: "Trotzdem hinzufügen") {
+                if case .toast(let t, let long) = f.addPrice(force: true) { m.toast(t, seconds: long ? 4 : 2.4) }
+            }
+        }
     }
 
     @ViewBuilder
@@ -167,6 +166,52 @@ private struct CTMoreExtras: View {
             Text("Zum Beispiel Nebenkostenabrechnung oder Aktivierungsgebühr. Zählt in «Kosten» und «Budget» im jeweiligen Monat, nicht in den monatlichen Fixkosten.")
         }
         .listRowBackground(KColor.surface)
+    }
+}
+
+// MARK: Erinnerung und Wechsel
+
+private struct CTMoreReminder: View {
+    @Environment(AppModel.self) private var model
+    @Bindable var form: CTFormState
+
+    var body: some View {
+        Section {
+            Toggle(isOn: $form.mandatory) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Pflichtvertrag")
+                    Text("Wechseln statt kündigen, z.B. Krankenkasse. Nach der Kündigung neuen Anbieter erfassen.")
+                        .font(.footnote).foregroundStyle(KColor.ink2)
+                }
+            }
+            .accessibilityIdentifier("form.mandatory")
+            Toggle(isOn: $form.noWatch) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Nicht an Frist erinnern")
+                    Text("Erscheint nicht unter «Fristen», z.B. Miete.")
+                        .font(.footnote).foregroundStyle(KColor.ink2)
+                }
+            }
+            .accessibilityIdentifier("form.noWatch")
+            // Nativ zusätzlich: Mietvertrag (Brief mit Unterschrift); ohne Wahl gilt die Erkennung aus Bezeichnung/Kategorie
+            Toggle("Mietvertrag", isOn: rentBinding)
+        } header: {
+            Text("Erinnerung und Wechsel")
+        } footer: {
+            Text("Miete braucht immer einen Brief mit Unterschrift.")
+        }
+        .listRowBackground(KColor.surface)
+    }
+
+    private var rentBinding: Binding<Bool> {
+        Binding(
+            get: {
+                if let r = form.isRent { return r }
+                let kind = model.data.category(form.categoryID)?.kind
+                return Letter.isRentHeuristic(label: form.label, partner: form.partnerName, kind: kind)
+            },
+            set: { form.isRent = $0 }
+        )
     }
 }
 
@@ -239,6 +284,7 @@ private struct CTMoreContact: View {
 private struct CTMoreAddress: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
+    var focused: FocusState<Bool>.Binding
 
     var body: some View {
         let noPartner = form.partnerName.ctTrimmed.isEmpty
@@ -246,6 +292,8 @@ private struct CTMoreAddress: View {
             Group {
                 TextField(form.partnerName.ctTrimmed.isEmpty ? "Firma (optional)" : "Firma (optional, sonst " + form.partnerName.ctTrimmed + ")", text: $form.address.company)
                     .textContentType(.organizationName)
+                    .focused(focused)
+                    .id(CTFormMorePage.addressAnchor)
                 TextField("Zusatz, z.B. Kundendienst oder Postfach", text: $form.address.extra)
                 TextField("Strasse und Nr.", text: $form.address.street)
                     .textContentType(.fullStreetAddress)
@@ -286,66 +334,5 @@ private struct CTMoreAddress: View {
                  : "Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.")
         }
         .listRowBackground(KColor.surface)
-    }
-}
-
-// MARK: Dokumente
-
-private struct CTMoreDocuments: View {
-    @Environment(AppModel.self) private var model
-    @Bindable var form: CTFormState
-
-    var body: some View {
-        let n = form.documents.count
-        Section {
-            ForEach(form.documents) { d in
-                HStack(spacing: 10) {
-                    Button {
-                        model.present(.document(DocumentRef(fileID: d.id, type: d.type, title: d.name, fileName: d.name)))
-                    } label: {
-                        Label {
-                            Text(d.name).foregroundStyle(KColor.ink).lineLimit(1)
-                        } icon: {
-                            Image(systemName: CTText.isPDF(d) ? "doc.richtext" : "photo")
-                                .foregroundStyle(KColor.teal)
-                        }
-                    }
-                    .buttonStyle(.borderless)
-                    Spacer(minLength: 8)
-                    Button {
-                        form.documents.removeAll { $0.id == d.id }
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(KColor.ink3)
-                            .imageScale(.large)
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel("Entfernen")
-                }
-            }
-            Button {
-                form.showFileImporter = true
-            } label: {
-                Label("Datei anhängen — PDF oder Bild", systemImage: "paperclip")
-            }
-            PhotosPicker(selection: $form.docPhoto, matching: .images) {
-                Label("Foto anhängen", systemImage: "photo.on.rectangle")
-            }
-        } header: {
-            CTMoreHeader(title: "Dokumente", count: n > 0 ? "\(n)" + (n == 1 ? " Datei" : " Dateien") : "")
-        }
-        .listRowBackground(KColor.surface)
-    }
-
-    /// Typ aus der Endung (guessType)
-    static func guessType(_ ext: String) -> String {
-        switch ext {
-        case "pdf": return "application/pdf"
-        case "png": return "image/png"
-        case "jpg", "jpeg": return "image/jpeg"
-        case "webp": return "image/webp"
-        case "heic": return "image/heic"
-        default: return "application/octet-stream"
-        }
     }
 }
