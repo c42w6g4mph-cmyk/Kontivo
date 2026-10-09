@@ -98,6 +98,10 @@ struct AppSheetView: View {
             DocumentViewer(ref: ref)
         case .manage(let route):
             ManageView(start: route)
+        case .completeness:
+            // TODO(Integrator): durch die Vollständigkeit-Ansicht des Bereichs core ersetzen (z.B. `CompletenessView(only: only)`).
+            // Bis dahin Rückfall auf die bisherige Datenqualität.
+            ManageView(start: .quality)
         }
     }
 }

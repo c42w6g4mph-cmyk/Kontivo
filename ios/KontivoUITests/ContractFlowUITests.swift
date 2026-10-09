@@ -41,8 +41,8 @@ final class ContractFlowUITests: KontivoUITestCase {
         wait(elContaining("52.00 CHF"), "Neuer Betrag im Detail")
         XCTAssertFalse(elContaining("45.00 CHF").exists, "Alter Betrag noch sichtbar")
 
-        // Duplizieren (unter «Weitere Aktionen»)
-        tap(button("Weitere Aktionen"), "Weitere Aktionen")
+        // Duplizieren (Menü ••• oben, Web 4be2078)
+        tap(button("detail.menu"), "Menü •••")
         tap(button("Duplizieren"), "Duplizieren")
         waitNav("Duplizieren")
         tapTop("Sichern")
@@ -50,25 +50,26 @@ final class ContractFlowUITests: KontivoUITestCase {
         tapTop("Schliessen")
         waitUntil("Zwei Verträge in der Liste") { self.rows.count == 2 }
 
-        // Pausieren → Fortsetzen
+        // Pausieren → Fortsetzen (Menü •••)
         tap(rows.firstMatch, "Vertragskarte")
-        tapTop("Pausieren")
+        tap(button("detail.menu"), "Menü •••")
+        tap(button("Pausieren"), "Pausieren")
         tap(buttonStarting("1 Monat"), "1 Monat")
         // Detail schliesst sich nach Aktionen (wie Web)
         waitGone(button("Bearbeiten"), "Detail nach dem Pausieren")
         let pausedRow = app.buttons.matching(pred("label BEGINSWITH %@ AND label CONTAINS %@", contractName, "pausiert")).firstMatch
         tap(pausedRow, "Pausierte Vertragskarte")
-        wait(button("Fortsetzen"), "Fortsetzen nach dem Pausieren")
         wait(elContaining("Pausiert bis"), "Pille «Pausiert bis»")
-        tapTop("Fortsetzen")
+        tap(button("detail.menu"), "Menü •••")
+        tap(button("Fortsetzen"), "Fortsetzen nach dem Pausieren")
         waitGone(button("Bearbeiten"), "Detail nach dem Fortsetzen")
         waitUntil("Keine Karte mehr «pausiert»") { !pausedRow.exists }
         tap(rows.firstMatch, "Vertragskarte")
+        tap(button("detail.menu"), "Menü •••")
         wait(button("Pausieren"), "Pausieren nach dem Fortsetzen")
 
         // Löschen mit Bestätigung → Detail schliesst sich
-        tap(button("Weitere Aktionen"), "Weitere Aktionen")
-        tap(button("Vertrag löschen"), "Vertrag löschen")
+        tap(button("Löschen"), "Löschen")
         wait(app.alerts.firstMatch, "Rückfrage «Vertrag löschen?»")
         tapAlertButton("Löschen")
         waitGone(button("Bearbeiten"), "Detail nach dem Löschen")

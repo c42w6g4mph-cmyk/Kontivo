@@ -96,7 +96,7 @@ final class ReviewPackageUITests: KontivoUITestCase {
         tap(row, "Miete öffnen")
         wait(elContaining("Sinan 70"), "Inhaber mit Anteilen", timeout: 12)
         XCTAssertTrue(elContaining("Lara 30").exists)
-        wait(elContaining("Bisher bezahlt"), "Zeile «Bisher bezahlt»")
+        wait(elContaining("insgesamt bezahlt"), "Kachel «insgesamt bezahlt» (Detail-Kennzahlen, Web v95)")
         tapTop("Bearbeiten")
         waitNav("Vertrag bearbeiten")
         let seg = el("form.split")

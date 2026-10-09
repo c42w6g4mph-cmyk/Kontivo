@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import UniformTypeIdentifiers
 import KontivoCore
 
 /// Vertragsformular: neu, bearbeiten, duplizieren, neuer Anbieter. Hauptseite mit «Vertrag», «Kosten», «Laufzeit & Kündigung»
@@ -80,8 +81,7 @@ private struct CTFormHost: View {
         }
         .sheet(isPresented: $form.showCatalog) {
             CTCatalogSheet { t in
-                form.applyTemplate(t, keepName: false, onlyEmpty: false, data: model.data)
-                model.toast("Vorlage übernommen — bitte prüfen")
+                CTTplLogo.apply(t, form: form, model: model)
             }
             .environment(model)
         }
@@ -102,6 +102,16 @@ private struct CTFormHost: View {
         .onChange(of: form.logoPhoto) { _, item in
             guard let item else { return }
             loadLogoPhoto(item)
+        }
+        // Steuern & Gebühren erzwingen «Nicht kündbar» (Web paintCats)
+        .onChange(of: form.categoryID) { _, _ in form.categoryChanged(model.data) }
+        // Dokumente (Chip neben dem Logo): Datei oder Foto direkt in den Entwurf
+        .fileImporter(isPresented: $form.showFileImporter, allowedContentTypes: [.pdf, .png, .jpeg, .webP, .heic, .image]) { result in
+            CTFormDocs.importFile(result, form: form, model: model)
+        }
+        .onChange(of: form.docPhoto) { _, item in
+            guard let item else { return }
+            CTFormDocs.loadPhoto(item, form: form, model: model)
         }
         .onAppear {
             if case .edit(let id) = context, ContractFormLaunch.openMoreFor == id {
@@ -154,7 +164,7 @@ private struct CTFormMainPage: View {
             Form {
                 CTFormContractSection(form: form)
                 CTFormCostSection(form: form)
-                CTFormTermSection(form: form)
+                CTFormTermSection(form: form, showMore: $showMore)
                 Section {
                     CTFormMoreRow(form: form, showMore: $showMore)
                 }
@@ -225,7 +235,7 @@ private struct CTFormContractSection: View {
     @State private var showTaxInfo = false
 
     /// Text des Infoknopfs hinter «Steuern & Gebühren» (Web TAX_INFO, v88)
-    static let taxInfo = "Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge markierst du unter «In «Fristen» anzeigen»."
+    static let taxInfo = "Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge: unter «Laufzeit & Kündigung» die Kachel «Nicht kündbar» wählen."
 
     private var categoryRow: some View {
         let cat = model.data.category(form.categoryID)
@@ -272,7 +282,7 @@ private struct CTFormContractSection: View {
 
     private var holdersRow: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Inhaber — mehrere möglich")
+            Text("Personen — mehrere möglich")
                 .font(.footnote)
                 .foregroundStyle(KColor.ink2)
             CTFlowLayout(spacing: 8, lineSpacing: 8) {
@@ -393,24 +403,34 @@ private struct CTFormLogoRows: View {
         let data = model.data
         let logo = form.effectiveLogo(data)
         let symbol = KIcon.symbol(for: data.category(form.categoryID))
-        Button {
-            withAnimation(.easeInOut(duration: 0.2)) { form.logoOpen.toggle() }
-        } label: {
-            HStack(spacing: 12) {
-                MarkView(logoID: logo?.id, logoBg: logo?.bg, colorHex: form.markColor(data), symbol: symbol, size: 52)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Logo").foregroundStyle(KColor.ink)
-                    Text("Logo & Farbe").font(.footnote).foregroundStyle(KColor.ink2)
+        HStack(spacing: 12) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    form.logoOpen.toggle()
+                    if form.logoOpen { form.docsOpen = false }
                 }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(KColor.ink3)
-                    .rotationEffect(.degrees(form.logoOpen ? 90 : 0))
+            } label: {
+                HStack(spacing: 12) {
+                    MarkView(logoID: logo?.id, logoBg: logo?.bg, colorHex: form.markColor(data), symbol: symbol, size: 52)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Logo").foregroundStyle(KColor.ink)
+                        Text("Logo & Farbe").font(.footnote).foregroundStyle(KColor.ink2)
+                    }
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(KColor.ink3)
+                        .rotationEffect(.degrees(form.logoOpen ? 90 : 0))
+                }
+                .contentShape(Rectangle())
             }
-            .contentShape(Rectangle())
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Logo und Farbe ändern")
+            Spacer(minLength: 8)
+            CTFormDocsChip(form: form)
         }
-        .accessibilityLabel("Logo und Farbe ändern")
+        if form.docsOpen {
+            CTFormDocsPanel(form: form)
+        }
         if form.logoOpen {
             Button {
                 if form.logoSearchName.isEmpty {
@@ -553,7 +573,7 @@ private struct CTFormCostSection: View {
                     Text(c.rawValue).tag(c)
                 }
             }
-            Picker("Turnus", selection: $form.cycle) {
+            Picker("Zahlungsrhythmus", selection: $form.cycle) {
                 ForEach(cycleOptions, id: \.self) { m in
                     Text(Format.cycleTextOrMonthly(m)).tag(m)
                 }
@@ -561,136 +581,22 @@ private struct CTFormCostSection: View {
             .onChange(of: form.cycle) { _, _ in
                 if let t = form.cycleChanged() { model.toast(t) }
             }
-            DatePicker("Nächste Zahlung am", selection: $form.due.ctDate, displayedComponents: .date)
+            DatePicker("Zahlung am", selection: $form.due.ctDate, displayedComponents: .date)
+                .accessibilityIdentifier("form.due")
         } header: {
             Text("Kosten")
+        } footer: {
+            // Zahlungsregel live, gleich formuliert wie im Detail (Web #fPayHint)
+            let h = form.payHint(model.data, today: model.today)
+            if !h.isEmpty {
+                Text(h).accessibilityIdentifier("form.payHint")
+            }
         }
         .listRowBackground(KColor.surface)
     }
 
     private var cycleOptions: [Int] {
         Format.cycleOptions.contains(form.cycle) ? Format.cycleOptions : Format.cycleOptions + [form.cycle]
-    }
-}
-
-// MARK: Abschnitt «Laufzeit & Kündigung»
-
-private struct CTFormTermSection: View {
-    @Environment(AppModel.self) private var model
-    @Bindable var form: CTFormState
-    @FocusState private var noticeFocused: Bool
-
-    var body: some View {
-        let today = model.today
-        Section {
-            Picker("Laufzeit", selection: $form.termFixed) {
-                Text("Jederzeit kündbar").tag(false)
-                Text("Feste Laufzeit").tag(true)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            CTOptionalDateRow(title: "Vertragsbeginn", day: $form.start, fallback: today)
-            if form.termFixed {
-                CTOptionalDateRow(title: "Vertragsende", day: $form.end, fallback: today.addingMonths(12))
-            }
-            LabeledContent("Kündigungsfrist") {
-                HStack(spacing: 6) {
-                    TextField("–", text: $form.noticeText)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .monospacedDigit()
-                        .frame(maxWidth: 56)
-                        .focused($noticeFocused)
-                        .accessibilityLabel("Kündigungsfrist")
-                        .onChange(of: form.focusNotice) { _, on in
-                            if on {
-                                noticeFocused = true
-                                form.focusNotice = false
-                            }
-                        }
-                    Picker("Einheit", selection: $form.noticeUnit) {
-                        Text("Monate").tag(NoticeUnit.months)
-                        Text("Wochen").tag(NoticeUnit.weeks)
-                        Text("Tage").tag(NoticeUnit.days)
-                        Text(". im Monat").tag(NoticeUnit.dayOfMonth)
-                    }
-                    .labelsHidden()
-                    .fixedSize()
-                }
-            }
-            if form.termFixed {
-                Picker("Verlängert sich um", selection: $form.renewMonths) {
-                    Text("— nicht automatisch").tag(0)
-                    Text("1 Monat").tag(1)
-                    ForEach([3, 6, 12, 24], id: \.self) { m in
-                        Text("\(m) Monate").tag(m)
-                    }
-                    if ![0, 1, 3, 6, 12, 24].contains(form.renewMonths) {
-                        Text("\(form.renewMonths) Monate").tag(form.renewMonths)
-                    }
-                }
-            } else {
-                Picker("Kündbar per", selection: $form.cancelTerm) {
-                    Text("jederzeit").tag(CancelTerm.anytime)
-                    Text("Ende Periode").tag(CancelTerm.period)
-                    Text("Monatsende").tag(CancelTerm.monthEnd)
-                    Text("Quartalsende").tag(CancelTerm.quarterEnd)
-                    Text("Halbjahresende").tag(CancelTerm.halfYearEnd)
-                    Text("Jahresende").tag(CancelTerm.yearEnd)
-                    Text("Ende Vertragsjahr").tag(CancelTerm.contractYear)
-                }
-            }
-            // Fristen-Angaben (seit Web v80 hier statt unter «Weitere Angaben»)
-            let isTax = model.data.category(form.categoryID)?.kind == .taxes
-            Picker("In «Fristen» anzeigen", selection: isTax ? Binding<CTFormState.Watch>.constant(.fixed) : $form.watch) {
-                Text("Ja").tag(CTFormState.Watch.yes)
-                Text("Ja – Pflichtvertrag (wechseln statt kündigen)").tag(CTFormState.Watch.mandatory)
-                Text("Nein – z.B. Miete").tag(CTFormState.Watch.noWatch)
-                Text("Nein – nicht kündbar (z.B. Serafe, Rundfunkbeitrag)").tag(CTFormState.Watch.fixed)
-            }
-            .disabled(isTax)
-            .accessibilityIdentifier("form.watch")
-            Picker("Kündigungsweg", selection: $form.cancelChannel) {
-                Text("—").tag(CancelChannel?.none)
-                ForEach(CancelChannel.allCases, id: \.self) { ch in
-                    Text(ch.webText).tag(CancelChannel?.some(ch))
-                }
-            }
-            CTOptionalDateRow(title: "Probeabo endet", day: $form.trial, fallback: today.addingMonths(1))
-            if form.cancelChannel == .online {
-                CTField(title: "Kündigungslink", placeholder: "netflix.com/cancelplan", text: $form.cancelURL,
-                        keyboard: .URL, capitalization: .never, autocorrect: false)
-            }
-            Toggle("Mietvertrag", isOn: rentBinding)
-        } header: {
-            Text("Laufzeit & Kündigung")
-        } footer: {
-            VStack(alignment: .leading, spacing: 6) {
-                let hint = form.termHint(model.data, today: today)
-                if !hint.isEmpty {
-                    Text(hint)
-                }
-                if model.data.category(form.categoryID)?.kind == .taxes {
-                    Text("Steuern und Gebühren sind nicht kündbar: keine Fristen, kein Kündigen.")
-                }
-                if form.cancelChannel == .online {
-                    Text("Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.")
-                }
-                Text("Miete braucht immer einen Brief mit Unterschrift.")
-            }
-        }
-        .listRowBackground(KColor.surface)
-    }
-
-    private var rentBinding: Binding<Bool> {
-        Binding(
-            get: {
-                if let r = form.isRent { return r }
-                let kind = model.data.category(form.categoryID)?.kind
-                return Letter.isRentHeuristic(label: form.label, partner: form.partnerName, kind: kind)
-            },
-            set: { form.isRent = $0 }
-        )
     }
 }
 
@@ -710,7 +616,7 @@ private struct CTFormMoreRow: View {
                     Text("Weitere Angaben")
                         .font(.body.weight(.semibold))
                         .foregroundStyle(KColor.ink)
-                    Text(summary ?? "Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt, Dateien …")
+                    Text(summary ?? "Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt …")
                         .font(.footnote)
                         .foregroundStyle(summary == nil ? KColor.ink2 : KColor.teal)
                         .lineLimit(3)
@@ -724,5 +630,6 @@ private struct CTFormMoreRow: View {
             .padding(.vertical, 4)
             .contentShape(Rectangle())
         }
+        .accessibilityIdentifier("form.more")
     }
 }

@@ -11,8 +11,8 @@ extension String {
 @MainActor
 @Observable
 final class CTFormState {
-    /// «In Fristen anzeigen»: Ja / Ja – Pflichtvertrag (wechseln statt kündigen) / Nein – z.B. Miete / Nein – nicht kündbar
-    enum Watch: Hashable { case yes, mandatory, noWatch, fixed }
+    /// Art des Vertrags (Web `termMode`, Kacheln): Flexibel, Mindestlaufzeit, Probeabo, Nicht kündbar (= `noCancel`)
+    enum TermMode: String, Hashable, CaseIterable { case open, fixed, trial, tax }
 
     let context: ContractFormContext
     /// Ausgangsvertrag (bestehend, Entwurf, Kopie); Felder ausserhalb des Formulars bleiben unverändert
@@ -20,6 +20,8 @@ final class CTFormState {
     /// Vertrag existiert schon (bearbeiten)
     let isExisting: Bool
     let title: String
+    /// Stichtag beim Öffnen (für Probeabo-Chips ohne Vertragsbeginn)
+    let today0: Day
 
     // Hauptseite
     var label: String
@@ -32,7 +34,9 @@ final class CTFormState {
     var currency: Currency
     var cycle: Int
     var due: Day
-    var termFixed: Bool
+    var termMode: TermMode
+    /// Kachel «Nicht kündbar» durch die Kategorie «Steuern & Gebühren» erzwungen (Web `draft.taxForced`)
+    var taxForced = false
     var start: Day?
     var end: Day?
     var noticeText: String
@@ -43,7 +47,9 @@ final class CTFormState {
     // Weitere Angaben
     var prices: [PriceChange]
     var extras: [ExtraPayment]
-    var watch: Watch
+    /// «Pflichtvertrag» und «Nicht an Frist erinnern» (Weitere Angaben → Erinnerung und Wechsel)
+    var mandatory: Bool
+    var noWatch: Bool
     var isRent: Bool?
     var cancelChannel: CancelChannel?
     var trial: Day?
@@ -67,6 +73,10 @@ final class CTFormState {
     var logoTouched = false
     /// «Kündigungsfrist prüfen»: Fokus ins Fristfeld setzen (Hauptseite)
     var focusNotice = false
+    /// «Erfassen/Ändern» beim Kündigungsweg Brief: Weitere Angaben bei der Adresse öffnen
+    var focusAddress = false
+    /// Gewählter Chip der Probeabo-Dauer (Web `trialD`): "", 7d, 14d, 1m, 3m, date
+    var trialChoice = ""
 
     // Vorlagen und Vorschläge
     /// Name der übernommenen Katalog-Vorlage
@@ -76,6 +86,11 @@ final class CTFormState {
     var stdDone = false
     /// Zuletzt gewählter Vorschlag (Liste ausblenden, solange der Text gleich ist)
     var pSugSel = ""
+    /// Katalog-Zusammenfassung: Stand vor/nach dem Übernehmen, Liste der Änderungen, vorgeschlagenes Logo (Web tplUndo/tplAfter/tplSum/tplLogo)
+    var tplUndo: CTTplSnap?
+    var tplAfter: CTTplSnap?
+    var tplSum: [String]?
+    var tplLogoID: String?
 
     // Eingaben auf «Weitere Angaben»
     var priceFrom: Day?
@@ -90,6 +105,8 @@ final class CTFormState {
     var showCatalog = false
     var showLogoSearch = false
     var logoOpen = false
+    /// Panel «Dokumente» (Chip neben dem Logo)
+    var docsOpen = false
     /// Hinweis nach «Google» («So geht’s …»)
     var googleHint = false
     var cropItem: CTImageItem?
@@ -106,6 +123,7 @@ final class CTFormState {
 
     init(context: ContractFormContext, data: AppData, today: Day) {
         self.context = context
+        today0 = today
         var c: Contract
         var blankAmount = false
         var useHomeCurrency = false
@@ -140,7 +158,15 @@ final class CTFormState {
         currency = useHomeCurrency ? data.settings.homeCurrency : c.currency
         cycle = c.cycle == 0 ? 1 : c.cycle
         due = c.due ?? today
-        termFixed = c.end != nil || c.renewMonths != 0
+        if c.noCancel {
+            termMode = .tax
+        } else if c.end != nil || c.renewMonths != 0 {
+            termMode = .fixed
+        } else if let tr = c.trial, c.trialKept == nil, tr >= today {
+            termMode = .trial
+        } else {
+            termMode = .open
+        }
         start = c.start
         end = c.end
         noticeText = c.notice > 0 ? "\(c.notice)" : ""
@@ -149,7 +175,8 @@ final class CTFormState {
         renewMonths = c.renewMonths
         prices = c.prices
         extras = c.extras.filter { $0.amount.isFinite && $0.amount != 0 }.ctStableSorted { $0.date < $1.date }
-        watch = c.noCancel ? .fixed : (c.mandatory ? .mandatory : (c.noWatch ? .noWatch : .yes))
+        mandatory = c.mandatory
+        noWatch = c.noWatch
         isRent = c.isRent
         cancelChannel = c.cancelChannel
         trial = c.trial
@@ -171,6 +198,9 @@ final class CTFormState {
         initialWeb = partner?.web ?? ""
         initialAddress = partner?.address ?? PostalAddress()
         initialSnapshot = nil
+        if termMode == .trial { syncTrialChoice() }
+        // Steuern & Gebühren: immer «Nicht kündbar» (Web paintCats)
+        categoryChanged(data)
         initialSnapshot = snapshot()
     }
 
@@ -178,9 +208,9 @@ final class CTFormState {
 
     func snapshot() -> CTFormSnapshot {
         CTFormSnapshot(label: label, partnerName: partnerName, categoryID: categoryID, holderIDs: holderIDs, split: split, amountText: amountText,
-                       currency: currency, cycle: cycle, due: due, termFixed: termFixed, start: start, end: end, noticeText: noticeText,
+                       currency: currency, cycle: cycle, due: due, termMode: termMode, start: start, end: end, noticeText: noticeText,
                        noticeUnit: noticeUnit, cancelTerm: cancelTerm, renewMonths: renewMonths, prices: prices, extras: extras,
-                       watch: watch, isRent: isRent, cancelChannel: cancelChannel, trial: trial, cancelURL: cancelURL,
+                       mandatory: mandatory, noWatch: noWatch, isRent: isRent, cancelChannel: cancelChannel, trial: trial, cancelURL: cancelURL,
                        customerNo: customerNo, contractNo: contractNo, payMethod: payMethod, payAccount: payAccount,
                        web: web, tel: tel, mail: mail, note: note, address: address, documents: documents,
                        colorHex: colorHex, logoID: logoID, logoBg: logoBg, logoTouched: logoTouched)
@@ -251,15 +281,20 @@ final class CTFormState {
         return got
     }
 
-    /// Vorlage übernehmen (applyTpl). `onlyEmpty`: nur leere Felder füllen (Internet-Vorschlag, Fix N4).
+    /// Vorlage übernehmen (applyTpl). `onlyEmpty`: nur leere Felder füllen (Internet-Vorschlag, «Übliche Frist übernehmen»).
+    /// Sonst (Katalog) mit Zusammenfassung und «Rückgängig» (tplUndo/tplAfter/tplSum).
     func applyTemplate(_ t: CatalogEntry, keepName: Bool, onlyEmpty: Bool, data: AppData) {
+        let snap = tplSnapshot()
         if !keepName {
             partnerName = t.name
             pSugSel = t.name
         }
         if label.ctTrimmed.isEmpty { label = t.label }
         if !t.category.isEmpty, let cid = CTFormState.categoryID(for: t.category, data: data) {
-            if !onlyEmpty || !categoryValid(data) { categoryID = cid }
+            if !onlyEmpty || !categoryValid(data) {
+                categoryID = cid
+                categoryChanged(data)
+            }
         }
         if onlyEmpty {
             if t.notice > 0 && noticeText.ctTrimmed.isEmpty {
@@ -271,27 +306,152 @@ final class CTFormState {
             noticeText = t.notice > 0 ? "\(t.notice)" : ""
             if t.notice > 0 { noticeUnit = t.noticeUnit }
         }
-        if !termFixed && (!onlyEmpty || cancelTerm == .anytime) { cancelTerm = t.cancelTerm }
+        if termMode != .fixed && (!onlyEmpty || cancelTerm == .anytime) { cancelTerm = t.cancelTerm }
         if let ch = t.cancelChannel, !onlyEmpty || cancelChannel == nil { cancelChannel = ch }
         if !t.web.isEmpty && web.ctTrimmed.isEmpty { web = t.web }
         // Kündigungslink aus dem Katalog nur, wenn noch keiner eingetragen ist (Web `applyTpl`)
         if !t.cancelURL.isEmpty && cancelURL.ctTrimmed.isEmpty { cancelURL = t.cancelURL }
-        // Katalog «Steuern & Gebühren» (Serafe, Rundfunkbeitrag): nicht kündbar statt Pflichtvertrag (Web v88)
-        if onlyEmpty {
-            if t.isFixed && watch == .yes { watch = .fixed } else if t.mandatory && !t.isFixed && watch == .yes { watch = .mandatory }
-        } else if t.isFixed {
-            watch = .fixed
-        } else if t.mandatory {
-            watch = .mandatory
-        } else if watch == .mandatory || watch == .fixed {
-            watch = .yes
-        }
+        if !t.tel.isEmpty && tel.ctTrimmed.isEmpty { tel = t.tel }
+        if !t.mail.isEmpty && mail.ctTrimmed.isEmpty { mail = t.mail }
         // Kontaktdaten aus dem Katalog nur in leere Felder (Web b520636)
         if !t.address.isEmpty && address.isEmpty { address = WebImport.addrSplit(t.address, partnerName: partnerName) }
-        if !t.mail.isEmpty && mail.ctTrimmed.isEmpty { mail = t.mail }
-        if !t.tel.isEmpty && tel.ctTrimmed.isEmpty { tel = t.tel }
+        // Katalog «Steuern & Gebühren» (Serafe, Rundfunkbeitrag): nicht kündbar statt Pflichtvertrag
+        let tFix = t.isFixed
+        if onlyEmpty {
+            if tFix && !mandatory && !noWatch {
+                setTermMode(.tax)
+            } else if t.mandatory && !tFix && !mandatory && !noWatch && termMode != .tax {
+                mandatory = true
+            }
+        } else {
+            if tFix {
+                setTermMode(.tax)
+            } else if termMode == .tax {
+                setTermMode(.open)
+            }
+            mandatory = t.mandatory && !tFix
+            if t.mandatory || tFix { noWatch = false }
+        }
         if amountText.ctTrimmed.isEmpty, let cur = t.suggestedCurrency { currency = cur }
         tplHint = t.name
+        if !onlyEmpty {
+            let after = tplSnapshot()
+            tplUndo = snap
+            tplAfter = after
+            tplSum = CTFormState.tplSumItems(snap, after, data: data)
+            tplLogoID = nil
+        }
+    }
+
+    // MARK: Katalog-Zusammenfassung und «Rückgängig» (Web tplSnap, tplSumItems, tplUndo)
+
+    func tplSnapshot() -> CTTplSnap {
+        CTTplSnap(partnerName: partnerName, label: label, noticeText: noticeText, noticeUnit: noticeUnit, cancelTerm: cancelTerm,
+                  cancelChannel: cancelChannel, web: web, cancelURL: cancelURL, tel: tel, mail: mail, address: address,
+                  currency: currency, noCancel: termMode == .tax, mandatory: mandatory, noWatch: noWatch, categoryID: categoryID,
+                  termMode: termMode, end: end, renewMonths: renewMonths, trial: trial,
+                  logoID: logoID, logoBg: logoBg, logoTouched: logoTouched)
+    }
+
+    /// Was hat der Katalog geändert? (Web tplSumItems)
+    static func tplSumItems(_ a: CTTplSnap, _ b: CTTplSnap, data: AppData) -> [String] {
+        var items: [String] = []
+        if a.categoryID != b.categoryID, let c = data.category(b.categoryID) { items.append(c.name) }
+        let nt = b.noticeText.ctTrimmed
+        if (a.noticeText != b.noticeText || a.noticeUnit != b.noticeUnit) && !nt.isEmpty {
+            let n = Int(nt) ?? 0
+            switch b.noticeUnit {
+            case .dayOfMonth: items.append("Frist bis zum \(n).")
+            case .months: items.append("Frist \(n) " + (n == 1 ? "Monat" : "Monate"))
+            case .weeks: items.append("Frist \(n) " + (n == 1 ? "Woche" : "Wochen"))
+            case .days: items.append("Frist \(n) " + (n == 1 ? "Tag" : "Tage"))
+            }
+        }
+        if a.cancelTerm != b.cancelTerm && b.cancelTerm != .anytime { items.append("per " + CTFormState.termOptionText(b.cancelTerm)) }
+        if a.cancelChannel != b.cancelChannel, let ch = b.cancelChannel {
+            let w: [CancelChannel: String] = [.online: "online", .email: "per E-Mail", .letter: "per Brief", .registered: "per Einschreiben"]
+            items.append("Kündigung " + (w[ch] ?? ch.webText))
+        }
+        var k: [String] = []
+        if a.web != b.web && !b.web.ctTrimmed.isEmpty { k.append("Website") }
+        if a.cancelURL != b.cancelURL && !b.cancelURL.ctTrimmed.isEmpty { k.append("Kündigungslink") }
+        if a.tel != b.tel && !b.tel.ctTrimmed.isEmpty { k.append("Telefon") }
+        if a.mail != b.mail && !b.mail.ctTrimmed.isEmpty { k.append("E-Mail") }
+        if a.address != b.address && !b.address.isEmpty { k.append("Adresse") }
+        if !k.isEmpty { items.append(k.count > 2 ? "Kontaktdaten" : k.joined(separator: ", ")) }
+        if !a.mandatory && b.mandatory { items.append("Pflichtvertrag") }
+        if !a.noCancel && b.noCancel { items.append("nicht kündbar") }
+        return items
+    }
+
+    /// Optionstext «Kündbar per» (für «per Jahresende» usw.)
+    static func termOptionText(_ t: CancelTerm) -> String {
+        switch t {
+        case .anytime: return "jederzeit"
+        case .period: return "Ende Periode"
+        case .monthEnd: return "Monatsende"
+        case .quarterEnd: return "Quartalsende"
+        case .halfYearEnd: return "Halbjahresende"
+        case .yearEnd: return "Jahresende"
+        case .contractYear: return "Ende Vertragsjahr"
+        }
+    }
+
+    /// Karte «Aus dem Katalog übernommen» sichtbar?
+    var showsTplSummary: Bool { tplUndo != nil && tplSum != nil }
+
+    /// Vom Katalog vorgeschlagenes Logo übernehmen (nur in den offenen Entwurf; gilt erst mit «Sichern»)
+    func applyCatalogLogo(id: String, bg: String) {
+        logoID = id
+        logoBg = bg
+        logoTouched = true
+        tplLogoID = id
+        if var s = tplSum, !s.contains("Logo") {
+            s.insert("Logo", at: 0)
+            tplSum = s
+        }
+    }
+
+    /// «Rückgängig»: nur zurücksetzen, was seit dem Übernehmen nicht von Hand geändert wurde (Web tplUndo)
+    func tplUndoApply(data: AppData) {
+        guard let o = tplUndo else { return }
+        let a = tplAfter ?? o
+        let cur = tplSnapshot()
+        if cur.partnerName == a.partnerName { partnerName = o.partnerName; pSugSel = "" }
+        if cur.label == a.label { label = o.label }
+        if cur.noticeText == a.noticeText { noticeText = o.noticeText }
+        if cur.noticeUnit == a.noticeUnit { noticeUnit = o.noticeUnit }
+        if cur.cancelTerm == a.cancelTerm { cancelTerm = o.cancelTerm }
+        if cur.cancelChannel == a.cancelChannel { cancelChannel = o.cancelChannel }
+        if cur.web == a.web { web = o.web }
+        if cur.cancelURL == a.cancelURL { cancelURL = o.cancelURL }
+        if cur.tel == a.tel { tel = o.tel }
+        if cur.mail == a.mail { mail = o.mail }
+        if cur.address == a.address { address = o.address }
+        if cur.currency == a.currency { currency = o.currency }
+        if cur.mandatory == a.mandatory { mandatory = o.mandatory }
+        if cur.noWatch == a.noWatch { noWatch = o.noWatch }
+        if cur.categoryID == a.categoryID { categoryID = o.categoryID }
+        if let l = tplLogoID, logoID == l {
+            logoID = o.logoID
+            logoBg = o.logoBg
+            logoTouched = o.logoTouched
+        }
+        tplLogoID = nil
+        tplUndo = nil
+        tplAfter = nil
+        tplSum = nil
+        tplHint = ""
+        // Reihenfolge wie Web: zuerst Kategorie (paintCats), dann die Art des Vertrags
+        categoryChanged(data)
+        if cur.termMode == a.termMode { setTermMode(o.termMode) }
+        if cur.end == a.end { end = o.end }
+        if cur.renewMonths == a.renewMonths { renewMonths = o.renewMonths }
+        if cur.trial == a.trial {
+            trial = o.trial
+            trialChoice = ""
+            if termMode == .trial { syncTrialChoice() }
+        }
     }
 
     /// Kategorie zu einem Namen der Vorbelegung (gleicher Name, sonst gleiche Art)
@@ -314,15 +474,18 @@ final class CTFormState {
         case chips([CatalogEntry])
         /// Exakter Katalog-Treffer (z.B. «CSS», «O2»), noch nicht übernommen: Chip «‹Name› übernehmen»
         case exact(CatalogEntry)
+        /// Katalog übernommen: Karte «Aus dem Katalog übernommen» mit Liste und «Rückgängig»
+        case summary(CatalogEntry, items: [String])
     }
 
     var suggest: Suggest {
         let pn = partnerName.ctTrimmed
         if let st = stdTpl, st.name == pn {
-            return .hint(st.hint, standardChip: !stdDone && (st.notice > 0 || st.cancelTerm != .anytime || st.mandatory))
+            return .hint(st.hintFull, standardChip: !stdDone && (st.notice > 0 || st.cancelTerm != .anytime || st.mandatory))
         }
         let cur = Catalog.find(pn)
-        if let c = cur { return tplHint == c.name ? .hint(c.hint, standardChip: false) : .exact(c) }
+        if let c = cur, tplHint == c.name, showsTplSummary { return .summary(c, items: tplSum ?? []) }
+        if let c = cur { return tplHint == c.name ? .hint(c.hintFull, standardChip: false) : .exact(c) }
         let q = (pn.isEmpty ? label : pn).ctTrimmed.lowercased()
         if q.count < 2 { return .none }
         let hits = Catalog.suggestions(q)
@@ -458,8 +621,80 @@ final class CTFormState {
         return Partners.duplicateHint(hit, in: data, today: today)
     }
 
+    // MARK: Art des Vertrags (Web setTermMode, Kacheln)
+
+    /// Art wählen. Jede Art zeigt nur ihre Felder (siehe Ansicht); «Nicht kündbar» = `noCancel`.
+    func setTermMode(_ m: TermMode) {
+        termMode = m
+        if m == .trial && trialChoice.isEmpty { syncTrialChoice() }
+    }
+
+    /// Kategorie geändert (Web paintCats): «Steuern & Gebühren» erzwingt «Nicht kündbar», danach zurück auf «Flexibel»
+    func categoryChanged(_ data: AppData) {
+        let tx = data.category(categoryID)?.kind == .taxes
+        if tx && termMode != .tax {
+            taxForced = true
+            setTermMode(.tax)
+        } else if !tx && taxForced {
+            taxForced = false
+            if termMode == .tax { setTermMode(.open) }
+        }
+    }
+
+    /// Kachel nur wählbar, wenn die Kategorie nicht «Steuern & Gebühren» ist (dann nur «Nicht kündbar»)
+    func termModeEnabled(_ m: TermMode, data: AppData) -> Bool {
+        data.category(categoryID)?.kind != .taxes || m == .tax
+    }
+
+    // MARK: Probeabo-Dauer (Web trialFrom, paintTrialD)
+
+    static let trialKeys = ["7d", "14d", "1m", "3m"]
+
+    /// Ende des Probeabos ab Vertragsbeginn (sonst heute)
+    func trialFrom(_ k: String, today: Day) -> Day {
+        let b = start ?? today
+        switch k {
+        case "7d": return b.addingDays(7)
+        case "14d": return b.addingDays(14)
+        case "3m": return b.addingMonths(3)
+        default: return b.addingMonths(1)
+        }
+    }
+
+    /// Passenden Chip zum gespeicherten Datum bestimmen (nur wenn noch keiner gewählt ist)
+    func syncTrialChoice() {
+        guard trialChoice.isEmpty, let tr = trial else { return }
+        trialChoice = CTFormState.trialKeys.first { trialFrom($0, today: today0) == tr } ?? "date"
+    }
+
+    /// Chip «7 Tage» … «Datum …» gewählt
+    func pickTrial(_ k: String, today: Day) {
+        trialChoice = k
+        if k != "date" {
+            trial = trialFrom(k, today: today)
+        } else if trial == nil {
+            trial = (start ?? today).addingMonths(1)
+        }
+    }
+
+    /// Vertragsbeginn geändert: im Probeabo mit Dauer-Chip das Enddatum nachführen
+    func startChanged(today: Day) {
+        if termMode == .trial && CTFormState.trialKeys.contains(trialChoice) { trial = trialFrom(trialChoice, today: today) }
+    }
+
+    // MARK: Hinweise zur Laufzeit und Zahlung
+
     /// Hinweis zur Laufzeit (updTermHint)
     func termHint(_ data: AppData, today: Day) -> String {
+        switch termMode {
+        case .tax:
+            return "Gebühren und Abgaben wie Serafe: keine Fristen, kein Kündigen. Zählt in Kosten und Budget."
+        case .trial:
+            guard let tv = trial else { return "Wie lange läuft das Probeabo?" }
+            return "Endet am " + Format.fmtD(tv) + ". Kontivo erinnert dich unter «Fristen»."
+        case .fixed, .open:
+            break
+        }
         let calc = Calc(data: data, today: today)
         var tmp = Contract()
         tmp.amount = 1
@@ -468,7 +703,7 @@ final class CTFormState {
         tmp.start = start
         tmp.notice = CTNumber.int(noticeText, unit: noticeUnit)
         tmp.noticeUnit = noticeUnit
-        if termFixed {
+        if termMode == .fixed {
             tmp.end = end
             tmp.renewMonths = renewMonths
             tmp.cancelTerm = .anytime
@@ -488,7 +723,7 @@ final class CTFormState {
                 let w = [3: "quartalsweiser", 6: "halbjährlicher", 12: "jährlicher", 24: "zweijährlicher"][cycle] ?? "seltener"
                 return "Achtung: Bei " + w + " Zahlung ist ein Abo meist nur auf Ende der bezahlten Periode kündbar. Dann «Kündbar per: Ende Periode» wählen."
             }
-            return "Unbefristet — du kannst mit der angegebenen Frist jederzeit kündigen."
+            return "Ohne Mindestlaufzeit: kündbar mit der angegebenen Frist."
         }
         tmp.end = nil
         tmp.cancelTerm = cancelTerm
@@ -501,13 +736,40 @@ final class CTFormState {
             + Format.fmtD(calc.noticeDeadline(for: tmp, end: T)) + (tmp.notice > 0 ? "" : " (keine Frist erfasst)") + "."
     }
 
-    /// Turnus geändert: im Modus «Jederzeit kündbar» ohne «Kündbar per» ab halbjährlich «Ende Periode» vorschlagen
+    /// Live-Hinweis unter «Zahlung am» (Web updPayHint): «Zahlung monatlich am 15. · nächste am 15.10.26»
+    func payHint(_ data: AppData, today: Day) -> String {
+        let r = CTLocalCalc.payRule(due: due, cycle: cycle)
+        if r.isEmpty { return "" }
+        var tmp = Contract()
+        tmp.amount = 1
+        tmp.cycle = cycle
+        tmp.due = due
+        tmp.start = start
+        let n = Calc(data: data, today: today).nextDue(tmp)
+        return "Zahlung " + r + (n.map { " · nächste am " + Format.fmtShort($0) } ?? "")
+    }
+
+    /// Zahlungsrhythmus geändert: in «Flexibel»/«Probeabo» ohne «Kündbar per» ab halbjährlich «Ende Periode» vorschlagen
     func cycleChanged() -> String? {
-        if !termFixed && cancelTerm == .anytime && cycle >= 6 {
+        if (termMode == .open || termMode == .trial) && cancelTerm == .anytime && cycle >= 6 {
             cancelTerm = .period
             return "Kündbar per «Ende Periode» vorgeschlagen"
         }
         return nil
+    }
+
+    // MARK: Kündigungsweg (Kacheln, Web fCancT/syncCancUrl)
+
+    /// Kachel antippen; nochmals tippen hebt die Wahl auf
+    func toggleCancelChannel(_ ch: CancelChannel) {
+        cancelChannel = cancelChannel == ch ? nil : ch
+    }
+
+    /// Adresse des Vertragspartners in einer Zeile (Strasse, PLZ Ort); leer = noch keine
+    var addressLine: String {
+        let t = { (x: String) in x.ctTrimmed }
+        let zc = [t(address.zip), t(address.city)].filter { !$0.isEmpty }.joined(separator: " ")
+        return [t(address.street), zc].filter { !$0.isEmpty }.joined(separator: ", ")
     }
 
     /// Zusammenfassung der Zeile «Weitere Angaben» (paintOptCounts); nil = Platzhaltertext
@@ -525,22 +787,44 @@ final class CTFormState {
             tel.ctTrimmed.isEmpty ? "" : "Telefon",
             mail.ctTrimmed.isEmpty ? "" : "E-Mail",
             note.ctTrimmed.isEmpty ? "" : "Notiz",
-            n(documents.count, "Datei", "Dateien"),
+            mandatory ? "Pflichtvertrag" : "",
+            noWatch ? "Ohne Erinnerung" : "",
         ].filter { !$0.isEmpty }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     // MARK: Preisänderungen und Sonderzahlungen
 
-    /// Preisänderung vormerken; Rückgabe = Toast
-    func addPrice() -> String {
-        guard let f = priceFrom else { return "Datum für die Preisänderung fehlt" }
-        guard let a = CTNumber.parse(priceAmountText), a >= 0 else { return "Neuen Betrag prüfen" }
+    /// Ergebnis von «Preisänderung hinzufügen»
+    enum PriceAddResult {
+        /// Meldung (lang = 4 s)
+        case toast(String, long: Bool)
+        /// Preis bleibt gleich: nicht blockierend nachfragen («Trotzdem hinzufügen»)
+        case confirmSame(title: String, message: String)
+    }
+
+    /// Preisänderung vormerken (Web pAdd). `force`: Rückfrage «Preis bleibt gleich» wurde bestätigt.
+    func addPrice(force: Bool = false) -> PriceAddResult {
+        guard let f = priceFrom else { return .toast("Datum für die Preisänderung fehlt", long: false) }
+        if let s0 = start, f <= s0 { return .toast("Datum muss nach dem Vertragsbeginn liegen", long: false) }
+        guard let a = CTNumber.parse(priceAmountText), a >= 0 else { return .toast("Neuen Betrag prüfen", long: false) }
+        // Falle: «Betrag» oben schon auf den neuen Preis gesetzt → Änderung ohne Wirkung
+        var pv = CTNumber.parse(amountText) ?? 0
+        for p in sortedPrices where p.from < f { pv = p.amount }
+        if abs(Format.round2(a) - pv) < 0.005 && !force {
+            let cur = currency.rawValue
+            return .confirmSame(title: "Preis bleibt gleich",
+                                message: "Vor dem " + Format.fmtD(f) + " gilt schon " + Format.money(pv) + " " + cur
+                                    + ". Steht oben unter «Kosten» bereits der neue Preis? Dort gehört der Anfangspreis hin – also der Preis bei Vertragsbeginn.")
+        }
         prices.removeAll { $0.from == f }
         prices.append(PriceChange(from: f, amount: Format.round2(a)))
         priceFrom = nil
         priceAmountText = ""
-        return "Preisänderung ab " + Format.fmtD(f) + " vorgemerkt"
+        var prevA = CTNumber.parse(amountText) ?? 0
+        for p in sortedPrices where p.from < f { prevA = p.amount }
+        if a > prevA && prevA > 0 { return .toast("Preiserhöhung vorgemerkt. Tipp: oft gilt ein Sonderkündigungsrecht.", long: true) }
+        return .toast("Preisänderung ab " + Format.fmtD(f) + " vorgemerkt", long: false)
     }
 
     func removePrice(_ from: Day) {
@@ -588,19 +872,28 @@ final class CTFormState {
         c.cycle = cycle
         c.due = due
         c.start = start
-        c.end = termFixed ? end : nil
+        c.end = termMode == .fixed ? end : nil
         c.notice = notice ?? CTNumber.int(noticeText, unit: noticeUnit)
         c.noticeUnit = noticeUnit
-        c.renewMonths = termFixed ? renewMonths : 0
-        c.cancelTerm = termFixed ? .anytime : cancelTerm
-        c.mandatory = watch == .mandatory
-        c.noWatch = watch == .noWatch
-        c.noCancel = watch == .fixed
+        c.renewMonths = termMode == .fixed ? renewMonths : 0
+        c.cancelTerm = (termMode == .open || termMode == .trial) ? cancelTerm : .anytime
+        c.mandatory = mandatory
+        c.noWatch = noWatch
+        c.noCancel = termMode == .tax
         c.isRent = isRent
         c.cancelChannel = cancelChannel
-        // Kündigungslink nur beim Weg «Online / Kundenkonto» (wie Web)
-        c.cancelURL = cancelChannel == .online ? cancelURL.ctTrimmed : ""
-        c.trial = trial
+        // Link nur löschen, wenn bewusst ein anderer Weg gewählt ist (E-Mail, Brief, Einschreiben; Web saveForm)
+        let otherWay: Set<CancelChannel> = [.email, .letter, .registered]
+        c.cancelURL = cancelChannel.map { otherWay.contains($0) } == true ? "" : cancelURL.ctTrimmed
+        // Probeabo-Datum nur in «Probeabo»; Wechsel auf «Flexibel» entfernt es. Bei fester Laufzeit oder bereits
+        // behaltenem Probeabo bleibt der alte Wert (nur beim Bearbeiten).
+        if termMode == .trial {
+            c.trial = trial
+        } else if isExisting, base.trial != nil, termMode == .fixed || base.trialKept != nil {
+            c.trial = base.trial
+        } else {
+            c.trial = nil
+        }
         c.customerNo = customerNo.ctTrimmed
         c.contractNo = contractNo.ctTrimmed
         c.payMethod = payMethod
@@ -635,6 +928,10 @@ final class CTFormState {
         guard let notice = CTNumber.noticeValue(noticeText, unit: noticeUnit) else {
             model.toast("Kündigungsfrist prüfen")
             focusNotice = true
+            return false
+        }
+        if termMode == .trial && trial == nil {
+            model.toast("Wie lange läuft das Probeabo?")
             return false
         }
         var c = makeContract(amount: amt, notice: notice)
@@ -704,7 +1001,7 @@ struct CTFormSnapshot: Hashable {
     var currency: Currency
     var cycle: Int
     var due: Day
-    var termFixed: Bool
+    var termMode: CTFormState.TermMode
     var start: Day?
     var end: Day?
     var noticeText: String
@@ -713,7 +1010,8 @@ struct CTFormSnapshot: Hashable {
     var renewMonths: Int
     var prices: [PriceChange]
     var extras: [ExtraPayment]
-    var watch: CTFormState.Watch
+    var mandatory: Bool
+    var noWatch: Bool
     var isRent: Bool?
     var cancelChannel: CancelChannel?
     var trial: Day?
@@ -729,6 +1027,34 @@ struct CTFormSnapshot: Hashable {
     var address: PostalAddress
     var documents: [Attachment]
     var colorHex: String?
+    var logoID: String?
+    var logoBg: String?
+    var logoTouched: Bool
+}
+
+/// Stand der Felder, die eine Katalog-Vorlage ändern kann (Web tplSnap), für Zusammenfassung und «Rückgängig»
+struct CTTplSnap: Hashable {
+    var partnerName: String
+    var label: String
+    var noticeText: String
+    var noticeUnit: NoticeUnit
+    var cancelTerm: CancelTerm
+    var cancelChannel: CancelChannel?
+    var web: String
+    var cancelURL: String
+    var tel: String
+    var mail: String
+    var address: PostalAddress
+    var currency: Currency
+    var noCancel: Bool
+    var mandatory: Bool
+    var noWatch: Bool
+    var categoryID: UUID?
+    var termMode: CTFormState.TermMode
+    var end: Day?
+    var renewMonths: Int
+    var trial: Day?
+    // Logo nur zum Zurücksetzen eines vorgeschlagenen Katalog-Logos
     var logoID: String?
     var logoBg: String?
     var logoTouched: Bool

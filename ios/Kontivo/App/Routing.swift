@@ -22,6 +22,8 @@ enum AppSheet: Identifiable, Hashable {
     case document(DocumentRef)
     /// Fenster «Verwalten» mit eigener Navigation
     case manage(ManageRoute)
+    /// Vollständigkeit (Web openVk), optional nur für einen Vertrag (Hinweis «Angaben fehlen → Ergänzen» im Detail)
+    case completeness(only: UUID?)
 
     var id: String {
         switch self {
@@ -34,6 +36,7 @@ enum AppSheet: Identifiable, Hashable {
         case .mail(let m): return "mail-\(m.id)"
         case .document(let d): return "doc-\(d.id)"
         case .manage(let r): return "manage-\(r.idPart)"
+        case .completeness(let only): return "vk-\(only?.uuidString ?? "alle")"
         }
     }
 
@@ -49,12 +52,13 @@ enum AppSheet: Identifiable, Hashable {
         case .mail: return .mail
         case .document: return .document
         case .manage: return .manage
+        case .completeness: return .completeness
         }
     }
 }
 
 enum AppSheetKind: Hashable {
-    case contractDetail, contractForm, incomeForm, incomesAll, letter, cancelChannelPick, mail, document, manage
+    case contractDetail, contractForm, incomeForm, incomesAll, letter, cancelChannelPick, mail, document, manage, completeness
 
     /// Darf nicht zweimal direkt übereinander liegen (Doppeltippen öffnet sonst z.B. zwei Mail-Fenster).
     /// Vertragsdetail und Verwalten dürfen übereinander liegen (z.B. Vertragspartner → anderer Vertrag).
