@@ -1285,7 +1285,7 @@ from{opacity:.3;transform:translateX(-16px)}to{opacity:1;transform:none}
 #onb .obgrow{flex:1}
 /* Willkommen */
 #onb .obwel{align-items:center;text-align:center;gap:9px;padding-top:4vh;container-type:inline-size}
-#splash{position:fixed;inset:0;z-index:9999;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;animation:splOut .35s ease .9s forwards}
+#splash{position:fixed;inset:0;z-index:9999;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;animation:splOut .45s ease 1.5s forwards}
 #splash .splLogo{width:96px;height:96px;border-radius:22px;box-shadow:0 14px 34px rgba(14,90,94,.3);animation:splPop .6s cubic-bezier(.2,1.4,.4,1) both}
 #splash .splWm{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;font-weight:700;font-size:36px;letter-spacing:-.01em;color:var(--ink);display:inline-flex;align-items:baseline;animation:splUp .45s ease .18s both}
 #splash .splK{height:.72em;width:auto;margin-right:-.055em;overflow:visible}
@@ -1293,7 +1293,7 @@ from{opacity:.3;transform:translateX(-16px)}to{opacity:1;transform:none}
 @keyframes splPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes splUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes splOut{to{opacity:0;visibility:hidden}}
-@media (prefers-reduced-motion:reduce){#splash .splLogo,#splash .splWm,#splash .splSl{animation:none}#splash{animation-delay:.5s}}
+@media (prefers-reduced-motion:reduce){#splash .splLogo,#splash .splWm,#splash .splSl{animation:none}#splash{animation-delay:1s}}
 #onb .oblogo{width:84px;height:84px;border-radius:19px;box-shadow:0 12px 30px rgba(14,90,94,.3);animation:obPop .6s cubic-bezier(.2,1.4,.4,1)}
 from{transform:scale(.6);opacity:0}
 #onb .obwel .obwt{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:max(22px,4.5vh);font-size:clamp(30px,9vw,36px);font-weight:700;letter-spacing:-.01em;line-height:1.1}
@@ -7802,7 +7802,7 @@ document.getElementById("vkOpen").addEventListener("click",function(){openVk();}
 
 /* Intro entfernen, sobald ausgeblendet (Rückfall: nach 2 s) */
 (function(){var sp=document.getElementById("splash");if(!sp)return;var rm=function(){if(sp.parentNode)sp.parentNode.removeChild(sp);};
-  sp.addEventListener("animationend",function(e){if(e.target===sp)rm();});setTimeout(rm,2000);})();
+  sp.addEventListener("animationend",function(e){if(e.target===sp)rm();});setTimeout(rm,2600);})();
 /* ---------- Start ---------- */
 async function boot(){
   try{await KBlob.ready;}catch(e){}
