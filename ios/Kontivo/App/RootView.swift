@@ -3,6 +3,8 @@ import KontivoCore
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
+    /// Intro beim Kaltstart (Bereich onb, Onboarding/SplashView.swift)
+    @State private var splash = SplashView.enabled
 
     var body: some View {
         @Bindable var model = model
@@ -33,7 +35,10 @@ struct RootView: View {
         .fullScreenCover(item: $model.onboarding, onDismiss: { model.onboardingDidDismiss() }) { mode in
             OnboardingView(mode: mode)
                 .environment(model)
+                // Intro auch über der Einführung (Erststart); zeitgleich mit dem Intro darunter
+                .overlay { if splash { SplashView { splash = false } } }
         }
+        .overlay { if splash { SplashView { splash = false } } }
     }
 }
 
@@ -98,6 +103,12 @@ struct AppSheetView: View {
             DocumentViewer(ref: ref)
         case .manage(let route):
             ManageView(start: route)
+        case .bankImport(let id):
+            BankImportSheet(sessionID: id)
+                .interactiveDismissDisabled(true)
+        case .completeness(let only):
+            // Bereich core ersetzt dies durch die Vollständigkeit-Ansicht (z.B. `CompletenessView(only: only)`)
+            CompletenessPlaceholder(only: only)
         }
     }
 }

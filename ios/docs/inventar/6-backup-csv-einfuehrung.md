@@ -275,27 +275,29 @@ Die Migration ist **nicht versioniert** und läuft bei jedem Start (Befund M1). 
 - Slogan «Deine Verträge, ganz entspannt.»
 - Überschrift: «Willkommen bei» und darunter die Wortmarke (K als SVG aus dem Logo + «ontivo», aria-label «Kontivo»)
 - Untertitel «Maximale Transparenz über alles,» Zeilenumbruch «was jeden Monat fix weggeht.»
-- 4 Zeilen mit Häkchen: «Fixkosten, Budget & Fristen im Blick» · «Smart gedacht – einfach gemacht» · «Ohne Bankanbindung – ganz privat» · «Für dich, deine Familie oder deine WG»
+- 4 Zeilen mit Häkchen: «Fixkosten, Budget & Fristen im Blick» · «Kontoauszug rein – Fixkosten erkannt» (v135) · «Ohne Bankanbindung – ganz privat» · «Für dich, deine Familie oder deine WG»
 - Hauptknopf «Los geht’s» (typografischer Apostroph ’)
 - Zweitknopf beim Erststart «Ich habe schon ein Backup», in der Tour «Schliessen»
 
 **2–5 tab** (Chip links = Tab-Symbol + Tab-Name; Titel; Punkte mit Häkchen; Bildschirmfoto `onb/{tab}-light.webp` bzw. `-dark.webp` mit Verlauf und nachgebildeter Tab-Leiste, aktiver Tab hervorgehoben; Knopf «Weiter»)
-- list (Chip «Verträge»): «Alle Verträge im Blick» – «Alle Vertragsdetails auf einen Blick» · «Flexibel in EUR, CHF, USD und mehr» · «Monatliche Fixkosten sofort sichtbar»
+- list (Chip «Verträge»): «Alle Verträge im Blick» – «Alle Vertragsdetails auf einen Blick» · «Per Kontoauszug in Minuten erfasst» (v135) · «Monatliche Fixkosten sofort sichtbar»
 - stat (Chip «Kosten»): «Jeden Monat im Voraus geplant» – «Alle Abbuchungen übersichtlich geplant» · «Bezahlt oder offen sofort erkennen» · «Keine Überraschungen im Briefkasten»
 - budget (Chip «Budget»): «Weisst du, was dir bleibt?» – «Einnahmen minus Fixkosten klar berechnet» · «Monatlich und jährlich auf einen Blick»
-- term (Chip «Fristen»): «Keine ungewollten Vertragsverlängerungen» – «Kündigungsfristen automatisch berechnet» · «Rechtzeitig vor Fristablauf informiert» · «Einfach entscheiden: behalten oder kündigen»
+- term (Chip «Fristen»): «Keine ungewollten Vertragsverlängerungen» – «Kündigungsfristen automatisch berechnet» · «Rechtzeitig vor Fristablauf informiert» · «Kündigen mit einem Tipp – Schreiben fertig» (v135)
 - Tab-Leiste (`OB_TABS`): «Verträge» (Dokument), «Kosten» (Balken), «Budget» (Karte/Geldbörse), «Fristen» (Stoppuhr), «Mehr» (drei Punkte)
 
 **6 tips** (Chip «Gut zu wissen» mit Punkte-Symbol; Titel «Clever bis ins Detail»; Liste mit farbigem Symbol, Titel und Untertitel; Knopf «Fertig», wenn es die letzte Seite ist (Tour), sonst «Weiter»)
 
 | Farbe | Symbol | Titel | Text | Etikett |
 |---|---|---|---|---|
+| #475569 | Bank | «Kontoauszug einlesen» | «Fixkosten aus der CSV-Datei der Bank finden.» | |
 | #B0562A | Trendpfeil | «Preisverlauf» | «Sieh, wie sich Vertragspreise verändern.» | |
 | #A93227 | Geschenk | «Probeabos im Blick» | «Erinnerung, bevor Kosten entstehen.» | |
 | #2E6A4E | Personen | «Für den ganzen Haushalt» | «Verträge nach Personen getrennt.» | |
 | #6B4E9E | Büroklammer | «Dokumente am Vertrag» | «PDFs direkt beim Vertrag ablegen.» | |
 | #8A6A1F | Etikett | «Verträge kategorisieren» | «Kosten nach Bereichen ordnen.» | |
-| #1F4E8C | Dokument | «Kündigung leicht gemacht» | «PDF erstellen, drucken oder per E-Mail versenden.» | «Bald» |
+| #1F4E8C | Dokument | «Kündigung leicht gemacht» | «PDF erstellen, drucken oder per E-Mail versenden.» | |
+| #B23A6F | Kamera | «Kontoauszug als PDF oder Foto» | «Einfach fotografieren oder PDF wählen.» | Web «Bald», nativ ohne (gibt es dort) |
 | #2F86A6 | Wolke mit Haken | «iCloud-Synchronisierung» | «Deine Daten auf deinen Geräten aktuell.» | «Bald» |
 
 **7 setup** (nur Erststart)
@@ -305,7 +307,9 @@ Die Migration ist **nicht versioniert** und läuft bei jedem Start (Befund M1). 
 - Knopf «Weiter», Zweitknopf «Backup einspielen»
 
 **8 start** (nur Erststart)
-- Chip «Letzter Schritt», Titel «Womit fangen wir an?», Untertitel «Tipp eine Vorlage an, den Rest ergänzt du.»
+- Chip «Letzter Schritt», Titel «Womit fangen wir an?», Untertitel «Lass Kontivo suchen oder starte mit einer Vorlage.» (v110)
+- Karte «Automatisch finden» – «Kontoauszug wählen, Vorschläge bestätigen» (Bank-Symbol; Web: Dateiauswahl, nativ: Auswahl Datei / Foto aufnehmen / Aus Fotos, danach Einführung schliessen)
+- Abschnitt «Mit Vorlage starten», Hinweis «Tipp an, was du hast – den Rest ergänzt du.», kompakte Chips (Kachel links, zweispaltig)
 - 8 Chips (`OB_QUICK`, Bezeichnung → Kategorie, Farbe und Symbol der Kategorie; existiert die Kategorie nicht, wird «Sonstiges» genommen, sonst ""): «Miete» → Wohnen, «Strom» → Energie & Wasser, «Handy» → Mobilfunk & Internet, «Internet» → Mobilfunk & Internet, «Streaming» → Abos & Medien, «Fitness» → Freizeit & Sport, «Kfz-Versicherung» → Versicherung, «Rundfunkbeitrag» → Steuern & Gebühren
 - Hauptknopf «Vertrag erfassen» (deaktiviert, bis eine Vorlage gewählt ist), danach «{Vorlage} erfassen»
 - Zweitknopf «Erst mal umschauen»

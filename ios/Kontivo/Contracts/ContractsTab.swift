@@ -20,13 +20,8 @@ struct ContractsTab: View {
         .navigationTitle("Verträge")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    model.present(.contractForm(.new(prefill: nil)))
-                } label: {
-                    Image(systemName: "plus")
-                        .fontWeight(.semibold)
-                }
-                .accessibilityLabel("Vertrag anlegen")
+                // Plus-Menü: Vertrag erfassen | Aus Kontoauszug (Bereich onb, Import/AddMenu.swift)
+                AddMenuButton()
             }
         }
         .sheet(isPresented: $showFilter) {

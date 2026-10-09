@@ -55,10 +55,10 @@ enum OnbTab: String, CaseIterable, Hashable {
 
     var bullets: [String] {
         switch self {
-        case .list: return ["Alle Vertragsdetails auf einen Blick", "Flexibel in EUR, CHF, USD und mehr", "Monatliche Fixkosten sofort sichtbar"]
+        case .list: return ["Alle Vertragsdetails auf einen Blick", "Per Kontoauszug in Minuten erfasst", "Monatliche Fixkosten sofort sichtbar"]
         case .stat: return ["Alle Abbuchungen übersichtlich geplant", "Bezahlt oder offen sofort erkennen", "Keine Überraschungen im Briefkasten"]
         case .budget: return ["Einnahmen minus Fixkosten klar berechnet", "Monatlich und jährlich auf einen Blick"]
-        case .term: return ["Kündigungsfristen automatisch berechnet", "Rechtzeitig vor Fristablauf informiert", "Einfach entscheiden: behalten oder kündigen"]
+        case .term: return ["Kündigungsfristen automatisch berechnet", "Rechtzeitig vor Fristablauf informiert", "Kündigen mit einem Tipp – Schreiben fertig"]
         case .more: return []
         }
     }
@@ -76,14 +76,17 @@ struct OnbTip: Identifiable {
     let text: String
     var soon: Bool = false
 
+    /// Wie Web OB_TIPS (v124). Nativ gibt es den Import als PDF oder Foto schon – dort kein «Bald».
     static let all: [OnbTip] = [
-        OnbTip(id: 0, colorHex: "#B0562A", symbol: "chart.line.uptrend.xyaxis", title: "Preisverlauf", text: "Sieh, wie sich Vertragspreise verändern."),
-        OnbTip(id: 1, colorHex: "#A93227", symbol: "gift", title: "Probeabos im Blick", text: "Erinnerung, bevor Kosten entstehen."),
-        OnbTip(id: 2, colorHex: "#2E6A4E", symbol: "person.2", title: "Für den ganzen Haushalt", text: "Verträge nach Personen getrennt."),
-        OnbTip(id: 3, colorHex: "#6B4E9E", symbol: "paperclip", title: "Dokumente am Vertrag", text: "PDFs direkt beim Vertrag ablegen."),
-        OnbTip(id: 4, colorHex: "#8A6A1F", symbol: "tag", title: "Verträge kategorisieren", text: "Kosten nach Bereichen ordnen."),
-        OnbTip(id: 5, colorHex: "#1F4E8C", symbol: "doc.text", title: "Kündigung leicht gemacht", text: "PDF erstellen, drucken oder per E-Mail versenden."),
-        OnbTip(id: 6, colorHex: "#2F86A6", symbol: "checkmark.icloud", title: "iCloud-Synchronisierung", text: "Deine Daten auf deinen Geräten aktuell.", soon: true),
+        OnbTip(id: 0, colorHex: "#475569", symbol: "building.columns", title: "Kontoauszug einlesen", text: "Fixkosten aus der CSV-Datei der Bank finden."),
+        OnbTip(id: 1, colorHex: "#B0562A", symbol: "chart.line.uptrend.xyaxis", title: "Preisverlauf", text: "Sieh, wie sich Vertragspreise verändern."),
+        OnbTip(id: 2, colorHex: "#A93227", symbol: "gift", title: "Probeabos im Blick", text: "Erinnerung, bevor Kosten entstehen."),
+        OnbTip(id: 3, colorHex: "#2E6A4E", symbol: "person.2", title: "Für den ganzen Haushalt", text: "Verträge nach Personen getrennt."),
+        OnbTip(id: 4, colorHex: "#6B4E9E", symbol: "paperclip", title: "Dokumente am Vertrag", text: "PDFs direkt beim Vertrag ablegen."),
+        OnbTip(id: 5, colorHex: "#8A6A1F", symbol: "tag", title: "Verträge kategorisieren", text: "Kosten nach Bereichen ordnen."),
+        OnbTip(id: 6, colorHex: "#1F4E8C", symbol: "doc.text", title: "Kündigung leicht gemacht", text: "PDF erstellen, drucken oder per E-Mail versenden."),
+        OnbTip(id: 7, colorHex: "#B23A6F", symbol: "camera", title: "Kontoauszug als PDF oder Foto", text: "Einfach fotografieren oder PDF wählen."),
+        OnbTip(id: 8, colorHex: "#2F86A6", symbol: "checkmark.icloud", title: "iCloud-Synchronisierung", text: "Deine Daten auf deinen Geräten aktuell.", soon: true),
     ]
 }
 
@@ -348,7 +351,7 @@ struct OnbWelcomePage: View {
     let onNext: () -> Void
     let onSecondary: () -> Void
 
-    private static let promises = ["Fixkosten, Budget & Fristen im Blick", "Smart gedacht – einfach gemacht",
+    private static let promises = ["Fixkosten, Budget & Fristen im Blick", "Kontoauszug rein – Fixkosten erkannt",
                                    "Ohne Bankanbindung – ganz privat", "Für dich, deine Familie oder deine WG"]
 
     var body: some View {
@@ -672,11 +675,14 @@ struct OnbSetupPage: View {
 
 // MARK: - Seite 8: Womit fangen wir an?
 
+/// Letzter Schritt (Web e56e05e, Variante 1): Karte «Automatisch finden» (Kontoauszug) + «Mit Vorlage starten» mit kompakten Vorlagen.
 struct OnbStartPage: View {
     let items: [OnbQuick]
     @Binding var quick: Int?
+    let onBank: (BankPickSource) -> Void
     let onCreate: () -> Void
     let onDone: () -> Void
+    @State private var askSource = false
 
     private var createTitle: String {
         if let q = quick, let item = items.first(where: { $0.id == q }) { return item.label + " erfassen" }
@@ -689,7 +695,22 @@ struct OnbStartPage: View {
                 OnbChip(text: "Letzter Schritt")
             }
             OnbTitle("Womit fangen wir an?")
-            OnbSubtitle("Tipp eine Vorlage an, den Rest ergänzt du.")
+            OnbSubtitle("Lass Kontivo suchen oder starte mit einer Vorlage.")
+            OnbAutoCard { askSource = true }
+                .confirmationDialog("Kontoauszug", isPresented: $askSource, titleVisibility: .hidden) {
+                    ForEach(BankPickSource.available, id: \.self) { s in
+                        Button(s.dialogTitle) { onBank(s) }
+                    }
+                    Button("Abbrechen", role: .cancel) {}
+                }
+            Text(verbatim: "Mit Vorlage starten")
+                .font(.caption.weight(.bold))
+                .tracking(0.6)
+                .textCase(.uppercase)
+                .foregroundStyle(KColor.ink2)
+                .padding(.top, 8)
+                .accessibilityAddTraits(.isHeader)
+            OnbSubtitle("Tipp an, was du hast – den Rest ergänzt du.")
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
                     ForEach(items) { q in
@@ -706,6 +727,46 @@ struct OnbStartPage: View {
     }
 }
 
+/// Karte «Automatisch finden» (`.obauto`): Bank-Symbol auf Teal, Rahmen Teal, leicht getönt
+struct OnbAutoCard: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .fill(KColor.teal)
+                    .frame(width: 44, height: 44)
+                    .overlay(Image(systemName: "building.columns")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(.white))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: "Automatisch finden")
+                        .font(.system(.headline, design: .rounded).weight(.bold))
+                        .foregroundStyle(KColor.ink)
+                    Text(verbatim: "Kontoauszug wählen, Vorschläge bestätigen")
+                        .font(.footnote)
+                        .foregroundStyle(KColor.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 15)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(KColor.surface))
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(KColor.teal.opacity(0.09)).allowsHitTesting(false))
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(KColor.teal, lineWidth: 1.5))
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("onbAutoFind")
+    }
+}
+
+/// Kompakte Vorlage (`.obchips.row`): Kachel links, Name und Kategorie rechts
 struct OnbQuickChip: View {
     let item: OnbQuick
     let isOn: Bool
@@ -713,23 +774,24 @@ struct OnbQuickChip: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 9) {
                 mark
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: item.label)
                         .font(.system(.subheadline, design: .rounded).weight(.semibold))
                         .foregroundStyle(KColor.ink)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.85)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     Text(verbatim: item.category?.name ?? "")
                         .font(.caption2)
                         .foregroundStyle(KColor.ink3)
-                        .lineLimit(2)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
+                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 11)
-            .padding(.top, 9)
-            .padding(.bottom, 10)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: 15, style: .continuous).fill(KColor.surface))
             .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
@@ -743,12 +805,12 @@ struct OnbQuickChip: View {
 
     @ViewBuilder private var mark: some View {
         if let c = item.category {
-            MarkView(category: c, size: 29)
+            MarkView(category: c, size: 27)
         } else {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
                 .fill(Color(hex: KCategory.fallbackColor))
-                .frame(width: 29, height: 29)
-                .overlay(Image(systemName: "tag").font(.system(size: 13, weight: .medium)).foregroundStyle(.white))
+                .frame(width: 27, height: 27)
+                .overlay(Image(systemName: "tag").font(.system(size: 12, weight: .medium)).foregroundStyle(.white))
                 .accessibilityHidden(true)
         }
     }

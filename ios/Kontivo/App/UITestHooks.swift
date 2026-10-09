@@ -9,6 +9,8 @@ import KontivoCore
 ///   -uiOnboarding      Einführung (Erststart)
 ///   -uiTab <name>      contracts | costs | budget | deadlines | more
 ///   -uiSheet <name>    detail | form | income | incomes | letter | manage | partners | persons | sender | categories | quality | cancelpick
+///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich onb)
+///   -uiSplash          Intro beim Start auch im UI-Test zeigen
 extension AppModel {
     /// Start mit UI-Test-/Bildschirmfoto-Argumenten (dann eigener Dateiordner, nichts Echtes wird gelesen oder geschrieben)
     nonisolated static var isUITestLaunch: Bool {
@@ -40,6 +42,13 @@ extension AppModel {
         }
         onboarding = onb ? .firstRun : nil
         if let t = value("-uiTab"), let tab = AppTab(rawValue: t) { self.tab = tab }
+        if args.contains("-uiBankSample") {
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: 800_000_000)
+                guard let self else { return }
+                BankImportCenter.shared.start(.data(BankSample.csv, name: "postfinance.csv"), model: self)
+            }
+        }
         if let s = value("-uiSheet") {
             Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 800_000_000)

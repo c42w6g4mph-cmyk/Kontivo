@@ -22,6 +22,10 @@ enum AppSheet: Identifiable, Hashable {
     case document(DocumentRef)
     /// Fenster «Verwalten» mit eigener Navigation
     case manage(ManageRoute)
+    /// Kontoauszug einlesen: Ladeanzeige und Vorschläge eines Imports (Bereich onb, `BankImportCenter`)
+    case bankImport(UUID)
+    /// Vollständigkeit (Web `openVk(only)`): nil = alle Verträge, sonst nur dieser (Bereich core)
+    case completeness(only: UUID?)
 
     var id: String {
         switch self {
@@ -34,6 +38,8 @@ enum AppSheet: Identifiable, Hashable {
         case .mail(let m): return "mail-\(m.id)"
         case .document(let d): return "doc-\(d.id)"
         case .manage(let r): return "manage-\(r.idPart)"
+        case .bankImport(let u): return "bank-\(u)"
+        case .completeness(let u): return "vk-\(u?.uuidString ?? "")"
         }
     }
 
@@ -49,12 +55,14 @@ enum AppSheet: Identifiable, Hashable {
         case .mail: return .mail
         case .document: return .document
         case .manage: return .manage
+        case .bankImport: return .bankImport
+        case .completeness: return .completeness
         }
     }
 }
 
 enum AppSheetKind: Hashable {
-    case contractDetail, contractForm, incomeForm, incomesAll, letter, cancelChannelPick, mail, document, manage
+    case contractDetail, contractForm, incomeForm, incomesAll, letter, cancelChannelPick, mail, document, manage, bankImport, completeness
 
     /// Darf nicht zweimal direkt übereinander liegen (Doppeltippen öffnet sonst z.B. zwei Mail-Fenster).
     /// Vertragsdetail und Verwalten dürfen übereinander liegen (z.B. Vertragspartner → anderer Vertrag).

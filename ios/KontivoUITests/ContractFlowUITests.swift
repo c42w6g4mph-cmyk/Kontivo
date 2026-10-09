@@ -11,7 +11,7 @@ final class ContractFlowUITests: KontivoUITestCase {
         launch("-uiEmpty")
 
         // Neuer Vertrag über «+»
-        tapOpen(button("Vertrag anlegen"), "Knopf +", expect: textField("form.label"))
+        openPlusMenuItem("Vertrag erfassen", expect: textField("form.label"))
         waitNav("Neuer Vertrag")
         enter(textField("form.label"), contractName + "\n", "Bezeichnung")
         enter(textField("form.amount"), "45", "Betrag")
@@ -78,7 +78,7 @@ final class ContractFlowUITests: KontivoUITestCase {
     /// Abbrechen mit Änderungen fragt nach; «Verwerfen» schliesst ohne zu sichern
     func testFormularVerwerfen() {
         launch("-uiEmpty")
-        tapOpen(button("Vertrag anlegen"), "Knopf +", expect: textField("form.label"))
+        openPlusMenuItem("Vertrag erfassen", expect: textField("form.label"))
         enter(textField("form.label"), "Wird verworfen", "Bezeichnung")
         tapTop("Abbrechen")
         tapAlertButton("Verwerfen")
