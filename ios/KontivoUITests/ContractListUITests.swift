@@ -68,9 +68,10 @@ final class ContractListUITests: KontivoUITestCase {
         reveal(fit, "Fitnessabo")
         fit.press(forDuration: 1.3)
         tap(button("Bearbeiten"), "Kontextmenü Bearbeiten")
-        waitNav("Vertrag bearbeiten")
+        waitNav("Bearbeiten")
+        wait(textField("form.label"), "Formular")
         XCTAssertEqual(textField("form.label").value as? String, "Fitnessabo")
         tapTop("Abbrechen")
-        waitUntil("Formular geschlossen") { !self.navExists("Vertrag bearbeiten") }
+        waitUntil("Formular geschlossen") { !self.navExists("Bearbeiten") && !self.textField("form.label").exists }
     }
 }

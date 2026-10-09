@@ -198,6 +198,6 @@ public enum Partners {
     public static func duplicateHint(_ c: Contract, in data: AppData, today: Day) -> String {
         let calc = Calc(data: data, today: today)
         let name = c.label.isEmpty ? data.partnerName(of: c) : c.label
-        return "Mögliches Duplikat: «" + name + "» (" + Format.money(calc.curPrice(c)) + " " + c.currency.rawValue + ") existiert bereits. Du kannst trotzdem speichern."
+        return "Mögliches Duplikat: «" + name + "» (" + Format.money(calc.curPrice(c), c.currency) + " " + c.currency.rawValue + ") existiert bereits. Du kannst trotzdem speichern."
     }
 }

@@ -346,7 +346,7 @@ private struct CTDetailPills: View {
         var out: [Item] = []
         if let m = main { out.append(m) }
         if let nc = calc.nextChange(c) {
-            out.append(Item(text: "Neuer Preis ab " + Format.fmtD(nc.from) + ": " + Format.money(nc.amount) + " " + c.currency.rawValue, tone: .warn))
+            out.append(Item(text: "Neuer Preis ab " + Format.fmtD(nc.from) + ": " + Format.money(nc.amount, c.currency) + " " + c.currency.rawValue, tone: .warn))
         }
         return out
     }
@@ -400,13 +400,12 @@ private struct CTDetailSections: View {
     private func costRows(_ c: Contract, calc: Calc) -> [CTDetailRow] {
         var r: [CTDetailRow] = []
         if c.cycleForCalc != 1 {
-            r.append(CTDetailRow("Betrag", Format.money(calc.curPrice(c)) + " " + c.currency.rawValue))
+            r.append(CTDetailRow("Betrag", Format.money(calc.curPrice(c), c.currency) + " " + c.currency.rawValue))
         }
-        // TODO(core): `Calc.payRule` statt der lokalen Hilfe
         let rule = Calc.payRule(cycle: c.cycle, due: c.due)
         if !rule.isEmpty {
             var row = CTDetailRow("Zahlung", rule)
-            if c.cycleForCalc != 1, let nd = calc.nextDue(c), CTLocalCalc.paidSoFar(c, calc: calc) != nil {
+            if c.cycleForCalc != 1, let nd = calc.nextDue(c), CTDetailKeyFigures.paidSoFar(c, calc: calc) != nil {
                 row.sub = "nächste am " + Format.fmtShort(nd)
             }
             r.append(row)
@@ -794,7 +793,7 @@ struct CTExtraRow: View {
                 }
             }
             Spacer(minLength: 8)
-            Text((cr ? Format.minus : "") + Format.money(abs(extra.amount)) + " " + currency)
+            Text((cr ? Format.minus : "") + Format.money(abs(extra.amount), Currency(rawValue: currency)) + " " + currency)
                 .font(.body.weight(.semibold))
                 .monospacedDigit()
                 .foregroundStyle(cr ? KColor.ok : KColor.ink)

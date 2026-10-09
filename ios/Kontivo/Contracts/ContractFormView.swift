@@ -331,7 +331,7 @@ private struct CTFormSplitRows: View {
                                    in: 0...(total * 2).rounded(.up) / 2, step: 0.5)
                                 .tint(KColor.ink3)
                                 .accessibilityLabel("Aufteilung, Betrag " + holders[1].name)
-                                .accessibilityValue(Format.money(form.splitAmount(holders[1].id, total: total)) + " " + form.currency.rawValue)
+                                .accessibilityValue(Format.money(form.splitAmount(holders[1].id, total: total), form.currency) + " " + form.currency.rawValue)
                         }
                     }
                     let cols = holders.count == 3 ? 3 : 2
@@ -343,13 +343,13 @@ private struct CTFormSplitRows: View {
                                     Text(p.name).font(.footnote.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
                                 }
                                 if rest {
-                                    Text(verbatim: Format.money(form.splitAmount(p.id, total: total)))
+                                    Text(verbatim: Format.money(form.splitAmount(p.id, total: total), form.currency))
                                         .font(.body.weight(.semibold).monospacedDigit())
                                         .frame(maxWidth: .infinity, alignment: .trailing)
                                         .padding(.horizontal, 10).padding(.vertical, 9)
                                         .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(KColor.line, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
                                 } else {
-                                    TextField("0.00", text: amountBinding(p.id, total: total))
+                                    TextField(Format.amountInput(0, form.currency), text: amountBinding(p.id, total: total))
                                         .keyboardType(.decimalPad)
                                         .multilineTextAlignment(.trailing)
                                         .monospacedDigit()
@@ -364,7 +364,7 @@ private struct CTFormSplitRows: View {
                             }
                         }
                     }
-                    Text(verbatim: total > 0 ? "Total " + Format.money(total) + " " + form.currency.rawValue + " pro Zahlung" : "Zuerst den Betrag unter «Kosten» eintragen.")
+                    Text(verbatim: total > 0 ? "Total " + Format.money(total, form.currency) + " " + form.currency.rawValue + " pro Zahlung" : "Zuerst den Betrag unter «Kosten» eintragen.")
                         .font(.caption).foregroundStyle(KColor.ink2)
                 }
                 .padding(.horizontal, 14).padding(.vertical, 12)
@@ -383,7 +383,7 @@ private struct CTFormSplitRows: View {
     /// Während der Eingabe bleibt der getippte Text stehen; sonst der formatierte Betrag.
     private func amountBinding(_ id: UUID, total: Double) -> Binding<String> {
         Binding(
-            get: { focused == id ? (texts[id] ?? String(format: "%.2f", form.splitAmount(id, total: total))) : String(format: "%.2f", form.splitAmount(id, total: total)) },
+            get: { focused == id ? (texts[id] ?? Format.amountInput(form.splitAmount(id, total: total), form.currency)) : Format.amountInput(form.splitAmount(id, total: total), form.currency) },
             set: { v in
                 texts[id] = v
                 form.setSplitAmount(id, CTNumber.parse(v) ?? 0, total: total)
@@ -561,7 +561,7 @@ private struct CTFormCostSection: View {
     var body: some View {
         Section {
             LabeledContent(form.prices.isEmpty ? "Betrag" : "Anfangspreis") {
-                TextField("59.90", text: $form.amountText)
+                TextField(CTNumber.placeholder(form.currency), text: $form.amountText)
                     .accessibilityIdentifier("form.amount")
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)

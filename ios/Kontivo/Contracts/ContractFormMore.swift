@@ -119,10 +119,10 @@ private struct CTMorePrices: View {
         let ni = ps.lastIndex { $0.from <= today } ?? -1
         let cur = form.currency.rawValue
         let base = CTNumber.parse(form.amountText)
-        CTPriceRow(label: "Anfangspreis", amount: (base.map { Format.money($0) } ?? "—") + " " + cur,
+        CTPriceRow(label: "Anfangspreis", amount: (base.map { Format.money($0, form.currency) } ?? "—") + " " + cur,
                    tag: ni < 0 ? .current : nil, isCurrent: ni < 0, hPad: 0)
         ForEach(Array(ps.enumerated()), id: \.offset) { i, p in
-            CTPriceRow(label: "ab " + Format.fmtD(p.from), amount: Format.money(p.amount) + " " + cur,
+            CTPriceRow(label: "ab " + Format.fmtD(p.from), amount: Format.money(p.amount, form.currency) + " " + cur,
                        tag: i == ni ? .current : (p.from > today ? .planned : nil), isCurrent: i == ni,
                        onDelete: { form.removePrice(p.from) }, hPad: 0)
         }

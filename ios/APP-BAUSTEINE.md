@@ -48,7 +48,7 @@ Bereichsinterne Auswahllisten öffnet die Ansicht selbst mit `.sheet` / `.confir
 - `NetCheck.isOnline()`, `WebLinks.googleImages(…)` (LogoSearchSheet), `ImageImport` (ImageCropSheet: Fotos/Dateien/Einfügen, Verkleinerung auf 1600 px)
 
 ## Gemeinsame Kern-Hilfen
-- `Format.parseNum` – einziger Zahlenleser für alle Eingaben (wie Web `parseNum`)
+- `Format.parseNum` – Zahlenleser für Eingaben (wie Web `parseNum`); Beträge über `Format.parseAmount` (Web `parseAmt`: «1.234» = 1234), Anzeige im Feld über `Format.amountInput(v, currency)` (Web `amtIn`)
 - `Format.noticeValue(_:unit:)` – Kündigungsfrist prüfen (wie Web `noticeVal`); `CTNumber.noticeValue` und `AppData.mdNoticeValue` leiten darauf um
 - `AppData.sharedEntryCount(a, b)` – gemeinsame Einträge (Hinweis «Alle übertragen»)
 - `Partners.find` (nur gleicher Name), `Partners.similar` (Hinweis)

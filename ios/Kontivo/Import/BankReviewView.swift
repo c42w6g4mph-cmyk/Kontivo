@@ -2,7 +2,7 @@ import SwiftUI
 import KontivoCore
 
 /// Vorschläge prüfen (Web `paintBank`): Checkliste mit Bearbeiten in der Zeile.
-/// Abschnitte: Preisänderung, Neu gefunden, Vielleicht (mit Hinweis), «Bereits erfasst» eingeklappt, ausgeblendete Vorschläge.
+/// Abschnitte: Preisänderung, Neu gefunden, Vielleicht (mit Hinweis), bereits erfasste eingeklappt, ausgeblendete Vorschläge.
 struct BankReviewView: View {
     @Bindable var review: BankReview
     let onDone: () -> Void
@@ -136,8 +136,6 @@ struct BankReviewView: View {
                 if review.showKnown {
                     ForEach(known.indices, id: \.self) { i in knownRow(known[i]) }
                 }
-            } header: {
-                if review.showKnown { head("Bereits erfasst", known.count) }
             }
         }
     }
@@ -183,7 +181,7 @@ struct BankReviewView: View {
                         }
                         Spacer(minLength: 4)
                         VStack(alignment: .trailing, spacing: 0) {
-                            Text(Format.money(r.ed.amount)).font(.subheadline.weight(.semibold)).monospacedDigit().foregroundStyle(KColor.ink)
+                            Text(Format.money(r.ed.amount, Currency(rawValue: r.s.currency))).font(.subheadline.weight(.semibold)).monospacedDigit().foregroundStyle(KColor.ink)
                             Text(r.s.currency).font(.caption).foregroundStyle(KColor.ink2)
                         }
                     }
@@ -209,13 +207,14 @@ struct BankReviewView: View {
         let old = c.map { model.calc.curPrice($0) } ?? p.m.suggestion.amount
         let name = c.map { n in model.data.partnerName(of: n).isEmpty ? model.data.title(of: n) : model.data.partnerName(of: n) } ?? p.m.suggestion.name
         let cur = c?.currency.rawValue ?? p.m.suggestion.currency
+        let money: (Double) -> String = { Format.money($0, Currency(rawValue: cur)) }
         return HStack(spacing: 10) {
             check(p.on, label: "Neuen Preis für \(name) übernehmen") { review.togglePrice(p.id) }
             if let c { MarkView(contract: c, data: model.data, size: 36) }
             VStack(alignment: .leading, spacing: 1) {
                 Text(name + (p.m.amount > old ? " ist teurer" : " ist günstiger"))
                     .font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink)
-                Text(Format.money(old) + " → " + Format.money(p.m.amount) + " " + cur + " ab " + BankReview.day(p.m.from))
+                Text(money(old) + " → " + money(p.m.amount) + " " + cur + " ab " + BankReview.day(p.m.from))
                     .font(.caption).foregroundStyle(KColor.ink2)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -237,11 +236,11 @@ struct BankReviewView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     let pn = model.data.partnerName(of: c)
                     Text(pn.isEmpty ? model.data.title(of: c) : pn).font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink2).lineLimit(1)
-                    Text((Format.cycleText(c.cycle) ?? "") + " · unverändert").font(.caption).foregroundStyle(KColor.ink2)
+                    Text((Format.cycleText(c.cycle) ?? "") + " · " + (k.loose ? "im Auszug gefunden" : "unverändert")).font(.caption).foregroundStyle(KColor.ink2)
                 }
                 Spacer(minLength: 4)
                 VStack(alignment: .trailing, spacing: 0) {
-                    Text(Format.money(model.calc.curPrice(c))).font(.subheadline.weight(.semibold)).monospacedDigit().foregroundStyle(KColor.ink2)
+                    Text(Format.money(model.calc.curPrice(c), c.currency)).font(.subheadline.weight(.semibold)).monospacedDigit().foregroundStyle(KColor.ink2)
                     Text(c.currency.rawValue).font(.caption).foregroundStyle(KColor.ink2)
                 }
             }
@@ -271,7 +270,7 @@ struct BankRowEditor: View {
                 }
                 HStack(alignment: .top, spacing: 10) {
                     field("Betrag (\(r.s.currency))") {
-                        TextField("0.00", text: Binding(get: { review.rows[i].ed.amountText },
+                        TextField(Format.amountInput(0, Currency(rawValue: r.s.currency)), text: Binding(get: { review.rows[i].ed.amountText },
                                                         set: { v in review.setAmountText(rowID, v) }))
                             .keyboardType(.decimalPad)
                             .monospacedDigit()
@@ -307,7 +306,7 @@ struct BankRowEditor: View {
                 }
                 if model.data.persons.count > 1 { personSegment(i) }
                 if let ch = r.s.change {
-                    note("Preis bisher \(Format.money(ch.prev)), seit \(BankReview.day(ch.from)) \(Format.money(ch.amount)) \(r.s.currency). Beides kommt in den Preisverlauf.")
+                    note("Preis bisher \(Format.money(ch.prev, Currency(rawValue: r.s.currency))), seit \(BankReview.day(ch.from)) \(Format.money(ch.amount, Currency(rawValue: r.s.currency))) \(r.s.currency). Beides kommt in den Preisverlauf.")
                 }
                 proof(r.s)
                 if let t = r.s.catalogName {

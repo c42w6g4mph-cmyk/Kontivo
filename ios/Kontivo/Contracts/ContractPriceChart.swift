@@ -234,13 +234,13 @@ struct CTPriceChartModel {
         }
         var out: [Point] = []
         for (i, p) in pts.enumerated() {
-            let pv = p.a != 0 ? Format.money(p.a) : "gratis"
+            let pv = p.a != 0 ? Format.money(p.a, c.currency) : "gratis"
             let dt = i > 0 ? Format.fmtShort(p.d) : (hasSt ? Format.fmtShort(p.d) : "Anfang")
             var pc: String?
             var tone = 0
             if i > 0 && pts[i - 1].a != 0 {
                 let v = (p.a - pts[i - 1].a) / pts[i - 1].a * 100
-                pc = CTLocalCalc.pctText(v)
+                pc = Format.pctText(v)
                 tone = v > 0 ? 1 : (v < 0 ? -1 : 0)
             }
             out.append(Point(index: i, day: p.d, amount: p.a, x: X(p.d), y: Y(p.a), future: p.d > t, now: i == ni,
@@ -263,12 +263,12 @@ struct CTPriceChartModel {
             badge = "unverändert"
             badgeTone = 0
         } else {
-            var txt = CTLocalCalc.pctText(abs(pct))
+            var txt = Format.pctText(abs(pct))
             if txt.hasPrefix("+") || txt.hasPrefix("±") { txt.removeFirst() }
             badge = (pct > 0 ? "↑ " : "↓ ") + txt + (pct > 0 ? " teurer" : " günstiger")
             badgeTone = pct > 0 ? 1 : -1
         }
-        accessibility = "Preisverlauf von " + Format.money(base) + " auf " + Format.money(lastP.amount) + " " + c.currency.rawValue
+        accessibility = "Preisverlauf von " + Format.money(base, c.currency) + " auf " + Format.money(lastP.amount, c.currency) + " " + c.currency.rawValue
             + ", " + badge
     }
 }

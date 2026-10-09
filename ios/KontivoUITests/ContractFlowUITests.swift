@@ -31,13 +31,13 @@ final class ContractFlowUITests: KontivoUITestCase {
 
         // Bearbeiten → Betrag ändern → Sichern
         tapTop("Bearbeiten")
-        waitNav("Vertrag bearbeiten")
+        waitNav("Bearbeiten")
         let amount = textField("form.amount")
         wait(amount, "Betragsfeld")
         XCTAssertEqual(amount.value as? String, "45.00")
         replace(amount, "52", "Betrag ändern")
         tapTop("Sichern")
-        waitUntil("Formular geschlossen") { !self.navExists("Vertrag bearbeiten") }
+        waitUntil("Formular geschlossen") { !self.navExists("Bearbeiten") && !self.textField("form.amount").exists }
         wait(elContaining("52.00 CHF"), "Neuer Betrag im Detail")
         XCTAssertFalse(elContaining("45.00 CHF").exists, "Alter Betrag noch sichtbar")
 

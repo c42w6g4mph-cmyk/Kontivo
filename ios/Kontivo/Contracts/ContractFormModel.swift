@@ -137,7 +137,7 @@ final class CTFormState {
             title = "Neuer Vertrag"
         case .edit(let id):
             c = data.contract(id) ?? Contract()
-            title = "Vertrag bearbeiten"
+            title = "Bearbeiten"
         case .duplicate(let id):
             c = data.duplicateDraft(id) ?? Contract()
             title = "Duplizieren"
@@ -154,8 +154,8 @@ final class CTFormState {
         let personIDs = Set(data.persons.map { $0.id })
         holderIDs = c.holderIDs.filter { personIDs.contains($0) }
         split = c.validSplit != nil ? c.split : []
-        amountText = blankAmount ? "" : CTNumber.field(c.amount)
         currency = useHomeCurrency ? data.settings.homeCurrency : c.currency
+        amountText = blankAmount ? "" : CTNumber.field(c.amount, currency)
         cycle = c.cycle == 0 ? 1 : c.cycle
         due = c.due ?? today
         if c.noCancel {
@@ -814,7 +814,7 @@ final class CTFormState {
         if abs(Format.round2(a) - pv) < 0.005 && !force {
             let cur = currency.rawValue
             return .confirmSame(title: "Preis bleibt gleich",
-                                message: "Vor dem " + Format.fmtD(f) + " gilt schon " + Format.money(pv) + " " + cur
+                                message: "Vor dem " + Format.fmtD(f) + " gilt schon " + Format.money(pv, currency) + " " + cur
                                     + ". Steht oben unter «Kosten» bereits der neue Preis? Dort gehört der Anfangspreis hin – also der Preis bei Vertragsbeginn.")
         }
         prices.removeAll { $0.from == f }

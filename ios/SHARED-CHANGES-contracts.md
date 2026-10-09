@@ -10,13 +10,9 @@
 - `AppSheetView.content`: Fall `.completeness` zeigt vorläufig `ManageView(start: .quality)` (Rückfall Datenqualität).
 - Integrator: durch die Vollständigkeit-Ansicht des Bereichs core ersetzen (z.B. `CompletenessView(only: only)`).
 
-## Lokale Hilfen mit TODO (statt Kern), zum Umstellen durch den Integrator
-- `Contracts/ContractsLocalCalc.swift`:
-  - `CTLocalCalc.payRule(due:cycle:)` → `Calc.payRule` (core)
-  - `CTLocalCalc.pctText`, Preisverlauf-Zusammenfassung in `CTPriceChartModel` → Kernfunktion (core), falls vorhanden
-  - `CTLocalCalc.paidSoFar` (Summe in Vertragswährung; `Calc.paidSoFar` rechnet in Hauptwährung)
-  - `CTCompletenessLocal.needs/hint` (Web `vkNeeds(id)`/`vkHintHtml`) → `Completeness` (core); `settings.logoSkip` fehlt hier noch
-- Danach `ContractsLocalCalc.swift` löschen.
+## Lokale Hilfen (erledigt)
+- `Contracts/ContractsLocalCalc.swift` gelöscht: Hinweis im Detail über `Completeness.hint` (inkl. `settings.logoSkip`),
+  `Format.pctText`, «insgesamt bezahlt» über `CTDetailKeyFigures.paidSoFar` (Vertragswährung; `Calc.paidSoFar` rechnet in Hauptwährung).
 
 ## UI-Tests ausserhalb des Bereichs
 - `KontivoUITests/CostsBudgetUITests.swift` (`testAufteilungDetailUndFormular`): «Bisher bezahlt» → «insgesamt bezahlt»

@@ -100,7 +100,7 @@ struct ContractCardRow: View {
         case .pay:
             let pd = calc.nextDue(c)
             let t = calc.today
-            var r = Right(amount: Format.money(calc.priceAt(c, pd ?? t)), unit: c.currency.rawValue, sub: nil)
+            var r = Right(amount: Format.money(calc.priceAt(c, pd ?? t), c.currency), unit: c.currency.rawValue, sub: nil)
             if let d = pd {
                 let dn = t.days(to: d)
                 if dn < 0 {
@@ -120,18 +120,19 @@ struct ContractCardRow: View {
         case .cost:
             let same = c.cycleForCalc == 1 && c.currency == data.settings.homeCurrency
             let sub = same ? "monatlich"
-                : Format.money(calc.curPrice(c)) + " " + c.currency.rawValue + " " + Format.cycleTextOrMonthly(c.cycle)
+                : Format.money(calc.curPrice(c), c.currency) + " " + c.currency.rawValue + " " + Format.cycleTextOrMonthly(c.cycle)
             return Right(amount: Format.money(calc.monthlyCost(c)), unit: home + "/Mt.", sub: sub)
         case .list:
             let sub: String? = c.cycleForCalc != 1 ? Format.cycleText(c.cycle) : nil
-            return Right(amount: Format.money(calc.curPrice(c)), unit: c.currency.rawValue, sub: sub)
+            return Right(amount: Format.money(calc.curPrice(c), c.currency), unit: c.currency.rawValue, sub: sub)
         }
     }
 }
 
 // MARK: - Aktionen auf Karten (Wischen und langes Drücken, native Ergänzung)
 
-/// Wischaktionen und Kontextmenü einer Vertragskarte: Pausieren/Fortsetzen, Duplizieren, Kündigen.
+/// Wischaktionen und Kontextmenü einer Vertragskarte: Pausieren/Fortsetzen, Duplizieren, Kündigen/Wechseln.
+/// Bedingungen wie im Menü ••• des Vertragsdetails.
 struct CTCardActions: ViewModifier {
     @Environment(AppModel.self) private var model
     let contract: Contract
@@ -140,12 +141,15 @@ struct CTCardActions: ViewModifier {
     func body(content: Content) -> some View {
         let calc = model.calc
         let archived = contract.status == .cancelled
-        let canCancel = !archived && contract.cancelPer == nil && calc.isActive(contract)
+        let fixd = calc.isFixed(contract)
+        let canCancel = !(contract.cancelPer != nil || archived || fixd)
+        let canPause = !archived && !fixd && !contract.mandatory && !calc.isRent(contract)
         let paused = calc.isPaused(contract)
-        let cancelTitle = CTText.cancelButton(calc.cancVia(contract))
+        let cancelTitle = contract.mandatory ? "Wechseln" : CTText.cancelButton(calc.cancVia(contract))
+        let cancelSymbol = contract.mandatory ? "arrow.left.arrow.right" : "xmark.circle"
         content
             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                if !archived {
+                if canPause {
                     Button {
                         togglePause(paused)
                     } label: {
@@ -165,9 +169,9 @@ struct CTCardActions: ViewModifier {
                     Button {
                         model.startCancel(contract.id, trial: false)
                     } label: {
-                        Label(cancelTitle, systemImage: "xmark.circle")
+                        Label(cancelTitle, systemImage: cancelSymbol)
                     }
-                    .tint(KColor.alert)
+                    .tint(contract.mandatory ? KColor.teal : KColor.alert)
                 }
             }
             .contextMenu {
@@ -175,10 +179,10 @@ struct CTCardActions: ViewModifier {
                     Button {
                         model.startCancel(contract.id, trial: false)
                     } label: {
-                        Label(cancelTitle, systemImage: "xmark.circle")
+                        Label(cancelTitle, systemImage: cancelSymbol)
                     }
                 }
-                if !archived {
+                if canPause {
                     Button {
                         togglePause(paused)
                     } label: {

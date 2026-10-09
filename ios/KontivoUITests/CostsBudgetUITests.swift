@@ -98,7 +98,7 @@ final class ReviewPackageUITests: KontivoUITestCase {
         XCTAssertTrue(elContaining("Lara 30").exists)
         wait(elContaining("insgesamt bezahlt"), "Kachel «insgesamt bezahlt» (Detail-Kennzahlen, Web v95)")
         tapTop("Bearbeiten")
-        waitNav("Vertrag bearbeiten")
+        waitNav("Bearbeiten")
         let seg = el("form.split")
         scrollTo(seg)
         wait(seg, "Segment Aufteilung")

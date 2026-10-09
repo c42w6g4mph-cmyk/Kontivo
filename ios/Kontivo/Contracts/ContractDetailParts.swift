@@ -48,7 +48,7 @@ struct CTDetailKeyFigures: View {
         let cu = c.currency
         let fx = cu != home
         let mon = calc.curPrice(c) / Double(c.cycleForCalc)
-        let paid = CTLocalCalc.paidSoFar(c, calc: calc)
+        let paid = CTDetailKeyFigures.paidSoFar(c, calc: calc)
         let nd = calc.nextDue(c)
         let share = CTDetailKeyFigures.share(c, calc: calc)
         CTRatioRow().callAsFunction {
@@ -57,7 +57,7 @@ struct CTDetailKeyFigures: View {
                     .font(.caption.weight(.medium))
                     .foregroundStyle(KColor.ink2)
                 VStack(alignment: .leading, spacing: 3) {
-                    bigAmount(mon, currency: cu.rawValue)
+                    bigAmount(mon, currency: cu)
                     if fx {
                         Text(verbatim: "≈ " + Format.money0(calc.conv(mon, cu)) + " " + home.rawValue)
                             .font(.caption).foregroundStyle(KColor.ink2)
@@ -85,10 +85,10 @@ struct CTDetailKeyFigures: View {
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("detail.kz.month")
             VStack(spacing: 8) {
-                tile("pro Jahr", value: Format.money0(mon * 12), currency: cu.rawValue,
+                tile("pro Jahr", value: Format.money0(mon * 12, cu), currency: cu.rawValue,
                      extra: fx ? "≈ " + Format.money0(calc.conv(mon * 12, cu)) + " " + home.rawValue : "")
                 if let p = paid {
-                    tile("insgesamt bezahlt", value: Format.money0(p), currency: cu.rawValue, extra: "")
+                    tile("insgesamt bezahlt", value: Format.money0(p, cu), currency: cu.rawValue, extra: "")
                 } else {
                     tile("nächste Zahlung", value: nd.map { Format.fmtShort($0) } ?? "—", currency: "", extra: "")
                 }
@@ -99,6 +99,14 @@ struct CTDetailKeyFigures: View {
         .padding(.bottom, 12)
     }
 
+    /// Summe aller Zahlungen von Vertragsbeginn bis heute in Vertragswährung (Web `paidSoFar` im Detail); nil ohne Beginn.
+    /// (`Calc.paidSoFar` rechnet in die Hauptwährung um, die Kachel zeigt die Vertragswährung.)
+    static func paidSoFar(_ c: Contract, calc: Calc) -> Double? {
+        guard let s0 = c.start, s0 < calc.today else { return nil }
+        let sum = calc.payments(c, from: s0, to: calc.today).reduce(0.0) { $0 + $1.amount }
+        return sum > 0.005 ? sum : nil
+    }
+
     /// Anteil an den monatlichen Fixkosten in % (nur laufend, nicht pausiert, begonnen)
     static func share(_ c: Contract, calc: Calc) -> Int? {
         if CTDetailState.gone(c, calc: calc) || calc.isPaused(c) || calc.notStarted(c) { return nil }
@@ -107,15 +115,14 @@ struct CTDetailKeyFigures: View {
         return Int(Format.jsRound(calc.monthlyCost(c) / tot * 100))
     }
 
-    /// «59» gross, «.90» klein, Währung klein (Web decAt)
-    private func bigAmount(_ v: Double, currency: String) -> some View {
-        let mt = Format.money(v)
-        let k = mt.lastIndex(of: ".")
-        let intPart = k.map { String(mt[..<$0]) } ?? mt
-        let decPart = k.map { String(mt[$0...]) } ?? ""
+    /// «59» gross, «.90» bzw. «,90» klein, Währung klein (Web decAt)
+    private func bigAmount(_ v: Double, currency: Currency) -> some View {
+        let parts = Format.decimalSplit(Format.money(v, currency))
+        let intPart = parts.whole
+        let decPart = parts.fraction
         return (Text(verbatim: intPart).font(.system(size: 34, weight: .bold))
             + Text(verbatim: decPart).font(.system(size: 19, weight: .semibold))
-            + Text(verbatim: " " + currency).font(.caption.weight(.semibold)).foregroundStyle(KColor.ink2))
+            + Text(verbatim: " " + currency.rawValue).font(.caption.weight(.semibold)).foregroundStyle(KColor.ink2))
             .foregroundStyle(KColor.ink)
             .monospacedDigit()
             .lineLimit(1)
@@ -152,10 +159,9 @@ struct CTDetailCompletenessHint: View {
     let contract: Contract
 
     var body: some View {
-        // TODO(core): auf `Completeness` aus KontivoCore umstellen
-        let needs = CTCompletenessLocal.needs(contract, data: model.data, calc: model.calc, hasFile: { model.files.has($0) })
-        if !needs.isEmpty {
-            let h = CTCompletenessLocal.hint(needs)
+        // Kern-Vollständigkeit (inkl. «Ohne Logo» aus settings.logoSkip), Web `vkHintHtml`
+        let f = model.files
+        if let h = Completeness.hint(contract: contract.id, data: model.data, today: model.today, hasFile: { f.has($0) }) {
             Button {
                 let id = contract.id
                 model.dismissAll()
@@ -169,14 +175,14 @@ struct CTDetailCompletenessHint: View {
                         Text(h.title)
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(KColor.teal)
-                        Text(h.sub)
+                        Text(h.detail)
                             .font(.footnote)
                             .foregroundStyle(KColor.ink2)
                             .multilineTextAlignment(.leading)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 8)
-                    Text("Ergänzen ›")
+                    Text(h.action)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(KColor.teal)
                         .fixedSize()

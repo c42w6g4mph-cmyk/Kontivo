@@ -205,7 +205,7 @@ extension AppData {
         contracts[i].pauses = out
     }
 
-    /// Entwurf «Duplizieren»: gleiche Formularfelder, ohne Sonderzahlungen, Dokumente und Status. Noch nicht gespeichert.
+    /// Entwurf «Duplizieren»: gleiche Formularfelder, ohne Sonderzahlungen, Dokumente, Status und Quartals-Check. Noch nicht gespeichert.
     public func duplicateDraft(_ id: UUID, now: Date = Date()) -> Contract? {
         guard var c = contract(id) else { return nil }
         c.id = UUID()
@@ -218,6 +218,7 @@ extension AppData {
         c.keptFor = nil
         c.trialKept = nil
         c.pauses = []
+        c.review = nil
         c.createdAt = now
         return c
     }

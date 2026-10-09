@@ -257,6 +257,12 @@ struct CTListContent {
         func defaultSum(_ list: [Contract]) -> String {
             // wie die Summe oben: ohne pausierte und noch nicht aktive Verträge
             let s = list.reduce(0.0) { $0 + ((calc.isPaused($1) || calc.notStarted($1)) ? 0 : (cost[$1.id] ?? 0)) }
+            // nur pausierte und/oder noch nicht aktive Verträge: Zustand statt «0.00 CHF/Mt.» (Web `group`)
+            if s < 0.005 && !list.isEmpty {
+                if list.allSatisfy({ calc.isPaused($0) }) { return "pausiert" }
+                if list.allSatisfy({ calc.notStarted($0) }) { return "noch nicht aktiv" }
+                if list.allSatisfy({ calc.isPaused($0) || calc.notStarted($0) }) { return "pausiert / noch nicht aktiv" }
+            }
             return Format.money(s) + " " + home + "/Mt."
         }
         var out: [CTGroup] = []
@@ -436,7 +442,7 @@ private struct CTListControls: View {
             } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "arrow.up.arrow.down")
-                    (Text("Sortiert ").foregroundStyle(KColor.ink2) + Text(sort.shortLabel).bold())
+                    Text(sort.shortLabel)
                 }
                 .font(.subheadline)
                 .padding(.horizontal, 12).padding(.vertical, 7)

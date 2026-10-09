@@ -92,8 +92,10 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(data.contract(id)?.due, today)
         XCTAssertEqual(data.settings.lastHolderIDs, [data.persons[1].id])
         XCTAssertEqual(data.defaultHolderIDs, [data.persons[1].id])
+        data.contracts[0].review = ContractReview(verdict: .kill, at: today)
         let dup = try XCTUnwrap(data.duplicateDraft(data.contracts[0].id))
         XCTAssertNil(dup.cancelPer)
+        XCTAssertNil(dup.review)
         XCTAssertEqual(dup.pauses, [])
         XCTAssertEqual(dup.label, "Miete")
     }

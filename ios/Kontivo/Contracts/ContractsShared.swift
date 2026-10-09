@@ -6,11 +6,11 @@ import KontivoCore
 // MARK: - Zahlen
 
 enum CTNumber {
-    /// Betrag aus einem Eingabefeld lesen – gemeinsamer Zahlenleser `Format.parseNum` (1:1 Web `parseNum`):
-    /// «59.90», «59,90», «1’284.50», «1'284,50», «1.284,50». Leer oder nicht lesbar (z.B. «12abc») → nil.
+    /// Betrag aus einem Eingabefeld lesen – `Format.parseAmount` (1:1 Web `parseAmt`):
+    /// «59.90», «59,90», «1’284.50», «1'284,50», «1.284,50», «1.234» = 1234. Leer oder nicht lesbar (z.B. «12abc») → nil.
     /// Negative Werte bleiben negativ (die Prüfung macht der Aufrufer).
     static func parse(_ s: String) -> Double? {
-        Format.parseNum(s)
+        Format.parseAmount(s)
     }
 
     /// Kündigungsfrist prüfen (Web `noticeVal`): leer → 0; keine ganze Zahl oder negativ → nil;
@@ -24,8 +24,13 @@ enum CTNumber {
         noticeValue(s, unit: unit) ?? 0
     }
 
-    /// Betrag für ein Eingabefeld: «59.90»
-    static func field(_ v: Double) -> String { Format.fixed2(v) }
+    /// Betrag für ein Eingabefeld (Web `amtIn`): «59.90», bei EUR «59,90»
+    static func field(_ v: Double, _ currency: Currency? = nil) -> String { Format.amountInput(v, currency) }
+
+    /// Platzhalter eines Betragsfelds im Zahlenformat der Währung (Web `amtPh`): «59,90» bzw. «59.90»
+    static func placeholder(_ currency: Currency?) -> String {
+        Format.numberStyle(currency) == .de ? "59,90" : "59.90"
+    }
 }
 
 // MARK: - Sortieren (stabil wie JS)

@@ -559,7 +559,12 @@ struct DeadlineReviewSheet: View {
                     }
                     Button {
                         let t = model.today
-                        if model.update({ $0.markReviewed(today: t) }) { model.toast(AppData.reviewedToast) }
+                        if model.update({ $0.markReviewed(today: t) }) {
+                            // Web: vorgemerkte Verträge (Weg damit, noch nicht gekündigt) nennen, sonst «Geprüft …»
+                            let nk = model.data.contracts.filter { model.calc.reviewKill($0) && $0.cancelPer == nil }.count
+                            let what: String = nk == 1 ? "1 Vertrag" : "\(nk) Verträge"
+                            model.toast(nk > 0 ? what + " zum Kündigen vorgemerkt, siehe «Fristen»" : AppData.reviewedToast)
+                        }
                         dismiss()
                     } label: {
                         Text("Fertig").font(.body.weight(.semibold)).foregroundStyle(.white)

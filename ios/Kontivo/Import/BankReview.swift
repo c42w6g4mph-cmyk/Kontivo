@@ -54,7 +54,7 @@ final class BankReview {
             // unbekannte Währung → Hauptwährung (Web: BK_CUR)
             if Currency(rawValue: s.currency) == nil { s.currency = home }
             let cat = OnbQuick.category(named: s.category, in: data)?.id
-            let ed = Edit(name: s.name, amount: s.amount, amountText: Format.fixed2(s.amount), cycle: s.cycle,
+            let ed = Edit(name: s.name, amount: s.amount, amountText: Format.amountInput(s.amount, Currency(rawValue: s.currency)), cycle: s.cycle,
                           categoryID: cat, holderIDs: holders, due: s.due)
             return Row(s: s, on: s.confidence != .low && !s.ignored, ed: ed, categoryID0: cat)
         }
@@ -112,7 +112,7 @@ final class BankReview {
         var list: [String] = []
         for j in stride(from: k - 1, through: max(0, k - 4), by: -1) where j >= 0 {
             let a = j < s.amounts.count ? s.amounts[j] : s.amount
-            list.append(Self.day(s.dates[j]) + " · " + Format.money(a))
+            list.append(Self.day(s.dates[j]) + " · " + Format.money(a, Currency(rawValue: s.currency)))
         }
         if !s.text.isEmpty && Self.norm(s.text) != Self.norm(s.raw) { out.append(String(s.text.prefix(90))) }
         if !list.isEmpty { out.append(list.joined(separator: "  ·  ") + (k > 4 ? " … (\(k) Buchungen)" : "")) }
@@ -146,7 +146,7 @@ final class BankReview {
     func setAmountText(_ id: String, _ text: String) {
         edit(id) { e in
             e.amountText = text
-            if let v = Format.parseNum(text), v >= 0 { e.amount = Format.round2(v) }
+            if let v = Format.parseAmount(text), v >= 0 { e.amount = Format.round2(v) }
         }
     }
 
