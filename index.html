@@ -1461,7 +1461,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     </div></div>
   <div class="sgroup"><div class="sgh">Verwalten</div>
     <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Namen, Logos und Adressen deiner Anbieter</small></span><em id="mdSumP"></em></button>
-    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Inhaber</b><small>Personen, Absender und Unterschrift</small></span><em id="mdSumH"></em></button>
+    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Personen</b><small>Namen, Absender und Unterschrift</small></span><em id="mdSumH"></em></button>
     <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
     <button class="srowbtn" id="tplFill" type="button"><span class="mdt"><b>Kontaktdaten ergänzen</b><small>Adresse, E-Mail, Telefon aus dem Anbieter-Katalog, nur leere Felder</small></span><em></em></button>
     <button class="srowbtn" data-md="qual" type="button"><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
@@ -1567,7 +1567,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <div class="sugg" id="fSugg"></div>
   <div class="flabel">Kategorie</div>
   <button type="button" class="catfield" id="fCats"><span class="cfi" id="fCatIcon"></span><span class="cfn" id="fCatName">Kategorie wählen</span><span class="chev">›</span></button>
-  <div id="fHoldWrap" hidden><div class="flabel" style="margin-top:14px">Inhaber — mehrere möglich</div><div class="chips" id="fHolders"></div>
+  <div id="fHoldWrap" hidden><div class="flabel" style="margin-top:14px">Personen — mehrere möglich</div><div class="chips" id="fHolders"></div>
     <div id="fSplitWrap" hidden><div class="seg2" id="fSplitSeg" role="group" aria-label="Aufteilung" style="margin:-4px 0 8px"><button type="button" data-sp="eq" aria-pressed="true">Gleich aufgeteilt</button><button type="button" data-sp="ind" aria-pressed="false">Individuell</button></div>
     <div id="fSplitRows" hidden></div></div></div>
 
@@ -2390,9 +2390,9 @@ function renderView(){
     if(!a.length){v.innerHTML=lfbar+(q?'<div class="empty"><b>Keine Treffer</b>Für «'+esc(state.q)+'» gibt es keinen aktiven Vertrag.</div>':((lfn||HF)?'<div class="empty"><b>Keine Treffer</b>Für «'+esc([HF?{fut:"Noch nicht aktiv",paused:"Pausiert",act:"Aktiv"}[HF]:"",lfn?fltLabel():""].filter(Boolean).join(" · "))+'» gibt es keinen aktiven Vertrag.</div>':
       '<div class="empty"><b>Keine laufenden Verträge</b>Alle Verträge sind gekündigt oder abgelaufen und liegen im Archiv. Tippe oben auf + für einen neuen Vertrag.</div>'))+ab;return;}
     var srt=state.settings.sort||"cat",H=esc(state.settings.home);
-    var opts=[["due","Fälligkeit"],["cost","Kosten, höchste zuerst"],["partner","Vertragspartner, A–Z"],["cat","Kategorie"],["holder","Inhaber"]];
+    var opts=[["due","Fälligkeit"],["cost","Kosten, höchste zuerst"],["partner","Vertragspartner, A–Z"],["cat","Kategorie"],["holder","Person"]];
     var sl=(opts.filter(function(o){return o[0]===srt;})[0]||opts[0])[1];
-    var out="";document.getElementById("sortLbl").textContent={cat:"Kategorie",cost:"Kosten",partner:"Vertragspartner",due:"Fälligkeit",holder:"Inhaber"}[srt]||"Kategorie";
+    var out="";document.getElementById("sortLbl").textContent={cat:"Kategorie",cost:"Kosten",partner:"Vertragspartner",due:"Fälligkeit",holder:"Person"}[srt]||"Kategorie";
     function group(title,list,mode,sumTxt){
       /* wie die Summe oben: ohne pausierte und noch nicht aktive Verträge */
       var sm=list.reduce(function(n,c){return n+(isPaused(c)||notStarted(c)?0:monthlyCost(c));},0);
@@ -2421,8 +2421,8 @@ function renderView(){
     } else if(srt==="holder"){
       var byH={},ho=[];
       /* Gruppenschlüssel in der Inhaber-Reihenfolge (A & B = B & A), «Ohne Inhaber» am Ende */
-      a.slice().sort(byCost).forEach(function(c){var k=holdersSorted(holdersOf(c)).join(" & ")||"Ohne Inhaber";if(!byH[k]){byH[k]=[];ho.push(k);}byH[k].push(c);});
-      ho.sort(function(x,y){return (x==="Ohne Inhaber")-(y==="Ohne Inhaber")||x.localeCompare(y,"de-CH");}).forEach(function(k){group(k,byH[k]);});
+      a.slice().sort(byCost).forEach(function(c){var k=holdersSorted(holdersOf(c)).join(" & ")||"Ohne Person";if(!byH[k]){byH[k]=[];ho.push(k);}byH[k].push(c);});
+      ho.sort(function(x,y){return (x==="Ohne Person")-(y==="Ohne Person")||x.localeCompare(y,"de-CH");}).forEach(function(k){group(k,byH[k]);});
     } else {
       var byCat={};a.forEach(function(c){(byCat[c.cat||"Sonstiges"]=byCat[c.cat||"Sonstiges"]||[]).push(c);});
       allCats().concat(Object.keys(byCat).filter(function(k){return allCats().indexOf(k)<0;})).forEach(function(k){
@@ -2565,16 +2565,16 @@ function statFilterBar(){
   if(HL.length<=1){/* Nur eine Person: keine Inhaber-Wahl nötig, übrige Filter direkt */
     return '<div class="fbar3" role="group" aria-label="Filter">'+fselHtml("cat","Kategorie")+fselHtml("partner","Vertragspartner")+
       (nOther?'<button class="fclr" data-fclear type="button" aria-label="Filter zurücksetzen">×</button>':"")+"</div>";}
-  if(hn.ok)row1='<div class="fbar3" role="group" aria-label="Inhaber">'+[""].concat(HL).map(function(h){var on=h?f.holder===h:!f.holder;
+  if(hn.ok)row1='<div class="fbar3" role="group" aria-label="Person">'+[""].concat(HL).map(function(h){var on=h?f.holder===h:!f.holder;
       return '<button class="fsel fh'+(on?" on":"")+'" data-fh="'+esc(h)+'" aria-pressed="'+on+'" type="button"><span>'+esc(h?hn.dn(h):"Alle")+"</span></button>";}).join("")+moreBtn+"</div>";
-  else row1='<div class="fbar3" role="group" aria-label="Filter">'+fselHtml("holder","Alle Inhaber")+moreBtn+"</div>";
+  else row1='<div class="fbar3" role="group" aria-label="Filter">'+fselHtml("holder","Alle Personen")+moreBtn+"</div>";
   var row2=open?'<div class="fbar3 frow2" role="group" aria-label="Weitere Filter">'+fselHtml("cat","Kategorie")+fselHtml("partner","Vertragspartner")+
     (nOther?'<button class="fclr" data-fclear2 type="button" aria-label="Kategorie und Vertragspartner zurücksetzen">×</button>':"")+"</div>":"";
   return row1+row2;
 }
 function openPick(dim){
   if(dim==="sort"){
-    var so=[["due","Fälligkeit"],["cost","Kosten, höchste zuerst"],["partner","Vertragspartner, A–Z"],["cat","Kategorie"],["holder","Inhaber"]],cs=state.settings.sort||"cat";
+    var so=[["due","Fälligkeit"],["cost","Kosten, höchste zuerst"],["partner","Vertragspartner, A–Z"],["cat","Kategorie"],["holder","Person"]],cs=state.settings.sort||"cat";
     document.getElementById("pickTitle").textContent="Sortieren nach";
     var l=document.getElementById("pickList");l.dataset.dim="sort";
     l.innerHTML=so.map(function(o){return '<button class="pick" data-pv="'+o[0]+'" aria-pressed="'+(cs===o[0])+'"><span>'+o[1]+"</span><span></span></button>";}).join("");
@@ -2588,7 +2588,7 @@ function openPick(dim){
   var keys=Object.keys(cnt);
   if(dim==="cat")keys.sort(function(a,b){var AC=allCats(),ia=AC.indexOf(a),ib=AC.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
   else keys.sort(function(a,b){return a.localeCompare(b,"de-CH",{sensitivity:"base"});});
-  var title={cat:"Kategorie",partner:"Vertragspartner",holder:"Inhaber"}[dim],allTxt={cat:"Alle Kategorien",partner:"Alle Vertragspartner",holder:"Alle Inhaber"}[dim];
+  var title={cat:"Kategorie",partner:"Vertragspartner",holder:"Person"}[dim],allTxt={cat:"Alle Kategorien",partner:"Alle Vertragspartner",holder:"Alle Personen"}[dim];
   document.getElementById("pickTitle").textContent=title;
   var cur=state.flt[dim];
   var h='<button class="pick" data-pv="" aria-pressed="'+(!cur)+'"><span>'+allTxt+"</span><span></span></button>";
@@ -2945,10 +2945,10 @@ function renderBudget(v){
   var bhf;
   var hn=holderNamer(HL,361),dn=hn.dn;
   if(hn.ok){
-    bhf='<div class="fbar3" role="group" aria-label="Inhaber">'+[''].concat(HL).map(function(h){var on=(h===BH);
+    bhf='<div class="fbar3" role="group" aria-label="Person">'+[''].concat(HL).map(function(h){var on=(h===BH);
       return '<button class="fsel'+(on?" on":"")+'" data-bh="'+esc(h)+'" aria-pressed="'+on+'" type="button"><span>'+esc(h?dn(h):"Alle")+"</span></button>";}).join("")+"</div>";
   } else if(HL.length<=1)bhf="";
-  else bhf='<div class="fbar3 one" role="group" aria-label="Filter"><button class="fsel'+(BH?" on":"")+'" data-bsheet><span>'+esc(BH?dn(BH):"Inhaber")+"</span></button>"+(BH?'<button class="fclr" data-bhdel type="button" aria-label="Filter zurücksetzen">×</button>':"")+"</div>";
+  else bhf='<div class="fbar3 one" role="group" aria-label="Filter"><button class="fsel'+(BH?" on":"")+'" data-bsheet><span>'+esc(BH?dn(BH):"Person")+"</span></button>"+(BH?'<button class="fclr" data-bhdel type="button" aria-label="Filter zurücksetzen">×</button>':"")+"</div>";
   state._bHL=HL;
   var tInc=0,tFix=0;
   M.forEach(function(m){m.free=m.inc-m.fix;tInc+=m.inc;tFix+=m.fix;});
@@ -4434,7 +4434,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
    ["Zuordnung",[
     c.partner?["Vertragspartner",c.partner]:null,
     c.cat?["Kategorie",c.cat]:null,
-    holdersOf(c).length?["Inhaber",holdersText(c)]:null,
+    holdersOf(c).length?[holdersOf(c).length>1?"Personen":"Person",holdersText(c)]:null,
     c.custNo?["Kundennummer",c.custNo]:null,
     c.contrNo?["Vertragsnummer",c.contrNo]:null,
     c.payM?["Zahlungsart",c.payM]:null,
@@ -4780,9 +4780,9 @@ document.getElementById("view").addEventListener("click",function(ev){
   var bhb=ev.target.closest("[data-bh]");if(bhb){state.bHolder=bhb.dataset.bh;renderView();return;}
   if(ev.target.closest("[data-bhdel]")){state.bHolder="";renderView();return;}
   if(ev.target.closest("[data-bsheet]")){var hl=state._bHL||[],cur=state.bHolder||"";
-    document.getElementById("pickTitle").textContent="Inhaber";
+    document.getElementById("pickTitle").textContent="Person";
     var pl=document.getElementById("pickList");pl.dataset.dim="bholder";
-    pl.innerHTML='<button class="pick" data-pv="" aria-pressed="'+(!cur)+'"><span>Alle Inhaber</span><span></span></button>'+
+    pl.innerHTML='<button class="pick" data-pv="" aria-pressed="'+(!cur)+'"><span>Alle Personen</span><span></span></button>'+
       hl.map(function(h){return '<button class="pick" data-pv="'+esc(h)+'" aria-pressed="'+(cur===h)+'"><span>'+esc(h)+"</span><span></span></button>";}).join("")+
       '<p class="note" style="margin:10px 2px 0">Gemeinsame Verträge und Einnahmen zählen anteilig.</p>';
     openSheet(document.getElementById("sheetPick"));return;}
@@ -4841,7 +4841,7 @@ document.getElementById("q").addEventListener("input",function(){state.q=this.va
 document.getElementById("sortBtn").addEventListener("click",function(){openPick("sort");});
 document.getElementById("filterBtn").addEventListener("click",function(){openFilterSheet();});
 function openFilterSheet(){
-  var L={cat:"Kategorie",partner:"Vertragspartner",holder:"Inhaber"},f=state.flt;
+  var L={cat:"Kategorie",partner:"Vertragspartner",holder:"Person"},f=state.flt;
   document.getElementById("pickTitle").textContent="Filter";
   var l=document.getElementById("pickList");l.dataset.dim="";
   l.innerHTML=["cat","partner","holder"].map(function(d){
@@ -5031,7 +5031,7 @@ function qualItems(){
     if(!isActiveC(c))return;
     var nm=c.label||c.partner||"Ohne Namen",sub=c.partner&&c.label?c.partner:"";
     var base={kind:"c",id:k,c:c,name:nm,sub:sub};
-    if(!holdersOf(c).length)add("A","c:"+k+":holder",Object.assign({why:"Kein Inhaber"},base));
+    if(!holdersOf(c).length)add("A","c:"+k+":holder",Object.assign({why:"Keine Person"},base));
     if(!(+c.amount>0))add("A","c:"+k+":amount",Object.assign({why:"Betrag fehlt oder ist 0"},base));
     if(!c.cat||c.cat==="Sonstiges"||cats.indexOf(c.cat)<0)add("A","c:"+k+":cat",Object.assign({why:!c.cat?"Keine Kategorie":(c.cat==="Sonstiges"?"Kategorie «Sonstiges»":"Kategorie «"+c.cat+"» gibt es nicht mehr")},base));
     if(!(+c.cycle>0))add("A","c:"+k+":cycle",Object.assign({why:"Zahlungsweise fehlt"},base));
@@ -5053,7 +5053,7 @@ function qualItems(){
       else if(!nN&&(c.end||/^[ayqh]$/.test(c.cancTerm||"")))add("B","c:"+k+":notice",Object.assign({why:"Keine Kündigungsfrist"},base));}
   });
   Object.keys(state.incomes).forEach(function(k){var c=state.incomes[k],base={kind:"i",id:k,c:c,name:c.label||c.name||"Einnahme",sub:"Einnahme"};
-    if(!holdersOf(c).length)add("A","i:"+k+":holder",Object.assign({why:"Kein Inhaber"},base));
+    if(!holdersOf(c).length)add("A","i:"+k+":holder",Object.assign({why:"Keine Person"},base));
     if(!(+c.amount>0))add("A","i:"+k+":amount",Object.assign({why:"Betrag fehlt oder ist 0"},base));
   });
   partnerGroups().forEach(function(o){var c=o.logoC||state.contracts[o.ids[0]];
@@ -5064,8 +5064,8 @@ function qualItems(){
     if(!o.addr&&pNeed[o.key])add("D","p:"+o.key+":addr",Object.assign({why:"Adresse fehlt (Kündigung per Brief)"},base));
   });
   Object.keys(hUsed).forEach(function(h){var lv=hUsed[h],o=sndOf(h);
-    if(lv>=2&&!sndOk(h))add("D","h:"+h+":sender",{kind:"h",id:h,name:h,lv:2,sub:"Inhaber · für Kündigung per Brief",why:"Absender unvollständig"});
-    else if(lv===1&&!(o.first||o.last))add("D","h:"+h+":sender",{kind:"h",id:h,name:h,lv:1,sub:"Inhaber · für Kündigung per E-Mail",why:"Name des Absenders fehlt"});});
+    if(lv>=2&&!sndOk(h))add("D","h:"+h+":sender",{kind:"h",id:h,name:h,lv:2,sub:"Person · für Kündigung per Brief",why:"Absender unvollständig"});
+    else if(lv===1&&!(o.first||o.last))add("D","h:"+h+":sender",{kind:"h",id:h,name:h,lv:1,sub:"Person · für Kündigung per E-Mail",why:"Name des Absenders fehlt"});});
   out.ign=nIg;return out;
 }
 /* ---------- Automatische Logo-Suche mit Bestätigung ---------- */
@@ -5122,9 +5122,9 @@ async function qApply(){
 function qualOpenContracts(q){var m={};q.A.concat(q.B,q.C,q.D).forEach(function(o){m[o.kind+(o.id||o.pk)]=1;});return Object.keys(m).length;}
 /* Datenqualität: Übersicht als einzige Liste; «n offen» antippen öffnet die betroffenen Einträge (Seite qlist). SwiftUI: List mit NavigationLink */
 function qSel(q,g,f){return q[g].filter(function(o){if(f==="inc")return o.kind==="i";var last=o.key.split(":").pop();return last===f&&(g!=="A"||o.kind==="c");});}
-var Q_ROWS=[["A","Kosten und Budget",[["holder","Inhaber"],["amount","Betrag"],["cat","Kategorie"],["cycle","Zahlungsweise"],["inc","Einnahmen: Betrag, Inhaber"]]],
+var Q_ROWS=[["A","Kosten und Budget",[["holder","Person"],["amount","Betrag"],["cat","Kategorie"],["cycle","Zahlungsweise"],["inc","Einnahmen: Betrag, Person"]]],
   ["B","Fristen",[["due","Fälligkeit"],["notice","Kündigungsfrist und Laufzeit"]]],
-  ["D","Kündigen",[["via","Kündigungsweg gewählt"],["ref","Kunden- oder Vertragsnummer"],["link","Link (Online)"],["mail","E-Mail-Adresse (E-Mail)"],["addr","Adresse des Vertragspartners (Brief)"],["sender","Absender der Inhaber"]]],
+  ["D","Kündigen",[["via","Kündigungsweg gewählt"],["ref","Kunden- oder Vertragsnummer"],["link","Link (Online)"],["mail","E-Mail-Adresse (E-Mail)"],["addr","Adresse des Vertragspartners (Brief)"],["sender","Absender der Personen"]]],
   ["C","Vertragspartner",[["logo","Logo"]]]];
 function qualChecklist(q){
   var N=active().length,NI=Object.keys(state.incomes).length;
@@ -5199,8 +5199,8 @@ function H0(){return esc(state.settings.home);}
 var md={stack:[]};
 function mdTop(){return md.stack[md.stack.length-1];}
 function mdTitle(p){if(!p)return "";
-  return {partner:"Vertragspartner",holder:"Inhaber",cat:"Kategorien",qual:"Datenqualität",hs:"Absender",henew:"Neuer Inhaber",cenew:"Neue Kategorie",hassign:"Verträge zuordnen",hbulk:"Alle übertragen",
-    pmerge:"Zusammenführen",hdel:"Inhaber löschen",cdel:"Kategorie löschen"}[p.k]||p.title||p.name||p.n||(p.k==="pe"&&peGroup(p.key)?peGroup(p.key).name:"");}
+  return {partner:"Vertragspartner",holder:"Personen",cat:"Kategorien",qual:"Datenqualität",hs:"Absender",henew:"Neue Person",cenew:"Neue Kategorie",hassign:"Verträge zuordnen",hbulk:"Alle übertragen",
+    pmerge:"Zusammenführen",hdel:"Person löschen",cdel:"Kategorie löschen"}[p.k]||p.title||p.name||p.n||(p.k==="pe"&&peGroup(p.key)?peGroup(p.key).name:"");}
 function openMd(which){md.stack=[{k:which}];md.catEdit=false;pe=null;paintMd(0);openSheet(document.getElementById("sheetMd"));}
 function openMdAt(p){md.stack=[p];pe=null;paintMd(0);var sh=document.getElementById("sheetMd");if(!sh.classList.contains("on"))openSheet(sh);}
 function mdPush(p){mdFlush();md.stack.push(p);paintMd(1);}
@@ -5340,8 +5340,8 @@ MD_PAGES.holder=function(){
     mdSec("Personen")+'<div class="mdgrp">'+hs.map(function(h){
     return '<button class="mdrow" data-mdgo="he" data-name="'+esc(h.name)+'" type="button">'+avHtml(h.name)+'<span class="t"><b>'+esc(h.name)+'</b><small>'+
       cntTxt(h.c,"Vertrag","Verträge")+(h.i?" · "+cntTxt(h.i,"Einnahme","Einnahmen"):"")+"</small></span></button>";}).join("")+
-    '<button class="mdrow mdadd" data-mdgo="henew" type="button"><span class="mdplus">+</span><span class="t"><b>Inhaber hinzufügen</b></span></button></div>'+
-    '<p class="mdhint">Inhaber sind die Personen in deinem Haushalt. Tippe auf eine Person für Absender, Unterschrift und Verträge.'+(hs.length<2?" Mit zwei oder mehr Personen kannst du Verträge gemeinsam oder getrennt zuordnen.":"")+'</p>';
+    '<button class="mdrow mdadd" data-mdgo="henew" type="button"><span class="mdplus">+</span><span class="t"><b>Person hinzufügen</b></span></button></div>'+
+    '<p class="mdhint">Hier verwaltest du die Personen in deinem Haushalt. Tippe auf eine Person für Absender, Unterschrift und Verträge.'+(hs.length<2?" Mit zwei oder mehr Personen kannst du Verträge gemeinsam oder getrennt zuordnen.":"")+'</p>';
 };
 /* Absender einer Person: kompakte Felder, optional «gleiche Adresse wie», Unterschrift */
 var HS_F=[["first","hsFirst","Vorname","given-name"],["last","hsLast","Nachname","family-name"],["street","hsStreet","Strasse und Nr.","address-line1"],["zip","hsZip","PLZ","postal-code"],["city","hsCity","Ort","address-level2"],["country","hsCountry","Land (optional)","country-name"]];
@@ -5386,7 +5386,7 @@ function hSet(key,v){
   else{arr=cur.slice();var i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);arr=H.filter(function(h){return arr.indexOf(h)>=0;});}
   if(arr.join("|")===cur.join("|"))return;
   var nc=Object.assign({},c);nc.holders=arr;if(nc.split)delete nc.split;if(kind==="c")putContract(id,nc);else putIncome(id,nc);
-  render();toast(titleOf(c)+" → "+(arr.length===H.length&&H.length>1?(H.length===2?"Beide":"Alle"):arr.length?arr.join(", "):"ohne Inhaber"));
+  render();toast(titleOf(c)+" → "+(arr.length===H.length&&H.length>1?(H.length===2?"Beide":"Alle"):arr.length?arr.join(", "):"ohne Person"));
 }
 MD_PAGES.hassign=function(p){
   var H=holderStats().map(function(h){return h.name;}),it=hAllItems(),two=H.length===2;
@@ -5395,8 +5395,8 @@ MD_PAGES.hassign=function(p){
   if(p.flt==="none")it=it.filter(function(x){return !holdersOf(x.obj).length;});else if(fw)it=it.filter(function(x){return holdersOf(x.obj).indexOf(fw)>=0;});
   var h='<div class="chips" style="margin:0 0 10px"><button type="button" class="chip" data-hflt="" aria-pressed="'+!p.flt+'">Alle</button>'+
     H.map(function(n){return '<button type="button" class="chip" data-hflt="h:'+esc(n)+'" aria-pressed="'+(fw===n)+'">'+esc(n)+'</button>';}).join("")+
-    '<button type="button" class="chip" data-hflt="none" aria-pressed="'+(p.flt==="none")+'">Ohne Inhaber'+(none?" · "+none:"")+'</button></div>';
-  if(!it.length)return h+mdEmpty(p.flt==="none"?"Alle Einträge haben einen Inhaber.":fw?"«"+esc(fw)+"» ist nichts zugeordnet.":"Noch keine Verträge oder Einnahmen.");
+    '<button type="button" class="chip" data-hflt="none" aria-pressed="'+(p.flt==="none")+'">Ohne Person'+(none?" · "+none:"")+'</button></div>';
+  if(!it.length)return h+mdEmpty(p.flt==="none"?"Alle Einträge sind einer Person zugeordnet.":fw?"«"+esc(fw)+"» ist nichts zugeordnet.":"Noch keine Verträge oder Einnahmen.");
   h+='<div class="mdgrp">'+it.map(function(x){var key=x.kind+":"+x.id,cur=holdersOf(x.obj),all=cur.length===H.length,one=x.kind==="i";
     /* Einnahmen: nur Einzelwahl (genau ein Empfänger), ohne «Beide/Alle» */
     var ctl;
@@ -5442,7 +5442,7 @@ MD_PAGES.he=function(p){
   hh+=mdSec(list.length?(cs.length?cntTxt(cs.length,"Vertrag","Verträge"):"")+(cs.length&&is.length?", ":"")+(is.length?cntTxt(is.length,"Einnahme","Einnahmen"):""):"Verträge",nh>1?'<button type="button" class="mdlink" data-mdgo="hassign" data-who="'+esc(h)+'">Zuordnen</button>':"");
   hh+=list.length?'<div class="mdgrp">'+(p.all?list:list.slice(0,LIM)).map(row).join("")+(list.length>LIM&&!p.all?'<button type="button" class="mdact" data-mdrun="hall">Alle '+list.length+' zeigen</button>':"")+'</div>'
     :mdEmpty("Noch nichts zugeordnet."+(nh>1?" Über «Zuordnen» Verträge zuweisen.":""));
-  if(ed)hh+='<div class="mdgrp mdacts"><button class="mdact del" type="button" data-mdrun="hdel">Inhaber löschen</button></div>';
+  if(ed)hh+='<div class="mdgrp mdacts"><button class="mdact del" type="button" data-mdrun="hdel">Person löschen</button></div>';
   return hh;
 };
 function heRename(v){
@@ -5471,9 +5471,9 @@ MD_PAGES.hdel=function(p){
   var he0=md.stack[md.stack.length-2],st=holderStats().filter(function(h){return h.name===he0.name;})[0]||{c:0,i:0};
   var H=holderStats().filter(function(h){return h.name!==he0.name;});if(p.to==null)p.to=H.length?H[0].name:"";
   var opts=H.map(function(h){return '<button class="mdrow mdpick" data-mdsel="'+esc(h.name)+'" aria-pressed="'+(p.to===h.name)+'" type="button"><span class="mdav">'+esc(h.name.charAt(0).toUpperCase())+'</span><span class="t"><b>An «'+esc(h.name)+'» übertragen</b></span><span class="rad"></span></button>';}).join("")+
-    '<button class="mdrow mdpick" data-mdsel="" aria-pressed="'+(p.to==="")+'" type="button"><span class="mdav off">–</span><span class="t"><b>Ohne Inhaber lassen</b><small>Gemeinsame Einträge behalten die übrigen Inhaber</small></span><span class="rad"></span></button>';
+    '<button class="mdrow mdpick" data-mdsel="" aria-pressed="'+(p.to==="")+'" type="button"><span class="mdav off">–</span><span class="t"><b>Ohne Person lassen</b><small>Gemeinsame Einträge behalten die übrigen Personen</small></span><span class="rad"></span></button>';
   return mdEmpty("«"+esc(he0.name)+"» ist "+cntTxt(st.c,"Vertrag","Verträgen")+(st.i?" und "+cntTxt(st.i,"Einnahme","Einnahmen"):"")+" zugeordnet. Was soll damit passieren?")+
-    '<div class="mdgrp">'+opts+'</div><div class="mdbar"><button class="lbtn main dangerbtn" type="button" data-mdrun="hdelgo">Inhaber löschen</button></div>';
+    '<div class="mdgrp">'+opts+'</div><div class="mdbar"><button class="lbtn main dangerbtn" type="button" data-mdrun="hdelgo">Person löschen</button></div>';
 };
 function heDelete(name,to){
   if(to){heMerge(name,to);}
@@ -5768,8 +5768,8 @@ document.addEventListener("click",function(ev){
   if((x=t.closest("[data-mdrun]"))){var r=x.dataset.mdrun;
     if(r==="pmerge"){var src2=md.stack[md.stack.length-2].key,to=p.to;if(!to)return;var tn=peGroup(to).name;mergePartners([src2],to);pe=null;mdSwap({k:"pe",key:to},2);toast("Zusammengeführt mit «"+tn+"»");}
     else if(r==="henew"){var v=(document.getElementById("heNew").value||"").trim().replace(/\s+/g," ");if(!v){toast("Bitte einen Namen eingeben");return;}
-      if(holderStats().some(function(h){return h.name.toLowerCase()===v.toLowerCase();})){toast("Diesen Inhaber gibt es schon");return;}
-      state.settings.holders=(state.settings.holders||["Ich"]).concat([v]);saveSettings();render();mdPop();toast("Inhaber «"+v+"» angelegt");}
+      if(holderStats().some(function(h){return h.name.toLowerCase()===v.toLowerCase();})){toast("Diese Person gibt es schon");return;}
+      state.settings.holders=(state.settings.holders||["Ich"]).concat([v]);saveSettings();render();mdPop();toast("Person «"+v+"» angelegt");}
     else if(r==="hedit"){mdFlush();p.edit=!p.edit;paintMd(0);}
     else if(r==="hall"){p.all=1;paintMd(0);}
     else if(r==="paddrpaste"){clipText().then(function(t){if(t==null||!pe)return;var o=addrFromPaste(t,pe.name);if(!o){toast("Zwischenablage ist leer");return;}paFill(o);});}
@@ -5783,11 +5783,11 @@ document.addEventListener("click",function(ev){
     else if(r==="havdel"){setAv(p.name,"");paintMd(0);render();toast("Bild entfernt");}
     else if(r==="hbulk"){var bf=p.from,bt=p.to;if(!bf||!bt||bf===bt)return;var bn=mapHolders(function(h){return h===bf?bt:h;});render();mdPop();toast(cntTxt(bn,"Eintrag","Einträge")+" an «"+bt+"» übertragen");}
     else if(r==="hdel"){var nm=p.name,st=holderStats();
-      if(st.length<=1){toast("Mindestens ein Inhaber ist nötig");return;}
+      if(st.length<=1){toast("Mindestens eine Person ist nötig");return;}
       var me=st.filter(function(h){return h.name===nm;})[0]||{c:0,i:0};
-      if(!me.c&&!me.i){ask({title:"«"+nm+"» löschen?",text:"Der Inhaber ist nirgends zugeordnet.",ok:"Löschen",danger:true}).then(function(y){if(!y)return;heDelete(nm,"");mdPop();toast("Inhaber gelöscht");});}
+      if(!me.c&&!me.i){ask({title:"«"+nm+"» löschen?",text:"Die Person ist nirgends zugeordnet.",ok:"Löschen",danger:true}).then(function(y){if(!y)return;heDelete(nm,"");mdPop();toast("Person gelöscht");});}
       else mdPush({k:"hdel"});}
-    else if(r==="hdelgo"){var nm2=md.stack[md.stack.length-2].name;heDelete(nm2,p.to);mdPop(2);toast(p.to?"Gelöscht, Einträge an «"+p.to+"» übertragen":"Inhaber gelöscht");}
+    else if(r==="hdelgo"){var nm2=md.stack[md.stack.length-2].name;heDelete(nm2,p.to);mdPop(2);toast(p.to?"Gelöscht, Einträge an «"+p.to+"» übertragen":"Person gelöscht");}
     else if(r==="cdel"){if(!catCount(p.n)){var cn=p.n;ask({title:"«"+cn+"» löschen?",text:"Die Kategorie ist leer.",ok:"Löschen",danger:true}).then(function(y){if(!y)return;ceDelete(cn,"Sonstiges");mdPop();toast("Kategorie gelöscht");});}
       else mdPush({k:"cdel"});}
     else if(r==="cdelgo"){var cs=p.src||md.stack[md.stack.length-2].n;ceDelete(cs,p.to||"Sonstiges");mdPop(p.src?1:2);toast("Kategorie gelöscht");}
@@ -6401,7 +6401,7 @@ window.kontivoAsk=ask;
 document.getElementById("wipeAll").addEventListener("click",async function(){
   var nc=Object.keys(state.contracts).length,ni=Object.keys(state.incomes).length;
   if(!(await ask({title:"Alle Daten löschen?",ok:"Weiter",danger:true,
-    text:"Gelöscht werden "+(nc===1?"1 Vertrag":nc+" Verträge")+", "+(ni===1?"1 Einnahme":ni+" Einnahmen")+", eigene Kategorien, Inhaber, Absender sowie hochgeladene Logos und Dokumente.\n\nDarstellung und Währung bleiben erhalten.\n\nTipp: Speichere vorher ein Backup."})))return;
+    text:"Gelöscht werden "+(nc===1?"1 Vertrag":nc+" Verträge")+", "+(ni===1?"1 Einnahme":ni+" Einnahmen")+", eigene Kategorien, Personen, Absender sowie hochgeladene Logos und Dokumente.\n\nDarstellung und Währung bleiben erhalten.\n\nTipp: Speichere vorher ein Backup."})))return;
   if(!(await ask({title:"Wirklich endgültig löschen?",ok:"Endgültig löschen",danger:true,text:"Das lässt sich nicht rückgängig machen."})))return;
   toast("Lösche …");
   if(assets){try{var al=await assets.list();var list=(al&&al.assets)||[];for(var x=0;x<list.length;x++){try{await assets.delete(list[x].id);}catch(e){}}}catch(e){}}
@@ -7151,7 +7151,7 @@ function bkEditor(it,i){
   var e=it.ed,s=it.s,HL=state.settings.holders||["Ich"],cyc=[1,2,3,6,12,24];if(cyc.indexOf(e.cycle)<0)cyc.push(e.cycle);
   var hs="";
   if(HL.length>1){var all=HL.every(function(h){return e.holders.indexOf(h)>=0;});
-    hs='<div class="field"><label>Inhaber</label><div class="hseg">'+HL.map(function(h){return '<button type="button" data-bkh="'+esc(h)+'" aria-pressed="'+(!all&&e.holders.length===1&&e.holders[0]===h)+'">'+esc(h)+'</button>';}).join("")+
+    hs='<div class="field"><label>Person</label><div class="hseg">'+HL.map(function(h){return '<button type="button" data-bkh="'+esc(h)+'" aria-pressed="'+(!all&&e.holders.length===1&&e.holders[0]===h)+'">'+esc(h)+'</button>';}).join("")+
       '<button type="button" data-bkh="*" aria-pressed="'+all+'">'+(HL.length===2?"Beide":"Alle")+'</button></div></div>';}
   return '<div class="bked" data-bki="'+i+'">'+
     '<div class="field"><label for="bkN">Vertragspartner</label><input id="bkN" data-bke="name" value="'+esc(e.name)+'" autocomplete="off"></div>'+
@@ -7322,7 +7322,7 @@ document.getElementById("csvFile").addEventListener("change",function(ev){
     if(!n){await ask({title:"Nichts zu importieren",alert:true,text:info.length?"Übersprungen: "+info.join(", ")+".":"Die Datei enthält keine Verträge."});return;}
     var ok=await ask({title:n+(n===1?" Vertrag":" Verträge")+" gefunden",ok:"Importieren",
       text:(res.archived?res.archived+" davon sind bereits beendet und kommen ins Archiv.\n":"")+
-        (info.length?"Übersprungen: "+info.join(", ")+".\n":"")+(res.newHolders.length?"Neue Inhaber: "+res.newHolders.join(", ")+".\n":"")+
+        (info.length?"Übersprungen: "+info.join(", ")+".\n":"")+(res.newHolders.length?"Neue Personen: "+res.newHolders.join(", ")+".\n":"")+
         (res.newCats.length?"Neue Kategorien: "+res.newCats.map(function(x){return x.n;}).join(", ")+".\n":"")+
         (res.cycAdj?(res.cycAdj===1?"1 Zahlungsrhythmus":res.cycAdj+" Zahlungsrhythmen")+" angepasst.\n":"")+
         (res.badDates?(res.badDates===1?"1 ungültiges Datum":res.badDates+" ungültige Daten")+" ignoriert.\n":"")+
