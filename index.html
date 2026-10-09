@@ -5034,7 +5034,7 @@ function qualItems(){
     if(!holdersOf(c).length)add("A","c:"+k+":holder",Object.assign({why:"Keine Person"},base));
     if(!(+c.amount>0))add("A","c:"+k+":amount",Object.assign({why:"Betrag fehlt oder ist 0"},base));
     if(!c.cat||c.cat==="Sonstiges"||cats.indexOf(c.cat)<0)add("A","c:"+k+":cat",Object.assign({why:!c.cat?"Keine Kategorie":(c.cat==="Sonstiges"?"Kategorie «Sonstiges»":"Kategorie «"+c.cat+"» gibt es nicht mehr")},base));
-    if(!(+c.cycle>0))add("A","c:"+k+":cycle",Object.assign({why:"Zahlungsweise fehlt"},base));
+    if(!(+c.cycle>0))add("A","c:"+k+":cycle",Object.assign({why:"Zahlungsrhythmus fehlt"},base));
     if(!parseD(c.due))add("B","c:"+k+":due",Object.assign({why:"Kein Fälligkeitsdatum"},base));
     /* Kündigen: je nach Kündigungsweg; Absender-Bedarf pro Inhaber (2 = Adresse für Brief, 1 = Name für E-Mail). Bereits gekündigte zählen nicht */
     if(!isFixed(c)&&!c.cancelPer){var via=cancVia(c);
@@ -5122,7 +5122,7 @@ async function qApply(){
 function qualOpenContracts(q){var m={};q.A.concat(q.B,q.C,q.D).forEach(function(o){m[o.kind+(o.id||o.pk)]=1;});return Object.keys(m).length;}
 /* Datenqualität: Übersicht als einzige Liste; «n offen» antippen öffnet die betroffenen Einträge (Seite qlist). SwiftUI: List mit NavigationLink */
 function qSel(q,g,f){return q[g].filter(function(o){if(f==="inc")return o.kind==="i";var last=o.key.split(":").pop();return last===f&&(g!=="A"||o.kind==="c");});}
-var Q_ROWS=[["A","Kosten und Budget",[["holder","Person"],["amount","Betrag"],["cat","Kategorie"],["cycle","Zahlungsweise"],["inc","Einnahmen: Betrag, Person"]]],
+var Q_ROWS=[["A","Kosten und Budget",[["holder","Person"],["amount","Betrag"],["cat","Kategorie"],["cycle","Zahlungsrhythmus"],["inc","Einnahmen: Betrag, Person"]]],
   ["B","Fristen",[["due","Fälligkeit"],["notice","Kündigungsfrist und Laufzeit"]]],
   ["D","Kündigen",[["via","Kündigungsweg gewählt"],["ref","Kunden- oder Vertragsnummer"],["link","Link (Online)"],["mail","E-Mail-Adresse (E-Mail)"],["addr","Adresse des Vertragspartners (Brief)"],["sender","Absender der Personen"]]],
   ["C","Vertragspartner",[["logo","Logo"]]]];
@@ -5619,7 +5619,7 @@ function qEditor(o,f){if(f==="notice"||f==="addr"||f==="sender")return qMulti(o,
   if(f==="via")return '<div class="hseg">'+[["online","Online"],["mail","E-Mail"],["post","Brief"]].map(function(v){return '<button type="button"'+k+' data-qv="'+v[0]+'">'+v[1]+'</button>';}).join("")+'</div>';
   if(f==="holder"){var H=holderStats().map(function(h){return h.name;});return '<div class="hseg">'+H.map(function(n){return '<button type="button"'+k+' data-qv="'+esc(n)+'">'+esc(n)+'</button>';}).join("")+(H.length>1?'<button type="button"'+k+' data-qv="*">'+(H.length===2?"Beide":"Alle")+'</button>':"")+'</div>';}
   if(f==="cat")return '<select class="qein"'+k+'><option value="">Kategorie wählen …</option>'+allCats().filter(function(n){return n!=="Sonstiges";}).map(function(n){return '<option>'+esc(n)+'</option>';}).join("")+'</select>';
-  if(f==="cycle")return '<select class="qein"'+k+'><option value="">Zahlungsweise wählen …</option>'+Object.keys(CYCLE).map(function(m){return '<option value="'+m+'">'+CYCLE[m]+'</option>';}).join("")+'</select>';
+  if(f==="cycle")return '<select class="qein"'+k+'><option value="">Zahlungsrhythmus wählen …</option>'+Object.keys(CYCLE).map(function(m){return '<option value="'+m+'">'+CYCLE[m]+'</option>';}).join("")+'</select>';
   if(f==="due")return '<input class="qein" type="date"'+k+' aria-label="Zahlung am">';
   if(f==="amount")return '<input class="qein" type="text" inputmode="decimal" placeholder="Betrag in '+esc(c.cur||"CHF")+'"'+k+'>';
   if(f==="ref")return '<input class="qein" type="text" autocomplete="off" placeholder="Kunden- oder Vertragsnummer"'+k+'>';
