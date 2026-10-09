@@ -4512,7 +4512,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   /* Preiserhöhung (angekündigt oder in den letzten 60 Tagen): Hinweis auf ein mögliches Sonderkündigungsrecht */
   var skr=!gone&&!isFixed(c)&&(function(){var t=today(),ps=pricesOf(c),prev=+c.amount||0;for(var i=0;i<ps.length;i++){var f=parseD(ps[i].from);
       if(f>t)return +ps[i].amount>priceAt(c,t);if(daysBetween(f,t)<=60&&+ps[i].amount>prev)return true;prev=+ps[i].amount;}return false;})();
-  var hist=(pricesOf(c).length?'<div class="pchwrap">'+priceChart(c,{edit:1})+"</div>":"");/* Preisänderungen erfassen nur im Bearbeiten-Modus (Weitere Angaben); Punkte im Diagramm bleiben antippbar */
+  var hist=(pricesOf(c).length?'<div class="pchwrap">'+priceChart(c)+"</div>":"");/* Detail = reine Ansicht: Preise nur im Bearbeiten-Modus (Weitere Angaben) */
   var xs=extrasOf(c),xh="";
   if(xs.length){var t2=today();
     xh='<h3 class="dsec">Sonderzahlungen</h3><div class="plist">'+xs.map(function(x){var cr=x.amount<0;
@@ -4540,7 +4540,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     '<div class="shbar"><button class="shx" data-act="close">Schliessen</button><h2>'+esc(titleOf(c))+'</h2><button type="button" class="dmbtn" data-act="menu" aria-label="Aktionen" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg></button><button class="shok" data-act="edit">Bearbeiten</button>'+menu+'</div>'+
     '<div class="detailhead">'+markHtml(c)+'<div style="flex:1;min-width:0"><h2 style="margin:0">'+esc(titleOf(c))+"</h2>"+
     (metaOf(c)?'<div style="font-size:13px;color:var(--ink2)">'+esc(metaOf(c))+"</div>":"")+
-    '<button type="button" class="dchip" data-act="docs" style="margin-top:7px">'+CLIP_IC+"<span>"+(nDocs?cntTxt(nDocs,"Dokument","Dokumente"):"Dokument anhängen")+"</span></button></div>"+
+    (nDocs?'<button type="button" class="dchip" data-act="docs" style="margin-top:7px">'+CLIP_IC+"<span>"+cntTxt(nDocs,"Dokument","Dokumente")+"</span></button>":"")+"</div>"+
     "</div>"+
     (pill?'<div class="pills">'+pill+"</div>":'<div style="height:10px"></div>')+kz+
     vkHintHtml(idv)+fr+
@@ -4679,16 +4679,14 @@ function openDocsPick(idv){
   var c=state.contracts[idv];if(!c)return;docsFor=idv;var ds=c.docs||[];
   document.getElementById("pickTitle").textContent="Dokumente";
   var l=document.getElementById("pickList");l.dataset.dim="docs";
-  l.innerHTML=(ds.length?ds.map(function(d,i){return '<div class="docrow"><button class="pick" data-dopen="'+i+'" type="button"><span>'+(isPdf(d)?"📄 ":"🖼 ")+esc(d.name)+'</span><span>Öffnen ›</span></button>'+
-      '<button class="ddel" data-ddel="'+i+'" type="button" aria-label="'+esc(d.name)+' löschen">'+TRASH_IC+'</button></div>';}).join("")
+  l.innerHTML=(ds.length?ds.map(function(d,i){return '<div class="docrow"><button class="pick" data-dopen="'+i+'" type="button"><span>'+(isPdf(d)?"📄 ":"🖼 ")+esc(d.name)+'</span><span>Öffnen ›</span></button></div>';}).join("")
       :'<p class="note" style="margin:0 2px 6px">Noch keine Dokumente, zum Beispiel Vertrag, Police oder Rechnung.</p>')+
-    (assets?'<button class="lbtn main" type="button" data-dadd style="margin-top:6px">Datei anhängen · PDF oder Bild</button>':"")+
-    '<p class="note" style="margin:10px 2px 0">Dateien bleiben auf diesem Gerät.</p>';
+    '<p class="note" style="margin:10px 2px 0">Anhängen und Löschen unter «Bearbeiten».</p>';
   var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
 }
 document.getElementById("pickList").addEventListener("click",function(ev){if(this.dataset.dim!=="docs")return;
   var c=state.contracts[docsFor];if(!c)return;var b=ev.target.closest("[data-dopen]");
-  if(b){var i0=+b.dataset.dopen,d0=(c.docs||[])[i0];if(!d0)return;docCtx={cid:docsFor,id:d0.id};openDoc(d0);document.getElementById("vDel").hidden=false;return;}
+  if(b){var i0=+b.dataset.dopen,d0=(c.docs||[])[i0];if(!d0)return;docCtx={cid:docsFor,id:d0.id};openDoc(d0);return;}
   var x=ev.target.closest("[data-ddel]");if(x){var d1=(c.docs||[])[+x.dataset.ddel];if(d1)delDoc(docsFor,d1.id,d1.name);return;}
   if(ev.target.closest("[data-dadd]"))document.getElementById("docFileD").click();});
 /* Rückfrage liegt unter dem Betrachter (z-index): Betrachter zuerst schliessen */
