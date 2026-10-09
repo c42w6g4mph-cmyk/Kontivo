@@ -289,6 +289,9 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .tmtile small{font-size:12px;line-height:1.3;color:var(--ink2)}
 .tmtile[aria-pressed="true"]{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 10%,var(--field))}
 .tmtile:disabled{opacity:.4}
+.tmtiles.cv .tmtile{padding:10px 11px}
+.cvaddr{display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:11px 13px;border-radius:12px;background:var(--field)}
+.cvaddr .t{flex:1;min-width:0;display:grid;gap:1px}.cvaddr b{font-size:14px;font-weight:600}.cvaddr small{font-size:12.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .swlist{background:var(--field);border-radius:12px;margin-bottom:12px}
 .swrow{display:flex;align-items:center;gap:12px;padding:11px 13px;cursor:pointer}
 .swrow+.swrow{border-top:1px solid var(--line)}
@@ -518,6 +521,10 @@ body.hasplus .topadd{display:inline-flex}
 .tfold i{width:8px;height:8px;border-right:1.6px solid var(--ink3);border-bottom:1.6px solid var(--ink3);transform:rotate(45deg);margin:-4px 6px 0 0;transition:transform .15s}
 .tfold[aria-expanded="true"] i{transform:rotate(-135deg);margin-top:4px}
 /* Katalog + Kündigungstermin */
+.tplsum{flex:1 1 100%;background:var(--sunken);border-radius:12px;padding:10px 12px;display:grid;gap:7px}
+.tplsum .h{display:flex;align-items:center;justify-content:space-between;gap:8px}.tplsum .h b{font-size:13.5px;font-weight:650}
+.tplsum .tags{display:flex;flex-wrap:wrap;gap:5px}.tplsum .tags span{font-size:12.5px;font-weight:600;color:var(--teal);background:color-mix(in srgb,var(--teal) 12%,transparent);padding:3px 8px;border-radius:99px}
+.tplsum p{margin:0;font-size:12.5px;line-height:1.4;color:var(--ink2)}.tplsum p.ck{color:var(--ink3);font-size:12px}
 .sugg .tplh{flex:1 1 100%;font-size:12.5px;color:var(--ink2);line-height:1.4;background:var(--sunken);border-radius:9px;padding:8px 10px}
 #tplRows{display:flex;flex-direction:column;gap:6px}
 .tplhead{display:flex;gap:8px;align-items:center;margin:0 0 8px;position:sticky;top:0;z-index:2;background:var(--surface);padding:2px 0 8px}
@@ -1666,8 +1673,17 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   </div>
   <p class="note" id="tmHint" style="margin:-4px 0 14px"></p>
   <div hidden><input type="checkbox" id="fNoCancel"></div>
-  <div class="field tmcanc"><label for="fCancF">Kündigungsweg</label><select id="fCancF">
-    <option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div>
+  <!-- Kündigungsweg als Kacheln (Wert bleibt im versteckten Select fCancF = cancF); darunter genau ein passendes Folgefeld. SwiftUI: Picker als Kacheln + switch auf Wert -->
+  <div class="tmcanc"><div class="flabel">Kündigungsweg</div>
+  <div class="tmtiles cv" id="fCancT" role="group" aria-label="Kündigungsweg">
+    <button type="button" class="tmtile" data-cv="Online / Kundenkonto" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.6 5.4 3.6 8.5s-1.1 5.9-3.6 8.5c-2.5-2.6-3.6-5.4-3.6-8.5s1.1-5.9 3.6-8.5z"/></svg><b>Online</b></button>
+    <button type="button" class="tmtile" data-cv="E-Mail" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg><b>E-Mail</b></button>
+    <button type="button" class="tmtile" data-cv="Brief" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 12h6M9 16h4"/></svg><b>Brief</b></button>
+    <button type="button" class="tmtile" data-cv="Einschreiben" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4"/><path d="M9.2 14.2l2 2 3.8-4"/></svg><b>Einschreiben</b></button>
+  </div>
+  <div hidden><select id="fCancF"><option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div></div>
+  <div class="field tmcanc" id="fCancMailW" hidden><label for="fCancMail">E-Mail-Adresse für die Kündigung</label><input id="fCancMail" type="email" placeholder="kuendigung@anbieter.ch" autocomplete="off"></div>
+  <div class="tmcanc cvaddr" id="fCancAddrW" hidden><span class="t"><b id="fCancAddrT"></b><small id="fCancAddrS"></small></span><button type="button" class="mdlink" id="fCancAddrB">Erfassen</button></div>
   <div class="field tmcanc" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="netflix.com/cancelplan" autocomplete="off">
     <p class="note" style="margin:6px 0 0">Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.</p></div>
 
@@ -3321,7 +3337,7 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   document.getElementById("fSugg").innerHTML="";
   document.getElementById("fWeb").value=(c&&c.web)||"";var pgA=c&&c.partner&&!c.addr?peGroup(String(c.partner).trim().toLowerCase()):null;document.getElementById("fAddr").value=(c&&c.addr)||(pgA&&pgA.addr)||"";fAddrPaint();
   document.getElementById("fTel").value=(c&&c.tel)||"";
-  document.getElementById("fMail").value=(c&&c.mail)||"";
+  document.getElementById("fMail").value=(c&&c.mail)||"";syncCancUrl();
   paintHolders();
   document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";
   paintPrices();
@@ -3340,7 +3356,7 @@ function formPage(more){var sh=document.getElementById("sheetForm"),mn=document.
   mn.hidden=!!more;mo.hidden=!more;(more?mo:mn).classList.remove("in");void sh.offsetWidth;(more?mo:mn).classList.add("in");
   cb.textContent=more?"Zurück":"Abbrechen";cb.classList.toggle("back",!!more);
   document.getElementById("formTitle").textContent=more?"Weitere Angaben":(editId?"Bearbeiten":(document.getElementById("formTitle").dataset.t||"Neuer Vertrag"));
-  sh.scrollTop=0;paintOptCounts();}
+  sh.scrollTop=0;paintOptCounts();if(!more)syncCancUrl();}
 document.getElementById("fMoreBtn").addEventListener("click",function(){formPage(true);});
 document.getElementById("fMore").addEventListener("input",paintOptCounts);
 document.getElementById("fMore").addEventListener("change",paintOptCounts);
@@ -3577,7 +3593,12 @@ function paintSugg(){
   if(st&&st[0]===document.getElementById("fPartner").value.trim()){
     el.innerHTML='<span class="sl tplh">'+esc(tplHint(st))+"</span>"+(draft.stdDone||!(st[5]||st[7]||st[9])?"":'<button type="button" class="chip" data-std>Übliche Frist übernehmen</button>');return;}
   var cur=tplFind(document.getElementById("fPartner").value);
-  if(cur&&draft.tplHint===cur[0]){el.innerHTML='<span class="sl tplh">'+esc(tplHint(cur))+"</span>";return;}
+  if(cur&&draft.tplHint===cur[0]){var hn=tplHint(cur);
+    /* Zusammenfassung statt stiller Feldänderungen; SwiftUI: Karte mit Label-Liste + Button «Rückgängig» */
+    if(draft.tplSum&&draft.tplUndo){el.innerHTML='<div class="tplsum"><div class="h"><b>Aus dem Katalog übernommen</b><button type="button" class="mdlink" data-tplundo>Rückgängig</button></div>'+
+      (draft.tplSum.length?'<div class="tags">'+draft.tplSum.map(function(x){return "<span>"+esc(x)+"</span>";}).join("")+"</div>":"")+
+      (hn.trim()?'<p>'+esc(hn.trim())+"</p>":"")+'<p class="ck">Bitte kurz prüfen – Angaben können sich ändern.</p></div>';return;}
+    el.innerHTML='<span class="sl tplh">'+esc(hn)+"</span>";return;}
   /* exakter Treffer (z.B. «CSS», «O2»), noch nicht übernommen: genau diese Vorlage anbieten */
   if(cur){el.innerHTML='<span class="sl">Vorlage</span><button type="button" class="chip" data-tpl="'+TPL.indexOf(cur)+'">'+esc(cur[0])+" übernehmen</button>";return;}
   if(q.length<2){el.innerHTML="";return;}
@@ -3586,8 +3607,24 @@ function paintSugg(){
 }
 /* Vorlage übernehmen. onlyEmpty (Internet-Treffer, «Übliche Frist übernehmen»): nur leere Felder füllen.
    Kategorie nur, wenn es sie (noch) gibt; Pflichtvertrag hebt «nicht beobachten» auf */
+/* Katalog-Zusammenfassung: Schnappschuss vor dem Übernehmen (für «Rückgängig») und Liste, was sich geändert hat */
+var TPL_IDS=["fPartner","fLabel","fNotice","fNoticeU","fTermP","fCancF","fWeb","fCancUrl","fTel","fMail","fAddr","fCur"],TPL_CHK=["fNoCancel","fMand","fNoWatch"];
+function tplSnap(){var o={cat:draft.cat};TPL_IDS.forEach(function(i){o[i]=document.getElementById(i).value;});TPL_CHK.forEach(function(i){o[i]=document.getElementById(i).checked;});return o;}
+function tplSumItems(a,b){var I=[],ch=function(i){return a[i]!==b[i];};
+  if(a.cat!==b.cat&&b.cat)I.push(b.cat);
+  if((ch("fNotice")||ch("fNoticeU"))&&b.fNotice){var n=+b.fNotice,u=b.fNoticeU;I.push((u==="k"?"Frist bis zum "+n+".":"Frist "+n+" "+({m:n===1?"Monat":"Monate",w:n===1?"Woche":"Wochen",d:n===1?"Tag":"Tage"}[u]||"")));}
+  if(ch("fTermP")&&b.fTermP){var o=document.querySelector('#fTermP option[value="'+b.fTermP+'"]');if(o)I.push("per "+o.textContent);}
+  if(ch("fCancF")&&b.fCancF)I.push("Kündigung "+({"Online / Kundenkonto":"online","E-Mail":"per E-Mail","Brief":"per Brief","Einschreiben":"per Einschreiben"}[b.fCancF]||b.fCancF));
+  var k=[["fWeb","Website"],["fCancUrl","Kündigungslink"],["fTel","Telefon"],["fMail","E-Mail"],["fAddr","Adresse"]].filter(function(x){return ch(x[0])&&b[x[0]];}).map(function(x){return x[1];});
+  if(k.length)I.push(k.length>2?"Kontaktdaten":k.join(", "));
+  if(!a.fMand&&b.fMand)I.push("Pflichtvertrag");if(!a.fNoCancel&&b.fNoCancel)I.push("nicht kündbar");
+  return I;}
+function tplUndo(){var o=draft.tplUndo;if(!o)return;
+  TPL_IDS.forEach(function(i){document.getElementById(i).value=o[i];});TPL_CHK.forEach(function(i){document.getElementById(i).checked=o[i];});
+  draft.cat=o.cat;draft.tplUndo=null;draft.tplSum=null;draft.tplHint="";
+  paintCats();fAddrPaint();syncWatch();syncCancUrl();updTermHint();paintLogo();paintSwatches();paintSugg();paintOptCounts();toast("Katalogdaten entfernt");}
 function applyTpl(t,keepName,quiet,onlyEmpty){
-  var $=function(id){return document.getElementById(id);};
+  var $=function(id){return document.getElementById(id);},snap=tplSnap();
   if(!keepName)$("fPartner").value=t[0];
   var lb=$("fLabel");if(!lb.value.trim())lb.value=t[3];
   if(t[2]&&allCats().indexOf(t[2])>=0&&!(onlyEmpty&&draft.cat)){draft.cat=t[2];paintCats();}
@@ -3600,6 +3637,7 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
   if(t[11]&&!$("fCancUrl").value)$("fCancUrl").value=t[11];
   if(t[14]&&!$("fTel").value)$("fTel").value=t[14];
   if(t[13]&&!$("fMail").value)$("fMail").value=t[13];
+  syncCancUrl();
   if(t[12]&&!$("fAddr").value.trim()){$("fAddr").value=t[12];fAddrPaint();paintOptCounts();}
   /* Katalog «Steuern & Gebühren» (Serafe, Rundfunkbeitrag): nicht kündbar statt Pflichtvertrag */
   var tFix=t[2]==="Steuern & Gebühren";
@@ -3609,12 +3647,14 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
   if(t[1]==="DE"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="EUR";
   if(t[1]==="CH"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="CHF";
   draft.tplHint=t[0];
-  paintLogo();paintSwatches();paintSugg();updTermHint();if(!quiet)toast("Vorlage übernommen — bitte prüfen");
+  if(!onlyEmpty){draft.tplUndo=snap;draft.tplSum=tplSumItems(snap,tplSnap());}
+  paintLogo();paintSwatches();paintSugg();updTermHint();if(!quiet&&onlyEmpty)toast("Vorlage übernommen — bitte prüfen");
 }
 document.getElementById("fPartner").addEventListener("input",function(){draft.tplHint="";draft.stdTpl=null;paintSugg();});
 document.getElementById("fLabel").addEventListener("input",paintSugg);
 document.getElementById("sheetForm").addEventListener("click",function(ev){if(ev.target.closest("[data-tplcat]"))openTplPick();});
 document.getElementById("fSugg").addEventListener("click",function(ev){
+  if(ev.target.closest("[data-tplundo]")){tplUndo();return;}
   if(ev.target.closest("[data-std]")&&draft.stdTpl){var st=draft.stdTpl;applyTpl(st,true,false,true);draft.stdTpl=st;draft.stdDone=true;paintSugg();return;}
   var b=ev.target.closest("[data-tpl]");if(!b)return;applyTpl(TPL[+b.dataset.tpl]);
 });
@@ -3704,8 +3744,19 @@ document.getElementById("iLogoTap").addEventListener("click",function(){var d=do
 document.getElementById("logoTap").addEventListener("click",function(){var d=document.getElementById("oLogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);if(d.open){document.getElementById("oDocs").open=false;document.getElementById("fDocsChip").setAttribute("aria-expanded","false");}});
 /* Dokumente-Chip neben dem Logo: Liste + «Datei anhängen» als Panel wie beim Logo (SwiftUI: Button mit .sheet bzw. DisclosureGroup) */
 document.getElementById("fDocsChip").addEventListener("click",function(){var d=document.getElementById("oDocs");d.open=!d.open;this.setAttribute("aria-expanded",d.open);if(d.open){document.getElementById("oLogo").open=false;document.getElementById("logoTap").setAttribute("aria-expanded","false");}});
-function syncCancUrl(){document.getElementById("fCancUrlW").hidden=termMode==="tax"||document.getElementById("fCancF").value!=="Online / Kundenkonto";}
+function syncCancUrl(){var $=function(i){return document.getElementById(i);},v=$("fCancF").value,off=termMode==="tax";
+  $("fCancT").querySelectorAll("[data-cv]").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.cv===v);});
+  $("fCancUrlW").hidden=off||v!=="Online / Kundenkonto";
+  $("fCancMailW").hidden=off||v!=="E-Mail";if(document.activeElement!==$("fCancMail"))$("fCancMail").value=$("fMail").value;
+  var post=v==="Brief"||v==="Einschreiben",ad=addrSplit($("fAddr").value,$("fPartner").value),line=[ad.street,[ad.zip,ad.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  $("fCancAddrW").hidden=off||!post;$("fCancAddrT").textContent="Adresse des Vertragspartners";
+  $("fCancAddrS").textContent=line||"Noch keine Adresse – wird für den Brief gebraucht";$("fCancAddrB").textContent=line?"Ändern":"Erfassen";}
 document.getElementById("fCancF").addEventListener("change",syncCancUrl);
+document.getElementById("fCancT").addEventListener("click",function(ev){var b=ev.target.closest("[data-cv]");if(!b)return;
+  var f=document.getElementById("fCancF");f.value=f.value===b.dataset.cv?"":b.dataset.cv;syncCancUrl();paintOptCounts();});
+document.getElementById("fCancMail").addEventListener("input",function(){document.getElementById("fMail").value=this.value;});
+document.getElementById("fCancAddrB").addEventListener("click",function(){formPage(true);
+  setTimeout(function(){var g=document.getElementById("fAddrG");if(g){g.scrollIntoView({block:"center"});var i=g.querySelector("input");if(i)i.focus({preventScroll:true});}},260);});
 function paintOptCounts(){
   var n=(draft.prices||[]).length,d=(draft.docs||[]).length,xn=(draft.extras||[]).length,g=function(id){return (document.getElementById(id).value||"").trim();};
   document.getElementById("oExtraN").textContent=xn?xn+" erfasst":"";
@@ -3747,6 +3798,11 @@ document.getElementById("pAdd").addEventListener("click",function(){
   var f=document.getElementById("pFrom").value,a=parseAmt(document.getElementById("pAmt").value);
   if(!f){toast("Datum für die Preisänderung fehlt");return;}
   if(a==null||a<0){toast("Neuen Betrag prüfen");return;}
+  /* Falle: «Betrag» oben schon auf den neuen Preis gesetzt → Änderung ohne Wirkung. Nicht blockierend nachfragen. */
+  var pv=parseAmt(document.getElementById("fAmt").value)||0;pricesOf({prices:draft.prices}).forEach(function(p){if(p.from<f)pv=+p.amount;});
+  if(Math.abs(Math.round(a*100)/100-pv)<0.005&&!this.dataset.ok){var me=this,cur=document.getElementById("fCur").value;
+    ask({title:"Preis bleibt gleich",text:"Vor dem "+fmtD(f)+" gilt schon "+money(pv,cur)+" "+cur+". Steht oben unter «Kosten» bereits der neue Preis? Dort gehört der Anfangspreis hin – also der Preis bei Vertragsbeginn.",ok:"Trotzdem hinzufügen"})
+      .then(function(y){if(!y)return;me.dataset.ok="1";me.click();delete me.dataset.ok;});return;}
   draft.prices=(draft.prices||[]).filter(function(p){return p.from!==f;});
   draft.prices.push({from:f,amount:Math.round(a*100)/100});
   document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";
@@ -5947,7 +6003,7 @@ function schedulePSug(){
 async function pickWebPartner(w){
   document.getElementById("fPartner").value=w.name;pSugSel=w.name;
   var got=[],fill=function(id,v,l){var f=document.getElementById(id);if(v&&!f.value.trim()){f.value=v;got.push(l);}};
-  fill("fWeb",w.dom,"Website");fill("fTel",w.tel,"Telefon");fill("fMail",w.mail,"E-Mail");
+  fill("fWeb",w.dom,"Website");fill("fTel",w.tel,"Telefon");fill("fMail",w.mail,"E-Mail");syncCancUrl();
   var kt=TPL.filter(function(t){return t[4]&&regDom(t[4])===regDom(w.dom);})[0];
   draft.stdTpl=kt?[w.name].concat(kt.slice(1)):stdFor(w);draft.stdDone=false;
   if(draft.stdTpl&&draft.stdTpl[2]&&!draft.cat&&allCats().indexOf(draft.stdTpl[2])>=0){draft.cat=draft.stdTpl[2];paintCats();got.push("Kategorie");}
@@ -5981,7 +6037,7 @@ function pickOwnPartner(o){
   var wf=document.getElementById("fWeb");if(!wf.value.trim()&&o.web)wf.value=o.web;
   var c=o.logoC;if(c&&!(draft.logoId&&KBlob.has(draft.logoId))){draft.logoId=c.logoId;draft.logoBg=c.logoBg||"#FFFFFF";}
   var c0=state.contracts[o.ids[0]];if(c0&&!draft.cat&&c0.cat){draft.cat=c0.cat;paintCats();}
-  if(c0){[["fTel","tel"],["fMail","mail"]].forEach(function(p){var f=document.getElementById(p[0]);if(c0[p[1]]&&!f.value.trim())f.value=c0[p[1]];});}
+  if(c0){[["fTel","tel"],["fMail","mail"]].forEach(function(p){var f=document.getElementById(p[0]);if(c0[p[1]]&&!f.value.trim())f.value=c0[p[1]];});}syncCancUrl();
   hidePSug();paintLogo();paintSwatches();paintSugg();
 }
 (function(){
