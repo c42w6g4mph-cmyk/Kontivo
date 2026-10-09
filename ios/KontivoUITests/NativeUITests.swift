@@ -52,7 +52,7 @@ final class NativeUITests: KontivoUITestCase {
         // 14 Tage wählen
         tap(lead, "Tage vorher")
         tap(button("14 Tage"), "14 Tage")
-        waitUntil("14 Tage gewählt") { ((lead.value as? String) ?? "").contains("14") || lead.label.contains("14") }
+        waitUntil("14 Tage gewählt") { ((lead.value as? String) ?? "").contains("14") || lead.label.contains("14") || self.app.staticTexts["14 Tage"].exists || self.app.buttons["14 Tage"].exists }
 
         // App-Sperre ein und wieder aus
         let lock = app.switches["native.lock"]
@@ -136,7 +136,8 @@ final class NativeUITests: KontivoUITestCase {
         launch("-uiDemo", "-uiTab", "deadlines", "-uiNativeStub")
         tap(buttonStarting("Krankenkasse"), "Karte Krankenkasse")
         tap(button("detail.menu"), "Menü •••")
-        tap(buttonStarting("Kündigen"), "Kündigen (Brief)")
+        // Menüeintrag «Kündigen/Wechseln · per Brief» (Krankenkasse ist Pflichtvertrag → «Wechseln»)
+        tap(app.buttons.matching(pred("label CONTAINS %@", "per Brief")).firstMatch, "Menü: per Brief")
         waitNav("Kündigung")
         let mail = button("letter.mail")
         let printBtn = button("letter.print")

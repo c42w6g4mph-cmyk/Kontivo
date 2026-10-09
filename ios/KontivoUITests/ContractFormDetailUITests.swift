@@ -19,8 +19,8 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         let open = button("term.open")
         wait(open, "Kachel Flexibel")
         XCTAssertTrue(open.isSelected, "Neuer Vertrag startet mit «Flexibel»")
-        wait(textField("form.notice"), "Kündigungsfrist bei Flexibel")
-        wait(elContaining("Ohne Mindestlaufzeit"), "Hinweis Flexibel")
+        reveal(textField("form.notice"), "Kündigungsfrist bei Flexibel")
+        reveal(elContaining("Ohne Mindestlaufzeit"), "Hinweis Flexibel")
 
         // Probeabo: Dauer-Chips statt Frist/Beginn
         tap(button("term.trial"), "Kachel Probeabo")
@@ -83,6 +83,7 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         wait(elContaining("Aus dem Katalog übernommen"), "Karte Katalog")
         wait(elContaining("Pflichtvertrag"), "Liste nennt Pflichtvertrag")
         wait(elContaining("Bitte kurz prüfen"), "Prüfhinweis")
+        closeKeyboard()
         let reg = button("cancelWay.registered")
         reveal(reg, "Kachel Einschreiben")
         XCTAssertTrue(reg.isSelected, "Katalog setzt Kündigungsweg Einschreiben")
@@ -101,6 +102,8 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         openNewForm()
         enter(textField("form.label"), "Preistest\n", "Bezeichnung")
         enter(textField("form.amount"), "45", "Betrag")
+        closeKeyboard()
+        reveal(button("form.more"), "Weitere Angaben")
         tap(button("form.more"), "Weitere Angaben")
         waitNav("Weitere Angaben")
         tap(button("Gültig ab wählen"), "Datum der Preisänderung")

@@ -117,7 +117,10 @@ final class OnboardingUITests: KontivoUITestCase {
         let datei = app.buttons.matching(pred("label BEGINSWITH %@", "Datei wählen")).firstMatch
         XCTAssertTrue(datei.waitForExistence(timeout: 5), "Auswahl «Datei wählen» fehlt")
         keepShot("onb-9-quelle")
-        tapAlertButton("Abbrechen")
+        // Auswahl schliessen (iOS 26 zeigt sie als Popover ohne «Abbrechen»)
+        let cancel = app.buttons.matching(pred("label == %@", "Abbrechen")).firstMatch
+        if cancel.exists && cancel.isHittable { cancel.tap() } else { app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.06)).tap() }
+        usleep(800_000)
 
         // Vorlage wählen: Knopf «Miete erfassen»
         tap(buttonStarting("Miete"), "Vorlage Miete")

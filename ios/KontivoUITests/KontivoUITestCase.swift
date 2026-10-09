@@ -190,6 +190,14 @@ class KontivoUITestCase: XCTestCase {
         return f.height > 0 ? f.minY : nil
     }
 
+    /// Offene Tastatur schliessen («Fertig» über der Tastatur bzw. Zeilenschaltung)
+    func closeKeyboard() {
+        guard app.keyboards.count > 0 else { return }
+        let done = buttons("Fertig").allElementsBoundByIndex.first { $0.exists && $0.isHittable }
+        if let d = done { d.tap() } else { app.keyboards.buttons["Return"].firstMatch.tap() }
+        usleep(600_000)
+    }
+
     /// Verdeckt die Tastatur (samt Leiste «Fertig») das Element: Tastatur schliessen bzw. Inhalt hochschieben
     func dismissKeyboardIfCovering(_ e: XCUIElement) {
         for _ in 0..<3 {
