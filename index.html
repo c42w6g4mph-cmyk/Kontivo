@@ -397,6 +397,11 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .sgroup .field:last-child{margin-bottom:0}
 .sgroup .chips{margin-bottom:10px}
 
+.mgr{justify-content:flex-start;padding:11px 0}.mgr b{flex:1;font-weight:500;min-width:0}.mgr em{max-width:55%!important;font-size:15px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mgr i{font-style:normal;color:var(--ink3);font-size:18px;margin-left:-4px}
+.mgi{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex:none;color:#fff}.mgi svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mgi.i1{background:#0E5A5E}.mgi.i2{background:#6B4BA0}.mgi.i3{background:#B4612A}.mgi.i4{background:#2E6A4E}.mgi.i4.w{background:#9A6710}
+.mgp{font-style:normal;font-size:13px!important;font-weight:600;padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)!important}
+.mgp.w{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)!important}.mgp:empty{display:none}
 .srowbtn{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:12px 0;border-top:1px solid var(--line);text-align:left;font-size:16px}
 .srowbtn:first-of-type{border-top:0;padding-top:2px}
 .srowbtn em{font-style:normal;font-size:12.5px;color:var(--ink3);text-align:right;max-width:42%}
@@ -1507,10 +1512,10 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="curpick" id="sHome" role="group" aria-label="Hauptwährung"></div>
     <div class="ratefoot"><span class="note" id="rateStamp"></span><button class="mini" id="sRateNow" type="button">Aktualisieren</button></div></div>
   <div class="sgroup"><div class="sgh">Verwalten</div>
-    <button class="srowbtn" data-md="partner" type="button"><span class="mdt"><b>Vertragspartner</b><small>Namen, Logos und Adressen deiner Anbieter</small></span><em id="mdSumP"></em></button>
-    <button class="srowbtn" data-md="holder" type="button"><span class="mdt"><b>Personen</b><small>Namen, Absender und Unterschrift</small></span><em id="mdSumH"></em></button>
-    <button class="srowbtn" data-md="cat" type="button"><span class="mdt"><b>Kategorien</b><small>Gruppen für deine Verträge: Name, Farbe, Reihenfolge</small></span><em id="mdSumC"></em></button>
-    <button class="srowbtn vkrow0" id="vkOpen" type="button"><span id="vkRingWrap"></span><span class="mdt"><b>Vollständigkeit</b><small id="vkSub"></small></span><em>›</em></button>
+    <button class="srowbtn mgr" data-md="partner" type="button"><span class="mgi i1" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/></svg></span><b>Vertragspartner</b><em id="mdSumP"></em><i aria-hidden="true">›</i></button>
+    <button class="srowbtn mgr" data-md="holder" type="button"><span class="mgi i2" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c2.4.2 4.2 1.9 5 4.8"/></svg></span><b>Personen</b><em id="mdSumH"></em><i aria-hidden="true">›</i></button>
+    <button class="srowbtn mgr" data-md="cat" type="button"><span class="mgi i3" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg></span><b>Kategorien</b><em id="mdSumC"></em><i aria-hidden="true">›</i></button>
+    <button class="srowbtn mgr" id="vkOpen" type="button"><span class="mgi i4" id="vkIc" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7"/></svg></span><b>Vollständigkeit</b><em id="vkSub" class="mgp"></em><i aria-hidden="true">›</i></button>
     <button class="srowbtn" id="tplFill" type="button" hidden><span class="mdt"><b>Kontaktdaten ergänzen</b><small>Adresse, E-Mail, Telefon aus dem Anbieter-Katalog, nur leere Felder</small></span><em></em></button>
     <button class="srowbtn" data-md="qual" type="button" hidden><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Daten</div>
@@ -5210,11 +5215,11 @@ function paintMdSummary(){
   try{paintVkRow();}catch(e){}
   var pg=partnerGroups(),d=pg.filter(function(o){return o.dup;}).length;
   var e1=document.getElementById("mdSumP");if(!e1)return;
-  e1.textContent=d?d+(d===1?" Dublette":" Dubletten"):(pg.length?pg.length+"":"–");
+  e1.textContent=d?d+(d===1?" Dublette":" Dubletten"):(pg.length?cntTxt(pg.length,"Anbieter","Anbieter"):"–");
   e1.style.color=d?"var(--warn)":"";e1.style.fontWeight=d?"600":"";
   var hs=holderStats().map(function(h){return h.name;});
-  document.getElementById("mdSumH").textContent=hs.length<=2?hs.join(", "):hs.length+" Personen";
-  document.getElementById("mdSumC").textContent=allCats().length+"";
+  document.getElementById("mdSumH").textContent=hs.length<=2?hs.map(function(n){return String(n).split(/\s+/)[0];}).join(", "):hs.length+" Personen";
+  document.getElementById("mdSumC").textContent=cntTxt(allCats().length,"Gruppe","Gruppen");
   var eq=document.getElementById("mdSumQ");if(eq){var qq=qualItems(),nq=qualOpenContracts(qq),NQ=active().length;
     eq.textContent=!NQ?"–":nq?cntTxt(nq,"Eintrag offen","Einträge offen"):"Sauber gepflegt ✓";eq.style.color=!NQ?"":nq?"var(--warn)":"var(--ok)";eq.style.fontWeight=NQ?"600":"";
     var eqs=document.getElementById("mdSumQs");if(eqs)eqs.textContent=NQ&&!nq?"Alles da, nichts fehlt. Gut gemacht.":"Was bei deinen Verträgen noch fehlt";}
@@ -7573,10 +7578,10 @@ function vkRingHtml(p,cls){return '<span class="vkring'+(cls?" "+cls:"")+'" styl
 function vkHintHtml(id){var c=state.contracts[id];if(!c||!isActiveC(c)||c.cancelPer)return "";var r=(vkNeeds(id).per[id])||[];if(!r.length)return "";
   var L={logo:"Logo",term:"Kündigungsfrist",snd:"Absender-Adresse"},why=r.indexOf("term")>=0?"dann erinnert Kontivo rechtzeitig":r.indexOf("snd")>=0?"dann ist die Kündigung startklar":"dann sieht der Vertrag komplett aus";
   return '<button type="button" class="vkhint" data-act="vk"><span aria-hidden="true">✨</span><span><b>'+(r.length===1?"1 Angabe fehlt noch":r.length+" Angaben fehlen noch")+"</b><small>"+r.map(function(x){return L[x];}).join(" · ")+" – "+why+"</small></span><em>Ergänzen ›</em></button>";}
-function paintVkRow(){var el=document.getElementById("vkOpen");if(!el)return;var n=vkNeeds();
-  document.getElementById("vkRingWrap").innerHTML=vkRingHtml(vkPct(n));
-  document.getElementById("vkSub").textContent=!n.total?"Noch keine laufenden Verträge":n.ready===n.total?"Alle Verträge startklar":
-    n.ready+" von "+cntTxt(n.total,"Vertrag","Verträgen")+" startklar";}
+function paintVkRow(){var el=document.getElementById("vkOpen");if(!el)return;var n=vkNeeds(),open=n.total-n.ready,sub=document.getElementById("vkSub");
+  sub.textContent=!n.total?"":open?open+" offen":"Startklar";sub.classList.toggle("w",!!open);
+  document.getElementById("vkIc").classList.toggle("w",!!open);
+  el.setAttribute("aria-label","Vollständigkeit: "+(!n.total?"keine Verträge":open?cntTxt(open,"Vertrag","Verträge")+" noch nicht startklar":"alle Verträge startklar"));}
 
 var vk=null;
 /* Katalog-Ergänzungen: Kontaktdaten wie «Kontaktdaten ergänzen» plus Kündigungsweg, nur leere Felder */
