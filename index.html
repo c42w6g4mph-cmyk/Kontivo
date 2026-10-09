@@ -6775,6 +6775,8 @@ function bankKind(gvc,txt){
   var g=+gvc;
   if(gvc){if((g>=104&&g<=107&&g!==106)||g===109||g===5||g===4)return "dd";if(g===117||g===152||g===8)return "so";if(g===106||g===83||g===84)return "card";if(g===116||g===20||g===166)return "tr";}
   var t=lnorm(txt);if(!t)return "";
+  /* eindeutige Kartenkäufe zuerst: PostFinance führt sie als Typ «Lastschrift» («KAUF/DIENSTLEISTUNG … KARTEN NR») */
+  if(/kauf dienstleistung|karten nr|kartennr|kartenzahlung|card payment|\bpos\b/.test(t))return "card";
   if(/lastschrift|\blsv\b|direct debit|directdebit|e rechnung|erechnung|\bebill\b|e bill|\beinzug\b|basislastschrift|debit direct/.test(t))return "dd";
   if(/dauerauftrag|standing order|\bstanding\b|\bstdo\b/.test(t))return "so";
   if(/karte|card|visa|mastercard|maestro|\bpos\b|debit mc|kartenzahlung|card payment|\btwint\b/.test(t))return "card";
@@ -7066,6 +7068,15 @@ function bankFind(r,ign){
     (groups[key]=groups[key]||{key:key,tpl:tp,tx:[],names:{},cur:t.cur||home}).tx.push(t);
     groups[key].names[nm]=(groups[key].names[nm]||0)+1;
   });
+  /* Nur eine Kartenzahlung und Katalogname aus einem Wort (Spiegel, Salt, Zeit): reicht nicht als Beleg.
+     Katalog nur behalten, wenn die Website im Buchungstext steht («spiegel.de»), sonst als unbekannter Händler behandeln */
+  Object.keys(groups).forEach(function(k){var g=groups[k];
+    if(!g.tpl||g.tx.length>=2||BKALIAS[g.tpl[0]]||ltok(g.tpl[0]).length!==1)return;
+    /* nur Kartenzahlungen: Lastschriften mit Mandat/Gläubiger-ID (Jahresprämie Allianz) sind echte Belege */
+    if(g.tx.some(function(t){return t.cred||t.mref||!(t.kind==="card"||/\bkarten?\b|\bcard\b|kartenzahlung|kauf dienstleistung|\bpos\b|maestro|\bvisa\b|mastercard/.test(lnorm((t.text||"")+" "+(t.type||""))));}))return;
+    var raw=g.tx.map(function(t){return (t.name||"")+" "+(t.text||"");}).join(" ").toLowerCase(),dom=String(g.tpl[4]||"").toLowerCase().replace(/^www\./,"");
+    if(dom&&raw.indexOf(dom)>=0)return;
+    g.tpl=null;});
   /* Gleiches erstes Wort, ähnlicher Betrag → zusammenführen (NETFLIX.COM / Netflix.com Amsterdam) */
   var ks=Object.keys(groups);
   ks.forEach(function(a){ks.forEach(function(b){
