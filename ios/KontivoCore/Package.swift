@@ -16,7 +16,8 @@ let package = Package(
         .testTarget(
             name: "KontivoCoreTests",
             dependencies: ["KontivoCore"],
-            resources: [.process("Resources")]
+            // BankFixtures: Kontoauszug-Musterdateien + Erwartungswerte aus der Web-App (Ordnerstruktur bleibt erhalten)
+            resources: [.process("Resources"), .copy("BankFixtures")]
         )
     ]
 )

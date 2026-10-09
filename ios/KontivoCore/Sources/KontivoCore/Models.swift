@@ -797,6 +797,10 @@ public struct Settings: Codable, Hashable, Sendable {
     public var lastReview: Day?
     public var reviewSnooze: Day?
     public var dataVersion: Int
+    /// Kontoauszug: ausgeblendete Vorschläge (Web `bankIgn`, Gruppenschlüssel ohne Währung)
+    public var bankIgn: [String] = []
+    /// Kontoauszug: gelernte Korrekturen (Web `bankAlias`): Gruppenschlüssel → Vertragspartner/Kategorie
+    public var bankAlias: [String: BankAlias] = [:]
 
     /// Aktuelle Datenversion der nativen App.
     public static let currentDataVersion = 2
@@ -834,6 +838,8 @@ public struct Settings: Codable, Hashable, Sendable {
         lastReview = c.optional(.lastReview)
         reviewSnooze = c.optional(.reviewSnooze)
         dataVersion = c.value(.dataVersion, Settings.currentDataVersion)
+        bankIgn = c.lossyArray(.bankIgn)
+        bankAlias = c.value(.bankAlias, [String: BankAlias]())
     }
 }
 
