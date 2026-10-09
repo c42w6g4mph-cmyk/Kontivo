@@ -283,7 +283,7 @@ struct KBBigAmount: View {
     @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 40
 
     var body: some View {
-        let s = Format.money(value)
+        let s = Format.money(value, Currency(rawValue: currency))
         let parts = KBBigAmount.split(s)
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             (Text(verbatim: parts.0)
@@ -304,7 +304,7 @@ struct KBBigAmount: View {
     }
 
     static func split(_ s: String) -> (String, String) {
-        if let k = s.lastIndex(of: ".") { return (String(s[s.startIndex..<k]), String(s[k...])) }
+        if s.contains(".") || s.contains(",") { let p = Format.decimalSplit(s); return (p.whole, p.fraction) }
         return (s, "")
     }
 }

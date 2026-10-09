@@ -372,6 +372,10 @@ public enum WebImport {
         st.qualityIgnored = ign
         st.lastReview = Day(iso: JS.str(s["lastReview"]))
         st.reviewSnooze = Day(iso: JS.str(s["reviewSnooze"]))
+        // Vollständigkeit «Ohne Logo» (settings.logoSkip = {name klein: 1}, Web v120)
+        if let ls = JS.obj(s["logoSkip"]) {
+            st.logoSkip = ls.orderedKeys.filter { JS.truthy(ls[$0]) }.map { Partners.sameNameKey($0) }.filter { !$0.isEmpty }
+        }
         st.dataVersion = Settings.currentDataVersion
 
         let data = AppData(settings: st, persons: persons, categories: categories, partners: partners, contracts: contractsOut, incomes: incomesOut)

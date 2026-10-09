@@ -326,7 +326,7 @@ private struct MDContractEditor: View {
             }
         case .amount:
             MDInlineText(placeholder: "Betrag in " + contract.currency.rawValue, keyboard: .decimalPad) { v in
-                guard let n = Format.parseNum(v), n > 0 else {
+                guard let n = Format.parseAmount(v), n > 0 else {
                     model.toast("Bitte einen Betrag eingeben")
                     return false
                 }
@@ -376,7 +376,7 @@ private struct MDContractEditor: View {
                 Button(Format.cycleTextOrMonthly(m)) { saved(model.update { $0.mdSetContractCycle(contract.id, m) }) }
             }
         } label: {
-            MDMenuLabel(text: "Zahlungsweise wählen …")
+            MDMenuLabel(text: "Zahlungsrhythmus wählen …")
         }
     }
 }
@@ -801,7 +801,7 @@ private struct MDIncomeEditor: View {
         switch criterion {
         case .amount:
             MDInlineText(placeholder: "Betrag in " + income.currency.rawValue, keyboard: .decimalPad) { v in
-                guard let n = Format.parseNum(v), n > 0 else {
+                guard let n = Format.parseAmount(v), n > 0 else {
                     model.toast("Bitte einen Betrag eingeben")
                     return false
                 }

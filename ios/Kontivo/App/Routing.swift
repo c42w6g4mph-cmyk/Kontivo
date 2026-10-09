@@ -98,6 +98,9 @@ enum ManageRoute: Hashable {
     case quality
     /// Direkt in eine Liste der Datenqualität (Web `openMdAt({k:"qlist"})`), z.B. «Kündigungsfrist und Laufzeit» aus «Fristen»
     case qualityList(QualityGroup, field: String, title: String)
+    /// Ablauf «Vollständigkeit» (Web `openVk(only)`): nil = alle Verträge (Start mit Ring), sonst nur dieser Vertrag
+    /// (Hinweis «Angaben fehlen → Ergänzen» im Detail). Eigenes Fenster mit eigener Navigation.
+    case completeness(only: UUID?)
 
     var idPart: String {
         switch self {
@@ -111,6 +114,7 @@ enum ManageRoute: Hashable {
         case .categories: return "c"
         case .quality: return "q"
         case .qualityList(let g, let f, _): return "ql-\(g.rawValue)-\(f)"
+        case .completeness(let u): return "vk-\(u?.uuidString ?? "")"
         }
     }
 }

@@ -51,7 +51,7 @@ struct KBIncomeForm: View {
     static let cycleOrder = [1, 2, 3, 6, 12, 24, 0]
 
     init(initial: Income, isNew: Bool) {
-        let at = isNew ? "" : Format.fixed2(initial.amount)
+        let at = isNew ? "" : Format.amountInput(initial.amount, initial.currency)
         _draft = State(initialValue: initial)
         _original = State(initialValue: initial)
         _amountText = State(initialValue: at)
@@ -236,7 +236,7 @@ struct KBIncomeForm: View {
                     Text(verbatim: c.rawValue).tag(c)
                 }
             }
-            Picker("Turnus", selection: $draft.cycle) {
+            Picker("Zahlungsrhythmus", selection: $draft.cycle) {
                 ForEach(KBIncomeForm.cycleOrder, id: \.self) { m in
                     Text(verbatim: Format.incomeCycleTexts[m] ?? "").tag(m)
                 }
@@ -263,7 +263,7 @@ struct KBIncomeForm: View {
         return Section {
             if !sorted.isEmpty {
                 priceRow(title: "Anfangsbetrag", tag: ni < 0 ? "aktuell" : nil, planned: false,
-                         amount: Format.parseNum(amountText), onDelete: nil)
+                         amount: Format.parseAmount(amountText), onDelete: nil)
                 ForEach(Array(sorted.enumerated()), id: \.offset) { i, p in
                     priceRow(title: "ab " + Format.fmtD(p.from),
                              tag: i == ni ? "aktuell" : (p.from > today ? "geplant" : nil),
@@ -298,7 +298,7 @@ struct KBIncomeForm: View {
                     .background(Capsule().fill((planned ? KColor.warn : KColor.teal).opacity(0.12)))
             }
             Spacer(minLength: 8)
-            Text(verbatim: (amount.map { Format.money($0) } ?? "—") + " " + draft.currency.rawValue)
+            Text(verbatim: (amount.map { Format.money($0, draft.currency) } ?? "—") + " " + draft.currency.rawValue)
                 .font(.body.monospacedDigit())
                 .foregroundStyle(KColor.ink2)
             if let del = onDelete {
@@ -394,7 +394,7 @@ struct KBIncomeForm: View {
             model.toast("Bezeichnung fehlt")
             return
         }
-        guard let a = Format.parseNum(amountText), a >= 0 else {
+        guard let a = Format.parseAmount(amountText), a >= 0 else {
             model.toast("Betrag prüfen")
             return
         }
@@ -424,7 +424,7 @@ struct KBIncomeForm: View {
             model.toast("Datum fehlt")
             return
         }
-        guard let a = Format.parseNum(priceAmountText), a >= 0 else {
+        guard let a = Format.parseAmount(priceAmountText), a >= 0 else {
             model.toast("Betrag prüfen")
             return
         }

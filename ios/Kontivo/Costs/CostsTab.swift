@@ -350,7 +350,7 @@ struct KBCostRow: View {
             let past = item.date < calc.today
             let status = calc.kbPaymentStatus(item.date)
             let sub = calc.kbCostSubline(item)
-            let amount = item.amount < 0 ? Format.minus + Format.money(-item.amount) : Format.money(item.amount)
+            let amount = item.amount < 0 ? Format.minus + Format.money(-item.amount, c.currency) : Format.money(item.amount, c.currency)
             Button {
                 model.present(.contractDetail(c.id))
             } label: {

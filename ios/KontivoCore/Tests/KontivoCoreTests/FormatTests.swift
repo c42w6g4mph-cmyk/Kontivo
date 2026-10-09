@@ -2,6 +2,12 @@ import XCTest
 @testable import KontivoCore
 
 final class FormatTests: XCTestCase {
+    /// Summen ohne Währung folgen der Hauptwährung (global, von `Calc.init` gesetzt) – hier fest CHF.
+    override func setUp() {
+        super.setUp()
+        Format.homeCurrency = .CHF
+    }
+
     func testMoney() {
         XCTAssertEqual(Format.money(1284.5), "1’284.50")
         XCTAssertEqual(Format.money(0), "0.00")

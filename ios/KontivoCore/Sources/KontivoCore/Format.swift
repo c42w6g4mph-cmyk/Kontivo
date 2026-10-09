@@ -1,28 +1,51 @@
 import Foundation
 
-/// Zahlen, Daten und Texte wie in der Web-App (de-CH, Schweizer Schreibweise).
+/// Zahlenformat (Web `numStyle`, Entscheid 09.10.2026): EUR deutsch «1.234,50», CHF schweizerisch «1’234.50».
+public enum NumberStyle: String, Hashable, Sendable {
+    /// de-CH: Tausender ’ (U+2019), Dezimalpunkt
+    case ch
+    /// de-DE: Tausender Punkt, Dezimalkomma
+    case de
+
+    public var groupSeparator: String { self == .de ? "." : Format.thousandsSeparator }
+    public var decimalSeparator: String { self == .de ? "," : "." }
+}
+
+/// Zahlen, Daten und Texte wie in der Web-App (Schweizer Schreibweise; Zahlen je nach Währung de-CH bzw. de-DE).
 public enum Format {
     /// Minuszeichen für Anzeigen (U+2212).
     public static let minus = "\u{2212}"
     /// Tausendertrennzeichen de-CH (U+2019).
     public static let thousandsSeparator = "\u{2019}"
 
+    /// Hauptwährung für Beträge ohne eigene Währung (Summen) und für USD/GBP/TRY (Web: `state.settings.home` in `numStyle`).
+    /// Wird von `Calc.init` aus den Daten gesetzt, damit alle Ansichten ohne weiteren Parameter richtig formatieren.
+    public static var homeCurrency: Currency = .CHF
+
+    /// Zahlenformat einer Währung (Web `numStyle`): EUR → de-DE, CHF → de-CH, übrige und ohne Währung nach der Hauptwährung.
+    public static func numberStyle(_ currency: Currency? = nil) -> NumberStyle {
+        let c = currency ?? homeCurrency
+        if c == .EUR { return .de }
+        if c == .CHF { return .ch }
+        return homeCurrency == .EUR ? .de : .ch
+    }
+
     /// Monatsnamen lang (MON).
     public static let monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
     /// Monatsnamen kurz (MS).
     public static let monthShort = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
 
-    /// Turnus-Texte (CYCLE).
+    /// Texte des Zahlungsrhythmus (CYCLE).
     public static let cycleTexts: [Int: String] = [1: "monatlich", 2: "alle 2 Monate", 3: "quartalsweise", 6: "halbjährlich", 12: "jährlich", 24: "alle 2 Jahre"]
-    /// Turnus-Texte für Einnahmen (ICYCLE, zusätzlich 0 «einmalig»).
+    /// Texte des Zahlungsrhythmus für Einnahmen (ICYCLE, zusätzlich 0 «einmalig»).
     public static let incomeCycleTexts: [Int: String] = [0: "einmalig", 1: "monatlich", 2: "alle 2 Monate", 3: "quartalsweise", 6: "halbjährlich", 12: "jährlich", 24: "alle 2 Jahre"]
-    /// Wählbare Turnusse in Monaten.
+    /// Wählbare Zahlungsrhythmen in Monaten.
     public static let cycleOptions: [Int] = [1, 2, 3, 6, 12, 24]
 
-    /// Text eines Turnus (unbekannt → nil).
+    /// Text eines Zahlungsrhythmus (unbekannt → nil).
     public static func cycleText(_ months: Int) -> String? { cycleTexts[months] }
 
-    /// Text eines Turnus, unbekannt → «monatlich» (wie `CYCLE[c.cycle]||"monatlich"`).
+    /// Text eines Zahlungsrhythmus, unbekannt → «monatlich» (wie `CYCLE[c.cycle]||"monatlich"`).
     public static func cycleTextOrMonthly(_ months: Int) -> String { cycleTexts[months] ?? "monatlich" }
 
     /// Kündigungstermine (TERMS).
@@ -40,32 +63,86 @@ public enum Format {
 
     // MARK: Zahlen
 
-    /// Betrag mit genau 2 Nachkommastellen: «1’284.50», negativ «−5.00».
-    public static func money(_ v: Double) -> String {
+    /// Betrag mit genau 2 Nachkommastellen im Format der Währung (Web `money(v, cur)`): CHF «1’284.50», EUR «1.284,50»,
+    /// negativ «−5.00». Ohne Währung (Summen in der Hauptwährung) nach der Hauptwährung.
+    public static func money(_ v: Double, _ currency: Currency? = nil) -> String {
+        let st = numberStyle(currency)
         let p = decimalParts(v, digits: 2)
-        return (p.negative ? minus : "") + group(p.integer) + "." + p.fraction
+        return (p.negative ? minus : "") + group(p.integer, st) + st.decimalSeparator + p.fraction
     }
 
-    /// Betrag ohne Nachkommastellen (gerundet): «1’285».
-    public static func money0(_ v: Double) -> String {
+    /// Betrag ohne Nachkommastellen (gerundet): «1’285» bzw. «1.285» (Web `nf0`).
+    public static func money0(_ v: Double, _ currency: Currency? = nil) -> String {
+        let st = numberStyle(currency)
         let p = decimalParts(v, digits: 0)
-        return (p.negative ? minus : "") + group(p.integer)
+        return (p.negative ? minus : "") + group(p.integer, st)
     }
 
     /// Betrag mit Vorzeichen: negativ «−», positiv «+» (wenn `plus`), null ohne Zeichen.
-    public static func moneySigned(_ v: Double, plus: Bool = false) -> String {
+    public static func moneySigned(_ v: Double, plus: Bool = false, currency: Currency? = nil) -> String {
+        let st = numberStyle(currency)
         let p = decimalParts(v, digits: 2)
         let zero = p.integer == "0" && p.fraction.allSatisfy { $0 == "0" }
         let sign = p.negative ? minus : ((plus && !zero) ? "+" : "")
-        return sign + group(p.integer) + "." + p.fraction
+        return sign + group(p.integer, st) + st.decimalSeparator + p.fraction
     }
 
-    /// Zahl mit höchstens `maxFractionDigits` Nachkommastellen (ohne Nullen am Ende), de-CH.
-    public static func number(_ v: Double, maxFractionDigits: Int) -> String {
+    /// Zahl mit höchstens `maxFractionDigits` Nachkommastellen (ohne Nullen am Ende) im Format der Währung.
+    public static func number(_ v: Double, maxFractionDigits: Int, currency: Currency? = nil) -> String {
+        number(v, minFractionDigits: 0, maxFractionDigits: maxFractionDigits, style: numberStyle(currency))
+    }
+
+    /// Wie `toLocaleString(de-CH|de-DE, {minimumFractionDigits, maximumFractionDigits})` (Rundung halb weg von 0).
+    public static func number(_ v: Double, minFractionDigits: Int, maxFractionDigits: Int, style: NumberStyle) -> String {
         let p = decimalParts(v, digits: maxFractionDigits)
         var frac = p.fraction
-        while frac.hasSuffix("0") { frac.removeLast() }
-        return (p.negative ? minus : "") + group(p.integer) + (frac.isEmpty ? "" : "." + frac)
+        while frac.count > minFractionDigits && frac.hasSuffix("0") { frac.removeLast() }
+        return (p.negative ? minus : "") + group(p.integer, style) + (frac.isEmpty ? "" : style.decimalSeparator + frac)
+    }
+
+    /// Prozent wie Web `pctTxt`: «+12 %», «−3 %», «±0 %»; unter 1 % mit einer Nachkommastelle im Format der Hauptwährung («+0.5 %» bzw. «+0,5 %»).
+    public static func pctText(_ p: Double) -> String {
+        let a = Swift.abs(p)
+        let sign = p > 0 ? "+" : (p < 0 ? minus : "±")
+        let body = (a > 0 && a < 1) ? number(a, minFractionDigits: 0, maxFractionDigits: 1, style: numberStyle(nil)) : String(Int(jsRound(a)))
+        return sign + body + " %"
+    }
+
+    /// Betrag für ein Eingabefeld (Web `amtIn`): «59.90», bei EUR «59,90» (ohne Tausendertrennzeichen).
+    public static func amountInput(_ v: Double, _ currency: Currency? = nil) -> String {
+        let t = fixed2(v.isFinite ? v : 0)
+        return numberStyle(currency) == .de ? t.replacingOccurrences(of: ".", with: ",") : t
+    }
+
+    /// Betrag aus einem Eingabefeld (Web `parseAmt`): Geld hat nie 3 Nachkommastellen, also ist «1.234» oder «1,234» ein
+    /// Tausender (1234); sonst wie `parseNum`.
+    public static func parseAmount(_ s: String?) -> Double? {
+        let t = String((s ?? "").unicodeScalars.filter { u in
+            !(u == "'" || u == "\u{2019}" || u == "\u{02BC}" || CharacterSet.whitespacesAndNewlines.contains(u)
+              || u == "\u{00A0}" || u == "\u{202F}")
+        })
+        var sc = Array(t.unicodeScalars)
+        var neg = false
+        if let f = sc.first, f == "-" || f == "\u{2212}" {
+            neg = true
+            sc.removeFirst()
+        }
+        // ^([1-9]\d{0,2})[.,](\d{3})$
+        if let k = sc.firstIndex(where: { $0 == "." || $0 == "," }), k >= 1, k <= 3, sc.count - k - 1 == 3 {
+            let a = sc[0..<k], b = sc[(k + 1)...]
+            let isDigit: (Unicode.Scalar) -> Bool = { $0.value >= 0x30 && $0.value <= 0x39 }
+            if a.first != "0" && a.allSatisfy(isDigit) && b.allSatisfy(isDigit),
+               let n = Double(String(String.UnicodeScalarView(a)) + String(String.UnicodeScalarView(b))) {
+                return neg ? -n : n
+            }
+        }
+        return parseNum(s)
+    }
+
+    /// Text eines Betrags an der Dezimalstelle teilen (Web `decAt`: letztes «.» oder «,»), z.B. für kleine Rappen/Cent.
+    public static func decimalSplit(_ s: String) -> (whole: String, fraction: String) {
+        guard let k = s.lastIndex(where: { $0 == "." || $0 == "," }) else { return (s, "") }
+        return (String(s[s.startIndex..<k]), String(s[k...]))
     }
 
     /// Wie JS `x.toFixed(2)` (Punkt, ohne Tausendertrennzeichen; Gleichstand weg von 0).
@@ -105,13 +182,13 @@ public enum Format {
         jsRound(x * 100) / 100
     }
 
-    /// Tausendertrennzeichen einsetzen (ab 4 Stellen).
-    static func group(_ digits: String) -> String {
+    /// Tausendertrennzeichen einsetzen (ab 4 Stellen, wie de-CH und de-DE).
+    static func group(_ digits: String, _ style: NumberStyle = .ch) -> String {
         if digits.count <= 3 { return digits }
         var out = ""
         let chars = Array(digits)
         for (i, ch) in chars.enumerated() {
-            if i > 0 && (chars.count - i) % 3 == 0 { out += thousandsSeparator }
+            if i > 0 && (chars.count - i) % 3 == 0 { out += style.groupSeparator }
             out.append(ch)
         }
         return out

@@ -37,6 +37,8 @@ enum ManagePage: Hashable {
         case .categories: self = .categories
         case .quality: self = .quality
         case .qualityList(let g, let f, let t): self = .qualityList(g, f, t)
+        // eigenes Fenster (CompletenessFlowView), nie als Seite im Stapel
+        case .completeness: self = .overview
         }
     }
 }
@@ -120,6 +122,20 @@ struct ManageView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
+        if let only = completenessOnly {
+            CompletenessFlowView(only: only)
+        } else {
+            stack
+        }
+    }
+
+    /// Route «Vollständigkeit»: eigenes Fenster statt Seitenstapel (äussere Option = Route, innere = nur dieser Vertrag)
+    private var completenessOnly: UUID?? {
+        if case .completeness(let o) = start { return .some(o) }
+        return nil
+    }
+
+    @ViewBuilder private var stack: some View {
         @Bindable var nav = nav
         let showAsk = Binding<Bool>(get: { nav.renameAsk != nil }, set: { if !$0 { nav.renameAsk = nil } })
         NavigationStack(path: $nav.path) {
@@ -242,134 +258,27 @@ struct ManagePageView: View {
 
 // MARK: - Übersicht
 
-/// Übersicht «Verwalten» (wie der Abschnitt «Verwalten» in «Mehr», paintMdSummary)
+/// Übersicht «Verwalten» (gleiche Zeilen wie «Mehr → Verwalten», iOS-Listenstil seit Web v121). «Kontaktdaten ergänzen» ist seit
+/// Web v120 Teil der Vollständigkeit (Katalog-Ergänzungen beim Start), die Datenqualität erreicht man über «Alle Prüfungen im Detail».
 struct MDOverviewPage: View {
     @Environment(AppModel.self) private var model
-    @State private var fillPlan: [CatalogFillItem] = []
-    @State private var askFill = false
-    @State private var nothingToFill = false
+    @Environment(ManageNav.self) private var nav
 
     var body: some View {
         List {
             Section {
-                partnersRow
-                personsRow
-                categoriesRow
-                catalogFillRow
-                qualityRow
+                MoreManageRows { route in
+                    switch route {
+                    case .partners: nav.push(.partners)
+                    case .persons: nav.push(.persons)
+                    case .categories: nav.push(.categories)
+                    default: model.present(.manage(route))
+                    }
+                }
+                .mdRow()
             }
         }
         .mdListStyle()
         .navigationTitle("Verwalten")
-        .alert(Format.count(fillPlan.count, "Vertrag", "Verträge") + " ergänzen?", isPresented: $askFill) {
-            Button("Abbrechen", role: .cancel) {}
-            Button("Ergänzen") { runFill() }
-        } message: {
-            Text(fillMessage)
-        }
-        .alert("Nichts zu ergänzen", isPresented: $nothingToFill) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Für deine Verträge fehlen keine Kontaktdaten, die der Katalog kennt, oder der Vertragspartner heisst anders als im Katalog.")
-        }
-    }
-
-    /// «Kontaktdaten ergänzen» (Web b520636): Adresse, E-Mail, Telefon und Website aus dem Anbieter-Katalog, nur leere Felder.
-    private var catalogFillRow: some View {
-        Button {
-            fillPlan = model.data.catalogFillPlan()
-            if fillPlan.isEmpty { nothingToFill = true } else { askFill = true }
-        } label: {
-            MDOverviewRow(title: "Kontaktdaten ergänzen", subtitle: "Adresse, E-Mail, Telefon aus dem Anbieter-Katalog, nur leere Felder",
-                          trailing: "", color: KColor.ink2, bold: false)
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("manage.catalogFill")
-        .mdRow()
-    }
-
-    private var fillMessage: String {
-        let lines = fillPlan.prefix(12).map { it -> String in
-            let t = model.data.contract(it.contractID).map { model.data.title(of: $0) } ?? ""
-            return "• " + t + " → " + it.entryName
-        }
-        var m = lines.joined(separator: "\n") + (fillPlan.count > 12 ? "\n… und \(fillPlan.count - 12) weitere" : "")
-        m += "\n\nNur leere Felder werden gefüllt."
-        let unv = fillPlan.filter { !$0.confirmed }.count
-        if unv > 0 { m += "\n\(unv) davon mit nicht offiziell bestätigten Daten – vor dem Versand prüfen." }
-        return m
-    }
-
-    private func runFill() {
-        let plan = fillPlan
-        if model.update({ $0.applyCatalogFill(plan) }) {
-            model.toast(Format.count(plan.count, "Vertrag", "Verträge") + " ergänzt")
-        }
-    }
-
-    private var partnersRow: some View {
-        let groups = Partners.groups(model.data, today: model.today)
-        let d = groups.filter { $0.isDuplicate }.count
-        let right = d > 0 ? Format.count(d, "Dublette", "Dubletten") : (groups.isEmpty ? "–" : "\(groups.count)")
-        return NavigationLink(value: ManagePage.partners) {
-            MDOverviewRow(title: "Vertragspartner", subtitle: "Namen, Logos und Adressen deiner Anbieter",
-                          trailing: right, color: d > 0 ? KColor.warn : KColor.ink2, bold: d > 0)
-        }
-        .mdRow()
-    }
-
-    private var personsRow: some View {
-        let names = model.data.persons.map { $0.name }
-        let right = names.count <= 2 ? names.joined(separator: ", ") : "\(names.count) Personen"
-        return NavigationLink(value: ManagePage.persons) {
-            MDOverviewRow(title: "Inhaber", subtitle: "Personen, Absender und Unterschrift", trailing: right, color: KColor.ink2, bold: false)
-        }
-        .mdRow()
-    }
-
-    private var categoriesRow: some View {
-        NavigationLink(value: ManagePage.categories) {
-            MDOverviewRow(title: "Kategorien", subtitle: "Gruppen für deine Verträge: Name, Farbe, Reihenfolge",
-                          trailing: "\(model.data.categories.count)", color: KColor.ink2, bold: false)
-        }
-        .mdRow()
-    }
-
-    private var qualityRow: some View {
-        let r = model.mdQualityReport
-        let has = r.contractCount > 0
-        let open = r.affectedCount
-        let color: Color = !has ? KColor.ink2 : (open > 0 ? KColor.warn : KColor.ok)
-        let sub = has && open == 0 ? "Alles da, nichts fehlt. Gut gemacht." : "Was bei deinen Verträgen noch fehlt"
-        return NavigationLink(value: ManagePage.quality) {
-            MDOverviewRow(title: "Datenqualität", subtitle: sub, trailing: Quality.summary(r), color: color, bold: has)
-        }
-        .mdRow()
-    }
-}
-
-/// Zeile der Übersicht: Titel, Untertitel, rechts eine Angabe
-private struct MDOverviewRow: View {
-    let title: String
-    let subtitle: String
-    let trailing: String
-    let color: Color
-    let bold: Bool
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.body.weight(.semibold)).foregroundStyle(KColor.ink)
-                Text(subtitle).font(.footnote).foregroundStyle(KColor.ink2)
-            }
-            Spacer(minLength: 8)
-            Text(trailing)
-                .font(.subheadline.weight(bold ? .semibold : .regular))
-                .foregroundStyle(color)
-                .multilineTextAlignment(.trailing)
-                .lineLimit(2)
-        }
-        .padding(.vertical, 2)
-        .accessibilityElement(children: .combine)
     }
 }

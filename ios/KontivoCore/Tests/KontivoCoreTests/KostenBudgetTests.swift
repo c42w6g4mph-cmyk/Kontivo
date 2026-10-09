@@ -37,10 +37,12 @@ final class KostenBudgetTests: XCTestCase {
         XCTAssertNil(calc.kbBudgetComparison(year: 2026, month: 10, person: other.id, free: 3000))
     }
 
-    /// Einnahmen-Formular nutzt den gemeinsamen Zahlenleser (Web `parseNum`).
-    func testParseAmountIsParseNum() {
+    /// Einnahmen-Formular nutzt den Betragsleser (Web `parseAmt`: «1.234» = Tausender, sonst `parseNum`).
+    func testParseAmountIsParseAmt() {
         for s in ["6500", "6’500.50", "1.234,50", "1.234.5", "12abc", ""] {
             XCTAssertEqual(KBText.parseAmount(s), Format.parseNum(s), s)
         }
+        XCTAssertEqual(KBText.parseAmount("6.500"), 6500)
+        XCTAssertEqual(KBText.parseAmount("6,500"), 6500)
     }
 }

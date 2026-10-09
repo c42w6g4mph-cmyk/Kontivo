@@ -140,7 +140,7 @@ public enum ContractSort: String, Codable, CaseIterable, Hashable, Sendable {
         case .cost: return "Kosten"
         case .partner: return "Vertragspartner"
         case .due: return "Fälligkeit"
-        case .holder: return "Inhaber"
+        case .holder: return "Person"
         }
     }
 
@@ -151,7 +151,7 @@ public enum ContractSort: String, Codable, CaseIterable, Hashable, Sendable {
         case .cost: return "Kosten, höchste zuerst"
         case .partner: return "Vertragspartner, A–Z"
         case .category: return "Kategorie"
-        case .holder: return "Inhaber"
+        case .holder: return "Person"
         }
     }
 
@@ -801,13 +801,16 @@ public struct Settings: Codable, Hashable, Sendable {
     public var bankIgn: [String] = []
     /// Kontoauszug: gelernte Korrekturen (Web `bankAlias`): Gruppenschlüssel → Vertragspartner/Kategorie
     public var bankAlias: [String: BankAlias] = [:]
+    /// Vollständigkeit: Vertragspartner bewusst «Ohne Logo» (Web `settings.logoSkip`, Schlüssel = Name klein, ohne Leerzeichen
+    /// am Rand). Neu seit Web v120, fehlt in älteren Daten.
+    public var logoSkip: [String] = []
 
     /// Aktuelle Datenversion der nativen App.
     public static let currentDataVersion = 2
 
     public init(homeCurrency: Currency = .CHF, rates: [String: Double] = [:], rateDate: Day? = nil, rateChecked: Day? = nil, rateSource: String = "",
                 theme: Theme = .auto, sort: ContractSort = .category, onboarded: Int = 0, lastHolderIDs: [UUID] = [], qualityIgnored: [String] = [],
-                lastReview: Day? = nil, reviewSnooze: Day? = nil, dataVersion: Int = Settings.currentDataVersion) {
+                lastReview: Day? = nil, reviewSnooze: Day? = nil, dataVersion: Int = Settings.currentDataVersion, logoSkip: [String] = []) {
         self.homeCurrency = homeCurrency
         self.rates = rates
         self.rateDate = rateDate
@@ -821,6 +824,7 @@ public struct Settings: Codable, Hashable, Sendable {
         self.lastReview = lastReview
         self.reviewSnooze = reviewSnooze
         self.dataVersion = dataVersion
+        self.logoSkip = logoSkip
     }
 
     public init(from decoder: Decoder) throws {
@@ -840,6 +844,7 @@ public struct Settings: Codable, Hashable, Sendable {
         dataVersion = c.value(.dataVersion, Settings.currentDataVersion)
         bankIgn = c.lossyArray(.bankIgn)
         bankAlias = c.value(.bankAlias, [String: BankAlias]())
+        logoSkip = c.lossyArray(.logoSkip)
     }
 }
 

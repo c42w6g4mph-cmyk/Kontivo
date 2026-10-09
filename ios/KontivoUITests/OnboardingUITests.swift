@@ -55,8 +55,8 @@ final class OnboardingUITests: KontivoUITestCase {
         let chfMore = buttonStarting("CHF")
         wait(chfMore, "CHF in Mehr")
         XCTAssertTrue(chfMore.isSelected, "Hauptwährung CHF nicht übernommen")
-        let holders = buttonStarting("Inhaber")
-        wait(holders, "Zeile Inhaber")
+        let holders = buttonStarting("Personen")
+        wait(holders, "Zeile Personen")
         XCTAssertTrue(holders.label.contains("Sinan"), "Name nicht übernommen: \(holders.label)")
     }
 }

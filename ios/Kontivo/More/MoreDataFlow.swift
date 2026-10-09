@@ -294,7 +294,7 @@ final class MoreDataFlow {
         let nc = model.data.contracts.count
         let ni = model.data.incomes.count
         let text = "Gelöscht werden " + Format.count(nc, "Vertrag", "Verträge") + ", " + Format.count(ni, "Einnahme", "Einnahmen")
-            + ", eigene Kategorien, Inhaber, Absender sowie hochgeladene Logos und Dokumente.\n\nDarstellung und Währung bleiben erhalten.\n\nTipp: Speichere vorher ein Backup."
+            + ", eigene Kategorien, Personen, Absender sowie hochgeladene Logos und Dokumente.\n\nDarstellung und Währung bleiben erhalten.\n\nTipp: Speichere vorher ein Backup."
         show(MoreAsk(title: "Alle Daten löschen?", message: text, confirm: "Weiter", destructive: true) { [weak self] in
             self?.show(MoreAsk(title: "Wirklich endgültig löschen?", message: "Das lässt sich nicht rückgängig machen.",
                                confirm: "Endgültig löschen", destructive: true) { [weak self] in

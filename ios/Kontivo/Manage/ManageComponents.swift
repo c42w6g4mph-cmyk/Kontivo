@@ -179,7 +179,7 @@ struct MDContractRow: View {
         let d = model.data
         let calc = model.calc
         let ended: String = calc.isActive(contract) ? "" : " · beendet"
-        let sub: String = [Format.money(calc.curPrice(contract)), " ", contract.currency.rawValue, " · ",
+        let sub: String = [Format.money(calc.curPrice(contract), contract.currency), " ", contract.currency.rawValue, " · ",
                            Format.cycleTextOrMonthly(contract.cycle), ended].joined()
         return Button {
             model.present(.contractDetail(contract.id))
@@ -447,7 +447,7 @@ extension AppModel {
 
 
 // Fachaktionen der Inline-Editoren (mdSet…, MDTermChoice, mdNoticeValue …) liegen im Kern: KontivoCore/ExtManage.swift.
-// Zahlen immer mit Format.parseNum (1:1 wie Web parseNum).
+// Zahlen mit Format.parseNum (1:1 wie Web parseNum), Beträge mit Format.parseAmount (Web parseAmt).
 
 /// Name auf höchstens 30 Zeichen begrenzen (maxlength="30")
 func mdLimit30(_ s: String) -> String {

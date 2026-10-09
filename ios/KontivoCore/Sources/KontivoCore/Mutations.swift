@@ -32,8 +32,8 @@ public enum MutationError: Error, Equatable {
         case .emptyName: return "Name darf nicht leer sein"
         case .duplicateName: return "Diesen Namen gibt es schon"
         case .duplicateCategory: return "Diese Kategorie gibt es schon"
-        case .duplicatePerson: return "Diesen Inhaber gibt es schon"
-        case .lastPerson: return "Mindestens ein Inhaber ist nötig"
+        case .duplicatePerson: return "Diese Person gibt es schon"
+        case .lastPerson: return "Mindestens eine Person ist nötig"
         case .fixedCategory: return "«Sonstiges» fängt alles ohne Kategorie auf und lässt sich weder umbenennen noch löschen."
         case .missingTitle: return "Bezeichnung fehlt"
         case .missingCategory: return "Bitte eine Kategorie wählen"
@@ -572,10 +572,10 @@ extension AppData {
         return true
     }
 
-    /// Toast nach dem Zuordnen: «Handy → Beide» (2 Personen) bzw. «→ Alle» (ab 3, Fix N5), «→ Lara, Sinan», «→ ohne Inhaber».
+    /// Toast nach dem Zuordnen: «Handy → Beide» (2 Personen) bzw. «→ Alle» (ab 3, Fix N5), «→ Lara, Sinan», «→ ohne Person».
     public func holderChoiceToast(title: String, holderIDs: [UUID]) -> String {
         if holderIDs.count == persons.count && persons.count > 1 { return title + " → " + (persons.count == 2 ? "Beide" : "Alle") }
-        if holderIDs.isEmpty { return title + " → ohne Inhaber" }
+        if holderIDs.isEmpty { return title + " → ohne Person" }
         return title + " → " + holderIDs.compactMap { person($0)?.name }.joined(separator: ", ")
     }
 
@@ -823,6 +823,8 @@ public struct CatalogFillItem: Hashable, Sendable {
     public var tel: String?
     /// Fehlende Website des Vertragspartners
     public var web: String?
+    /// Fehlender Kündigungsweg (nur Vollständigkeit, Web `vkAutoPlan`)
+    public var cancelChannel: CancelChannel?
 }
 
 extension AppData {
@@ -852,6 +854,7 @@ extension AppData {
             guard let i = contracts.firstIndex(where: { $0.id == it.contractID }) else { continue }
             if let m = it.mail, contracts[i].mail.isEmpty { contracts[i].mail = m }
             if let t = it.tel, contracts[i].tel.isEmpty { contracts[i].tel = t }
+            if let ch = it.cancelChannel, contracts[i].cancelChannel == nil { contracts[i].cancelChannel = ch }
             if let pid = contracts[i].partnerID, let pi = partners.firstIndex(where: { $0.id == pid }) {
                 if let a = it.address, partners[pi].address.isEmpty { partners[pi].address = a }
                 if let w = it.web, partners[pi].web.isEmpty { partners[pi].web = w }
