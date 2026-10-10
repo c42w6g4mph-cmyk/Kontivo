@@ -99,8 +99,9 @@ final class ContractFormDetailUITests: KontivoUITestCase {
             card.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.12)).tap()
         }
         waitGone(elContaining("Aus dem Katalog übernommen"), "Karte nach Rückgängig")
-        waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.registered").isSelected }
         wait(buttonStarting("CSS übernehmen"), "Vorlage wieder angeboten")
+        reveal(button("cancelWay.registered"), "Kachel Einschreiben nach Rückgängig")
+        waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.registered").isSelected }
         ctShot("Formular – Katalog rückgängig")
     }
 
