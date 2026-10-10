@@ -1557,6 +1557,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .fadd svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
 .fadd[aria-expanded="true"]{color:var(--ink2)}
 .fsub{border-top:1px solid var(--line)}
+.fcan{display:block;width:100%;margin:-6px 0 10px;padding:8px;color:var(--ink2);font-size:15px}
 .fok{display:block;width:100%;margin:4px 0 12px;padding:11px;border-radius:10px;background:var(--tealFill);color:#fff;font-weight:600;font-size:15px}
 .fpr{cursor:pointer}
 .fpr .fl{color:var(--ink)}
@@ -1747,7 +1748,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="fsub" id="pForm" hidden>
       <div class="frow"><label for="pFrom">Gültig ab</label><input id="pFrom" type="date"></div>
       <div class="frow"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="74.90"></div>
-      <button class="fok" id="pAdd" type="button">Preisänderung hinzufügen</button>
+      <button class="fok" id="pAdd" type="button">Preisänderung hinzufügen</button><button class="fcan" id="pCancel" type="button">Abbrechen</button>
     </div>
     <div class="frow"><label for="fCycle">Zahlungsrhythmus</label><select id="fCycle">
       <option value="1">monatlich</option><option value="2">alle 2 Monate</option><option value="3">quartalsweise</option>
@@ -2295,14 +2296,15 @@ function priceChart(c,opt){
   if(!pathF)pathP+=" H"+X(end).toFixed(1);else pathF+=" H"+X(end).toFixed(1);
   var area=pathP+" V"+B+" H"+X(st).toFixed(1)+" Z";
   /* Beschriftung: von hinten nach vorn, nur wenn genug Abstand zum nächsten beschrifteten Punkt */
-  var show={},lastX=1e9;for(var k=pts.length-1;k>=0;k--){var xk=X(pts[k].d);if(lastX-xk>=66){show[k]=1;lastX=xk;}}
+  var show={},lastX=1e9;for(var k=pts.length-1;k>=0;k--){var xk=X(pts[k].d);var ck=Math.max(xk,L+26);if(lastX-ck>=54){show[k]=1;lastX=ck;}}
   var cx=function(x,txt,fs){var hw=String(txt).length*fs*.29;return Math.max(L+hw,Math.min(R-hw,x));};
   var dots="",lbl="",hit="";
   pts.forEach(function(p,i){var x=X(p.d),y=Y(p.a),fut=p.d>t,cl="pdt"+(i===ni?" now":"")+(fut?" fut":"");
     if(i)lbl+='<line class="pgd" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+(y+5).toFixed(1)+'" y2="'+B+'"/>';
     dots+='<circle class="'+cl+'" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(i===ni?4.5:3.5)+'"/>';
     if(show[i]){var pv=p.a?money(p.a,c.cur):"gratis",dt=i?fmtShort(p.d):(hasSt?fmtShort(p.d):"Anfang");
-      lbl+='<text class="pv'+(i===ni?" now":"")+'" x="'+cx(x,pv,11).toFixed(1)+'" y="'+(y-9).toFixed(1)+'" text-anchor="middle">'+pv+"</text>"+
+      var dropL=i&&p.a<pts[i-1].a,px=dropL?Math.min(R-String(pv).length*11*.58,x+5):cx(x,pv,11);/* Preissenkung: Zahl rechts neben die senkrechte Linie, sonst liegt sie darauf */
+      lbl+='<text class="pv'+(i===ni?" now":"")+'" x="'+px.toFixed(1)+'" y="'+(y-8).toFixed(1)+'" text-anchor="'+(dropL?"start":"middle")+'">'+pv+"</text>"+
         '<text class="pt" x="'+cx(x,dt,10.5).toFixed(1)+'" y="'+(B+14)+'" text-anchor="middle">'+dt+"</text>";
       if(i&&pts[i-1].a){/* nach einer Gratis-Phase (Preis 0) keine Prozentangabe */var pc=pts[i-1].a?(p.a-pts[i-1].a)/pts[i-1].a*100:0,ptx=pctTxt(pc);
         lbl+='<text class="pp'+(pc>0?" up":pc<0?" down":"")+'" x="'+cx(x,ptx,11).toFixed(1)+'" y="'+(B+29)+'" text-anchor="middle">'+ptx+"</text>";}}
@@ -2352,7 +2354,7 @@ function limitOf(c){
 function occurrences(c,from,to){
   var a=parseD(c.due);if(!a)return [];
   if(c.cycle===0||c.cycle==="0")return (a>=from&&a<=to)?[a]:[];
-  var m=+c.cycle||1,st=parseD(c.start),out=[];
+  var m=+c.cycle||1,st=parseD(c.start),out=[],tr=parseD(c.trial);/* Probeabo: c.trial = erster kostenpflichtiger Tag, davor keine Zahlungen */
   var lim=limitOf(c),pz=c.paused?(parseD(c.pausedAt)||today()):null,pu=c.paused?parseD(c.pausedUntil):null;
   var diff=(from.getFullYear()-a.getFullYear())*12+(from.getMonth()-a.getMonth());
   var k=Math.floor(diff/m)-1,g=0;
@@ -2361,6 +2363,7 @@ function occurrences(c,from,to){
     if(d>to)break;
     if(d<from)continue;
     if(st&&d<st)continue;
+    if(tr&&d<tr)continue;
     if(lim&&d>lim)break;
     if(pz&&d>=pz&&(!pu||d<pu))continue;
     out.push(d);
@@ -3065,7 +3068,7 @@ function emptyStat(){
 function emptyTerm(){
   return emptyHero({icon:"term",title:"Nie mehr eine<br>Frist verpassen",
     text:"Kontivo rechnet den Kündigungstermin aus und meldet sich rechtzeitig.",
-    hooks:["Behalten oder kündigen? Du entscheidest","Kündigung als PDF: mailen oder drucken","Auch Probe-Abos und Jahresverträge"],illu:true,preview:epHead("Als Nächstes","")+'<div class="eprow"><span class="pci" style="background:'+catColor("Freizeit & Sport")+'">'+catIcon("Freizeit & Sport")+'</span><span class="t">Fitnessstudio<small class="w">Frist 30.11. · noch 29 Tage</small></span></div>'+
+    hooks:["Behalten oder kündigen? Du entscheidest","Kündigung als PDF: mailen oder drucken","Auch Probeabos und Jahresverträge"],illu:true,preview:epHead("Als Nächstes","")+'<div class="eprow"><span class="pci" style="background:'+catColor("Freizeit & Sport")+'">'+catIcon("Freizeit & Sport")+'</span><span class="t">Fitnessstudio<small class="w">Frist '+(function(){var d=addDays(today(),29);return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+".";})()+' · noch 29 Tage</small></span></div>'+
       '<div class="epacts"><span>Behalten</span><span>Kündigen</span></div>',
     btn:['data-onb="c"',"Ersten Vertrag erfassen"]});
 }
@@ -3457,7 +3460,7 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   document.getElementById("fTel").value=(c&&c.tel)||"";
   document.getElementById("fMail").value=(c&&c.mail)||"";syncCancUrl();
   paintHolders();
-  document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";openSub("p",false);openSub("x",false);
+  document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";openSub("p",false);openSub("x",false);pBak=null;
   /* gekündigt: Kündigungsdatum und «läuft bis» korrigierbar */
   var cz=!!(c&&!asCopy&&c.cancelPer);document.getElementById("fCancOnW").hidden=!cz;document.getElementById("fCancPerW").hidden=!cz;
   document.getElementById("fCancOn").value=cz?(c.cancelledOn||""):"";document.getElementById("fCancPer").value=cz?c.cancelPer:"";
@@ -3827,7 +3830,7 @@ function setTermMode(m){termMode=m;
   syncTermSel();if(typeof paintTermM==="function")paintTermM();syncCancUrl();updTermHint();syncRemind();}
 /* «An Frist erinnern» nur, wenn es eine Frist gibt: nicht bei Flexibel und jederzeit/auf Monatsende kündbar (gleiche Regel wie isAnytime) und nicht bei «Nicht kündbar» */
 function syncRemind(){var w=document.getElementById("fRemindW");if(!w)return;var tp=document.getElementById("fTermP").value,cy=+document.getElementById("fCycle").value||1;
-  w.hidden=termMode==="tax"||(termMode==="open"&&(tp===""||tp==="m"||(tp==="p"&&cy<=1)));}
+  w.hidden=termMode==="tax"||termMode==="trial"||(termMode==="open"&&(tp===""||tp==="m"||(tp==="p"&&cy<=1)));}
 ["fTermP","fCycle"].forEach(function(i){document.getElementById(i).addEventListener("change",function(){syncRemind();});});
 function syncTermSel(){}
 /* Mindestlaufzeit in Monaten ↔ Vertragsende: Ende = Beginn + n Monate − 1 Tag. Gespeichert wird nur das Ende */
@@ -3869,13 +3872,15 @@ function nUnitLbl(){var n=+document.getElementById("fNotice").value,o=document.g
   NU.forEach(function(e){[].forEach.call(o,function(x){if(x.value===e[0])x.textContent=n===1?e[1]:e[2];});});paintNotice();}
 function noticeSet(n,u){selVal("fNotice",n);if(u)document.getElementById("fNoticeU").value=u;
   ["fNotice","fNoticeU"].forEach(function(i){document.getElementById(i).dispatchEvent(new Event("change"));});}
+function nUnitWh(uc){[].forEach.call(uc.children,function(d,i){var e=NU[i];if(e)d.textContent=+nPend.n===1?e[1]:e[2];});}
 function nOk(){document.getElementById("fNoticeOk").textContent=noticeTxt(nPend.n,nPend.u)+" übernehmen";}
 function paintNotice(){var v=document.getElementById("fNotice").value,u=document.getElementById("fNoticeU").value,std=u==="m"&&["1","2","3"].indexOf(v)>=0,w=document.getElementById("fNoticeWh");
   if(!w)return;if(v&&!std)noticeOther=true;var was=w.hidden;w.hidden=!noticeOpen;
   if(!w.hidden&&was){var it=[];for(var n=1;n<=90;n++)it.push({v:String(n),t:String(n)});if(+v>90)it.push({v:v,t:v});
     nPend={n:v||"1",u:u||"m"};
-    whFill(w.querySelector('[data-whc="n"]'),it,nPend.n,function(x){nPend.n=x;nOk();});
-    whFill(w.querySelector('[data-whc="u"]'),NU.map(function(e){return {v:e[0],t:e[2]};}),nPend.u,function(x){nPend.u=x;nOk();});nOk();}
+    var nc=w.querySelector('[data-whc="n"]'),uc=w.querySelector('[data-whc="u"]');
+    whFill(nc,it,nPend.n,function(x){nPend.n=x;if(nPend.u==="k"&&+x>28){nPend.n="28";whSet(nc,"28");}nUnitWh(uc);nOk();});
+    whFill(uc,NU.map(function(e){return {v:e[0],t:e[2]};}),nPend.u,function(x){nPend.u=x;if(x==="k"&&+nPend.n>28){nPend.n="28";whSet(nc,"28");}nOk();});nUnitWh(uc);nOk();}
   document.querySelectorAll("#fNoticeC [data-nc]").forEach(function(b){var k=b.dataset.nc;b.setAttribute("aria-pressed",k==="x"?(noticeOther||noticeOpen):(!noticeOther&&!noticeOpen&&u==="m"&&k===v));
     if(k==="x")b.textContent=noticeOther&&v&&!noticeOpen?noticeTxt(v,u):"Andere …";});}
 document.getElementById("fNoticeOk").addEventListener("click",function(){noticeOther=!(nPend.u==="m"&&["1","2","3"].indexOf(nPend.n)>=0);noticeOpen=false;noticeSet(nPend.n,nPend.u);});
@@ -3888,9 +3893,12 @@ function dueTxt(){var v=parseD(document.getElementById("fDue").value),cy=+docume
   var d=v.getDate()+".";if(cy===1)return d+" im Monat";
   if(cy<12){var ms=[];for(var k=0;k<12;k+=cy)ms.push(MONS[(v.getMonth()+k)%12].slice(0,3));ms.sort(function(a,b){return MONS.map(function(x){return x.slice(0,3);}).indexOf(a)-MONS.map(function(x){return x.slice(0,3);}).indexOf(b);});return d+" "+ms.join(", ");}
   return d+" "+MONS[v.getMonth()]+(cy===24?" (alle 2 Jahre)":"");}
-function dueFrom(d,m){var t=today(),cy=+document.getElementById("fCycle").value||1,mk=function(y,mo){var dim=new Date(y,mo+1,0).getDate();return new Date(y,mo,Math.min(d,dim));};
-  if(cy===1){var x=mk(t.getFullYear(),t.getMonth());if(x<t)x=mk(t.getFullYear(),t.getMonth()+1);return x;}
-  var y=mk(t.getFullYear(),m);while(y<t)y=mk(y.getFullYear(),y.getMonth()+cy);return y;}
+/* Anker = Datum mit genau diesem Tag (29.–31.: in einem Monat, der den Tag hat, ggf. vor heute), damit kürzere Monate aufs Monatsende fallen statt den Tag dauerhaft zu kürzen */
+function dueFrom(d,m){var t=today(),cy=+document.getElementById("fCycle").value||1,dim=function(y,mo){return new Date(y,mo+1,0).getDate();};
+  var y0=t.getFullYear(),mo=cy===1?t.getMonth():m,x=new Date(y0,mo,Math.min(d,dim(y0,mo)));
+  if(cy>1)while(x<t){mo+=cy;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}else if(x<t){mo+=1;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}
+  for(var g=0;g<12&&x.getDate()<d;g++){mo-=cy;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}
+  return x;}
 function paintDue(){document.getElementById("fDueT").textContent=dueTxt();var w=document.getElementById("fDueW"),was=w.hidden;w.hidden=!dueOpen;
   var cy=+document.getElementById("fCycle").value||1,mc=w.querySelector('[data-whc="m"]');mc.hidden=cy===1;
   if(!w.hidden&&was){var v=parseD(document.getElementById("fDue").value)||today();duePend={d:v.getDate(),m:v.getMonth()};var it=[];for(var n=1;n<=31;n++)it.push({v:n,t:n+"."});
@@ -3931,9 +3939,11 @@ function updTermHint(){
     if(!E){h.textContent="Vertragsende angeben, dann rechnet die App den Kündigungstermin aus.";return;}
     var rn=+fx.renew||0;
     if(TE&&TE>E){h.textContent="Frist für "+fmtD(iso(E))+" verpasst · nächster Termin "+fmtD(iso(TE))+", kündigen bis "+fmtD(iso(nDl(fx,TE)))+".";return;}
+    if(!rn&&E<today()){h.textContent="Dieser Vertrag ist am "+fmtD(iso(E))+" ausgelaufen. Beim Sichern kommt er ins Archiv – Vertragsende prüfen.";return;}
     h.textContent="Kündigen bis "+fmtD(iso(nDl(fx,E)))+(rn?", sonst +"+rn+(rn===1?" Monat":" Monate")+".":", Vertrag endet dann.");return;}
   var tp=document.getElementById("fTermP").value,cyc=+document.getElementById("fCycle").value||1;
-  if(!tp){h.textContent=cyc>=3?"Achtung: Bei "+({3:"quartalsweiser",6:"halbjährlicher",12:"jährlicher",24:"zweijährlicher"}[cyc]||"seltener")+" Zahlung ist ein Abo meist nur auf Ende der bezahlten Periode kündbar. Dann «Kündbar per: Ende Periode» wählen.":"Ohne Mindestlaufzeit: kündbar mit der angegebenen Frist.";return;}
+  if(!tp){h.textContent=cyc>=3?"Achtung: Bei "+({3:"quartalsweiser",6:"halbjährlicher",12:"jährlicher",24:"zweijährlicher"}[cyc]||"seltener")+" Zahlung ist ein Abo meist nur auf Ende der bezahlten Periode kündbar. Dann «Kündbar per: Ende Periode» wählen.":(document.getElementById("fNotice").value?"Ohne Mindestlaufzeit: kündbar mit der angegebenen Frist.":"Ohne Mindestlaufzeit und ohne Frist: jederzeit kündbar.");return;}
+  if(tp==="a"&&!document.getElementById("fStart").value){h.textContent="Für «Ende Vertragsjahr» bitte den Vertragsbeginn angeben.";return;}
   var tmp={cancTerm:tp,notice:parseNum(document.getElementById("fNotice").value)||0,noticeU:document.getElementById("fNoticeU").value,
     start:document.getElementById("fStart").value,due:document.getElementById("fDue").value,cycle:+document.getElementById("fCycle").value||1,prices:[],amount:1};
   var T=null;try{T=nextTerm(tmp);}catch(e){}
@@ -3942,7 +3952,8 @@ function updTermHint(){
   h.textContent=(tp==="p"&&cyc>1?per:"Nächster Termin: "+per)+fmtD(iso(T))+" · kündigen bis "+fmtD(iso(nDl(tmp,T)))+(tmp.notice?"":" (keine Frist erfasst)")+".";
 }
 /* Turnus auf jährlich/halbjährlich gestellt und noch kein Kündigungstermin: «Ende Periode» vorschlagen */
-document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if((termMode==="open"||termMode==="trial")&&!tp.value&&+this.value>=6){tp.value="p";updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}});
+document.getElementById("fCycle").addEventListener("change",function(){var tp=document.getElementById("fTermP");if((termMode==="open"||termMode==="trial")&&!tp.value&&+this.value>=6){tp.value="p";draft.autoP=1;updTermHint();toast("Kündbar per «Ende Periode» vorgeschlagen");}
+  else if(draft.autoP&&tp.value==="p"&&+this.value<6){tp.value="";draft.autoP=0;updTermHint();}});
 ["fTermP","fNotice","fNoticeU","fStart","fDue","fCycle","fEnd","fRenew","fTrial"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updTermHint);el.addEventListener("change",updTermHint);});
 /* Zahlungsregel live unter Turnus/Datum, gleich formuliert wie im Detail */
 function updPayHint(){var h=document.getElementById("fPayHint");if(!h)return;
@@ -4023,10 +4034,14 @@ function openSub(k,on){var f=document.getElementById(k+"Form"),b=document.getEle
   f.hidden=!on;b.setAttribute("aria-expanded",!!on);b.hidden=!!on;}
 document.getElementById("pOpen").addEventListener("click",function(){openSub("p",true);var i=document.getElementById("pFrom");try{i.focus();}catch(e){}});
 document.getElementById("xOpen").addEventListener("click",function(){openSub("x",true);var i=document.getElementById("xDate");try{i.focus();}catch(e){}});
+/* Abbrechen im Unterformular: angetippte Preisänderung zurücklegen */
+var pBak=null;
+document.getElementById("pCancel").addEventListener("click",function(){if(pBak){draft.prices.push(pBak);pBak=null;}
+  document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";openSub("p",false);paintPrices();});
 document.getElementById("pList").addEventListener("click",function(ev){
   if(ev.target.closest("[data-pdel]"))return;var r=ev.target.closest("[data-pedit]");if(!r)return;
   var p=(draft.prices||[]).filter(function(x){return x.from===r.dataset.pedit;})[0];if(!p)return;
-  draft.prices=draft.prices.filter(function(x){return x!==p;});
+  draft.prices=draft.prices.filter(function(x){return x!==p;});pBak=p;
   document.getElementById("pFrom").value=p.from;document.getElementById("pAmt").value=amtIn(p.amount,document.getElementById("fCur").value);
   paintPrices();openSub("p",true);toast("Ändern und «hinzufügen» tippen");});
 document.getElementById("pList").addEventListener("click",function(ev){
@@ -4047,7 +4062,7 @@ document.getElementById("pAdd").addEventListener("click",function(){
   draft.prices.push({from:f,amount:Math.round(a*100)/100});
   document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";
   var prevA=parseAmt(document.getElementById("fAmt").value)||0;pricesOf({prices:draft.prices}).forEach(function(p){if(p.from<f)prevA=+p.amount;});
-  paintPrices();openSub("p",false);toast(a>prevA&&prevA>0?"Preiserhöhung vorgemerkt. Tipp: oft gilt ein Sonderkündigungsrecht.":"Preisänderung ab "+fmtD(f)+" vorgemerkt",a>prevA&&prevA>0?4000:undefined);
+  pBak=null;paintPrices();openSub("p",false);toast(a>prevA&&prevA>0?"Preiserhöhung vorgemerkt. Tipp: oft gilt ein Sonderkündigungsrecht.":"Preisänderung ab "+fmtD(f)+" vorgemerkt",a>prevA&&prevA>0?4000:undefined);
 });
 document.getElementById("fAmt").addEventListener("input",paintPrices);
 /* Sonderzahlungen im Formular */
@@ -4089,7 +4104,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   if(!draft.cat){toast("Bitte eine Kategorie wählen");document.getElementById("fCats").scrollIntoView({behavior:"smooth",block:"center"});openCatPick("c");return;}
   if(amt==null||amt<0){toast("Betrag prüfen");return;}
   var nV=noticeVal(document.getElementById("fNotice").value,document.getElementById("fNoticeU").value);
-  if(nV==null){toast("Kündigungsfrist prüfen");document.getElementById("fNotice").focus();return;}
+  if(nV==null){toast("Kündigungsfrist prüfen");formGo("fNoticeC",true);return;}
   if(termMode==="fixed"&&!document.getElementById("fEnd").value){toast("Bis wann läuft der Vertrag? Bitte das Vertragsende eintragen");var fe=document.getElementById("fEnd");fe.scrollIntoView({block:"center",behavior:"smooth"});fe.focus();return;}
   if(termMode==="trial"&&!document.getElementById("fTrial").value){toast("Wie lange läuft das Probeabo?");document.getElementById("fTrialD").scrollIntoView({block:"center",behavior:"smooth"});return;}
   var cF=document.getElementById("fCancF").value;
@@ -4106,12 +4121,12 @@ document.getElementById("saveForm").addEventListener("click",function(){
     due:document.getElementById("fDue").value||iso(today()),
     start:document.getElementById("fStart").value||"",
     end:termMode==="fixed"?(document.getElementById("fEnd").value||""):"",
-    notice:nV,
+    notice:termMode==="tax"?0:nV,
     noticeU:document.getElementById("fNoticeU").value,
-    renew:termMode==="fixed"?(document.getElementById("fRenew").value||""):"",
+    renew:termMode==="fixed"?(+document.getElementById("fRenew").value||""):"",
     cancTerm:(termMode==="open"||termMode==="trial")?(document.getElementById("fTermP").value||""):"",
     mand:document.getElementById("fMand").checked,
-    noWatch:document.getElementById("fNoWatch").checked,
+    noWatch:termMode==="trial"?false:document.getElementById("fNoWatch").checked,
     noCancel:document.getElementById("fNoCancel").checked||undefined,
     custNo:document.getElementById("fCustNo").value.trim(),
     contrNo:document.getElementById("fContrNo").value.trim(),
@@ -4379,7 +4394,7 @@ function cancLink(c){return normUrl(c.cancUrl||c.web||"");}
 function contrLbl(c){var t=((c.label||"")+" "+(c.cat||"")).toLowerCase();
   if(/krankenkasse|krankenversicher|grundversicherung/.test(t))return "Versichertennummer";
   if(catKey(c.cat||"")==="Versicherung"||/versicherung|police/.test(t))return "Policennummer";
-  if(/handy|mobil|natel|smartphone|prepaid|sim-?karte|mobile/.test(t))return "Rufnummer";
+  if(/handy|natel|smartphone|prepaid|sim-?karte|mobilfunk-?abo|mobile abo/.test(((c.label||"")+" "+(c.partner||"")).toLowerCase()))return "Rufnummer";
   return "Vertragsnummer";}
 var REF_RE=/^(Kundennummer|Vertragsnummer|Rufnummer|Policennummer|Versichertennummer): /;
 function isRent(c){var t=(c.label||"")+" "+(c.partner||"");
@@ -4420,7 +4435,7 @@ function paintLtWho(){
   else box.innerHTML=H.map(function(n){return '<button type="button" class="chip" data-ltwho="'+esc(n)+'" aria-pressed="'+(ltSigners.indexOf(n)>=0)+'">'+esc(n)+'</button>';}).join("");
   var c=ltC,miss=ltSigners.filter(function(h){return !sndOk(h);}),L=letterParts(c,ltSigners),sEl=document.getElementById("ltSender");
   sEl.innerHTML=!ltSigners.length?"<b>Wer kündigt?</b> Bitte oben wählen.":
-    "<b>Absender:</b> "+esc(L.sender.join(", "))+(miss.length?'<br><span style="color:var(--warn)">Adresse fehlt: '+miss.map(function(h){return '<button type="button" class="dlink" data-hsopen="'+esc(h)+'">'+esc(h)+' ergänzen</button>';}).join(", ")+'</span>':"");
+    "<b>Absender:</b> "+esc(L.sender.join(", "))+(miss.length?'<br><span style="color:var(--warn)">Adresse fehlt: '+miss.map(function(h){return '<button type="button" class="dlink" data-hsopen="'+esc(h)+'">'+esc(h)+' ergänzen</button>';}).join(" · ")+'</span>':"");
   /* Unterschriften */
   var rent=isRent(c),sg=document.getElementById("ltSigs");
   sg.innerHTML=rent?'<p class="note ltwet">Mietvertrag: PDF ausdrucken, von Hand unterschreiben'+(ltSigners.length>1?" (alle Mieter)":"")+' und per Post senden, am besten eingeschrieben. Eine eingefügte Unterschrift oder eine E-Mail genügt hier nicht.</p>':
@@ -7768,7 +7783,9 @@ var OB_TIPS=[ /* [Farbe, Symbol, Titel, Text, bald verfügbar] */
   ["#2F86A6",'<path d="M7 18a4.5 4.5 0 0 1-.6-9 6 6 0 0 1 11.5 1.2A3.9 3.9 0 0 1 17.5 18z"/><path d="M9.5 13.5l2 2 3.5-3.5"/>',"iCloud-Synchronisierung","Deine Daten auf deinen Geräten aktuell.",true]];
 /* Schnellstart: Bezeichnung → Kategorie (fällt auf «Sonstiges» zurück, falls umbenannt/gelöscht) */
 var OB_QUICK=[["Miete","Wohnen"],["Strom","Energie & Wasser"],["Handy","Mobilfunk & Internet"],["Internet","Mobilfunk & Internet"],
-  ["Streaming","Abos & Medien"],["Fitness","Freizeit & Sport"],["Kfz-Versicherung","Versicherung"],["Rundfunkbeitrag","Steuern & Gebühren"]];
+  ["Streaming","Abos & Medien"],["Fitness","Freizeit & Sport"],["Autoversicherung","Versicherung"],["Rundfunkbeitrag","Steuern & Gebühren"]];
+/* Schweiz: Serafe statt Rundfunkbeitrag */
+function obQn(q){return q[0]==="Rundfunkbeitrag"&&(ob.home||state.settings.home)==="CHF"?"Serafe":q[0];}
 var OB_CUR={EUR:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#003399"/><g fill="#FFCC00"><circle cx="15.00" cy="4.00" r="1.05"/><circle cx="18.00" cy="4.80" r="1.05"/><circle cx="20.20" cy="7.00" r="1.05"/><circle cx="21.00" cy="10.00" r="1.05"/><circle cx="20.20" cy="13.00" r="1.05"/><circle cx="18.00" cy="15.20" r="1.05"/><circle cx="15.00" cy="16.00" r="1.05"/><circle cx="12.00" cy="15.20" r="1.05"/><circle cx="9.80" cy="13.00" r="1.05"/><circle cx="9.00" cy="10.00" r="1.05"/><circle cx="9.80" cy="7.00" r="1.05"/><circle cx="12.00" cy="4.80" r="1.05"/></g></svg>',"Euro"],CHF:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#DA291C"/><path d="M13 4h4v4h4v4h-4v4h-4v-4H9V8h4z" fill="#fff"/></svg>',"Franken"],USD:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect y="0.000" width="30" height="1.538" fill="#B22234"/><rect y="3.077" width="30" height="1.538" fill="#B22234"/><rect y="6.154" width="30" height="1.538" fill="#B22234"/><rect y="9.231" width="30" height="1.538" fill="#B22234"/><rect y="12.308" width="30" height="1.538" fill="#B22234"/><rect y="15.385" width="30" height="1.538" fill="#B22234"/><rect y="18.462" width="30" height="1.538" fill="#B22234"/><rect width="13" height="10.77" fill="#3C3B6E"/><g fill="#fff"><circle cx="1.6" cy="1.4" r=".55"/><circle cx="3.8" cy="1.4" r=".55"/><circle cx="6.0" cy="1.4" r=".55"/><circle cx="8.2" cy="1.4" r=".55"/><circle cx="10.4" cy="1.4" r=".55"/><circle cx="12.6" cy="1.4" r=".55"/><circle cx="2.7" cy="3.3" r=".55"/><circle cx="4.9" cy="3.3" r=".55"/><circle cx="7.1" cy="3.3" r=".55"/><circle cx="9.3" cy="3.3" r=".55"/><circle cx="11.5" cy="3.3" r=".55"/><circle cx="1.6" cy="5.2" r=".55"/><circle cx="3.8" cy="5.2" r=".55"/><circle cx="6.0" cy="5.2" r=".55"/><circle cx="8.2" cy="5.2" r=".55"/><circle cx="10.4" cy="5.2" r=".55"/><circle cx="12.6" cy="5.2" r=".55"/><circle cx="2.7" cy="7.1" r=".55"/><circle cx="4.9" cy="7.1" r=".55"/><circle cx="7.1" cy="7.1" r=".55"/><circle cx="9.3" cy="7.1" r=".55"/><circle cx="11.5" cy="7.1" r=".55"/><circle cx="1.6" cy="9.0" r=".55"/><circle cx="3.8" cy="9.0" r=".55"/><circle cx="6.0" cy="9.0" r=".55"/><circle cx="8.2" cy="9.0" r=".55"/><circle cx="10.4" cy="9.0" r=".55"/><circle cx="12.6" cy="9.0" r=".55"/></g></svg>',"US-Dollar"],GBP:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#012169"/><path d="M0 0l30 20M30 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l30 20M30 0L0 20" stroke="#C8102E" stroke-width="1.5"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6"/><path d="M15 0v20M0 10h30" stroke="#C8102E" stroke-width="3.4"/></svg>',"Pfund"],TRY:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#E30A17"/><circle cx="11.5" cy="10" r="5" fill="#fff"/><circle cx="12.8" cy="10" r="4" fill="#E30A17"/><path d="M17.3 10l3.9-1.3-2.4 3.3V8l2.4 3.3z" fill="#fff"/></svg>',"Lira"]};
 var CUR_MAIN=["EUR","CHF"],CUR_MORE=["USD","GBP","TRY"];
 function curPickHtml(sel,open){
@@ -7818,8 +7835,8 @@ function obPage(p){
       '<p class="obsec">Mit Vorlage starten</p><p class="obs">Tipp an, was du hast – den Rest ergänzt du.</p><div class="obchips row">'+
       OB_QUICK.map(function(q,j){var cat=obCat(q[1]),e=catEntry(cat);
         return '<button type="button" class="obchip" data-obq="'+j+'" aria-pressed="'+(ob.quick===j)+'"><span class="mk" style="background:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span>'+
-          '<span class="tx"><b>'+esc(q[0])+'</b><small>'+esc(cat)+'</small></span></button>';}).join("")+'</div>'+
-      '<div class="obgrow"></div><button type="button" class="obbtn" data-ob="create"'+(ob.quick<0?' disabled':'')+'>'+(ob.quick<0?'Vertrag erfassen':esc(OB_QUICK[ob.quick][0])+' erfassen')+'</button>'+
+          '<span class="tx"><b>'+esc(obQn(q))+'</b><small>'+esc(cat)+'</small></span></button>';}).join("")+'</div>'+
+      '<div class="obgrow"></div><button type="button" class="obbtn" data-ob="create"'+(ob.quick<0?' disabled':'')+'>'+(ob.quick<0?'Vertrag erfassen':esc(obQn(OB_QUICK[ob.quick]))+' erfassen')+'</button>'+
       '<button type="button" class="obghost" data-ob="done">Erst mal umschauen</button></div>';}
   return "";
 }
@@ -7860,7 +7877,7 @@ document.getElementById("onb").addEventListener("click",function(ev){
     document.querySelector("#onb .obcurs.sm").hidden=!ob.more;return;}
   if((b=t.closest("[data-obq]"))){ob.quick=+b.dataset.obq;
     document.querySelectorAll("#onb [data-obq]").forEach(function(x){x.setAttribute("aria-pressed",x===b);});
-    var cb=document.querySelector('#onb [data-ob="create"]');cb.disabled=false;cb.textContent=OB_QUICK[ob.quick][0]+" erfassen";return;}
+    var cb=document.querySelector('#onb [data-ob="create"]');cb.disabled=false;cb.textContent=obQn(OB_QUICK[ob.quick])+" erfassen";return;}
   if(!(b=t.closest("[data-ob]")))return;
   var a=b.dataset.ob;
   if(a==="next"){if(ob.i<ob.pages.length-1)obGo(ob.i+1);else closeOnb();}
@@ -7870,7 +7887,7 @@ document.getElementById("onb").addEventListener("click",function(ev){
   else if(a==="bank"){document.getElementById("bankFile").click();closeOnb();}
   else if(a==="backup"){closeOnb();goTab("set");document.getElementById("bkLoad").click();}
   else if(a==="create"){var q=OB_QUICK[ob.quick];closeOnb();openForm(null);
-    document.getElementById("fLabel").value=q[0];draft.cat=obCat(q[1]);paintCats();paintLogo();paintSwatches();
+    document.getElementById("fLabel").value=obQn(q);draft.cat=obCat(q[1]);paintCats();paintLogo();paintSwatches();
     formSnap.c=formSig("sheetForm",draft);/* Vorlage gilt als Ausgangszustand, nicht als Änderung */}
 });
 /* Wischen links/rechts */
