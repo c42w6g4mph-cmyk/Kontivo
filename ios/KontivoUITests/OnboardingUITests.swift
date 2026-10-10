@@ -119,7 +119,8 @@ final class OnboardingUITests: KontivoUITestCase {
         keepShot("onb-9-quelle")
         // Auswahl schliessen (iOS 26 zeigt sie als Popover ohne «Abbrechen»)
         let cancel = app.buttons.matching(pred("label == %@", "Abbrechen")).firstMatch
-        if cancel.exists && cancel.isHittable { cancel.tap() } else { app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.06)).tap() }
+        if cancel.exists && cancel.isHittable { cancel.tap() } else { app.coordinate(withNormalizedOffset: CGVector(dx: 0.12, dy: 0.2)).tap() }
+        if datei.exists && datei.isHittable { app.coordinate(withNormalizedOffset: CGVector(dx: 0.12, dy: 0.2)).tap() }
         usleep(800_000)
 
         // Vorlage wählen: Knopf «Miete erfassen»

@@ -190,6 +190,30 @@ class KontivoUITestCase: XCTestCase {
         return f.height > 0 ? f.minY : nil
     }
 
+    /// Element oberhalb des sichtbaren Bereichs: nach oben scrollen, bis es antippbar ist
+    func revealUp(_ e: XCUIElement, _ what: String, file: StaticString = #filePath, line: UInt = #line) {
+        closeKeyboard()
+        var n = 0
+        while !(e.exists && e.isHittable) && n < 8 { app.swipeDown(velocity: .slow); n += 1; usleep(300_000) }
+        XCTAssertTrue(e.exists, "Nicht gefunden: \(what)", file: file, line: line)
+    }
+
+    /// Kündigen/Wechseln aus dem Vertragsdetail: Knopf im Fristen-Kasten, sonst Menü ••• (erster Eintrag)
+    func startCancelFromDetail(file: StaticString = #filePath, line: UInt = #line) {
+        let words = ["Kündigen", "Wechseln"]
+        func hittableCancel() -> XCUIElement? {
+            app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@ OR label BEGINSWITH %@", words[0], words[1]))
+                .allElementsBoundByIndex.first { $0.exists && $0.isHittable }
+        }
+        if let b = hittableCancel() { b.tap(); return }
+        let menu = app.buttons["detail.menu"]
+        XCTAssertTrue(menu.waitForExistence(timeout: 8), "Menü ••• fehlt", file: file, line: line)
+        menu.tap()
+        usleep(1_000_000)
+        guard let b = hittableCancel() else { XCTFail("Kein Menüeintrag Kündigen/Wechseln", file: file, line: line); return }
+        b.tap()
+    }
+
     /// Offene Tastatur schliessen («Fertig» über der Tastatur bzw. Zeilenschaltung)
     func closeKeyboard() {
         guard app.keyboards.count > 0 else { return }

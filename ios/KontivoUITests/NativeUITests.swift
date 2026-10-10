@@ -135,9 +135,7 @@ final class NativeUITests: KontivoUITestCase {
     func testKuendigungsschreibenDirektMailUndDrucken() {
         launch("-uiDemo", "-uiTab", "deadlines", "-uiNativeStub")
         tap(buttonStarting("Krankenkasse"), "Karte Krankenkasse")
-        tap(button("detail.menu"), "Menü •••")
-        // Menüeintrag «Kündigen/Wechseln · per Brief» (Krankenkasse ist Pflichtvertrag → «Wechseln»)
-        tap(app.buttons.matching(pred("label CONTAINS %@", "per Brief")).firstMatch, "Menü: per Brief")
+        startCancelFromDetail()
         waitNav("Kündigung")
         let mail = button("letter.mail")
         let printBtn = button("letter.print")

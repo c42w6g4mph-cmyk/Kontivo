@@ -70,7 +70,7 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         waitNav("Weitere Angaben")
         // ohne Vertragspartner: Hinweis unter der Adresse; Schalter aus «Erinnerung und Wechsel»
         wait(elContaining("Zuerst den Vertragspartner eintragen"), "Abschnitt Adresse")
-        wait(elContaining("Nicht an Frist erinnern"), "Schalter «Nicht an Frist erinnern»")
+        revealUp(elContaining("Nicht an Frist erinnern"), "Schalter «Nicht an Frist erinnern»")
         ctShot("Formular – Weitere Angaben bei der Adresse")
     }
 
@@ -89,6 +89,7 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         XCTAssertTrue(reg.isSelected, "Katalog setzt Kündigungsweg Einschreiben")
         ctShot("Formular – Katalog übernommen")
 
+        revealUp(button("form.tplUndo"), "Rückgängig")
         tap(button("form.tplUndo"), "Rückgängig")
         waitGone(elContaining("Aus dem Katalog übernommen"), "Karte nach Rückgängig")
         waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.registered").isSelected }
