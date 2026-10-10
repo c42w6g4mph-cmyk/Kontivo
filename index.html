@@ -2434,7 +2434,7 @@ function termEnd(c){var e0=parseD(c.end);if(!e0)return nextTerm(c);var r=+c.rene
 function renewAfter(c,T){var e0=parseD(c.end),r=+c.renew||0;if(!e0||!r||!T)return null;var e=e0,g=0;while(e<=T&&g<400){g++;e=addMonthsE(e0,g*r);}return e;}
 /* Steuern lassen sich nicht kündigen: keine Frist, nicht in «Fristen» */
 function isTax(c){return catKey(c.cat)==="Steuern & Gebühren"||/^Steuern/i.test(String(c.cat||""));}
-/* Nicht kündbar: Steuern & Gebühren automatisch, sonst c.noCancel (z.B. Serafe unter «Wohnen»). Keine Frist, nicht in «Fristen», kein Kündigen */
+/* Nicht kündbar: Steuern & Gebühren automatisch, sonst c.noCancel (z.B. Rundfunkgebühr unter «Wohnen»). Keine Frist, nicht in «Fristen», kein Kündigen */
 function isFixed(c){return isTax(c)||!!c.noCancel;}
 function noticeDeadline(c){if(isFixed(c))return null;var e=termEnd(c);return e?nDl(c,e):null;}
 function urgency(c){
@@ -3273,7 +3273,7 @@ function buildCatChips(){
   document.getElementById("fCats").addEventListener("click",function(){openCatPick("c");});
   document.getElementById("iCats").addEventListener("click",function(){openCatPick("i");});
 }
-var TAX_INFO="Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge: unter «Laufzeit & Kündigung» die Kachel «Nicht kündbar» wählen.";
+var TAX_INFO="Steuern und Gebühren (z.B. Rundfunkgebühr, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge: unter «Laufzeit & Kündigung» die Kachel «Nicht kündbar» wählen.";
 function catInfoIc(){return '<span class="catinfo" role="button" tabindex="0" data-catinfo aria-label="Info: nicht kündbar">i</span>';}
 function paintCatField(pre,cat){
   var ic=document.getElementById(pre+"CatIcon"),nm=document.getElementById(pre+"CatName");
@@ -3559,7 +3559,7 @@ var TPL=[
  ["SBB Halbtax","CH","Mobilität","Halbtax","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung spätestens 1 Monat vorher auf swisspass.ch.","","Schweizerische Bundesbahnen SBB\nHilfikerstrasse 1\n3000 Bern 65","","+41 848 44 66 88",1],
  ["SBB GA","CH","Mobilität","Generalabonnement","swisspass.ch",1,"m","a","Online / Kundenkonto",0,"Verlängert sich jährlich automatisch. Kündigung über swisspass.ch; Frist prüfen.","","Schweizerische Bundesbahnen SBB\nHilfikerstrasse 1\n3000 Bern 65","","+41 848 44 66 88",1],
  ["Mobility","CH","Mobilität","Carsharing","mobility.ch",0,"m","p","Online / Kundenkonto",0,H_PRF,"","Mobility Genossenschaft\nSuurstoffi 16\n6343 Rotkreuz","office@mobility.ch","+41 848 824 812",1],
- ["Serafe","CH","Steuern & Gebühren","Radio- und TV-Abgabe","serafe.ch",0,"m","","",1,"Gesetzliche Abgabe pro Haushalt, nicht kündbar.","","SERAFE AG\nPostfach\n8010 Zürich","","+41 58 201 31 67",1],
+ ["Rundfunkgebühr","CH","Steuern & Gebühren","Rundfunkgebühr","",0,"m","","",1,"Gesetzliche Abgabe pro Haushalt, nicht kündbar.","","","","",1],
  ["EKZ","CH","Energie & Wasser","Strom","ekz.ch",0,"m","","",1,H_ECH,"","Elektrizitätswerke des Kantons Zürich\nDreikönigstrasse 18\n8022 Zürich","","+41 58 359 55 22",1],
  ["EKT","CH","Energie & Wasser","Strom","ekt.ch",0,"m","","",1,H_ECH,"","EKT AG\nBahnhofstrasse 37\n9320 Arbon","","+41 71 440 61 11",1],
  ["BKW","CH","Energie & Wasser","Strom","bkw.ch",0,"m","","",1,H_ECH,"","BKW Energie AG\nViktoriaplatz 2\n3013 Bern","","+41 844 121 113",1],
@@ -3609,7 +3609,7 @@ var TPL=[
  ["ADAC","DE","Mobilität","Mitgliedschaft","adac.de",3,"m","a","Brief",0,"Mitgliedschaft: Kündigung bis 3 Monate vor Ablauf des Mitgliedsjahres. "+H_PRF,"","ADAC e.V.\nHansastraße 19\n80686 München","service@adac.de","+49 89 558 95 96 97",1],
  ["Deutschlandticket","DE","Mobilität","Deutschlandticket","",10,"k","m","Online / Kundenkonto",0,"Kündigung bis zum 10. des Monats zum Monatsende. Je nach Verkaufsstelle leicht anders.","","","","",1],
  ["BahnCard","DE","Mobilität","BahnCard","bahn.de",0,"m","a","Online / Kundenkonto",0,"Verlängert sich automatisch. Frist vor Ablauf im Kundenkonto prüfen.","","DB Fernverkehr AG\nBahnCard-Service\n60643 Frankfurt am Main","","+49 30 2970",1],
- ["Rundfunkbeitrag","DE","Steuern & Gebühren","Rundfunkbeitrag","rundfunkbeitrag.de",0,"m","","",1,"Gesetzlicher Beitrag pro Wohnung, nicht kündbar. Abmeldung nur bei Umzug.","","ARD ZDF Deutschlandradio Beitragsservice\n50656 Köln","","+49 1806 999 555 10",1],
+ ["Rundfunkgebühr","DE","Steuern & Gebühren","Rundfunkgebühr","rundfunkbeitrag.de",0,"m","","",1,"Gesetzlicher Beitrag pro Wohnung, nicht kündbar. Abmeldung nur bei Umzug.","","ARD ZDF Deutschlandradio Beitragsservice\n50656 Köln","","+49 1806 999 555 10",1],
  ["EnBW","DE","Energie & Wasser","Strom","enbw.com",1,"m","","Online / Kundenkonto",0,H_EDE,"","EnBW Energie Baden-Württemberg AG\nDurlacher Allee 93\n76131 Karlsruhe","kontakt@enbw.com","+49 721 72586-001",1],
  ["E.ON","DE","Energie & Wasser","Strom","eon.de",1,"m","","Online / Kundenkonto",0,H_EDE,"","E.ON Energie Deutschland GmbH\nArnulfstraße 203\n80634 München","","+49 871 95386200",1],
  ["Vattenfall","DE","Energie & Wasser","Strom","vattenfall.de",1,"m","","Online / Kundenkonto",0,H_EDE,"","Vattenfall Europe Sales GmbH\nAmerigo-Vespucci-Platz 2\n20457 Hamburg","","+49 800 102 004 01",1],
@@ -3730,7 +3730,9 @@ function tplFillPlan(){
   });
   return plan;
 }
-function tplFind(n){n=String(n||"").trim().toLowerCase();return TPL.filter(function(t){return t[0].toLowerCase()===n;})[0]||null;}
+/* gleicher Name in CH und DE (Rundfunkgebühr): Eintrag passend zur Währung (Formular, sonst Hauptwährung) */
+function tplFind(n,cur){n=String(n||"").trim().toLowerCase();var L=TPL.filter(function(t){return t[0].toLowerCase()===n;});
+  if(L.length>1){var f=document.getElementById("fCur"),cc=(cur||(f&&f.value)||state.settings.home)==="EUR"?"DE":"CH",m=L.filter(function(t){return t[1]===cc;})[0];if(m)return m;}return L[0]||null;}
 function tplFlag(t){return t[1]||"CH · DE";}
 function paintSugg(){
   var el=document.getElementById("fSugg"),q=(document.getElementById("fPartner").value||document.getElementById("fLabel").value).trim().toLowerCase();
@@ -3747,7 +3749,7 @@ function paintSugg(){
   /* exakter Treffer (z.B. «CSS», «O2»), noch nicht übernommen: genau diese Vorlage anbieten */
   if(cur){el.innerHTML='<span class="sl">Vorlage</span><button type="button" class="chip" data-tpl="'+TPL.indexOf(cur)+'">'+esc(cur[0])+" übernehmen</button>";return;}
   if(q.length<2){el.innerHTML="";return;}
-  var hits=TPL.filter(function(t){return (t[0]+" "+t[3]).toLowerCase().indexOf(q)>=0;}).slice(0,5);
+  var hits=TPL.filter(function(t){return (t[0]+" "+t[3]).toLowerCase().indexOf(q)>=0;});hits=hits.filter(function(t){return tplFind(t[0])===t;}).slice(0,5);
   el.innerHTML=hits.length?'<span class="sl">Vorlage</span>'+hits.map(function(t){return '<button type="button" class="chip" data-tpl="'+TPL.indexOf(t)+'">'+esc(t[0])+"</button>";}).join(""):"";
 }
 /* Vorlage übernehmen. onlyEmpty (Internet-Treffer, «Übliche Frist übernehmen»): nur leere Felder füllen.
@@ -3798,7 +3800,7 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
   if(t[13]&&!$("fMail").value)$("fMail").value=t[13];
   syncCancUrl();
   if(t[12]&&!$("fAddr").value.trim()){$("fAddr").value=t[12];fAddrPaint();paintOptCounts();}
-  /* Katalog «Steuern & Gebühren» (Serafe, Rundfunkbeitrag): nicht kündbar statt Pflichtvertrag */
+  /* Katalog «Steuern & Gebühren» (Rundfunkgebühr): nicht kündbar statt Pflichtvertrag */
   var tFix=t[2]==="Steuern & Gebühren";
   if(onlyEmpty){if(tFix&&!$("fMand").checked&&!$("fNoWatch").checked)$("fNoCancel").checked=true;else if(t[9]&&!tFix&&!$("fMand").checked&&!$("fNoWatch").checked&&!$("fNoCancel").checked)$("fMand").checked=true;}
   else{$("fNoCancel").checked=tFix;$("fMand").checked=!!t[9]&&!tFix;if(t[9]||tFix)$("fNoWatch").checked=false;}
@@ -3964,7 +3966,7 @@ document.getElementById("fTrialD").addEventListener("click",function(ev){var b=e
   paintTrialD();updTermHint();trialDue();if(trialD==="date")document.getElementById("fTrial").focus();});
 function updTermHint(){
   var h=document.getElementById("tmHint");
-  if(termMode==="tax"){h.textContent="Gebühren und Abgaben wie Serafe: keine Fristen, kein Kündigen. Zählt in Kosten und Budget.";return;}
+  if(termMode==="tax"){h.textContent="Gebühren und Abgaben wie die Rundfunkgebühr: keine Fristen, kein Kündigen. Zählt in Kosten und Budget.";return;}
   if(termMode==="trial"){var tv=document.getElementById("fTrial").value;
     h.textContent=tv?"Gratis bis "+fmtD(iso(addDays(parseD(tv),-1)))+", ab "+fmtD(tv)+" kostenpflichtig. Kontivo erinnert dich unter «Fristen».":"Wie lange läuft das Probeabo?";return;}
   if(termMode==="fixed"){
@@ -7414,7 +7416,7 @@ function bankPretty(s){s=String(s||"").trim();if(s&&s===s.toUpperCase()&&/[A-Z]{
 var BKSTOP=["com","www","net","online","payment","payments","europe","international","sca","bv","debit","card","karte","nr","los","gatos","stockholm"];
 function bankTok(s){return ltok(s).filter(function(t){return !/\d/.test(t)&&BKSTOP.indexOf(t)<0;});}
 /* Katalog: alle markanten Wörter des Namens müssen vorkommen; kurze Namen (CSS, O2) nur im Namen, nicht im Freitext */
-var BKALIAS={"Rundfunkbeitrag":/rundfunk|beitragsservice/,"Serafe":/\bserafe\b/,"SBB Halbtax":/halbtax/,"Deutschlandticket":/deutschlandticket|d ticket/,"Die Mobiliar":/\bmobiliar\b/,"Amazon Prime":/amazon prime|prime video|amzn prime/,"Zurich":/zurich (versicherung|insurance|schweiz|lebens)/};
+var BKALIAS={"Rundfunkgebühr":/rundfunk|beitragsservice|\bserafe\b/,"SBB Halbtax":/halbtax/,"Deutschlandticket":/deutschlandticket|d ticket/,"Die Mobiliar":/\bmobiliar\b/,"Amazon Prime":/amazon prime|prime video|amzn prime/,"Zurich":/zurich (versicherung|insurance|schweiz|lebens)/};
 function bankTpl(name,text,cur){
   var nn=" "+lnorm(name)+" ",nt=" "+lnorm(name+" "+text)+" ",cc=cur==="EUR"?"DE":(cur==="CHF"?"CH":""),via=BKVIA.test(nn),best=null;
   var inN=0;
@@ -7903,10 +7905,9 @@ var OB_TIPS=[ /* [Farbe, Symbol, Titel, Text, bald verfügbar] */
   ["#2F86A6",'<path d="M7 18a4.5 4.5 0 0 1-.6-9 6 6 0 0 1 11.5 1.2A3.9 3.9 0 0 1 17.5 18z"/><path d="M9.5 13.5l2 2 3.5-3.5"/>',"iCloud-Synchronisierung","Deine Daten auf deinen Geräten aktuell.",true]];
 /* Schnellstart: Bezeichnung → Kategorie (fällt auf «Sonstiges» zurück, falls umbenannt/gelöscht) */
 var OB_QUICK=[["Miete","Wohnen"],["Strom","Energie & Wasser"],["Handy","Mobilfunk & Internet"],["Internet","Mobilfunk & Internet"],
-  ["Streaming","Abos & Medien"],["Fitness","Freizeit & Sport"],["Autoversicherung","Versicherung"],["Rundfunkbeitrag","Steuern & Gebühren"]];
-/* Schweiz: Serafe statt Rundfunkbeitrag */
+  ["Streaming","Abos & Medien"],["Fitness","Freizeit & Sport"],["Autoversicherung","Versicherung"],["Rundfunkgebühr","Steuern & Gebühren"]];
 function locCur(){try{var L=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||""]);for(var i=0;i<L.length;i++){if(/-CH$|-LI$/i.test(L[i]))return "CHF";if(/-(DE|AT)$/i.test(L[i]))return "EUR";}}catch(e){}return "EUR";}
-function obQn(q){return q[0]==="Rundfunkbeitrag"&&(ob.home||state.settings.home)==="CHF"?"Serafe":q[0];}
+function obQn(q){return q[0];}
 var OB_CUR={EUR:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#003399"/><g fill="#FFCC00"><circle cx="15.00" cy="4.00" r="1.05"/><circle cx="18.00" cy="4.80" r="1.05"/><circle cx="20.20" cy="7.00" r="1.05"/><circle cx="21.00" cy="10.00" r="1.05"/><circle cx="20.20" cy="13.00" r="1.05"/><circle cx="18.00" cy="15.20" r="1.05"/><circle cx="15.00" cy="16.00" r="1.05"/><circle cx="12.00" cy="15.20" r="1.05"/><circle cx="9.80" cy="13.00" r="1.05"/><circle cx="9.00" cy="10.00" r="1.05"/><circle cx="9.80" cy="7.00" r="1.05"/><circle cx="12.00" cy="4.80" r="1.05"/></g></svg>',"Euro"],CHF:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#DA291C"/><path d="M13 4h4v4h4v4h-4v4h-4v-4H9V8h4z" fill="#fff"/></svg>',"Franken"],USD:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect y="0.000" width="30" height="1.538" fill="#B22234"/><rect y="3.077" width="30" height="1.538" fill="#B22234"/><rect y="6.154" width="30" height="1.538" fill="#B22234"/><rect y="9.231" width="30" height="1.538" fill="#B22234"/><rect y="12.308" width="30" height="1.538" fill="#B22234"/><rect y="15.385" width="30" height="1.538" fill="#B22234"/><rect y="18.462" width="30" height="1.538" fill="#B22234"/><rect width="13" height="10.77" fill="#3C3B6E"/><g fill="#fff"><circle cx="1.6" cy="1.4" r=".55"/><circle cx="3.8" cy="1.4" r=".55"/><circle cx="6.0" cy="1.4" r=".55"/><circle cx="8.2" cy="1.4" r=".55"/><circle cx="10.4" cy="1.4" r=".55"/><circle cx="12.6" cy="1.4" r=".55"/><circle cx="2.7" cy="3.3" r=".55"/><circle cx="4.9" cy="3.3" r=".55"/><circle cx="7.1" cy="3.3" r=".55"/><circle cx="9.3" cy="3.3" r=".55"/><circle cx="11.5" cy="3.3" r=".55"/><circle cx="1.6" cy="5.2" r=".55"/><circle cx="3.8" cy="5.2" r=".55"/><circle cx="6.0" cy="5.2" r=".55"/><circle cx="8.2" cy="5.2" r=".55"/><circle cx="10.4" cy="5.2" r=".55"/><circle cx="12.6" cy="5.2" r=".55"/><circle cx="2.7" cy="7.1" r=".55"/><circle cx="4.9" cy="7.1" r=".55"/><circle cx="7.1" cy="7.1" r=".55"/><circle cx="9.3" cy="7.1" r=".55"/><circle cx="11.5" cy="7.1" r=".55"/><circle cx="1.6" cy="9.0" r=".55"/><circle cx="3.8" cy="9.0" r=".55"/><circle cx="6.0" cy="9.0" r=".55"/><circle cx="8.2" cy="9.0" r=".55"/><circle cx="10.4" cy="9.0" r=".55"/><circle cx="12.6" cy="9.0" r=".55"/></g></svg>',"US-Dollar"],GBP:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#012169"/><path d="M0 0l30 20M30 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l30 20M30 0L0 20" stroke="#C8102E" stroke-width="1.5"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6"/><path d="M15 0v20M0 10h30" stroke="#C8102E" stroke-width="3.4"/></svg>',"Pfund"],TRY:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#E30A17"/><circle cx="11.5" cy="10" r="5" fill="#fff"/><circle cx="12.8" cy="10" r="4" fill="#E30A17"/><path d="M17.3 10l3.9-1.3-2.4 3.3V8l2.4 3.3z" fill="#fff"/></svg>',"Lira"]};
 var CUR_MAIN=["EUR","CHF"],CUR_MORE=["USD","GBP","TRY"];
 function curPickHtml(sel,open){
