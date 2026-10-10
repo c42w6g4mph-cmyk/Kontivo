@@ -101,7 +101,9 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         waitGone(elContaining("Aus dem Katalog übernommen"), "Karte nach Rückgängig")
         wait(buttonStarting("CSS übernehmen"), "Vorlage wieder angeboten")
         reveal(button("cancelWay.registered"), "Kachel Einschreiben nach Rückgängig")
-        waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.registered").isSelected }
+        ctShot("Formular – nach Rückgängig, Kündigungsweg")
+        // Folgefeld «Adresse des Vertragspartners» verschwindet, wenn kein Kündigungsweg mehr gewählt ist
+        waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.registered").isSelected || !self.button("form.cancelAddr").exists }
         ctShot("Formular – Katalog rückgängig")
     }
 
