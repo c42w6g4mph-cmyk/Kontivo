@@ -704,7 +704,7 @@ body.hasplus .topadd{display:inline-flex}
 .ehk+.eprev{margin-top:14px}
 @media(max-height:700px){.eh .eprev.illu{display:none}.eh{padding-top:20px}}
 .eprev.illu .epacts span{background:color-mix(in srgb,var(--sunken) 70%,var(--surface));color:var(--ink3);font-weight:500}
-.espriv{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12.5px;color:var(--ink2);margin:12px 0 0;max-width:34ch;line-height:1.35}
+.espriv{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12.5px;color:var(--ink2);margin:12px auto 0;max-width:36ch;line-height:1.35;text-align:left}
 .espriv svg{flex:none;width:16px;height:16px;fill:none;stroke:var(--ok);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .eslink{margin-top:6px}
 .eslink{margin-top:12px;font-size:15px;color:var(--teal);font-weight:500;padding:4px 8px}
@@ -1512,7 +1512,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .fkz>div{flex:1;background:var(--field);border-radius:12px;padding:10px 12px;min-width:0}
 .fkz small{display:block;font-size:12.5px;color:var(--ink2)}
 .fkz b{font-size:22px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}.fkz u{text-decoration:none;font-size:13px;font-weight:500;color:var(--ink2);margin-left:3px}
-#sheetForm h3.fsec{margin:22px 2px 8px;padding:0;border:0;font-size:13px;font-weight:600;color:var(--ink2)}
+#sheetForm h3.fsec,#sheetInc h3.fsec{margin:22px 2px 8px;padding:0;border:0;font-size:13px;font-weight:600;color:var(--ink2)}
 #fPayM:has(option[value=""]:checked){color:var(--ink3);font-weight:400}
 .fcard{background:var(--field);border-radius:12px;padding:0 13px}
 .frow{display:flex;align-items:center;gap:12px;min-height:48px;padding:4px 0;border-top:1px solid var(--line);width:100%;text-align:left;font-size:15px}
@@ -1572,10 +1572,10 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .fpr .del{flex:none;color:var(--ink3);font-size:20px;line-height:1;padding:8px 0 8px 4px}
 #fChart .pchart{background:transparent;padding:12px 0 4px;margin:0}
 .fsw{cursor:pointer;padding:9px 0}.fsw .t{flex:1;min-width:0;display:grid;gap:2px}.fsw b{font-size:15px;font-weight:500;color:var(--ink)}.fsw small{font-size:12.5px;color:var(--ink2);line-height:1.35}
-#fCats.catfield{height:auto;min-height:48px;background:transparent;border-radius:0;margin:0;padding:4px 0;gap:10px}
-#fCats .cfi{width:28px;height:28px;border-radius:8px}#fCats .cfi .cicon{width:16px;height:16px}
-#fCats .cfn{flex:none;font-size:16px;font-weight:500;color:var(--teal)}#fCats .cfn.ph{color:var(--ink3);font-weight:400}
-#fCats .chev{font-size:20px}
+#fCats.catfield,#iCats.catfield{height:auto;min-height:48px;background:transparent;border-radius:0;margin:0;padding:4px 0;gap:10px}
+#fCats .cfi,#iCats .cfi{width:28px;height:28px;border-radius:8px}#fCats .cfi .cicon{width:16px;height:16px}
+#fCats .cfn,#iCats .cfn{flex:none;font-size:16px;font-weight:500;color:var(--teal)}#fCats .cfn.ph,#iCats .cfn.ph{color:var(--ink3);font-weight:400}
+#fCats .chev,#iCats .chev{font-size:20px}
 .fcard .cvaddr{background:transparent;border-radius:0;margin:0;padding:10px 0}
 .fcard .sndform.ig{background:var(--surface);margin:0}
 .fadda{color:var(--ink3);font-size:16px}
@@ -1585,7 +1585,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .fcard .seg2 button[aria-pressed="true"]{background:var(--surface)}
 .fcard .swi:not(:checked){background:color-mix(in srgb,var(--ink) 16%,transparent)}
 .fnotef{display:block;width:100%;min-height:84px;border:0;background:transparent;padding:12px 0;font-size:16px;color:var(--ink);resize:vertical;outline:0;font-family:inherit}
-#sheetForm .fnote2{margin:8px 2px 0}
+#sheetForm .fnote2,#sheetInc .fnote2{margin:8px 2px 0}
 #sheetForm .fnote2:empty{display:none}
 </style>
 </head>
@@ -1852,8 +1852,14 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 <div class="sheet" id="sheetInc" role="dialog" aria-modal="true" aria-label="Einnahme">
   <div class="grab"></div>
   <div class="shbar"><button class="shx" id="iCancel">Abbrechen</button><h2 id="incTitle">Neue Einnahme</h2><button class="shok" id="iSave">Sichern</button></div>
-  <h3>Grunddaten</h3>
-  <button type="button" class="logotap" id="iLogoTap" aria-label="Logo ändern" aria-expanded="false"><div class="mark" id="iLogoPrev"></div><span>Logo</span></button>
+  <!-- Einnahme im gleichen Stil wie das Vertragsformular (10.10.2026): Kopf mit Logo, Karten mit Zeilen -->
+  <div class="fhead">
+    <button type="button" class="logotap" id="iLogoTap" aria-label="Logo ändern" aria-expanded="false"><div class="mark" id="iLogoPrev"></div><i class="ledit" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></i></button>
+    <div class="fhf">
+      <input id="iLabel" class="fht" type="text" placeholder="Bezeichnung, z.B. Lohn" aria-label="Bezeichnung" autocomplete="off">
+      <input id="iName" class="fhp" type="text" placeholder="Quelle, z.B. Arbeitgeber AG" aria-label="Quelle" autocomplete="off">
+    </div>
+  </div>
   <details class="logodet" id="oILogo"><summary>Logo</summary><div class="logopanel">
     <button class="lbtn main" id="iLogoAuto" type="button">Logo automatisch finden</button>
     <div class="lcands" id="iLogoCands"></div>
@@ -1864,38 +1870,40 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     </div>
     <button class="lbtn del" id="iLogoDel" type="button" hidden>Logo entfernen</button>
     <div class="lsec" style="margin-bottom:0">Ohne Bild: Symbol der Art</div></div></details>
-  <div class="field"><label for="iLabel">Bezeichnung</label><input id="iLabel" type="text" placeholder="z.B. Lohn" autocomplete="off"></div>
-  <div class="field"><label for="iName">Quelle</label><input id="iName" type="text" placeholder="z.B. Arbeitgeber AG" autocomplete="off"></div>
-  <div class="flabel">Art</div>
-  <button type="button" class="catfield" id="iCats"><span class="cfi" id="iCatIcon"></span><span class="cfn" id="iCatName"></span><span class="chev">›</span></button>
-  <h3>Betrag</h3>
-  <div class="two">
-    <div class="field"><label for="iAmt" id="iAmtL">Betrag netto</label><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="6500.00"></div>
-    <div class="field"><label for="iCur">Währung</label><select id="iCur"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></div>
-  </div>
-  <div class="two">
-    <div class="field"><label for="iCycle">Zahlungsrhythmus</label><select id="iCycle">
+
+  <h3 class="fsec">Betrag</h3>
+  <div class="fcard">
+    <div class="frow"><label for="iAmt" id="iAmtL">Betrag netto</label><span class="fv"><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="6500.00"><select id="iCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
+    <div class="frow"><label for="iCycle">Zahlungsrhythmus</label><select id="iCycle">
       <option value="1">monatlich</option><option value="2">alle 2 Monate</option><option value="3">quartalsweise</option><option value="6">halbjährlich</option>
       <option value="12">jährlich</option><option value="24">alle 2 Jahre</option><option value="0">einmalig</option></select></div>
-    <div class="field"><label for="iDue">Zahltag</label><input id="iDue" type="date"></div>
+    <div class="frow"><label for="iDue">Zahltag</label><input id="iDue" type="date"></div>
   </div>
-  <p class="note" style="margin:-4px 0 12px">Netto eintragen, also was auf dem Konto ankommt. Einen 13. Monatslohn oder Bonus am besten als eigene jährliche Einnahme erfassen.</p>
-  <div class="flabel">Änderungen, z.B. Lohnerhöhung</div>
-  <div class="plist" id="iPList"></div>
-  <div class="two">
-    <div class="field"><label for="iPFrom">Gültig ab</label><input id="iPFrom" type="date"></div>
-    <div class="field"><label for="iPAmt">Neuer Betrag</label><input id="iPAmt" class="num" type="text" inputmode="decimal"></div>
-  </div>
-  <button class="mini" id="iPAdd" style="margin:-6px 0 12px">Änderung hinzufügen</button>
-  <h3>Zeitraum</h3>
-  <div class="two">
-    <div class="field"><label for="iStart">Ab</label><input id="iStart" type="date"></div>
-    <div class="field"><label for="iEnd">Bis</label><input id="iEnd" type="date"></div>
-  </div>
-  <div class="flabel">Empfänger — genau eine Person</div>
-  <div class="chips" id="iHolders"></div>
-  <div class="field"><label for="iNote">Notiz</label><textarea id="iNote"></textarea></div>
+  <p class="note fnote2">Netto eintragen, also was auf dem Konto ankommt. Einen 13. Monatslohn oder Bonus am besten als eigene jährliche Einnahme erfassen.</p>
 
+  <h3 class="fsec">Änderungen, z.B. Lohnerhöhung</h3>
+  <div class="plist" id="iPList"></div>
+  <div class="fcard">
+    <div class="frow"><label for="iPFrom">Gültig ab</label><input id="iPFrom" type="date"></div>
+    <div class="frow"><label for="iPAmt">Neuer Betrag</label><input id="iPAmt" class="num" type="text" inputmode="decimal" placeholder="–"></div>
+    <button class="fadd" id="iPAdd" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Änderung hinzufügen</button>
+  </div>
+
+  <h3 class="fsec">Zeitraum</h3>
+  <div class="fcard">
+    <div class="frow"><label for="iStart">Ab</label><input id="iStart" type="date"></div>
+    <div class="frow"><label for="iEnd">Bis</label><input id="iEnd" type="date"></div>
+  </div>
+
+  <h3 class="fsec">Zuordnung</h3>
+  <div class="fcard">
+    <button type="button" class="frow catfield" id="iCats"><span class="fl">Art</span><span class="cfi" id="iCatIcon"></span><span class="cfn" id="iCatName"></span><span class="chev">›</span></button>
+    <div class="frow fcol"><span class="fl">Empfänger – genau eine Person</span><div class="chips" id="iHolders"></div></div>
+  </div>
+
+  <h3 class="fsec">Notiz</h3>
+  <div class="fcard"><textarea id="iNote" class="fnotef" aria-label="Notiz"></textarea></div>
+  <div style="height:14px"></div>
   <button class="ghost danger" id="iDel" hidden>Einnahme löschen</button>
 </div>
 
@@ -1968,6 +1976,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <div class="grab"></div>
   <h2 id="askT"></h2>
   <p class="note" id="askP" style="white-space:pre-line;margin:6px 0 16px;font-size:14px"></p>
+  <div id="askX" hidden></div>
   <button class="primary" id="askOk">OK</button>
   <button class="ghost" id="askNo">Abbrechen</button>
 </div>
@@ -3273,7 +3282,7 @@ function openCatPick(kind){
   l.innerHTML=list.map(function(k){
     return '<button class="pick pickcat" data-pv="'+esc(k)+'" aria-pressed="'+(cur===k)+'"><span class="pci" style="background:'+catColor(k)+'">'+catIcon(k)+
       '</span><span class="pcn">'+esc(k)+(kind==="c"&&catKey(k)==="Steuern & Gebühren"?catInfoIc():"")+"</span></button>";}).join("")+
-    (kind==="c"?'<div class="catadd"><input id="newCat" type="text" placeholder="Eigene Kategorie, z.B. Haustier" autocomplete="off" maxlength="30"><button type="button" id="newCatAdd">Hinzufügen</button></div>':"");
+    (kind==="c"?'<div class="catadd"><input id="newCat" type="text" placeholder="Neue Kategorie" autocomplete="off" maxlength="30"><button type="button" id="newCatAdd">Hinzufügen</button></div>':"");
   var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
 }
 function openPausePick(idv){
@@ -4819,6 +4828,9 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     /* Anteil als Balken in der grossen Kachel (Variante 4, 08.10.2026) */
     var sh="";if(!gone&&!isPaused(c)&&!notStarted(c)){var tot=running().filter(function(x){return !notStarted(x);}).reduce(function(n,x){return n+monthlyCost(x);},0);
       if(tot>0.005){var pc=Math.round(monthlyCost(c)/tot*100);sh='<span class="kzbar" aria-hidden="true"><i style="width:'+Math.max(2,Math.min(100,pc))+'%"></i></span><em>'+pc+" % deiner Fixkosten</em>";}}
+    /* ohne Anteil (gekündigt/pausiert/beendet/noch nicht gestartet): Status statt Leerfläche */
+    if(!sh){var st0=c.cancelPer&&!gone?"gekündigt, läuft bis "+fmtShort(parseD(c.cancelPer)):isPaused(c)?"pausiert":gone?"beendet":notStarted(c)?"startet am "+fmtShort(parseD(c.start)):"";
+      if(st0)sh='<span class="kzbar off" aria-hidden="true"><i style="width:0"></i></span><em>'+esc(st0)+"</em>";}
     var tile=function(v,lab,extra){return '<div class="kzt"><small>'+lab+"</small><b>"+v+"</b>"+(extra||"")+"</div>";};
     var cur='<u>'+esc(cu)+"</u>",mt=money(mon,cu),k=decAt(mt),big=k<0?mt:mt.slice(0,k)+"<i>"+mt.slice(k)+"</i>";
     return '<div class="kz"><div class="kzm"><small>pro Monat</small><div><b>'+big+cur+"</b>"+ap(mon)+sh+'</div></div><div class="kzc">'+
@@ -4880,7 +4892,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       (isKept(c)&&!gone?mi("unkeep","«Behalten» zurücksetzen"):"")+
       (c.status!=="cancelled"&&!ended&&!fixd&&!c.mand&&!isRent(c)?mi("pause",isPaused(c)?"Fortsetzen":"Pausieren"):"")+
       mi("dup","Duplizieren")+
-      (c.status==="cancelled"||ended?mi("reactivate","Wieder aktiv setzen"):mi("cancel","Ins Archiv","zählt nicht mehr zu den Kosten"))+
+      (c.status==="cancelled"||ended?mi("reactivate","Wieder aktiv setzen"):c.cancelPer?"":mi("cancel",fixd?"Beendet …":"Schon gekündigt …",fixd?"z.B. nach Umzug":"Datum eintragen, bis wann er läuft"))+
       mi("delete","Löschen","","red")+"</div>";
   var fr="";
   if(!due60&&!gone&&trialNeeds(c)){var tl=trialLast(c),tdn=daysBetween(today(),tl);
@@ -4930,8 +4942,12 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
         /* Fortsetzen = Pause endet heute; die vergangenen Pausenmonate bleiben ohne Zahlung (paused bleibt mit abgelaufenem Ende) */
         if(isPaused(c)){var nc2=stripId(c);nc2.pausedUntil=iso(today());if(!nc2.pausedAt)nc2.pausedAt=iso(today());putContract(idv,nc2);closeSheets();render();toast("Fortgesetzt");}
         else openPausePick(idv);}
-      else if(a==="cancel"){ask({title:"Ins Archiv verschieben?",text:"«"+titleOf(c)+"» zählt dann nicht mehr zu deinen Kosten und Fristen – auch wenn du noch zahlst. Zum Kündigen nimm stattdessen «"+kword+"».",ok:"Ins Archiv"})
-        .then(function(y){if(!y)return;c.status="cancelled";c.cancelledAt=iso(today());putContract(idv,stripId(c));closeSheets();render();toast("Ins Archiv verschoben");});}
+      /* «Schon gekündigt …» (früher «Ins Archiv»): fragt nur «Läuft bis», gleicher Weg wie Kündigen (cancelPer); heute/früher = sofort beendet, Archiv ergibt sich */
+      else if(a==="cancel"){var T0=fixd?today():(termEnd(c)||today()),dflt=iso(T0),td=iso(today());
+        ask({title:fixd?"Vertrag beendet":"Schon gekündigt",text:fixd?"Bis wann läuft «"+titleOf(c)+"»? Danach zählt er nicht mehr zu deinen Kosten.":"Bis wann läuft «"+titleOf(c)+"» noch? Vorgeschlagen ist der nächste mögliche Termin. Ist er schon vorbei, wähle heute oder ein früheres Datum.",ok:"Sichern",
+          html:'<div class="fcard" style="margin:0 0 8px"><div class="frow"><label for="askPer">Läuft bis</label><input id="askPer" type="date" value="'+dflt+'"></div></div>'+
+            '<div class="chips fchq" style="margin:0 0 16px"><button type="button" class="chip" data-askd="'+td+'">heute</button>'+(fixd||dflt===td?"":'<button type="button" class="chip" data-askd="'+dflt+'">'+fmtShort(T0)+' (Termin)</button>')+'</div>'})
+        .then(function(y){if(!y)return;var v=(document.getElementById("askPer")||{}).value||dflt;markCancelled(idv,false,v);});}
       else if(a==="uncancel"){var u1=stripId(c);u1.cancelPer="";u1.cancelledOn="";putContract(idv,u1);closeSheets();render();toast("Kündigung zurückgenommen");}
       else if(a==="keep"){var k2=stripId(c);k2.keptFor=iso(termEnd(c));putContract(idv,k2);closeSheets();render();toast("Behalten – Kontivo erinnert dich vor der nächsten Frist");}
       else if(a==="unkeep"){var u2=stripId(c);u2.keptFor="";putContract(idv,u2);closeSheets();render();toast("Wieder offen");}
@@ -5060,12 +5076,12 @@ function killOptions(idv,trial){
     "Nach dem Markieren zählt der Vertrag bis zum Ende weiter und wandert danach ins Archiv.</p>";
   openSheet(document.getElementById("sheetPick"));
 }
-function markCancelled(idv,trial){
+function markCancelled(idv,trial,per){
   var c=Object.assign({},state.contracts[idv]),cc=Object.assign({_id:idv},c);
-  var T=trial?addDays(parseD(c.trial),-1):termEnd(cc);
+  var T=per?parseD(per):trial?addDays(parseD(c.trial),-1):termEnd(cc);
   c.cancelPer=T?iso(T):iso(today());c.cancelledOn=iso(today());if(c.review)delete c.review;
   putContract(idv,c);closeSheets();render();
-  toast("Gekündigt — läuft bis "+fmtD(c.cancelPer));
+  var pd0=parseD(c.cancelPer),t0=today();toast(pd0<t0?"Beendet – steht jetzt im Archiv":+pd0===+t0?"Endet heute – danach im Archiv":"Gekündigt — läuft bis "+fmtD(c.cancelPer));
   if(c.mand){var nc=Object.assign({},c);nc.cancelPer="";nc.cancelledOn="";nc.keptFor="";nc.partner="";nc.logoId="";nc.logoBg="";
     nc.start=iso(addDays(parseD(c.cancelPer),1));nc.due=nc.start;nc.custNo="";nc.contrNo="";nc.docs=[];nc.prices=[];nc.extras=[];
     /* Kontaktdaten, Kündigungsweg, Notiz, Probeabo und Pause gehören zum alten Anbieter */
@@ -5320,7 +5336,7 @@ function openIncome(idv){clearCands();document.getElementById("oILogo").open=fal
   var c=idv?state.incomes[idv]:null;incId=idv||null;
   idraft={logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",cat:(c&&c.cat)||"Lohn",prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),
     holders:c?holdersOf(c).slice():[(state.settings.holders||["Ich"])[0]]};
-  document.getElementById("incTitle").textContent=c?"Einnahme bearbeiten":"Neue Einnahme";
+  document.getElementById("incTitle").textContent=c?"Bearbeiten":"Neue Einnahme";
   document.getElementById("iName").value=(c&&c.name)||"";
   document.getElementById("iLabel").value=(c&&c.label)||"";
   document.getElementById("iAmt").value=c?amtIn(c.amount,c.cur):"";setTimeout(amtPh);
@@ -6768,6 +6784,7 @@ function ask(o){var p=askQ.then(function(){return askBusy?new Promise(function(r
 function askOpen(o){return new Promise(function(res){
   askBusy=true;askRes=function(v){askBusy=false;res(v);};document.getElementById("askT").textContent=o.title||"";
   document.getElementById("askP").textContent=o.text||"";
+  var ax=document.getElementById("askX");ax.innerHTML=o.html||"";ax.hidden=!o.html;
   askOnOk=o.onOk||null;/* synchron im Tipp ausführen (z.B. Dateiauswahl auf iOS) */
   var ok=document.getElementById("askOk");ok.textContent=o.ok||"OK";ok.classList.toggle("dangerbtn",!!o.danger);
   var no=document.getElementById("askNo");no.hidden=!!o.alert;no.textContent=o.no||"Abbrechen";
@@ -6781,6 +6798,7 @@ document.getElementById("askOk").addEventListener("click",function(){var f=askOn
 document.getElementById("askNo").addEventListener("click",function(){askOnOk=null;},true);
 document.getElementById("askNo").addEventListener("click",function(){askDone(false);});
 window.kontivoAsk=ask;
+document.getElementById("askX").addEventListener("click",function(e){var b=e.target.closest("[data-askd]");if(!b)return;var i=document.getElementById("askPer");if(i)i.value=b.dataset.askd;});
 /* ---------- Alles löschen ---------- */
 document.getElementById("wipeAll").addEventListener("click",async function(){
   var nc=Object.keys(state.contracts).length,ni=Object.keys(state.incomes).length;
