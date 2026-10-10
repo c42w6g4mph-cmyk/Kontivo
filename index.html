@@ -1811,7 +1811,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="frow tmcanc" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="sonst Website" autocomplete="off"></div>
     <div class="frow tmcanc" id="fCancMailW" hidden><label for="fCancMail">E-Mail für Kündigung</label><input id="fCancMail" type="email" placeholder="kuendigung@anbieter.ch" autocomplete="off"></div>
     <div class="frow tmcanc cvaddr" id="fCancAddrW" hidden><span class="t"><b id="fCancAddrT"></b><small id="fCancAddrS"></small></span><button type="button" class="mdlink" id="fCancAddrB">Erfassen</button></div>
-    <label class="frow fsw tmcanc"><span class="t"><b>An Frist erinnern</b><small>Erscheint unter «Fristen»</small></span><input type="checkbox" class="swi" id="fRemind"></label>
+    <label class="frow fsw tmcanc" id="fRemindW"><span class="t"><b>An Frist erinnern</b><small>Erscheint unter «Fristen»</small></span><input type="checkbox" class="swi" id="fRemind"></label>
     <label class="frow fsw tmcanc"><span class="t"><b>Nur Anbieter wechseln</b><small>Pflichtversicherung, z.B. Krankenkasse: kündigen nur mit neuem Anbieter</small></span><input type="checkbox" class="swi" id="fMand"></label>
     <!-- nur bei gekündigten Verträgen: Daten korrigieren (c.cancelledOn, c.cancelPer) -->
     <div class="frow" id="fCancOnW" hidden><label for="fCancOn">Gekündigt am</label><input id="fCancOn" type="date"></div>
@@ -3824,7 +3824,11 @@ function setTermMode(m){termMode=m;
   sh("tmstart",m!=="trial");sh("tmnotice",m==="open"||m==="fixed");sh("tmcanc",m!=="tax");
   document.getElementById("fNoCancel").checked=m==="tax";
   if(m==="trial")paintTrialD();
-  syncTermSel();if(typeof paintTermM==="function")paintTermM();syncCancUrl();updTermHint();}
+  syncTermSel();if(typeof paintTermM==="function")paintTermM();syncCancUrl();updTermHint();syncRemind();}
+/* «An Frist erinnern» nur, wenn es eine Frist gibt: nicht bei Flexibel und jederzeit/auf Monatsende kündbar (gleiche Regel wie isAnytime) und nicht bei «Nicht kündbar» */
+function syncRemind(){var w=document.getElementById("fRemindW");if(!w)return;var tp=document.getElementById("fTermP").value,cy=+document.getElementById("fCycle").value||1;
+  w.hidden=termMode==="tax"||(termMode==="open"&&(tp===""||tp==="m"||(tp==="p"&&cy<=1)));}
+["fTermP","fCycle"].forEach(function(i){document.getElementById(i).addEventListener("change",function(){syncRemind();});});
 function syncTermSel(){}
 /* Mindestlaufzeit in Monaten ↔ Vertragsende: Ende = Beginn + n Monate − 1 Tag. Gespeichert wird nur das Ende */
 function termEndFromM(){var n=parseInt(document.getElementById("fTermM").value,10),st=parseD(document.getElementById("fStart").value);
