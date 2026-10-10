@@ -127,6 +127,7 @@ img{-webkit-touch-callout:none;-webkit-user-drag:none}
 .irow{display:flex;align-items:center;gap:11px;width:100%;padding:10px 13px;text-align:left;font-size:15px}
 .irow+.irow{border-top:1px solid var(--line)}
 .irow .mark{width:32px;height:32px;border-radius:8px;font-size:12px}.irow .mark svg{width:17px;height:17px}
+.irow .it small{font-size:12px;font-weight:400;color:var(--ink2);overflow:hidden;text-overflow:ellipsis}
 .irow .it{flex:1;min-width:0;display:flex;flex-direction:column;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
 .irow .it em{font-style:normal;font-weight:400;font-size:12px;color:var(--ink3)}
 .irow b{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -1597,6 +1598,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 <div class="amenu" id="addMenu" role="menu" aria-label="Hinzufügen" inert aria-hidden="true">
   <button role="menuitem" data-am="form"><div>Vertrag erfassen<small>Einzeln, mit Vorlagen-Katalog</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
   <button role="menuitem" data-am="bank"><div>Aus Kontoauszug<small>Fixkosten in Bank-Dateien finden – Konto und Kreditkarte auf einmal</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></button>
+  <button role="menuitem" data-am="inc"><div>Einnahme erfassen<small>Lohn, Rente, Stipendium …</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg></button>
 </div>
 <div class="minibar" id="miniBar" aria-hidden="true"><span id="miniTitle"></span></div>
 <div class="wrap">
@@ -1946,6 +1948,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <p class="note" id="ltSender" style="margin:4px 0 12px"></p>
   <div class="field"><label for="ltTo">Empfänger</label><textarea id="ltTo" style="min-height:92px" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort"></textarea>
     <div class="ltrow"><button type="button" class="mini" id="ltAddr">Adresse suchen</button><span class="note" id="ltAddrMsg"></span></div></div>
+  <p id="ltKvg" hidden style="margin:0 0 12px;font-size:13px;line-height:1.4;color:var(--ink2)">Grundversicherung (KVG): Die Kündigung wird erst gültig, wenn die neue Krankenkasse deine Aufnahme bestätigt hat – sonst bleibst du beim bisherigen Versicherer.</p>
   <div id="ltMiss" hidden><div class="flabel">Fehlt noch — wird beim Vertrag gespeichert</div>
     <div class="two"><div class="field" id="ltMissC"><label for="ltCust">Kundennummer</label><input id="ltCust" type="text" autocomplete="off"></div>
     <div class="field" id="ltMissV"><label for="ltContr" id="ltContrL">Vertragsnummer</label><input id="ltContr" type="text" autocomplete="off"></div></div></div>
@@ -2083,7 +2086,7 @@ var CATS=["Wohnen","Energie & Wasser","Versicherung","Gesundheit","Mobilfunk & I
 var COLORS=["#0E5A5E","#A93227","#1F4E8C","#6B4E9E","#8A6A1F","#2E6A4E","#B0562A","#3F4A55"];
 var CAT_COLOR={"Wohnen":"#6B4E9E","Energie & Wasser":"#B0562A","Versicherung":"#0E5A5E","Gesundheit":"#B03A5B","Mobilfunk & Internet":"#1F4E8C","Abos & Medien":"#A93227",
   "Mobilität":"#3F4A55","Familie & Bildung":"#2F86A6","Freizeit & Sport":"#2E6A4E","Steuern & Gebühren":"#6E7B3A","Finanzen":"#8A6A1F","Sonstiges":"#5F666E",
-  "Lohn":"#2E6A4E","Nebeneinkommen":"#0E5A5E","Bonus":"#8A6A1F","Kapitalerträge":"#1F4E8C","Vermietung":"#6B4E9E","Rente":"#B0562A"};
+  "Lohn":"#2E6A4E","Nebeneinkommen":"#0E5A5E","Bonus":"#8A6A1F","Kapitalerträge":"#1F4E8C","Vermietung":"#6B4E9E","Rente":"#B0562A","Zulagen":"#B23A6F","Unterstützung":"#3D6FA8","Rückerstattung":"#5F7A2E"};
 var CAT_MIG={"Energie":"Energie & Wasser","Streaming & Software":"Abos & Medien","Fitness & Freizeit":"Freizeit & Sport","Steuern":"Steuern & Gebühren","Kinderbetreuung":"Familie & Bildung"};
 /* Altfelder umstellen: settings.rate → settings.rates.EUR, holder → holders[] */
 function migModel(){var ch=false,s=state.settings;
@@ -2173,7 +2176,10 @@ var CAT_ICON={
  "Bonus":'<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M4 13h16M12 9v11"/><path d="M12 9c-2.5 0-4-1-4-2.5S10.5 5 12 9c1.5-4 4-3.5 4-2.5S14.5 9 12 9z"/>',
  "Kapitalerträge":'<path d="M4 17.5 9.5 12l3.5 3.5 7-7"/><path d="M15 8.5h5v5"/>',
  "Vermietung":'<circle cx="8.5" cy="12" r="3.5"/><path d="M12 12h8.5M17 12v3M19.5 12v2.5"/>',
- "Rente":'<path d="M7 3.5h10M7 20.5h10"/><path d="M8 3.5c0 4.5 8 4.5 8 8.5s-8 4-8 8.5M16 3.5c0 4.5-8 4.5-8 8.5s8 4 8 8.5"/>'};
+ "Rente":'<path d="M7 3.5h10M7 20.5h10"/><path d="M8 3.5c0 4.5 8 4.5 8 8.5s-8 4-8 8.5M16 3.5c0 4.5-8 4.5-8 8.5s8 4 8 8.5"/>',
+ "Zulagen":'<circle cx="12" cy="7" r="3"/><path d="M6 20c.6-3.6 3-5.5 6-5.5s5.4 1.9 6 5.5"/><path d="M18.5 4.5v4M16.5 6.5h4"/>',
+ "Unterstützung":'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+ "Rückerstattung":'<path d="M9 7H5V3"/><path d="M5.5 7.5A8 8 0 1 1 4 12"/><path d="M12 8v4l2.5 2"/>'};
 var TAG_ICON='<path d="M4 12.6V5h7.6l8.4 8.4-7.6 7.6z"/><circle cx="8.2" cy="9.2" r="1.3"/>';
 function catList(){var l=state.settings.catList;if(Array.isArray(l)&&l.length)return l;
   return CATS.map(function(n){return {n:n,c:CAT_COLOR[n],i:n,k:n};}).concat((state.settings.cats||[]).filter(function(x){return x&&x.n&&CATS.indexOf(x.n)<0;}).map(function(x){return {n:x.n,c:x.c,i:"tag"};}));}
@@ -2210,6 +2216,8 @@ var MS=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"
 var MON=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 
 var state={settings:{home:"CHF",rates:{},holders:["Ich"]},contracts:{},incomes:{},tab:"list",sel:new Date().getMonth(),year:new Date().getFullYear()};
+/* Testdatum (window.__KONTIVO_TODAY) auch für den gewählten Monat */
+setTimeout(function(){try{var t=today();if(state.sel===new Date().getMonth()&&state.year===new Date().getFullYear()){state.sel=t.getMonth();state.year=t.getFullYear();}}catch(e){}},0);
 var assets=null,editId=null,draft={};
 
 /* ---------- Helfer ---------- */
@@ -2225,7 +2233,7 @@ function parseNum(s){var t=String(s==null?"":s).replace(/['’ʼ\s  ]/g,""),s
   else if(d>=0||c>=0){var sp=d>=0?".":",";t=t.split(sp).length>2?t.split(sp).join(""):t.replace(sp,".");}
   if(!/^(\d+\.?\d*|\.\d+)$/.test(t))return null;var n=parseFloat(t);return isFinite(n)?sg*n:null;}
 /* Beträge aus Eingabefeldern: Geld hat nie 3 Nachkommastellen, also ist «1.234» oder «1,234» ein Tausender (1234) */
-function parseAmt(s){var t=String(s==null?"":s).replace(/['’ʼ\s  ]/g,""),m=t.match(/^([-−]?)([1-9]\d{0,2})[.,](\d{3})$/);
+function parseAmt(s){s=String(s==null?"":s).replace(/[.,]\s*[-–—]+\s*$/,"").replace(/(CHF|EUR|USD|GBP|TRY|Fr\.?|€|\$|£)/gi,"");var t=String(s).replace(/['’ʼ\s  ]/g,""),m=t.match(/^([-−]?)([1-9]\d{0,2})[.,](\d{3})$/);
   if(m)return (m[1]?-1:1)*(+(m[2]+m[3]));return parseNum(s);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
@@ -2401,7 +2409,8 @@ function nDl(c,e){
 var TERMS={"":"jederzeit","p":"Ende der Zahlungsperiode","m":"Monatsende","q":"Quartalsende","h":"Halbjahresende","y":"Jahresende","a":"Ende Vertragsjahr"};
 function nextTerm(c,base,after){
   if(c.end||!c.cancTerm)return null;
-  var t=base||today(),T,ok=function(x){return after?x>after:nDl(c,x)>=t;};
+  /* Vertrag beginnt erst später: Kündigungsfrist frühestens ab Beginn (sonst stünde ein neuer Vertrag schon vor Beginn unter «Fristen») */
+  var t=base||today(),st0=parseD(c.start);if(!after&&st0&&st0>t)t=st0;var T,ok=function(x){return after?x>after:nDl(c,x)>=t;};
   if(c.cancTerm==="p"){var a=parseD(c.due);if(!a)return null;var m=+c.cycle||1,k;
     var md=function(d){return (d.getFullYear()-a.getFullYear())*12+d.getMonth()-a.getMonth();};
     if(after)k=Math.floor(md(after)/m)-1;else{var nd=nextDue(c);if(!nd)return null;k=Math.round(md(nd)/m);}
@@ -2679,7 +2688,7 @@ function renderView(){
       else if(x.k==="trial"){sub="Probeabo · gratis bis "+ddmm(x.d);chip=inDays(dn);cc=!x.act?"":dn<=7?"alert":"warn";acts=!!x.act;}
       else if(x.k==="kept"){sub="Behalten · nächste Frist "+ddmm(x.d);chip=inDays(dn);cc="ok";}
       else if(x.k==="keptEnd"){sub="Behalten · läuft bis "+ddmm(x.d);chip=inDays(dn);cc="ok";}
-      else{sub="Kündigung bis "+ddmm(x.d);chip=inDays(dn);acts=needsAction(c)||(x.e&&daysBetween(t1,x.e)<=61);cc=dn<=7?"alert":(acts?"warn":"");}
+      else{sub=(c.mand?"Wechsel bis ":"Kündigung bis ")+ddmm(x.d);chip=inDays(dn);acts=needsAction(c)||(x.e&&daysBetween(t1,x.e)<=61);cc=dn<=7?"alert":(acts?"warn":"");}
       var tr=x.k==="trial"?' data-trial="1"':"";
       return '<div class="tit"><button class="mrow" data-open="'+esc(c._id)+'">'+markHtml(c)+
         '<span class="mt"><span class="mn">'+titleP(c)+'</span><span class="mm">'+esc(sub)+'</span></span><span class="tchip'+(cc?" "+cc:"")+'">'+esc(chip)+"</span></button>"+
@@ -3032,7 +3041,7 @@ document.getElementById("topYear").addEventListener("click",function(ev){
   state.sel=(ny===today().getFullYear())?today().getMonth():0;renderView();
 });
 document.getElementById("miniBar").addEventListener("click",function(){window.scrollTo({top:0,behavior:"smooth"});});
-var INC_CATS=["Lohn","Nebeneinkommen","Bonus","Kapitalerträge","Vermietung","Rente","Sonstiges"];
+var INC_CATS=["Lohn","Nebeneinkommen","Bonus","Rente","Zulagen","Unterstützung","Kapitalerträge","Vermietung","Rückerstattung","Sonstiges"];
 var ICYCLE={0:"einmalig",1:"monatlich",2:"alle 2 Monate",3:"quartalsweise",6:"halbjährlich",12:"jährlich",24:"alle 2 Jahre"};
 function incList(){return Object.keys(state.incomes).map(function(k){var c=Object.assign({},state.incomes[k]);c._id=k;return c;});}
 function incMark(c){return markHtml({partner:c.name,color:c.color,cat:c.cat,label:c.label,logoId:c.logoId,logoBg:c.logoBg});}
@@ -3080,7 +3089,7 @@ function emptyStat(){
 }
 function emptyTerm(){
   return emptyHero({icon:"term",title:"Nie mehr eine<br>Frist verpassen",
-    text:"Kontivo rechnet den Kündigungstermin aus und meldet sich rechtzeitig.",
+    text:"Kontivo rechnet den Kündigungstermin aus und zeigt ihn dir rechtzeitig hier unter «Fristen».",
     hooks:["Behalten oder kündigen? Du entscheidest","Kündigung als PDF: mailen oder drucken","Auch Probeabos und Jahresverträge"],illu:true,preview:epHead("Als Nächstes","")+'<div class="eprow"><span class="pci" style="background:'+catColor("Freizeit & Sport")+'">'+catIcon("Freizeit & Sport")+'</span><span class="t">Fitnessstudio<small class="w">Frist '+(function(){var d=addDays(today(),29);return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+".";})()+' · noch 29 Tage</small></span></div>'+
       '<div class="epacts"><span>Behalten</span><span>Kündigen</span></div>',
     btn:['data-onb="c"',"Ersten Vertrag erfassen"]});
@@ -3088,7 +3097,7 @@ function emptyTerm(){
 function budgetEmpty(){
   var act=running().filter(function(c){return !notStarted(c);}),fix=act.reduce(function(n,c){return n+monthlyCost(c);},0);
   return emptyHero({icon:"budget",title:"Weisst du, was dir<br>jeden Monat bleibt?",
-    text:act.length?"Deine Fixkosten sind schon da: "+money(fix)+" "+esc(state.settings.home)+" im Monat. Es fehlt nur dein Lohn.":"Trag deinen Lohn ein, die Fixkosten kommen aus deinen Verträgen.",
+    text:act.length?"Deine Fixkosten sind schon da: "+money(fix)+" "+esc(state.settings.home)+" im Monat. Es fehlen nur deine Einnahmen.":"Trag deine Einnahmen ein, z.B. Lohn, Rente oder Stipendium. Die Fixkosten kommen aus deinen Verträgen.",
     hooks:["Lohn rein, Fixkosten raus: der Rest gehört dir","Was bleibt dir übrig? Sofort sichtbar","Fair geteilt: wer zahlt wie viel im Haushalt"],
     btn:['id="incAdd"',"Einnahme erfassen"]});
 }
@@ -3227,7 +3236,7 @@ function renderBudget(v){
   if(incs.length){
     o+='<div class="grp"><div class="grphead"><span>Einnahmen '+MON[sel]+'</span><span>'+money(M[sel].inc)+" "+H+'</span></div><div class="ilist">'+
       (nowM.length?nowM.map(function(it){var c=it.c;
-        return '<button class="irow" data-inc="'+esc(c._id)+'">'+incMark(c)+'<span class="it">'+esc(c.label||c.name||"Einnahme")+'</span><b>'+money(it.a,c.cur)+(c.cur!==H?'<u>'+esc(c.cur)+"</u>":"")+"</b></button>";}).join("")
+        return '<button class="irow" data-inc="'+esc(c._id)+'">'+incMark(c)+'<span class="it">'+esc(c.label||c.name||"Einnahme")+((state.settings.holders||[]).length>1&&holdersOf(c).length?'<small>'+esc(holdersOf(c).join(", "))+'</small>':"")+'</span><b>'+money(it.a,c.cur)+(c.cur!==H?'<u>'+esc(c.cur)+"</u>":"")+"</b></button>";}).join("")
         :'<div class="iempty">Keine Einnahmen im '+MON[sel]+"</div>")+
       '<div class="ifoot"><button type="button" id="incAdd">+ Einnahme</button><button type="button" data-incall>Alle Einnahmen ('+incs.length+') ›</button></div></div></div>';
   } else if(BH)o+='<div class="grp"><button class="addline" id="incAdd">+ Einnahme erfassen</button></div>';
@@ -3621,7 +3630,7 @@ var TPL=[
  ["iWay", "CH", "Mobilfunk & Internet", "Internet", "iway.ch", 0, "m", "", "", 0, "Kündigungsfrist in AGB bzw. Kundenkonto prüfen.", "", "iWay AG\nBadenerstrasse 569\n8048 Zürich", "info@iway.ch", "+41 43 500 11 11", 1],
  ["Lyca Mobile", "CH", "Mobilfunk & Internet", "Handy", "lycamobile.ch", 0, "m", "", "Brief", 0, "Prepaid ohne Mindestlaufzeit: Guthaben aufbrauchen; Kündigung bzw. Rufnummernsperre schriftlich mit Rufnummer und SIM-Nummer.", "", "Lycamobile AG\nHermetschloostrasse 73\n8048 Zürich", "", "", 1],
  ["Energie Kreuzlingen", "CH", "Energie & Wasser", "Strom", "energiekreuzlingen.ch", 0, "m", "", "", 1, "Grundversorgung für Kreuzlingen: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig melden.", "", "Energie Kreuzlingen\nNationalstrasse 27\n8280 Kreuzlingen", "info@energiekreuzlingen.ch", "+41 71 677 61 85", 1],
- ["IWB", "CH", "Energie & Wasser", "Strom", "iwb.ch/kontakt", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "IWB Industrielle Werke Basel\nMargarethenstrasse 40\n4002 Basel", "", "+41 61 275 51 11", 1],
+ ["IWB", "CH", "Energie & Wasser", "Strom", "iwb.ch/kontakt", 0, "m", "", "Online / Kundenkonto", 0, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "IWB Industrielle Werke Basel\nMargarethenstrasse 40\n4002 Basel", "", "+41 61 275 51 11", 1],
  ["Groupe E", "CH", "Energie & Wasser", "Strom", "groupe-e.ch/de/kontakt", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "Groupe E AG\nRoute de Morat 135\n1763 Granges-Paccot", "info@groupe-e.ch", "+41 26 352 52 52", 1],
  ["Romande Energie", "CH", "Energie & Wasser", "Strom", "romande-energie.ch/contact", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "Romande Energie SA\nRue de Lausanne 53\n1110 Morges", "", "", 1],
  ["SAK", "CH", "Energie & Wasser", "Strom", "sak.ch/ueber-sak/kontakt", 0, "m", "", "Online / Kundenkonto", 1, "Grundversorgung: kein Wechsel möglich; Vertrag endet mit Auszug – Umzug rechtzeitig online oder telefonisch melden.", "", "St.Gallisch-Appenzellische Kraftwerke AG\nVadianstrasse 50\nPostfach 2041\n9001 St.Gallen", "info@sak.ch", "+41 71 229 51 51", 1],
@@ -3801,6 +3810,10 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
 }
 document.getElementById("fPartner").addEventListener("input",function(){draft.tplHint="";draft.stdTpl=null;paintSugg();});
 document.getElementById("fLabel").addEventListener("input",paintSugg);
+/* Bekannter Vertragspartner (eigene Verträge, alle in derselben Währung): Währung übernehmen, solange noch kein Betrag steht. SwiftUI: onSubmit des Felds */
+document.getElementById("fPartner").addEventListener("change",function(){if(editId||document.getElementById("fAmt").value)return;
+  var cs={};samePartner(this.value).forEach(function(k){cs[state.contracts[k].cur||"CHF"]=1;});var k=Object.keys(cs);
+  if(k.length===1&&document.getElementById("fCur").value!==k[0]){document.getElementById("fCur").value=k[0];document.getElementById("fCur").dispatchEvent(new Event("change"));}});
 document.getElementById("sheetForm").addEventListener("click",function(ev){if(ev.target.closest("[data-tplcat]"))openTplPick();});
 document.getElementById("fSugg").addEventListener("click",function(ev){
   if(ev.target.closest("[data-tplundo]")){tplUndo();return;}
@@ -3837,7 +3850,7 @@ function setTermMode(m){termMode=m;
   document.querySelectorAll("#termSeg [data-tm]").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.tm===m);});
   var sh=function(cls,on){document.querySelectorAll("#sheetForm ."+cls).forEach(function(el){el.hidden=!on;});};
   sh("tmfixed",m==="fixed");sh("tmopen",m==="open"||m==="trial");sh("tmtrial",m==="trial");
-  sh("tmstart",m!=="trial");sh("tmnotice",m==="open"||m==="fixed");sh("tmcanc",m!=="tax");
+  sh("tmstart",true);sh("tmnotice",m==="open"||m==="fixed");sh("tmcanc",m!=="tax");
   document.getElementById("fNoCancel").checked=m==="tax";
   if(m==="trial")paintTrialD();
   syncTermSel();if(typeof paintTermM==="function")paintTermM();syncCancUrl();updTermHint();syncRemind();}
@@ -3886,20 +3899,20 @@ function nUnitLbl(){var n=+document.getElementById("fNotice").value,o=document.g
 function noticeSet(n,u){selVal("fNotice",n);if(u)document.getElementById("fNoticeU").value=u;
   ["fNotice","fNoticeU"].forEach(function(i){document.getElementById(i).dispatchEvent(new Event("change"));});}
 function nUnitWh(uc){[].forEach.call(uc.children,function(d,i){var e=NU[i];if(e)d.textContent=+nPend.n===1?e[1]:e[2];});}
-function nOk(){document.getElementById("fNoticeOk").textContent=noticeTxt(nPend.n,nPend.u)+" übernehmen";}
+function nOk(){document.getElementById("fNoticeOk").textContent=(nPend.n==="0"?"Keine Frist":noticeTxt(nPend.n,nPend.u))+" übernehmen";}
 function paintNotice(){var v=document.getElementById("fNotice").value,u=document.getElementById("fNoticeU").value,std=u==="m"&&["1","2","3"].indexOf(v)>=0,w=document.getElementById("fNoticeWh");
   if(!w)return;if(v&&!std)noticeOther=true;var was=w.hidden;w.hidden=!noticeOpen;
-  if(!w.hidden&&was){var it=[];for(var n=1;n<=90;n++)it.push({v:String(n),t:String(n)});if(+v>90)it.push({v:v,t:v});
+  if(!w.hidden&&was){var it=[{v:"0",t:"keine"}];for(var n=1;n<=90;n++)it.push({v:String(n),t:String(n)});if(+v>90)it.push({v:v,t:v});
     nPend={n:v||"1",u:u||"m"};
     var nc=w.querySelector('[data-whc="n"]'),uc=w.querySelector('[data-whc="u"]');
     whFill(nc,it,nPend.n,function(x){nPend.n=x;if(nPend.u==="k"&&+x>28){nPend.n="28";whSet(nc,"28");}nUnitWh(uc);nOk();});
     whFill(uc,NU.map(function(e){return {v:e[0],t:e[2]};}),nPend.u,function(x){nPend.u=x;if(x==="k"&&+nPend.n>28){nPend.n="28";whSet(nc,"28");}nOk();});nUnitWh(uc);nOk();}
   document.querySelectorAll("#fNoticeC [data-nc]").forEach(function(b){var k=b.dataset.nc;b.setAttribute("aria-pressed",k==="x"?(noticeOther||noticeOpen):(!noticeOther&&!noticeOpen&&u==="m"&&k===v));
     if(k==="x")b.textContent=noticeOther&&v&&!noticeOpen?noticeTxt(v,u):"Andere …";});}
-document.getElementById("fNoticeOk").addEventListener("click",function(){noticeOther=!(nPend.u==="m"&&["1","2","3"].indexOf(nPend.n)>=0);noticeOpen=false;noticeSet(nPend.n,nPend.u);});
+document.getElementById("fNoticeOk").addEventListener("click",function(){if(nPend.n==="0"){noticeOther=false;noticeOpen=false;noticeSet("","m");return;}noticeOther=!(nPend.u==="m"&&["1","2","3"].indexOf(nPend.n)>=0);noticeOpen=false;noticeSet(nPend.n,nPend.u);});
 document.getElementById("fNoticeC").addEventListener("click",function(e){var b=e.target.closest("[data-nc]");if(!b)return;
   if(b.dataset.nc==="x"){noticeOpen=!noticeOpen;paintNotice();return;}
-  var on=b.getAttribute("aria-pressed")==="true";noticeOther=false;noticeOpen=false;noticeSet(on?"":b.dataset.nc,"m");});
+  noticeOther=false;noticeOpen=false;noticeSet(b.dataset.nc,"m");});
 /* Zahlung am: Tag im Monat (monatlich), sonst Tag + Monat; setzt c.due auf die nächste passende Zahlung ab heute */
 var MONS=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],duePend={d:1,m:0},dueOpen=false;
 function dueTxt(){var v=parseD(document.getElementById("fDue").value),cy=+document.getElementById("fCycle").value||1;if(!v)return "wählen";
@@ -3919,9 +3932,14 @@ function paintDue(){document.getElementById("fDueT").textContent=dueTxt();var w=
     whFill(mc,MONS.map(function(x,i){return {v:i,t:x};}),duePend.m,function(x){duePend.m=+x;dueOk();});dueOk();}}
 function dueOk(){var cy=+document.getElementById("fCycle").value||1;document.getElementById("fDueOk").textContent=(cy===1?duePend.d+". im Monat":duePend.d+". "+MONS[duePend.m])+" übernehmen";}
 document.getElementById("fDueBtn").addEventListener("click",function(){dueOpen=!dueOpen;paintDue();});
-document.getElementById("fDueOk").addEventListener("click",function(){var e=document.getElementById("fDue");e.value=iso(dueFrom(duePend.d,duePend.m));dueOpen=false;
+document.getElementById("fDueOk").addEventListener("click",function(){draft.dueSet=1;var e=document.getElementById("fDue");e.value=iso(dueFrom(duePend.d,duePend.m));dueOpen=false;
   e.dispatchEvent(new Event("change"));paintDue();});
-document.getElementById("fCycle").addEventListener("change",function(){if(dueOpen){dueOpen=false;}paintDue();});
+/* Neuer Vertrag, Zahlung am nicht selbst gewählt: bei Rhythmus ≥ 2 Monate vom Vertragsbeginn aus rechnen (Jahresabo ab 15.3. → 15.3.) */
+function dueFromStart(){if(editId||draft.dueSet||termMode==="trial")return;var cy=+document.getElementById("fCycle").value||1,s=parseD(document.getElementById("fStart").value);if(cy<2||!s)return;
+  var t=today(),x=s,k=0;while(x<t&&k<400){k++;x=new Date(s.getFullYear(),s.getMonth()+cy*k,1);x.setDate(Math.min(s.getDate(),new Date(x.getFullYear(),x.getMonth()+1,0).getDate()));}
+  var e=document.getElementById("fDue");if(e.value!==iso(x)){e.value=iso(x);e.dispatchEvent(new Event("change"));}}
+document.getElementById("fCycle").addEventListener("change",function(){if(dueOpen){dueOpen=false;}dueFromStart();paintDue();});
+document.getElementById("fStart").addEventListener("change",function(){dueFromStart();paintDue();});
 document.getElementById("fDue").addEventListener("change",paintDue);
 document.getElementById("fNotice").addEventListener("change",nUnitLbl);
 document.getElementById("fNoticeU").addEventListener("change",nUnitLbl);
@@ -3936,10 +3954,13 @@ function paintTrialD(){
   if(!trialD)trialD=v?(Object.keys(TRD).filter(function(k){return trialFrom(k)===v;})[0]||"date"):"";
   document.querySelectorAll("#fTrialD [data-trd]").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.trd===trialD);});
   document.getElementById("fTrialW").hidden=trialD!=="date";}
-document.getElementById("fStart").addEventListener("change",function(){if(termMode==="trial"&&TRD[trialD]){document.getElementById("fTrial").value=trialFrom(trialD);updTermHint();}});
+document.getElementById("fStart").addEventListener("change",function(){if(termMode==="trial"&&TRD[trialD]){document.getElementById("fTrial").value=trialFrom(trialD);updTermHint();trialDue();}});
+/* Probeabo: erste Zahlung = erster kostenpflichtiger Tag (c.trial) */
+function trialDue(){var v=document.getElementById("fTrial").value;if(termMode!=="trial"||!v)return;var d=document.getElementById("fDue");if(d.value!==v){d.value=v;d.dispatchEvent(new Event("change"));}}
+document.getElementById("fTrial").addEventListener("change",trialDue);
 document.getElementById("fTrialD").addEventListener("click",function(ev){var b=ev.target.closest("[data-trd]");if(!b)return;
   trialD=b.dataset.trd;if(trialD!=="date")document.getElementById("fTrial").value=trialFrom(trialD);
-  paintTrialD();updTermHint();if(trialD==="date")document.getElementById("fTrial").focus();});
+  paintTrialD();updTermHint();trialDue();if(trialD==="date")document.getElementById("fTrial").focus();});
 function updTermHint(){
   var h=document.getElementById("tmHint");
   if(termMode==="tax"){h.textContent="Gebühren und Abgaben wie Serafe: keine Fristen, kein Kündigen. Zählt in Kosten und Budget.";return;}
@@ -3953,7 +3974,9 @@ function updTermHint(){
     var rn=+fx.renew||0;
     if(TE&&TE>E){h.textContent="Frist für "+fmtD(iso(E))+" verpasst · nächster Termin "+fmtD(iso(TE))+", kündigen bis "+fmtD(iso(nDl(fx,TE)))+".";return;}
     if(!rn&&E<today()){h.textContent="Dieser Vertrag ist am "+fmtD(iso(E))+" ausgelaufen. Beim Sichern kommt er ins Archiv – Vertragsende prüfen.";return;}
-    h.textContent="Kündigen bis "+fmtD(iso(nDl(fx,E)))+(rn?", sonst +"+rn+(rn===1?" Monat":" Monate")+".":", Vertrag endet dann.");return;}
+    if(!rn){h.textContent="Endet am "+fmtD(iso(E))+" von selbst – ohne Verlängerung ist keine Kündigung nötig.";return;}
+    h.textContent="Kündigen bis "+fmtD(iso(nDl(fx,E)))+", sonst +"+rn+(rn===1?" Monat":" Monate")+"."+
+      (rn>1&&document.getElementById("fCur").value==="EUR"?" Hinweis Deutschland: Verbraucherverträge verlängern sich seit 03/2022 meist nur noch monatlich (§ 309 BGB).":"");return;}
   var tp=document.getElementById("fTermP").value,cyc=+document.getElementById("fCycle").value||1;
   if(!tp){h.textContent=cyc>=3?"Achtung: Bei "+({3:"quartalsweiser",6:"halbjährlicher",12:"jährlicher",24:"zweijährlicher"}[cyc]||"seltener")+" Zahlung ist ein Abo meist nur auf Ende der bezahlten Periode kündbar. Dann «Kündbar per: Ende Periode» wählen.":(document.getElementById("fNotice").value?"Ohne Mindestlaufzeit: kündbar mit der angegebenen Frist.":"Ohne Mindestlaufzeit und ohne Frist: jederzeit kündbar.");return;}
   if(tp==="a"&&!document.getElementById("fStart").value){h.textContent="Für «Ende Vertragsjahr» bitte den Vertragsbeginn angeben.";return;}
@@ -3974,7 +3997,10 @@ function updPayHint(){var h=document.getElementById("fPayHint");if(!h)return;
   h.textContent=r?"Zahlung "+r+(n?" · nächste am "+fmtShort(n):""):"";h.hidden=!r;}
 ["fDue","fCycle","fStart"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updPayHint);el.addEventListener("change",updPayHint);});
 ["fCycle","fStart"].forEach(function(i){document.getElementById(i).addEventListener("change",paintPrices);});
-document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(b)setTermMode(b.dataset.tm);});
+document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(!b)return;
+  /* Mindestlaufzeit gewählt: Verlängerung «1 Monat» vorbelegen (danach monatlich kündbar, z.B. Handy CH, TKG in DE) – sonst endete der Vertrag still */
+  if(b.dataset.tm==="fixed"&&termMode!=="fixed"&&!document.getElementById("fRenew").value)document.getElementById("fRenew").value="1";
+  setTermMode(b.dataset.tm);});
 /* Nach einer Vorlage: «nicht kündbar» wählt die Kachel «Nicht kündbar», sonst zurück auf «Flexibel» */
 function syncWatch(){var f=document.getElementById("fNoCancel").checked;
   if(f&&termMode!=="tax")setTermMode("tax");else if(!f&&termMode==="tax")setTermMode("open");paintOptCounts();}
@@ -4334,7 +4360,7 @@ async function openDoc(d){
   docFree();curDoc=d;var tok=++docToken,url=d.blob?URL.createObjectURL(d.blob):KBlob.url(d.id),type=d.type||guessType(d.name);if(d.blob)curUrl=url;
   document.getElementById("vTitle").textContent=d.title||d.name||"Dokument";
   document.getElementById("vEdit").hidden=!d.blob;document.getElementById("vMailTxt").hidden=!d.mail;
-  document.getElementById("vSave").querySelector("span").textContent=d.blob?"PDF teilen":"Teilen";
+  document.getElementById("vSave").querySelector("span").textContent=d.blob?"Drucken oder teilen":"Teilen";
   document.getElementById("vBackL").textContent=d.blob?"Zurück":"Schliessen";
   document.getElementById("viewer").classList.add("on");vMsg("Wird geladen…");
   if(!d.blob&&!KBlob.has(d.id)){vMsg("Diese Datei ist auf diesem Gerät nicht vorhanden. Spiele ein Backup mit Dateien ein oder hänge sie neu an.");return;}
@@ -4432,7 +4458,8 @@ function letterParts(c,signers){
   var to=(pn&&!(al[0]&&al[0].toLowerCase().indexOf(pn.toLowerCase())>=0)?[pn]:[]).concat(al);
   var nr=[c.custNo?"Kundennummer: "+c.custNo:"",c.contrNo?contrLbl(c)+": "+c.contrNo:""].filter(Boolean);
   var e=termEnd(c),d=noticeDeadline(c),we=ps.length>1;
-  var body="Sehr geehrte Damen und Herren\n\nhiermit "+(we?"kündigen wir":"kündige ich")+" den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"+(e?", nach "+(we?"unserer":"meiner")+" Berechnung zum "+fmtD(iso(e)):"")+".\n\n"+
+  /* Anrede: CH ohne Komma, danach gross («Hiermit»); DE mit Komma, danach klein */
+  var deL=c.cur==="EUR";var body="Sehr geehrte Damen und Herren"+(deL?",":"")+"\n\n"+(deL?"hiermit ":"Hiermit ")+(we?"kündigen wir":"kündige ich")+" den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"+(e?", nach "+(we?"unserer":"meiner")+" Berechnung zum "+fmtD(iso(e)):"")+".\n\n"+
     "Bitte bestätigen Sie "+(we?"uns":"mir")+" die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse";
   /* Betreff ohne doppelten Namen («Kündigung Netflix», nicht «… Netflix bei Netflix») */
   var lb=String(c.label||"").trim(),subj="Kündigung "+(lb||pn)+(lb&&pn&&lb.toLowerCase().indexOf(pn.toLowerCase())<0?" bei "+pn:"");
@@ -4477,8 +4504,8 @@ function openLetter(c,trial){ltTrial=!!trial;ltMade=false;/* immer den aktuellen
   document.getElementById("ltSubj").value=L.subject;
   ltAuto.body=ltBodyText(L);document.getElementById("ltBody").value=ltAuto.body;
   /* Fehlende Angaben direkt hier nachtragen */
-  var mC=!c.custNo,mV=!c.contrNo;document.getElementById("ltMiss").hidden=!(mC||mV);
-  document.getElementById("ltMissC").hidden=!mC;document.getElementById("ltMissV").hidden=!mV;document.getElementById("ltContrL").textContent=contrLbl(c);document.getElementById("ltCust").value="";document.getElementById("ltContr").value="";
+  var mC=!c.custNo,mV=!c.contrNo;document.getElementById("ltMiss").hidden=!(mC&&mV);
+  document.getElementById("ltKvg").hidden=!(c.cur==="CHF"&&/krankenkass|grundversich|kvg/i.test([c.label,c.partner,c.cat].join(" ")));document.getElementById("ltMissC").hidden=!mC;document.getElementById("ltMissV").hidden=!mV;document.getElementById("ltContrL").textContent=contrLbl(c);document.getElementById("ltCust").value="";document.getElementById("ltContr").value="";
   document.getElementById("ltAddrMsg").textContent=L.to.length<=1?"Keine Adresse hinterlegt":"";
   var sh=document.getElementById("sheetLetter");sh.classList.add("on");paintLtWho();sh.scrollTop=0;}
 document.getElementById("ltWho").addEventListener("click",function(ev){var b=ev.target.closest("[data-ltwho]");if(!b)return;
@@ -4709,7 +4736,7 @@ document.getElementById("ltPdf").addEventListener("click",async function(){
     if(nC&&!has(/^Kundennummer: /))ref.push("Kundennummer: "+nC);if(nV&&!has(/^(Vertragsnummer|Rufnummer|Policennummer|Versichertennummer): /))ref.push(contrLbl(ltC)+": "+nV);
     var bEl=document.getElementById("ltBody"),wasAuto=bEl.value===ltAuto.body;bEl.value=ref.join("\n")+"\n\n"+blines.join("\n").trim();if(wasAuto)ltAuto.body=bEl.value;
     var cN=state.contracts[ltC._id]||{};document.getElementById("ltCust").value="";document.getElementById("ltContr").value="";
-    document.getElementById("ltMissC").hidden=!!cN.custNo;document.getElementById("ltMissV").hidden=!!cN.contrNo;document.getElementById("ltMiss").hidden=!!(cN.custNo&&cN.contrNo);}
+    document.getElementById("ltMissC").hidden=!!cN.custNo;document.getElementById("ltMissV").hidden=!!cN.contrNo;document.getElementById("ltMiss").hidden=!!(cN.custNo||cN.contrNo);}
   if(to.length<=1&&!(await ask({title:"Ohne Empfängeradresse?",text:"Im Anschriftfeld steht nur der Name. Für den Postversand fehlt die Adresse.",ok:"Trotzdem erstellen"})))return;
   if(to.length>6&&!(await ask({title:"Anschrift zu lang",text:"Die Anschrift hat "+to.length+" Zeilen. Ins Fenster eines Kuverts passen höchstens 6, sonst überdeckt sie Datum oder Betreff.",ok:"Trotzdem erstellen"})))return;
   var sm=ltSigners.filter(function(h){return !sndOk(h);});
@@ -4806,7 +4833,7 @@ function termLine(c,u){var T=u.T||termEnd(c),t0=today(),D=u.date,tot=Math.max(1,
     '<div class="tll"><i class="t0"></i><i class="td" style="left:'+p+'%"></i><i class="te"></i></div>'+
     '<div class="tlx"><span class="a">heute</span><span class="m" style="left:'+p+'%"><b>'+fmtShort(D)+'</b><small>kündigen bis</small></span><span class="e"><b>'+fmtShort(T)+'</b><small>Ende</small></span></div></div>';}
 function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
-  var c=Object.assign({},state.contracts[idv]);c._id=idv;
+  var c=Object.assign({},state.contracts[idv]);c._id=idv;if(!dTrial&&trialOn(c))dTrial=true;/* laufendes Probeabo: Kündigen gilt fürs Probeabo (Ende = letzter Gratistag) */
   /* gekündigt (Archiv oder «gekündigt per») oder abgelaufen: keine Frist und kein nächster Termin mehr */
   var gone=c.status==="cancelled"||!!c.cancelPer||endedByTerm(c),fixd=isFixed(c);
   var u=gone||fixd?{lvl:"",days:null,date:null}:urgency(c),nd=nextDue(c),e=effEnd(c);
@@ -4816,6 +4843,8 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     if(kT){var kd=nDl(c,kT);u={lvl:"",days:daysBetween(today(),kd),date:kd,T:kT};rt=c.end?renewAfter(c,kT):null;}}
   /* beendet (Kündigung wirksam oder Laufzeit vorbei): keine Verlängerung, Kündigung, Pause mehr – nur Duplizieren/Reaktivieren/Löschen */
   var ended=endedByNotice(c)||endedByTerm(c);
+  /* laufendes Probeabo: Zeitleiste bis zum letzten Gratistag (gleich wie «Probeabo bis …») */
+  if(!gone&&trialOn(c)){var tl0=trialLast(c);u={lvl:"",days:daysBetween(today(),tl0),date:tl0,T:tl0};}
   /* Vertragsende bei gekündigten Verträgen: das Kündigungsdatum bzw. der letzte Termin vor der Archivierung, nicht fortgeschrieben */
   if(gone){var cp=parseD(c.cancelPer),ca=parseD(c.cancelledAt),e0=parseD(c.end);
     if(cp)e=cp;else if(e0&&ca&&+c.renew){var g0=0,r0=+c.renew;e=e0;while(e<ca&&g0<400){g0++;e=addMonthsE(e0,g0*r0);}}else if(e0)e=e0;}
@@ -4839,7 +4868,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     var cur='<u>'+esc(cu)+"</u>",mt=money(mon,cu),k=decAt(mt),big=k<0?mt:mt.slice(0,k)+"<i>"+mt.slice(k)+"</i>";
     return '<div class="kz"><div class="kzm"><small>pro Monat</small><div><b>'+big+cur+"</b>"+ap(mon)+sh+'</div></div><div class="kzc">'+
       tile(nf0.format(mon*12,cu)+cur,"pro Jahr",ap(mon*12))+
-      (paidSoFar?tile(nf0.format(paidSoFar.sum,cu)+cur,"insgesamt bezahlt"):tile(nd?fmtShort(nd):"—","nächste Zahlung"))+"</div></div>";})();
+      (paidSoFar?tile(nf0.format(paidSoFar.sum,cu)+cur,"bisher bezahlt (ca.)"):tile(nd?fmtShort(nd):"—","nächste Zahlung"))+"</div></div>";})();
   var secs=[
    ["Kosten",[
     (+c.cycle||1)!==1?["Betrag",money(curPrice(c),c.cur)+" "+c.cur]:null,
@@ -5229,7 +5258,7 @@ document.getElementById("addBtn").setAttribute("aria-haspopup","menu");
 document.getElementById("addBtn").addEventListener("click",function(){addMenu(!document.getElementById("addMenu").classList.contains("on"));});
 document.getElementById("addDim").addEventListener("click",function(){addMenu(false);});
 document.getElementById("addMenu").addEventListener("click",function(ev){var b=ev.target.closest("[data-am]");if(!b)return;addMenu(false);
-  var k=b.dataset.am;if(k==="form")openForm(null);else if(k==="bank")document.getElementById("bankFile").click();});
+  var k=b.dataset.am;if(k==="form")openForm(null);else if(k==="inc")openIncome(null);else if(k==="bank")document.getElementById("bankFile").click();});
 document.addEventListener("keydown",function(ev){if(ev.key==="Escape"&&document.getElementById("addMenu").classList.contains("on")){addMenu(false);ev.stopPropagation();}},true);
 
 document.getElementById("q").addEventListener("input",function(){state.q=this.value;renderView();});
@@ -5274,12 +5303,12 @@ document.getElementById("pickList").addEventListener("click",function(ev){
   }
   if(pd.indexOf("cvia-")===0){var cid=pd.slice(5),ctr=/-t$/.test(cid);if(ctr)cid=cid.slice(0,-2);var cb=ev.target.closest("[data-pv]");if(!cb)return;var cc=state.contracts[cid];if(!cc)return;
     var txt={online:"Online / Kundenkonto",mail:"E-Mail",post:"Brief"}[cb.dataset.pv];putContract(cid,Object.assign({},cc,{cancF:txt}));closePick();render();
-    closeSheets();setTimeout(function(){openDetail(cid,{trial:ctr});setTimeout(function(){var kt=(document.querySelector("#detailBody .dfrist [data-kbtn]")||document.querySelector("#detailBody [data-kbtn]"));if(kt){kt.scrollIntoView({block:"center"});kt.click();}},150);},180);return;}
+    closeSheets();setTimeout(function(){openDetail(cid,{trial:ctr});setTimeout(function(){var kt=document.querySelector('#detailBody [data-kbtn][data-act^="k"]');if(kt){kt.scrollIntoView({block:"center"});kt.click();}},150);},180);return;}
   if(pd.indexOf("kill-")===0){
     var kid=pd.slice(5),ktr=/-t$/.test(kid);if(ktr)kid=kid.slice(0,-2);
     var kb=ev.target.closest("[data-pv]");if(!kb)return;
     if(kb.dataset.pv==="done"){markCancelled(kid,ktr);return;}
-    closeSheets();setTimeout(function(){openDetail(kid,{trial:ktr});setTimeout(function(){var kt=(document.querySelector("#detailBody .dfrist [data-kbtn]")||document.querySelector("#detailBody [data-kbtn]"));if(kt){kt.click();kt.scrollIntoView({block:"center"});}},120);},180);return;
+    closeSheets();setTimeout(function(){openDetail(kid,{trial:ktr});setTimeout(function(){var kt=document.querySelector('#detailBody [data-kbtn][data-act^="k"]');if(kt){kt.click();kt.scrollIntoView({block:"center"});}},120);},180);return;
   }
   if(pd.indexOf("catpick-")===0){
     if(ev.target.closest("#newCatAdd")){addCustomCat();return;}
@@ -6826,10 +6855,10 @@ document.getElementById("csvBtn").addEventListener("click",async function(){
   Object.keys(state.contracts).forEach(function(k){
     var c=state.contracts[k],nd=nextDue(c),u=urgency(c);
     rows.push([c.partner,c.label,c.cat,curPrice(c).toFixed(2),c.cur,c.cycle,monthlyCost(c).toFixed(2),
-      nd?iso(nd):"",c.start||"",c.end||"",/* Ende roh (nicht fortgeschrieben), damit der Import denselben Vertrag ergibt */+c.notice||0,c.noticeU||"",c.renew||"",u.date?iso(u.date):"",
+      nd?iso(nd):"",c.start||"",c.end||"",/* Ende roh (nicht fortgeschrieben), damit der Import denselben Vertrag ergibt */+c.notice||0,c.noticeU||"",c.renew||"",u.date&&!(c.status==="cancelled"||c.cancelPer||endedByTerm(c))?iso(u.date):"",
       ["Anfang:"+(+c.amount||0).toFixed(2)].concat(pricesOf(c).map(function(p){return p.from+":"+(+p.amount).toFixed(2);})).join(" | "),
       c.custNo||"",c.contrNo||"",holdersOf(c).join(", "),c.payM||"",c.payA||"",c.cancF||"",c.web||"",c.tel||"",c.mail||"",c.status||"active",
-      c.cancTerm||(c.end?"":"jederzeit"),c.mand?"ja":"",c.note||"",  /* Frist 0 und «jederzeit» ausdrücklich, damit der Import keine Katalogwerte einsetzt */
+      c.cancTerm||(c.end||isFixed(c)?"":"jederzeit"),c.mand?"ja":"",c.note||"",  /* Frist 0 und «jederzeit» ausdrücklich, damit der Import keine Katalogwerte einsetzt */
       extrasOf(c).map(function(x){return x.date+":"+x.amount.toFixed(2)+(x.note?":"+x.note.replace(/[|:]/g," "):"");}).join(" | "),
       c.addr||"",c.cancUrl||"",(function(){var sp=splitOf(c);return sp?holdersOf(c).map(function(h){return h+":"+String(Math.round(+sp[h]*100)/100);}).join(" | "):"";})(),
       c.noCancel?"ja":"",c.trial||"",
@@ -7857,7 +7886,7 @@ var OB_PAGES=[
   {k:"tab",tab:"list",t:"Alle Verträge im Blick",b:["Alle Vertragsdetails auf einen Blick","Per Kontoauszug in Minuten erfasst","Monatliche Fixkosten sofort sichtbar"]},
   {k:"tab",tab:"stat",t:"Jeden Monat im Voraus geplant",b:["Alle Abbuchungen übersichtlich geplant","Bezahlt oder offen sofort erkennen","Keine Überraschungen im Briefkasten"]},
   {k:"tab",tab:"budget",t:"Weisst du, was dir bleibt?",b:["Einnahmen minus Fixkosten klar berechnet","Monatlich und jährlich auf einen Blick"]},
-  {k:"tab",tab:"term",t:"Keine ungewollten Vertragsverlängerungen",b:["Kündigungsfristen automatisch berechnet","Rechtzeitig vor Fristablauf informiert","Kündigen mit einem Tipp – Schreiben fertig"]},
+  {k:"tab",tab:"term",t:"Keine ungewollten Vertragsverlängerungen",b:["Kündigungsfristen automatisch berechnet","Rechtzeitig unter «Fristen» angezeigt","Kündigen mit einem Tipp – Schreiben fertig"]},
   {k:"tips"},
   {k:"setup",first:true},
   {k:"start",first:true}];
@@ -7875,6 +7904,7 @@ var OB_TIPS=[ /* [Farbe, Symbol, Titel, Text, bald verfügbar] */
 var OB_QUICK=[["Miete","Wohnen"],["Strom","Energie & Wasser"],["Handy","Mobilfunk & Internet"],["Internet","Mobilfunk & Internet"],
   ["Streaming","Abos & Medien"],["Fitness","Freizeit & Sport"],["Autoversicherung","Versicherung"],["Rundfunkbeitrag","Steuern & Gebühren"]];
 /* Schweiz: Serafe statt Rundfunkbeitrag */
+function locCur(){try{var L=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||""]);for(var i=0;i<L.length;i++){if(/-CH$|-LI$/i.test(L[i]))return "CHF";if(/-(DE|AT)$/i.test(L[i]))return "EUR";}}catch(e){}return "EUR";}
 function obQn(q){return q[0]==="Rundfunkbeitrag"&&(ob.home||state.settings.home)==="CHF"?"Serafe":q[0];}
 var OB_CUR={EUR:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#003399"/><g fill="#FFCC00"><circle cx="15.00" cy="4.00" r="1.05"/><circle cx="18.00" cy="4.80" r="1.05"/><circle cx="20.20" cy="7.00" r="1.05"/><circle cx="21.00" cy="10.00" r="1.05"/><circle cx="20.20" cy="13.00" r="1.05"/><circle cx="18.00" cy="15.20" r="1.05"/><circle cx="15.00" cy="16.00" r="1.05"/><circle cx="12.00" cy="15.20" r="1.05"/><circle cx="9.80" cy="13.00" r="1.05"/><circle cx="9.00" cy="10.00" r="1.05"/><circle cx="9.80" cy="7.00" r="1.05"/><circle cx="12.00" cy="4.80" r="1.05"/></g></svg>',"Euro"],CHF:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#DA291C"/><path d="M13 4h4v4h4v4h-4v4h-4v-4H9V8h4z" fill="#fff"/></svg>',"Franken"],USD:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect y="0.000" width="30" height="1.538" fill="#B22234"/><rect y="3.077" width="30" height="1.538" fill="#B22234"/><rect y="6.154" width="30" height="1.538" fill="#B22234"/><rect y="9.231" width="30" height="1.538" fill="#B22234"/><rect y="12.308" width="30" height="1.538" fill="#B22234"/><rect y="15.385" width="30" height="1.538" fill="#B22234"/><rect y="18.462" width="30" height="1.538" fill="#B22234"/><rect width="13" height="10.77" fill="#3C3B6E"/><g fill="#fff"><circle cx="1.6" cy="1.4" r=".55"/><circle cx="3.8" cy="1.4" r=".55"/><circle cx="6.0" cy="1.4" r=".55"/><circle cx="8.2" cy="1.4" r=".55"/><circle cx="10.4" cy="1.4" r=".55"/><circle cx="12.6" cy="1.4" r=".55"/><circle cx="2.7" cy="3.3" r=".55"/><circle cx="4.9" cy="3.3" r=".55"/><circle cx="7.1" cy="3.3" r=".55"/><circle cx="9.3" cy="3.3" r=".55"/><circle cx="11.5" cy="3.3" r=".55"/><circle cx="1.6" cy="5.2" r=".55"/><circle cx="3.8" cy="5.2" r=".55"/><circle cx="6.0" cy="5.2" r=".55"/><circle cx="8.2" cy="5.2" r=".55"/><circle cx="10.4" cy="5.2" r=".55"/><circle cx="12.6" cy="5.2" r=".55"/><circle cx="2.7" cy="7.1" r=".55"/><circle cx="4.9" cy="7.1" r=".55"/><circle cx="7.1" cy="7.1" r=".55"/><circle cx="9.3" cy="7.1" r=".55"/><circle cx="11.5" cy="7.1" r=".55"/><circle cx="1.6" cy="9.0" r=".55"/><circle cx="3.8" cy="9.0" r=".55"/><circle cx="6.0" cy="9.0" r=".55"/><circle cx="8.2" cy="9.0" r=".55"/><circle cx="10.4" cy="9.0" r=".55"/><circle cx="12.6" cy="9.0" r=".55"/></g></svg>',"US-Dollar"],GBP:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#012169"/><path d="M0 0l30 20M30 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l30 20M30 0L0 20" stroke="#C8102E" stroke-width="1.5"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6"/><path d="M15 0v20M0 10h30" stroke="#C8102E" stroke-width="3.4"/></svg>',"Pfund"],TRY:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#E30A17"/><circle cx="11.5" cy="10" r="5" fill="#fff"/><circle cx="12.8" cy="10" r="4" fill="#E30A17"/><path d="M17.3 10l3.9-1.3-2.4 3.3V8l2.4 3.3z" fill="#fff"/></svg>',"Lira"]};
 var CUR_MAIN=["EUR","CHF"],CUR_MORE=["USD","GBP","TRY"];
@@ -7925,7 +7955,7 @@ function obPage(p){
       '<p class="obsec">Mit Vorlage starten</p><p class="obs">Tipp an, was du hast – den Rest ergänzt du.</p><div class="obchips row">'+
       OB_QUICK.map(function(q,j){var cat=obCat(q[1]),e=catEntry(cat);
         return '<button type="button" class="obchip" data-obq="'+j+'" aria-pressed="'+(ob.quick===j)+'"><span class="mk" style="background:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span>'+
-          '<span class="tx"><b>'+esc(obQn(q))+'</b><small>'+esc(cat)+'</small></span></button>';}).join("")+'</div>'+
+          '<span class="tx"><b>'+esc(obQn(q)).replace("versicherung","&shy;versicherung")+'</b><small>'+esc(cat)+'</small></span></button>';}).join("")+'</div>'+
       '<div class="obgrow"></div><button type="button" class="obbtn" data-ob="create"'+(ob.quick<0?' disabled':'')+'>'+(ob.quick<0?'Vertrag erfassen':esc(obQn(OB_QUICK[ob.quick]))+' erfassen')+'</button>'+
       '<button type="button" class="obghost" data-ob="done">Erst mal umschauen</button></div>';}
   return "";
@@ -7952,7 +7982,7 @@ function openOnb(first){
   /* Hauptwährung vorbelegen: beim echten Erststart EUR; gibt es schon eine gespeicherte Einstellung
      (z.B. nach «Alle Daten löschen», Währung bleibt dort erhalten) oder einen Kursabgleich, die bisherige */
   var had=!!state.settings.rateChecked;try{var sv=JSON.parse(localStorage.getItem(LS)||"null");had=had||!!(sv&&sv.settings&&sv.settings.home);}catch(e){}
-  ob.home=first&&!had?"EUR":(state.settings.home||"EUR");
+  ob.home=first&&!had?locCur():(state.settings.home||"EUR");
   ob.pages=OB_PAGES.filter(function(p){return first||!p.first;});
   var el=document.getElementById("onb");el.hidden=false;document.body.style.overflow="hidden";obPaint(1);
 }
