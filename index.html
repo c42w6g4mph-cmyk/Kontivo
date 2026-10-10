@@ -2547,6 +2547,8 @@ function inDays(d){
 function noticeText(c){var n=+c.notice||0;if(!n)return "";if(c.noticeU==="k")return "bis zum "+n+". des Monats";
   return n+" "+(c.noticeU==="w"?(n===1?"Woche":"Wochen"):c.noticeU==="d"?(n===1?"Tag":"Tage"):(n===1?"Monat":"Monate"));}
 function renewTo(c){return renewAfter(c,termEnd(c));}
+/* Feste Laufzeit ohne Verlängerung (Leasing, Kredit): endet von selbst, keine Kündigung nötig */
+function endsSelf(c){return !!parseD(c.end)&&!(+c.renew)&&!isFixed(c)&&!c.cancelPer&&c.status!=="cancelled";}
 function humanDays(d){
   if(d===0)return "heute";if(d===1)return "1 Tag";if(d<=60)return d+" Tage";
   var m=Math.round(d/30.44);if(m<24)return m+" Monate";
@@ -2683,6 +2685,7 @@ function renderView(){
       if(trialOn(c)||c.noWatch)return;
       if(c.cancelPer){var cp=parseD(c.cancelPer);if(cp)items.push({c:c,d:cp,k:"end"});return;}
       if(isP(c))return;
+      if(endsSelf(c)){var ee=parseD(c.end);if(ee&&ee>=t1)items.push({c:c,d:ee,k:"end"});return;}
       var T=termEnd(c);if(!T)return;
       if(isKept(c)){var T2=c.end?renewAfter(c,T):nextTerm(c,null,T),d2=T2?nDl(c,T2):null;items.push({c:c,d:d2||T,k:d2?"kept":"keptEnd",e:T2});return;}
       var dl=nDl(c,T);if(dl<t1)return;
@@ -2690,7 +2693,7 @@ function renderView(){
     });
     items.sort(function(x,y){return x.d-y.d;});
     var tItem=function(x){var c=x.c,dn=daysBetween(t1,x.d),sub,chip,cc="",acts=false;
-      if(x.k==="end"){sub="Gekündigt";chip="endet "+ddmm(x.d);cc="end";}
+      if(x.k==="end"){sub=x.c.cancelPer?"Gekündigt":"Endet von selbst";chip="endet "+ddmm(x.d);cc="end";}
       else if(x.k==="trial"){sub="Probeabo · gratis bis "+ddmm(x.d);chip=inDays(dn);cc=!x.act?"":dn<=7?"alert":"warn";acts=!!x.act;}
       else if(x.k==="kept"){sub="Behalten · nächste Frist "+ddmm(x.d);chip=inDays(dn);cc="ok";}
       else if(x.k==="keptEnd"){sub="Behalten · läuft bis "+ddmm(x.d);chip=inDays(dn);cc="ok";}
@@ -4886,12 +4889,12 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
    ["Laufzeit & Kündigung",[
     c.start?["Beginn",fmtD(c.start)]:null,
     c.end||c.cancelPer?["Vertragsende",fmtD(iso(e))+(!gone&&termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
-    fixd?["Kündigung",isTax(c)?"nicht kündbar · Steuern & Gebühren":"nicht kündbar"]:["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
-    u.date&&!due60&&!gone?(u.days>=0&&termEnd(c)?["",termLine(c,u),true]:["Nächster Termin","per "+fmtShort(u.T||termEnd(c))+", kündigen bis "+fmtShort(u.date)+" (abgelaufen)"]):null,
+    fixd?["Kündigung",isTax(c)?"nicht kündbar · Steuern & Gebühren":"nicht kündbar"]:endsSelf(c)?["Kündigung",gone?"nicht nötig":"nicht nötig · endet von selbst"]:["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
+    u.date&&!due60&&!gone&&!endsSelf(c)?(u.days>=0&&termEnd(c)?["",termLine(c,u),true]:["Nächster Termin","per "+fmtShort(u.T||termEnd(c))+", kündigen bis "+fmtShort(u.date)+" (abgelaufen)"]):null,
     c.mand&&!fixd?["Kündigung","nur mit neuem Anbieter"]:null,
-    c.noWatch&&!fixd?["Frist","wird nicht beobachtet"]:null,
+    c.noWatch&&!fixd&&!endsSelf(c)?["Frist","wird nicht beobachtet"]:null,
     fixd||gone?null:rt?["Sonst verlängert bis",fmtD(iso(rt))]:(c.renew?["Verlängerung","automatisch um "+c.renew+(+c.renew===1?" Monat":" Monate")]:null),
-    c.cancF&&!ended?["Kündigungsweg",c.cancF]:null,
+    c.cancF&&!ended&&!endsSelf(c)?["Kündigungsweg",c.cancF]:null,
     c.cancelPer&&c.cancelledOn?["Gekündigt am",fmtD(c.cancelledOn)]:null,
     trialOn(c)?["Probeabo","gratis bis "+fmtD(iso(trialLast(c)))]:null]],
    ["Zuordnung",[
@@ -5550,7 +5553,7 @@ function qualItems(){
        Frist 0 bei Termin auf Quartal/Halbjahr/Jahr/Vertragsjahr oder fester Laufzeit: Kündigung am letzten Tag ist kaum je richtig */
     if(!c.cancelPer&&!c.noWatch&&!c.mand&&!isFixed(c)){var nN=+c.notice||0;
       if(!noticeDeadline(c)){if(!anyNotice(c))add("B","c:"+k+":notice",Object.assign({why:(!nN&&!c.cancTerm)?"Keine Kündigungsfrist":"Laufzeit oder Rhythmus fehlt"},base));}
-      else if(!nN&&(c.end||/^[ayqh]$/.test(c.cancTerm||"")))add("B","c:"+k+":notice",Object.assign({why:"Keine Kündigungsfrist"},base));}
+      else if(!nN&&!endsSelf(c)&&(c.end||/^[ayqh]$/.test(c.cancTerm||"")))add("B","c:"+k+":notice",Object.assign({why:"Keine Kündigungsfrist"},base));}
   });
   Object.keys(state.incomes).forEach(function(k){var c=state.incomes[k],base={kind:"i",id:k,c:c,name:c.label||c.name||"Einnahme",sub:"Einnahme"};
     if(!holdersOf(c).length)add("A","i:"+k+":holder",Object.assign({why:"Keine Person"},base));
@@ -8049,7 +8052,7 @@ function vkNeeds(only){
     var r=[],pk=String(c.partner||"").trim().toLowerCase(),g=groups[pk];
     if(pk&&g&&!g.logoC&&!sk[pk])lg[pk]=g;
     if(vkTermNeed(c,k)){r.push("term");out.term.push(k);}
-    if(!isFixed(c)&&cancVia(c)!=="online")holdersOf(c).forEach(function(h){if(!sndOk(h)){if(r.indexOf("snd")<0)r.push("snd");sh[h]=1;}});
+    if(!isFixed(c)&&!endsSelf(c)&&cancVia(c)!=="online")holdersOf(c).forEach(function(h){if(!sndOk(h)){if(r.indexOf("snd")<0)r.push("snd");sh[h]=1;}});
     out.total++;if(!r.length)out.ready++;out.per[k]=r;
   });
   out.logo=Object.keys(lg).map(function(k){return lg[k];});
@@ -8061,7 +8064,7 @@ function vkRingHtml(p,cls){return '<span class="vkring'+(cls?" "+cls:"")+'" styl
 /* Zeile unter «Mehr» */
 /* Hinweis im Vertragsdetail, nur wenn etwas fehlt */
 function vkHintHtml(id){var c=state.contracts[id];if(!c||!isActiveC(c)||c.cancelPer)return "";var r=(vkNeeds(id).per[id])||[];if(!r.length)return "";
-  var L={logo:"Logo",term:"Kündigungsfrist",snd:"Absender-Adresse"},why=r.indexOf("term")>=0?"dann erinnert Kontivo rechtzeitig":r.indexOf("snd")>=0?"dann ist die Kündigung startklar":"dann sieht der Vertrag komplett aus";
+  var L={logo:"Logo",term:"Kündigungsfrist",snd:"Absender-Adresse"},why=r.indexOf("term")>=0?"dann zeigt Kontivo die Frist rechtzeitig":r.indexOf("snd")>=0?"dann ist die Kündigung startklar":"dann sieht der Vertrag komplett aus";
   return '<button type="button" class="vkhint" data-act="vk"><span aria-hidden="true">✨</span><span><b>'+(r.length===1?"1 Angabe fehlt noch":r.length+" Angaben fehlen noch")+"</b><small>"+r.map(function(x){return L[x];}).join(" · ")+" – "+why+"</small></span><em>Ergänzen ›</em></button>";}
 function paintVkRow(){var el=document.getElementById("vkOpen");if(!el)return;var n=vkNeeds(),open=n.total-n.ready,sub=document.getElementById("vkSub");
   sub.textContent=!n.total?"":open?open+" offen":"Startklar";sub.classList.toggle("w",!!open);
