@@ -618,6 +618,7 @@ body.hasplus .topadd{display:inline-flex}
 .ma u{text-decoration:none;font-size:11px;color:var(--ink2)}
 .ma .ms{font-size:11px;color:var(--ink3)}
 .ma .ms.warn{color:var(--warn);font-weight:600}
+.mn .mp{font-weight:500;color:var(--ink2);font-size:.88em}
 .mrow.past .mn,.mrow.past .ma b{color:var(--ink2)}
 .mrow.past .mark{opacity:.7}
 .mempty{padding:12px 0 2px;border-top:1px solid var(--line);font-size:14px;color:var(--ink2)}
@@ -1501,7 +1502,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 
 <div class="amdim" id="addDim"></div>
 <div class="amenu" id="addMenu" role="menu" aria-label="Hinzufügen" inert aria-hidden="true">
-  <button role="menuitem" data-am="form"><div>Vertrag erfassen<small>Einzeln, mit Anbieter-Katalog</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
+  <button role="menuitem" data-am="form"><div>Vertrag erfassen<small>Einzeln, mit Vorlagen-Katalog</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
   <button role="menuitem" data-am="bank"><div>Aus Kontoauszug<small>Fixkosten in Bank-Dateien finden – Konto und Kreditkarte auf einmal</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></button>
 </div>
 <div class="minibar" id="miniBar" aria-hidden="true"><span id="miniTitle"></span></div>
@@ -1559,7 +1560,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <button class="srowbtn" id="onbOpen" type="button"><span class="mdt"><b>Einführung ansehen</b><small>Die wichtigsten Funktionen in einer Minute</small></span><em>›</em></button></div>
   <div class="sgroup legalg"><div class="sgh">Rechtliches</div>
     <details class="legal"><summary>Haftungsausschluss</summary>
-    <p class="note">Kontivo ist ein Hilfsmittel zur persönlichen Übersicht. Alle Berechnungen (Kosten, Fristen, Kündigungstermine, Wechselkurse) erfolgen ohne Gewähr auf Basis deiner Eingaben. Massgebend sind allein dein Vertrag und die Angaben des Anbieters.</p>
+    <p class="note">Kontivo ist ein Hilfsmittel zur persönlichen Übersicht. Alle Berechnungen (Kosten, Fristen, Kündigungstermine, Wechselkurse) erfolgen ohne Gewähr auf Basis deiner Eingaben. Massgebend sind allein dein Vertrag und die Angaben deines Vertragspartners.</p>
     <p class="note">Kündigungstexte, Katalogangaben und Hinweise sind unverbindliche Vorlagen und ersetzen keine Rechts- oder Finanzberatung. Prüfe Fristen und Formvorschriften selbst. Für verpasste Fristen, falsche Beträge oder Datenverlust wird keine Haftung übernommen, soweit gesetzlich zulässig.</p></details>
     <details class="legal"><summary>Datenschutz</summary>
     <p class="note">Kontivo hat kein Benutzerkonto, keine Werbung, kein Tracking und keine Analyse. Deine Verträge, Logos und Dokumente werden nur lokal auf diesem Gerät gespeichert und nicht an Kontivo übermittelt.</p>
@@ -1567,7 +1568,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <p class="note">• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.<br>• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst), images.weserv.nl und unavatar.io.<br>• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).<br>• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.<br>• Kontoauszug einlesen: Die Datei wird nur auf dem Gerät gelesen, nicht gespeichert und nicht übertragen.<br>• Handschrift-Schriften für Namenszug-Vorschläge sind in der App enthalten (SIL Open Font License), dafür wird nichts geladen.</p>
     <p class="note">Backups und CSV-Dateien erstellst und speicherst du selbst. Ohne Backup gehen deine Daten beim Löschen der App oder der Website-Daten verloren. Mit «Alle Daten löschen» entfernst du alles vom Gerät.</p></details>
     <details class="legal"><summary>Marken und Logos</summary>
-    <p class="note">Logos, Marken und Firmennamen gehören ihren jeweiligen Inhabern. Sie werden nur zur Wiedererkennung deiner eigenen Verträge angezeigt. Kontivo steht in keiner Verbindung zu den genannten Anbietern und wird von ihnen weder unterstützt noch gesponsert.</p></details></div>
+    <p class="note">Logos, Marken und Firmennamen gehören ihren jeweiligen Inhabern. Sie werden nur zur Wiedererkennung deiner eigenen Verträge angezeigt. Kontivo steht in keiner Verbindung zu den genannten Unternehmen und wird von ihnen weder unterstützt noch gesponsert.</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b>Kontivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
   <div class="bver">Version 1.0</div>
@@ -1726,7 +1727,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 
   <h3>Erinnerung und Wechsel</h3>
   <div class="swlist">
-    <label class="swrow"><span class="t"><b>Pflichtvertrag</b><small>Wechseln statt kündigen, z.B. Krankenkasse. Nach der Kündigung neuen Anbieter erfassen.</small></span><input type="checkbox" class="swi" id="fMand"></label>
+    <label class="swrow"><span class="t"><b>Pflichtvertrag</b><small>Wechseln statt kündigen, z.B. Krankenkasse. Nach der Kündigung den neuen Vertragspartner erfassen.</small></span><input type="checkbox" class="swi" id="fMand"></label>
     <label class="swrow"><span class="t"><b>Nicht an Frist erinnern</b><small>Erscheint nicht unter «Fristen», z.B. Miete.</small></span><input type="checkbox" class="swi" id="fNoWatch"></label>
   </div>
 
@@ -2150,6 +2151,10 @@ var RATE0={EUR:0.94,USD:0.80,GBP:1.07,TRY:0.02};
 function rateOf(c){var s=state.settings;if(!c||c==="CHF")return 1;var r=s.rates&&+s.rates[c];return r>0?r:(RATE0[c]||1);}
 function conv(a,c){var s=state.settings;c=c||"CHF";if(c===s.home)return a;return a*rateOf(c)/rateOf(s.home);}
 function titleOf(c){return c.label||c.partner||c.name||"Ohne Namen";}
+/* Vertragspartner als Zusatz, wenn die Bezeichnung ihn nicht schon nennt (Fristen, Quartals-Check) */
+function partnerOf(c){var p=String(c.partner||"").trim(),l=String(c.label||"").trim();return p&&l&&l.toLowerCase().indexOf(p.toLowerCase())<0?p:"";}
+/* Titel mit Vertragspartner in grau dahinter (Fristen): «Musik · Spotify», das Datum darunter bleibt lesbar */
+function titleP(c){var p=partnerOf(c);return esc(titleOf(c))+(p?' <span class="mp">· '+esc(p)+"</span>":"");}
 function holdersOf(c){return (c.holders&&c.holders.length)?c.holders:[];}
 /* Inhaber in der Reihenfolge von settings.holders, unbekannte dahinter in bisheriger Reihenfolge */
 function holdersSorted(a){var H=state.settings.holders||[],r=function(h,i){var x=H.indexOf(h);return x<0?1000+i:x;};
@@ -2339,7 +2344,10 @@ function isKept(c){var T=termEnd(c);return !!(T&&c.keptFor&&c.keptFor===iso(T));
 function isAnytime(c){return !c.end&&(c.cancTerm==="m"||(c.cancTerm==="p"&&(+c.cycle||1)<=1));}
 function needsAction(c){if(c.cancelPer||isFixed(c))return false;var T=termEnd(c);if(!T||isAnytime(c)||c.noWatch)return false;
   if(c.keptFor&&c.keptFor===iso(T))return false;var d=nDl(c,T),n=daysBetween(today(),d);return n>=0&&n<=30;}
-function trialNeeds(c){var d=parseD(c.trial),t=today();return !!(d&&d>=t&&daysBetween(t,d)<=30&&c.trialKept!==c.trial&&!c.cancelPer);}
+function trialNeeds(c){var d=parseD(c.trial),t=today();return !!(d&&d>t&&daysBetween(t,d)<=30&&c.trialKept!==c.trial&&!c.cancelPer);}
+/* Probeabo läuft noch (unabhängig von der 30-Tage-Schwelle): steht immer unter «Fristen». c.trial = erster kostenpflichtiger Tag, gratis bis zum Vortag */
+function trialOn(c){var d=parseD(c.trial),t=today();return !!(d&&d>t&&c.trialKept!==c.trial&&c.trialKept!==true&&!c.cancelPer&&c.status!=="cancelled");}
+function trialLast(c){var d=parseD(c.trial);return d?addDays(d,-1):null;}
 
 /* ---------- Speicher ---------- */
 /* Speicherfehler (voll/blockiert) einmal melden; nach erfolgreichem Speichern wieder scharf */
@@ -2530,28 +2538,28 @@ function renderView(){
     var todo=a.filter(function(c){return needsAction(c)&&!trialNeeds(c);}).sort(function(x,y){return noticeDeadline(x)-noticeDeadline(y);});
     var triTodo=a.filter(trialNeeds).sort(function(x,y){return parseD(x.trial)-parseD(y.trial);});
     var nTodo=todo.length+triTodo.length;
-    var anytime=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&(isP(c)||(!noticeDeadline(c)&&(+c.notice||0)>0));});
-    var nofrist=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&!noticeDeadline(c)&&!(+c.notice||0)&&!c.mand;});
+    var anytime=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&!trialOn(c)&&(isP(c)||(!noticeDeadline(c)&&(+c.notice||0)>0));});
+    var nofrist=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&!trialOn(c)&&!noticeDeadline(c)&&!(+c.notice||0)&&!c.mand;});
     var unw=a.filter(function(c){return c.noWatch&&!c.cancelPer;});
     // Kopfzeile
-    if(nTodo){var nx=todo.map(noticeDeadline).concat(triTodo.map(function(c){return parseD(c.trial);})).sort(function(x,y){return x-y;})[0];
-      var urgent=todo.filter(function(c){return daysBetween(t1,noticeDeadline(c))<=7;}).length+triTodo.filter(function(c){return daysBetween(t1,parseD(c.trial))<=7;}).length;
+    if(nTodo){var nx=todo.map(noticeDeadline).concat(triTodo.map(trialLast)).sort(function(x,y){return x-y;})[0];
+      var urgent=todo.filter(function(c){return daysBetween(t1,noticeDeadline(c))<=7;}).length+triTodo.filter(function(c){return daysBetween(t1,trialLast(c))<=7;}).length;
       o+='<div class="tstat'+(urgent?" alert":" warn")+'"><i>'+nTodo+'</i><b>'+(nTodo===1?"1 Entscheidung offen":nTodo+" Entscheidungen offen")+'</b><span>'+(function(t){return t.charAt(0).toUpperCase()+t.slice(1);})([nx?"nächste Frist "+inDays(daysBetween(t1,nx)):"",urgent&&urgent<nTodo?urgent+" dringend":""].filter(Boolean).join(" · "))+"</span></div>";}
     /* Status zentriert unter dem Titel (SwiftUI: ContentUnavailableView-ähnlich, Symbol + Titel + Untertitel) */
     else if(a.length)o+='<div class="tstat ok"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12.5 4 4 8-9"/></svg></i><b>Alles erledigt</b><span>Keine offenen Entscheidungen</span></div>';
     var row=function(c,txt,cls){return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+
-      '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst'+(cls?" "+cls:"")+'">'+esc(txt)+"</span></button>";};
+      '<span class="mt"><span class="mn">'+titleP(c)+'</span></span><span class="tst'+(cls?" "+cls:"")+'">'+esc(txt)+"</span></button>";};
     /* Quartals-Check: «Weg damit» vorgemerkte Verträge, bis gekündigt oder «Doch behalten» */
     var marked=a.filter(function(c){return reviewKill(c)&&!c.cancelPer;}).sort(function(x,y){return monthlyCost(y)-monthlyCost(x);});
     if(marked.length){var mSum=marked.reduce(function(n,c){return n+monthlyCost(c);},0);
       o+='<div class="grp"><div class="grphead"><span>Zum Kündigen vorgemerkt</span><span>'+money(mSum)+" "+H+'/Mt.</span></div>'+
-        marked.map(function(c){return '<div class="tcard"><button class="card" data-open="'+esc(c._id)+'">'+markHtml(c)+'<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline2">'+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr · beim Quartals-Check vorgemerkt</div></div></button>"+
+        marked.map(function(c){return '<div class="tcard"><button class="card" data-open="'+esc(c._id)+'">'+markHtml(c)+'<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline2">'+(partnerOf(c)?esc(partnerOf(c))+" · ":"")+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr · beim Quartals-Check vorgemerkt</div></div></button>"+
           '<div class="tacts"><button data-rvkeep="'+esc(c._id)+'">Doch behalten</button><button data-kill="'+esc(c._id)+'">'+(c.mand?"Wechseln":"Kündigen")+"</button></div></div>";}).join("")+"</div>";}
     /* Eine Liste nach Datum (Variante 1): Knöpfe Behalten/Kündigen erst ab 2 Monaten vor Vertragsende (bei längerer Frist ab 30 Tagen vor der Frist, needsAction) oder wenn ein Probeabo endet */
     var items=[];
-    triTodo.forEach(function(c){items.push({c:c,d:parseD(c.trial),k:"trial"});});
+    a.filter(trialOn).forEach(function(c){items.push({c:c,d:trialLast(c),k:"trial",act:trialNeeds(c)});});
     a.forEach(function(c){
-      if(trialNeeds(c)||c.noWatch)return;
+      if(trialOn(c)||c.noWatch)return;
       if(c.cancelPer){var cp=parseD(c.cancelPer);if(cp)items.push({c:c,d:cp,k:"end"});return;}
       if(isP(c))return;
       var T=termEnd(c);if(!T)return;
@@ -2562,13 +2570,13 @@ function renderView(){
     items.sort(function(x,y){return x.d-y.d;});
     var tItem=function(x){var c=x.c,dn=daysBetween(t1,x.d),sub,chip,cc="",acts=false;
       if(x.k==="end"){sub="Gekündigt";chip="endet "+ddmm(x.d);cc="end";}
-      else if(x.k==="trial"){sub="Probeabo bis "+ddmm(x.d);chip=inDays(dn);cc=dn<=7?"alert":"warn";acts=true;}
+      else if(x.k==="trial"){sub="Probeabo · gratis bis "+ddmm(x.d);chip=inDays(dn);cc=!x.act?"":dn<=7?"alert":"warn";acts=!!x.act;}
       else if(x.k==="kept"){sub="Behalten · nächste Frist "+ddmm(x.d);chip=inDays(dn);cc="ok";}
       else if(x.k==="keptEnd"){sub="Behalten · läuft bis "+ddmm(x.d);chip=inDays(dn);cc="ok";}
       else{sub="Kündigung bis "+ddmm(x.d);chip=inDays(dn);acts=needsAction(c)||(x.e&&daysBetween(t1,x.e)<=61);cc=dn<=7?"alert":(acts?"warn":"");}
       var tr=x.k==="trial"?' data-trial="1"':"";
       return '<div class="tit"><button class="mrow" data-open="'+esc(c._id)+'">'+markHtml(c)+
-        '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">'+esc(sub)+'</span></span><span class="tchip'+(cc?" "+cc:"")+'">'+esc(chip)+"</span></button>"+
+        '<span class="mt"><span class="mn">'+titleP(c)+'</span><span class="mm">'+esc(sub)+'</span></span><span class="tchip'+(cc?" "+cc:"")+'">'+esc(chip)+"</span></button>"+
         (acts?'<div class="tacts"><button data-keep="'+esc(c._id)+'"'+tr+'>Behalten</button><button class="tk" data-kill="'+esc(c._id)+'"'+tr+'>'+(c.mand?"Wechseln":"Kündigen")+"</button></div>":"")+"</div>";};
     if(items.length)o+='<div class="grp"><div class="grphead"><span>Fristen</span><span>nach Datum</span></div><div class="mrows2 tlist">'+items.map(tItem).join("")+"</div></div>";
     var fold=function(key,title,list,txtFn,extra,rowFn){
@@ -2577,7 +2585,7 @@ function renderView(){
         (op?'<div class="mrows mrows2">'+list.map(function(c){return (rowFn||row)(c,txtFn(c));}).join("")+"</div>":"")+"</div>";};
     /* Frist direkt nachtragen: Zeile öffnet die Datenqualität mit dem Inline-Editor «Kündigungsfrist und Laufzeit» */
     var rowQ=function(c,txt){return '<button class="mrow trow" data-qnotice="'+esc(c._id)+'">'+markHtml(c)+
-      '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span></span><span class="tst">'+esc(txt)+" ›</span></button>";};
+      '<span class="mt"><span class="mn">'+titleP(c)+'</span></span><span class="tst">'+esc(txt)+" ›</span></button>";};
     /* Flexibel: kurzfristig kündbare Verträge als eine Karte mit Logostapel, aufklappbar */
     if(anytime.length){var fOp=!!(state.tfold||{}).any;
       /* Ende bei Kündigung heute: Kündbar-auf-Termin (nextTerm) oder bei «jederzeit mit Frist» heute + Frist */
@@ -2585,11 +2593,11 @@ function renderView(){
         if(u==="d")return new Date(t.getFullYear(),t.getMonth(),t.getDate()+n);if(u==="w")return new Date(t.getFullYear(),t.getMonth(),t.getDate()+7*n);
         if(u==="k")return new Date(t.getFullYear(),t.getMonth()+(t.getDate()<=n?1:2),0);return addMonths(t,n);};
       var fRow=function(c){var T=fEnd(c),nt=noticeText(c);
-        return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">'+(nt?(c.noticeU==="k"?"Kündigung "+nt:"Frist "+nt):"Ohne Frist")+'</span></span>'+
+        return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+titleP(c)+'</span><span class="mm">'+(nt?(c.noticeU==="k"?"Kündigung "+nt:"Frist "+nt):"Ohne Frist")+'</span></span>'+
           '<span class="tchip">'+(T?"endet "+ddmm(T):"offen")+"</span></button>";};
       o+='<div class="grp"><div class="grphead"><span>Flexibel</span></div><div class="tflex'+(fOp?" on":"")+'"><button class="tfx" data-tfold="any" aria-expanded="'+fOp+'"><span class="tstk">'+anytime.slice().sort(function(x,y){return monthlyCost(y)-monthlyCost(x);}).slice(0,4).map(function(c){return markHtml(c);}).join("")+'</span>'+
         '<span class="mt"><span class="mn">'+anytime.length+(anytime.length===1?" Vertrag":" Verträge")+'</span><span class="mm">Ohne Mindestlaufzeit</span></span><i></i></button>'+
-        (fOp?'<p class="tfnote">Vertragsende bei Kündigung per heute</p><div class="mrows2">'+anytime.slice().sort(function(x,y){return fEnd(x)-fEnd(y);}).map(fRow).join("")+"</div>":"")+"</div></div>";}
+        (fOp?'<p class="tfnote">Vertragsende, wenn du heute kündigst</p><div class="mrows2">'+anytime.slice().sort(function(x,y){return fEnd(x)-fEnd(y);}).map(fRow).join("")+"</div>":"")+"</div></div>";}
     o+=fold("none","Ohne Frist erfasst",nofrist,function(){return "ergänzen";}," · ergänzen",rowQ);
     o+=fold("unw","Nicht beobachtet",unw,function(c){return noticeText(c)?"Frist "+noticeText(c):"";});
     if(state._rvDue)o+='<div class="review rvsmall"><div class="rvh">Quartals-Check</div><p>Brauchst du noch alles? Geh deine Verträge kurz durch.</p>'+
@@ -2992,7 +3000,7 @@ var FQ_TXT={neg:"Die Fixkosten übersteigen die Einnahmen.<small>In diesem Monat
 /* Ansatzpunkte, wenn wenig bleibt (unter oder knapp im Bereich): grösste beeinflussbare Fixkosten, bald kündbare Verträge, Abos.
    Nur Transparenz und Wege in die App, keine Wertung. SwiftUI: Section mit NavigationLinks */
 function fqTips(d){
-  var H=esc(state.settings.home),t0=today(),sh=function(c){if(!d.bh)return 1;var hs=holdersOf(c);return hs.indexOf(d.bh)<0?0:1/hs.length;};
+  var H=esc(state.settings.home),t0=today(),sh=function(c){if(!d.bh)return 1;return holderShare(c,d.bh);};
   var act=running().filter(function(c){return !notStarted(c)&&!isTax(c)&&sh(c)>0;});
   var top=act.map(function(c){return {c:c,v:monthlyCost(c)*sh(c)};}).sort(function(x,y){return y.v-x.v;}).slice(0,3);
   if(!top.length)return "";
@@ -3521,7 +3529,7 @@ var TPL=[
  ["Thurgauer Zeitung", "CH", "Abos & Medien", "Zeitung", "chmedia.ch/kontakt", 0, "m", "p", "E-Mail", 0, "Abo auf Ende der Laufzeit beim CH Media Aboservice schriftlich oder per E-Mail kündigen.", "", "CH Regionalmedien AG\nAboservice\nFürstenlandstrasse 35\n9001 St. Gallen", "aboservice@chmedia.ch", "+41 58 200 55 55", 1],
  ["Republik", "CH", "Abos & Medien", "Magazin", "republik.ch", 2, "d", "p", "Online / Kundenkonto", 0, "Online im Konto unter Abonnements kündbar; Jahresmitgliedschaft bis 2 Tage vor Laufzeitende, Monatsabo jederzeit.", "", "Republik AG\nSihlhallenstrasse 1\n8004 Zürich", "kontakt@republik.ch", "+41 44 505 67 80", 1],
  ["Blick+", "CH", "Abos & Medien", "Zeitung digital", "myservices.blick.ch", 0, "m", "p", "Online / Kundenkonto", 0, "Bei Kreditkarte/TWINT/LSV automatische Verlängerung; via myservices.blick.ch oder Kundenservice auf Periodenende kündigen.", "", "Ringier AG, Ringier Medien Schweiz\nBrühlstrasse 5\n4800 Zofingen", "kundenservice@blick.ch", "+41 58 510 73 02", 1],
- ["freenet", "DE", "Mobilfunk & Internet", "Handy", "freenet.de/kuendigung", 1, "m", "", "Online / Kundenkonto", 0, "Kündigung online über das Kündigungsformular; massgebend ist der Eingang beim Anbieter.", "", "freenet DLS GmbH\nHollerstraße 126\n24782 Büdelsdorf", "info@freenet-mobilfunk.de", "+49 40 555541000", 1],
+ ["freenet", "DE", "Mobilfunk & Internet", "Handy", "freenet.de/kuendigung", 1, "m", "", "Online / Kundenkonto", 0, "Kündigung online über das Kündigungsformular; massgebend ist der Eingang beim Vertragspartner.", "", "freenet DLS GmbH\nHollerstraße 126\n24782 Büdelsdorf", "info@freenet-mobilfunk.de", "+49 40 555541000", 1],
  ["Aldi Talk", "DE", "Mobilfunk & Internet", "Handy", "alditalk.de", 0, "m", "", "Online / Kundenkonto", 0, "Prepaid ohne Laufzeit; schriftliche Anliegen über Kontaktformular im Kundenportal oder in der App.", "", "medion GmbH\nAm Zehnthof 77\n45307 Essen", "medionmobile@medion.com", "", 1],
  ["Lidl Connect", "DE", "Mobilfunk & Internet", "Handy", "lidl.de/c/faq-kontakt-hilfe/s10007729", 30, "d", "", "E-Mail", 0, "Kündigung per Brief, Fax oder E-Mail; für Rufnummernmitnahme ist eine vollständige Kündigung nötig.", "", "LIDL Connect Kundenbetreuung\nPostfach 100 254\n16285 Schwedt", "lidl-connect-kundenbetreuung@vodafone.de", "+49 211 27742774", 1],
  ["fraenk", "DE", "Mobilfunk & Internet", "Handy", "fraenk.de", 0, "m", "p", "Online / Kundenkonto", 0, "Reiner App-Tarif ohne Hotline; Kündigung direkt in der fraenk-App.", "", "fraenk Kundenservice\nPostfach 1132\n61466 Kronberg", "", "", 1],
@@ -3696,15 +3704,15 @@ function tplRows(){
   var q=tplQ.trim().toLowerCase();
   var list=TPL.filter(function(t){return (!tplCC||!t[1]||t[1]===tplCC)&&(!q||(t[0]+" "+t[3]+" "+t[2]).toLowerCase().indexOf(q)>=0);})
     .sort(function(a,b){return a[0].localeCompare(b[0],"de");});
-  if(!list.length)return '<p class="note" style="margin:14px 2px">Kein Anbieter gefunden. Du kannst ihn einfach selbst eintippen.</p>';
+  if(!list.length)return '<p class="note" style="margin:14px 2px">Nichts gefunden. Du kannst den Vertragspartner einfach selbst eintippen.</p>';
   return list.map(function(t){return '<button class="pick pickcat" data-tplp="'+TPL.indexOf(t)+'"><span class="pci" style="background:'+catColor(t[2])+'">'+catIcon(t[2])+
     '</span><span class="pcn">'+esc(t[0])+'<em class="tsub">'+esc(t[3])+"</em></span><span class=\"tcc\">"+esc(tplFlag(t))+"</span></button>";}).join("");
 }
 function openTplPick(){
   tplQ="";
-  document.getElementById("pickTitle").textContent="Anbieter-Katalog";
+  document.getElementById("pickTitle").textContent="Katalog";
   var l=document.getElementById("pickList");l.dataset.dim="tplpick";
-  l.innerHTML='<div class="tplhead"><input id="tplSearch" type="search" placeholder="Anbieter suchen" autocomplete="off">'+
+  l.innerHTML='<div class="tplhead"><input id="tplSearch" type="search" placeholder="Vertragspartner suchen" autocomplete="off">'+
     '<div class="pseg" role="group" aria-label="Land"><button data-tcc="" aria-pressed="'+(tplCC==="")+'">Alle</button><button data-tcc="CH" aria-pressed="'+(tplCC==="CH")+'">CH</button><button data-tcc="DE" aria-pressed="'+(tplCC==="DE")+'">DE</button></div></div>'+
     '<div id="tplRows">'+tplRows()+"</div>"+
     '<p class="note" style="margin:12px 2px 0">Fristen sind typische Werte. Massgebend ist immer dein Vertrag.</p>';
@@ -3742,7 +3750,7 @@ function updTermHint(){
   var h=document.getElementById("tmHint");
   if(termMode==="tax"){h.textContent="Gebühren und Abgaben wie Serafe: keine Fristen, kein Kündigen. Zählt in Kosten und Budget.";return;}
   if(termMode==="trial"){var tv=document.getElementById("fTrial").value;
-    h.textContent=tv?"Endet am "+fmtD(tv)+". Kontivo erinnert dich unter «Fristen».":"Wie lange läuft das Probeabo?";return;}
+    h.textContent=tv?"Gratis bis "+fmtD(iso(addDays(parseD(tv),-1)))+", ab "+fmtD(tv)+" kostenpflichtig. Kontivo erinnert dich unter «Fristen».":"Wie lange läuft das Probeabo?";return;}
   if(termMode==="fixed"){
     var fx={end:document.getElementById("fEnd").value,renew:document.getElementById("fRenew").value,
       notice:parseNum(document.getElementById("fNotice").value)||0,noticeU:document.getElementById("fNoticeU").value};
@@ -3873,6 +3881,10 @@ function amtPh(){var de=numStyle(document.getElementById("fCur").value)==="DE";d
 document.getElementById("fCur").addEventListener("change",amtPh);
 
 document.getElementById("saveForm").addEventListener("click",function(){
+  /* Eingetippt, aber nicht «hinzufügen» gedrückt: jetzt übernehmen; klappt das nicht (Fehler/Rückfrage), Sichern abbrechen */
+  var $v=function(i){return document.getElementById(i).value.trim();};
+  if($v("pFrom")||$v("pAmt")){document.getElementById("pAdd").click();if($v("pFrom")||$v("pAmt")){formPage(true);return;}}
+  if($v("xDate")||$v("xAmt")){document.getElementById("xAdd").click();if($v("xDate")||$v("xAmt")){formPage(true);return;}}
   var partner=document.getElementById("fPartner").value.trim();
   var amt=parseAmt(document.getElementById("fAmt").value);
   if(!partner&&!document.getElementById("fLabel").value.trim()){toast("Bezeichnung fehlt");return;}
@@ -3880,6 +3892,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   if(amt==null||amt<0){toast("Betrag prüfen");return;}
   var nV=noticeVal(document.getElementById("fNotice").value,document.getElementById("fNoticeU").value);
   if(nV==null){toast("Kündigungsfrist prüfen");document.getElementById("fNotice").focus();return;}
+  if(termMode==="fixed"&&!document.getElementById("fEnd").value){toast("Bis wann läuft der Vertrag? Bitte das Vertragsende eintragen");if(!document.getElementById("fMore").hidden)formPage(false);var fe=document.getElementById("fEnd");fe.scrollIntoView({block:"center",behavior:SMOOTH()});fe.focus();return;}
   if(termMode==="trial"&&!document.getElementById("fTrial").value){toast("Wie lange läuft das Probeabo?");document.getElementById("fTrialD").scrollIntoView({block:"center",behavior:"smooth"});return;}
   var cF=document.getElementById("fCancF").value;
   var prev=editId?state.contracts[editId]:null;
@@ -3931,7 +3944,9 @@ document.getElementById("saveForm").addEventListener("click",function(){
   if(!editId&&(state.settings.holders||[]).length>1&&(c.holders||[]).length&&(c.holders||[]).join("|")!==(state.settings.lastHolders||[]).join("|")){state.settings.lastHolders=c.holders.slice();saveSettings();}
   closeSheets();render();toast(editId?"Aktualisiert":"Vertrag angelegt");
 });
-document.getElementById("cancelForm").addEventListener("click",function(){if(!document.getElementById("fMore").hidden)formPage(false);else closeSheets();});
+document.getElementById("cancelForm").addEventListener("click",function(){if(!document.getElementById("fMore").hidden){formPage(false);return;}
+  if(formDirty()){ask({title:"Änderungen verwerfen?",text:"Deine Eingaben in diesem Formular gehen verloren.",ok:"Verwerfen",no:"Weiter bearbeiten",danger:true}).then(function(y){if(y)closeSheets();});return;}
+  closeSheets();});
 
 /* Uploads */
 var cropTarget="c",avFor="";
@@ -4215,7 +4230,8 @@ function paintLtWho(){
 function ltSetSigners(a){ltSigners=a;var L=letterParts(ltC,ltSigners),b=document.getElementById("ltBody"),nb=ltBodyText(L);
   if(b.value===ltAuto.body){b.value=nb;ltAuto.body=nb;}paintLtWho();}
 function ltRefresh(){if(ltC&&document.getElementById("sheetLetter").classList.contains("on"))paintLtWho();}
-function openLetter(c){/* immer den aktuellen Stand lesen (Detail kann veraltet sein, z.B. nach nachgetragener Kundennummer) */
+var ltTrial=false,ltMade=false;
+function openLetter(c,trial){ltTrial=!!trial;ltMade=false;/* immer den aktuellen Stand lesen (Detail kann veraltet sein, z.B. nach nachgetragener Kundennummer) */
   var id=c._id;if(id&&state.contracts[id]){c=Object.assign({},state.contracts[id]);c._id=id;}
   ltC=c;ltSigners=ltDefaultSigners(c);var L=letterParts(c,ltSigners);
   document.getElementById("ltTo").value=L.to.join("\n");
@@ -4230,8 +4246,14 @@ document.getElementById("ltWho").addEventListener("click",function(ev){var b=ev.
   var H=holderStats().map(function(h){return h.name;}),v=b.dataset.ltwho,a;
   if(v==="*")a=H.slice();else if(H.length===2)a=[v];else{a=ltSigners.slice();var i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);a=H.filter(function(h){return a.indexOf(h)>=0;});}
   ltSetSigners(a);});
-function closeLetter(){document.getElementById("sheetLetter").classList.remove("on");ltC=null;
-  if(!document.querySelector(".sheet.on"))document.getElementById("scrim").classList.remove("on");}
+function closeLetter(){var made=ltMade&&ltC&&ltC._id,id=made?ltC._id:null,tr=ltTrial;ltMade=false;
+  document.getElementById("sheetLetter").classList.remove("on");ltC=null;
+  if(!document.querySelector(".sheet.on"))document.getElementById("scrim").classList.remove("on");
+  /* Nach dem PDF wie bei Online/E-Mail nachfragen, ob gekündigt wurde */
+  var c=id&&state.contracts[id];if(!c||c.cancelPer||c.status==="cancelled")return;
+  var t2=tr&&parseD(c.trial),T=t2?addDays(t2,-1):termEnd(Object.assign({_id:id},c));
+  setTimeout(function(){ask({title:"Brief verschickt?",text:"«"+titleOf(c)+"» als gekündigt markieren"+(T?", läuft bis "+fmtD(iso(T)):"")+". Der Vertrag zählt bis zum Ende weiter und wandert danach ins Archiv.",ok:"Ja, gekündigt",no:"Noch nicht"})
+    .then(function(y){if(y)markCancelled(id,!!t2);});},250);}
 document.getElementById("ltClose").addEventListener("click",closeLetter);
 /* Unterschrift pro Inhaber: zeichnen (Canvas) oder Namenszug; als JPEG (weisser Grund) in settings.sigs[Inhaber] */
 var sigD={drawing:false,last:null,dirty:false},sigFor="";
@@ -4452,9 +4474,10 @@ document.getElementById("ltPdf").addEventListener("click",async function(){
   if(to.length<=1&&!(await ask({title:"Ohne Empfängeradresse?",text:"Im Anschriftfeld steht nur der Name. Für den Postversand fehlt die Adresse.",ok:"Trotzdem erstellen"})))return;
   if(to.length>6&&!(await ask({title:"Anschrift zu lang",text:"Die Anschrift hat "+to.length+" Zeilen. Ins Fenster eines Kuverts passen höchstens 6, sonst überdeckt sie Datum oder Betreff.",ok:"Trotzdem erstellen"})))return;
   var sm=ltSigners.filter(function(h){return !sndOk(h);});
-  if(sm.length&&!(await ask({title:"Absender unvollständig",text:"Bei "+sm.join(" und ")+" fehlt die Adresse. Der Anbieter kann die Kündigung so schlechter zuordnen.",ok:"Trotzdem erstellen"})))return;
+  if(sm.length&&!(await ask({title:"Absender unvollständig",text:"Bei "+sm.join(" und ")+" fehlt die Adresse. Der Vertragspartner kann die Kündigung so schlechter zuordnen.",ok:"Trotzdem erstellen"})))return;
   var L={sender:base.sender,to:to,city:base.city,subject:subj,ref:ref,body:blines.join("\n").trim(),names:base.names,sigs:isRent(ltC)?[]:ltSigners.map(sigOf)};
   var blob;try{blob=letterPdf(L);}catch(e){toast("PDF konnte nicht erstellt werden");return;}
+  ltMade=true;
   /* Dateiname ASCII: Umlaute als ae/oe/ue, ß als ss, übrige Akzente weg */
   var fnm=String(ltC.partner||ltC.label||"Vertrag").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/Ä/g,"Ae").replace(/Ö/g,"Oe").replace(/Ü/g,"Ue").replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"");
   var nm="Kuendigung-"+fnm.replace(/[^\w\-]+/g,"_")+"-"+iso(today())+".pdf";
@@ -4537,7 +4560,7 @@ function openLink(url,copy){
 /* opt.trial: aus der Probeabo-Karte geöffnet (Kündigung per Online/E-Mail gilt dann für das Probeabo-Ende) */
 /* Detail: nächste Kündigung als Mini-Zeitstrahl heute → kündigen bis → Ende. Mittlerer Punkt anteilig (begrenzt auf 28–62 %, damit die Beschriftungen nicht kollidieren).
    SwiftUI: GeometryReader mit drei Kreisen auf einer Linie */
-function termLine(c,u){var T=termEnd(c),t0=today(),D=u.date,tot=Math.max(1,daysBetween(t0,T)),p=Math.max(28,Math.min(62,Math.round(daysBetween(t0,D)/tot*100)));
+function termLine(c,u){var T=u.T||termEnd(c),t0=today(),D=u.date,tot=Math.max(1,daysBetween(t0,T)),p=Math.max(28,Math.min(62,Math.round(daysBetween(t0,D)/tot*100)));
   var dn=u.days,mo=Math.round(dn/30.44),left=isAnytime(c)?"":(dn===0?"heute":dn<=60?"noch "+dn+(dn===1?" Tag":" Tage"):"noch "+mo+(mo===1?" Monat":" Monate")),cls=u.days<=7&&!isAnytime(c)?" alert":"";
   return '<div class="tlw" role="img" aria-label="Nächste Kündigung: bis '+fmtD(iso(D))+' kündigen, Vertragsende '+fmtD(iso(T))+(left?", "+left:"")+'">'+
     '<div class="tlh"><span>Nächste Kündigung</span><span class="'+cls+'">'+left+'</span></div>'+
@@ -4549,6 +4572,14 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var gone=c.status==="cancelled"||!!c.cancelPer||endedByTerm(c),fixd=isFixed(c);
   var u=gone||fixd?{lvl:"",days:null,date:null}:urgency(c),nd=nextDue(c),e=effEnd(c);
   var rt=gone?null:renewTo(c);
+  /* «Behalten»: Detail zeigt wie «Fristen» schon den nächsten Termin danach */
+  var kT=null;if(!gone&&!fixd&&isKept(c)){var T0=termEnd(c);kT=c.end?renewAfter(c,T0):nextTerm(c,null,T0);
+    if(kT){var kd=nDl(c,kT);u={lvl:"",days:daysBetween(today(),kd),date:kd,T:kT};rt=c.end?renewAfter(c,kT):null;}}
+  /* beendet (Kündigung wirksam oder Laufzeit vorbei): keine Verlängerung, Kündigung, Pause mehr – nur Duplizieren/Reaktivieren/Löschen */
+  var ended=endedByNotice(c)||endedByTerm(c);
+  /* Vertragsende bei gekündigten Verträgen: das Kündigungsdatum bzw. der letzte Termin vor der Archivierung, nicht fortgeschrieben */
+  if(gone){var cp=parseD(c.cancelPer),ca=parseD(c.cancelledAt),e0=parseD(c.end);
+    if(cp)e=cp;else if(e0&&ca&&+c.renew){var g0=0,r0=+c.renew;e=e0;while(e<ca&&g0<400){g0++;e=addMonthsE(e0,g0*r0);}}else if(e0)e=e0;}
   /* Frist in ≤ 60 Tagen: Hinweis mit «Kündigen» oben, sonst Aktionen dezent unten */
   var due60=!gone&&!fixd&&!!u.date&&u.days!==null&&u.days>=0&&u.days<=60&&!isAnytime(c)&&!c.noWatch&&!c.cancelPer&&!isKept(c)&&!!termEnd(c);
   /* Summe aller Zahlungen seit Vertragsbeginn bis heute (occurrences + Sonderzahlungen), nur mit erfasstem Beginn */
@@ -4573,15 +4604,15 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     payRule(c)?["Zahlung",payRule(c),false,(+c.cycle||1)!==1&&nd&&paidSoFar?"nächste am "+fmtShort(nd):""]:null]],
    ["Laufzeit & Kündigung",[
     c.start?["Beginn",fmtD(c.start)]:null,
-    c.end?["Vertragsende",fmtD(iso(e))+(!gone&&termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
+    c.end||c.cancelPer?["Vertragsende",fmtD(iso(e))+(!gone&&termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
     fixd?["Kündigung",isTax(c)?"nicht kündbar · Steuern & Gebühren":"nicht kündbar"]:["Kündigung",(noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"")],
-    u.date&&!due60?(u.days>=0&&termEnd(c)?["",termLine(c,u),true]:["Nächster Termin","per "+fmtShort(termEnd(c))+", kündigen bis "+fmtShort(u.date)+" (abgelaufen)"]):null,
+    u.date&&!due60&&!gone?(u.days>=0&&termEnd(c)?["",termLine(c,u),true]:["Nächster Termin","per "+fmtShort(u.T||termEnd(c))+", kündigen bis "+fmtShort(u.date)+" (abgelaufen)"]):null,
     c.mand&&!fixd?["Pflichtvertrag","nur Wechsel möglich"]:null,
     c.noWatch&&!fixd?["Frist","wird nicht beobachtet"]:null,
-    fixd?null:rt?["Sonst verlängert bis",fmtD(iso(rt))]:(c.renew?["Verlängerung","automatisch um "+c.renew+(+c.renew===1?" Monat":" Monate")]:null),
-    c.cancF?["Kündigung per",c.cancF]:null,
+    fixd||gone?null:rt?["Sonst verlängert bis",fmtD(iso(rt))]:(c.renew?["Verlängerung","automatisch um "+c.renew+(+c.renew===1?" Monat":" Monate")]:null),
+    c.cancF&&!ended?["Kündigungsweg",c.cancF]:null,
     c.cancelPer&&c.cancelledOn?["Gekündigt am",fmtD(c.cancelledOn)]:null,
-    c.trial?["Probeabo endet",fmtD(c.trial)]:null]],
+    trialOn(c)?["Probeabo","gratis bis "+fmtD(iso(trialLast(c)))]:null]],
    ["Zuordnung",[
     c.partner?["Vertragspartner",c.partner]:null,
     c.cat?["Kategorie",c.cat]:null,
@@ -4596,7 +4627,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
            c.cancelPer?'<span class="pill">Gekündigt · '+(endedByNotice(c)?"beendet am ":"läuft bis ")+fmtD(c.cancelPer)+"</span>":
            endedByTerm(c)?'<span class="pill">Beendet am '+fmtD(c.end)+"</span>":
            reviewKill(c)&&!c.cancelPer?'<span class="pill warn">Zum Kündigen vorgemerkt</span>':
-           isKept(c)?'<span class="pill">Behalten bis nächster Termin</span>':
+           isKept(c)?'<span class="pill">Behalten'+(kT?" · nächste Frist "+fmtShort(u.date):"")+"</span>":
            u.lvl==="alert"?'<span class="pill alert">Frist '+inDays(u.days)+"</span>":
            u.lvl==="warn"?'<span class="pill warn">Frist '+inDays(u.days)+"</span>":"";
   if(due60)pill=pill.replace(/<span class="pill (alert|warn)">Frist [^<]*<\/span>/,"");
@@ -4620,13 +4651,17 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     mi=function(act,t,sub,cl){return '<button type="button" role="menuitem" data-act="'+act+'"'+(cl?' class="'+cl+'"':"")+(act===kact&&kok?" data-kbtn":"")+'><span>'+t+"</span>"+(sub?"<small>"+sub+"</small>":"")+"</button>";},
     menu='<div class="dmenu" id="dMenu" role="menu" hidden>'+
       (kok?mi(kact,kword,{online:"online",mail:"per E-Mail",post:"per Brief"}[kv]||"Weg wählen"):"")+
-      (c.cancelPer?mi("uncancel","Kündigung zurücknehmen"):"")+
-      (isKept(c)?mi("unkeep","«Behalten» zurücksetzen"):"")+
-      (c.status!=="cancelled"&&!fixd&&!c.mand&&!isRent(c)?mi("pause",isPaused(c)?"Fortsetzen":"Pausieren"):"")+
+      (c.cancelPer&&!ended?mi("uncancel","Kündigung zurücknehmen"):"")+
+      (isKept(c)&&!gone?mi("unkeep","«Behalten» zurücksetzen"):"")+
+      (c.status!=="cancelled"&&!ended&&!fixd&&!c.mand&&!isRent(c)?mi("pause",isPaused(c)?"Fortsetzen":"Pausieren"):"")+
       mi("dup","Duplizieren")+
-      (c.status==="cancelled"?mi("reactivate","Wieder aktiv setzen"):mi("cancel","Ins Archiv"))+
+      (c.status==="cancelled"||ended?mi("reactivate","Wieder aktiv setzen"):mi("cancel","Ins Archiv","zählt nicht mehr zu den Kosten"))+
       mi("delete","Löschen","","red")+"</div>";
-  var fr="";if(due60){var D=u.date,T=termEnd(c),dn=u.days,yy=D.getFullYear()!==today().getFullYear();
+  var fr="";
+  if(!due60&&!gone&&trialNeeds(c)){var tl=trialLast(c),tdn=daysBetween(today(),tl);
+    fr='<div class="dfrist'+(tdn<=7?" alert":"")+'"><b>Probeabo bis '+tl.getDate()+". "+MON[tl.getMonth()]+"</b><small>danach kostenpflichtig · "+(tdn===0?"heute":"noch "+tdn+(tdn===1?" Tag":" Tage"))+"</small>"+
+      '<div class="dfb"><button type="button" data-kbtn data-act="trialkill">Kündigen</button><button type="button" data-act="trialkeep">Behalten</button></div></div>';}
+  if(due60){var D=u.date,T=termEnd(c),dn=u.days,yy=D.getFullYear()!==today().getFullYear();
     fr='<div class="dfrist'+(dn<=7?" alert":"")+'"><b>'+(c.mand?"Wechseln bis ":"Kündigen bis ")+D.getDate()+". "+MON[D.getMonth()]+(yy?" "+D.getFullYear():"")+"</b><small>"+
       (rt?"sonst verlängert bis "+fmtShort(rt):"Vertragsende "+fmtShort(T))+" · "+(dn===0?"heute":"noch "+dn+(dn===1?" Tag":" Tage"))+"</small>"+
       '<div class="dfb">'+kb+'<button type="button" data-act="keep">Behalten</button></div></div>';}
@@ -4661,6 +4696,8 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       if(dm){dm.hidden=true;var mb=document.querySelector("#detailBody .dmbtn");if(mb)mb.setAttribute("aria-expanded","false");}
       if(a==="close"){closeSheets();return;}
       if(a==="vk"){closeSheets();setTimeout(function(){openVk(idv);},180);return;}
+      if(a==="trialkill"){closeSheets();setTimeout(function(){killOptions(idv,true);},180);return;}
+      if(a==="trialkeep"){var tk=stripId(c);tk.trialKept=c.trial;putContract(idv,tk);closeSheets();render();toast("Behalten – läuft nach dem Probeabo normal weiter");return;}
       if(a==="docs"){openDocsPick(idv);return;}
       if(a==="edit"){closeSheets();setTimeout(function(){openForm(c);},180);}
       else if(a==="dup"){closeSheets();setTimeout(function(){openForm(c,true);},180);}
@@ -4668,20 +4705,28 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
         /* Fortsetzen = Pause endet heute; die vergangenen Pausenmonate bleiben ohne Zahlung (paused bleibt mit abgelaufenem Ende) */
         if(isPaused(c)){var nc2=stripId(c);nc2.pausedUntil=iso(today());if(!nc2.pausedAt)nc2.pausedAt=iso(today());putContract(idv,nc2);closeSheets();render();toast("Fortgesetzt");}
         else openPausePick(idv);}
-      else if(a==="cancel"){c.status="cancelled";c.cancelledAt=iso(today());putContract(idv,stripId(c));closeSheets();render();toast("Ins Archiv verschoben");}
+      else if(a==="cancel"){ask({title:"Ins Archiv verschieben?",text:"«"+titleOf(c)+"» zählt dann nicht mehr zu deinen Kosten und Fristen – auch wenn du noch zahlst. Zum Kündigen nimm stattdessen «"+kword+"».",ok:"Ins Archiv"})
+        .then(function(y){if(!y)return;c.status="cancelled";c.cancelledAt=iso(today());putContract(idv,stripId(c));closeSheets();render();toast("Ins Archiv verschoben");});}
       else if(a==="uncancel"){var u1=stripId(c);u1.cancelPer="";u1.cancelledOn="";putContract(idv,u1);closeSheets();render();toast("Kündigung zurückgenommen");}
-      else if(a==="keep"){var k2=stripId(c);k2.keptFor=iso(termEnd(c));putContract(idv,k2);closeSheets();render();toast("Behalten — erledigt bis zum nächsten Termin");}
+      else if(a==="keep"){var k2=stripId(c);k2.keptFor=iso(termEnd(c));putContract(idv,k2);closeSheets();render();toast("Behalten – Kontivo erinnert dich vor der nächsten Frist");}
       else if(a==="unkeep"){var u2=stripId(c);u2.keptFor="";putContract(idv,u2);closeSheets();render();toast("Wieder offen");}
-      else if(a==="reactivate"){c.status="active";c.cancelledAt="";putContract(idv,stripId(c));closeSheets();render();toast("Wieder aktiv");}
+      else if(a==="reactivate"){var ra=stripId(c);ra.status="active";ra.cancelledAt="";ra.cancelPer="";ra.cancelledOn="";putContract(idv,ra);closeSheets();render();
+        /* Laufzeit vorbei: neues Vertragsende nötig, sonst wäre er gleich wieder beendet */
+        if(endedByTerm(ra)){toast("Wieder aktiv – bitte das neue Vertragsende eintragen");setTimeout(function(){openForm(Object.assign({_id:idv},ra));formPage(true);},180);}else toast("Wieder aktiv");}
       else if(a==="delete"){ask({title:"Vertrag löschen?",text:"«"+titleOf(c)+"» wird endgültig gelöscht. Angehängte Dateien bleiben erhalten.",ok:"Löschen",danger:true})
         .then(function(y){if(y){dropContract(idv);closeSheets();render();toast("Gelöscht");}});}
-      else if(a==="ktext"){openLetter(c);}
+      else if(a==="ktext"){openLetter(c,dTrial);}
       else if(a==="kvia"){openCancViaPick(idv,dTrial);}
       else if(a==="konline"){var u=cancLink(c);if(!u){toast("Kein Link hinterlegt. Trag Website oder Kündigungslink ein.");closeSheets();setTimeout(function(){openForm(c);formPage(true);},180);return;}
         kPending={id:idv,trial:dTrial};toast("Nach der Kündigung hier bestätigen");setTimeout(function(){openLink(u);},350);}
       else if(a==="kmail"){if(!c.mail){ask({title:"E-Mail-Adresse fehlt",text:"Trag die Kündigungsadresse des Vertragspartners beim Vertrag unter «Kontakt» ein.",ok:"Eintragen"}).then(function(y){if(!y)return;closeSheets();setTimeout(function(){openForm(c);formPage(true);},180);});return;}
-        var Lm=letterParts(c),mt=[Lm.ref.join("\n"),Lm.body,Lm.names.join("\n")].filter(Boolean).join("\n\n");
-        kPending={id:idv,trial:dTrial};location.href="mailto:"+c.mail.trim()+"?subject="+encodeURIComponent(Lm.subject)+"&body="+encodeURIComponent(mt);}
+        /* gleiche Prüfung wie beim Brief: Absender mit Adresse, Kunden- oder Vertragsnummer */
+        (async function(){var sg=ltDefaultSigners(c),sm=sg.filter(function(h){return !sndOk(h);});
+          if(!sg.length){if(await ask({title:"Wer kündigt?",text:"Beim Vertrag ist keine Person hinterlegt. Ohne Namen und Adresse kann der Vertragspartner die Kündigung schlecht zuordnen.",ok:"Person eintragen",no:"Trotzdem senden"})){closeSheets();setTimeout(function(){openForm(c);},180);return;}}
+          else if(sm.length){if(await ask({title:"Absender unvollständig",text:"Bei "+sm.join(" und ")+" fehlt die Adresse. Der Vertragspartner kann die Kündigung so schlechter zuordnen.",ok:"Adresse ergänzen",no:"Trotzdem senden"})){closeSheets();setTimeout(function(){openHs(sm[0]);},180);return;}}
+          if(!c.custNo&&!c.contrNo){if(await ask({title:"Kundennummer fehlt",text:"Mit Kunden- oder Vertragsnummer kann der Vertragspartner die Kündigung sicher zuordnen.",ok:"Nummer eintragen",no:"Ohne senden"})){closeSheets();setTimeout(function(){openForm(c);formPage(true);},180);return;}}
+          var Lm=letterParts(c,sg),mt=[Lm.ref.join("\n"),Lm.body,Lm.names.join("\n")+(Lm.sender.length>1&&sg.length?"\n"+Lm.sender.slice(1).join("\n"):"")].filter(Boolean).join("\n\n");
+          kPending={id:idv,trial:dTrial};location.href="mailto:"+c.mail.trim()+"?subject="+encodeURIComponent(Lm.subject)+"&body="+encodeURIComponent(mt);})();}
     });
   });
   openSheet(document.getElementById("sheetDetail"));
@@ -4772,7 +4817,7 @@ function openReview(){
   var fresh=function(c){return c.review&&c.review.at&&daysBetween(parseD(c.review.at)||t0,t0)<=90?c.review.v:"";};
   l.innerHTML='<p class="note" style="margin:0 0 10px">Tippe bei jedem Vertrag, ob du ihn noch brauchst. «Weg damit» merkt ihn in «Fristen» zum Kündigen vor.</p>'+
     (list.length?'<div class="rvlist">'+list.map(function(c){var v=fresh(c);
-      return '<div class="rvrow"><div class="hatop">'+markHtml(c)+'<span class="t"><b>'+esc(titleOf(c))+'</b><small>'+money(monthlyCost(c))+" "+H+"/Mt."+(c.mand?" · Pflichtvertrag":"")+'</small></span></div>'+
+      return '<div class="rvrow"><div class="hatop">'+markHtml(c)+'<span class="t"><b>'+esc(titleOf(c))+'</b><small>'+(partnerOf(c)?esc(partnerOf(c))+" · ":"")+money(monthlyCost(c))+" "+H+"/Mt."+(c.mand?" · Pflichtvertrag":"")+'</small></span></div>'+
         '<div class="hseg"><button type="button" data-rvc="'+esc(c._id)+'" data-rvv="keep" aria-pressed="'+(v==="keep")+'">Brauche ich</button><button type="button" data-rvc="'+esc(c._id)+'" data-rvv="kill" aria-pressed="'+(v==="kill")+'">'+(c.mand?"Wechseln":"Weg damit")+'</button></div></div>';}).join("")+'</div>':'<p class="note">Keine laufenden Verträge.</p>')+
     '<button class="lbtn main" type="button" data-rvdone style="margin-top:12px">Fertig</button>';
   openSheet(document.getElementById("sheetPick"));
@@ -4785,8 +4830,8 @@ function killOptions(idv,trial){
   var l=document.getElementById("pickList");l.dataset.dim="kill-"+idv+(trial?"-t":"");
   var via=cancVia(c),vl={online:"Online kündigen",mail:"Per E-Mail kündigen",post:"Kündigungsschreiben erstellen"}[via]||"Kündigen: Weg wählen …";
   l.innerHTML='<button class="pick" data-pv="letter"><span>'+vl+'</span><span>'+(c.cancF?esc(c.cancF):"")+"</span></button>"+
-    '<button class="pick" data-pv="done"><span>'+(c.mand?"Gekündigt, neuen Anbieter erfassen":"Als gekündigt markieren")+"</span><span>"+(T?"läuft bis "+fmtShort(T):"")+"</span></button>"+
-    '<p class="note" style="margin:10px 2px 0">'+(T?"Kündigung muss "+(trial?"vor dem ":"bis ")+fmtD(iso(trial?parseD(c.trial):nDl(c,T)))+(trial?"":" beim Anbieter")+" sein. ":"")+
+    '<button class="pick" data-pv="done"><span>'+(c.mand?"Gekündigt, neuen Vertragspartner erfassen":"Als gekündigt markieren")+"</span><span>"+(T?"läuft bis "+fmtShort(T):"")+"</span></button>"+
+    '<p class="note" style="margin:10px 2px 0">'+(T?"Kündigung muss bis "+fmtD(iso(trial?T:nDl(c,T)))+(trial?"":" beim Vertragspartner")+" sein. ":"")+
     "Nach dem Markieren zählt der Vertrag bis zum Ende weiter und wandert danach ins Archiv.</p>";
   openSheet(document.getElementById("sheetPick"));
 }
@@ -4801,7 +4846,7 @@ function markCancelled(idv,trial){
     /* Kontaktdaten, Kündigungsweg, Notiz, Probeabo und Pause gehören zum alten Anbieter */
     ["web","mail","tel","addr","cancUrl","cancF","note","trial","trialKept","pausedAt","pausedUntil"].forEach(function(k){nc[k]="";});nc.paused=false;
     if(nc.end&&nc.end<=c.cancelPer)nc.end="";
-    setTimeout(function(){openForm(nc,true,"Neuer Anbieter");toast("Neuen Anbieter erfassen — ab "+fmtD(nc.start));},250);}
+    setTimeout(function(){openForm(nc,true,"Neuer Vertragspartner");toast("Neuen Vertragspartner erfassen – ab "+fmtD(nc.start));},250);}
 }
 /* Monat wechseln auf der Monatskarte (Kosten, Budget)
    - Finger auf den Balken: Monat folgt dem Finger (Scrubbing, wie Health/Aktien)
@@ -4861,7 +4906,7 @@ document.getElementById("view").addEventListener("click",function(ev){
   var kp=ev.target.closest("[data-keep]");
   if(kp){var id=kp.dataset.keep,c0=state.contracts[id];if(!c0)return;var c1=Object.assign({},c0);
     if(kp.dataset.trial)c1.trialKept=c1.trial;else c1.keptFor=iso(termEnd(Object.assign({_id:id},c1)));
-    putContract(id,c1);render();toast("Behalten — erledigt bis zum nächsten Termin");return;}
+    putContract(id,c1);render();toast("Behalten – Kontivo erinnert dich vor der nächsten Frist");return;}
   var tf=ev.target.closest("[data-tfold]");
   if(tf){state.tfold=state.tfold||{};state.tfold[tf.dataset.tfold]=!state.tfold[tf.dataset.tfold];renderView();return;}
   var rk=ev.target.closest("[data-rvkeep]");
@@ -5263,7 +5308,7 @@ function paintMdSummary(){
   try{paintVkRow();}catch(e){}
   var pg=partnerGroups(),d=pg.filter(function(o){return o.dup;}).length;
   var e1=document.getElementById("mdSumP");if(!e1)return;
-  e1.textContent=d?d+(d===1?" Dublette":" Dubletten"):(pg.length?cntTxt(pg.length,"Anbieter","Anbieter"):"–");
+  e1.textContent=d?d+(d===1?" Dublette":" Dubletten"):(pg.length?cntTxt(pg.length,"Vertragspartner","Vertragspartner"):"–");
   e1.style.color=d?"var(--warn)":"";e1.style.fontWeight=d?"600":"";
   var hs=holderStats().map(function(h){return h.name;});
   document.getElementById("mdSumH").textContent=hs.length<=2?hs.map(function(n){return String(n).split(/\s+/)[0];}).join(", "):hs.length+" Personen";
@@ -5491,7 +5536,8 @@ function hSet(key,v){
   else if(H.length===2)arr=[v];
   else{arr=cur.slice();var i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);arr=H.filter(function(h){return arr.indexOf(h)>=0;});}
   if(arr.join("|")===cur.join("|"))return;
-  var nc=Object.assign({},c);nc.holders=arr;if(nc.split)delete nc.split;if(kind==="c")putContract(id,nc);else putIncome(id,nc);
+  /* Aufteilung bleibt gespeichert: sie gilt wieder, sobald dieselben Personen zugeordnet sind (splitOf prüft das) */
+  var nc=Object.assign({},c);nc.holders=arr;if(kind==="c")putContract(id,nc);else putIncome(id,nc);
   render();toast(titleOf(c)+" → "+(arr.length===H.length&&H.length>1?(H.length===2?"Beide":"Alle"):arr.length?arr.join(", "):"ohne Person"));
 }
 MD_PAGES.hassign=function(p){
@@ -6380,10 +6426,13 @@ document.getElementById("bkFile").addEventListener("change",function(ev){
   var rd=new FileReader();
   rd.onload=async function(){
     var o;try{o=JSON.parse(rd.result);}catch(e){toast("Keine gültige Backup-Datei");return;}
-    if(!o||o.app!=="vertraege"||typeof o.contracts!=="object"){toast("Keine gültige Backup-Datei");return;}
-    var nc=Object.keys(o.contracts||{}).length,ni=Object.keys(o.incomes||{}).length,nf=Object.keys(o.files||{}).length;
-    var when=o.exported?new Date(o.exported).toLocaleDateString("de-CH"):"unbekannt";
-    if(!(await ask({title:"Backup einspielen?",text:"Backup vom "+when+" mit "+(nc===1?"1 Vertrag":nc+" Verträgen")+" und "+(ni===1?"1 Einnahme":ni+" Einnahmen")+(nf?" sowie "+(nf===1?"1 Logo/Dokument":nf+" Logos/Dokumenten"):"")+".\n\nDie aktuellen Daten werden ersetzt.",ok:"Einspielen",danger:true})))return;
+    if(!o||o.app!=="vertraege"||!o.contracts||typeof o.contracts!=="object"||Array.isArray(o.contracts)||(o.incomes!=null&&(typeof o.incomes!=="object"||Array.isArray(o.incomes)))){toast("Keine gültige Backup-Datei – es wurde nichts geändert");return;}
+    /* gezählt wird, was nach der Prüfung übrig bleibt; ohne gültige Einträge nichts ersetzen */
+    var chk;try{chk=sanitizeImport(JSON.parse(JSON.stringify({app:o.app,contracts:o.contracts,incomes:o.incomes||{},settings:o.settings||{}})));}catch(e){chk=null;}
+    var nc=chk?Object.keys(chk.contracts).length:0,ni=chk?Object.keys(chk.incomes).length:0,nf=o.files&&typeof o.files==="object"?Object.keys(o.files).length:0;
+    if(!nc&&!ni){toast("Das Backup enthält keine Verträge – es wurde nichts geändert",3500);return;}
+    var dt=o.exported?new Date(o.exported):null,when=dt&&!isNaN(dt)?"vom "+dt.toLocaleDateString("de-CH"):"(Datum unbekannt)";
+    if(!(await ask({title:"Backup einspielen?",text:"Backup "+when+" mit "+(nc===1?"1 Vertrag":nc+" Verträgen")+" und "+(ni===1?"1 Einnahme":ni+" Einnahmen")+(nf?" sowie "+(nf===1?"1 Logo/Dokument":nf+" Logos/Dokumenten"):"")+".\n\nDie aktuellen Daten werden ersetzt.",ok:"Einspielen",danger:true})))return;
     var miss=0;
     if(nf){toast("Dateien werden übernommen…");try{miss=await KBlob.importAll(o.files);}catch(e){miss=nf;}}
     await restoreAll(o,miss);
@@ -6458,8 +6507,8 @@ async function restoreAll(o,miss){
 /* CSV-Feld nach RFC 4180: in Anführungszeichen, sobald ; " oder ein Zeilenumbruch vorkommt (innere " verdoppelt) */
 function csvField(x){var s=String(x==null?"":x);return /[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
 document.getElementById("csvBtn").addEventListener("click",async function(){
-  var rows=["Vertragspartner;Bezeichnung;Kategorie;Betrag;Waehrung;Turnus_Monate;ProMonat_"+state.settings.home+
-            ";NaechsteZahlung;Beginn;Ende;Kuendigungsfrist;Einheit;Verlaengerung;KuendigenBis;Preisverlauf;Kundennummer;Vertragsnummer;Inhaber;Zahlungsart;BelastetUeber;KuendigungPer;Website;Telefon;EMail;Status;KuendbarPer;Pflichtvertrag;Notiz;Sonderzahlungen;Adresse;KuendigungsLink;Aufteilung;NichtKuendbar;Probeabo;GekuendigtPer;GekuendigtAm;NichtErinnern;BehaltenBis;PausiertSeit;PausiertBis;ProbeaboBehalten"];
+  var rows=["Vertragspartner;Bezeichnung;Kategorie;Betrag;Waehrung;Rhythmus_Monate;ProMonat_"+state.settings.home+
+            ";NaechsteZahlung;Beginn;Ende;Kuendigungsfrist;Einheit;Verlaengerung;KuendigenBis;Preisverlauf;Kundennummer;Vertragsnummer;Personen;Zahlungsart;BelastetUeber;Kuendigungsweg;Website;Telefon;EMail;Status;KuendbarPer;Pflichtvertrag;Notiz;Sonderzahlungen;Adresse;KuendigungsLink;Aufteilung;NichtKuendbar;Probeabo;GekuendigtPer;GekuendigtAm;NichtErinnern;BehaltenBis;PausiertSeit;PausiertBis;ProbeaboBehalten;Zahlungsanker"];
   Object.keys(state.contracts).forEach(function(k){
     var c=state.contracts[k],nd=nextDue(c),u=urgency(c);
     rows.push([c.partner,c.label,c.cat,curPrice(c).toFixed(2),c.cur,c.cycle,monthlyCost(c).toFixed(2),
@@ -6470,7 +6519,8 @@ document.getElementById("csvBtn").addEventListener("click",async function(){
       extrasOf(c).map(function(x){return x.date+":"+x.amount.toFixed(2)+(x.note?":"+x.note.replace(/[|:]/g," "):"");}).join(" | "),
       c.addr||"",c.cancUrl||"",(function(){var sp=splitOf(c);return sp?holdersOf(c).map(function(h){return h+":"+String(Math.round(+sp[h]*100)/100);}).join(" | "):"";})(),
       c.noCancel?"ja":"",c.trial||"",
-      c.cancelPer||"",c.cancelledOn||"",c.noWatch?"ja":"",c.keptFor||"",c.paused?(c.pausedAt||iso(today())):"",c.paused?(c.pausedUntil||""):"",c.trialKept?"ja":""]
+      c.cancelPer||"",c.cancelledOn||"",c.noWatch?"ja":"",c.keptFor||"",c.paused?(c.pausedAt||iso(today())):"",c.paused?(c.pausedUntil||""):"",c.trialKept?"ja":"",
+      /* gespeichertes Fälligkeitsdatum (Anker): erhält «am 31.» und 29.02. beim Rundlauf */c.due||""]
       .map(csvField).join(";"));
   });
   /* BOM und CRLF: Excel erkennt so UTF-8 (Umlaute) */
@@ -6547,13 +6597,14 @@ function csvNorm(x){return String(x||"").toLowerCase().replace(/ä/g,"ae").repla
 var CSVMAP={partner:["partner","anbieter","vertragspartner","firma","unternehmen","provider","company","merchant","name","vertragsname"],
   label:["bezeichnung","vertrag","titel","label","beschreibung","abo","service","produkt","abonnement","name"],
   cat:["kategorie","category","art"],amount:["betrag","preis","kosten","amount","price","cost","costs","beitrag","monatsbetrag","zahlung","payment"],
-  cur:["waehrung","wahrung","currency"],cycle:["turnusmonate","turnus","abrechnungsperiode","abrechnungszeitraum","zahlungsperiode","intervall","zyklus","rhythmus","zahlungsintervall","zahlungsrhythmus","billingperiod","frequency","billingcycle","interval","period"],
+  cur:["waehrung","wahrung","currency"],cycle:["turnusmonate","rhythmusmonate","turnus","abrechnungsperiode","abrechnungszeitraum","zahlungsperiode","intervall","zyklus","rhythmus","zahlungsintervall","zahlungsrhythmus","billingperiod","frequency","billingcycle","interval","period"],
+  dueRaw:["zahlungsanker"],
   due:["naechstezahlung","naechsteabbuchung","naechstefaelligkeit","faellig","faelligam","faelligkeit","nextpayment","nextbilling","nextdue","zahltag","abbuchungsdatum"],
   start:["beginn","vertragsbeginn","startdatum","start","startdate","abschlussdatum","seit"],end:["ende","vertragsende","enddatum","laufzeitende","laufzeitbis","enddate"],
   notice:["kuendigungsfrist","frist","notice","noticeperiod","cancellationperiod"],noticeU:["einheit"],renew:["verlaengerung","verlaengerungmonate"],
   cancTerm:["kuendbarper"],mand:["pflichtvertrag","pflicht"],custNo:["kundennummer","kundennr","customernumber"],contrNo:["vertragsnummer","vertragsnr","contractnumber","policennummer"],
-  holders:["inhaber","vertragsinhaber","person","owner","holder"],payM:["zahlungsart","zahlungsmethode","zahlungsmittel","paymentmethod"],payA:["belastetueber","konto","karte"],
-  cancF:["kuendigungper"],cancUrl:["kuendigungslink"],web:["website","web","url"],tel:["telefon","phone"],mail:["email","mail"],note:["notiz","notizen","notes","note","bemerkung","kommentar"],addr:["kuendigungsadresse","adresse","address","anschrift"],split:["aufteilung","anteile","split"],
+  holders:["inhaber","personen","vertragsinhaber","person","owner","holder"],payM:["zahlungsart","zahlungsmethode","zahlungsmittel","paymentmethod"],payA:["belastetueber","konto","karte"],
+  cancF:["kuendigungper","kuendigungsweg"],cancUrl:["kuendigungslink"],web:["website","web","url"],tel:["telefon","phone"],mail:["email","mail"],note:["notiz","notizen","notes","note","bemerkung","kommentar"],addr:["kuendigungsadresse","adresse","address","anschrift"],split:["aufteilung","anteile","split"],
   prices:["preisverlauf","kostenhistorien","kostenhistorie","preishistorie"],tags:["tags","schlagworte"],contact:["kontaktdaten","kontakt","ansprechpartner"],dueDay:["abbuchungstag","zahltagimmonat"],status:["status"],noCancel:["nichtkuendbar"],cancelPer:["gekuendigtper"],cancelledOn:["gekuendigtam"],noWatch:["nichterinnern"],keptFor:["behaltenbis"],pausedAt:["pausiertseit"],pausedUntil:["pausiertbis"],trialKept:["probeabobehalten"],trial:["probeabo","probeabobis"],extras:["sonderzahlungen","einmalzahlungen"]};
 function csvNum(x){var t=String(x||"").replace(/[^\d,.\-']/g,"").replace(/'/g,"");if(!t)return null;
   if(t.indexOf(",")>=0&&t.indexOf(".")>=0){if(t.lastIndexOf(",")>t.lastIndexOf("."))t=t.replace(/\./g,"").replace(",",".");else t=t.replace(/,/g,"");}
@@ -6615,7 +6666,7 @@ function csvHolders(txt,own){
 }
 function csvToContracts(rows){
   if(rows.length<2)return {items:[],skipped:0,dup:0,cols:0};
-  var head=rows[0].map(csvNorm),col={},taken={},own=head.indexOf("turnusmonate")>=0&&head.indexOf("kuendbarper")>=0;  /* eigener Export */
+  var head=rows[0].map(csvNorm),col={},taken={},own=(head.indexOf("turnusmonate")>=0||head.indexOf("rhythmusmonate")>=0)&&head.indexOf("kuendbarper")>=0;  /* eigener Export */
   Object.keys(CSVMAP).forEach(function(k){for(var a=0;a<CSVMAP[k].length&&col[k]==null;a++){var i=head.indexOf(CSVMAP[k][a]);if(i>=0&&!taken[i]){col[k]=i;taken[i]=1;}}});
   var g=function(r,k){return col[k]==null?"":String(r[col[k]]==null?"":r[col[k]]).trim();};
   var key=function(c){return [csvNorm(c.partner),csvNorm(c.label),(+c.amount).toFixed(2),c.cycle,c.start||""].join("|");};
@@ -6657,7 +6708,7 @@ function csvToContracts(rows){
     var ad=g(r,"addr");ad=(/\n/.test(ad)?ad.split(/\s*\r?\n\s*/):ad.split(/\s*,\s*/)).filter(Boolean).join("\n");
     /* Katalogwerte für Frist / Kündbar per nur, wenn die Spalte fehlt (leer, 0 oder «jederzeit» sind bewusste Angaben) */
     var c={partner:partner,label:label,cat:cat,amount:Math.round(base*100)/100,cur:cur,cycle:cy,
-      due:csvDate(g(r,"due"),bad),start:csvDate(g(r,"start"),bad),end:csvDate(g(r,"end"),bad),
+      due:csvDate(g(r,"dueRaw"))||csvDate(g(r,"due"),bad),start:csvDate(g(r,"start"),bad),end:csvDate(g(r,"end"),bad),
       notice:nNum!=null?(noticeVal(nNum,nu)!=null?noticeVal(nNum,nu):Math.max(0,Math.round(Math.abs(nNum)))):(tpl&&col.notice==null?tpl[5]:0),noticeU:nNum!=null?nu:(tpl&&col.notice==null?tpl[6]:"m"),
       renew:String(csvNum(g(r,"renew"))||""),cancTerm:col.cancTerm!=null?csvTerm(g(r,"cancTerm")):(tpl&&!g(r,"end")?tpl[7]||"":""),
       mand:mand,custNo:g(r,"custNo"),contrNo:g(r,"contrNo"),holders:hs,
@@ -7620,9 +7671,9 @@ document.getElementById("onb").addEventListener("touchend",function(e){if(ob.x0=
   obGo(ob.i+(dx<0?1:-1));},{passive:true});
 document.getElementById("onbOpen").addEventListener("click",function(){openOnb(false);});
 /* ---------- Vollständigkeit (09.10.2026) ----------
-   Ein zentraler Ablauf statt Prüfliste: 1 Logos (Raster), 2 Fristen (eine Frage pro Vertrag), 3 Absender (pro Person).
+   Ein zentraler Ablauf statt Prüfliste: 1 Fristen (eine Frage pro Vertrag), 2 Absender (pro Person), 3 optional Logos (Raster).
    Kündigungsweg und Kontaktdaten kommen still aus dem Katalog (beim Start bestätigt), Kundennummer/Partneradresse fragt erst der Brief.
-   «Startklar» = Logo (oder bewusst keins), berechenbare Frist (wenn überwacht), Absender der Personen (ausser Kündigung online).
+   «Startklar» = berechenbare Frist (wenn überwacht), Absender der Personen (ausser Kündigung online). Logos zählen nicht (nur Optik, 10.10.2026).
    Nativ: eigenes Sheet mit NavigationStack, gleiche Regeln in KontivoCore. */
 function vkSkip(){var o=state.settings.logoSkip;return (o&&typeof o==="object"&&!Array.isArray(o))?o:{};}
 function vkTermNeed(c,k){
@@ -7641,7 +7692,7 @@ function vkNeeds(only){
     var c=state.contracts[k];if(!isActiveC(c)||c.cancelPer)return;
     if(only&&k!==only)return;
     var r=[],pk=String(c.partner||"").trim().toLowerCase(),g=groups[pk];
-    if(pk&&g&&!g.logoC&&!sk[pk]){r.push("logo");lg[pk]=g;}
+    if(pk&&g&&!g.logoC&&!sk[pk])lg[pk]=g;
     if(vkTermNeed(c,k)){r.push("term");out.term.push(k);}
     if(!isFixed(c)&&cancVia(c)!=="online")holdersOf(c).forEach(function(h){if(!sndOk(h)){if(r.indexOf("snd")<0)r.push("snd");sh[h]=1;}});
     out.total++;if(!r.length)out.ready++;out.per[k]=r;
@@ -7675,7 +7726,7 @@ function openVk(only){
   if(only){vk.auto=[];vkNext("start");}else paintVk();
   openSheet(sh);
 }
-function vkQCount(){return (vk.logos.length||vk.n0.logo.length?1:0)+vk.terms.length+vk.snds.length;}
+function vkQCount(){return vk.terms.length+vk.snds.length;}
 function vkHead(title,back,right){document.getElementById("vkT").textContent=title||"Vollständigkeit";
   document.getElementById("vkBack").hidden=!back;document.getElementById("vkLater").textContent=right||"Später";}
 function vkProg(idx,label){var tot=vkQCount(),n=vkNeeds(vk.only),p=vkPct(n);
@@ -7684,22 +7735,26 @@ function vkProg(idx,label){var tot=vkQCount(),n=vkNeeds(vk.only),p=vkPct(n);
 function paintVk(){
   var b=document.getElementById("vkBody"),n=vkNeeds(vk.only),p=vkPct(n);
   if(vk.step==="start"){vkHead("Vollständigkeit",false,"Später");
-    var q=n.logo.length?1:0;q+=n.term.length+n.snd.length;var na=vk.auto.length;
+    var q=n.term.length+n.snd.length,na=vk.auto.length;
     if(!n.total){b.innerHTML='<div class="vkc"><p class="vkh">Noch keine Verträge</p><p class="vkp">Sobald du Verträge erfasst, zeigt Kontivo hier, was noch fehlt.</p></div>';return;}
-    if(!q&&!na){vk.step="end";paintVk();return;}
-    var mins=Math.max(1,Math.round((n.term.length*15+n.snd.length*30+(n.logo.length?20:0))/60));
+    if(!q&&!na&&!n.logo.length){vk.step="end";paintVk();return;}
+    /* startklar, nur Logos fehlen: optionales Angebot statt Fragen */
+    if(!q&&!na){b.innerHTML='<div class="vkc"><div class="vkok" aria-hidden="true">✓</div><p class="vkh">Alles startklar!</p>'+
+      '<p class="vkp">Kontivo erinnert dich vor jeder Frist. Optional: '+cntTxt(n.logo.length,"Vertragspartner hat","Vertragspartner haben")+" noch kein Logo.</p>"+
+      '<button class="vkbtn" type="button" data-vk="logos">Logos ergänzen</button><button class="vkbtn g" type="button" data-vk="close">Fertig</button></div>';return;}
+    var mins=Math.max(1,Math.round((n.term.length*15+n.snd.length*30)/60));
     b.innerHTML='<div class="vkc">'+vkRingHtml(p,"big")+
       '<p class="vkh">'+(p>=75?"Fast geschafft!":p>=40?"Gute Basis!":"Los geht’s!")+'</p>'+
       '<p class="vkp">'+(q?"Noch <b>"+cntTxt(q,"kurze Frage","kurze Fragen")+"</b>, dann behält Kontivo jede Frist im Blick und bereitet Kündigungen für dich vor."
         :"Kontivo kann die fehlenden Angaben selbst ergänzen.")+"</p>"+
-      (na?'<p class="vkdone">✓ '+cntTxt(na,"Vertrag","Verträge")+" ergänzt Kontivo aus dem Anbieter-Katalog</p>":"")+
+      (na?'<p class="vkdone">✓ '+cntTxt(na,"Vertrag","Verträge")+" ergänzt Kontivo aus dem Katalog</p>":"")+
       '<button class="vkbtn" type="button" data-vk="go">'+(q?"Los geht’s · ca. "+mins+(mins===1?" Minute":" Minuten"):"Ergänzen")+"</button>"+
       '<button class="vkbtn g" type="button" data-vk="close">Später</button>'+
       '<button class="vklink" type="button" data-vk="detail">Alle Prüfungen im Detail</button></div>';return;}
-  if(vk.step==="logo"){vkHead("Logos",!vk.only,"Später");
+  if(vk.step==="logo"){vkHead("Logos",!vk.only||!!(vk.terms.length||vk.snds.length),"Später");
     var on=vk.logos.filter(function(x){return x.st==="ok"&&x.on;}).length,load=vk.logos.some(function(x){return x.st==="load";});
     if(vk.pick!=null){paintVkPick();return;}
-    b.innerHTML=vkProg(0,"Schritt 1 · Logos")+
+    b.innerHTML=vkProg(Math.max(1,vkQCount()),"Optional · Logos")+
       (function(){var anyOk=vk.logos.some(function(x){return x.st==="ok";});
         return '<p class="vkq">'+(anyOk||load?"Passen diese Logos?":"Logos ergänzen")+'</p><p class="vkp l">'+(navigator.onLine===false?"Ohne Internet findet Kontivo keine Logos. Du kannst den Schritt überspringen.":anyOk||load?"Tippe ein Logo an, um es zu ändern. Falsche abwählen geht auch.":"Für diese Vertragspartner hat Kontivo nichts gefunden. Tippe an, um selbst zu suchen.")+"</p>";})()+
       '<div class="vkgrid">'+vk.logos.map(function(x,i){var img=x.st==="ok"?(x.cands[x.sel].thumb||x.cands[x.sel].url):"";
@@ -7707,10 +7762,10 @@ function paintVk(){
           (x.st==="ok"?'<span class="vkck" aria-hidden="true">✓</span><img src="'+esc(img)+'" alt="" referrerpolicy="no-referrer">':
            x.st==="load"?'<span class="vkspin" aria-hidden="true"></span>':x.st==="skip"?'<span class="vkno">–</span>':'<span class="vkno">?</span>')+
           "<span class=\"vkn\">"+esc(x.name)+"</span>"+(x.st==="none"?"<small>Suchen</small>":x.st==="skip"?"<small>ohne Logo</small>":"")+"</button>";}).join("")+"</div>"+
-      '<button class="vkbtn" type="button" data-vk="logogo"'+(load?" disabled":"")+">"+(load?"Kontivo sucht Logos …":on?(on===1?"1 Logo übernehmen":on+" Logos übernehmen"):"Weiter")+"</button>";return;}
+      '<button class="vkbtn" type="button" data-vk="logogo"'+(load?" disabled":"")+">"+(load?"Kontivo sucht Logos …":on?(on===1?"1 Logo übernehmen":on+" Logos übernehmen"):"Ohne Logos fertig")+"</button>";return;}
   if(vk.step==="term"){var id=vk.terms[vk.ti],c=state.contracts[id];if(!c){vkNext("term");return;}
     vkHead("Fristen",true,"Später");
-    var t=tplMatch(c),nm=String(c.partner||"").trim()||titleOf(c),idx=(vk.logos.length?1:0)+vk.ti;
+    var t=tplMatch(c),nm=String(c.partner||"").trim()||titleOf(c),idx=vk.ti;
     var m=vk.tmode,d=vk.tdraft||{};
     var nu=function(sel){return '<select id="vkNU">'+[["m","Monate"],["w","Wochen"],["d","Tage"]].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===sel?" selected":"")+">"+o[1]+"</option>";}).join("")+"</select>";};
     var tp=function(sel){return '<select id="vkTP">'+[["","jederzeit"],["m","auf Monatsende"],["q","auf Quartalsende"],["y","auf Jahresende"],["a","auf Ende Vertragsjahr"],["p","auf Ende Zahlungsperiode"]].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===sel?" selected":"")+">"+o[1]+"</option>";}).join("")+"</select>";};
@@ -7731,7 +7786,7 @@ function paintVk(){
       opt("tax","✕","Nicht kündbar","z.B. Steuern, Gebühren")+fields+
       (m&&m!=="tax"?'<button class="vkbtn" type="button" data-vk="termsave">Weiter</button>':"")+
       '<button class="vklink" type="button" data-vk="termskip">Weiss ich nicht · überspringen</button>';return;}
-  if(vk.step==="snd"){var h=vk.snds[vk.si],o=sndOf(h),idx2=(vk.logos.length?1:0)+vk.terms.length+vk.si;
+  if(vk.step==="snd"){var h=vk.snds[vk.si],o=sndOf(h),idx2=vk.terms.length+vk.si;
     vkHead("Adresse",true,"Später");
     var others=(state.settings.holders||[]).filter(function(x){return x!==h&&sndOk(x);});
     b.innerHTML=vkProg(idx2,"Frage "+(idx2+1)+" von "+vkQCount())+
@@ -7743,9 +7798,9 @@ function paintVk(){
       '<button class="vklink" type="button" data-vk="sndskip">Später eintragen</button>';return;}
   if(vk.step==="end"){vkHead(vk.only?"Startklar":"Vollständigkeit",false,"Fertig");var all=n.ready===n.total;
     b.innerHTML='<div class="vkc">'+(all?'<div class="vkok" aria-hidden="true">✓</div><p class="vkh">'+(vk.only?"Startklar!":"100 % – alles komplett!")+"</p>"
-      :vkRingHtml(p,"big")+'<p class="vkh">'+p+' % – gut gemacht!</p>')+
-      '<p class="vkp">'+(all?"Deine Verträge sind bereit.":"Den Rest kannst du jederzeit unter Mehr → Vollständigkeit ergänzen.")+"</p>"+
-      '<ul class="vkl"><li><span>✓</span>Kontivo erinnert dich vor jeder Frist</li><li><span>✓</span>Kündigungen sind mit einem Tipp vorbereitet</li><li><span>✓</span>Kosten und Budget stimmen</li></ul>'+
+      :vkRingHtml(p,"big")+'<p class="vkh">'+(p>=75?"Fast geschafft!":p>=40?"Gute Basis!":"Ein Anfang ist gemacht")+"</p>")+
+      '<p class="vkp">'+(all?"Deine Verträge sind bereit.":cntTxt(n.total-n.ready,"Vertrag ist","Verträge sind")+" noch nicht startklar. Den Rest kannst du jederzeit unter Mehr → Vollständigkeit ergänzen.")+"</p>"+
+      (all?'<ul class="vkl"><li><span>✓</span>Kontivo erinnert dich vor jeder Frist</li><li><span>✓</span>Kündigungen sind mit einem Tipp vorbereitet</li><li><span>✓</span>Kosten und Budget stimmen</li></ul>':"")+
       '<button class="vkbtn" type="button" data-vk="close">Fertig</button></div>';return;}
 }
 /* Logo-Auswahl für eine Kachel: andere Treffer, selbst suchen, kein Logo */
@@ -7767,17 +7822,18 @@ async function vkFindLogos(){
   await Promise.all(workers);
 }
 function vkNext(from){
-  var n=vkNeeds(vk.only);
   if(from==="start"){if(!vk.only&&vk.auto.length){vk.auto.forEach(function(x){var c=state.contracts[x.id];if(c)putContract(x.id,Object.assign({},c,x.add));});vk.auto=[];render();}
-    n=vkNeeds(vk.only);vk.terms=n.term.slice();vk.snds=n.snd.slice();
-    if(n.logo.length){vk.step="logo";vk.logos=n.logo.map(function(g){return {g:g,pk:g.key,name:g.name,st:"load",cands:[],sel:0,on:false};});vk.pick=null;paintVk();vkFindLogos();return;}
-    from="logo";}
-  if(from==="logo"){if(vk.terms.length){vk.step="term";vk.ti=0;vkTermInit();paintVk();return;}from="term";}
-  if(from==="term"){if(vk.ti<vk.terms.length-1&&vk.step==="term"){vk.ti++;vkTermInit();paintVk();return;}
+    var n=vkNeeds(vk.only);vk.terms=n.term.slice();vk.snds=n.snd.slice();
+    if(vk.terms.length){vk.step="term";vk.ti=0;vkTermInit();paintVk();return;}from="term";}
+  if(from==="term"){if(vk.step==="term"&&vk.ti<vk.terms.length-1){vk.ti++;vkTermInit();paintVk();return;}
     if(vk.snds.length){vk.step="snd";vk.si=0;paintVk();return;}from="snd";}
-  if(from==="snd"&&vk.step==="snd"&&vk.si<vk.snds.length-1){vk.si++;paintVk();return;}
+  if(from==="snd"){if(vk.step==="snd"&&vk.si<vk.snds.length-1){vk.si++;paintVk();return;}
+    if(vkLogoStep())return;}
   vk.step="end";paintVk();render();
 }
+/* Logos zum Schluss und optional (zählen nicht für «startklar») */
+function vkLogoStep(){var n=vkNeeds(vk.only);if(!n.logo.length||vk.logoDone)return false;vk.logoDone=true;
+  vk.step="logo";vk.logos=n.logo.map(function(g){return {g:g,pk:g.key,name:g.name,st:"load",cands:[],sel:0,on:false};});vk.pick=null;paintVk();vkFindLogos();return true;}
 /* Vorbelegung aus dem Katalog bzw. vorhandenen Werten */
 function vkTermInit(){var c=state.contracts[vk.terms[vk.ti]]||{},t=tplMatch(c);
   vk.tdraft={notice:c.notice||(t&&t[5])||"",noticeU:c.noticeU||(t&&t[6])||"m",cancTerm:c.cancTerm||(t&&t[7])||"",end:c.end||"",renew:c.renew!=null&&c.renew!==""?c.renew:(c.end?"":12)};/* feste Laufzeit ohne Verlängerung bleibt ohne */
@@ -7817,6 +7873,7 @@ document.getElementById("vkBody").addEventListener("click",async function(e){
   if(t.dataset.vkc!=null){var y=vk.logos[vk.pick];y.sel=+t.dataset.vkc;y.st="ok";y.on=true;vk.pick=null;paintVk();return;}
   if(t.dataset.vksame){var h=vk.snds[vk.si];setSnd(h,Object.assign({},sndRaw(h),{same:t.dataset.vksame}));vkNext("snd");return;}
   if(a==="go"){vkNext("start");return;}
+  if(a==="logos"){vk.logoDone=false;if(!vkLogoStep()){vk.step="end";paintVk();}return;}
   if(a==="close"){closeSheetEl("sheetVk");vk=null;render();return;}
   if(a==="detail"){closeSheetEl("sheetVk");vk=null;setTimeout(function(){openMd("qual");},200);return;}
   if(a==="logogo"){vkLogoApply();return;}
@@ -7835,10 +7892,11 @@ document.getElementById("vkBody").addEventListener("keydown",function(e){if(e.ke
 document.getElementById("vkLater").addEventListener("click",function(){if(vk&&vk.busy)return;closeSheetEl("sheetVk");vk=null;render();});
 document.getElementById("vkBack").addEventListener("click",function(){if(!vk)return;
   if(vk.step==="logo"&&vk.pick!=null){vk.pick=null;paintVk();return;}
+  if(vk.step==="logo"){vk.logoDone=false;if(vk.snds.length){vk.step="snd";vk.si=vk.snds.length-1;paintVk();return;}
+    if(vk.terms.length){vk.step="term";vk.ti=vk.terms.length-1;vkTermInit();paintVk();return;}}
   if(vk.step==="term"&&vk.ti>0){vk.ti--;vkTermInit();paintVk();return;}
   if(vk.step==="snd"&&vk.si>0){vk.si--;paintVk();return;}
   if(vk.step==="snd"&&vk.terms.length){vk.step="term";vk.ti=vk.terms.length-1;vkTermInit();paintVk();return;}
-  if((vk.step==="snd"||vk.step==="term")&&vk.logos.length){vk.step="logo";vk.pick=null;paintVk();return;}
   if(!vk.only){vk.step="start";paintVk();}});
 document.getElementById("vkOpen").addEventListener("click",function(){openVk();});
 
