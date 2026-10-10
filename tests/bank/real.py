@@ -8,9 +8,9 @@ URL = os.environ.get("KONTIVO_URL", "http://localhost:8765/index.html")
 V = "-v" in sys.argv; F = [a for a in sys.argv[1:] if not a.startswith("-")]
 # Name beginnt mit → (Turnus, Betrag, Preisänderung ab)
 DE = {"Wohnbau Konstanz": (1, 1180, None), "Telekom": (1, 39.95, None), "Netflix": (1, 13.99, None), "Spotify": (1, 11.99, None),
-      "Rundfunkbeitrag": (3, 55.08, None), "Allianz": (12, 89.40, None)}
+      "Rundfunkgebühr": (3, 55.08, None), "Allianz": (12, 89.40, None)}
 CH = {"Immo Seeblick": (1, 1850, None), "CSS": (1, 412.30, "2026-01"), "Swisscom": (1, 79, None), "Netflix": (1, 18.90, None),
-      "Energie Kreuzlingen": (3, 180.50, None), "Serafe": (12, 335, None)}
+      "Energie Kreuzlingen": (3, 180.50, None), "Rundfunkgebühr": (12, 335, None)}
 CARD = ("kreditkarte", "visa", "card", "creditcard", "swisscard", "viseca", "amex", "barclays")
 JS = """(b64)=>{var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
   var B=window.KontivoBank(),r=B.read(u.buffer);if(!r)return null;var f=B.find(r,[]);

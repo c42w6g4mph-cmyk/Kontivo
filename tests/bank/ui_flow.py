@@ -29,8 +29,8 @@ with sync_playwright() as p:
         pg.screenshot(path=f"{OUT}/2_bearbeiten_{theme}.png")
         if theme == "light":
             pg.click('#bkBody .bkdone'); pg.wait_for_timeout(200)
-            # Serafe (Vielleicht) aufklappen → Nie mehr vorschlagen
-            pg.click('#bkBody .bkmain:has-text("Serafe")'); pg.click('#bkBody [data-bkign]'); pg.wait_for_timeout(200)
+            # Rundfunkgebühr (Vielleicht) aufklappen → Nie mehr vorschlagen
+            pg.click('#bkBody .bkmain:has-text("Rundfunkgebühr")'); pg.click('#bkBody [data-bkign]'); pg.wait_for_timeout(200)
             # Mobiliar ankreuzen
             pg.click('#bkBody .bkrow:has-text("Die Mobiliar") [data-bkon]')
             btn = pg.inner_text("#bkGo"); print("Knopf:", btn)
@@ -45,7 +45,7 @@ with sync_playwright() as p:
             print("bankIgn:", d["settings"].get("bankIgn"))
             imm = [c for c in cs.values() if c["partner"].startswith("Immo")][0]; print("Immo:", imm["cat"], imm["amount"], imm["holders"])
             stv = [c for c in cs.values() if c["partner"].startswith("Steuer")][0]; print("Steuer:", stv["cat"], stv.get("noCancel"))
-            # zweiter Import: Serafe ausgeblendet, angelegte jetzt «bereits erfasst»
+            # zweiter Import: Rundfunkgebühr ausgeblendet, angelegte jetzt «bereits erfasst»
             pg.click('.tabbar button[data-tab="set"]'); pg.set_input_files("#bankFile", S + "ch_postfinance.csv"); pg.wait_for_timeout(600)
             pg.screenshot(path=f"{OUT}/4_zweiter_import.png")
             print("Zweiter Import:", pg.inner_text("#bkBody")[:400].replace("\n", " | "))

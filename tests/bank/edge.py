@@ -19,7 +19,7 @@ E = {
  "otherproduct": dict(s=[("Swisscom", 1, 39)], nomatch=True),
  "delim": dict(s=[("Sunrise", 1, 39)]),
  "eom": dict(s=[("Hausverwaltung Muster", 1, 1500)]),
- "yearlylate": dict(s=[("Sunrise", 1, 39), ("Serafe", 12, 335)]),
+ "yearlylate": dict(s=[("Sunrise", 1, 39), ("Rundfunkgebühr", 12, 335)]),
  "css_known": dict(s=[], k=["CSS Kranken-Versicherung"]),
  "quotednl": dict(s=[("Sunrise", 1, 39)]),
  "ddmmyyyy_dash": dict(s=[("Sunrise", 1, 39)]),

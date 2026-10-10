@@ -8,12 +8,12 @@ V = "-v" in sys.argv
 # Erwartet: Vertragspartner → (Turnus in Monaten, aktueller Betrag, Preisänderung ab JJJJ-MM oder None)
 CH = {"Immo Seeblick": (1, 1850, None), "CSS": (1, 412.30, "2026-01"), "Swisscom": (1, 79.00, None), "Netflix": (1, 18.90, None),
       "Spotify": (1, 13.95, None), "Energie Kreuzlingen": (3, 180.50, None), "Steuerverwaltung": (1, 600, None),
-      "Serafe": (12, 335, None), "Die Mobiliar": (12, 486.70, None)}
+      "Rundfunkgebühr": (12, 335, None), "Die Mobiliar": (12, 486.70, None)}
 DE = {"Wohnbau Konstanz": (1, 1180, None), "Telekom": (1, 39.95, None), "Stadtwerke Konstanz": (1, 102, "2026-03"), "Netflix": (1, 13.99, None),
-      "Spotify": (1, 11.99, "2026-07"), "Rundfunkbeitrag": (3, 55.08, None), "McFit": (1, 24.90, None), "Deutschlandticket": (1, 63, "2026-01"),
+      "Spotify": (1, 11.99, "2026-07"), "Rundfunkgebühr": (3, 55.08, None), "McFit": (1, 24.90, None), "Deutschlandticket": (1, 63, "2026-01"),
       "Allianz": (12, 89.40, None)}
 DE90 = {"Wohnbau Konstanz": (1, 1180, None), "Telekom": (1, 39.95, None), "Stadtwerke Konstanz": (1, 102, None), "Netflix": (1, 13.99, None),
-        "Spotify": (1, 11.99, None), "Rundfunkbeitrag": (12, 55.08, None), "McFit": (1, 24.90, None), "Deutschlandticket": (1, 63, None)}
+        "Spotify": (1, 11.99, None), "Rundfunkgebühr": (12, 55.08, None), "McFit": (1, 24.90, None), "Deutschlandticket": (1, 63, None)}
 JS = """(b64)=>{var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
   var B=window.KontivoBank(),r=B.read(u.buffer);if(!r)return null;var f=B.find(r,[]);
   return {fmt:f.fmt,bank:f.bank,n:f.n,from:f.from,to:f.to,known:f.known.map(function(s){return s.name;}),
