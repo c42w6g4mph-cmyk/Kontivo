@@ -227,6 +227,8 @@ final class CTFormState {
 
     /// Eingabe im Feld Vertragspartner (nur Tippen, nicht programmatisch)
     func userTypedPartner(_ v: String) {
+        // SwiftUI setzt den Wert beim Schliessen der Tastatur erneut: nur echte Änderungen zählen (sonst verschwindet die Katalog-Karte)
+        guard v != partnerName else { return }
         partnerName = v
         if !pSugSel.isEmpty && v.ctTrimmed != pSugSel { pSugSel = "" }
         tplHint = ""
