@@ -1562,8 +1562,11 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 #fCats .chev{font-size:20px}
 .fcard .cvaddr{background:transparent;border-radius:0;margin:0;padding:10px 0}
 .fcard .sndform.ig{background:var(--surface);margin:0}
+.fadda{color:var(--ink3);font-size:16px}
+.frow input[type=date].emp{min-width:8.5em;background:color-mix(in srgb,var(--teal) 8%,transparent)}
 .frow .igr input{text-align:left;color:var(--ink);font-weight:400;max-width:none;padding:11px 14px;border-radius:0}
-.fcard .seg2{margin:0}
+.fcard .seg2{margin:0;background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.fcard .seg2 button[aria-pressed="true"]{background:var(--surface)}
 .fcard .swi:not(:checked){background:color-mix(in srgb,var(--ink) 16%,transparent)}
 .fnotef{display:block;width:100%;min-height:84px;border:0;background:transparent;padding:12px 0;font-size:16px;color:var(--ink);resize:vertical;outline:0;font-family:inherit}
 #sheetForm .fnote2{margin:8px 2px 0}
@@ -1810,7 +1813,8 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 
   <h3 class="fsec" id="fsContact">Kontakt</h3>
   <div class="fcard">
-    <div class="frow fcol"><div class="flrow"><span class="fl">Adresse</span><button type="button" class="mdlink" id="fAddrPaste">Einfügen</button></div>
+    <button type="button" class="frow" id="fAddrAdd"><span class="fl">Adresse</span><span class="fadda">hinzufügen</span></button>
+    <div class="frow fcol" id="fAddrW"><div class="flrow"><span class="fl">Adresse</span><button type="button" class="mdlink" id="fAddrPaste">Einfügen</button></div>
       <div class="sndform ig" id="fAddrG"></div><textarea id="fAddr" hidden></textarea></div>
     <div class="frow"><label for="fWeb">Website</label><input id="fWeb" type="url" inputmode="url" placeholder="hinzufügen" autocomplete="off"></div>
     <div class="frow"><label for="fTel">Telefon</label><input id="fTel" type="tel" placeholder="hinzufügen" autocomplete="off"></div>
@@ -3229,7 +3233,7 @@ function catInfoIc(){return '<span class="catinfo" role="button" tabindex="0" da
 function paintCatField(pre,cat){
   var ic=document.getElementById(pre+"CatIcon"),nm=document.getElementById(pre+"CatName");
   if(cat){ic.style.background=catColor(cat);ic.innerHTML=catIcon(cat);nm.innerHTML=esc(cat)+(catKey(cat)==="Steuern & Gebühren"?catInfoIc():"");nm.classList.remove("ph");}
-  else{ic.style.background="var(--sunken)";ic.innerHTML="";nm.textContent="Kategorie wählen";nm.classList.add("ph");}
+  else{ic.style.background="var(--sunken)";ic.innerHTML="";nm.textContent=pre==="f"?"wählen":"Kategorie wählen";nm.classList.add("ph");}
 }
 function paintCats(){paintCatField("f",draft.cat);
   /* Steuern & Gebühren sind immer nicht kündbar: Auswahl fest auf «nicht kündbar» */
@@ -3430,7 +3434,7 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
   document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);document.getElementById("fRemind").checked=!(c&&c.noWatch);document.getElementById("fNoCancel").checked=!!(c&&c.noCancel);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
   document.getElementById("fSugg").innerHTML="";
-  document.getElementById("fWeb").value=(c&&c.web)||"";var pgA=c&&c.partner&&!c.addr?peGroup(String(c.partner).trim().toLowerCase()):null;document.getElementById("fAddr").value=(c&&c.addr)||(pgA&&pgA.addr)||"";fAddrPaint();
+  document.getElementById("fWeb").value=(c&&c.web)||"";var pgA=c&&c.partner&&!c.addr?peGroup(String(c.partner).trim().toLowerCase()):null;document.getElementById("fAddr").value=(c&&c.addr)||(pgA&&pgA.addr)||"";fAddrPaint();fAddrShow(!!document.getElementById("fAddr").value.trim());
   document.getElementById("fTel").value=(c&&c.tel)||"";
   document.getElementById("fMail").value=(c&&c.mail)||"";syncCancUrl();
   paintHolders();
@@ -3448,7 +3452,7 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   paintCats();paintSwatches();paintLogo();paintDocs();
   document.getElementById("logoUp").hidden=!assets;
   document.getElementById("docUp").hidden=!assets;
-  openSheet(document.getElementById("sheetForm"));formPage();formSnap.c=formSig("sheetForm",draft);
+  openSheet(document.getElementById("sheetForm"));formPage();datesPaint();formSnap.c=formSig("sheetForm",draft);
 }
 /* Eine Seite (seit 10.10.2026, früher «Weitere Angaben» als zweite Seite): formGo(id) scrollt zu einem Feld und setzt den Fokus.
    formPage(false) bleibt als «nach oben». SwiftUI: ScrollViewReader.scrollTo + @FocusState */
@@ -3808,7 +3812,7 @@ function syncTermSel(){var sel=document.getElementById("fTermSel");if(!sel)retur
 document.getElementById("fTermSel").addEventListener("change",function(){var b=document.querySelector('#termSeg [data-tm="'+this.value+'"]');if(b&&!b.disabled)setTermMode(this.value);else syncTermSel();});
 /* Mindestlaufzeit in Monaten ↔ Vertragsende: Ende = Beginn + n Monate − 1 Tag. Gespeichert wird nur das Ende */
 function termEndFromM(){var n=parseInt(document.getElementById("fTermM").value,10),st=parseD(document.getElementById("fStart").value);
-  if(!(n>0&&n<=600))return;if(!st){toast("Zuerst den Vertragsbeginn eintragen");return;}
+  if(!(n>0&&n<=600))return;if(!st){toast("Zuerst den Vertragsbeginn eintragen");formGo("fStart");return;}
   document.getElementById("fEnd").value=iso(addDays(addMonths(st,n),-1));updTermHint();}
 function termMFromEnd(){var st=parseD(document.getElementById("fStart").value),en=parseD(document.getElementById("fEnd").value),m=document.getElementById("fTermM");
   if(document.activeElement===m)return;var v="";if(st&&en&&en>st){for(var n=1;n<=600;n++){var e=addDays(addMonths(st,n),-1);if(+e===+en){v=String(n);break;}if(e>en)break;}}m.value=v;}
@@ -3884,16 +3888,23 @@ document.getElementById("fCancF").addEventListener("change",syncCancUrl);
 document.getElementById("fCancT").addEventListener("click",function(ev){var b=ev.target.closest("[data-cv]");if(!b)return;
   var f=document.getElementById("fCancF");f.value=f.value===b.dataset.cv?"":b.dataset.cv;syncCancUrl();paintOptCounts();});
 document.getElementById("fCancMail").addEventListener("input",function(){document.getElementById("fMail").value=this.value;});
-document.getElementById("fCancAddrB").addEventListener("click",function(){
+document.getElementById("fCancAddrB").addEventListener("click",function(){fAddrShow(true);
   var g=document.getElementById("fAddrG");if(g){g.scrollIntoView({block:"center",behavior:"smooth"});var i=g.querySelector("input");if(i)setTimeout(function(){i.focus({preventScroll:true});},300);}});
 /* Früher Zähler für «Weitere Angaben»; jetzt: Folgezeilen ein-/ausblenden (Bezahlung «über …», Beschriftung Vertragsnummer) */
 function paintOptCounts(){var rm=document.getElementById("fRemind");if(rm)rm.checked=!document.getElementById("fNoWatch").checked;var pm=document.getElementById("fPayM"),pa=document.getElementById("fPayA");
   if(pm&&pa)pa.hidden=!pm.value&&!pa.value.trim()&&document.activeElement!==pa;
   var cl=document.getElementById("fContrL");if(cl)cl.textContent=contrLbl({cat:draft.cat,label:document.getElementById("fLabel").value,partner:document.getElementById("fPartner").value});}
 /* Adresse im Vertragsformular wie auf der Vertragspartner-Seite: Felder Firma/Zusatz/Strasse/PLZ Ort/Land, gespeichert als Text in #fAddr */
+/* Adresse leer: nur Zeile «Adresse hinzufügen», Felder erst auf Tippen (oder «Erfassen» beim Brief) */
+function fAddrShow(on){document.getElementById("fAddrW").hidden=!on;document.getElementById("fAddrAdd").hidden=!!on;}
+document.getElementById("fAddrAdd").addEventListener("click",function(){fAddrShow(true);var i=document.querySelector("#fAddrG input");if(i)i.focus();});
+/* leere Datumsfelder sichtbar machen (iOS zeigt sonst nichts) */
+function datesPaint(){document.querySelectorAll("#sheetForm .frow input[type=date]").forEach(function(i){i.classList.toggle("emp",!i.value);});}
+document.getElementById("sheetForm").addEventListener("change",function(e){if(e.target.type==="date")datesPaint();});
+document.getElementById("sheetForm").addEventListener("input",function(e){if(e.target.type==="date")datesPaint();});
 function fAddrPaint(){var pn=document.getElementById("fPartner").value,o=addrSplit(document.getElementById("fAddr").value,pn),F=function(i){var f=PA_F[i],pl=i===0?firmPh(pn):f[2];
     return '<input id="fa'+f[1].slice(2)+'" data-fa="'+f[0]+'" type="text" autocomplete="off" autocapitalize="words" placeholder="'+esc(pl)+'" aria-label="'+esc(pl)+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';};
-  document.getElementById("fAddrG").innerHTML='<div class="igr">'+F(0)+'</div><div class="igr">'+F(1)+'</div><div class="igr">'+F(2)+'</div><div class="igr two zc">'+F(3)+F(4)+'</div><div class="igr">'+F(5)+'</div>';}
+  document.getElementById("fAddrG").innerHTML='<div class="igr">'+F(0)+'</div><div class="igr">'+F(1)+'</div><div class="igr">'+F(2)+'</div><div class="igr two zc">'+F(3)+F(4)+'</div><div class="igr">'+F(5)+'</div>';if(document.getElementById("fAddr").value.trim())fAddrShow(true);}
 document.getElementById("fPartner").addEventListener("input",function(){var i=document.querySelector('#fAddrG [data-fa="firm"]');if(i){i.placeholder=firmPh(this.value);i.setAttribute("aria-label",i.placeholder);}});
 document.getElementById("fAddrG").addEventListener("input",function(){var o={};document.querySelectorAll("#fAddrG [data-fa]").forEach(function(i){o[i.dataset.fa]=i.value.trim().replace(/\s+/g," ");});
   document.getElementById("fAddr").value=addrJoin(o);paintOptCounts();});
