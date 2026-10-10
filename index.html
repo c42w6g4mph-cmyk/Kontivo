@@ -2093,11 +2093,11 @@ function catIcon(cat){var e=catEntry(cat),i;
   return '<svg class="cicon" viewBox="0 0 24 24" aria-hidden="true">'+i+"</svg>";}
 var CYCLE={1:"monatlich",2:"alle 2 Monate",3:"quartalsweise",6:"halbjährlich",12:"jährlich",24:"alle 2 Jahre"};
 var LS="vertraege.v1";
-/* Zahlenformat nach Währung (Entscheid 09.10.2026): EUR deutsch (1.234,50), CHF schweizerisch (1’234.50);
-   übrige Währungen und Summen in der Hauptwährung richten sich nach der Hauptwährung */
+/* Zahlenformat nach Hauptwährung (Entscheid 10.10.2026, ersetzt «nach Vertragswährung» vom 09.10.): Hauptwährung EUR → überall deutsch (1.234,50),
+   CHF → überall schweizerisch (1’234.50), auch bei Verträgen in der anderen Währung. Eingabe akzeptiert beides (parseAmt). SwiftUI: ein NumberFormatter je nach Hauptwährung */
 var NF={CH:new Intl.NumberFormat("de-CH",{minimumFractionDigits:2,maximumFractionDigits:2}),DE:new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})};
 var NF0={CH:new Intl.NumberFormat("de-CH",{maximumFractionDigits:0}),DE:new Intl.NumberFormat("de-DE",{maximumFractionDigits:0})};
-function numStyle(cur){cur=cur||state.settings.home;if(cur==="EUR")return "DE";if(cur==="CHF")return "CH";return state.settings.home==="EUR"?"DE":"CH";}
+function numStyle(){return state.settings.home==="EUR"?"DE":"CH";}
 var nf={format:function(v,cur){return NF[numStyle(cur)].format(v||0);}};
 var nf0={format:function(v,cur){return NF0[numStyle(cur)].format(v||0);}};
 /* Position des Dezimalzeichens (für kleine Rappen/Cent): bei 2 Nachkommastellen immer das letzte . oder , */
@@ -3875,7 +3875,7 @@ document.getElementById("xAdd").addEventListener("click",function(){
 });
 document.getElementById("fCur").addEventListener("change",paintExtras);
 document.getElementById("fCur").addEventListener("change",paintPrices);
-/* Platzhalter im Zahlenformat der gewählten Währung */
+/* Platzhalter im Zahlenformat der Hauptwährung */
 function amtPh(){var de=numStyle(document.getElementById("fCur").value)==="DE";document.getElementById("fAmt").placeholder=de?"59,90":"59.90";
   var ic=document.getElementById("iCur");if(ic)document.getElementById("iAmt").placeholder=numStyle(ic.value)==="DE"?"6500,00":"6500.00";}
 document.getElementById("fCur").addEventListener("change",amtPh);
