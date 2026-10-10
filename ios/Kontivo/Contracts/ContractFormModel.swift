@@ -154,8 +154,9 @@ final class CTFormState {
         let personIDs = Set(data.persons.map { $0.id })
         holderIDs = c.holderIDs.filter { personIDs.contains($0) }
         split = c.validSplit != nil ? c.split : []
-        currency = useHomeCurrency ? data.settings.homeCurrency : c.currency
-        amountText = blankAmount ? "" : CTNumber.field(c.amount, currency)
+        let cur0 = useHomeCurrency ? data.settings.homeCurrency : c.currency
+        currency = cur0
+        amountText = blankAmount ? "" : CTNumber.field(c.amount, cur0)
         cycle = c.cycle == 0 ? 1 : c.cycle
         due = c.due ?? today
         if c.noCancel {
