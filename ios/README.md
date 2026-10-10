@@ -1,10 +1,11 @@
 # Kontivo für iPhone und iPad (SwiftUI)
 
-Native Version der Web-App Kontivo, 1:1 nachgebaut. Stand: 03.10.2026.
+Native Version der Web-App Kontivo, 1:1 nachgebaut. Stand: 10.10.2026 (Web v142).
 
 ## Stand
 - **Kern (KontivoCore):** Datenmodell, Rechenkern, Datenqualität, Kündigungsschreiben, Katalog, Import/Export, Fachaktionen. 46 automatische Tests, darunter der Abgleich mit der Web-App (`tests/golden.json`: 4 Stichtage × 25 Verträge × 17 Werte, 100 % gleich).
-- **App:** alle Bereiche der Web-App (Verträge, Kosten, Budget, Fristen, Mehr, Verwalten, Kündigung mit Brief/PDF/Unterschrift, Einführung, Backup/CSV).
+- **App:** alle Bereiche der Web-App (Verträge, Kosten, Budget, Fristen, Mehr, Verwalten mit Vollständigkeit, Kündigung mit Brief/PDF/Unterschrift, Einführung mit Intro, Kontoauszug-Import, Backup/CSV).
+- **Kontoauszug:** Erkennung 1:1 wie Web, geprüft gegen Erwartungswerte aus der Web-App (84 Bankdateien, 37 Grenzfälle, 3 Kombinationen).
 - **Geprüft:** Jede Änderung wird auf einem Mac von GitHub gebaut (Xcode 26.2), getestet und im Simulator fotografiert (iPhone 17 Pro hell/dunkel, iPad Pro 13″). Auf einem echten Gerät lief die App noch nicht.
 
 ## Mit dem Mac loslegen
@@ -47,14 +48,17 @@ iPhone-App: Mehr → Daten → «Backup laden» → Datei wählen. Verträge, Ei
 
 ## Bewusst anders als die Web-App (native Möglichkeiten)
 - Kündigungsbrief: eigene Knöpfe «Per Mail senden» (PDF als Anhang), «Drucken», «Teilen» statt nur Teilen-Menü
-- Kalender: Kalender-Symbol auf den Fristen-Karten öffnet direkt «Termin hinzufügen» (Erinnerung 7 Tage und 1 Tag vorher)
+- Kalender: «In Kalender» per langem Drücken auf eine Frist und im Vertragsdetail (Menü •••), Erinnerung 7 Tage und 1 Tag vorher
+- Mitteilungen vor Fristende (Mehr → Erinnerungen und Sicherheit, «Tage vorher» 1/3/7/14/30), Tippen öffnet den Vertrag
+- App-Sperre mit Face ID bzw. Gerätecode, Abdeckung im App-Umschalter
+- Kontoauszug auch als PDF oder Foto/Scan (Texterkennung mit Apple Vision, nur auf dem Gerät)
 - Unterschrift mit PencilKit (Apple Pencil auf dem iPad)
 - Wischen und langes Drücken auf Vertragskarten (Pausieren, Duplizieren, Kündigen)
 - Datenmodell mit IDs statt Namen (Umbenennen von Personen, Kategorien und Vertragspartnern ist sicher), mehrere Pausen pro Vertrag, Schalter «Mietvertrag»
-- Datum und Zahlen immer im Schweizer Format (wie Web)
+- Datum im Schweizer Format, Beträge je Währung wie Web (EUR 1.234,50 · CHF 1’234.50)
 
 ## Vor einer Veröffentlichung noch offen
 - Auf iPhone und iPad testen (Gesten, Kalender, Mail, Drucken, Kamera/Dateien, Backup-Import einer echten Web-Sicherung)
 - App-Icon in 1024 px aus der Originalgrafik (derzeit aus 512 px hochgerechnet)
 - Datenschutzerklärung für den App Store, Hinweis, dass Backups Unterschriften enthalten
-- Danach (nur nativ möglich): Erinnerungen als Mitteilung vor Fristende, iCloud-Sync, Face ID, Widgets, Dokument-Scan
+- Danach (nur mit bezahltem Apple-Konto sinnvoll): iCloud-Sync, Widget «Nächste Frist»
