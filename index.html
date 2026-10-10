@@ -2513,7 +2513,8 @@ function syncLine(){
 /* ---------- Rendern ---------- */
 function renderHero(){
   var fut=running().filter(notStarted).length,a=running().filter(function(c){return !notStarted(c);}),mSum=0,np=active().length-a.length-fut;
-  a.forEach(function(c){mSum+=monthlyCost(c);});
+  /* laufendes Probeabo kostet (noch) nichts: erst ab Probe-Ende in der Summe */
+  a.forEach(function(c){if(!trialOn(c))mSum+=monthlyCost(c);});
   document.getElementById("hMonth").textContent=money(mSum);
   document.getElementById("hCur").textContent=state.settings.home;
   document.getElementById("hSub").textContent=nf0.format(mSum*12)+" "+state.settings.home+" pro Jahr"+((!np&&!fut&&a.length)?" · "+a.length+(a.length===1?" aktiver Vertrag":" aktive Verträge"):"");
@@ -2610,7 +2611,7 @@ function renderView(){
     var out="";document.getElementById("sortLbl").textContent={cat:"Kategorie",cost:"Kosten",partner:"Vertragspartner",due:"Fälligkeit",holder:"Person"}[srt]||"Kategorie";
     function group(title,list,mode,sumTxt){
       /* wie die Summe oben: ohne pausierte und noch nicht aktive Verträge */
-      var sm=list.reduce(function(n,c){return n+(isPaused(c)||notStarted(c)?0:monthlyCost(c));},0);
+      var sm=list.reduce(function(n,c){return n+(isPaused(c)||notStarted(c)||trialOn(c)?0:monthlyCost(c));},0);
       var st=sumTxt;if(st==null&&sm<0.005&&list.length){st=list.every(isPaused)?"pausiert":list.every(notStarted)?"noch nicht aktiv":list.every(function(c){return isPaused(c)||notStarted(c);})?"pausiert / noch nicht aktiv":null;}
       out+='<div class="grp">'+(title?'<div class="grphead"><span>'+esc(title)+'</span><span>'+(sumTxt===false?"":(st!=null?st:money(sm)+" "+H+"/Mt."))+"</span></div>":"");
       list.forEach(function(c){out+=cardHtml(c,mode||"list");});out+="</div>";
@@ -2829,8 +2830,8 @@ function showLpop(dim,key){
     .filter(function(c){return dim==="holder"?holdersOf(c).indexOf(key)>=0:statKey(c,dim)===key;});
   var act=all.filter(function(c){return c.status!=="cancelled"&&!isEnded(c);}).sort(function(a,b){return monthlyCost(b)-monthlyCost(a);});
   var nOld=all.length-act.length,sum=0;
-  var rows=act.map(function(c){var off=isPaused(c),f=dim==="holder"?holderShare(c,key):1,v=monthlyCost(c)*f;if(!off)sum+=v;
-    return '<div class="lr'+(off?" off":"")+'">'+markHtml(c)+'<span class="lt">'+esc(titleOf(c))+(f<1?" · "+shareTxt(f):"")+(off?" · pausiert":"")+'</span><b>'+money(v)+"</b></div>";}).join("");
+  var rows=act.map(function(c){var off=isPaused(c)||trialOn(c),f=dim==="holder"?holderShare(c,key):1,v=monthlyCost(c)*f;if(!off)sum+=v;
+    return '<div class="lr'+(off?" off":"")+'">'+markHtml(c)+'<span class="lt">'+esc(titleOf(c))+(f<1?" · "+shareTxt(f):"")+(off?(isPaused(c)?" · pausiert":" · Probeabo"):"")+'</span><b>'+money(v)+"</b></div>";}).join("");
   var p=document.createElement("div");p.id="lpop";p.className="lpop";p.setAttribute("role","dialog");p.setAttribute("aria-label",key);
   p.innerHTML='<h4>'+esc(key)+'<span>'+H+'/Mt.</span><button type="button" class="lpx" data-lpx aria-label="Schliessen">×</button></h4>'+(rows||'<p class="lx">Keine aktiven Verträge.</p>')+
     (act.length?'<div class="lf"><span>Total pro Monat</span><span>'+money(sum)+" "+H+"</span></div>":"")+
@@ -3095,7 +3096,7 @@ function emptyTerm(){
     btn:['data-onb="c"',"Ersten Vertrag erfassen"]});
 }
 function budgetEmpty(){
-  var act=running().filter(function(c){return !notStarted(c);}),fix=act.reduce(function(n,c){return n+monthlyCost(c);},0);
+  var act=running().filter(function(c){return !notStarted(c)&&!trialOn(c);}),fix=act.reduce(function(n,c){return n+monthlyCost(c);},0);
   return emptyHero({icon:"budget",title:"Weisst du, was dir<br>jeden Monat bleibt?",
     text:act.length?"Deine Fixkosten sind schon da: "+money(fix)+" "+esc(state.settings.home)+" im Monat. Es fehlen nur deine Einnahmen.":"Trag deine Einnahmen ein, z.B. Lohn, Rente oder Stipendium. Die Fixkosten kommen aus deinen Verträgen.",
     hooks:["Lohn rein, Fixkosten raus: der Rest gehört dir","Was bleibt dir übrig? Sofort sichtbar","Fair geteilt: wer zahlt wie viel im Haushalt"],
@@ -3220,7 +3221,7 @@ function renderBudget(v){
       '<div class="kc r"><em>Verfügbar '+Y+'</em><b class="'+(tFree<0?"up":"")+'">'+(tFree<0?"−":"")+nf0.format(Math.abs(tFree))+"</b></div></div>";
     o+='<div class="readout mcard kcard" style="display:block">'+bh+brow+bc+bfoot+"</div>";
     /* Fair geteilt: Anteil jeder Person an den laufenden Fixkosten gegenüber ihrem Anteil an den Einnahmen (nur Anzeige, keine Wertung) */
-    if(!BH&&HL.length>=2){var runC=running().filter(function(c){return !notStarted(c);}),shared=runC.some(function(c){return holdersOf(c).length>1;});
+    if(!BH&&HL.length>=2){var runC=running().filter(function(c){return !notStarted(c)&&!trialOn(c);}),shared=runC.some(function(c){return holdersOf(c).length>1;});
       if(shared){var fixT=0,incT=0,per={};HL.forEach(function(h){per[h]={f:0,i:0};});
         runC.forEach(function(c){var m=monthlyCost(c);fixT+=m;holdersOf(c).forEach(function(h){if(per[h])per[h].f+=m*holderShare(c,h);});});
         incList().forEach(function(c){if(parseD(c.end)&&parseD(c.end)<today())return;if(notStarted(c))return;var m=(+c.cycle||1)?conv(curPrice(c),c.cur)/(+c.cycle||1):0;incT+=m;holdersOf(c).forEach(function(h){if(per[h])per[h].i+=m;});});
@@ -4859,7 +4860,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var kz=(function(){var H=state.settings.home,cu=c.cur||H,mon=curPrice(c)/(+c.cycle||1),fx=cu!==H;
     var ap=function(v){return fx?'<em>≈ '+nf0.format(conv(v,cu))+" "+esc(H)+"</em>":"";};
     /* Anteil als Balken in der grossen Kachel (Variante 4, 08.10.2026) */
-    var sh="";if(!gone&&!isPaused(c)&&!notStarted(c)){var tot=running().filter(function(x){return !notStarted(x);}).reduce(function(n,x){return n+monthlyCost(x);},0);
+    var sh="";if(!gone&&!isPaused(c)&&!notStarted(c)&&!trialOn(c)){var tot=running().filter(function(x){return !notStarted(x)&&!trialOn(x);}).reduce(function(n,x){return n+monthlyCost(x);},0);
       if(tot>0.005){var pc=Math.round(monthlyCost(c)/tot*100);sh='<span class="kzbar" aria-hidden="true"><i style="width:'+Math.max(2,Math.min(100,pc))+'%"></i></span><em>'+pc+" % deiner Fixkosten</em>";}}
     /* ohne Anteil (gekündigt/pausiert/beendet/noch nicht gestartet): Status statt Leerfläche */
     if(!sh){var st0=c.cancelPer&&!gone?"gekündigt, läuft bis "+fmtShort(parseD(c.cancelPer)):isPaused(c)?"pausiert":gone?"beendet":notStarted(c)?"startet am "+fmtShort(parseD(c.start)):"";
