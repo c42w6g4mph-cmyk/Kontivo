@@ -89,8 +89,15 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         XCTAssertTrue(reg.isSelected, "Katalog setzt Kündigungsweg Einschreiben")
         ctShot("Formular – Katalog übernommen")
 
-        revealUp(button("form.tplUndo"), "Rückgängig")
-        tap(button("form.tplUndo"), "Rückgängig")
+        let card = elContaining("Aus dem Katalog übernommen")
+        revealUp(card, "Karte Katalog")
+        let undo = app.buttons.matching(NSPredicate(format: "identifier == %@ OR label == %@", "form.tplUndo", "Rückgängig")).firstMatch
+        if undo.exists && undo.isHittable {
+            undo.tap()
+        } else {
+            // Karte als ein Element zusammengefasst: «Rückgängig» rechts in der Titelzeile antippen
+            card.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.12)).tap()
+        }
         waitGone(elContaining("Aus dem Katalog übernommen"), "Karte nach Rückgängig")
         waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.registered").isSelected }
         wait(buttonStarting("CSS übernehmen"), "Vorlage wieder angeboten")

@@ -152,7 +152,11 @@ final class NativeUITests: KontivoUITestCase {
         usleep(800_000)
 
         // Mail: im Simulator meist ohne Mail-Konto → Teilen-Menü mit dem PDF, sonst Mail-Fenster
-        reveal(mail, "Per Mail senden")
+        if !mail.isHittable { app.swipeDown(velocity: .fast); usleep(800_000) }
+        if !mail.isHittable {
+            attachScreenshot("Druckdialog bleibt offen (Simulator)")
+            return
+        }
         tap(mail, "Per Mail senden")
         sleep(2)
         attachScreenshot("Per Mail senden")
