@@ -1533,6 +1533,11 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .seg2 button:disabled{opacity:.35}
 .fchq{margin:0;gap:7px}.fchq{display:flex;flex-wrap:nowrap}.fchq .chip{flex:1 1 0;min-width:0;padding:7px 4px;font-size:13.5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fchq .chip:disabled{opacity:.35}
 /* Drehrad (eigenes, mit Scroll-Snap; nativ: Picker(.wheel)) */
+.dgm{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:2px 0 10px}
+.dgm button{height:32px;border-radius:9px;font-size:14px;color:var(--ink);background:var(--surface)}
+.dgd{display:grid;grid-template-columns:repeat(7,1fr);gap:4px 0;padding:0 0 4px}
+.dgd button{justify-self:center;width:38px;height:38px;border-radius:50%;font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums}
+.dgm button.on,.dgd button.on{background:var(--teal);color:#fff;font-weight:600}
 .whl{position:relative;display:flex;justify-content:center;gap:4px;height:132px;background:var(--surface);border-radius:12px;overflow:hidden}
 .fwhr{padding:4px 0 12px;border-top:0;flex-direction:column;align-items:stretch}.fwhr .whl{flex:1}
 .fwhw{padding:0 0 4px}.fwhw .fok,.fwhr .fok{margin:10px 0 2px}
@@ -1757,7 +1762,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
       <option value="6">halbjährlich</option><option value="12">jährlich</option><option value="24">alle 2 Jahre</option></select></div>
     <!-- Zahlung am: Tag im Monat (bei selteneren Zahlungen + Monat); gespeichert bleibt c.due als Datum (nächste Zahlung) -->
     <button type="button" class="frow" id="fDueBtn"><span class="fl">Zahlung am</span><span class="fdv" id="fDueT"></span><span class="chev">›</span></button>
-    <div class="fwhw" id="fDueW" hidden><div class="whl"><i class="whsel"></i><div class="whc" data-whc="d"></div><div class="whc" data-whc="m"></div></div><button type="button" class="fok" id="fDueOk">Übernehmen</button></div>
+    <div class="fwhw dgw" id="fDueW" hidden></div>
     <input id="fDue" type="date" hidden>
     <!-- Zahlungsart und «Belastet über» in einer Zeile (z.B. Kreditkarte · Visa …4417) -->
     <div class="frow fwrap"><label for="fPayM">Zahlung via</label><select id="fPayM">
@@ -1890,7 +1895,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
       <option value="12">jährlich</option><option value="24">alle 2 Jahre</option><option value="0">einmalig</option></select></div>
     <!-- Zahltag wie beim Vertrag: Tag im Monat (Drehrad); bei «einmalig» ein Datum -->
     <button type="button" class="frow" id="iDueBtn"><span class="fl">Zahlung am</span><span class="fdv" id="iDueT"></span><span class="chev">›</span></button>
-    <div class="fwhw" id="iDueW" hidden><div class="whl"><i class="whsel"></i><div class="whc" data-whc="d"></div><div class="whc" data-whc="m"></div></div><button type="button" class="fok" id="iDueOk">Übernehmen</button></div>
+    <div class="fwhw dgw" id="iDueW" hidden></div>
     <div class="frow" id="iDueRow"><label for="iDue">Datum</label><input id="iDue" type="date"></div>
   </div>
   <p class="note fnote2">Netto eintragen, also was auf dem Konto ankommt. Einen 13. Monatslohn oder Bonus am besten als eigene jährliche Einnahme erfassen.</p>
@@ -3237,7 +3242,7 @@ function renderBudget(v){
   if(incs.length){
     o+='<div class="grp"><div class="grphead"><span>Einnahmen '+MON[sel]+'</span><span>'+money(M[sel].inc)+" "+H+'</span></div><div class="ilist">'+
       (nowM.length?nowM.map(function(it){var c=it.c;
-        return '<button class="irow" data-inc="'+esc(c._id)+'">'+incMark(c)+'<span class="it">'+esc(c.label||c.name||"Einnahme")+((state.settings.holders||[]).length>1&&holdersOf(c).length?'<small>'+esc(holdersOf(c).join(", "))+'</small>':"")+'</span><b>'+money(it.a,c.cur)+(c.cur!==H?'<u>'+esc(c.cur)+"</u>":"")+"</b></button>";}).join("")
+        return '<button class="irow" data-inc="'+esc(c._id)+'">'+incMark(c)+'<span class="it">'+esc(c.label||c.name||"Einnahme")+(function(){var s=[];if((state.settings.holders||[]).length>1&&holdersOf(c).length)s.push(holdersOf(c).join(", "));var cy=+c.cycle;if(cy!==1)s.push(cy===0?"einmalig":(ICYCLE[cy]||"")+(cy>=12&&c.due?" im "+MONS[(parseD(c.due)||today()).getMonth()]:""));return s.length?'<small>'+esc(s.join(" · "))+'</small>':"";})()+'</span><b>'+money(it.a,c.cur)+(c.cur!==H?'<u>'+esc(c.cur)+"</u>":"")+"</b></button>";}).join("")
         :'<div class="iempty">Keine Einnahmen im '+MON[sel]+"</div>")+
       '<div class="ifoot"><button type="button" id="incAdd">+ Einnahme</button><button type="button" data-incall>Alle Einnahmen ('+incs.length+') ›</button></div></div></div>';
   } else if(BH)o+='<div class="grp"><button class="addline" id="incAdd">+ Einnahme erfassen</button></div>';
@@ -3917,7 +3922,7 @@ document.getElementById("fNoticeC").addEventListener("click",function(e){var b=e
   if(b.dataset.nc==="x"){noticeOpen=!noticeOpen;paintNotice();return;}
   noticeOther=false;noticeOpen=false;noticeSet(b.dataset.nc,"m");});
 /* Zahlung am: Tag im Monat (monatlich), sonst Tag + Monat; setzt c.due auf die nächste passende Zahlung ab heute */
-var MONS=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],duePend={d:1,m:0},dueOpen=false;
+var MONS=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],dueOpen=false;
 function dueTxt(){var v=parseD(document.getElementById("fDue").value),cy=+document.getElementById("fCycle").value||1;if(!v)return "wählen";
   var d=v.getDate()+".";if(cy===1)return d+" im Monat";
   if(cy<12){var ms=[];for(var k=0;k<12;k+=cy)ms.push(MONS[(v.getMonth()+k)%12].slice(0,3));ms.sort(function(a,b){return MONS.map(function(x){return x.slice(0,3);}).indexOf(a)-MONS.map(function(x){return x.slice(0,3);}).indexOf(b);});return d+" "+ms.join(", ");}
@@ -3928,15 +3933,16 @@ function dueFrom(d,m){var t=today(),cy=+document.getElementById("fCycle").value|
   if(cy>1)while(x<t){mo+=cy;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}else if(x<t){mo+=1;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}
   for(var g=0;g<12&&x.getDate()<d;g++){mo-=cy;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}
   return x;}
-function paintDue(){document.getElementById("fDueT").textContent=dueTxt();var w=document.getElementById("fDueW"),was=w.hidden;w.hidden=!dueOpen;
-  var cy=+document.getElementById("fCycle").value||1,mc=w.querySelector('[data-whc="m"]');mc.hidden=cy===1;
-  if(!w.hidden&&was){var v=parseD(document.getElementById("fDue").value)||today();duePend={d:v.getDate(),m:v.getMonth()};var it=[];for(var n=1;n<=31;n++)it.push({v:n,t:n+"."});
-    whFill(w.querySelector('[data-whc="d"]'),it,duePend.d,function(x){duePend.d=+x;dueOk();});
-    whFill(mc,MONS.map(function(x,i){return {v:i,t:x};}),duePend.m,function(x){duePend.m=+x;dueOk();});dueOk();}}
-function dueOk(){var cy=+document.getElementById("fCycle").value||1;document.getElementById("fDueOk").textContent=(cy===1?duePend.d+". im Monat":duePend.d+". "+MONS[duePend.m])+" übernehmen";}
+/* Tagesraster (wie «Erinnerungen»): Tag antippen = übernehmen und zuklappen; bei Rhythmus ≥ 2 Monate darüber Monate (ganze Reihe markiert). SwiftUI: LazyVGrid 7 Spalten */
+function dgHtml(d,m,cy){var o="";if(cy>1){var on={};if(cy<12){for(var k=0;k<12;k+=cy)on[(m+k)%12]=1;}else on[m]=1;
+    o+='<div class="dgm">'+MONS.map(function(x,i){return '<button type="button" data-dgm="'+i+'" class="'+(on[i]?"on":"")+'" aria-pressed="'+!!on[i]+'">'+x.slice(0,3)+"</button>";}).join("")+"</div>";}
+  o+='<div class="dgd">';for(var n=1;n<=31;n++)o+='<button type="button" data-dgd="'+n+'" class="'+(n===d?"on":"")+'" aria-pressed="'+(n===d)+'" aria-label="'+n+'.">'+n+"</button>";return o+"</div>";}
+function paintDue(){document.getElementById("fDueT").textContent=dueTxt();var w=document.getElementById("fDueW");w.hidden=!dueOpen;
+  if(dueOpen){var cy=+document.getElementById("fCycle").value||1,v=parseD(document.getElementById("fDue").value)||today();w.innerHTML=dgHtml(v.getDate(),v.getMonth(),cy);}}
 document.getElementById("fDueBtn").addEventListener("click",function(){dueOpen=!dueOpen;paintDue();});
-document.getElementById("fDueOk").addEventListener("click",function(){draft.dueSet=1;var e=document.getElementById("fDue");e.value=iso(dueFrom(duePend.d,duePend.m));dueOpen=false;
-  e.dispatchEvent(new Event("change"));paintDue();});
+document.getElementById("fDueW").addEventListener("click",function(ev){var b=ev.target.closest("[data-dgd],[data-dgm]");if(!b)return;
+  var e=document.getElementById("fDue"),v=parseD(e.value)||today(),d=b.dataset.dgd?+b.dataset.dgd:v.getDate(),m=b.dataset.dgm?+b.dataset.dgm:v.getMonth();
+  e.value=iso(dueFrom(d,m));draft.dueSet=1;if(b.dataset.dgd)dueOpen=false;e.dispatchEvent(new Event("change"));paintDue();});
 /* Neuer Vertrag, Zahlung am nicht selbst gewählt: bei Rhythmus ≥ 2 Monate vom Vertragsbeginn aus rechnen (Jahresabo ab 15.3. → 15.3.) */
 function dueFromStart(){if(editId||draft.dueSet||termMode==="trial")return;var cy=+document.getElementById("fCycle").value||1,s=parseD(document.getElementById("fStart").value);if(cy<2||!s)return;
   var t=today(),x=s,k=0;while(x<t&&k<400){k++;x=new Date(s.getFullYear(),s.getMonth()+cy*k,1);x.setDate(Math.min(s.getDate(),new Date(x.getFullYear(),x.getMonth()+1,0).getDate()));}
@@ -5382,22 +5388,21 @@ document.getElementById("iPAdd").addEventListener("click",function(){
   idraft.prices=idraft.prices.filter(function(p){return p.from!==f;});idraft.prices.push({from:f,amount:Math.round(a*100)/100});iPBak=null;
   document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iOpenSub(false);iPaintPrices();});
 /* Zahltag: Tag im Monat (+ Monat bei seltener Zahlung), «einmalig» = Datum */
-var iDueOpen=false,iDuePend={d:1,m:0};
+var iDueOpen=false;
 function iDueTxt(){var v=parseD(document.getElementById("iDue").value),cy=+document.getElementById("iCycle").value;if(!v)return "wählen";
   if(!cy)return fmtD(iso(v));var d=v.getDate()+".";if(cy===1)return d+" im Monat";if(cy===12||cy===24)return d+" "+MONS[v.getMonth()]+(cy===24?" (alle 2 Jahre)":"");
   var ms=[];for(var k=0;k<12;k+=cy)ms.push((v.getMonth()+k)%12);ms.sort(function(a,b){return a-b;});return d+" "+ms.map(function(m){return MONS[m].slice(0,3);}).join(", ");}
 function iPaintDue(){var cy=+document.getElementById("iCycle").value,one=cy===0,w=document.getElementById("iDueW");
   document.getElementById("iDueRow").hidden=!one;document.getElementById("iDueBtn").hidden=one;if(one)iDueOpen=false;
-  document.getElementById("iDueT").textContent=iDueTxt();var was=w.hidden;w.hidden=!iDueOpen;var mc=w.querySelector('[data-whc="m"]');mc.hidden=cy===1;
-  if(!w.hidden&&was){var v=parseD(document.getElementById("iDue").value)||today();iDuePend={d:v.getDate(),m:v.getMonth()};var it=[];for(var n=1;n<=31;n++)it.push({v:n,t:n+"."});
-    whFill(w.querySelector('[data-whc="d"]'),it,iDuePend.d,function(x){iDuePend.d=+x;iDueOk();});
-    whFill(mc,MONS.map(function(x,i){return {v:i,t:x};}),iDuePend.m,function(x){iDuePend.m=+x;iDueOk();});iDueOk();}}
-function iDueOk(){var cy=+document.getElementById("iCycle").value;document.getElementById("iDueOk").textContent=(cy===1?iDuePend.d+". im Monat":iDuePend.d+". "+MONS[iDuePend.m])+" übernehmen";}
+  document.getElementById("iDueT").textContent=iDueTxt();w.hidden=!iDueOpen;
+  if(iDueOpen){var v=parseD(document.getElementById("iDue").value)||today();w.innerHTML=dgHtml(v.getDate(),v.getMonth(),cy||1);}}
+function iDueFrom(d,m){var cy=+document.getElementById("iCycle").value||1,t=today(),dim=function(y,mo){return new Date(y,mo+1,0).getDate();};
+  var y0=t.getFullYear(),mo=cy===1?t.getMonth():m,x=new Date(y0,mo,Math.min(d,dim(y0,mo)));
+  while(x<t){mo+=cy;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}for(var g=0;g<12&&x.getDate()<d;g++){mo-=cy;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}return x;}
 document.getElementById("iDueBtn").addEventListener("click",function(){iDueOpen=!iDueOpen;iPaintDue();});
-document.getElementById("iDueOk").addEventListener("click",function(){var cy=+document.getElementById("iCycle").value||1,d=iDuePend.d,t=today(),dim=function(y,mo){return new Date(y,mo+1,0).getDate();};
-  var y0=t.getFullYear(),mo=cy===1?t.getMonth():iDuePend.m,x=new Date(y0,mo,Math.min(d,dim(y0,mo)));
-  while(x<t){mo+=cy;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}for(var g=0;g<12&&x.getDate()<d;g++){mo-=cy;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}
-  document.getElementById("iDue").value=iso(x);iDueOpen=false;iPaintDue();});
+document.getElementById("iDueW").addEventListener("click",function(ev){var b=ev.target.closest("[data-dgd],[data-dgm]");if(!b)return;
+  var e=document.getElementById("iDue"),v=parseD(e.value)||today(),d=b.dataset.dgd?+b.dataset.dgd:v.getDate(),m=b.dataset.dgm?+b.dataset.dgm:v.getMonth();
+  e.value=iso(iDueFrom(d,m));if(b.dataset.dgd)iDueOpen=false;iPaintDue();if(typeof iPaintKz==="function")iPaintKz();});
 document.getElementById("iCycle").addEventListener("change",function(){iDueOpen=false;iPaintDue();iPaintKz();});
 ["iStart","iAmt"].forEach(function(i){document.getElementById(i).addEventListener("change",iPaintPrices);});
 document.getElementById("iAmt").addEventListener("input",iPaintPrices);
