@@ -1494,6 +1494,80 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 #catRows .crow.dragging{transition:none;position:relative;z-index:5;box-shadow:0 8px 22px rgba(0,0,0,.18);border-radius:10px}
 #catRows .crow.dragging+.crow{border-top-color:transparent}
 #sheetMd .swatches{margin:0 0 6px}
+/* Vertragsformular wie die Ansicht (10.10.2026): Kopf wie .detailhead, Karten .fcard mit Zeilen .frow (Beschriftung links, Wert rechts, antippbar).
+   SwiftUI: Form { Section { LabeledContent / TextField(alignment: .trailing) } } */
+.fhead{display:flex;align-items:center;gap:14px;margin:8px 0 4px}
+.fhead .logotap{margin:0;position:relative;flex:none}
+.fhead .logotap .mark{width:76px;height:76px;border-radius:17px;font-size:28px}
+.ledit{position:absolute;right:-5px;bottom:-5px;width:26px;height:26px;border-radius:50%;background:var(--tealFill);color:#fff;display:grid;place-items:center;border:2px solid var(--surface)}
+.ledit svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linejoin:round}
+.fhf{flex:1;min-width:0;display:grid;gap:6px}
+.fhf input{display:block;width:100%;min-width:0;border:1px solid transparent;border-radius:10px;background:var(--field);padding:6px 10px;color:var(--ink);outline:0}
+.fhf input:focus{border-color:var(--ink2)}
+.fhf .fht{font-family:ui-rounded,"SF Pro Rounded","Nunito",-apple-system,system-ui,sans-serif;font-size:21px;font-weight:700;height:42px}
+.fhf .fhp{font-size:16px;height:38px;color:var(--ink2)}
+.fhf .fwb input{padding-right:40px}.fhf .fib{top:0;right:0;width:38px;height:38px}
+.fhead .ddoc.on i{background:var(--tealFill);color:#fff}
+#sheetForm .psug,#sheetForm .dupnote{margin-top:8px}
+.fkz{display:flex;gap:8px;margin:12px 0 0}
+.fkz>div{flex:1;background:var(--field);border-radius:12px;padding:10px 12px;min-width:0}
+.fkz small{display:block;font-size:12.5px;color:var(--ink2)}
+.fkz b{font-size:22px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}.fkz u{text-decoration:none;font-size:13px;font-weight:500;color:var(--ink2);margin-left:3px}
+#sheetForm h3.fsec{margin:22px 2px 8px;padding:0;border:0;font-size:13px;font-weight:600;color:var(--ink2)}
+#fPayM:has(option[value=""]:checked){color:var(--ink3);font-weight:400}
+.fcard{background:var(--field);border-radius:12px;padding:0 13px}
+.frow{display:flex;align-items:center;gap:12px;min-height:48px;padding:4px 0;border-top:1px solid var(--line);width:100%;text-align:left;font-size:15px}
+.fcard>.frow:first-child,#fChart:empty+.frow,#xList:empty+.fadd,.fsub>.seg2+.frow{border-top:0}
+.frow>label,.frow .fl{flex:1;min-width:0;color:var(--ink2);font-size:15px}
+.frow input,.frow select{min-width:0;max-width:64%;border:0;background:transparent;font-size:16px;font-weight:500;color:var(--teal);text-align:right;padding:8px 2px;border-radius:8px;outline:0;font-family:inherit}
+.frow input::placeholder{color:var(--ink3);font-weight:400}
+.frow input:focus,.frow select:focus{background:color-mix(in srgb,var(--teal) 8%,transparent)}
+.frow select{-webkit-appearance:none;appearance:none;text-align-last:right;padding-right:20px;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238A9198' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 3px center}
+.frow input[type=date]{-webkit-appearance:none;appearance:none;min-height:36px}
+.frow input[type=date]::-webkit-date-and-time-value{text-align:right}
+.frow .fv{display:flex;align-items:center;justify-content:flex-end;gap:4px;min-width:0}
+.frow .fv input{width:6.2em}
+.frow .fv select{max-width:none}
+#fNotice,#fTermM{width:2.8em}
+.frow .fu{color:var(--teal);font-size:16px;font-weight:500}
+.frow.fcol{flex-direction:column;align-items:stretch;gap:8px;padding:12px 0}
+.frow.fcol .chips{margin:0}
+.frow .flrow{display:flex;justify-content:space-between;align-items:center}
+.frow .flrow .mdlink{padding:0}
+.frow.fwrap{flex-wrap:wrap;row-gap:0}
+.frow.fwrap .fpaya{flex:1 1 100%;max-width:none;padding-top:0;margin-top:-6px}
+.fadd{display:flex;align-items:center;gap:8px;width:100%;min-height:46px;border-top:1px solid var(--line);color:var(--teal);font-weight:600;font-size:15px;text-align:left}
+.fadd svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.fadd[aria-expanded="true"]{color:var(--ink2)}
+.fsub{border-top:1px solid var(--line)}
+.fok{display:block;width:100%;margin:4px 0 12px;padding:11px;border-radius:10px;background:var(--tealFill);color:#fff;font-weight:600;font-size:15px}
+.fpr{cursor:pointer}
+.fpr .fl{color:var(--ink)}
+.fpr .fl small{display:block;font-size:12px;color:var(--ink3);margin-top:1px}
+.fpr .pa{font-size:16px;font-weight:500;color:var(--teal);white-space:nowrap}
+.fpr .pa.cr{color:var(--ok)}
+.fpc{font-size:12px;font-weight:700;border-radius:99px;padding:2px 8px;white-space:nowrap;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink2)}
+.fpc.up{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}.fpc.down{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.fpr .tag{font-size:11px;font-weight:700;border-radius:6px;padding:2px 6px;margin-left:6px;background:var(--tealFill);color:#fff;vertical-align:1px}
+.fpr .tag.fut{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.fpr .tag.cr{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.fpr .del{flex:none;color:var(--ink3);font-size:20px;line-height:1;padding:8px 0 8px 4px}
+#fChart .pchart{background:transparent;padding:12px 0 4px;margin:0}
+.fsw{cursor:pointer;padding:9px 0}.fsw .t{flex:1;min-width:0;display:grid;gap:2px}.fsw b{font-size:15px;font-weight:500;color:var(--ink)}.fsw small{font-size:12.5px;color:var(--ink2);line-height:1.35}
+#fCats.catfield{height:auto;min-height:48px;background:transparent;border-radius:0;margin:0;padding:4px 0;gap:10px}
+#fCats .cfi{width:28px;height:28px;border-radius:8px}#fCats .cfi .cicon{width:16px;height:16px}
+#fCats .cfn{flex:none;font-size:16px;font-weight:500;color:var(--teal)}#fCats .cfn.ph{color:var(--ink3);font-weight:400}
+#fCats .chev{font-size:20px}
+.fcard .cvaddr{background:transparent;border-radius:0;margin:0;padding:10px 0}
+.fcard .sndform.ig{background:var(--surface);margin:0}
+.frow .igr input{text-align:left;color:var(--ink);font-weight:400;max-width:none;padding:11px 14px;border-radius:0}
+.fcard .seg2{margin:0}
+.fcard .swi:not(:checked){background:color-mix(in srgb,var(--ink) 16%,transparent)}
+.fnotef{display:block;width:100%;min-height:84px;border:0;background:transparent;padding:12px 0;font-size:16px;color:var(--ink);resize:vertical;outline:0;font-family:inherit}
+#sheetForm .fnote2{margin:8px 2px 0}
+#sheetForm .fnote2:empty{display:none}
 </style>
 </head>
 <body>
@@ -1612,9 +1686,18 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
   <div class="shbar"><button class="shx" id="cancelForm">Abbrechen</button><h2 id="formTitle">Neuer Vertrag</h2><button class="shok" id="saveForm">Sichern</button></div>
 
   <div id="fMain">
-  <h3>Vertrag</h3>
-  <div class="ftop"><button type="button" class="logotap" id="logoTap" aria-label="Logo und Farbe ändern" aria-expanded="false"><div class="mark" id="logoPrev">?</div><span>Logo</span></button>
-    <button type="button" class="dchip" id="fDocsChip" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/></svg><span id="fDocsN">Dokument anhängen</span></button></div>
+  <!-- Bearbeiten wie die Vertragsansicht (10.10.2026): Kopf mit Logo · Bezeichnung/Vertragspartner · Dokumente, darunter Karten mit Zeilen «Beschriftung links, Wert rechts».
+       Abschnitte wie im Detail: Kosten (mit Preisverlauf) · Sonderzahlungen · Laufzeit & Kündigung · Zuordnung · Kontakt · Notiz. Keine Seite «Weitere Angaben» mehr.
+       SwiftUI: Form mit Sections, LabeledContent/TextField(.trailing), Picker(.menu), Toggle -->
+  <div class="fhead">
+    <button type="button" class="logotap" id="logoTap" aria-label="Logo und Farbe ändern" aria-expanded="false"><div class="mark" id="logoPrev">?</div><i class="ledit" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></i></button>
+    <div class="fhf">
+      <input id="fLabel" class="fht" type="text" placeholder="Bezeichnung" aria-label="Bezeichnung" autocomplete="off">
+      <div class="fwb"><input id="fPartner" class="fhp" type="text" placeholder="Vertragspartner" aria-label="Vertragspartner" autocomplete="off"><button type="button" class="fib" data-tplcat aria-label="Aus Katalog wählen" title="Aus Katalog wählen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 18V5.5M8 7h8M8 10.5h6"/></svg></button></div>
+    </div>
+    <button type="button" class="ddoc" id="fDocsChip" aria-expanded="false"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/></svg></i><span id="fDocsN">Anhängen</span></button>
+  </div>
+  <div class="psug" id="pSug" hidden></div><div class="dupnote" id="dupHint" hidden></div>
   <details class="logodet" id="oDocs"><summary>Dokumente</summary><div class="logopanel">
     <div class="docs" id="docList"></div>
     <button class="lbtn main" id="docUp" type="button">Datei anhängen · PDF oder Bild</button>
@@ -1634,128 +1717,110 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="swatches" id="swatches"></div>
     <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml">
   </div></details>
-  <div class="field"><label for="fLabel">Bezeichnung</label><input id="fLabel" type="text" placeholder="z.B. Handy-Abo" autocomplete="off"></div>
-  <div class="field"><label for="fPartner">Vertragspartner</label><div class="fwb"><input id="fPartner" type="text" placeholder="z.B. Swisscom" autocomplete="off"><button type="button" class="fib" data-tplcat aria-label="Aus Katalog wählen" title="Aus Katalog wählen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 18V5.5M8 7h8M8 10.5h6"/></svg></button></div><div class="psug" id="pSug" hidden></div><div class="dupnote" id="dupHint" hidden></div></div>
   <div class="sugg" id="fSugg"></div>
-  <div class="flabel">Kategorie</div>
-  <button type="button" class="catfield" id="fCats"><span class="cfi" id="fCatIcon"></span><span class="cfn" id="fCatName">Kategorie wählen</span><span class="chev">›</span></button>
-  <div id="fHoldWrap" hidden><div class="flabel" style="margin-top:14px">Personen — mehrere möglich</div><div class="chips" id="fHolders"></div>
-    <div id="fSplitWrap" hidden><div class="seg2" id="fSplitSeg" role="group" aria-label="Aufteilung" style="margin:-4px 0 8px"><button type="button" data-sp="eq" aria-pressed="true">Gleich aufgeteilt</button><button type="button" data-sp="ind" aria-pressed="false">Individuell</button></div>
-    <div id="fSplitRows" hidden></div></div></div>
+  <div class="fkz" id="fKz" hidden></div>
 
-  <h3>Kosten</h3>
-  <div class="two">
-    <div class="field"><label for="fAmt" id="fAmtL">Betrag</label><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="59.90"></div>
-    <div class="field"><label for="fCur">Währung</label><select id="fCur"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></div>
-  </div>
-  <div class="two">
-    <div class="field"><label for="fCycle">Zahlungsrhythmus</label><select id="fCycle">
+  <h3 class="fsec" id="fsCost">Kosten</h3>
+  <div class="fcard">
+    <div id="fChart"></div>
+    <div class="frow"><label for="fAmt" id="fAmtL">Betrag</label><span class="fv"><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="59.90"><select id="fCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
+    <div id="pList"></div>
+    <button type="button" class="fadd" id="pOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Preisänderung</button>
+    <div class="fsub" id="pForm" hidden>
+      <div class="frow"><label for="pFrom">Gültig ab</label><input id="pFrom" type="date"></div>
+      <div class="frow"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="74.90"></div>
+      <button class="fok" id="pAdd" type="button">Preisänderung hinzufügen</button>
+    </div>
+    <div class="frow"><label for="fCycle">Zahlungsrhythmus</label><select id="fCycle">
       <option value="1">monatlich</option><option value="2">alle 2 Monate</option><option value="3">quartalsweise</option>
       <option value="6">halbjährlich</option><option value="12">jährlich</option><option value="24">alle 2 Jahre</option></select></div>
-    <div class="field"><label for="fDue">Zahlung am</label><input id="fDue" type="date"></div>
+    <div class="frow"><label for="fDue">Zahlung am</label><input id="fDue" type="date"></div>
+    <!-- Zahlungsart und «Belastet über» in einer Zeile (z.B. Kreditkarte · Visa …4417) -->
+    <div class="frow fwrap"><label for="fPayM">Bezahlung</label><select id="fPayM">
+      <option value="">wählen</option><option>Lastschrift (LSV/SEPA)</option><option>eBill</option><option>Kreditkarte</option>
+      <option>QR-Rechnung</option><option>Dauerauftrag</option><option>TWINT</option><option>PayPal</option><option>Sonstiges</option></select>
+      <input id="fPayA" class="fpaya" type="text" placeholder="über, z.B. Visa …4417" aria-label="Belastet über" autocomplete="off"></div>
   </div>
-  <p class="note" id="fPayHint" style="margin:-4px 0 14px"></p>
+  <p class="note fnote2" id="fPayHint"></p>
 
-  <h3>Laufzeit &amp; Kündigung</h3>
-  <div class="tmtiles" id="termSeg" role="group" aria-label="Art des Vertrags">
-    <button type="button" class="tmtile" data-tm="open" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg><b>Flexibel</b></button>
-    <button type="button" class="tmtile" data-tm="fixed" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><b>Mindestlaufzeit</b></button>
-    <button type="button" class="tmtile" data-tm="trial" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12v8h14v-8M3 8h18v4H3zM12 8v12"/></svg><b>Probeabo</b></button>
-    <button type="button" class="tmtile" data-tm="tax" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 16.5l5-5"/></svg><b>Nicht kündbar</b></button>
-  </div>
-  <div class="tmtrial" hidden><div class="flabel">Probeabo dauert</div>
-    <div class="chips" id="fTrialD" role="group" aria-label="Dauer des Probeabos"><button type="button" class="chip" data-trd="7d">7 Tage</button><button type="button" class="chip" data-trd="14d">14 Tage</button><button type="button" class="chip" data-trd="1m">1 Monat</button><button type="button" class="chip" data-trd="3m">3 Monate</button><button type="button" class="chip" data-trd="date">Datum …</button></div>
-    <div class="field" id="fTrialW" hidden><label for="fTrial">Probeabo endet am</label><input id="fTrial" type="date"></div></div>
-  <div class="two auto tmstart">
-    <div class="field"><label for="fStart">Vertragsbeginn</label><input id="fStart" type="date"></div>
-    <div class="field tmfixed"><label for="fEnd">Vertragsende</label><input id="fEnd" type="date"></div>
-  </div>
-  <div class="two tmnotice">
-    <div class="field"><label for="fNotice">Kündigungsfrist</label>
-      <div class="nrow"><input id="fNotice" class="num" type="text" inputmode="numeric" placeholder="–">
-      <select id="fNoticeU"><option value="m">Monate</option><option value="w">Wochen</option><option value="d">Tage</option><option value="k">. im Monat</option></select></div>
+  <h3 class="fsec">Sonderzahlungen</h3>
+  <div class="fcard">
+    <div id="xList"></div>
+    <button type="button" class="fadd" id="xOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Sonderzahlung</button>
+    <div class="fsub" id="xForm" hidden>
+      <div class="seg2" id="xKind" role="group" aria-label="Art" style="margin:10px 0 2px"><button type="button" data-xk="pay" aria-pressed="true">Zahlung</button><button type="button" data-xk="cr" aria-pressed="false">Gutschrift</button></div>
+      <div class="frow"><label for="xDate">Datum</label><input id="xDate" type="date"></div>
+      <div class="frow"><label for="xAmt">Betrag</label><input id="xAmt" class="num" type="text" inputmode="decimal" placeholder="120.00"></div>
+      <div class="frow"><label for="xNote">Bezeichnung</label><input id="xNote" type="text" placeholder="optional" autocomplete="off" maxlength="60"></div>
+      <button class="fok" id="xAdd" type="button">Sonderzahlung hinzufügen</button>
+      <p class="note" style="margin:0 0 12px">Zum Beispiel Nebenkostenabrechnung oder Aktivierungsgebühr. Zählt in «Kosten» und «Budget» im jeweiligen Monat, nicht in den monatlichen Fixkosten.</p>
     </div>
-    <div class="field tmopen"><label for="fTermP">Kündbar per</label><select id="fTermP">
+  </div>
+
+  <h3 class="fsec" id="fsTerm">Laufzeit &amp; Kündigung</h3>
+  <!-- Art des Vertrags: sichtbar als Auswahl #fTermSel, Logik weiter über die (versteckten) Knöpfe #termSeg -->
+  <div class="tmtiles" id="termSeg" role="group" aria-label="Art des Vertrags" hidden>
+    <button type="button" class="tmtile" data-tm="open" aria-pressed="true"><b>Flexibel</b></button>
+    <button type="button" class="tmtile" data-tm="fixed" aria-pressed="false"><b>Mindestlaufzeit</b></button>
+    <button type="button" class="tmtile" data-tm="trial" aria-pressed="false"><b>Probeabo</b></button>
+    <button type="button" class="tmtile" data-tm="tax" aria-pressed="false"><b>Nicht kündbar</b></button>
+  </div>
+  <div class="fcard">
+    <div class="frow"><label for="fTermSel">Vertragsart</label><select id="fTermSel"><option value="open">Flexibel</option><option value="fixed">Mindestlaufzeit</option><option value="trial">Probeabo</option><option value="tax">Nicht kündbar</option></select></div>
+    <div class="tmtrial" hidden><div class="frow fcol"><span class="fl">Probeabo dauert</span>
+      <div class="chips" id="fTrialD" role="group" aria-label="Dauer des Probeabos"><button type="button" class="chip" data-trd="7d">7 Tage</button><button type="button" class="chip" data-trd="14d">14 Tage</button><button type="button" class="chip" data-trd="1m">1 Monat</button><button type="button" class="chip" data-trd="3m">3 Monate</button><button type="button" class="chip" data-trd="date">Datum …</button></div></div>
+      <div class="frow" id="fTrialW" hidden><label for="fTrial">Probeabo endet am</label><input id="fTrial" type="date"></div></div>
+    <div class="frow tmstart"><label for="fStart">Vertragsbeginn</label><input id="fStart" type="date"></div>
+    <!-- Mindestlaufzeit in Monaten rechnet das Vertragsende aus (gespeichert wird nur c.end) -->
+    <div class="frow tmfixed"><label for="fTermM">Mindestlaufzeit</label><span class="fv"><input id="fTermM" class="num" type="text" inputmode="numeric" placeholder="–" aria-label="Mindestlaufzeit in Monaten"><span class="fu">Monate</span></span></div>
+    <div class="frow tmfixed"><label for="fEnd">Vertragsende</label><input id="fEnd" type="date"></div>
+    <div class="frow tmfixed"><label for="fRenew">Verlängert sich um</label><select id="fRenew">
+      <option value="">nicht automatisch</option><option value="1">1 Monat</option><option value="3">3 Monate</option>
+      <option value="6">6 Monate</option><option value="12">12 Monate</option><option value="24">24 Monate</option></select></div>
+    <div class="frow tmnotice"><label for="fNotice">Kündigungsfrist</label><span class="fv"><input id="fNotice" class="num" type="text" inputmode="numeric" placeholder="–" aria-label="Kündigungsfrist"><select id="fNoticeU" aria-label="Einheit"><option value="m">Monate</option><option value="w">Wochen</option><option value="d">Tage</option><option value="k">. im Monat</option></select></span></div>
+    <div class="frow tmopen"><label for="fTermP">Kündbar per</label><select id="fTermP">
       <option value="">jederzeit</option><option value="p">Ende Periode</option><option value="m">Monatsende</option>
       <option value="q">Quartalsende</option><option value="h">Halbjahresende</option><option value="y">Jahresende</option>
       <option value="a">Ende Vertragsjahr</option></select></div>
-    <div class="field tmfixed"><label for="fRenew">Verlängert sich um</label><select id="fRenew">
-      <option value="">— nicht automatisch</option><option value="1">1 Monat</option><option value="3">3 Monate</option>
-      <option value="6">6 Monate</option><option value="12">12 Monate</option><option value="24">24 Monate</option></select></div>
+    <!-- Kündigungsweg: Online · E-Mail · Brief (Einschreiben = Brief, Tipp steht im Kündigungsschreiben); darunter genau ein passendes Folgefeld -->
+    <div class="frow fcol tmcanc"><span class="fl">Kündigungsweg</span>
+      <div class="seg2 fseg" id="fCancT" role="group" aria-label="Kündigungsweg"><button type="button" data-cv="Online / Kundenkonto" aria-pressed="false">Online</button><button type="button" data-cv="E-Mail" aria-pressed="false">E-Mail</button><button type="button" data-cv="Brief" aria-pressed="false">Brief</button></div>
+      <div hidden><select id="fCancF"><option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option></select></div></div>
+    <div class="frow tmcanc" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="sonst Website" autocomplete="off"></div>
+    <div class="frow tmcanc" id="fCancMailW" hidden><label for="fCancMail">E-Mail für Kündigung</label><input id="fCancMail" type="email" placeholder="kuendigung@anbieter.ch" autocomplete="off"></div>
+    <div class="frow tmcanc cvaddr" id="fCancAddrW" hidden><span class="t"><b id="fCancAddrT"></b><small id="fCancAddrS"></small></span><button type="button" class="mdlink" id="fCancAddrB">Erfassen</button></div>
+    <label class="frow fsw tmcanc"><span class="t"><b>An Frist erinnern</b><small>Erscheint unter «Fristen»</small></span><input type="checkbox" class="swi" id="fRemind"></label>
+    <label class="frow fsw tmcanc"><span class="t"><b>Pflichtvertrag</b><small>Wechseln statt kündigen, z.B. Krankenkasse</small></span><input type="checkbox" class="swi" id="fMand"></label>
+    <!-- nur bei gekündigten Verträgen: Daten korrigieren (c.cancelledOn, c.cancelPer) -->
+    <div class="frow" id="fCancOnW" hidden><label for="fCancOn">Gekündigt am</label><input id="fCancOn" type="date"></div>
+    <div class="frow" id="fCancPerW" hidden><label for="fCancPer">Läuft bis</label><input id="fCancPer" type="date"></div>
   </div>
-  <p class="note" id="tmHint" style="margin:-4px 0 14px"></p>
-  <div hidden><input type="checkbox" id="fNoCancel"></div>
-  <!-- Kündigungsweg als Kacheln (Wert bleibt im versteckten Select fCancF = cancF); darunter genau ein passendes Folgefeld. SwiftUI: Picker als Kacheln + switch auf Wert -->
-  <div class="tmcanc"><div class="flabel">Kündigungsweg</div>
-  <div class="tmtiles cv" id="fCancT" role="group" aria-label="Kündigungsweg">
-    <button type="button" class="tmtile" data-cv="Online / Kundenkonto" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.6 5.4 3.6 8.5s-1.1 5.9-3.6 8.5c-2.5-2.6-3.6-5.4-3.6-8.5s1.1-5.9 3.6-8.5z"/></svg><b>Online</b></button>
-    <button type="button" class="tmtile" data-cv="E-Mail" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg><b>E-Mail</b></button>
-    <button type="button" class="tmtile" data-cv="Brief" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 12h6M9 16h4"/></svg><b>Brief</b></button>
-    <button type="button" class="tmtile" data-cv="Einschreiben" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4"/><path d="M9.2 14.2l2 2 3.8-4"/></svg><b>Einschreiben</b></button>
-  </div>
-  <div hidden><select id="fCancF"><option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Einschreiben</option></select></div></div>
-  <div class="field tmcanc" id="fCancMailW" hidden><label for="fCancMail">E-Mail-Adresse für die Kündigung</label><input id="fCancMail" type="email" placeholder="kuendigung@anbieter.ch" autocomplete="off"></div>
-  <div class="tmcanc cvaddr" id="fCancAddrW" hidden><span class="t"><b id="fCancAddrT"></b><small id="fCancAddrS"></small></span><button type="button" class="mdlink" id="fCancAddrB">Erfassen</button></div>
-  <div class="field tmcanc" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="netflix.com/cancelplan" autocomplete="off">
-    <p class="note" style="margin:6px 0 0">Seite im Kundenkonto, auf der du kündigst. Leer: die Website des Vertragspartners wird geöffnet.</p></div>
+  <p class="note fnote2" id="tmHint"></p>
+  <div hidden><input type="checkbox" id="fNoCancel"><input type="checkbox" id="fNoWatch"></div>
 
-
-  <button type="button" class="morerow" id="fMoreBtn"><span class="t"><b>Weitere Angaben</b><small id="fMoreN">Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt …</small></span><em>›</em></button>
-  <div style="height:8px"></div>
-  </div>
-
-  <div id="fMore" hidden>
-  <h3>Preisänderungen<em id="oPriceN"></em></h3>
-  <p class="note" style="margin:0 0 10px">Der Betrag unter «Kosten» ist der Anfangspreis. Jede Änderung gilt ab ihrem Datum.</p>
-  <div class="plist" id="pList"></div>
-  <div class="two">
-    <div class="field"><label for="pFrom">Gültig ab</label><input id="pFrom" type="date"></div>
-    <div class="field"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="74.90"></div>
-  </div>
-  <button class="mini" id="pAdd" style="margin:-6px 0 4px">Preisänderung hinzufügen</button>
-
-  <h3>Sonderzahlungen<em id="oExtraN"></em></h3>
-  <p class="note" style="margin:0 0 10px">Zum Beispiel Nebenkostenabrechnung oder Aktivierungsgebühr. Zählt in «Kosten» und «Budget» im jeweiligen Monat, nicht in den monatlichen Fixkosten.</p>
-  <div class="plist" id="xList"></div>
-  <div class="seg2" id="xKind" role="group" aria-label="Art" style="margin:0 0 12px"><button type="button" data-xk="pay" aria-pressed="true">Zahlung</button><button type="button" data-xk="cr" aria-pressed="false">Gutschrift</button></div>
-  <div class="two">
-    <div class="field"><label for="xDate">Datum</label><input id="xDate" type="date"></div>
-    <div class="field"><label for="xAmt">Betrag</label><input id="xAmt" class="num" type="text" inputmode="decimal" placeholder="120.00"></div>
-  </div>
-  <div class="field"><label for="xNote">Bezeichnung (optional)</label><input id="xNote" type="text" placeholder="z.B. Nebenkostenabrechnung" autocomplete="off" maxlength="60"></div>
-  <button class="mini" id="xAdd" style="margin:-6px 0 4px">Sonderzahlung hinzufügen</button>
-
-  <h3>Erinnerung und Wechsel</h3>
-  <div class="swlist">
-    <label class="swrow"><span class="t"><b>Pflichtvertrag</b><small>Wechseln statt kündigen, z.B. Krankenkasse. Nach der Kündigung den neuen Vertragspartner erfassen.</small></span><input type="checkbox" class="swi" id="fMand"></label>
-    <label class="swrow"><span class="t"><b>Nicht an Frist erinnern</b><small>Erscheint nicht unter «Fristen», z.B. Miete.</small></span><input type="checkbox" class="swi" id="fNoWatch"></label>
+  <h3 class="fsec" id="fsAssign">Zuordnung</h3>
+  <div class="fcard">
+    <button type="button" class="frow catfield" id="fCats"><span class="fl">Kategorie</span><span class="cfi" id="fCatIcon"></span><span class="cfn" id="fCatName">wählen</span><span class="chev">›</span></button>
+    <div class="frow fcol" id="fHoldWrap" hidden><span class="fl">Personen</span><div class="chips" id="fHolders"></div>
+      <div id="fSplitWrap" hidden><div class="seg2" id="fSplitSeg" role="group" aria-label="Aufteilung" style="margin:0 0 8px"><button type="button" data-sp="eq" aria-pressed="true">Gleich aufgeteilt</button><button type="button" data-sp="ind" aria-pressed="false">Individuell</button></div>
+      <div id="fSplitRows" hidden></div></div></div>
+    <div class="frow"><label for="fCustNo">Kundennummer</label><input id="fCustNo" type="text" placeholder="hinzufügen" autocomplete="off"></div>
+    <div class="frow"><label for="fContrNo" id="fContrL">Vertragsnummer</label><input id="fContrNo" type="text" placeholder="hinzufügen" autocomplete="off"></div>
   </div>
 
-  <h3>Kundendaten</h3>
-  <div class="two">
-    <div class="field"><label for="fCustNo">Kundennummer</label><input id="fCustNo" type="text" autocomplete="off"></div>
-    <div class="field"><label for="fContrNo">Vertragsnummer</label><input id="fContrNo" type="text" autocomplete="off"></div>
+  <h3 class="fsec" id="fsContact">Kontakt</h3>
+  <div class="fcard">
+    <div class="frow fcol"><div class="flrow"><span class="fl">Adresse</span><button type="button" class="mdlink" id="fAddrPaste">Einfügen</button></div>
+      <div class="sndform ig" id="fAddrG"></div><textarea id="fAddr" hidden></textarea></div>
+    <div class="frow"><label for="fWeb">Website</label><input id="fWeb" type="url" inputmode="url" placeholder="hinzufügen" autocomplete="off"></div>
+    <div class="frow"><label for="fTel">Telefon</label><input id="fTel" type="tel" placeholder="hinzufügen" autocomplete="off"></div>
+    <div class="frow"><label for="fMail">E-Mail</label><input id="fMail" type="email" placeholder="hinzufügen" autocomplete="off"></div>
   </div>
-  <div class="two">
-    <div class="field"><label for="fPayM">Zahlungsart</label><select id="fPayM">
-      <option value="">—</option><option>Lastschrift (LSV/SEPA)</option><option>eBill</option><option>Kreditkarte</option>
-      <option>QR-Rechnung</option><option>Dauerauftrag</option><option>TWINT</option><option>PayPal</option><option>Sonstiges</option></select></div>
-    <div class="field"><label for="fPayA">Belastet über</label><input id="fPayA" type="text" placeholder="z.B. Visa …4417" autocomplete="off"></div>
-  </div>
+  <p class="note fnote2">Die Adresse braucht es für die Kündigung per Brief. Sie gilt für alle Verträge dieses Vertragspartners.</p>
 
-  <h3>Kontakt &amp; Notiz</h3>
-  <div class="flabel flrow"><span>Adresse des Vertragspartners</span><button type="button" class="mdlink" id="fAddrPaste">Einfügen</button></div>
-  <div class="sndform ig" id="fAddrG"></div><textarea id="fAddr" hidden></textarea>
-  <p class="note" style="margin:6px 0 14px">Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.</p>
-  <div class="flabel">Kontakt</div>
-  <div class="sndform ig" style="margin-bottom:14px">
-    <div class="igr"><input id="fWeb" type="url" inputmode="url" placeholder="Website oder Kundenportal" aria-label="Website oder Kundenportal" autocomplete="off"></div>
-    <div class="igr"><input id="fTel" type="tel" placeholder="Telefon" aria-label="Telefon" autocomplete="off"></div>
-    <div class="igr"><input id="fMail" type="email" placeholder="E-Mail" aria-label="E-Mail" autocomplete="off"></div>
-  </div>
-  <div class="field"><label for="fNote">Notiz</label><textarea id="fNote" placeholder="Zugangsweg, Ansprechpartner, Besonderheiten"></textarea></div>
-
-  <div style="height:8px"></div>
+  <h3 class="fsec">Notiz</h3>
+  <div class="fcard"><textarea id="fNote" class="fnotef" aria-label="Notiz" placeholder="Zugangsweg, Ansprechpartner, Besonderheiten"></textarea></div>
+  <div style="height:14px"></div>
   </div>
 </div>
 
@@ -1847,7 +1912,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <div class="ltrow"><button type="button" class="mini" id="ltAddr">Adresse suchen</button><span class="note" id="ltAddrMsg"></span></div></div>
   <div id="ltMiss" hidden><div class="flabel">Fehlt noch — wird beim Vertrag gespeichert</div>
     <div class="two"><div class="field" id="ltMissC"><label for="ltCust">Kundennummer</label><input id="ltCust" type="text" autocomplete="off"></div>
-    <div class="field" id="ltMissV"><label for="ltContr">Vertragsnummer</label><input id="ltContr" type="text" autocomplete="off"></div></div></div>
+    <div class="field" id="ltMissV"><label for="ltContr" id="ltContrL">Vertragsnummer</label><input id="ltContr" type="text" autocomplete="off"></div></div></div>
   <div class="field"><label for="ltSubj">Betreff</label><input id="ltSubj" type="text" autocomplete="off"></div>
   <div class="field"><label for="ltBody">Text</label><textarea id="ltBody" class="lt" spellcheck="true"></textarea></div>
   <div class="flabel">Unterschrift</div>
@@ -2370,7 +2435,9 @@ function loadLocal(){var r=null;try{r=localStorage.getItem(LS);if(!r)return;var 
   if(o.settings)state.settings=Object.assign(state.settings,o.settings);
   if(o.contracts)state.contracts=o.contracts;
   if(o.incomes)state.incomes=o.incomes;
-  migCats();}catch(e){if(r)loadBad=r;}}
+  migCats();migVia();}catch(e){if(r)loadBad=r;}}
+/* Kündigungsweg «Einschreiben» gibt es nicht mehr (10.10.2026): gleich wie «Brief», Tipp «eingeschrieben» steht im Kündigungsschreiben */
+function migVia(){Object.keys(state.contracts||{}).forEach(function(k){var c=state.contracts[k];if(c&&c.cancF==="Einschreiben")c.cancF="Brief";});}
 /* Beschädigte Daten: Rohdaten bleiben unverändert unter LS, bis die Person entscheidet */
 async function brokenData(){
   var y=await ask({title:"Daten beschädigt",ok:"Backup einspielen",no:"Neu beginnen",onOk:function(){document.getElementById("bkFile").click();},
@@ -3169,7 +3236,8 @@ function paintCats(){paintCatField("f",draft.cat);
   var tx=catKey(draft.cat||"")==="Steuern & Gebühren";
   document.querySelectorAll("#termSeg [data-tm]").forEach(function(b){b.disabled=tx&&b.dataset.tm!=="tax";});
   if(tx&&termMode!=="tax"){draft.taxForced=true;setTermMode("tax");}
-  else if(!tx&&draft.taxForced){draft.taxForced=false;if(termMode==="tax")setTermMode("open");}}
+  else if(!tx&&draft.taxForced){draft.taxForced=false;if(termMode==="tax")setTermMode("open");}
+  syncTermSel();paintOptCounts();}
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-catinfo]");if(!b)return;e.preventDefault();e.stopPropagation();
   ask({title:"Nicht kündbar",text:TAX_INFO,alert:true});},true);
 function openCatPick(kind){
@@ -3252,7 +3320,7 @@ document.getElementById("logoAll").addEventListener("click",function(){
   ids.forEach(function(k){putContract(k,Object.assign({},state.contracts[k],{logoId:draft.logoId,logoBg:draft.logoBg||"#FFFFFF"}));});
   render();paintLogoAll();toast("Logo bei "+ids.length+(ids.length>1?" Verträgen":" Vertrag")+" übernommen");});
 function paintDocs(){paintOptCounts();
-  var n=(draft.docs||[]).length;document.getElementById("fDocsN").textContent=n?cntTxt(n,"Dokument","Dokumente"):"Dokument anhängen";
+  var n=(draft.docs||[]).length;document.getElementById("fDocsN").textContent=n?cntTxt(n,"Datei","Dateien"):"Anhängen";document.getElementById("fDocsChip").classList.toggle("on",!!n);
   var l=document.getElementById("docList");l.innerHTML="";
   (draft.docs||[]).forEach(function(d,i){
     var row=document.createElement("div");row.className="doc";
@@ -3360,13 +3428,17 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   selVal("fCancF",c&&c.cancF);document.getElementById("fCancUrl").value=(c&&c.cancUrl)||"";syncCancUrl();
   document.getElementById("fTrial").value=(c&&c.trial)||"";
   document.getElementById("fTermP").value=(c&&c.cancTerm)||"";
-  document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);document.getElementById("fNoCancel").checked=!!(c&&c.noCancel);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
+  document.getElementById("fMand").checked=!!(c&&c.mand);document.getElementById("fNoWatch").checked=!!(c&&c.noWatch);document.getElementById("fRemind").checked=!(c&&c.noWatch);document.getElementById("fNoCancel").checked=!!(c&&c.noCancel);syncWatch();draft.tplHint="";pSugSel="";hidePSug();
   document.getElementById("fSugg").innerHTML="";
   document.getElementById("fWeb").value=(c&&c.web)||"";var pgA=c&&c.partner&&!c.addr?peGroup(String(c.partner).trim().toLowerCase()):null;document.getElementById("fAddr").value=(c&&c.addr)||(pgA&&pgA.addr)||"";fAddrPaint();
   document.getElementById("fTel").value=(c&&c.tel)||"";
   document.getElementById("fMail").value=(c&&c.mail)||"";syncCancUrl();
   paintHolders();
-  document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";
+  document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";openSub("p",false);openSub("x",false);
+  /* gekündigt: Kündigungsdatum und «läuft bis» korrigierbar */
+  var cz=!!(c&&!asCopy&&c.cancelPer);document.getElementById("fCancOnW").hidden=!cz;document.getElementById("fCancPerW").hidden=!cz;
+  document.getElementById("fCancOn").value=cz?(c.cancelledOn||""):"";document.getElementById("fCancPer").value=cz?c.cancelPer:"";
+  termMFromEnd();
   paintPrices();
   ["xDate","xAmt","xNote"].forEach(function(i){document.getElementById(i).value="";});setXKind("pay");paintExtras();
   trialD="";
@@ -3376,17 +3448,14 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();
   paintCats();paintSwatches();paintLogo();paintDocs();
   document.getElementById("logoUp").hidden=!assets;
   document.getElementById("docUp").hidden=!assets;
-  formPage(false);openSheet(document.getElementById("sheetForm"));formSnap.c=formSig("sheetForm",draft);
+  openSheet(document.getElementById("sheetForm"));formPage();formSnap.c=formSig("sheetForm",draft);
 }
-/* Hauptseite ↔ «Weitere Angaben» im selben Fenster */
-function formPage(more){var sh=document.getElementById("sheetForm"),mn=document.getElementById("fMain"),mo=document.getElementById("fMore"),cb=document.getElementById("cancelForm");
-  mn.hidden=!!more;mo.hidden=!more;(more?mo:mn).classList.remove("in");void sh.offsetWidth;(more?mo:mn).classList.add("in");
-  cb.textContent=more?"Zurück":"Abbrechen";cb.classList.toggle("back",!!more);
-  document.getElementById("formTitle").textContent=more?"Weitere Angaben":(editId?"Bearbeiten":(document.getElementById("formTitle").dataset.t||"Neuer Vertrag"));
-  sh.scrollTop=0;paintOptCounts();if(!more)syncCancUrl();}
-document.getElementById("fMoreBtn").addEventListener("click",function(){formPage(true);});
-document.getElementById("fMore").addEventListener("input",paintOptCounts);
-document.getElementById("fMore").addEventListener("change",paintOptCounts);
+/* Eine Seite (seit 10.10.2026, früher «Weitere Angaben» als zweite Seite): formGo(id) scrollt zu einem Feld und setzt den Fokus.
+   formPage(false) bleibt als «nach oben». SwiftUI: ScrollViewReader.scrollTo + @FocusState */
+function formPage(){var sh=document.getElementById("sheetForm");sh.scrollTop=0;syncCancUrl();}
+function formGo(id,noFocus){setTimeout(function(){var el=document.getElementById(id);if(!el)return;
+  if(id==="pFrom"||id==="pAmt")openSub("p",true);if(id==="xDate"||id==="xAmt")openSub("x",true);
+  el.scrollIntoView({block:"center",behavior:"smooth"});if(!noFocus&&el.focus)try{el.focus({preventScroll:true});}catch(e){}},260);}
 
 document.getElementById("fPartner").addEventListener("input",paintLogo);
 document.getElementById("fAmt").addEventListener("input",paintDup);document.getElementById("fCur").addEventListener("change",paintDup);
@@ -3406,19 +3475,19 @@ var H_GKV="Gesetzliche Krankenkasse: 2 Monate zum Monatsende, nach mindestens 12
 var H_VDE="Meist 3 Monate zum Ende des Versicherungsjahres, neuere Verträge oft 1 Monat. Police prüfen.";
 var H_PRF="Frist im Vertrag prüfen.";
 var TPL=[
- ["CSS","CH","Versicherung","Krankenkasse","css.ch",1,"m","y","Einschreiben",1,H_KVG,"","CSS Kranken-Versicherung AG\nTribschenstrasse 21\nPostfach 2568\n6002 Luzern","","+41 58 277 11 11",1],
- ["Helsana","CH","Versicherung","Krankenkasse","helsana.ch",1,"m","y","Einschreiben",1,H_KVG,"","Helsana Versicherungen AG\nIDPH Kündigungen D-CH\nPostfach\n8081 Zürich","kuendigungen@helsana.ch","+41 43 340 11 11",1],
- ["SWICA","CH","Versicherung","Krankenkasse","swica.ch",1,"m","y","Einschreiben",1,H_KVG,"","SWICA Krankenversicherung AG\nRömerstrasse 37\n8401 Winterthur","","+41 58 800 99 33",1],
- ["Sanitas","CH","Versicherung","Krankenkasse","sanitas.com",1,"m","y","Einschreiben",1,H_KVG,"","Sanitas Grundversicherungen AG\nJägergasse 3\nPostfach\n8004 Zürich","info@sanitas.com","+41 844 150 150",1],
- ["Visana","CH","Versicherung","Krankenkasse","visana.ch",1,"m","y","Einschreiben",1,H_KVG,"","Visana Services AG\nWeltpoststrasse 19\nPostfach\n3000 Bern 16","customerservice-centre@visana.ch","+41 848 848 899",1],
- ["Concordia","CH","Versicherung","Krankenkasse","concordia.ch",1,"m","y","Einschreiben",1,H_KVG,"","CONCORDIA\nBundesplatz 15\n6002 Luzern","info@concordia.ch","+41 41 228 01 11",1],
- ["Groupe Mutuel","CH","Versicherung","Krankenkasse","groupemutuel.ch",1,"m","y","Einschreiben",1,H_KVG,"","Groupe Mutuel\nRue des Cèdres 5\n1919 Martigny","kunden@groupemutuel.ch","+41 848 803 111",1],
- ["Assura","CH","Versicherung","Krankenkasse","assura.ch",1,"m","y","Einschreiben",1,H_KVG,"","Assura-Basis AG\nPostfach 61\n1009 Pully","","+41 800 277 872",1],
- ["KPT","CH","Versicherung","Krankenkasse","kpt.ch",1,"m","y","Einschreiben",1,H_KVG,"","KPT Krankenkasse AG\nWankdorfallee 3\nPostfach\n3001 Bern","","+41 58 310 91 11",1],
- ["Atupri","CH","Versicherung","Krankenkasse","atupri.ch",1,"m","y","Einschreiben",1,H_KVG,"","Atupri Gesundheitsversicherung AG\nLaupenstrasse 18\n3008 Bern","info@atupri.ch","+41 800 200 888",1],
- ["Sympany","CH","Versicherung","Krankenkasse","sympany.ch",1,"m","y","Einschreiben",1,H_KVG,"","Sympany\nPeter Merian-Weg 4\n4002 Basel","","+41 58 262 42 00",1],
- ["ÖKK","CH","Versicherung","Krankenkasse","oekk.ch",1,"m","y","Einschreiben",1,H_KVG,"","ÖKK\nBahnhofstrasse 13\nPostfach\n7302 Landquart","info@oekk.ch","+41 800 838 000",1],
- ["EGK","CH","Versicherung","Krankenkasse","egk.ch",1,"m","y","Einschreiben",1,H_KVG,"","EGK-Gesundheitskasse\nBirspark 1\n4242 Laufen","info@egk.ch","+41 61 765 51 11",1],
+ ["CSS","CH","Versicherung","Krankenkasse","css.ch",1,"m","y","Brief",1,H_KVG,"","CSS Kranken-Versicherung AG\nTribschenstrasse 21\nPostfach 2568\n6002 Luzern","","+41 58 277 11 11",1],
+ ["Helsana","CH","Versicherung","Krankenkasse","helsana.ch",1,"m","y","Brief",1,H_KVG,"","Helsana Versicherungen AG\nIDPH Kündigungen D-CH\nPostfach\n8081 Zürich","kuendigungen@helsana.ch","+41 43 340 11 11",1],
+ ["SWICA","CH","Versicherung","Krankenkasse","swica.ch",1,"m","y","Brief",1,H_KVG,"","SWICA Krankenversicherung AG\nRömerstrasse 37\n8401 Winterthur","","+41 58 800 99 33",1],
+ ["Sanitas","CH","Versicherung","Krankenkasse","sanitas.com",1,"m","y","Brief",1,H_KVG,"","Sanitas Grundversicherungen AG\nJägergasse 3\nPostfach\n8004 Zürich","info@sanitas.com","+41 844 150 150",1],
+ ["Visana","CH","Versicherung","Krankenkasse","visana.ch",1,"m","y","Brief",1,H_KVG,"","Visana Services AG\nWeltpoststrasse 19\nPostfach\n3000 Bern 16","customerservice-centre@visana.ch","+41 848 848 899",1],
+ ["Concordia","CH","Versicherung","Krankenkasse","concordia.ch",1,"m","y","Brief",1,H_KVG,"","CONCORDIA\nBundesplatz 15\n6002 Luzern","info@concordia.ch","+41 41 228 01 11",1],
+ ["Groupe Mutuel","CH","Versicherung","Krankenkasse","groupemutuel.ch",1,"m","y","Brief",1,H_KVG,"","Groupe Mutuel\nRue des Cèdres 5\n1919 Martigny","kunden@groupemutuel.ch","+41 848 803 111",1],
+ ["Assura","CH","Versicherung","Krankenkasse","assura.ch",1,"m","y","Brief",1,H_KVG,"","Assura-Basis AG\nPostfach 61\n1009 Pully","","+41 800 277 872",1],
+ ["KPT","CH","Versicherung","Krankenkasse","kpt.ch",1,"m","y","Brief",1,H_KVG,"","KPT Krankenkasse AG\nWankdorfallee 3\nPostfach\n3001 Bern","","+41 58 310 91 11",1],
+ ["Atupri","CH","Versicherung","Krankenkasse","atupri.ch",1,"m","y","Brief",1,H_KVG,"","Atupri Gesundheitsversicherung AG\nLaupenstrasse 18\n3008 Bern","info@atupri.ch","+41 800 200 888",1],
+ ["Sympany","CH","Versicherung","Krankenkasse","sympany.ch",1,"m","y","Brief",1,H_KVG,"","Sympany\nPeter Merian-Weg 4\n4002 Basel","","+41 58 262 42 00",1],
+ ["ÖKK","CH","Versicherung","Krankenkasse","oekk.ch",1,"m","y","Brief",1,H_KVG,"","ÖKK\nBahnhofstrasse 13\nPostfach\n7302 Landquart","info@oekk.ch","+41 800 838 000",1],
+ ["EGK","CH","Versicherung","Krankenkasse","egk.ch",1,"m","y","Brief",1,H_KVG,"","EGK-Gesundheitskasse\nBirspark 1\n4242 Laufen","info@egk.ch","+41 61 765 51 11",1],
  ["Die Mobiliar","CH","Versicherung","Hausrat & Haftpflicht","mobiliar.ch",3,"m","a","Brief",0,H_VVG,"","Schweizerische Mobiliar Versicherungsgesellschaft AG\nBundesgasse 35\n3001 Bern","info@mobiliar.ch","",1],
  ["AXA","CH","Versicherung","Versicherung","axa.ch",3,"m","a","Brief",0,H_VVG,"","AXA Versicherungen AG\nGeneral-Guisan-Strasse 40\n8400 Winterthur","","+41 800 809 809",1],
  ["Zurich","CH","Versicherung","Versicherung","zurich.ch",3,"m","a","Brief",0,H_VVG,"","Zürich Versicherungs-Gesellschaft AG\nMythenquai 2\n8002 Zürich","contact@zurich.ch","+41 800 80 80 80",1],
@@ -3504,7 +3573,7 @@ var TPL=[
  ["McFit","DE","Freizeit & Sport","Fitnessabo","mcfit.com",0,"m","a","",0,H_FIT,"","RSG Group GmbH\nTannenberg 4\n96132 Schlüsselfeld","","+49 30 837 95500",1],
  ["Urban Sports Club","DE","Freizeit & Sport","Sportabo","urbansportsclub.com",0,"m","p","Online / Kundenkonto",0,H_PRF,"urbansportsclub.com/de/profile/membership","Urban Sports GmbH\nNovalisstraße 10\n10115 Berlin","","",1],
  ["Südkurier","DE","Abos & Medien","Zeitung","suedkurier.de",0,"m","a","",0,H_PRF,"","SÜDKURIER GmbH\nKundenbetreuung\nMax-Stromeyer-Straße 178\n78467 Konstanz","","",0],
- ["Swiss Life", "CH", "Versicherung", "Lebensversicherung", "swisslife.ch", 0, "m", "p", "Einschreiben", 0, "Lebens-/Vorsorgepolicen schriftlich mit Unterschrift kündigen; vorzeitige Auflösung führt zu Rückkaufswert mit Abzügen.", "", "Swiss Life AG\nGeneral-Guisan-Quai 40\nPostfach\n8022 Zürich", "", "+41 43 284 33 11", 1],
+ ["Swiss Life", "CH", "Versicherung", "Lebensversicherung", "swisslife.ch", 0, "m", "p", "Brief", 0, "Lebens-/Vorsorgepolicen schriftlich mit Unterschrift kündigen; vorzeitige Auflösung führt zu Rückkaufswert mit Abzügen.", "", "Swiss Life AG\nGeneral-Guisan-Quai 40\nPostfach\n8022 Zürich", "", "+41 43 284 33 11", 1],
  ["Simpego", "CH", "Versicherung", "Versicherung", "simpego.ch", 1, "d", "a", "E-Mail", 0, "Kündigung per E-Mail/Post muss spätestens 1 Tag vor Ende des Vertragsjahres eingehen; teils tägliches Kündigungsrecht.", "", "Simpego Versicherungen AG\nHohlstrasse 556\n8048 Zürich", "service@simpego.ch", "+41 58 521 11 11", 1],
  ["Rega", "CH", "Sonstiges", "Gönnerschaft", "portal.rega.ch", 0, "m", "y", "Online / Kundenkonto", 0, "Keine Kündigung nötig: Gönnerschaft erlischt ohne Einzahlung; Austritt auch im Gönnerportal möglich.", "", "Schweizerische Rettungsflugwacht Rega\nRega-Center\nPostfach 1414\n8058 Zürich-Flughafen", "", "+41 844 834 844", 1],
  ["Digital Republic", "CH", "Mobilfunk & Internet", "Handy / Internet", "digitalrepublic.ch", 0, "m", "p", "Online / Kundenkonto", 0, "Automatische Erneuerung im Kundenportal deaktivieren oder per E-Mail kündigen; endet auf Ende der Tarifperiode.", "", "Digital Republic AG\nSuurstoffi 22\n6343 Rotkreuz", "support@digitalrepublic.ch", "+41 44 500 49 55", 1],
@@ -3525,7 +3594,7 @@ var TPL=[
  ["St.Galler Kantonalbank", "CH", "Finanzen", "Konto", "sgkb.ch", 0, "m", "", "Brief", 0, "Konto-Saldierung schriftlich mit Unterschrift oder in der Geschäftsstelle; Zielkonto für Restsaldo angeben.", "", "St.Galler Kantonalbank AG\nSt. Leonhardstrasse 25\n9001 St. Gallen", "info@sgkb.ch", "+41 844 811 811", 1],
  ["Swissquote", "CH", "Finanzen", "Konto / Depot", "swissquote.com", 0, "m", "", "Brief", 0, "Kontoschliessung schriftlich mit Unterschrift; Wertschriften vorher verkaufen oder Transfer beauftragen.", "", "Swissquote Bank AG\nChemin de la Crétaux 33\n1196 Gland", "", "+41 44 825 88 88", 1],
  ["Fitnesspark", "CH", "Freizeit & Sport", "Fitnessabo", "fitnesspark.ch", 2, "m", "p", "Brief", 0, "Schriftlich per Brief 2 Monate vor Ende der Vertragsdauer, sonst automatische Verlängerung; Mitgliedernummer angeben.", "", "movemi AG\nFitnesspark Kundenservice\nThurgauerstrasse 32\n8050 Zürich", "info@fitnesspark.ch", "", 1],
- ["Kieser Training", "CH", "Freizeit & Sport", "Fitnessabo", "kieser.com/ch-de", 2, "m", "p", "Einschreiben", 0, "Kündigung schriftlich beim Studio, in dem der Vertrag abgeschlossen wurde, 2 Monate vor Laufzeitende.", "", "Kieser Training AG\nHardstrasse 223\n8005 Zürich", "info@kieser.com", "+41 44 296 17 17", 1],
+ ["Kieser Training", "CH", "Freizeit & Sport", "Fitnessabo", "kieser.com/ch-de", 2, "m", "p", "Brief", 0, "Kündigung schriftlich beim Studio, in dem der Vertrag abgeschlossen wurde, 2 Monate vor Laufzeitende.", "", "Kieser Training AG\nHardstrasse 223\n8005 Zürich", "info@kieser.com", "+41 44 296 17 17", 1],
  ["Thurgauer Zeitung", "CH", "Abos & Medien", "Zeitung", "chmedia.ch/kontakt", 0, "m", "p", "E-Mail", 0, "Abo auf Ende der Laufzeit beim CH Media Aboservice schriftlich oder per E-Mail kündigen.", "", "CH Regionalmedien AG\nAboservice\nFürstenlandstrasse 35\n9001 St. Gallen", "aboservice@chmedia.ch", "+41 58 200 55 55", 1],
  ["Republik", "CH", "Abos & Medien", "Magazin", "republik.ch", 2, "d", "p", "Online / Kundenkonto", 0, "Online im Konto unter Abonnements kündbar; Jahresmitgliedschaft bis 2 Tage vor Laufzeitende, Monatsabo jederzeit.", "", "Republik AG\nSihlhallenstrasse 1\n8004 Zürich", "kontakt@republik.ch", "+41 44 505 67 80", 1],
  ["Blick+", "CH", "Abos & Medien", "Zeitung digital", "myservices.blick.ch", 0, "m", "p", "Online / Kundenkonto", 0, "Bei Kreditkarte/TWINT/LSV automatische Verlängerung; via myservices.blick.ch oder Kundenservice auf Periodenende kündigen.", "", "Ringier AG, Ringier Medien Schweiz\nBrühlstrasse 5\n4800 Zofingen", "kundenservice@blick.ch", "+41 58 510 73 02", 1],
@@ -3732,7 +3801,20 @@ function setTermMode(m){termMode=m;
   sh("tmstart",m!=="trial");sh("tmnotice",m==="open"||m==="fixed");sh("tmcanc",m!=="tax");
   document.getElementById("fNoCancel").checked=m==="tax";
   if(m==="trial")paintTrialD();
-  syncCancUrl();updTermHint();}
+  syncTermSel();syncCancUrl();updTermHint();}
+/* sichtbare Auswahl «Vertragsart» ↔ Knöpfe #termSeg (gesperrte Knöpfe = gesperrte Optionen) */
+function syncTermSel(){var sel=document.getElementById("fTermSel");if(!sel)return;sel.value=termMode;
+  [].forEach.call(sel.options,function(o){var b=document.querySelector('#termSeg [data-tm="'+o.value+'"]');o.disabled=!!(b&&b.disabled);});}
+document.getElementById("fTermSel").addEventListener("change",function(){var b=document.querySelector('#termSeg [data-tm="'+this.value+'"]');if(b&&!b.disabled)setTermMode(this.value);else syncTermSel();});
+/* Mindestlaufzeit in Monaten ↔ Vertragsende: Ende = Beginn + n Monate − 1 Tag. Gespeichert wird nur das Ende */
+function termEndFromM(){var n=parseInt(document.getElementById("fTermM").value,10),st=parseD(document.getElementById("fStart").value);
+  if(!(n>0&&n<=600))return;if(!st){toast("Zuerst den Vertragsbeginn eintragen");return;}
+  document.getElementById("fEnd").value=iso(addDays(addMonths(st,n),-1));updTermHint();}
+function termMFromEnd(){var st=parseD(document.getElementById("fStart").value),en=parseD(document.getElementById("fEnd").value),m=document.getElementById("fTermM");
+  if(document.activeElement===m)return;var v="";if(st&&en&&en>st){for(var n=1;n<=600;n++){var e=addDays(addMonths(st,n),-1);if(+e===+en){v=String(n);break;}if(e>en)break;}}m.value=v;}
+document.getElementById("fTermM").addEventListener("input",termEndFromM);
+document.getElementById("fEnd").addEventListener("change",termMFromEnd);
+document.getElementById("fStart").addEventListener("change",function(){if(document.getElementById("fTermM").value&&termMode==="fixed")termEndFromM();else termMFromEnd();});
 /* Probeabo-Dauer: Chips setzen das Enddatum ab Vertragsbeginn (sonst heute); «Datum …» zeigt das Datumsfeld */
 var trialD="";
 var TRD={"7d":[0,7],"14d":[0,14],"1m":[1,0],"3m":[3,0]};
@@ -3776,11 +3858,17 @@ function updPayHint(){var h=document.getElementById("fPayHint");if(!h)return;
   var t={due:document.getElementById("fDue").value,cycle:+document.getElementById("fCycle").value||1,start:document.getElementById("fStart").value},r=payRule(t),n=r?nextDue(t):null;
   h.textContent=r?"Zahlung "+r+(n?" · nächste am "+fmtShort(n):""):"";h.hidden=!r;}
 ["fDue","fCycle","fStart"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updPayHint);el.addEventListener("change",updPayHint);});
+["fCycle","fStart"].forEach(function(i){document.getElementById(i).addEventListener("change",paintPrices);});
 document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(b)setTermMode(b.dataset.tm);});
 /* Nach einer Vorlage: «nicht kündbar» wählt die Kachel «Nicht kündbar», sonst zurück auf «Flexibel» */
 function syncWatch(){var f=document.getElementById("fNoCancel").checked;
   if(f&&termMode!=="tax")setTermMode("tax");else if(!f&&termMode==="tax")setTermMode("open");paintOptCounts();}
 ["fMand","fNoWatch"].forEach(function(i){document.getElementById(i).addEventListener("change",paintOptCounts);});
+/* «An Frist erinnern» ist die positive Anzeige von c.noWatch */
+document.getElementById("fRemind").addEventListener("change",function(){var w=document.getElementById("fNoWatch");w.checked=!this.checked;w.dispatchEvent(new Event("change"));});
+["fPayM","fPayA"].forEach(function(i){var e=document.getElementById(i);e.addEventListener("change",paintOptCounts);e.addEventListener("blur",paintOptCounts);});
+document.getElementById("fPayM").addEventListener("change",function(){if(this.value&&!document.getElementById("fPayA").value)paintOptCounts();});
+document.getElementById("fLabel").addEventListener("input",paintOptCounts);
 document.getElementById("iLogoTap").addEventListener("click",function(){var d=document.getElementById("oILogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);});
 document.getElementById("logoTap").addEventListener("click",function(){var d=document.getElementById("oLogo");d.open=!d.open;this.setAttribute("aria-expanded",d.open);if(d.open){document.getElementById("oDocs").open=false;document.getElementById("fDocsChip").setAttribute("aria-expanded","false");}});
 /* Dokumente-Chip neben dem Logo: Liste + «Datei anhängen» als Panel wie beim Logo (SwiftUI: Button mit .sheet bzw. DisclosureGroup) */
@@ -3789,25 +3877,19 @@ function syncCancUrl(){var $=function(i){return document.getElementById(i);},v=$
   $("fCancT").querySelectorAll("[data-cv]").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.cv===v);});
   $("fCancUrlW").hidden=off||v!=="Online / Kundenkonto";
   $("fCancMailW").hidden=off||v!=="E-Mail";if(document.activeElement!==$("fCancMail"))$("fCancMail").value=$("fMail").value;
-  var post=v==="Brief"||v==="Einschreiben",ad=addrSplit($("fAddr").value,$("fPartner").value),line=[ad.street,[ad.zip,ad.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  var post=v==="Brief",ad=addrSplit($("fAddr").value,$("fPartner").value),line=[ad.street,[ad.zip,ad.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
   $("fCancAddrW").hidden=off||!post;$("fCancAddrT").textContent="Adresse des Vertragspartners";
   $("fCancAddrS").textContent=line||"Noch keine Adresse – wird für den Brief gebraucht";$("fCancAddrB").textContent=line?"Ändern":"Erfassen";}
 document.getElementById("fCancF").addEventListener("change",syncCancUrl);
 document.getElementById("fCancT").addEventListener("click",function(ev){var b=ev.target.closest("[data-cv]");if(!b)return;
   var f=document.getElementById("fCancF");f.value=f.value===b.dataset.cv?"":b.dataset.cv;syncCancUrl();paintOptCounts();});
 document.getElementById("fCancMail").addEventListener("input",function(){document.getElementById("fMail").value=this.value;});
-document.getElementById("fCancAddrB").addEventListener("click",function(){formPage(true);
-  setTimeout(function(){var g=document.getElementById("fAddrG");if(g){g.scrollIntoView({block:"center"});var i=g.querySelector("input");if(i)i.focus({preventScroll:true});}},260);});
-function paintOptCounts(){
-  var n=(draft.prices||[]).length,d=(draft.docs||[]).length,xn=(draft.extras||[]).length,g=function(id){return (document.getElementById(id).value||"").trim();};
-  document.getElementById("oExtraN").textContent=xn?xn+" erfasst":"";
-  document.getElementById("oPriceN").textContent=n?n+(n===1?" Änderung":" Änderungen"):"";
-  var parts=[n?n+(n===1?" Preisänderung":" Preisänderungen"):"",xn?xn+(xn===1?" Sonderzahlung":" Sonderzahlungen"):"",
-    g("fCustNo")?"Kundennummer":"",g("fContrNo")?"Vertragsnummer":"",g("fPayM")?"Zahlungsart":"",g("fPayA")?"Belastet über":"",
-    g("fAddr")?"Adresse":"",g("fWeb")?"Website":"",g("fTel")?"Telefon":"",g("fMail")?"E-Mail":"",g("fNote")?"Notiz":"",
-    document.getElementById("fMand").checked?"Pflichtvertrag":"",document.getElementById("fNoWatch").checked?"Ohne Erinnerung":""].filter(Boolean);
-  var el=document.getElementById("fMoreN");el.textContent=parts.length?parts.join(" · "):"Preisänderungen, Sonderzahlungen, Kundennummer, Kontakt …";el.classList.toggle("on",!!parts.length);
-}
+document.getElementById("fCancAddrB").addEventListener("click",function(){
+  var g=document.getElementById("fAddrG");if(g){g.scrollIntoView({block:"center",behavior:"smooth"});var i=g.querySelector("input");if(i)setTimeout(function(){i.focus({preventScroll:true});},300);}});
+/* Früher Zähler für «Weitere Angaben»; jetzt: Folgezeilen ein-/ausblenden (Bezahlung «über …», Beschriftung Vertragsnummer) */
+function paintOptCounts(){var rm=document.getElementById("fRemind");if(rm)rm.checked=!document.getElementById("fNoWatch").checked;var pm=document.getElementById("fPayM"),pa=document.getElementById("fPayA");
+  if(pm&&pa)pa.hidden=!pm.value&&!pa.value.trim()&&document.activeElement!==pa;
+  var cl=document.getElementById("fContrL");if(cl)cl.textContent=contrLbl({cat:draft.cat,label:document.getElementById("fLabel").value,partner:document.getElementById("fPartner").value});}
 /* Adresse im Vertragsformular wie auf der Vertragspartner-Seite: Felder Firma/Zusatz/Strasse/PLZ Ort/Land, gespeichert als Text in #fAddr */
 function fAddrPaint(){var pn=document.getElementById("fPartner").value,o=addrSplit(document.getElementById("fAddr").value,pn),F=function(i){var f=PA_F[i],pl=i===0?firmPh(pn):f[2];
     return '<input id="fa'+f[1].slice(2)+'" data-fa="'+f[0]+'" type="text" autocomplete="off" autocapitalize="words" placeholder="'+esc(pl)+'" aria-label="'+esc(pl)+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';};
@@ -3815,22 +3897,40 @@ function fAddrPaint(){var pn=document.getElementById("fPartner").value,o=addrSpl
 document.getElementById("fPartner").addEventListener("input",function(){var i=document.querySelector('#fAddrG [data-fa="firm"]');if(i){i.placeholder=firmPh(this.value);i.setAttribute("aria-label",i.placeholder);}});
 document.getElementById("fAddrG").addEventListener("input",function(){var o={};document.querySelectorAll("#fAddrG [data-fa]").forEach(function(i){o[i.dataset.fa]=i.value.trim().replace(/\s+/g," ");});
   document.getElementById("fAddr").value=addrJoin(o);paintOptCounts();});
-function paintPrices(){paintOptCounts();spRefresh();
+/* Preisverlauf im Formular wie in der Ansicht: Diagramm (ab 1 Änderung), Zeilen mit Veränderung in %, × entfernt, Antippen lädt die Zeile zum Ändern.
+   SwiftUI: Chart + ForEach mit .swipeActions */
+function draftPC(){var g=function(i){return document.getElementById(i).value;};
+  return {amount:parseAmt(g("fAmt"))||0,cur:g("fCur"),cycle:+g("fCycle")||1,start:g("fStart"),prices:(draft.prices||[]).slice()};}
+function paintKz(){var el=document.getElementById("fKz"),c=draftPC();if(!(c.amount>0)&&!c.prices.length){el.hidden=true;return;}
+  var mon=curPrice(c)/c.cycle,u="<u>"+esc(c.cur)+"</u>";el.hidden=false;
+  el.innerHTML="<div><small>pro Monat</small><b>"+money(mon,c.cur)+u+"</b></div><div><small>pro Jahr</small><b>"+nf0.format(mon*12,c.cur)+u+"</b></div>";}
+function paintPrices(){paintOptCounts();spRefresh();paintKz();
   var l=document.getElementById("pList"),ps=pricesOf({prices:draft.prices}),cur=document.getElementById("fCur").value;
   document.getElementById("fAmtL").textContent=ps.length?"Anfangspreis":"Betrag";
+  document.getElementById("fChart").innerHTML=ps.length?priceChart(draftPC()):"";
   l.innerHTML="";if(!ps.length)return;
   var t=today(),nowIdx=-1;ps.forEach(function(p,i){if(parseD(p.from)<=t)nowIdx=i;});
-  var base=parseAmt(document.getElementById("fAmt").value);
-  var rows='<div class="prow'+(nowIdx<0?" now":"")+'"><span class="pd">Anfangspreis'+(nowIdx<0?'<span class="tag">aktuell</span>':"")+
-    '</span><span class="pa">'+(base!=null?money(base,cur):"—")+" "+esc(cur)+"</span></div>";
+  var prev=parseAmt(document.getElementById("fAmt").value)||0,rows="";
   ps.forEach(function(p,i){
-    var fut=parseD(p.from)>t;
-    rows+='<div class="prow'+(i===nowIdx?" now":"")+'"><span class="pd">ab '+fmtD(p.from)+
+    var fut=parseD(p.from)>t,pc=prev?(p.amount-prev)/prev*100:0,
+      pb=prev?'<span class="fpc'+(pc>0.05?" up":pc<-0.05?" down":"")+'">'+pctTxt(pc)+"</span>":"";
+    rows+='<div class="frow fpr" data-pedit="'+esc(p.from)+'"><span class="fl">ab '+fmtShort(parseD(p.from))+
       (i===nowIdx?'<span class="tag">aktuell</span>':(fut?'<span class="tag fut">geplant</span>':""))+
-      '</span><span class="pa">'+money(p.amount,cur)+" "+esc(cur)+'</span><button type="button" data-pdel="'+esc(p.from)+'" aria-label="Entfernen">×</button></div>';
-  });
+      '</span><span class="pa">'+(p.amount?money(p.amount,cur):"gratis")+"</span>"+pb+'<button type="button" class="del" data-pdel="'+esc(p.from)+'" aria-label="Preisänderung entfernen">×</button></div>';
+    prev=p.amount;});
   l.innerHTML=rows;
 }
+/* Unterbereich «+ Preisänderung» / «+ Sonderzahlung» auf- und zuklappen */
+function openSub(k,on){var f=document.getElementById(k+"Form"),b=document.getElementById(k+"Open");if(!f||!b)return;
+  f.hidden=!on;b.setAttribute("aria-expanded",!!on);b.hidden=!!on;}
+document.getElementById("pOpen").addEventListener("click",function(){openSub("p",true);var i=document.getElementById("pFrom");try{i.focus();}catch(e){}});
+document.getElementById("xOpen").addEventListener("click",function(){openSub("x",true);var i=document.getElementById("xDate");try{i.focus();}catch(e){}});
+document.getElementById("pList").addEventListener("click",function(ev){
+  if(ev.target.closest("[data-pdel]"))return;var r=ev.target.closest("[data-pedit]");if(!r)return;
+  var p=(draft.prices||[]).filter(function(x){return x.from===r.dataset.pedit;})[0];if(!p)return;
+  draft.prices=draft.prices.filter(function(x){return x!==p;});
+  document.getElementById("pFrom").value=p.from;document.getElementById("pAmt").value=amtIn(p.amount,document.getElementById("fCur").value);
+  paintPrices();openSub("p",true);toast("Ändern und «hinzufügen» tippen");});
 document.getElementById("pList").addEventListener("click",function(ev){
   var b=ev.target.closest("[data-pdel]");if(!b)return;
   draft.prices=(draft.prices||[]).filter(function(p){return p.from!==b.dataset.pdel;});paintPrices();
@@ -3849,7 +3949,7 @@ document.getElementById("pAdd").addEventListener("click",function(){
   draft.prices.push({from:f,amount:Math.round(a*100)/100});
   document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";
   var prevA=parseAmt(document.getElementById("fAmt").value)||0;pricesOf({prices:draft.prices}).forEach(function(p){if(p.from<f)prevA=+p.amount;});
-  paintPrices();toast(a>prevA&&prevA>0?"Preiserhöhung vorgemerkt. Tipp: oft gilt ein Sonderkündigungsrecht.":"Preisänderung ab "+fmtD(f)+" vorgemerkt",a>prevA&&prevA>0?4000:undefined);
+  paintPrices();openSub("p",false);toast(a>prevA&&prevA>0?"Preiserhöhung vorgemerkt. Tipp: oft gilt ein Sonderkündigungsrecht.":"Preisänderung ab "+fmtD(f)+" vorgemerkt",a>prevA&&prevA>0?4000:undefined);
 });
 document.getElementById("fAmt").addEventListener("input",paintPrices);
 /* Sonderzahlungen im Formular */
@@ -3860,8 +3960,8 @@ function paintExtras(){
   draft.extras=extrasOf({extras:draft.extras});paintOptCounts();
   var cur=document.getElementById("fCur").value,t=today();
   document.getElementById("xList").innerHTML=draft.extras.map(function(x,i){var cr=x.amount<0;
-    return '<div class="prow"><span class="pd">'+fmtD(x.date)+(x.note?" · "+esc(x.note):"")+(cr?'<span class="tag">Gutschrift</span>':"")+(parseD(x.date)>t?'<span class="tag fut">geplant</span>':"")+
-      '</span><span class="pa'+(cr?" cr":"")+'">'+(cr?"−":"")+money(Math.abs(x.amount),cur)+" "+esc(cur)+'</span><button type="button" data-xdel="'+i+'" aria-label="Entfernen">×</button></div>';}).join("");
+    return '<div class="frow fpr"><span class="fl">'+esc(x.note||(cr?"Gutschrift":"Sonderzahlung"))+(cr&&x.note?'<span class="tag cr">Gutschrift</span>':"")+(parseD(x.date)>t?'<span class="tag fut">geplant</span>':"")+
+      "<small>"+fmtD(x.date)+'</small></span><span class="pa'+(cr?" cr":"")+'">'+(cr?"−":"")+money(Math.abs(x.amount),cur)+'</span><button type="button" class="del" data-xdel="'+i+'" aria-label="Sonderzahlung entfernen">×</button></div>';}).join("");
 }
 document.getElementById("xList").addEventListener("click",function(ev){var b=ev.target.closest("[data-xdel]");if(!b)return;draft.extras.splice(+b.dataset.xdel,1);paintExtras();});
 document.getElementById("xAdd").addEventListener("click",function(){
@@ -3871,7 +3971,7 @@ document.getElementById("xAdd").addEventListener("click",function(){
   a=Math.round(Math.abs(a)*100)/100;
   draft.extras.push({date:d,amount:xKind==="cr"?-a:a,note:n});
   ["xDate","xAmt","xNote"].forEach(function(i){document.getElementById(i).value="";});
-  paintExtras();toast((xKind==="cr"?"Gutschrift":"Sonderzahlung")+" am "+fmtD(d)+" vorgemerkt");setXKind("pay");
+  paintExtras();openSub("x",false);toast((xKind==="cr"?"Gutschrift":"Sonderzahlung")+" am "+fmtD(d)+" vorgemerkt");setXKind("pay");
 });
 document.getElementById("fCur").addEventListener("change",paintExtras);
 document.getElementById("fCur").addEventListener("change",paintPrices);
@@ -3883,8 +3983,8 @@ document.getElementById("fCur").addEventListener("change",amtPh);
 document.getElementById("saveForm").addEventListener("click",function(){
   /* Eingetippt, aber nicht «hinzufügen» gedrückt: jetzt übernehmen; klappt das nicht (Fehler/Rückfrage), Sichern abbrechen */
   var $v=function(i){return document.getElementById(i).value.trim();};
-  if($v("pFrom")||$v("pAmt")){document.getElementById("pAdd").click();if($v("pFrom")||$v("pAmt")){formPage(true);return;}}
-  if($v("xDate")||$v("xAmt")){document.getElementById("xAdd").click();if($v("xDate")||$v("xAmt")){formPage(true);return;}}
+  if($v("pFrom")||$v("pAmt")){document.getElementById("pAdd").click();if($v("pFrom")||$v("pAmt")){formGo("pFrom",true);return;}}
+  if($v("xDate")||$v("xAmt")){document.getElementById("xAdd").click();if($v("xDate")||$v("xAmt")){formGo("xDate",true);return;}}
   var partner=document.getElementById("fPartner").value.trim();
   var amt=parseAmt(document.getElementById("fAmt").value);
   if(!partner&&!document.getElementById("fLabel").value.trim()){toast("Bezeichnung fehlt");return;}
@@ -3892,7 +3992,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   if(amt==null||amt<0){toast("Betrag prüfen");return;}
   var nV=noticeVal(document.getElementById("fNotice").value,document.getElementById("fNoticeU").value);
   if(nV==null){toast("Kündigungsfrist prüfen");document.getElementById("fNotice").focus();return;}
-  if(termMode==="fixed"&&!document.getElementById("fEnd").value){toast("Bis wann läuft der Vertrag? Bitte das Vertragsende eintragen");if(!document.getElementById("fMore").hidden)formPage(false);var fe=document.getElementById("fEnd");fe.scrollIntoView({block:"center",behavior:SMOOTH()});fe.focus();return;}
+  if(termMode==="fixed"&&!document.getElementById("fEnd").value){toast("Bis wann läuft der Vertrag? Bitte das Vertragsende eintragen");var fe=document.getElementById("fEnd");fe.scrollIntoView({block:"center",behavior:"smooth"});fe.focus();return;}
   if(termMode==="trial"&&!document.getElementById("fTrial").value){toast("Wie lange läuft das Probeabo?");document.getElementById("fTrialD").scrollIntoView({block:"center",behavior:"smooth"});return;}
   var cF=document.getElementById("fCancF").value;
   var prev=editId?state.contracts[editId]:null;
@@ -3922,7 +4022,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
       if(Math.abs(sum-100)>0.01)return undefined;var eq=hs.every(function(h){return Math.abs(o[h]-100/hs.length)<0.001;});return eq?undefined:o;})(),
     payM:document.getElementById("fPayM").value,
     payA:document.getElementById("fPayA").value.trim(),
-    cancF:cF,cancUrl:["E-Mail","Brief","Einschreiben"].indexOf(cF)<0?document.getElementById("fCancUrl").value.trim():"",/* Link nur löschen, wenn bewusst ein anderer Weg gewählt ist */
+    cancF:cF,cancUrl:["E-Mail","Brief"].indexOf(cF)<0?document.getElementById("fCancUrl").value.trim():"",/* Link nur löschen, wenn bewusst ein anderer Weg gewählt ist */
     /* Probeabo-Datum nur in «Probeabo»; Wechsel auf «Flexibel» entfernt es. Bei fester Laufzeit oder bereits behaltenem Probeabo bleibt der alte Wert */
     trial:termMode==="trial"?(document.getElementById("fTrial").value||""):((prev&&prev.trial&&(termMode==="fixed"||prev.trialKept))?prev.trial:""),
     web:document.getElementById("fWeb").value.trim(),addr:document.getElementById("fAddr").value.trim(),
@@ -3934,6 +4034,11 @@ document.getElementById("saveForm").addEventListener("click",function(){
     cancelledAt:(prev&&prev.cancelledAt)||"",
     t:(prev&&prev.t)||Date.now()
   });delete c._id;if(c.split===undefined)delete c.split;if(!c.noCancel)delete c.noCancel;
+  /* gekündigt: Kündigungsdatum und «läuft bis» aus dem Formular übernehmen */
+  if(prev&&prev.cancelPer&&!document.getElementById("fCancPerW").hidden){var cpV=document.getElementById("fCancPer").value,coV=document.getElementById("fCancOn").value;
+    if(!cpV){toast("Bitte eintragen, bis wann der Vertrag läuft");formGo("fCancPer");return;}
+    if(coV&&coV>cpV){toast("«Gekündigt am» liegt nach «Läuft bis»");formGo("fCancOn");return;}
+    c.cancelPer=cpV;c.cancelledOn=coV||prev.cancelledOn||"";}
   /* Logo eines anderen Vertrags desselben Vertragspartners übernehmen, ausser es wurde im Formular entfernt.
      Keine automatische Logo-Suche im Hintergrund (Logos nur als Vorschlag mit Bestätigung) */
   if(!editId&&!c.logoId&&c.partner&&!draft.logoRemoved){var sib=samePartner(c.partner).filter(function(k){var o=state.contracts[k];return o.logoId&&KBlob.has(o.logoId);})[0];
@@ -3944,7 +4049,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   if(!editId&&(state.settings.holders||[]).length>1&&(c.holders||[]).length&&(c.holders||[]).join("|")!==(state.settings.lastHolders||[]).join("|")){state.settings.lastHolders=c.holders.slice();saveSettings();}
   closeSheets();render();toast(editId?"Aktualisiert":"Vertrag angelegt");
 });
-document.getElementById("cancelForm").addEventListener("click",function(){if(!document.getElementById("fMore").hidden){formPage(false);return;}
+document.getElementById("cancelForm").addEventListener("click",function(){
   if(formDirty()){ask({title:"Änderungen verwerfen?",text:"Deine Eingaben in diesem Formular gehen verloren.",ok:"Verwerfen",no:"Weiter bearbeiten",danger:true}).then(function(y){if(y)closeSheets();});return;}
   closeSheets();});
 
@@ -4171,6 +4276,14 @@ var CANC_VIA={"Online / Kundenkonto":"online","E-Mail":"mail","Brief":"post","Ei
 function cancVia(c){if(isRent(c))return "post";var v=CANC_VIA[c.cancF||""];if(v)return v;if(catKey(c.cat)==="Versicherung")return "post";return "";}
 function cancLink(c){return normUrl(c.cancUrl||c.web||"");}
 /* Wohnungsmiete erkennen (Name oder Kategorie Wohnen); Mitgliedschaften und Gerätemieten ausgeschlossen */
+/* Beschriftung für c.contrNo je nach Vertrag (10.10.2026): Handy → Rufnummer, Krankenkasse → Versichertennummer, Versicherung → Policennummer.
+   Gespeichert wird immer in contrNo; gleiche Beschriftung in Formular, Ansicht und Kündigungsschreiben */
+function contrLbl(c){var t=((c.label||"")+" "+(c.cat||"")).toLowerCase();
+  if(/krankenkasse|krankenversicher|grundversicherung/.test(t))return "Versichertennummer";
+  if(catKey(c.cat||"")==="Versicherung"||/versicherung|police/.test(t))return "Policennummer";
+  if(/handy|mobil|natel|smartphone|prepaid|sim-?karte|mobile/.test(t))return "Rufnummer";
+  return "Vertragsnummer";}
+var REF_RE=/^(Kundennummer|Vertragsnummer|Rufnummer|Policennummer|Versichertennummer): /;
 function isRent(c){var t=(c.label||"")+" "+(c.partner||"");
   if(/mieterverband|gerätemiete|geraetemiete|router|zähler|zaehler|parkplatz|garage/i.test(t))return false;
   return /miete|mietvertrag|mietzins|wohnungsmiete|mietwohnung|untermiete|nebenkosten/i.test(t)||(catKey(c.cat)==="Wohnen"&&/wohnung|zimmer|apartment|vermiet|verwaltung|immobilien/i.test(t));}
@@ -4191,7 +4304,7 @@ function letterParts(c,signers){
   var al=String(c.addr||(pg0&&pg0.addr)||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean),pn=String(c.partner||"").trim();
   /* Erste Adresszeile enthält den Namen (z.B. «Swisscom (Schweiz) AG») → nicht doppelt */
   var to=(pn&&!(al[0]&&al[0].toLowerCase().indexOf(pn.toLowerCase())>=0)?[pn]:[]).concat(al);
-  var nr=[c.custNo?"Kundennummer: "+c.custNo:"",c.contrNo?"Vertragsnummer: "+c.contrNo:""].filter(Boolean);
+  var nr=[c.custNo?"Kundennummer: "+c.custNo:"",c.contrNo?contrLbl(c)+": "+c.contrNo:""].filter(Boolean);
   var e=termEnd(c),d=noticeDeadline(c),we=ps.length>1;
   var body="Sehr geehrte Damen und Herren\n\nhiermit "+(we?"kündigen wir":"kündige ich")+" den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"+(e?", nach "+(we?"unserer":"meiner")+" Berechnung zum "+fmtD(iso(e)):"")+".\n\n"+
     "Bitte bestätigen Sie "+(we?"uns":"mir")+" die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse";
@@ -4239,7 +4352,7 @@ function openLetter(c,trial){ltTrial=!!trial;ltMade=false;/* immer den aktuellen
   ltAuto.body=ltBodyText(L);document.getElementById("ltBody").value=ltAuto.body;
   /* Fehlende Angaben direkt hier nachtragen */
   var mC=!c.custNo,mV=!c.contrNo;document.getElementById("ltMiss").hidden=!(mC||mV);
-  document.getElementById("ltMissC").hidden=!mC;document.getElementById("ltMissV").hidden=!mV;document.getElementById("ltCust").value="";document.getElementById("ltContr").value="";
+  document.getElementById("ltMissC").hidden=!mC;document.getElementById("ltMissV").hidden=!mV;document.getElementById("ltContrL").textContent=contrLbl(c);document.getElementById("ltCust").value="";document.getElementById("ltContr").value="";
   document.getElementById("ltAddrMsg").textContent=L.to.length<=1?"Keine Adresse hinterlegt":"";
   var sh=document.getElementById("sheetLetter");sh.classList.add("on");paintLtWho();sh.scrollTop=0;}
 document.getElementById("ltWho").addEventListener("click",function(ev){var b=ev.target.closest("[data-ltwho]");if(!b)return;
@@ -4461,13 +4574,13 @@ document.getElementById("ltPdf").addEventListener("click",async function(){
   /* Empfängeradresse beim Vertrag merken (ohne die Namenszeile) */
   var c0=state.contracts[ltC._id];if(c0){var pn0=String(c0.partner||"").trim().toLowerCase(),addr=to.slice(to[0].toLowerCase()===pn0?1:0).join("\n");
     if(addr!==(c0.addr||"")){putContract(ltC._id,Object.assign({},c0,{addr:addr}));if(addr)setPartnerAddr(c0.partner,addr);}}
-  var refRe=/^(Kundennummer|Vertragsnummer): /,blines=body.split(/\n/),ref=[];while(blines.length&&refRe.test(blines[0]))ref.push(blines.shift());
+  var refRe=REF_RE,blines=body.split(/\n/),ref=[];while(blines.length&&refRe.test(blines[0]))ref.push(blines.shift());
   var nC=document.getElementById("ltCust").value.trim(),nV=document.getElementById("ltContr").value.trim(),c1=state.contracts[ltC._id];
   if(c1&&(nC||nV)){var patch={};if(nC&&!c1.custNo)patch.custNo=nC;if(nV&&!c1.contrNo)patch.contrNo=nV;
     if(Object.keys(patch).length){putContract(ltC._id,Object.assign({},c1,patch));ltC=Object.assign({},ltC,patch);}
     /* Nachgetragene Nummern als Referenzzeilen in den Text übernehmen (gilt auch für weitere PDFs), «Fehlt noch» ausblenden */
     var has=function(re){return ref.some(function(r){return re.test(r);});};
-    if(nC&&!has(/^Kundennummer: /))ref.push("Kundennummer: "+nC);if(nV&&!has(/^Vertragsnummer: /))ref.push("Vertragsnummer: "+nV);
+    if(nC&&!has(/^Kundennummer: /))ref.push("Kundennummer: "+nC);if(nV&&!has(/^(Vertragsnummer|Rufnummer|Policennummer|Versichertennummer): /))ref.push(contrLbl(ltC)+": "+nV);
     var bEl=document.getElementById("ltBody"),wasAuto=bEl.value===ltAuto.body;bEl.value=ref.join("\n")+"\n\n"+blines.join("\n").trim();if(wasAuto)ltAuto.body=bEl.value;
     var cN=state.contracts[ltC._id]||{};document.getElementById("ltCust").value="";document.getElementById("ltContr").value="";
     document.getElementById("ltMissC").hidden=!!cN.custNo;document.getElementById("ltMissV").hidden=!!cN.contrNo;document.getElementById("ltMiss").hidden=!!(cN.custNo&&cN.contrNo);}
@@ -4601,7 +4714,8 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var secs=[
    ["Kosten",[
     (+c.cycle||1)!==1?["Betrag",money(curPrice(c),c.cur)+" "+c.cur]:null,
-    payRule(c)?["Zahlung",payRule(c),false,(+c.cycle||1)!==1&&nd&&paidSoFar?"nächste am "+fmtShort(nd):""]:null]],
+    payRule(c)?["Zahlung",payRule(c),false,(+c.cycle||1)!==1&&nd&&paidSoFar?"nächste am "+fmtShort(nd):""]:null,
+    c.payM||c.payA?["Bezahlung",[c.payM,c.payA].filter(Boolean).join(" · ")]:null]],
    ["Laufzeit & Kündigung",[
     c.start?["Beginn",fmtD(c.start)]:null,
     c.end||c.cancelPer?["Vertragsende",fmtD(iso(e))+(!gone&&termEnd(c)&&termEnd(c)>e?" · Frist verpasst":"")]:null,
@@ -4618,9 +4732,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     c.cat?["Kategorie",c.cat]:null,
     holdersOf(c).length?[holdersOf(c).length>1?"Personen":"Person",holdersText(c)]:null,
     c.custNo?["Kundennummer",c.custNo]:null,
-    c.contrNo?["Vertragsnummer",c.contrNo]:null,
-    c.payM?["Zahlungsart",c.payM]:null,
-    c.payA?["Belastet über",c.payA]:null]]
+    c.contrNo?[contrLbl(c),c.contrNo]:null]]
   ];
   /* «Gekündigt»/«Beendet» vor Frist-Pillen */
   var pill=c.status==="cancelled"?'<span class="pill">Gekündigt'+(c.cancelledAt?" am "+fmtD(c.cancelledAt):"")+"</span>":
@@ -4712,19 +4824,19 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       else if(a==="unkeep"){var u2=stripId(c);u2.keptFor="";putContract(idv,u2);closeSheets();render();toast("Wieder offen");}
       else if(a==="reactivate"){var ra=stripId(c);ra.status="active";ra.cancelledAt="";ra.cancelPer="";ra.cancelledOn="";putContract(idv,ra);closeSheets();render();
         /* Laufzeit vorbei: neues Vertragsende nötig, sonst wäre er gleich wieder beendet */
-        if(endedByTerm(ra)){toast("Wieder aktiv – bitte das neue Vertragsende eintragen");setTimeout(function(){openForm(Object.assign({_id:idv},ra));formPage(true);},180);}else toast("Wieder aktiv");}
+        if(endedByTerm(ra)){toast("Wieder aktiv – bitte das neue Vertragsende eintragen");setTimeout(function(){openForm(Object.assign({_id:idv},ra));formGo("fEnd");},180);}else toast("Wieder aktiv");}
       else if(a==="delete"){ask({title:"Vertrag löschen?",text:"«"+titleOf(c)+"» wird endgültig gelöscht. Angehängte Dateien bleiben erhalten.",ok:"Löschen",danger:true})
         .then(function(y){if(y){dropContract(idv);closeSheets();render();toast("Gelöscht");}});}
       else if(a==="ktext"){openLetter(c,dTrial);}
       else if(a==="kvia"){openCancViaPick(idv,dTrial);}
-      else if(a==="konline"){var u=cancLink(c);if(!u){toast("Kein Link hinterlegt. Trag Website oder Kündigungslink ein.");closeSheets();setTimeout(function(){openForm(c);formPage(true);},180);return;}
+      else if(a==="konline"){var u=cancLink(c);if(!u){toast("Kein Link hinterlegt. Trag Website oder Kündigungslink ein.");closeSheets();setTimeout(function(){openForm(c);formGo(c.cancF==="Online / Kundenkonto"?"fCancUrl":"fWeb");},180);return;}
         kPending={id:idv,trial:dTrial};toast("Nach der Kündigung hier bestätigen");setTimeout(function(){openLink(u);},350);}
-      else if(a==="kmail"){if(!c.mail){ask({title:"E-Mail-Adresse fehlt",text:"Trag die Kündigungsadresse des Vertragspartners beim Vertrag unter «Kontakt» ein.",ok:"Eintragen"}).then(function(y){if(!y)return;closeSheets();setTimeout(function(){openForm(c);formPage(true);},180);});return;}
+      else if(a==="kmail"){if(!c.mail){ask({title:"E-Mail-Adresse fehlt",text:"Trag die Kündigungsadresse des Vertragspartners beim Vertrag unter «Kontakt» ein.",ok:"Eintragen"}).then(function(y){if(!y)return;closeSheets();setTimeout(function(){openForm(c);formGo(c.cancF==="E-Mail"?"fCancMail":"fMail");},180);});return;}
         /* gleiche Prüfung wie beim Brief: Absender mit Adresse, Kunden- oder Vertragsnummer */
         (async function(){var sg=ltDefaultSigners(c),sm=sg.filter(function(h){return !sndOk(h);});
           if(!sg.length){if(await ask({title:"Wer kündigt?",text:"Beim Vertrag ist keine Person hinterlegt. Ohne Namen und Adresse kann der Vertragspartner die Kündigung schlecht zuordnen.",ok:"Person eintragen",no:"Trotzdem senden"})){closeSheets();setTimeout(function(){openForm(c);},180);return;}}
           else if(sm.length){if(await ask({title:"Absender unvollständig",text:"Bei "+sm.join(" und ")+" fehlt die Adresse. Der Vertragspartner kann die Kündigung so schlechter zuordnen.",ok:"Adresse ergänzen",no:"Trotzdem senden"})){closeSheets();setTimeout(function(){openHs(sm[0]);},180);return;}}
-          if(!c.custNo&&!c.contrNo){if(await ask({title:"Kundennummer fehlt",text:"Mit Kunden- oder Vertragsnummer kann der Vertragspartner die Kündigung sicher zuordnen.",ok:"Nummer eintragen",no:"Ohne senden"})){closeSheets();setTimeout(function(){openForm(c);formPage(true);},180);return;}}
+          if(!c.custNo&&!c.contrNo){if(await ask({title:"Kundennummer fehlt",text:"Mit Kunden- oder Vertragsnummer kann der Vertragspartner die Kündigung sicher zuordnen.",ok:"Nummer eintragen",no:"Ohne senden"})){closeSheets();setTimeout(function(){openForm(c);formGo("fCustNo");},180);return;}}
           var Lm=letterParts(c,sg),mt=[Lm.ref.join("\n"),Lm.body,Lm.names.join("\n")+(Lm.sender.length>1&&sg.length?"\n"+Lm.sender.slice(1).join("\n"):"")].filter(Boolean).join("\n\n");
           kPending={id:idv,trial:dTrial};location.href="mailto:"+c.mail.trim()+"?subject="+encodeURIComponent(Lm.subject)+"&body="+encodeURIComponent(mt);})();}
     });
@@ -5985,7 +6097,7 @@ async function webPartners(q){
 /* Übliche Frist für beliebige Vertragspartner: Branche (aus der Beschreibung) + Land → gesetzlicher/üblicher Standard.
    Rückgabe im Katalogformat (TPLI). Nur Vorschlag, Übernahme per Tipp. */
 var STD_RULES=[
- {re:/krankenkasse|krankenversicher|health insur/,cat:"Versicherung",lab:"Krankenkasse",CH:[1,"m","y","Einschreiben",1,H_KVG],DE:[2,"m","m","",1,H_GKV],de:/gesetzlich|krankenkasse/},
+ {re:/krankenkasse|krankenversicher|health insur/,cat:"Versicherung",lab:"Krankenkasse",CH:[1,"m","y","Brief",1,H_KVG],DE:[2,"m","m","",1,H_GKV],de:/gesetzlich|krankenkasse/},
  {re:/versicher|insurance/,cat:"Versicherung",lab:"Versicherung",CH:[3,"m","a","Brief",0,H_VVG],DE:[3,"m","a","Brief",0,H_VDE]},
  {re:/telekom|telecom|mobilfunk|mobile (network|operator)|internetdienst|internet service|kabelnetz/,cat:"Mobilfunk & Internet",lab:"Handy / Internet",CH:[60,"d","m","",0,H_TCH],DE:[1,"m","","",0,H_TDE]},
  {re:/energieversorg|stromanbieter|stadtwerk|elektrizit|electric utility|energy (company|supplier)/,cat:"Energie & Wasser",lab:"Strom",CH:[0,"m","","",1,H_ECH],DE:[1,"m","","",0,H_EDE]},
@@ -6454,6 +6566,7 @@ function sanitizeImport(o){
   var num=function(v){var n=typeof v==="number"?v:typeof v==="string"&&v.trim()!==""?+v:NaN;return isFinite(n)?n:null;};
   var typ=function(c){noProto(c);
     STRF.forEach(function(f){if(!(f in c)||c[f]==null)return;if(typeof c[f]==="number")c[f]=String(c[f]);else if(typeof c[f]!=="string")delete c[f];});
+    if(c.cancF==="Einschreiben")c.cancF="Brief";
     var a=num(c.amount);c.amount=a==null||Math.abs(a)>1e9?0:Math.round(a*100)/100;
     var y=num(c.cycle);c.cycle=CYC.indexOf(y)>=0?y:1;
     if(CURS.indexOf(c.cur)<0)c.cur=state.settings.home||"CHF";
@@ -6591,7 +6704,7 @@ function csvParse(t){
   push();return rows;
 }
 /* Kündigungsweg aus freiem Text auf die vier Formularwerte abbilden (sonst unverändert) */
-function csvVia(x){var n=csvNorm(x);if(!n)return "";if(/einschreib|registered/.test(n))return "Einschreiben";if(/brief|post|letter/.test(n))return "Brief";
+function csvVia(x){var n=csvNorm(x);if(!n)return "";if(/einschreib|registered|brief|post|letter/.test(n))return "Brief";
   if(/mail/.test(n))return "E-Mail";if(/online|konto|portal|web|app|link/.test(n))return "Online / Kundenkonto";return String(x).trim();}
 function csvNorm(x){return String(x||"").toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]/g,"");}
 var CSVMAP={partner:["partner","anbieter","vertragspartner","firma","unternehmen","provider","company","merchant","name","vertragsname"],
