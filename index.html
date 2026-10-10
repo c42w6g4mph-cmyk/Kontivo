@@ -1871,23 +1871,27 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
     <button class="lbtn del" id="iLogoDel" type="button" hidden>Logo entfernen</button>
     <div class="lsec" style="margin-bottom:0">Ohne Bild: Symbol der Art</div></div></details>
 
+  <div class="fkz" id="iKz" hidden></div>
   <h3 class="fsec">Betrag</h3>
   <div class="fcard">
+    <div id="iChart"></div>
     <div class="frow"><label for="iAmt" id="iAmtL">Betrag netto</label><span class="fv"><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="6500.00"><select id="iCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
+    <div id="iPList"></div>
+    <button type="button" class="fadd" id="iPOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Änderung, z.B. Lohnerhöhung</button>
+    <div class="fsub" id="iPForm" hidden>
+      <div class="frow"><label for="iPFrom">Gültig ab</label><input id="iPFrom" type="date"></div>
+      <div class="frow"><label for="iPAmt">Neuer Betrag</label><input id="iPAmt" class="num" type="text" inputmode="decimal" placeholder="–"></div>
+      <button class="fok" id="iPAdd" type="button">Änderung hinzufügen</button><button class="fcan" id="iPCancel" type="button">Abbrechen</button>
+    </div>
     <div class="frow"><label for="iCycle">Zahlungsrhythmus</label><select id="iCycle">
       <option value="1">monatlich</option><option value="2">alle 2 Monate</option><option value="3">quartalsweise</option><option value="6">halbjährlich</option>
       <option value="12">jährlich</option><option value="24">alle 2 Jahre</option><option value="0">einmalig</option></select></div>
-    <div class="frow"><label for="iDue">Zahltag</label><input id="iDue" type="date"></div>
+    <!-- Zahltag wie beim Vertrag: Tag im Monat (Drehrad); bei «einmalig» ein Datum -->
+    <button type="button" class="frow" id="iDueBtn"><span class="fl">Zahlung am</span><span class="fdv" id="iDueT"></span><span class="chev">›</span></button>
+    <div class="fwhw" id="iDueW" hidden><div class="whl"><i class="whsel"></i><div class="whc" data-whc="d"></div><div class="whc" data-whc="m"></div></div><button type="button" class="fok" id="iDueOk">Übernehmen</button></div>
+    <div class="frow" id="iDueRow"><label for="iDue">Datum</label><input id="iDue" type="date"></div>
   </div>
   <p class="note fnote2">Netto eintragen, also was auf dem Konto ankommt. Einen 13. Monatslohn oder Bonus am besten als eigene jährliche Einnahme erfassen.</p>
-
-  <h3 class="fsec">Änderungen, z.B. Lohnerhöhung</h3>
-  <div class="plist" id="iPList"></div>
-  <div class="fcard">
-    <div class="frow"><label for="iPFrom">Gültig ab</label><input id="iPFrom" type="date"></div>
-    <div class="frow"><label for="iPAmt">Neuer Betrag</label><input id="iPAmt" class="num" type="text" inputmode="decimal" placeholder="–"></div>
-    <button class="fadd" id="iPAdd" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Änderung hinzufügen</button>
-  </div>
 
   <h3 class="fsec">Zeitraum</h3>
   <div class="fcard">
@@ -2316,12 +2320,12 @@ function priceChart(c,opt){
       lbl+='<text class="pv'+(i===ni?" now":"")+'" x="'+px.toFixed(1)+'" y="'+(y-8).toFixed(1)+'" text-anchor="'+(dropL?"start":"middle")+'">'+pv+"</text>"+
         '<text class="pt" x="'+cx(x,dt,10.5).toFixed(1)+'" y="'+(B+14)+'" text-anchor="middle">'+dt+"</text>";
       if(i&&pts[i-1].a){/* nach einer Gratis-Phase (Preis 0) keine Prozentangabe */var pc=pts[i-1].a?(p.a-pts[i-1].a)/pts[i-1].a*100:0,ptx=pctTxt(pc);
-        lbl+='<text class="pp'+(pc>0?" up":pc<0?" down":"")+'" x="'+cx(x,ptx,11).toFixed(1)+'" y="'+(B+29)+'" text-anchor="middle">'+ptx+"</text>";}}
+        lbl+='<text class="pp'+((pc>0)!==!!opt.inc&&pc!==0?" up":pc!==0?" down":"")+'" x="'+cx(x,ptx,11).toFixed(1)+'" y="'+(B+29)+'" text-anchor="middle">'+ptx+"</text>";}}
   });
   var planned=ni===0,cur=pts[ni].a,base=pts[0].a,pct=base?(cur-base)/base*100:0,since=hasSt?"seit "+fmtShort(st):"seit Anfang";
   /* Plakette = Vergleich heute zum Anfang (Entscheid Sinan: auch «unverändert», wenn zwischendurch geändert) */
   var badge=planned?'<b class="pbadge">geplant ab '+fmtShort(pts[1].d)+"</b>":!base&&cur>0?'<b class="pbadge up">vorher gratis</b>':
-    Math.abs(pct)<.05?'<b class="pbadge">unverändert</b>':'<b class="pbadge '+(pct>0?"up":"down")+'">'+(pct>0?"↑ ":"↓ ")+pctTxt(Math.abs(pct)).replace(/^[+±]/,"")+(pct>0?" teurer":" günstiger")+"</b>";
+    Math.abs(pct)<.05?'<b class="pbadge">unverändert</b>':'<b class="pbadge '+((pct>0)!==!!opt.inc?"up":"down")+'">'+(pct>0?"↑ ":"↓ ")+pctTxt(Math.abs(pct)).replace(/^[+±]/,"")+(opt.inc?(pct>0?" mehr":" weniger"):(pct>0?" teurer":" günstiger"))+"</b>";
   var head='<div class="pchead"><span>'+since+"</span>"+badge+"</div>";
   return '<div class="pchart" role="img" aria-label="Preisverlauf von '+money(base,c.cur)+" auf "+money(pts[pts.length-1].a,c.cur)+" "+esc(c.cur)+'">'+head+
     '<svg viewBox="0 0 '+W+" "+H+'" aria-hidden="true"><path class="pa2" d="'+area+'"/><path class="pl" d="'+pathP+'"/>'+
@@ -4006,8 +4010,8 @@ function paintOptCounts(){if(typeof paintNotice==="function")paintNotice();var r
 function fAddrShow(on){document.getElementById("fAddrW").hidden=!on;document.getElementById("fAddrAdd").hidden=!!on;}
 document.getElementById("fAddrAdd").addEventListener("click",function(){fAddrShow(true);var i=document.querySelector("#fAddrG input");if(i)i.focus();});
 /* leere Datumsfelder sichtbar machen (iOS zeigt sonst nichts) */
-function datesPaint(){document.querySelectorAll("#sheetForm .frow input[type=date]").forEach(function(i){i.classList.toggle("emp",!i.value);});}
-document.getElementById("sheetForm").addEventListener("change",function(e){if(e.target.type==="date")datesPaint();});
+function datesPaint(){document.querySelectorAll("#sheetForm .frow input[type=date],#sheetInc .frow input[type=date]").forEach(function(i){i.classList.toggle("emp",!i.value);});}
+["sheetForm","sheetInc"].forEach(function(i){document.getElementById(i).addEventListener("change",function(e){if(e.target.type==="date")datesPaint();});});
 document.getElementById("sheetForm").addEventListener("input",function(e){if(e.target.type==="date")datesPaint();});
 function fAddrPaint(){var pn=document.getElementById("fPartner").value,o=addrSplit(document.getElementById("fAddr").value,pn),F=function(i){var f=PA_F[i],pl=i===0?firmPh(pn):f[2];
     return '<input id="fa'+f[1].slice(2)+'" data-fa="'+f[0]+'" type="text" autocomplete="off" autocapitalize="words" placeholder="'+esc(pl)+'" aria-label="'+esc(pl)+'" value="'+esc(o[f[0]]||"")+'"'+(f[0]==="zip"?' inputmode="numeric"':"")+'>';};
@@ -5159,7 +5163,7 @@ document.getElementById("view").addEventListener("click",function(ev){
   var qn=ev.target.closest("[data-qnotice]");
   if(qn){openMdAt({k:"qlist",g:"B",f:"notice",title:"Kündigungsfrist und Laufzeit"});return;}
   var ib=ev.target.closest("[data-inc]");
-  if(ib){openIncome(ib.dataset.inc);return;}
+  if(ib){openIncDetail(ib.dataset.inc);return;}
   if(ev.target.closest("[data-incall]")){openIncAll();return;}
   if(ev.target.closest("[data-fq]")){openFq();return;}
   if(ev.target.closest("#incAdd")){openIncome(null);return;}
@@ -5254,7 +5258,7 @@ document.getElementById("pickList").addEventListener("click",function(ev){
     if(fg){closeSheets();goTab("term");return;}
     if(fc){state.flt={cat:fc.dataset.fqcat,partner:null,holder:null};closeSheets();goTab("list");return;}return;}
   if(pd==="incall"){var ib=ev.target.closest("[data-inc]"),ia=ev.target.closest("#incAdd");if(!ib&&!ia)return;
-    closeSheets();setTimeout(function(){openIncome(ib?ib.dataset.inc:null);},180);return;}
+    closeSheets();setTimeout(function(){ib?openIncDetail(ib.dataset.inc):openIncome(null);},180);return;}
   if(pd.indexOf("pause-")===0){
     var pid=pd.slice(6);
     if(ev.target.closest("#pauseDateOk")){var dv=document.getElementById("pauseUntil").value;
@@ -5311,27 +5315,93 @@ function iPaintChips(){
     b.addEventListener("click",function(){idraft.holders=[x];iPaintChips();});
     h.appendChild(b);});
 }
-function iPaintPrices(){
+/* Einnahme-Formular wie Vertrag: Kacheln, Diagramm, Änderungsliste mit %, Unterformular mit Abbrechen */
+var iPBak=null;
+function iDraftPC(){var g=function(i){return document.getElementById(i).value;};
+  return {amount:parseAmt(g("iAmt"))||0,cur:g("iCur"),cycle:+g("iCycle"),start:g("iStart"),prices:(idraft.prices||[]).slice()};}
+function iPaintKz(){var el=document.getElementById("iKz"),c=iDraftPC();if(!(c.amount>0)&&!c.prices.length){el.hidden=true;return;}el.hidden=false;
+  var cp=curPrice(c),u="<u>"+esc(c.cur)+"</u>";
+  el.innerHTML=c.cycle?"<div><small>pro Monat</small><b>"+money(cp/c.cycle,c.cur)+u+"</b></div><div><small>pro Jahr</small><b>"+nf0.format(cp/c.cycle*12,c.cur)+u+"</b></div>":
+    "<div><small>einmalig</small><b>"+money(cp,c.cur)+u+"</b></div>";}
+function iPaintPrices(){iPaintKz();
   var l=document.getElementById("iPList"),ps=pricesOf({prices:idraft.prices}),cur=document.getElementById("iCur").value;
   document.getElementById("iAmtL").textContent=ps.length?"Anfangsbetrag netto":"Betrag netto";
+  document.getElementById("iChart").innerHTML=ps.length?priceChart(iDraftPC(),{inc:1}):"";
   l.innerHTML="";if(!ps.length)return;
   var t=today(),ni=-1;ps.forEach(function(p,i){if(parseD(p.from)<=t)ni=i;});
-  var base=parseAmt(document.getElementById("iAmt").value);
-  var r='<div class="prow'+(ni<0?" now":"")+'"><span class="pd">Anfangsbetrag'+(ni<0?'<span class="tag">aktuell</span>':"")+'</span><span class="pa">'+(base!=null?money(base,cur):"—")+" "+esc(cur)+"</span></div>";
-  ps.forEach(function(p,i){var fut=parseD(p.from)>t;
-    r+='<div class="prow'+(i===ni?" now":"")+'"><span class="pd">ab '+fmtD(p.from)+(i===ni?'<span class="tag">aktuell</span>':(fut?'<span class="tag fut">geplant</span>':""))+
-       '</span><span class="pa">'+money(p.amount,cur)+" "+esc(cur)+'</span><button type="button" data-ipdel="'+esc(p.from)+'" aria-label="Entfernen">×</button></div>';});
-  l.innerHTML=r;
-}
-document.getElementById("iPList").addEventListener("click",function(ev){var b=ev.target.closest("[data-ipdel]");if(!b)return;
-  idraft.prices=idraft.prices.filter(function(p){return p.from!==b.dataset.ipdel;});iPaintPrices();});
+  var prev=parseAmt(document.getElementById("iAmt").value)||0,r="";
+  ps.forEach(function(p,i){var fut=parseD(p.from)>t,pc=prev?(p.amount-prev)/prev*100:0,
+      pb=prev?'<span class="fpc'+(pc>0.05?" down":pc<-0.05?" up":"")+'">'+pctTxt(pc)+"</span>":"";/* bei Einnahmen ist mehr gut (grün) */
+    r+='<div class="frow fpr" data-ipedit="'+esc(p.from)+'"><span class="fl">ab '+fmtShort(parseD(p.from))+(i===ni?'<span class="tag">aktuell</span>':(fut?'<span class="tag fut">geplant</span>':""))+
+       '</span><span class="pa">'+money(p.amount,cur)+"</span>"+pb+'<button type="button" class="del" data-ipdel="'+esc(p.from)+'" aria-label="Änderung entfernen">×</button></div>';prev=p.amount;});
+  l.innerHTML=r;}
+function iOpenSub(on){document.getElementById("iPForm").hidden=!on;var b=document.getElementById("iPOpen");b.hidden=!!on;b.setAttribute("aria-expanded",!!on);}
+document.getElementById("iPOpen").addEventListener("click",function(){iOpenSub(true);try{document.getElementById("iPFrom").focus();}catch(e){}});
+document.getElementById("iPCancel").addEventListener("click",function(){if(iPBak){idraft.prices.push(iPBak);iPBak=null;}
+  document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iOpenSub(false);iPaintPrices();});
+document.getElementById("iPList").addEventListener("click",function(ev){var b=ev.target.closest("[data-ipdel]");
+  if(b){idraft.prices=idraft.prices.filter(function(p){return p.from!==b.dataset.ipdel;});iPaintPrices();return;}
+  var r=ev.target.closest("[data-ipedit]");if(!r)return;var p=idraft.prices.filter(function(x){return x.from===r.dataset.ipedit;})[0];if(!p)return;
+  idraft.prices=idraft.prices.filter(function(x){return x!==p;});iPBak=p;
+  document.getElementById("iPFrom").value=p.from;document.getElementById("iPAmt").value=amtIn(p.amount,document.getElementById("iCur").value);iPaintPrices();iOpenSub(true);});
 document.getElementById("iPAdd").addEventListener("click",function(){
   var f=document.getElementById("iPFrom").value,a=parseAmt(document.getElementById("iPAmt").value);
   if(!f){toast("Datum fehlt");return;}if(a==null||a<0){toast("Betrag prüfen");return;}
-  idraft.prices=idraft.prices.filter(function(p){return p.from!==f;});idraft.prices.push({from:f,amount:Math.round(a*100)/100});
-  document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iPaintPrices();});
+  idraft.prices=idraft.prices.filter(function(p){return p.from!==f;});idraft.prices.push({from:f,amount:Math.round(a*100)/100});iPBak=null;
+  document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iOpenSub(false);iPaintPrices();});
+/* Zahltag: Tag im Monat (+ Monat bei seltener Zahlung), «einmalig» = Datum */
+var iDueOpen=false,iDuePend={d:1,m:0};
+function iDueTxt(){var v=parseD(document.getElementById("iDue").value),cy=+document.getElementById("iCycle").value;if(!v)return "wählen";
+  if(!cy)return fmtD(iso(v));var d=v.getDate()+".";if(cy===1)return d+" im Monat";if(cy===12||cy===24)return d+" "+MONS[v.getMonth()]+(cy===24?" (alle 2 Jahre)":"");
+  var ms=[];for(var k=0;k<12;k+=cy)ms.push((v.getMonth()+k)%12);ms.sort(function(a,b){return a-b;});return d+" "+ms.map(function(m){return MONS[m].slice(0,3);}).join(", ");}
+function iPaintDue(){var cy=+document.getElementById("iCycle").value,one=cy===0,w=document.getElementById("iDueW");
+  document.getElementById("iDueRow").hidden=!one;document.getElementById("iDueBtn").hidden=one;if(one)iDueOpen=false;
+  document.getElementById("iDueT").textContent=iDueTxt();var was=w.hidden;w.hidden=!iDueOpen;var mc=w.querySelector('[data-whc="m"]');mc.hidden=cy===1;
+  if(!w.hidden&&was){var v=parseD(document.getElementById("iDue").value)||today();iDuePend={d:v.getDate(),m:v.getMonth()};var it=[];for(var n=1;n<=31;n++)it.push({v:n,t:n+"."});
+    whFill(w.querySelector('[data-whc="d"]'),it,iDuePend.d,function(x){iDuePend.d=+x;iDueOk();});
+    whFill(mc,MONS.map(function(x,i){return {v:i,t:x};}),iDuePend.m,function(x){iDuePend.m=+x;iDueOk();});iDueOk();}}
+function iDueOk(){var cy=+document.getElementById("iCycle").value;document.getElementById("iDueOk").textContent=(cy===1?iDuePend.d+". im Monat":iDuePend.d+". "+MONS[iDuePend.m])+" übernehmen";}
+document.getElementById("iDueBtn").addEventListener("click",function(){iDueOpen=!iDueOpen;iPaintDue();});
+document.getElementById("iDueOk").addEventListener("click",function(){var cy=+document.getElementById("iCycle").value||1,d=iDuePend.d,t=today(),dim=function(y,mo){return new Date(y,mo+1,0).getDate();};
+  var y0=t.getFullYear(),mo=cy===1?t.getMonth():iDuePend.m,x=new Date(y0,mo,Math.min(d,dim(y0,mo)));
+  while(x<t){mo+=cy;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}for(var g=0;g<12&&x.getDate()<d;g++){mo-=cy;x=new Date(y0,mo,Math.min(d,dim(y0,mo)));}
+  document.getElementById("iDue").value=iso(x);iDueOpen=false;iPaintDue();});
+document.getElementById("iCycle").addEventListener("change",function(){iDueOpen=false;iPaintDue();iPaintKz();});
+["iStart","iAmt"].forEach(function(i){document.getElementById(i).addEventListener("change",iPaintPrices);});
 document.getElementById("iAmt").addEventListener("input",iPaintPrices);
 document.getElementById("iCur").addEventListener("change",iPaintPrices);document.getElementById("iCur").addEventListener("change",amtPh);
+/* Einnahme ansehen (wie Vertragsansicht): Kopf, Kacheln, Preisverlauf, Angaben; Bearbeiten öffnet das Formular. SwiftUI: IncomeDetailView */
+function openIncDetail(idv){var c=Object.assign({},state.incomes[idv]);if(!state.incomes[idv])return;c._id=idv;
+  var t=today(),H=state.settings.home,cu=c.cur||H,cy=+c.cycle,cp=curPrice(c),en=parseD(c.end),st=parseD(c.start),nd=null;
+  try{nd=cy?nextDue(c):null;if(nd&&en&&nd>en)nd=null;}catch(e){}
+  var pill=en&&en<t?'<span class="pill">Beendet am '+fmtD(c.end)+"</span>":st&&st>t?'<span class="pill">Ab '+fmtD(c.start)+"</span>":"";
+  var u='<u>'+esc(cu)+"</u>",mt=money(cy?cp/cy:cp,cu),k=decAt(mt),big=k<0?mt:mt.slice(0,k)+"<i>"+mt.slice(k)+"</i>";
+  var tile=function(v,lab){return '<div class="kzt"><small>'+lab+"</small><b>"+v+"</b></div>";};
+  var tot=0;incList().forEach(function(x){var e2=parseD(x.end),s2=parseD(x.start);if(+x.cycle&&!(e2&&e2<t)&&!(s2&&s2>t))tot+=conv(curPrice(x),x.cur)/(+x.cycle);});
+  var mine=cy&&!(en&&en<t)&&!(st&&st>t)?conv(cp,cu)/cy:0,shr=tot>0.005&&mine?Math.round(mine/tot*100):null;
+  var kz='<div class="kz"><div class="kzm"><small>'+(cy?"pro Monat":"einmalig")+'</small><div><b>'+big+u+"</b>"+(cu!==H?'<em>≈ '+nf0.format(conv(cy?cp/cy:cp,cu))+" "+esc(H)+"</em>":"")+
+    (shr!=null?'<span class="kzbar" aria-hidden="true"><i style="width:'+Math.max(2,Math.min(100,shr))+'%;background:var(--ok)"></i></span><em>'+shr+" % deiner Einnahmen</em>":'<em>'+esc(cy?(en&&en<t?"beendet":st&&st>t?"startet am "+fmtShort(st):"netto"):"einmalige Einnahme")+"</em>")+'</div></div><div class="kzc">'+
+    (cy?tile(nf0.format(cp/cy*12,cu)+u,"pro Jahr"):"")+tile(nd?fmtShort(nd):(cy?"—":fmtShort(parseD(c.due))),cy?"nächste Zahlung":"am")+"</div></div>";
+  var rows=[["Zahlung",cy?(payRule(c)||ICYCLE[cy]):"einmalig am "+fmtD(c.due)],["Art",c.cat||""],["Empfänger",holdersOf(c).join(", ")],
+    c.start?["Ab",fmtD(c.start)]:null,c.end?["Bis",fmtD(c.end)]:null].filter(function(r){return r&&r[1];});
+  var menu='<div class="dmenu" id="dMenu" role="menu" hidden><button type="button" role="menuitem" data-iact="dup"><span>Duplizieren</span></button><button type="button" role="menuitem" class="red" data-iact="delete"><span>Löschen</span></button></div>';
+  document.getElementById("detailBody").innerHTML=
+    '<div class="shbar"><button class="shx" data-iact="close">Schliessen</button><h2>'+esc(c.label||c.name||"Einnahme")+'</h2><button type="button" class="dmbtn" data-iact="menu" aria-label="Aktionen" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg></button><button class="shok" data-iact="edit">Bearbeiten</button>'+menu+"</div>"+
+    '<div class="detailhead">'+incMark(c)+'<div style="flex:1;min-width:0"><h2 style="margin:0">'+esc(c.label||c.name||"Einnahme")+"</h2>"+(c.label&&c.name?'<div style="font-size:13px;color:var(--ink2)">'+esc(c.name)+"</div>":"")+"</div></div>"+
+    (pill?'<div class="pills">'+pill+"</div>":'<div style="height:10px"></div>')+kz+
+    '<h3 class="dsec">Einnahme</h3>'+(pricesOf(c).length?'<div class="pchwrap" style="margin-bottom:10px">'+priceChart(c,{inc:1})+"</div>":"")+
+    '<dl class="dgrp">'+rows.map(function(r){return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+esc(r[1])+"</dd></div>";}).join("")+"</dl>"+
+    (c.note?'<h3 class="dsec">Notiz</h3><div style="font-size:14.5px;white-space:pre-wrap">'+esc(c.note)+"</div>":"")+'<div style="height:18px"></div>';
+  document.getElementById("detailBody").querySelectorAll("[data-iact]").forEach(function(b){b.addEventListener("click",function(){
+    var a=b.dataset.iact,dm=document.getElementById("dMenu");
+    if(a==="menu"){var on=dm.hidden;dm.hidden=!on;b.setAttribute("aria-expanded",on);return;}
+    if(dm)dm.hidden=true;
+    if(a==="close"){closeSheets();return;}
+    if(a==="edit"){closeSheets();setTimeout(function(){openIncome(idv);},180);return;}
+    if(a==="dup"){var n=Object.assign({},state.incomes[idv]);n.t=Date.now();var nid=uid();putIncome(nid,n);closeSheets();render();setTimeout(function(){openIncome(nid);},180);toast("Dupliziert");return;}
+    if(a==="delete"){ask({title:"Einnahme löschen?",text:"«"+(c.label||c.name)+"» wird endgültig gelöscht.",ok:"Löschen",danger:true}).then(function(y){if(y){dropIncome(idv);closeSheets();render();toast("Gelöscht");}});}
+  });});
+  openSheet(document.getElementById("sheetDetail"));}
 function openIncome(idv){clearCands();document.getElementById("oILogo").open=false;document.getElementById("iLogoTap").setAttribute("aria-expanded","false");
   var c=idv?state.incomes[idv]:null;incId=idv||null;
   idraft={logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",cat:(c&&c.cat)||"Lohn",prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),
@@ -5346,11 +5416,13 @@ function openIncome(idv){clearCands();document.getElementById("oILogo").open=fal
   document.getElementById("iStart").value=(c&&c.start)||"";
   document.getElementById("iEnd").value=(c&&c.end)||"";
   document.getElementById("iNote").value=(c&&c.note)||"";
-  document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";
+  document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iPBak=null;iOpenSub(false);iDueOpen=false;
   document.getElementById("iDel").hidden=!c;
-  iPaintChips();iPaintPrices();openSheet(document.getElementById("sheetInc"));formSnap.i=formSig("sheetInc",idraft);
+  iPaintChips();iPaintPrices();iPaintDue();datesPaint();openSheet(document.getElementById("sheetInc"));formSnap.i=formSig("sheetInc",idraft);
 }
 document.getElementById("iSave").addEventListener("click",function(){
+  /* eingetippte, nicht hinzugefügte Änderung übernehmen */
+  if(document.getElementById("iPFrom").value||document.getElementById("iPAmt").value.trim()){document.getElementById("iPAdd").click();if(document.getElementById("iPFrom").value)return;}
   var name=document.getElementById("iName").value.trim(),amt=parseAmt(document.getElementById("iAmt").value);
   if(!name&&!document.getElementById("iLabel").value.trim()){toast("Bezeichnung fehlt");return;}if(amt==null||amt<0){toast("Betrag prüfen");return;}
   var prev=incId?state.incomes[incId]:null;
