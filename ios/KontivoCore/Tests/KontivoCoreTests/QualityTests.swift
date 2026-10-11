@@ -93,15 +93,19 @@ final class QualityTests: XCTestCase {
         let y = Contract(label: "Jahr", categoryID: abos, amount: 10, cycle: 12, due: Day(2027, 1, 1), start: Day(2025, 1, 1),
                          notice: 0, cancelTerm: .yearEnd, holderIDs: [me])
         let e = Contract(label: "Fest", categoryID: abos, amount: 10, cycle: 1, due: Day(2026, 11, 1), end: Day(2027, 12, 31),
-                         notice: 0, holderIDs: [me])
+                         notice: 0, renewMonths: 12, holderIDs: [me])
+        // feste Laufzeit ohne Verlängerung endet von selbst: keine Frist nötig (Web v160 `endsSelf`)
+        let s0 = Contract(label: "Leasing", categoryID: abos, amount: 10, cycle: 1, due: Day(2026, 11, 1), end: Day(2027, 12, 31),
+                          notice: 0, holderIDs: [me])
         let m = Contract(label: "Monat", categoryID: abos, amount: 10, cycle: 1, due: Day(2026, 11, 1), notice: 0, cancelTerm: .monthEnd, holderIDs: [me])
         let w = Contract(label: "Ohne Überwachung", categoryID: abos, amount: 10, cycle: 12, due: Day(2027, 1, 1), notice: 0,
                          cancelTerm: .yearEnd, noWatch: true, holderIDs: [me])
-        data.contracts = [y, e, m, w]
+        data.contracts = [y, e, m, w, s0]
         let r = Quality.report(data, today: today)
         func reason(_ c: Contract) -> String? { r.B.first { $0.key == "c:" + c.id.uuidString + ":notice" }?.reason }
         XCTAssertEqual(reason(y), "Keine Kündigungsfrist")
         XCTAssertEqual(reason(e), "Keine Kündigungsfrist")
+        XCTAssertNil(reason(s0))
         XCTAssertNil(reason(m))
         XCTAssertNil(reason(w))
         XCTAssertTrue(Quality.footnote.contains("Gekündigte und abgelaufene Verträge sowie ignorierte Hinweise zählen nicht."))

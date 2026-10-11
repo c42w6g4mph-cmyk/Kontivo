@@ -57,7 +57,7 @@ public struct Calc {
         return taxNames.contains(id)
     }
 
-    /// Nicht kündbar (Web `isFixed`, v88): Steuern & Gebühren automatisch, sonst `noCancel` (z.B. Serafe unter «Wohnen»).
+    /// Nicht kündbar (Web `isFixed`, v88): Steuern & Gebühren automatisch, sonst `noCancel` (z.B. Rundfunkgebühr unter «Wohnen»).
     /// Keine Frist, nicht in «Fristen», kein Kündigen.
     public func isFixed(_ c: Contract) -> Bool { isTax(c) || c.noCancel }
 
@@ -79,7 +79,7 @@ public struct Calc {
             switch ch {
             case .online: return .online
             case .email: return .mail
-            case .letter, .registered: return .post
+            case .letter: return .post
             }
         }
         if categoryKind(c) == .insurance { return .post }
@@ -152,11 +152,12 @@ public struct Calc {
     // MARK: Termine
 
     /// Zahlungstermine im Zeitraum, immer vom Anker `due` gerechnet (kein Drift bei 29.–31.).
+    /// Probeabo (Web v153): `trial` ist der erste kostenpflichtige Tag, davor keine Zahlungen (auch nach «Behalten»).
     public func occurrences(_ c: Contract, from: Day, to: Day) -> [Day] {
-        Calc.occurrences(due: c.due, cycle: c.cycle, start: c.start, limit: limit(c), pauses: c.pauses, from: from, to: to)
+        Calc.occurrences(due: c.due, cycle: c.cycle, start: c.start, limit: limit(c), pauses: c.pauses, from: from, to: to, trial: c.trial)
     }
 
-    static func occurrences(due: Day?, cycle: Int, start: Day?, limit lim: Day?, pauses: [Pause], from: Day, to: Day) -> [Day] {
+    static func occurrences(due: Day?, cycle: Int, start: Day?, limit lim: Day?, pauses: [Pause], from: Day, to: Day, trial: Day? = nil) -> [Day] {
         guard let a = due else { return [] }
         if cycle == 0 { return (a >= from && a <= to) ? [a] : [] }
         let m = cycle
@@ -171,6 +172,7 @@ public struct Calc {
             if d > to { break }
             if d < from { continue }
             if let st = start, d < st { continue }
+            if let tr = trial, d < tr { continue }
             if let l = lim, d > l { break }
             if pauses.contains(where: { $0.contains(d) }) { continue }
             out.append(d)
@@ -248,9 +250,12 @@ public struct Calc {
 
     /// Nächster Kündigungstermin bei unbefristeten Verträgen.
     /// `base`: Stichtag (Standard heute). `after`: erster Termin nach diesem Tag, ohne Fristprüfung.
+    /// Beginnt der Vertrag erst später, zählt die Frist frühestens ab Beginn (Web v156: sonst stünde ein neuer Vertrag
+    /// schon vor Beginn unter «Fristen»).
     public func nextTerm(_ c: Contract, base: Day? = nil, after: Day? = nil) -> Day? {
         if c.end != nil || c.cancelTerm == .anytime { return nil }
-        let t = base ?? today
+        var t = base ?? today
+        if after == nil, let st0 = c.start, st0 > t { t = st0 }
         let ok: (Day) -> Bool = { x in
             if let a = after { return x > a }
             return self.noticeDeadline(for: c, end: x) >= t
@@ -410,10 +415,32 @@ public struct Calc {
         return n >= 0 && n <= 30
     }
 
-    /// Probeabo endet in 0–30 Tagen und ist nicht entschieden.
+    /// Probeabo endet in 1–30 Tagen und ist nicht entschieden (Web v143: `trial` ist der erste kostenpflichtige Tag,
+    /// am Tag selbst ist es zu spät).
     public func trialNeeds(_ c: Contract) -> Bool {
         guard let d = c.trial else { return false }
-        return d >= today && today.days(to: d) <= 30 && c.trialKept != c.trial && c.cancelPer == nil
+        return d > today && today.days(to: d) <= 30 && c.trialKept != c.trial && c.cancelPer == nil
+    }
+
+    /// Probeabo läuft noch (Web `trialOn`, v143), unabhängig von der 30-Tage-Schwelle: steht immer unter «Fristen»,
+    /// zählt nicht zu Monatstotal, Gruppensummen, Anteilen und Budget-Fixkosten (v157).
+    public func trialOn(_ c: Contract) -> Bool {
+        guard let d = c.trial else { return false }
+        return d > today && c.trialKept != c.trial && c.cancelPer == nil && c.status != .cancelled
+    }
+
+    /// Letzter Gratistag des Probeabos (Web `trialLast`): Tag vor `trial`. Ein Datum überall («gratis bis …»).
+    public func trialLast(_ c: Contract) -> Day? { c.trial?.addingDays(-1) }
+
+    /// Feste Laufzeit ohne Verlängerung (Leasing, Kredit) endet von selbst, keine Kündigung nötig (Web `endsSelf`, v160):
+    /// Vertragsende gesetzt, keine Verlängerung, kündbar, nicht gekündigt, nicht im Archiv.
+    public func endsSelf(_ c: Contract) -> Bool {
+        c.end != nil && c.renewMonths == 0 && !isFixed(c) && c.cancelPer == nil && c.status != .cancelled
+    }
+
+    /// Zählt in Monatssummen (Kopf, Gruppensummen, Anteile): laufend, begonnen, kein laufendes Probeabo (Web v157).
+    public func countsMonthly(_ c: Contract) -> Bool {
+        !isPaused(c) && !notStarted(c) && !trialOn(c)
     }
 
     /// Anteil einer Person an einem Vertrag: ohne Person 1, nicht Inhaber 0, sonst Aufteilung (`validSplit`) bzw. 1 / Anzahl Inhaber.
@@ -523,7 +550,8 @@ public struct Calc {
         let run = running
         let fut = run.filter { notStarted($0) }.count
         let a = run.filter { !notStarted($0) }
-        let sum = a.reduce(0.0) { $0 + monthlyCost($1) }
+        // laufendes Probeabo kostet (noch) nichts: erst ab Probe-Ende in der Summe (Web v157)
+        let sum = a.reduce(0.0) { $0 + (trialOn($1) ? 0 : monthlyCost($1)) }
         let np = active.count - a.count - fut
         var sub = Format.money0(sum * 12) + " " + home.rawValue + " pro Jahr"
         if np == 0 && fut == 0 && !a.isEmpty {
@@ -595,6 +623,10 @@ extension Calc {
         /// Knöpfe Behalten/Kündigen: Probeabo, needsAction (30 Tage vor Frist) oder ≤ 61 Tage vor Vertragsende
         public var showActions: Bool
         public var trial: Bool { kind == .trial }
+        /// `kind == .ended` ohne Kündigung: feste Laufzeit ohne Verlängerung («Endet von selbst», Web v160)
+        public var endsBySelf: Bool = false
+        /// Vertragspartner als Zusatz hinter dem Titel (Web `titleP`/`partnerOf`), "" wenn die Bezeichnung ihn schon nennt
+        public var partner: String = ""
         public var keepTitle: String
         /// «Kündigen» bzw. «Wechseln» (Pflichtvertrag)
         public var cancelTitle: String
@@ -609,6 +641,8 @@ extension Calc {
         public var end: Day
         /// «endet 31.10.»
         public var chip: String
+        /// Vertragspartner als Zusatz hinter dem Titel (Web `titleP`)
+        public var partner: String = ""
     }
 
     public enum DeadlineStatusKind: String, Hashable, Sendable {
@@ -629,7 +663,7 @@ extension Calc {
     /// Vorgemerkter Vertrag aus dem Quartals-Check.
     public struct MarkedRow: Hashable, Sendable {
         public var contractID: UUID
-        /// «719 CHF pro Jahr · beim Quartals-Check vorgemerkt»
+        /// «Spotify · 719 CHF pro Jahr · beim Quartals-Check vorgemerkt» (Vertragspartner nur, wenn die Bezeichnung ihn nicht nennt)
         public var line: String
         /// «Doch behalten»
         public var keepTitle: String
@@ -641,6 +675,8 @@ extension Calc {
     public struct FoldRow: Hashable, Sendable {
         public var contractID: UUID
         public var text: String
+        /// Vertragspartner als Zusatz hinter dem Titel (Web `titleP`)
+        public var partner: String = ""
     }
 
     public struct DeadlineOverview: Hashable, Sendable {
@@ -670,7 +706,7 @@ extension Calc {
         public static let listRight = "nach Datum"
         public static let flexTitle = "Flexibel"
         public static let flexSubtitle = "Ohne Mindestlaufzeit"
-        public static let flexNote = "Vertragsende bei Kündigung per heute"
+        public static let flexNote = "Vertragsende, wenn du heute kündigst"
         public static let withoutNoticeTitle = "Ohne Frist erfasst"
         public static let withoutNoticeExtra = " · ergänzen"
         public static let unwatchedTitle = "Nicht beobachtet"
@@ -679,31 +715,40 @@ extension Calc {
         public var flexCountText: String { flexible.count == 1 ? "1 Vertrag" : "\(flexible.count) Verträge" }
     }
 
-    /// Inhalt des Tabs «Fristen» (Grundmenge: aktive Verträge ohne nicht kündbare, inkl. pausierte).
+    /// Inhalt des Tabs «Fristen» (Grundmenge: aktive Verträge ohne nicht kündbare, inkl. pausierte). Stand Web v160:
+    /// laufende Probeabos immer in der Liste («Probeabo · gratis bis …», Knöpfe erst 30 Tage vorher), feste Laufzeit ohne
+    /// Verlängerung als «Endet von selbst», Pflichtvertrag «Wechsel bis …», Vertragspartner als Zusatz.
     public func deadlineOverview() -> DeadlineOverview {
         let a = active.filter { !isFixed($0) }
         let y = today.year
         let todo = a.filter { needsAction($0) && !trialNeeds($0) }.stableSorted { (noticeDeadline($0) ?? today) < (noticeDeadline($1) ?? today) }
         let triTodo = a.filter { trialNeeds($0) }.stableSorted { ($0.trial ?? today) < ($1.trial ?? today) }
         let n = todo.count + triTodo.count
+        let pOf = { (c: Contract) in self.data.partnerSuffix(of: c) }
 
         // Liste nach Datum
-        var raw: [(c: Contract, d: Day, k: DeadlineItemKind, e: Day?)] = []
-        for c in triTodo { if let d = c.trial { raw.append((c, d, .trial, nil)) } }
+        var raw: [(c: Contract, d: Day, k: DeadlineItemKind, e: Day?, act: Bool)] = []
+        for c in a where trialOn(c) {
+            if let d = trialLast(c) { raw.append((c, d, .trial, nil, trialNeeds(c))) }
+        }
         for c in a {
-            if trialNeeds(c) || c.noWatch { continue }
-            if let cp = c.cancelPer { raw.append((c, cp, .ended, nil)); continue }
+            if trialOn(c) || c.noWatch { continue }
+            if let cp = c.cancelPer { raw.append((c, cp, .ended, nil, false)); continue }
             if isAnytime(c) { continue }
+            if endsSelf(c) {
+                if let ee = c.end, ee >= today { raw.append((c, ee, .ended, nil, false)) }
+                continue
+            }
             guard let T = termEnd(c) else { continue }
             if isKept(c) {
                 let T2 = c.end != nil ? renewAfter(c, T) : nextTerm(c, base: nil, after: T)
                 let d2 = T2.map { noticeDeadline(for: c, end: $0) }
-                raw.append((c, d2 ?? T, d2 != nil ? .kept : .keptEnd, T2))
+                raw.append((c, d2 ?? T, d2 != nil ? .kept : .keptEnd, T2, false))
                 continue
             }
             let dl = noticeDeadline(for: c, end: T)
             if dl < today { continue }
-            raw.append((c, dl, .open, T))
+            raw.append((c, dl, .open, T, false))
         }
         raw = raw.stableSorted { $0.d < $1.d }
         let items = raw.map { x -> DeadlineItem in
@@ -711,40 +756,45 @@ extension Calc {
             var sub = "", chip = Format.inDays(dn), lvl = ChipLevel.none, acts = false
             switch x.k {
             case .ended:
-                sub = "Gekündigt"; chip = "endet " + Format.ddmm(x.d, currentYear: y); lvl = .end
+                sub = c.cancelPer != nil ? "Gekündigt" : "Endet von selbst"; chip = "endet " + Format.ddmm(x.d, currentYear: y); lvl = .end
             case .trial:
-                sub = "Probeabo bis " + Format.ddmm(x.d, currentYear: y); lvl = dn <= 7 ? .alert : .warn; acts = true
+                sub = "Probeabo · gratis bis " + Format.ddmm(x.d, currentYear: y)
+                acts = x.act
+                lvl = !x.act ? .none : (dn <= 7 ? .alert : .warn)
             case .kept:
                 sub = "Behalten · nächste Frist " + Format.ddmm(x.d, currentYear: y); lvl = .ok
             case .keptEnd:
                 sub = "Behalten · läuft bis " + Format.ddmm(x.d, currentYear: y); lvl = .ok
             case .open:
-                sub = "Kündigung bis " + Format.ddmm(x.d, currentYear: y)
+                sub = (c.mandatory ? "Wechsel bis " : "Kündigung bis ") + Format.ddmm(x.d, currentYear: y)
                 acts = needsAction(c) || (x.e.map { today.days(to: $0) <= 61 } ?? false)
                 lvl = dn <= 7 ? .alert : (acts ? .warn : .none)
             }
-            return DeadlineItem(contractID: c.id, kind: x.k, date: x.d, end: x.e, days: dn, sub: sub, chip: chip, chipLevel: lvl, showActions: acts,
-                                keepTitle: "Behalten", cancelTitle: c.mandatory ? "Wechseln" : "Kündigen")
+            var it = DeadlineItem(contractID: c.id, kind: x.k, date: x.d, end: x.e, days: dn, sub: sub, chip: chip, chipLevel: lvl, showActions: acts,
+                                  keepTitle: "Behalten", cancelTitle: c.mandatory ? "Wechseln" : "Kündigen")
+            it.endsBySelf = x.k == .ended && c.cancelPer == nil
+            it.partner = pOf(c)
+            return it
         }
 
-        // Flexibel
-        let anytime = a.filter { c in c.cancelPer == nil && !c.noWatch && (isAnytime(c) || (noticeDeadline(c) == nil && c.notice > 0)) }
+        // Flexibel (ohne laufende Probeabos)
+        let anytime = a.filter { c in c.cancelPer == nil && !c.noWatch && !trialOn(c) && (isAnytime(c) || (noticeDeadline(c) == nil && c.notice > 0)) }
         let flexible = anytime.map { c -> FlexRow in
             let e = endIfCancelledToday(c), nt = Format.noticeText(c)
             let sub = nt.isEmpty ? "Ohne Frist" : (c.noticeUnit == .dayOfMonth ? "Kündigung " + nt : "Frist " + nt)
-            return FlexRow(contractID: c.id, sub: sub, end: e, chip: "endet " + Format.ddmm(e, currentYear: y))
+            return FlexRow(contractID: c.id, sub: sub, end: e, chip: "endet " + Format.ddmm(e, currentYear: y), partner: pOf(c))
         }.stableSorted { $0.end < $1.end }
         let stack = anytime.stableSorted { monthlyCost($0) > monthlyCost($1) }.prefix(4).map { $0.id }
 
-        let nofrist = a.filter { c in c.cancelPer == nil && !c.noWatch && noticeDeadline(c) == nil && c.notice == 0 && !c.mandatory }
-            .map { FoldRow(contractID: $0.id, text: "ergänzen") }
+        let nofrist = a.filter { c in c.cancelPer == nil && !c.noWatch && !trialOn(c) && noticeDeadline(c) == nil && c.notice == 0 && !c.mandatory }
+            .map { FoldRow(contractID: $0.id, text: "ergänzen", partner: pOf($0)) }
         let unw = a.filter { $0.noWatch && $0.cancelPer == nil }
             .map { c -> FoldRow in
                 let t = Format.noticeText(c)
-                return FoldRow(contractID: c.id, text: t.isEmpty ? "" : "Frist " + t)
+                return FoldRow(contractID: c.id, text: t.isEmpty ? "" : "Frist " + t, partner: pOf(c))
             }
 
-        // Status
+        // Status (Probeabo: letzter Gratistag)
         var urgent = 0
         var dates: [Day] = []
         for c in todo {
@@ -754,7 +804,7 @@ extension Calc {
             }
         }
         for c in triTodo {
-            if let d = c.trial {
+            if let d = trialLast(c) {
                 dates.append(d)
                 if today.days(to: d) <= 7 { urgent += 1 }
             }
@@ -776,8 +826,9 @@ extension Calc {
                                   withoutNotice: nofrist, unwatched: unw, isEmpty: empty)
         let marked = a.filter { reviewKill($0) && $0.cancelPer == nil }.stableSorted { monthlyCost($0) > monthlyCost($1) }
         ov.marked = marked.map { c in
-            MarkedRow(contractID: c.id, line: Format.money0(monthlyCost(c) * 12) + " " + home.rawValue + " pro Jahr · beim Quartals-Check vorgemerkt",
-                      keepTitle: "Doch behalten", cancelTitle: c.mandatory ? "Wechseln" : "Kündigen")
+            let p = pOf(c)
+            return MarkedRow(contractID: c.id, line: (p.isEmpty ? "" : p + " · ") + Format.money0(monthlyCost(c) * 12) + " " + home.rawValue + " pro Jahr · beim Quartals-Check vorgemerkt",
+                             keepTitle: "Doch behalten", cancelTitle: c.mandatory ? "Wechseln" : "Kündigen")
         }
         ov.markedMonthly = marked.reduce(0.0) { $0 + monthlyCost($1) }
         return ov
@@ -1059,7 +1110,8 @@ extension Calc {
 
     public func fairShare() -> [FairRow]? {
         if data.persons.count < 2 { return nil }
-        let runC = running.filter { !notStarted($0) }
+        // laufende Probeabos zählen erst ab Probe-Ende (Web v157)
+        let runC = running.filter { !notStarted($0) && !trialOn($0) }
         if !runC.contains(where: { $0.holderIDs.count > 1 }) { return nil }
         var fixT = 0.0, incT = 0.0
         var pf: [UUID: Double] = [:], pi: [UUID: Double] = [:]

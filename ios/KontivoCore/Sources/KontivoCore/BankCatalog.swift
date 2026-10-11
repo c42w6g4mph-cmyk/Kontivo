@@ -6,8 +6,8 @@ import Foundation
 enum BankCatalog {
     /// Katalogeinträge mit Sonderregel (Web `BKALIAS`): Treffer über Stichwort statt über die Namenswörter.
     static let BKALIAS: [String: BRX] = [
-        "Rundfunkbeitrag": BRX("rundfunk|beitragsservice"),
-        "Serafe": BRX("\\bserafe\\b"),
+        // Web v158: ein Eintrag «Rundfunkgebühr» (CH und DE) erkennt Rundfunkbeitrag, Beitragsservice und Serafe
+        "Rundfunkgebühr": BRX("rundfunk|beitragsservice|\\bserafe\\b"),
         "SBB Halbtax": BRX("halbtax"),
         "Deutschlandticket": BRX("deutschlandticket|d ticket"),
         "Die Mobiliar": BRX("\\bmobiliar\\b"),
@@ -36,9 +36,15 @@ enum BankCatalog {
         }
     }()
 
-    /// Eintrag zu einem Katalognamen (Namen sind eindeutig).
-    static func entry(named n: String) -> CatalogEntry? {
-        items.first { $0.entry.name == n }?.entry
+    /// Eintrag zu einem Katalognamen. Gleicher Name in CH und DE (Rundfunkgebühr, Web v158): Eintrag passend zur Währung
+    /// (EUR → DE, CHF → CH), sonst der erste.
+    static func entry(named n: String, currency: String = "") -> CatalogEntry? {
+        let list = items.filter { $0.entry.name == n }.map { $0.entry }
+        if list.count > 1 {
+            let cc = currency == "EUR" ? "DE" : (currency == "CHF" ? "CH" : "")
+            if let m = list.first(where: { $0.country == cc }) { return m }
+        }
+        return list.first
     }
 
     static let rxFiller = BRX("^(lastschrift|zahlung|erechnung|ebill|dauerauftrag|gutschrift|belastung|einkauf|kauf|abo|abonnement|rechnung)$")

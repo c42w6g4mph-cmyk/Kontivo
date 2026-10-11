@@ -169,6 +169,7 @@ final class MoreDataFlow {
         case ok(BackupImportResult)
         case invalid
         case newer
+        case empty
     }
 
     private func readBackup(_ url: URL, model: AppModel) {
@@ -182,6 +183,8 @@ final class MoreDataFlow {
                     return .ok(try Backup.read(json, today: today))
                 } catch BackupError.unsupportedVersion(_) {
                     return .newer
+                } catch BackupError.empty {
+                    return .empty
                 } catch {
                     return .invalid
                 }
@@ -194,6 +197,8 @@ final class MoreDataFlow {
                 model.toast(Backup.invalidMessage)
             case .newer:
                 model.toast("Dieses Backup stammt aus einer neueren Version von Kontivo")
+            case .empty:
+                model.toast(Backup.emptyMessage)
             case .ok(let r):
                 self.show(MoreAsk(title: Backup.confirmTitle, message: MoreDataFlow.backupConfirmText(r),
                                   confirm: Backup.confirmButton, destructive: true) { [weak self] in

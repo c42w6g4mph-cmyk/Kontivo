@@ -1,6 +1,7 @@
 import Foundation
 
-/// Zahlenformat (Web `numStyle`, Entscheid 09.10.2026): EUR deutsch «1.234,50», CHF schweizerisch «1’234.50».
+/// Zahlenformat (Web `numStyle`, Entscheid 10.10.2026, Web v144): nach der Hauptwährung – EUR deutsch «1.234,50»,
+/// CHF schweizerisch «1’234.50», auch bei Verträgen in der anderen Währung.
 public enum NumberStyle: String, Hashable, Sendable {
     /// de-CH: Tausender ’ (U+2019), Dezimalpunkt
     case ch
@@ -11,23 +12,23 @@ public enum NumberStyle: String, Hashable, Sendable {
     public var decimalSeparator: String { self == .de ? "," : "." }
 }
 
-/// Zahlen, Daten und Texte wie in der Web-App (Schweizer Schreibweise; Zahlen je nach Währung de-CH bzw. de-DE).
+/// Zahlen, Daten und Texte wie in der Web-App (Schweizer Schreibweise; Zahlen nach der Hauptwährung de-CH bzw. de-DE).
 public enum Format {
     /// Minuszeichen für Anzeigen (U+2212).
     public static let minus = "\u{2212}"
     /// Tausendertrennzeichen de-CH (U+2019).
     public static let thousandsSeparator = "\u{2019}"
 
-    /// Hauptwährung für Beträge ohne eigene Währung (Summen) und für USD/GBP/TRY (Web: `state.settings.home` in `numStyle`).
-    /// Wird von `Calc.init` aus den Daten gesetzt, damit alle Ansichten ohne weiteren Parameter richtig formatieren.
+    /// Hauptwährung, nach der sich das Zahlenformat aller Beträge richtet (Web: `state.settings.home` in `numStyle`).
+    /// Wird von `Calc.init` (und in der App beim Laden/Ändern der Daten) aus `settings.homeCurrency` gesetzt, damit alle
+    /// Ansichten ohne weiteren Parameter richtig formatieren.
     public static var homeCurrency: Currency = .CHF
 
-    /// Zahlenformat einer Währung (Web `numStyle`): EUR → de-DE, CHF → de-CH, übrige und ohne Währung nach der Hauptwährung.
+    /// Zahlenformat (Web `numStyle()`, v144): nur die Hauptwährung zählt – EUR → de-DE, sonst de-CH. Der Parameter
+    /// `currency` (Vertragswährung) bleibt für bestehende Aufrufe erhalten, beeinflusst das Format aber nicht mehr;
+    /// das Währungskürzel neben dem Betrag bleibt die Vertragswährung.
     public static func numberStyle(_ currency: Currency? = nil) -> NumberStyle {
-        let c = currency ?? homeCurrency
-        if c == .EUR { return .de }
-        if c == .CHF { return .ch }
-        return homeCurrency == .EUR ? .de : .ch
+        homeCurrency == .EUR ? .de : .ch
     }
 
     /// Monatsnamen lang (MON).
@@ -63,8 +64,8 @@ public enum Format {
 
     // MARK: Zahlen
 
-    /// Betrag mit genau 2 Nachkommastellen im Format der Währung (Web `money(v, cur)`): CHF «1’284.50», EUR «1.284,50»,
-    /// negativ «−5.00». Ohne Währung (Summen in der Hauptwährung) nach der Hauptwährung.
+    /// Betrag mit genau 2 Nachkommastellen im Format der Hauptwährung (Web `money(v, cur)`, v144): Hauptwährung CHF «1’284.50»,
+    /// EUR «1.284,50», negativ «−5.00». `currency` ändert das Format nicht (siehe `numberStyle`).
     public static func money(_ v: Double, _ currency: Currency? = nil) -> String {
         let st = numberStyle(currency)
         let p = decimalParts(v, digits: 2)
@@ -108,16 +109,24 @@ public enum Format {
         return sign + body + " %"
     }
 
-    /// Betrag für ein Eingabefeld (Web `amtIn`): «59.90», bei EUR «59,90» (ohne Tausendertrennzeichen).
+    /// Betrag für ein Eingabefeld (Web `amtIn`): «59.90», bei Hauptwährung EUR «59,90» (ohne Tausendertrennzeichen).
     public static func amountInput(_ v: Double, _ currency: Currency? = nil) -> String {
         let t = fixed2(v.isFinite ? v : 0)
         return numberStyle(currency) == .de ? t.replacingOccurrences(of: ".", with: ",") : t
     }
 
     /// Betrag aus einem Eingabefeld (Web `parseAmt`): Geld hat nie 3 Nachkommastellen, also ist «1.234» oder «1,234» ein
-    /// Tausender (1234); sonst wie `parseNum`.
+    /// Tausender (1234); sonst wie `parseNum`. Liest beide Schreibweisen (1’234.50 und 1.234,50). Seit Web v156 tolerant:
+    /// «15.–», «2.000,-» (Strich am Ende) und Währungszeichen (CHF, EUR, USD, GBP, TRY, Fr., €, $, £) werden ignoriert.
     public static func parseAmount(_ s: String?) -> Double? {
-        let t = String((s ?? "").unicodeScalars.filter { u in
+        // [.,]\s*[-–—]+\s*$ am Ende entfernen, dann Währungszeichen (ohne Gross/Klein)
+        var s0 = RX.replace("[.,]\\s*[-\u{2013}\u{2014}]+\\s*$", in: s ?? "", with: "")
+        s0 = RX.replace("(CHF|EUR|USD|GBP|TRY|Fr\\.?|€|\\$|£)", in: s0, with: "", ignoreCase: true)
+        return parseAmountPlain(s0)
+    }
+
+    static func parseAmountPlain(_ s: String) -> Double? {
+        let t = String(s.unicodeScalars.filter { u in
             !(u == "'" || u == "\u{2019}" || u == "\u{02BC}" || CharacterSet.whitespacesAndNewlines.contains(u)
               || u == "\u{00A0}" || u == "\u{202F}")
         })

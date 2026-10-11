@@ -54,13 +54,14 @@ public enum HolderChoice: Hashable, Sendable {
 public struct CancelResult: Hashable, Sendable {
     /// Gekündigt per (läuft bis)
     public var cancelPer: Day
-    /// «Gekündigt — läuft bis 30. November 2026»
+    /// «Gekündigt — läuft bis 30. November 2026», «Endet heute – danach im Archiv», «Beendet – steht jetzt im Archiv» (Web v154)
     public var toast: String
-    /// Pflichtvertrag: Entwurf für den neuen Anbieter (noch nicht gespeichert; Formular «Neuer Anbieter»)
+    /// Pflichtvertrag («Nur Anbieter wechseln»): Entwurf für den neuen Vertragspartner (noch nicht gespeichert; Formular
+    /// «Neuer Vertragspartner»)
     public var replacement: Contract?
-    /// «Neuen Anbieter erfassen — ab 1. Dezember 2026»
+    /// «Neuen Vertragspartner erfassen – ab 1. Dezember 2026»
     public var replacementToast: String?
-    public static let replacementFormTitle = "Neuer Anbieter"
+    public static let replacementFormTitle = "Neuer Vertragspartner"
 }
 
 /// Personen mit Anzahl Verträgen (alle, auch gekündigte) und Einnahmen (`holderStats`).
@@ -74,19 +75,21 @@ public struct PersonStat: Hashable, Sendable {
 extension AppData {
     // MARK: Verträge
 
-    /// Als gekündigt markieren: läuft bis termEnd (Probeabo: Tag vor Probeabo-Ende, sonst heute) und wandert danach ins Archiv.
-    /// Pflichtvertrag: zusätzlich ein Entwurf für den neuen Anbieter ab dem Folgetag, ohne Kontaktdaten des alten (Fix M4).
+    /// Als gekündigt markieren (Web `markCancelled(id, trial, per)`): läuft bis `per` (Web v154 «Schon gekündigt …» / «Beendet …»),
+    /// sonst bis termEnd (Probeabo: letzter Gratistag), ohne Termin bis heute; wandert danach ins Archiv (`endedByNotice`).
+    /// Pflichtvertrag: zusätzlich ein Entwurf für den neuen Vertragspartner ab dem Folgetag, ohne Kontaktdaten des alten (Fix M4).
     @discardableResult
-    public mutating func markCancelled(_ id: UUID, trial: Bool, today: Day, now: Date = Date()) -> CancelResult? {
+    public mutating func markCancelled(_ id: UUID, trial: Bool, per perIn: Day? = nil, today: Day, now: Date = Date()) -> CancelResult? {
         guard let i = contractIndex(id) else { return nil }
         let calc = Calc(data: self, today: today)
         var c = contracts[i]
-        let per = calc.cancelEnd(c, trial: trial) ?? today
+        let per = perIn ?? calc.cancelEnd(c, trial: trial) ?? today
         c.cancelPer = per
         c.cancelledOn = today
         c.review = nil
         contracts[i] = c
-        var res = CancelResult(cancelPer: per, toast: "Gekündigt — läuft bis " + Format.fmtD(per), replacement: nil, replacementToast: nil)
+        let toast = per < today ? "Beendet – steht jetzt im Archiv" : (per == today ? "Endet heute – danach im Archiv" : "Gekündigt — läuft bis " + Format.fmtD(per))
+        var res = CancelResult(cancelPer: per, toast: toast, replacement: nil, replacementToast: nil)
         if c.mandatory {
             var nc = c
             nc.id = UUID()
@@ -120,7 +123,7 @@ extension AppData {
             nc.cancelledAt = nil
             nc.createdAt = now
             res.replacement = nc
-            res.replacementToast = "Neuen Anbieter erfassen — ab " + Format.fmtD(start)
+            res.replacementToast = "Neuen Vertragspartner erfassen – ab " + Format.fmtD(start)
         }
         return res
     }
@@ -132,19 +135,31 @@ extension AppData {
         contracts[i].cancelledOn = nil
     }
 
-    /// «Als gekündigt ins Archiv».
+    /// «Als gekündigt ins Archiv» (alter Weg bis Web v153). Seit v154 ersetzt durch «Schon gekündigt …» / «Beendet …»
+    /// (`markCancelled(_:trial:per:today:)`), bleibt für bestehende Aufrufe und Daten.
     public mutating func archive(_ id: UUID, today: Day) {
         guard let i = contractIndex(id) else { return }
         contracts[i].status = .cancelled
         contracts[i].cancelledAt = today
     }
 
-    /// «Wieder aktiv setzen».
+    /// «Wieder aktiv setzen» (Web v143): Archiv und Kündigung zurücknehmen (status, cancelledAt, cancelPer, cancelledOn).
     public mutating func reactivate(_ id: UUID) {
         guard let i = contractIndex(id) else { return }
         contracts[i].status = .active
         contracts[i].cancelledAt = nil
+        contracts[i].cancelPer = nil
+        contracts[i].cancelledOn = nil
     }
+
+    /// Nach «Wieder aktiv setzen»: Laufzeit schon vorbei (`endedByTerm`) → neues Vertragsende nötig (Formular beim Vertragsende öffnen).
+    public func reactivateNeedsEnd(_ id: UUID, today: Day) -> Bool {
+        guard let c = contract(id) else { return false }
+        return Calc(data: self, today: today).endedByTerm(c)
+    }
+
+    public static let reactivateToast = "Wieder aktiv"
+    public static let reactivateEndToast = "Wieder aktiv – bitte das neue Vertragsende eintragen"
 
     /// Behalten: Probeabo (`trialKept = trial`) bzw. für den aktuellen Termin (`keptFor = termEnd`).
     public mutating func keep(_ id: UUID, trial: Bool, today: Day) {
@@ -156,7 +171,10 @@ extension AppData {
         }
     }
 
-    public static let keepToast = "Behalten — erledigt bis zum nächsten Termin"
+    /// Toast nach «Behalten» (Web v143)
+    public static let keepToast = "Behalten – Kontivo erinnert dich vor der nächsten Frist"
+    /// Toast nach «Behalten» eines Probeabos (Web v143, Detail)
+    public static let keepTrialToast = "Behalten – läuft nach dem Probeabo normal weiter"
 
     /// Entscheid «Behalten» zurücksetzen.
     public mutating func unkeep(_ id: UUID) {
@@ -266,6 +284,8 @@ extension AppData {
         d.note = d.note.trimmingCharacters(in: .whitespacesAndNewlines)
         d.extras = d.extras.filter { $0.amount.isFinite && $0.amount != 0 }.stableSorted { $0.date < $1.date }
         if d.end == nil { d.renewMonths = 0 } else { d.cancelTerm = .anytime }
+        // Nicht kündbar: keine Frist (Web v153 `notice: termMode==="tax" ? 0 : nV`)
+        if d.noCancel { d.notice = 0 }
         d.split = AppData.normalizedSplit(d.split, holders: d.holderIDs)
         if let i = contractIndex(d.id) {
             var c = contracts[i]
@@ -569,7 +589,7 @@ extension AppData {
         }
         if arr == cur { return false }
         contracts[i].holderIDs = arr
-        contracts[i].split = []
+        // Aufteilung bleibt gespeichert (Web v143): sie gilt wieder, sobald dieselben Personen zugeordnet sind (`validSplit`)
         return true
     }
 

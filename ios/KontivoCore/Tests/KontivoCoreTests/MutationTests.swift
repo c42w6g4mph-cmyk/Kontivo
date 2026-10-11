@@ -16,7 +16,7 @@ final class MutationTests: XCTestCase {
         let ins = data.category(named: "Versicherung")!.id
         let pid = data.partnerID(forName: "CSS", web: "css.ch")!
         let c = Contract(label: "Krankenkasse", partnerID: pid, categoryID: ins, amount: 400, cycle: 1, due: Day(2026, 10, 15), notice: 1,
-                         cancelTerm: .yearEnd, mandatory: true, customerNo: "1", holderIDs: [data.persons[0].id], cancelChannel: .registered,
+                         cancelTerm: .yearEnd, mandatory: true, customerNo: "1", holderIDs: [data.persons[0].id], cancelChannel: .letter,
                          tel: "058 277 11 11", mail: "kuendigung@css.ch", note: "alt")
         data.contracts = [c]
         let res = try XCTUnwrap(data.markCancelled(c.id, trial: false, today: today))
@@ -34,7 +34,7 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(nc.note, "")
         XCTAssertNil(nc.cancelChannel)
         XCTAssertNil(nc.cancelPer)
-        XCTAssertEqual(res.replacementToast, "Neuen Anbieter erfassen — ab 1. Januar 2027")
+        XCTAssertEqual(res.replacementToast, "Neuen Vertragspartner erfassen – ab 1. Januar 2027") // Web v145
         XCTAssertEqual(data.contracts.count, 1)
         data.undoCancel(c.id)
         XCTAssertNil(data.contracts[0].cancelPer)
@@ -249,8 +249,9 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(o.openCount, 1)
         // Variante 1: eine Liste nach Datum, Knöpfe nur bei Probeabo / ≤ 30 Tage vor Frist / ≤ 61 Tage vor Ende
         XCTAssertEqual(o.items.map { $0.kind }, [.trial, .open])
-        XCTAssertEqual(o.items[0].sub, "Probeabo bis 20.10.")
-        XCTAssertEqual(o.items[0].chip, "in 17 Tagen")
+        // Web v143: Probeabo am letzten Gratistag (Tag vor `trial`)
+        XCTAssertEqual(o.items[0].sub, "Probeabo · gratis bis 19.10.")
+        XCTAssertEqual(o.items[0].chip, "in 16 Tagen")
         XCTAssertEqual(o.items[0].chipLevel, .warn)
         XCTAssertTrue(o.items[0].showActions)
         XCTAssertEqual(o.items[1].sub, "Kündigung bis 30.11.")
@@ -258,13 +259,13 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(o.items[1].chipLevel, .none)
         XCTAssertFalse(o.items[1].showActions)
         XCTAssertEqual(o.status?.title, "1 Entscheidung offen")
-        XCTAssertEqual(o.status?.subtitle, "Nächste Frist in 17 Tagen")
+        XCTAssertEqual(o.status?.subtitle, "Nächste Frist in 16 Tagen")
         XCTAssertEqual(o.status?.kind, .warn)
-        XCTAssertEqual(o.flexible.count, 2)
+        XCTAssertEqual(o.flexible.count, 1) // laufendes Probeabo nicht unter «Flexibel» (Web v143)
         let nf = o.flexible.first { $0.contractID == data.contracts[1].id }
         XCTAssertEqual(nf?.sub, "Ohne Frist")
         XCTAssertEqual(nf?.chip, "endet 31.10.")
-        XCTAssertEqual(o.flexCountText, "2 Verträge")
+        XCTAssertEqual(o.flexCountText, "1 Vertrag")
         XCTAssertEqual(calc.deadlineBadgeCount, 1)
         // nicht kündbar: weder Liste noch Flexibel noch Zähler
         var fixed = data
@@ -272,7 +273,7 @@ final class MutationTests: XCTestCase {
         fixed.contracts[1].noCancel = true
         let fo = Calc(data: fixed, today: Day(2026, 10, 3)).deadlineOverview()
         XCTAssertEqual(fo.items.map { $0.kind }, [.trial])
-        XCTAssertEqual(fo.flexible.count, 1)
+        XCTAssertEqual(fo.flexible.count, 0)
         XCTAssertNil(Calc(data: fixed, today: Day(2026, 10, 3)).noticeDeadline(fixed.contracts[0]))
         // 61 Tage vor Vertragsende erscheinen die Knöpfe
         let near = Calc(data: data, today: Day(2026, 11, 1)).deadlineOverview()
@@ -284,7 +285,7 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(Calc(data: data, today: Day(2026, 11, 24)).urgency(data.contracts[0]).level, .alert)
         let h = calc.hero()
         XCTAssertEqual(h.activeCount, 3)
-        XCTAssertEqual(h.monthlyTotal, 50 + 18.9 * 0.94 + 12.95, accuracy: 1e-9)
+        XCTAssertEqual(h.monthlyTotal, 50 + 18.9 * 0.94, accuracy: 1e-9) // laufendes Probeabo zählt erst ab Probe-Ende (Web v157)
         XCTAssertTrue(h.subtitle.hasSuffix(" CHF pro Jahr · 3 aktive Verträge"))
         let y = calc.costYear(2026, filter: Calc.CostFilter())
         XCTAssertEqual(y.months[9].items.count, 2)
@@ -316,7 +317,7 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(p.subject, "Kündigung Mietvertrag Wohnung bei Wincasa AG")
         XCTAssertEqual(p.references, ["Kundennummer: 4711"])
         XCTAssertEqual(p.city, "Kreuzlingen")
-        XCTAssertTrue(p.body.hasPrefix("Sehr geehrte Damen und Herren\n\nhiermit kündigen wir den oben genannten Vertrag ordentlich zum nächstmöglichen Termin, nach unserer Berechnung zum 31. März 2027."))
+        XCTAssertTrue(p.body.hasPrefix("Sehr geehrte Damen und Herren\n\nHiermit kündigen wir den oben genannten Vertrag ordentlich zum nächstmöglichen Termin, nach unserer Berechnung zum 31. März 2027."))
         XCTAssertTrue(p.body.hasSuffix("Bitte bestätigen Sie uns die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse"))
         XCTAssertEqual(p.bodyText, "Kundennummer: 4711\n\n" + p.body)
         let h = Letter.hints(c, parts: p, calc: calc)
@@ -365,10 +366,11 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(Catalog.entries.count, 176)
         let css = Catalog.find(" css ")
         XCTAssertEqual(css?.cancelTerm, .yearEnd)
-        XCTAssertEqual(css?.cancelChannel, .registered)
+        XCTAssertEqual(css?.cancelChannel, .letter) // Web v145: Einschreiben = Brief
         XCTAssertEqual(css?.mandatory, true)
         XCTAssertEqual(css?.categoryKind, .insurance)
-        XCTAssertEqual(Catalog.find("Serafe")?.cancelChannel, nil)
+        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.cancelChannel, nil)
+        XCTAssertNil(Catalog.find("Serafe")) // Web v158: nur noch «Rundfunkgebühr»
         XCTAssertEqual(Catalog.find("Deutschlandticket")?.noticeUnit, .dayOfMonth)
         XCTAssertEqual(Catalog.find("Netflix")?.flag, "CH · DE")
         XCTAssertEqual(Catalog.search("", country: "DE").filter { $0.country == "CH" }.count, 0)
@@ -385,11 +387,11 @@ final class MutationTests: XCTestCase {
         let bank = WebPartnerHit(name: "Testbank", desc: "Bank", descAll: "Bank bank", dom: "testbank.ch", cc: "")
         XCTAssertEqual(Catalog.standardRule(for: bank, categoryNames: names)?.category, "Finanzen")
         XCTAssertEqual(Catalog.standardRule(for: bank, categoryNames: names)?.cancelTerm, .monthEnd)
-        // C-1: Web-Korrekturen vom 03.10. (Konten Monatsende, Serafe/Rundfunkbeitrag Steuern, Zeitungen Abos & Medien)
+        // C-1: Web-Korrekturen vom 03.10. (Konten Monatsende, Rundfunkgebühr Steuern, Zeitungen Abos & Medien)
         XCTAssertEqual(Catalog.find("PostFinance")?.cancelTerm, .monthEnd)
         XCTAssertEqual(Catalog.find("N26")?.cancelTerm, .monthEnd)
-        XCTAssertEqual(Catalog.find("Serafe")?.category, "Steuern & Gebühren")
-        XCTAssertEqual(Catalog.find("Rundfunkbeitrag")?.categoryKind, .taxes)
+        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.category, "Steuern & Gebühren")
+        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .EUR)?.categoryKind, .taxes)
         XCTAssertEqual(Catalog.find("NZZ")?.category, "Abos & Medien")
         XCTAssertEqual(Catalog.find("Südkurier")?.category, "Abos & Medien")
         XCTAssertNil(Catalog.standardRule(for: WebPartnerHit(name: "Bäckerei", descAll: "Bäckerei"), categoryNames: names))

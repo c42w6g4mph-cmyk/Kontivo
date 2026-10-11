@@ -228,7 +228,8 @@ public enum Quality {
                     if !anytimeWithNotice {
                         add(.B, s, .notice, name: nm, sub: sub, why: (c.notice == 0 && c.cancelTerm == .anytime) ? "Keine Kündigungsfrist" : "Laufzeit oder Rhythmus fehlt")
                     }
-                } else if c.notice == 0 && (c.end != nil || [CancelTerm.contractYear, .yearEnd, .quarterEnd, .halfYearEnd].contains(c.cancelTerm)) {
+                } else if c.notice == 0 && !calc.endsSelf(c) && (c.end != nil || [CancelTerm.contractYear, .yearEnd, .quarterEnd, .halfYearEnd].contains(c.cancelTerm)) {
+                    // feste Laufzeit ohne Verlängerung endet von selbst: keine Frist nötig (Web v160)
                     add(.B, s, .notice, name: nm, sub: sub, why: "Keine Kündigungsfrist")
                 }
             }

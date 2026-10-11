@@ -226,7 +226,7 @@ final class BankReview {
     private static func partnerID(for name: String, current: UUID?, catalogName: String?, in d: inout AppData) -> UUID? {
         if let cur = d.partner(current), cur.name.lowercased() == name.lowercased() { return cur.id }
         if let p = Partners.find(name, in: d) { return p.id }
-        let web = catalogName.flatMap { Catalog.find($0)?.web } ?? ""
+        let web = catalogName.flatMap { Catalog.find($0, currency: d.settings.homeCurrency)?.web } ?? ""
         let p = Partner(name: name, web: web)
         d.partners.append(p)
         return p.id

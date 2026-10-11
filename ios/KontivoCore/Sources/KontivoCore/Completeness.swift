@@ -1,12 +1,14 @@
 import Foundation
 
-// MARK: - Vollständigkeit (Web c8a6e62 / 9b5dc06, v120–v134)
+// MARK: - Vollständigkeit (Web c8a6e62 / 9b5dc06, v120–v134; v143: Logos optional; v160: endet von selbst)
 //
-// Ein zentraler Ablauf statt Prüfliste: 1 Logos (Raster), 2 Fristen (eine Frage pro Vertrag), 3 Absender (pro Person).
+// Ein zentraler Ablauf statt Prüfliste: 1 Fristen (eine Frage pro Vertrag), 2 Absender (pro Person), 3 optional Logos (Raster).
 // Kündigungsweg und Kontaktdaten kommen still aus dem Katalog (beim Start bestätigt), Kundennummer/Partneradresse fragt erst der Brief.
-// «Startklar» = Logo (oder bewusst keins), berechenbare Frist (wenn überwacht), Absender der Personen (ausser Kündigung online).
+// «Startklar» = berechenbare Frist (wenn überwacht), Absender der Personen (ausser Kündigung online, nicht kündbar oder
+// feste Laufzeit ohne Verlängerung). Logos zählen nicht (nur Optik, Web v143).
 
-/// Was einem Vertrag noch fehlt (Web `vkNeeds().per[id]`: "logo", "term", "snd").
+/// Was einem Vertrag noch fehlt (Web `vkNeeds().per[id]`: "term", "snd"). `.logo` kommt seit Web v143 nicht mehr vor
+/// (Logos sind optional und stehen nur noch in `CompletenessReport.logoPartners`).
 public enum CompletenessNeed: String, Hashable, Sendable, CaseIterable {
     case logo, term, sender
 
@@ -22,9 +24,9 @@ public enum CompletenessNeed: String, Hashable, Sendable, CaseIterable {
 
 /// Ergebnis von `Completeness.report` (Web `vkNeeds`).
 public struct CompletenessReport: Hashable, Sendable {
-    /// Fehlende Angaben je laufendem, nicht gekündigtem Vertrag (Reihenfolge logo, term, sender)
+    /// Fehlende Angaben je laufendem, nicht gekündigtem Vertrag (Reihenfolge term, sender; ohne Logos)
     public var per: [UUID: [CompletenessNeed]]
-    /// Vertragspartner ohne Logo (nicht bewusst «Ohne Logo»), Reihenfolge des ersten Vertrags
+    /// Vertragspartner ohne Logo (nicht bewusst «Ohne Logo»), Reihenfolge des ersten Vertrags – optionaler Schritt am Schluss
     public var logoPartners: [UUID]
     /// Verträge, deren Frist sich nicht berechnen lässt
     public var termContracts: [UUID]
@@ -42,8 +44,11 @@ public struct CompletenessReport: Hashable, Sendable {
         total > 0 ? Int(Format.jsRound(Double(ready) / Double(total) * 100)) : 100
     }
 
-    /// Anzahl Fragen: Logos zählen als eine (`vkQCount` beim Start)
-    public var questionCount: Int { (logoPartners.isEmpty ? 0 : 1) + termContracts.count + senderPersons.count }
+    /// Anzahl Fragen (`vkQCount`, Web v143): Fristen + Absender; Logos sind optional und zählen nicht
+    public var questionCount: Int { termContracts.count + senderPersons.count }
+
+    /// Startklar, nur Logos fehlen noch (Startseite «Alles startklar!» mit «Logos ergänzen», Web v143)
+    public var onlyLogosMissing: Bool { questionCount == 0 && !logoPartners.isEmpty }
 
     /// Alle startklar (oder keine Verträge)
     public var isComplete: Bool { ready == total }
@@ -96,6 +101,11 @@ public enum CompletenessTermOutcome: Equatable, Sendable {
 public enum Completeness {
     // MARK: Regeln
 
+    /// Absender nötig (Web `vkNeeds`, v160): kündbar, nicht «endet von selbst», Kündigung nicht online.
+    public static func senderNeeded(_ c: Contract, calc: Calc) -> Bool {
+        !calc.isFixed(c) && !calc.endsSelf(c) && calc.cancVia(c) != .online
+    }
+
     /// Frist fehlt (Web `vkTermNeed`): nur überwachte, kündbare, nicht gekündigte Verträge; ignorierter Datenqualitäts-Hinweis
     /// «Kündigungsfrist» zählt als erledigt; feste Laufzeit ohne Verlängerung läuft einfach aus.
     public static func termNeed(_ c: Contract, calc: Calc) -> Bool {
@@ -126,18 +136,16 @@ public enum Completeness {
             if !calc.isActive(c) || c.cancelPer != nil { continue }
             if let o = only, c.id != o { continue }
             var r: [CompletenessNeed] = []
+            // Logos: nur optional (zählen nicht für «startklar», Web v143)
             if let p = data.partner(c.partnerID), !p.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 let hasLogo = (p.logoID.map { !$0.isEmpty && hasFile($0) }) ?? false
-                if !hasLogo && !skip.contains(logoSkipKey(p.name)) {
-                    r.append(.logo)
-                    if !logos.contains(p.id) { logos.append(p.id) }
-                }
+                if !hasLogo && !skip.contains(logoSkipKey(p.name)) && !logos.contains(p.id) { logos.append(p.id) }
             }
             if termNeed(c, calc: calc) {
                 r.append(.term)
                 terms.append(c.id)
             }
-            if !calc.isFixed(c) && calc.cancVia(c) != .online {
+            if senderNeeded(c, calc: calc) {
                 for h in c.holderIDs where !data.resolvedSender(h).isComplete {
                     if !r.contains(.sender) { r.append(.sender) }
                     senders.insert(h)
@@ -197,16 +205,25 @@ public enum Completeness {
             : "Kontivo kann die fehlenden Angaben selbst ergänzen."
     }
 
-    /// «✓ 7 Verträge ergänzt Kontivo aus dem Anbieter-Katalog»
+    /// «✓ 7 Verträge ergänzt Kontivo aus dem Katalog»
     public static func autoText(_ n: Int) -> String {
-        "✓ " + Format.count(n, "Vertrag", "Verträge") + " ergänzt Kontivo aus dem Anbieter-Katalog"
+        "✓ " + Format.count(n, "Vertrag", "Verträge") + " ergänzt Kontivo aus dem Katalog"
     }
 
-    /// Geschätzte Minuten (15 s je Frist, 30 s je Absender, 20 s für die Logos), mindestens 1
+    /// Geschätzte Minuten (15 s je Frist, 30 s je Absender; Logos optional), mindestens 1
     public static func minutes(_ r: CompletenessReport) -> Int {
-        let s = Double(r.termContracts.count * 15 + r.senderPersons.count * 30 + (r.logoPartners.isEmpty ? 0 : 20))
+        let s = Double(r.termContracts.count * 15 + r.senderPersons.count * 30)
         return Swift.max(1, Int(Format.jsRound(s / 60)))
     }
+
+    // Startseite, wenn nur Logos fehlen (Web v143)
+    public static let readyTitle = "Alles startklar!"
+    /// «Kontivo erinnert dich vor jeder Frist. Optional: 2 Vertragspartner haben noch kein Logo.»
+    public static func readyLogosText(_ n: Int) -> String {
+        "Kontivo erinnert dich vor jeder Frist. Optional: " + Format.count(n, "Vertragspartner hat", "Vertragspartner haben") + " noch kein Logo."
+    }
+    public static let readyLogosButton = "Logos ergänzen"
+    public static let readyDoneButton = "Fertig"
 
     /// Hauptknopf der Startseite: «Los geht’s · ca. 1 Minute» bzw. «Ergänzen»
     public static func goTitle(_ r: CompletenessReport) -> String {
@@ -227,7 +244,8 @@ public enum Completeness {
     }
 
     // Logos
-    public static let logoStepLabel = "Schritt 1 · Logos"
+    /// Fortschritt im (optionalen) Logo-Schritt, Balken voll (`vkProg(max(1, vkQCount()), …)`)
+    public static let logoStepLabel = "Optional · Logos"
     public static let logoQuestionFound = "Passen diese Logos?"
     public static let logoQuestionNone = "Logos ergänzen"
     public static let logoTextFound = "Tippe ein Logo an, um es zu ändern. Falsche abwählen geht auch."
@@ -235,9 +253,9 @@ public enum Completeness {
     public static let logoTextOffline = "Ohne Internet findet Kontivo keine Logos. Du kannst den Schritt überspringen."
     public static let logoSearching = "Kontivo sucht Logos …"
 
-    /// «1 Logo übernehmen», «3 Logos übernehmen», ohne Auswahl «Weiter»
+    /// «1 Logo übernehmen», «3 Logos übernehmen», ohne Auswahl «Ohne Logos fertig» (Web v143, Logos am Schluss)
     public static func logoApplyTitle(_ n: Int) -> String {
-        n == 0 ? "Weiter" : (n == 1 ? "1 Logo übernehmen" : "\(n) Logos übernehmen")
+        n == 0 ? "Ohne Logos fertig" : (n == 1 ? "1 Logo übernehmen" : "\(n) Logos übernehmen")
     }
 
     /// «Frage 2 von 4»
@@ -329,15 +347,22 @@ public enum Completeness {
     // Abschluss
     public static func endTitle(single: Bool) -> String { single ? "Startklar" : "Vollständigkeit" }
 
+    /// Abschluss (Web v143): komplett «Startklar!»/«100 % – alles komplett!», sonst wie die Startseite nach Prozent.
     public static func endHeadline(_ r: CompletenessReport, single: Bool) -> String {
-        r.isComplete ? (single ? "Startklar!" : "100 % – alles komplett!") : "\(r.percent) % – gut gemacht!"
+        if r.isComplete { return single ? "Startklar!" : "100 % – alles komplett!" }
+        let p = r.percent
+        return p >= 75 ? "Fast geschafft!" : (p >= 40 ? "Gute Basis!" : "Ein Anfang ist gemacht")
     }
 
+    /// «Deine Verträge sind bereit.» bzw. «2 Verträge sind noch nicht startklar. Den Rest kannst du …»
     public static func endText(_ r: CompletenessReport) -> String {
-        r.isComplete ? "Deine Verträge sind bereit." : "Den Rest kannst du jederzeit unter Mehr → Vollständigkeit ergänzen."
+        r.isComplete ? "Deine Verträge sind bereit."
+            : Format.count(r.open, "Vertrag ist", "Verträge sind") + " noch nicht startklar. Den Rest kannst du jederzeit unter Mehr → Vollständigkeit ergänzen."
     }
 
+    /// Liste mit Haken nur, wenn alles startklar ist (Web v143)
     public static let endList = ["Kontivo erinnert dich vor jeder Frist", "Kündigungen sind mit einem Tipp vorbereitet", "Kosten und Budget stimmen"]
+    public static func showsEndList(_ r: CompletenessReport) -> Bool { r.isComplete }
 
     // Hinweis im Vertragsdetail (Web `vkHintHtml`)
     public struct Hint: Hashable, Sendable {
@@ -355,7 +380,7 @@ public enum Completeness {
         guard let c = data.contract(id), calc.isActive(c), c.cancelPer == nil else { return nil }
         let r = report(data, today: today, only: id, hasFile: hasFile).per[id] ?? []
         if r.isEmpty { return nil }
-        let why = r.contains(.term) ? "dann erinnert Kontivo rechtzeitig"
+        let why = r.contains(.term) ? "dann zeigt Kontivo die Frist rechtzeitig"
             : (r.contains(.sender) ? "dann ist die Kündigung startklar" : "dann sieht der Vertrag komplett aus")
         return Hint(title: r.count == 1 ? "1 Angabe fehlt noch" : "\(r.count) Angaben fehlen noch",
                     detail: r.map { $0.label }.joined(separator: " · ") + " – " + why, action: "Ergänzen ›")

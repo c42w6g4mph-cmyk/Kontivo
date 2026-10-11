@@ -64,14 +64,17 @@ final class RemindersTests: XCTestCase {
         let calc = Calc(data: data([c]), today: today)
         let dl = calc.reminderDeadline(for: c)
         XCTAssertEqual(dl?.kind, .trial)
-        XCTAssertEqual(dl?.date, Day(2026, 10, 15))
+        // Web v143 «ein Datum überall»: letzter Gratistag (Tag vor `trial`)
+        XCTAssertEqual(dl?.date, Day(2026, 10, 14))
         XCTAssertEqual(dl?.lastDay, Day(2026, 10, 14))
         // 7 Tage vor dem 14.10. ist vorbei → nur am letzten Tag
         let plan = Reminders.plan(calc: calc, leadDays: 7, minuteOfDay: 0)
         XCTAssertEqual(plan.map { $0.fireDay }, [Day(2026, 10, 14)])
-        XCTAssertEqual(plan[0].title, "Probeabo endet am 15. Oktober: Netflix")
-        XCTAssertEqual(plan[0].id, "kontivo.frist." + c.id.uuidString + ".trial.2026-10-15.0")
-        XCTAssertTrue(plan[0].body.contains("vor dem 15. Oktober beim Vertragspartner"))
+        XCTAssertEqual(plan[0].title, "Probeabo gratis bis 14. Oktober: Netflix")
+        XCTAssertEqual(plan[0].id, "kontivo.frist." + c.id.uuidString + ".trial.2026-10-14.0")
+        XCTAssertEqual(plan[0].body, "Heute ist der letzte Tag. Die Kündigung muss heute beim Vertragspartner sein, sonst läuft das Abo kostenpflichtig weiter.")
+        XCTAssertEqual(Reminders.calendarTitle(plan[0].deadline, contract: c, data: calc.data), "Letzter Gratistag: Netflix")
+        XCTAssertTrue(Reminders.calendarNotes(plan[0].deadline, contract: c, calc: calc).contains("Kündigung muss bis 14. Oktober 2026 sein."))
         XCTAssertEqual(Reminders.plan(calc: calc, leadDays: 3, minuteOfDay: 0).map { $0.fireDay }, [Day(2026, 10, 11), Day(2026, 10, 14)])
         // behalten → keine Erinnerung mehr
         var kept = c
@@ -124,14 +127,17 @@ final class RemindersTests: XCTestCase {
         XCTAssertEqual(calc.reminderDeadline(for: kept)?.date, Day(2027, 11, 30))
         XCTAssertEqual(calc.deadlineOverview().items.first?.sub, "Behalten · nächste Frist 30.11.27")
 
-        // Befristet ohne Verlängerung, behalten: «Behalten · läuft bis 31.12.», keine Erinnerung
+        // Befristet ohne Verlängerung, behalten: endet von selbst (Web v160 «Endet von selbst · endet 31.12.», vorher
+        // «Behalten · läuft bis»), keine Erinnerung
         var once = Contract(label: "Zeitung", amount: 20, cycle: 1, end: Day(2026, 12, 31), notice: 1, noticeUnit: .months)
         once.keptFor = Day(2026, 12, 31)
         let c2 = Calc(data: data([once]), today: today)
         let item = c2.deadlineOverview().items.first
-        XCTAssertEqual(item?.sub, "Behalten · läuft bis 31.12.")
+        XCTAssertEqual(item?.sub, "Endet von selbst")
+        XCTAssertEqual(item?.chip, "endet 31.12.")
         XCTAssertEqual(item?.date, Day(2026, 12, 31))
-        XCTAssertEqual(item?.chipLevel, .ok)
+        XCTAssertEqual(item?.chipLevel, .end)
+        XCTAssertEqual(item?.endsBySelf, true)
         XCTAssertNil(c2.reminderDeadline(for: once))
     }
 

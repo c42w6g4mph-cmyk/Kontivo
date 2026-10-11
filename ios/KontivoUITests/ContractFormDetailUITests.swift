@@ -38,7 +38,7 @@ final class ContractFormDetailUITests: KontivoUITestCase {
 
         // Nicht kündbar: keine Frist, kein Kündigungsweg
         tap(button("term.tax"), "Kachel Nicht kündbar")
-        wait(elContaining("Gebühren und Abgaben wie Serafe"), "Hinweis Nicht kündbar")
+        wait(elContaining("Gebühren und Abgaben wie die Rundfunkgebühr"), "Hinweis Nicht kündbar")
         waitGone(button("cancelWay.online"), "Kündigungsweg bei «Nicht kündbar»")
         XCTAssertFalse(textField("form.notice").exists, "Keine Frist bei «Nicht kündbar»")
 
@@ -64,8 +64,8 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         tap(button("cancelWay.online"), "Kündigungsweg Online")
         wait(textField("form.cancelURL"), "Feld Kündigungslink")
 
-        // «Erfassen» öffnet Weitere Angaben bei der Adresse
-        tap(button("cancelWay.registered"), "Kündigungsweg Einschreiben")
+        // «Erfassen» öffnet Weitere Angaben bei der Adresse (Web v145: nur noch Online · E-Mail · Brief)
+        tap(button("cancelWay.letter"), "Kündigungsweg Brief")
         tap(button("form.cancelAddr"), "Adresse erfassen")
         waitNav("Weitere Angaben")
         // ohne Vertragspartner: Hinweis unter der Adresse; Schalter aus «Erinnerung und Wechsel»
@@ -84,9 +84,9 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         wait(elContaining("Pflichtvertrag"), "Liste nennt Pflichtvertrag")
         wait(elContaining("Bitte kurz prüfen"), "Prüfhinweis")
         closeKeyboard()
-        let reg = button("cancelWay.registered")
-        reveal(reg, "Kachel Einschreiben")
-        XCTAssertTrue(reg.isSelected, "Katalog setzt Kündigungsweg Einschreiben")
+        let reg = button("cancelWay.letter")
+        reveal(reg, "Kachel Brief")
+        XCTAssertTrue(reg.isSelected, "Katalog setzt Kündigungsweg Brief (Web v145: Einschreiben = Brief)")
         ctShot("Formular – Katalog übernommen")
 
         let card = elContaining("Aus dem Katalog übernommen")
@@ -100,10 +100,10 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         }
         waitGone(elContaining("Aus dem Katalog übernommen"), "Karte nach Rückgängig")
         wait(buttonStarting("CSS übernehmen"), "Vorlage wieder angeboten")
-        reveal(button("cancelWay.registered"), "Kachel Einschreiben nach Rückgängig")
+        reveal(button("cancelWay.letter"), "Kachel Brief nach Rückgängig")
         ctShot("Formular – nach Rückgängig, Kündigungsweg")
         // Folgefeld «Adresse des Vertragspartners» verschwindet, wenn kein Kündigungsweg mehr gewählt ist
-        waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.registered").isSelected || !self.button("form.cancelAddr").exists }
+        waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.letter").isSelected || !self.button("form.cancelAddr").exists }
         ctShot("Formular – Katalog rückgängig")
     }
 

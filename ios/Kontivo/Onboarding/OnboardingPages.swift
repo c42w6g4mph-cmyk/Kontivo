@@ -98,7 +98,7 @@ struct OnbQuick: Identifiable {
 
     static let templates: [(label: String, category: String)] = [
         ("Miete", "Wohnen"), ("Strom", "Energie & Wasser"), ("Handy", "Mobilfunk & Internet"), ("Internet", "Mobilfunk & Internet"),
-        ("Streaming", "Abos & Medien"), ("Fitness", "Freizeit & Sport"), ("Kfz-Versicherung", "Versicherung"), ("Rundfunkbeitrag", "Steuern & Gebühren"),
+        ("Streaming", "Abos & Medien"), ("Fitness", "Freizeit & Sport"), ("Autoversicherung", "Versicherung"), ("Rundfunkgebühr", "Steuern & Gebühren"),
     ]
 
     /// Kategorie zur Vorlage: gleicher Name, sonst gleiche Standardkategorie (umbenannt), sonst «Sonstiges» (`obCat`).

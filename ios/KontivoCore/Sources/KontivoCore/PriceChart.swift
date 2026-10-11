@@ -1,8 +1,9 @@
 import Foundation
 
-// MARK: - Preisverlauf (Web `priceChart`, v99–v131)
+// MARK: - Preisverlauf (Web `priceChart`, v99–v131; v153 Beschriftung; v155 Einnahmen)
 
-/// Farbe einer Beschriftung bzw. der Plakette im Preisverlauf.
+/// Farbe einer Beschriftung bzw. der Plakette im Preisverlauf: `up` = ungünstig (rot), `down` = günstig (grün).
+/// Bei Verträgen ist teurer `up`; bei Einnahmen (Web `opt.inc`) ist mehr `down` (Farben umgekehrt).
 public enum PriceChartTone: String, Hashable, Sendable {
     case neutral, up, down
 }
@@ -20,6 +21,9 @@ public struct PriceChartPoint: Hashable, Sendable, Identifiable {
     public var isFuture: Bool
     /// Beschriftungen zeigen (von hinten nach vorn, nur mit genug Abstand zum nächsten beschrifteten Punkt)
     public var labeled: Bool
+    /// Preissenkung (Betrag kleiner als der vorherige): Zahl links bündig rechts neben die senkrechte Linie setzen,
+    /// sonst läge sie darauf (Web v153 `dropL`, text-anchor start, x + 5)
+    public var labelTrailing: Bool = false
     /// «59.90» bzw. «59,90» (EUR); Preis 0 → «gratis»
     public var valueText: String
     /// «01.03.27»; beim Anfangspreis ohne Vertragsbeginn «Anfang»
@@ -48,6 +52,7 @@ public struct PriceChart: Hashable, Sendable {
     /// Kopf links: «seit 01.03.24» bzw. «seit Anfang»
     public var sinceText: String
     /// Plakette: «geplant ab 01.03.27», «vorher gratis», «unverändert», «↑ 5 % teurer», «↓ 3 % günstiger»
+    /// (Einnahmen: «↑ 5 % mehr», «↓ 3 % weniger»)
     public var badgeText: String
     public var badgeTone: PriceChartTone
     /// «Preisverlauf von 59.90 auf 64.90 CHF»
@@ -55,18 +60,35 @@ public struct PriceChart: Hashable, Sendable {
 }
 
 extension Calc {
-    /// Breite der Web-Grafik (viewBox 320, Rand 4) für die Abstandsregel der Beschriftungen (66 Einheiten).
+    /// Breite der Web-Grafik (viewBox 320, Rand 4) für die Abstandsregel der Beschriftungen (Web v153: Lage mindestens 26
+    /// vom linken Rand, Abstand 54 Einheiten).
     static let priceChartWidth = 312.0
-    static let priceChartLabelGap = 66.0
+    static let priceChartLabelGap = 54.0
+    static let priceChartLabelMinX = 26.0
 
     /// Preisverlauf eines Vertrags (nur mit mindestens einer Preisänderung), 1:1 wie Web `priceChart`:
     /// Preise nach echtem Datum, Plakette = heute gegenüber dem Anfang (Entscheid: auch «unverändert», wenn zwischendurch geändert),
     /// Preis 0 als «gratis», nach einer Gratis-Phase keine Prozentangabe.
     public func priceChart(_ c: Contract) -> PriceChart? {
-        let ps = pricesOf(c)
+        priceChart(amount: c.amount, prices: c.prices, start: c.start, currency: c.currency, income: false)
+    }
+
+    /// Verlauf einer Einnahme (Web v155 `priceChart(c,{inc:1})`): «↑ 5 % mehr» / «↓ 3 % weniger», Farben umgekehrt.
+    public func priceChart(_ i: Income) -> PriceChart? {
+        priceChart(amount: i.amount, prices: i.prices, start: i.start, currency: i.currency, income: true)
+    }
+
+    /// Gemeinsame Rechnung (Formular: Entwurf mit eingetipptem Betrag, Web `draftPC`/`iDraftPC`).
+    public func priceChart(amount: Double, prices: [PriceChange], start: Day?, currency: Currency, income: Bool) -> PriceChart? {
+        let ps = Calc.sortedPrices(prices)
         guard let firstP = ps.first, let lastP = ps.last else { return nil }
         let t = today
-        let base0 = c.amount.isFinite ? c.amount : 0
+        let base0 = amount.isFinite ? amount : 0
+        // Tönung: Vertrag teurer = up (rot); Einnahme mehr = down (grün)
+        func toneOf(_ pc: Double) -> PriceChartTone {
+            if pc == 0 { return .neutral }
+            return (pc > 0) != income ? .up : .down
+        }
         // Zeit in Tagen ab der ersten Änderung (Bruchteile wie die Millisekunden der Web-App)
         let first = firstP.from, last = lastP.from
         func dn(_ d: Day) -> Double { Double(first.days(to: d)) }
@@ -74,7 +96,7 @@ extension Calc {
         var hasSt = false
         let stN: Double
         let stDay: Day
-        if let s = c.start, s < first {
+        if let s = start, s < first {
             hasSt = true
             stN = dn(s)
             stDay = s
@@ -102,14 +124,14 @@ extension Calc {
         mn -= pad
         mx += pad
 
-        // Beschriftung: von hinten nach vorn, nur mit genug Abstand
+        // Beschriftung: von hinten nach vorn, nur mit genug Abstand (Lage frühestens 26 vom Rand, Abstand 54)
         var show = Set<Int>()
         var lastX = 1e9
         for k in stride(from: raw.count - 1, through: 0, by: -1) {
-            let xk = X(raw[k].n) * Calc.priceChartWidth
-            if lastX - xk >= Calc.priceChartLabelGap {
+            let ck = Swift.max(X(raw[k].n) * Calc.priceChartWidth, Calc.priceChartLabelMinX)
+            if lastX - ck >= Calc.priceChartLabelGap {
                 show.insert(k)
-                lastX = xk
+                lastX = ck
             }
         }
         var points: [PriceChartPoint] = []
@@ -119,13 +141,15 @@ extension Calc {
             if i > 0 && raw[i - 1].a != 0 {
                 let pc = (p.a - raw[i - 1].a) / raw[i - 1].a * 100
                 pct = Format.pctText(pc)
-                tone = pc > 0 ? .up : (pc < 0 ? .down : .neutral)
+                tone = toneOf(pc)
             }
-            points.append(PriceChartPoint(index: i, date: p.d, amount: p.a, x: X(p.n), isNow: i == ni, isFuture: p.n > tN,
-                                          labeled: show.contains(i),
-                                          valueText: p.a != 0 ? Format.money(p.a, c.currency) : "gratis",
-                                          dateText: i > 0 || hasSt ? Format.fmtShort(p.d) : "Anfang",
-                                          pctText: pct, pctTone: tone))
+            var pt = PriceChartPoint(index: i, date: p.d, amount: p.a, x: X(p.n), isNow: i == ni, isFuture: p.n > tN,
+                                     labeled: show.contains(i),
+                                     valueText: p.a != 0 ? Format.money(p.a, currency) : "gratis",
+                                     dateText: i > 0 || hasSt ? Format.fmtShort(p.d) : "Anfang",
+                                     pctText: pct, pctTone: tone)
+            pt.labelTrailing = i > 0 && p.a < raw[i - 1].a
+            points.append(pt)
         }
 
         let planned = ni == 0
@@ -143,14 +167,14 @@ extension Calc {
         } else {
             var p = Format.pctText(Swift.abs(pct))
             if p.hasPrefix("+") || p.hasPrefix("±") { p.removeFirst() }
-            badge = (pct > 0 ? "↑ " : "↓ ") + p + (pct > 0 ? " teurer" : " günstiger")
-            bTone = pct > 0 ? .up : .down
+            badge = (pct > 0 ? "↑ " : "↓ ") + p + (income ? (pct > 0 ? " mehr" : " weniger") : (pct > 0 ? " teurer" : " günstiger"))
+            bTone = toneOf(pct)
         }
         return PriceChart(points: points, start: stDay, end: endDay, todayX: Swift.min(1, X(Swift.min(tN, endN))), nowIndex: ni,
                           minValue: mn, maxValue: mx,
                           sinceText: hasSt ? "seit " + Format.fmtShort(stDay) : "seit Anfang",
                           badgeText: badge, badgeTone: bTone,
-                          accessibilityLabel: "Preisverlauf von " + Format.money(base, c.currency) + " auf "
-                            + Format.money(raw[raw.count - 1].a, c.currency) + " " + c.currency.rawValue)
+                          accessibilityLabel: "Preisverlauf von " + Format.money(base, currency) + " auf "
+                            + Format.money(raw[raw.count - 1].a, currency) + " " + currency.rawValue)
     }
 }

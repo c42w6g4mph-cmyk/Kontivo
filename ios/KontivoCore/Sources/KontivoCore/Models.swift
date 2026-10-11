@@ -5,6 +5,17 @@ import Foundation
 public enum Currency: String, Codable, CaseIterable, Hashable, Sendable {
     case CHF, EUR, USD, GBP, TRY
 
+    /// Hauptwährung für den ersten Start aus den bevorzugten Sprachen (Web `locCur`, v156): die erste Sprache mit Region
+    /// -CH/-LI → CHF, -DE/-AT → EUR; sonst EUR. Aufruf mit `Locale.preferredLanguages` (z.B. ["de-CH", "en-US"]).
+    public static func onboardingDefault(preferredLanguages: [String]) -> Currency {
+        for l in preferredLanguages {
+            let u = l.uppercased()
+            if u.hasSuffix("-CH") || u.hasSuffix("-LI") { return .CHF }
+            if u.hasSuffix("-DE") || u.hasSuffix("-AT") { return .EUR }
+        }
+        return .EUR
+    }
+
     /// Anzeigename wie in der Einführung («Euro», «Franken» …).
     public var displayName: String {
         switch self {
@@ -27,29 +38,42 @@ public enum CancelTerm: String, Codable, CaseIterable, Hashable, Sendable {
     case anytime = "", period = "p", monthEnd = "m", quarterEnd = "q", halfYearEnd = "h", yearEnd = "y", contractYear = "a"
 }
 
-/// Kündigungsweg am Vertrag (Web: Text in `cancF`).
+/// Kündigungsweg am Vertrag (Web: Text in `cancF`). Seit Web v145 nur noch Online · E-Mail · Brief: «Einschreiben» ist
+/// gleich «Brief» (Tipp «eingeschrieben» steht im Kündigungsschreiben). Alte Daten mit "registered" bzw. «Einschreiben»
+/// werden beim Laden und Importieren zu `.letter` (Web `migVia`).
 public enum CancelChannel: String, Codable, CaseIterable, Hashable, Sendable {
-    case online, email, letter, registered
+    case online, email, letter
 
-    /// Text wie in der Web-App («Online / Kundenkonto», «E-Mail», «Brief», «Einschreiben»).
+    /// Text wie in der Web-App («Online / Kundenkonto», «E-Mail», «Brief»).
     public var webText: String {
         switch self {
         case .online: return "Online / Kundenkonto"
         case .email: return "E-Mail"
         case .letter: return "Brief"
-        case .registered: return "Einschreiben"
         }
     }
 
-    /// Umkehrung von `webText` (leer oder unbekannt → nil).
+    /// Umkehrung von `webText` (leer oder unbekannt → nil); «Einschreiben» → Brief (Web `migVia`).
     public init?(webText: String) {
         switch webText.trimmingCharacters(in: .whitespaces) {
         case "Online / Kundenkonto": self = .online
         case "E-Mail": self = .email
-        case "Brief": self = .letter
-        case "Einschreiben": self = .registered
+        case "Brief", "Einschreiben": self = .letter
         default: return nil
         }
+    }
+
+    /// Gespeicherter Wert lesen; das frühere "registered" (Einschreiben) wird zu `.letter`.
+    public init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        if raw == "registered" {
+            self = .letter
+            return
+        }
+        guard let v = CancelChannel(rawValue: raw) else {
+            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unbekannter Kündigungsweg " + raw))
+        }
+        self = v
     }
 }
 
@@ -68,17 +92,21 @@ public enum CategoryKind: String, Codable, CaseIterable, Hashable, Sendable {
 }
 
 /// Art einer Einnahme (fest, nicht verwaltbar). `sonstiges` entspricht «Sonstiges» der Web-App.
+/// Reihenfolge wie Web `INC_CATS` (v156: + Zulagen, Unterstützung, Rückerstattung).
 public enum IncomeKind: String, Codable, CaseIterable, Hashable, Sendable {
-    case lohn, nebeneinkommen, bonus, kapitalertraege, vermietung, rente, sonstiges
+    case lohn, nebeneinkommen, bonus, rente, zulagen, unterstuetzung, kapitalertraege, vermietung, rueckerstattung, sonstiges
 
     public var displayName: String {
         switch self {
         case .lohn: return "Lohn"
         case .nebeneinkommen: return "Nebeneinkommen"
         case .bonus: return "Bonus"
+        case .rente: return "Rente"
+        case .zulagen: return "Zulagen"
+        case .unterstuetzung: return "Unterstützung"
         case .kapitalertraege: return "Kapitalerträge"
         case .vermietung: return "Vermietung"
-        case .rente: return "Rente"
+        case .rueckerstattung: return "Rückerstattung"
         case .sonstiges: return "Sonstiges"
         }
     }
@@ -89,9 +117,12 @@ public enum IncomeKind: String, Codable, CaseIterable, Hashable, Sendable {
         case .lohn: return "#2E6A4E"
         case .nebeneinkommen: return "#0E5A5E"
         case .bonus: return "#8A6A1F"
+        case .rente: return "#B0562A"
+        case .zulagen: return "#B23A6F"
+        case .unterstuetzung: return "#3D6FA8"
         case .kapitalertraege: return "#1F4E8C"
         case .vermietung: return "#6B4E9E"
-        case .rente: return "#B0562A"
+        case .rueckerstattung: return "#5F7A2E"
         case .sonstiges: return "#5F666E"
         }
     }
@@ -103,6 +134,12 @@ public enum IncomeKind: String, Codable, CaseIterable, Hashable, Sendable {
     public init?(webName: String) {
         guard let k = IncomeKind.allCases.first(where: { $0.displayName == webName }) else { return nil }
         self = k
+    }
+
+    /// Gespeicherter Wert lesen; unbekannte Werte (z.B. aus einer neueren Version) → «Sonstiges» statt Fehler.
+    public init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = IncomeKind(rawValue: raw) ?? .sonstiges
     }
 }
 
@@ -338,6 +375,7 @@ public struct Category: Codable, Hashable, Identifiable, Sendable {
         "Mobilfunk & Internet": "#1F4E8C", "Abos & Medien": "#A93227", "Mobilität": "#3F4A55", "Familie & Bildung": "#2F86A6",
         "Freizeit & Sport": "#2E6A4E", "Steuern & Gebühren": "#6E7B3A", "Finanzen": "#8A6A1F", "Sonstiges": "#5F666E",
         "Lohn": "#2E6A4E", "Nebeneinkommen": "#0E5A5E", "Bonus": "#8A6A1F", "Kapitalerträge": "#1F4E8C", "Vermietung": "#6B4E9E", "Rente": "#B0562A",
+        "Zulagen": "#B23A6F", "Unterstützung": "#3D6FA8", "Rückerstattung": "#5F7A2E",
     ]
 
     /// Hash-Farben für Marken ohne Kategorie (COLORS); auch Startfarbe neuer Kategorien.
@@ -538,7 +576,7 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
     public var mandatory: Bool
     /// Frist nicht beobachten.
     public var noWatch: Bool
-    /// Nicht kündbar (z.B. Serafe, Rundfunkbeitrag); Steuern & Gebühren gelten automatisch als nicht kündbar (`Calc.isFixed`).
+    /// Nicht kündbar (z.B. Rundfunkgebühr); Steuern & Gebühren gelten automatisch als nicht kündbar (`Calc.isFixed`).
     public var noCancel: Bool
     /// Mietvertrag (Schriftform). nil = Heuristik `Letter.isRentHeuristic`.
     public var isRent: Bool?
@@ -549,7 +587,7 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
     public var payAccount: String
     public var cancelChannel: CancelChannel?
     public var cancelURL: String
-    /// Probeabo endet am
+    /// Probeabo: erster kostenpflichtiger Tag (gratis bis zum Vortag, `Calc.trialLast`)
     public var trial: Day?
     /// Probeabo behalten (= trial, wenn entschieden)
     public var trialKept: Day?
@@ -962,6 +1000,25 @@ public struct AppData: Codable, Hashable, Sendable {
 
     /// Name des Vertragspartners oder "".
     public func partnerName(of c: Contract) -> String { partner(c.partnerID)?.name ?? "" }
+
+    /// Vertragspartner als Zusatz hinter dem Titel (Web `partnerOf`, v143: Fristen, Quartals-Check): nur mit Bezeichnung und
+    /// wenn die Bezeichnung den Vertragspartner nicht schon nennt («Musik · Spotify»), sonst "".
+    public func partnerSuffix(of c: Contract) -> String {
+        let p = partnerName(of: c).trimmingCharacters(in: .whitespacesAndNewlines)
+        let l = c.label.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !p.isEmpty && !l.isEmpty && !l.lowercased().contains(p.lowercased()) ? p : ""
+    }
+
+    /// Währung eines bekannten Vertragspartners (Web v156, Formular «Vertragspartner» geändert): alle eigenen Verträge mit
+    /// gleichem Namen (Schlüssel `Partners.pkey`, ohne `excluding`) in derselben Währung → diese, sonst nil.
+    /// Nur für neue Verträge ohne Betrag übernehmen.
+    public func knownPartnerCurrency(name: String, excluding: UUID? = nil) -> Currency? {
+        let key = Partners.pkey(name)
+        if key.isEmpty { return nil }
+        var found: Set<Currency> = []
+        for c in contracts where c.id != excluding && Partners.pkey(partnerName(of: c)) == key { found.insert(c.currency) }
+        return found.count == 1 ? found.first : nil
+    }
 
     /// Namen der Inhaber in Reihenfolge der Zuordnung.
     public func holderNames(of c: Contract) -> [String] { c.holderIDs.compactMap { person($0)?.name } }

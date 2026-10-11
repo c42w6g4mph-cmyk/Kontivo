@@ -255,10 +255,11 @@ extension Calc {
 
     public struct KBPopupRow: Hashable, Identifiable, Sendable {
         public var contractID: UUID
-        /// Titel + « · Anteil x %» (gemeinsamer Vertrag bei Inhaber) + « · pausiert»
+        /// Titel + « · Anteil x %» (gemeinsamer Vertrag bei Inhaber) + « · pausiert» bzw. « · Probeabo» (Web v157)
         public var text: String
         /// Monatskosten × Anteil (Hauptwährung)
         public var value: Double
+        /// Zählt nicht in der Summe (pausiert oder laufendes Probeabo), blass
         public var paused: Bool
         public var id: UUID { contractID }
     }
@@ -282,11 +283,12 @@ extension Calc {
         var sum = 0.0
         var rows: [KBPopupRow] = []
         for c in act {
-            let off = isPaused(c)
+            // laufendes Probeabo zählt (noch) nicht (Web v157)
+            let off = isPaused(c) || trialOn(c)
             let f = dim == .holder ? holderShare(c, person: personID) : 1
             let v = monthlyCost(c) * f
             if !off { sum += v }
-            let text = data.title(of: c) + (f < 1 ? " · " + Format.shareText(f) : "") + (off ? " · pausiert" : "")
+            let text = data.title(of: c) + (f < 1 ? " · " + Format.shareText(f) : "") + (off ? (isPaused(c) ? " · pausiert" : " · Probeabo") : "")
             rows.append(KBPopupRow(contractID: c.id, text: text, value: v, paused: off))
         }
         let nOld = all.count - act.count
@@ -384,13 +386,30 @@ extension Calc {
         return budgetMonthComparison(year: year, month: month, person: person, free: free)
     }
 
-    /// Satz der Leerseite «Budget» (`budgetEmpty`).
+    /// Satz der Leerseite «Budget» (`budgetEmpty`, Web v156/v157): laufende, begonnene Verträge ohne laufendes Probeabo.
     public func kbBudgetEmptyText() -> String {
-        let h = hero()
-        if h.activeCount > 0 {
-            return "Deine Fixkosten sind schon da: " + Format.money(h.monthlyTotal) + " " + home.rawValue + " im Monat. Es fehlt nur dein Lohn."
+        let act = running.filter { !notStarted($0) && !trialOn($0) }
+        if !act.isEmpty {
+            let fix = act.reduce(0.0) { $0 + monthlyCost($1) }
+            return "Deine Fixkosten sind schon da: " + Format.money(fix) + " " + home.rawValue + " im Monat. Es fehlen nur deine Einnahmen."
         }
-        return "Trag deinen Lohn ein, die Fixkosten kommen aus deinen Verträgen."
+        return "Trag deine Einnahmen ein, z.B. Lohn, Rente oder Stipendium. Die Fixkosten kommen aus deinen Verträgen."
+    }
+
+    /// Zweitzeile einer Einnahme in «Einnahmen {Monat}» (Web v156/v159): Empfänger (bei mehreren Personen) · Rhythmus,
+    /// wenn nicht monatlich («einmalig», «quartalsweise», «jährlich im Oktober»). "" = keine Zweitzeile.
+    public func kbIncomeSubline(_ i: Income) -> String {
+        var s: [String] = []
+        if data.persons.count > 1, let h = i.holderID, let p = data.person(h) { s.append(p.name) }
+        let cy = i.cycle
+        if cy != 1 {
+            if cy == 0 {
+                s.append("einmalig")
+            } else {
+                s.append((Format.incomeCycleTexts[cy] ?? "") + (cy >= 12 && i.due != nil ? " im " + Format.monthNames[(i.due ?? today).month - 1] : ""))
+            }
+        }
+        return s.joined(separator: " · ")
     }
 }
 

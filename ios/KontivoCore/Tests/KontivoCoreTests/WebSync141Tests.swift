@@ -18,7 +18,13 @@ final class WebSync141Tests: XCTestCase {
     // MARK: Zahlenformat
 
     func testMoneyByCurrency() {
+        // Web v144: Format nur nach der Hauptwährung, die Vertragswährung ändert es nicht
         XCTAssertEqual(Format.money(1234.5, .CHF), "1’234.50")
+        XCTAssertEqual(Format.money(1234.5, .EUR), "1’234.50")
+        XCTAssertEqual(Format.money(-1234.5, .EUR), "\u{2212}1’234.50")
+        XCTAssertEqual(Format.money(1234.5, .USD), "1’234.50")
+        XCTAssertEqual(Format.money(1234.5), "1’234.50")
+        Format.homeCurrency = .EUR
         XCTAssertEqual(Format.money(1234.5, .EUR), "1.234,50")
         XCTAssertEqual(Format.money(-1234.5, .EUR), "\u{2212}1.234,50")
         XCTAssertEqual(Format.money(20, .EUR), "20,00")
@@ -26,13 +32,9 @@ final class WebSync141Tests: XCTestCase {
         XCTAssertEqual(Format.money0(1234.5, .EUR), "1.235")
         XCTAssertEqual(Format.moneySigned(3, plus: true, currency: .EUR), "+3,00")
         XCTAssertEqual(Format.number(12345.67, maxFractionDigits: 1, currency: .EUR), "12.345,7")
-        // USD/GBP/TRY und Summen ohne Währung nach der Hauptwährung
-        XCTAssertEqual(Format.money(1234.5, .USD), "1’234.50")
-        XCTAssertEqual(Format.money(1234.5), "1’234.50")
-        Format.homeCurrency = .EUR
         XCTAssertEqual(Format.money(1234.5, .USD), "1.234,50")
         XCTAssertEqual(Format.money(1234.5), "1.234,50")
-        XCTAssertEqual(Format.money(1234.5, .CHF), "1’234.50")
+        XCTAssertEqual(Format.money(1234.5, .CHF), "1.234,50")
         XCTAssertEqual(Format.pctText(0.5), "+0,5 %")
     }
 
@@ -55,8 +57,11 @@ final class WebSync141Tests: XCTestCase {
 
     func testAmountInputAndParse() {
         XCTAssertEqual(Format.amountInput(59.9, .CHF), "59.90")
+        XCTAssertEqual(Format.amountInput(59.9, .EUR), "59.90") // Web v144: nach der Hauptwährung
+        Format.homeCurrency = .EUR
         XCTAssertEqual(Format.amountInput(59.9, .EUR), "59,90")
-        XCTAssertEqual(Format.amountInput(1234.5, .EUR), "1234,50")
+        XCTAssertEqual(Format.amountInput(1234.5, .CHF), "1234,50")
+        Format.homeCurrency = .CHF
         // Geld hat nie 3 Nachkommastellen: «1.234» und «1,234» sind Tausender
         XCTAssertEqual(Format.parseAmount("1.234"), 1234)
         XCTAssertEqual(Format.parseAmount("1,234"), 1234)
@@ -100,9 +105,11 @@ final class WebSync141Tests: XCTestCase {
         let calc = Calc(data: d, today: Day(2026, 10, 7))
         let it = calc.deadlineOverview().items
         XCTAssertEqual(it.count, 1)
-        XCTAssertEqual(it.first?.kind, .keptEnd)
-        XCTAssertEqual(it.first?.sub, "Behalten · läuft bis 31.12.")
-        XCTAssertEqual(it.first?.chipLevel, .ok)
+        // Web v160: feste Laufzeit ohne Verlängerung endet von selbst (geht «Behalten · läuft bis» vor)
+        XCTAssertEqual(it.first?.kind, .ended)
+        XCTAssertEqual(it.first?.sub, "Endet von selbst")
+        XCTAssertEqual(it.first?.chip, "endet 31.12.")
+        XCTAssertEqual(it.first?.chipLevel, .end)
         XCTAssertEqual(it.first?.showActions, false)
         // mit Verlängerung: nächste Frist
         d.contracts[0].renewMonths = 12
@@ -152,7 +159,7 @@ final class WebSync141Tests: XCTestCase {
 
         let p5 = chart(Contract(amount: 1000, currency: .EUR, cycle: 1, prices: [PriceChange(from: Day(2026, 5, 1), amount: 1004.5)]))
         XCTAssertEqual(p5?.badgeText, "↑ 0.4 % teurer")
-        XCTAssertEqual(p5?.accessibilityLabel, "Preisverlauf von 1.000,00 auf 1.004,50 EUR")
+        XCTAssertEqual(p5?.accessibilityLabel, "Preisverlauf von 1’000.00 auf 1’004.50 EUR") // Web v144: Hauptwährung CHF
 
         // nach einer Gratis-Phase keine Prozentangabe; heute gratis → «↓ 100 % günstiger»
         let p6 = chart(Contract(amount: 30, cycle: 1, start: Day(2020, 1, 1),
@@ -181,11 +188,11 @@ final class WebSync141Tests: XCTestCase {
         c.cancelledOn = Day(2026, 9, 10)
         c.keptFor = Day(2026, 12, 31)
         c.pauses = [Pause(from: Day(2026, 9, 1), until: Day(2027, 1, 31))]
-        d.contracts = [c, Contract(label: "Serafe", amount: 28, cycle: 3, noCancel: true, holderIDs: [h])]
+        d.contracts = [c, Contract(label: "Rundfunkgebühr", amount: 28, cycle: 3, noCancel: true, holderIDs: [h])]
         let rows = CSV.parse(CSV.export(d, today: Day(2026, 10, 3)))
         let head = rows[0]
-        XCTAssertEqual(Array(head.suffix(9)), ["NichtKuendbar", "Probeabo", "GekuendigtPer", "GekuendigtAm", "NichtErinnern", "BehaltenBis",
-                                              "PausiertSeit", "PausiertBis", "ProbeaboBehalten"])
+        XCTAssertEqual(Array(head.suffix(10)), ["NichtKuendbar", "Probeabo", "GekuendigtPer", "GekuendigtAm", "NichtErinnern", "BehaltenBis",
+                                               "PausiertSeit", "PausiertBis", "ProbeaboBehalten", "Zahlungsanker"])
         func v(_ r: [String], _ k: String) -> String { r[head.firstIndex(of: k)!] }
         XCTAssertEqual(v(rows[1], "Ende"), "2025-11-30")
         XCTAssertEqual(v(rows[1], "Probeabo"), "2026-10-20")
@@ -210,7 +217,7 @@ final class WebSync141Tests: XCTestCase {
         c.cancelledOn = Day(2026, 9, 10)
         c.keptFor = Day(2026, 12, 31)
         c.pauses = [Pause(from: Day(2026, 9, 1), until: Day(2027, 1, 31))]
-        let tax = Contract(label: "Serafe", amount: 28, cycle: 3, noCancel: true, holderIDs: [h])
+        let tax = Contract(label: "Rundfunkgebühr", amount: 28, cycle: 3, noCancel: true, holderIDs: [h])
         // abgelaufen, verlängert sich aber automatisch: bleibt aktiv; ohne Verlängerung ins Archiv
         let renew = Contract(label: "Zeitung", amount: 30, cycle: 12, due: Day(2027, 1, 1), end: Day(2025, 12, 31), notice: 3, renewMonths: 12, holderIDs: [h])
         let gone = Contract(label: "Kurs", amount: 50, cycle: 1, due: Day(2026, 1, 1), end: Day(2026, 3, 31), holderIDs: [h])
@@ -245,7 +252,7 @@ final class WebSync141Tests: XCTestCase {
     }
 
     func testCSVVia() {
-        XCTAssertEqual(CSV.via("Per Einschreiben"), .registered)
+        XCTAssertEqual(CSV.via("Per Einschreiben"), .letter) // Web v145
         XCTAssertEqual(CSV.via("Brief"), .letter)
         XCTAssertEqual(CSV.via("post"), .letter)
         XCTAssertEqual(CSV.via("E-Mail"), .email)
@@ -276,7 +283,7 @@ final class WebSync141Tests: XCTestCase {
         XCTAssertEqual(MutationError.duplicatePerson(UUID()).message, "Diese Person gibt es schon")
         XCTAssertEqual(MutationError.lastPerson.message, "Mindestens eine Person ist nötig")
         XCTAssertEqual(Quality.checklist[0].rows.map { $0.title }, ["Person", "Betrag", "Kategorie", "Zahlungsrhythmus", "Einnahmen: Betrag, Person"])
-        XCTAssertEqual(CSV.header(home: .CHF)[17], "Inhaber")
+        XCTAssertEqual(CSV.header(home: .CHF)[17], "Personen") // Web v156
         let d = AppData.initial()
         XCTAssertEqual(d.holderChoiceToast(title: "Handy", holderIDs: []), "Handy → ohne Person")
     }

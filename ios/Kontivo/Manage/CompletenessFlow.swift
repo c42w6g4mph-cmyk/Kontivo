@@ -76,7 +76,9 @@ final class CompletenessFlowState {
             next(from: .start, model)
         } else {
             auto = Completeness.autoPlan(model.data, today: model.today)
-            if n.total > 0 && n.questionCount == 0 && auto.isEmpty { step = .end }
+            // Logos zählen seit Web v143 nicht mehr als Frage; bis die Seite «Alles startklar!» gebaut ist, bleibt der Start
+            // mit optionalen Logos erhalten
+            if n.total > 0 && n.questionCount == 0 && n.logoPartners.isEmpty && auto.isEmpty { step = .end }
         }
     }
 

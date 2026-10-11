@@ -14,7 +14,7 @@ public struct LetterParts: Hashable, Sendable {
     /// Ort der Datumszeile (Ort des ersten Unterzeichners)
     public var city: String
     public var subject: String
-    /// «Kundennummer: …», «Vertragsnummer: …»
+    /// «Kundennummer: …», «Vertragsnummer: …» (bzw. «Rufnummer»/«Policennummer»/«Versichertennummer», `Letter.contractNumberLabel`)
     public var references: [String]
     public var body: String
     /// Kündigungsfrist (muss bis dann beim Vertragspartner sein)
@@ -37,6 +37,40 @@ public enum Letter {
         if ["miete", "mietvertrag", "mietzins", "wohnungsmiete", "mietwohnung", "untermiete", "nebenkosten"].contains(where: { t.contains($0) }) { return true }
         if kind == .housing && ["wohnung", "zimmer", "apartment", "vermiet", "verwaltung", "immobilien"].contains(where: { t.contains($0) }) { return true }
         return false
+    }
+
+    /// Beschriftung der Vertragsnummer (Web `contrLbl`, v145/v153): Krankenkasse/Grundversicherung → «Versichertennummer»,
+    /// Kategorie Versicherung oder «versicherung»/«police» → «Policennummer», Handy (nur Bezeichnung/Vertragspartner) →
+    /// «Rufnummer», sonst «Vertragsnummer». Gespeichert wird immer in `contractNo`; gleiche Beschriftung in Formular, Ansicht und Brief.
+    public static func contractNumberLabel(label: String, partner: String, categoryName: String, categoryKind: CategoryKind?) -> String {
+        let t = (label + " " + categoryName).lowercased()
+        if RX.test("krankenkasse|krankenversicher|grundversicherung", t) { return "Versichertennummer" }
+        if categoryKind == .insurance || RX.test("versicherung|police", t) { return "Policennummer" }
+        if RX.test("handy|natel|smartphone|prepaid|sim-?karte|mobilfunk-?abo|mobile abo", (label + " " + partner).lowercased()) { return "Rufnummer" }
+        return "Vertragsnummer"
+    }
+
+    /// `contractNumberLabel` für einen Vertrag.
+    public static func contractNumberLabel(_ c: Contract, data: AppData) -> String {
+        let cat = data.category(c.categoryID)
+        return contractNumberLabel(label: c.label, partner: data.partnerName(of: c), categoryName: cat?.name ?? "", categoryKind: cat?.kind)
+    }
+
+    /// Alle Beschriftungen, die als Referenzzeile vor dem Brieftext stehen können (Web `REF_RE`).
+    public static let referenceLabels = ["Kundennummer", "Vertragsnummer", "Rufnummer", "Policennummer", "Versichertennummer"]
+
+    /// Hinweis Grundversicherung (Web `#ltKvg`, v156): nur bei CHF und Krankenkasse/Grundversicherung/KVG in Bezeichnung,
+    /// Vertragspartner oder Kategorie.
+    public static let kvgHint = "Grundversicherung (KVG): Die Kündigung wird erst gültig, wenn die neue Krankenkasse deine Aufnahme bestätigt hat – sonst bleibst du beim bisherigen Versicherer."
+
+    public static func showsKvgHint(_ c: Contract, data: AppData) -> Bool {
+        c.currency == .CHF && RX.test("krankenkass|grundversich|kvg", [c.label, data.partnerName(of: c), data.category(c.categoryID)?.name ?? ""].joined(separator: " "), ignoreCase: true)
+    }
+
+    /// «Fehlt noch — wird beim Vertrag gespeichert» erst zeigen, wenn Kunden- UND Vertragsnummer fehlen (Web v156);
+    /// darin dann die Felder, die leer sind.
+    public static func showsMissingNumbers(_ c: Contract) -> Bool {
+        c.customerNo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && c.contractNo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     /// Standard-Unterzeichnende: Inhaber des Vertrags; ohne Inhaber bei genau einer Person diese, sonst niemand.
@@ -101,15 +135,20 @@ public enum Letter {
         to += al
         var refs: [String] = []
         if !c.customerNo.isEmpty { refs.append("Kundennummer: " + c.customerNo) }
-        if !c.contractNo.isEmpty { refs.append("Vertragsnummer: " + c.contractNo) }
+        if !c.contractNo.isEmpty { refs.append(contractNumberLabel(c, data: data) + ": " + c.contractNo) }
         let e = calc.termEnd(c)
         let d = calc.noticeDeadline(c)
         let we = ps.count > 1
-        let body = "Sehr geehrte Damen und Herren\n\nhiermit " + (we ? "kündigen wir" : "kündige ich") + " den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"
+        let body = salutation(c.currency) + "\n\n" + (c.currency == .EUR ? "hiermit " : "Hiermit ") + (we ? "kündigen wir" : "kündige ich") + " den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"
             + (e != nil ? ", nach " + (we ? "unserer" : "meiner") + " Berechnung zum " + Format.fmtD(e) : "") + ".\n\n"
             + "Bitte bestätigen Sie " + (we ? "uns" : "mir") + " die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse"
         return LetterParts(names: ps.map { $0.name }, signers: sg, sender: sender, senderCut: sCut, to: to, city: ps.first?.city ?? "",
                            subject: subject(c, data: data), references: refs, body: body, deadline: d)
+    }
+
+    /// Anrede (Web v156): Deutschland (EUR) mit Komma und danach klein («hiermit»), Schweiz ohne Komma, danach gross.
+    public static func salutation(_ currency: Currency) -> String {
+        "Sehr geehrte Damen und Herren" + (currency == .EUR ? "," : "")
     }
 
     /// Betreff «Kündigung <Bezeichnung oder Vertragspartner>[ bei <Vertragspartner>]»;
@@ -162,7 +201,7 @@ public enum Letter {
 
     /// Text der Rückfrage bei unvollständigem Absender.
     public static func missingSenderText(_ names: [String]) -> String {
-        "Bei " + names.joined(separator: " und ") + " fehlt die Adresse. Der Anbieter kann die Kündigung so schlechter zuordnen."
+        "Bei " + names.joined(separator: " und ") + " fehlt die Adresse. Der Vertragspartner kann die Kündigung so schlechter zuordnen."
     }
 
     /// Mailtext («Als E-Mail-Text»): Referenzen, Text, Namen (+ Absenderzeilen ab der zweiten).
@@ -171,16 +210,55 @@ public enum Letter {
         return [references.joined(separator: "\n"), body, namesBlock].filter { !$0.isEmpty }.joined(separator: "\n\n")
     }
 
-    /// Mailtext für «Per E-Mail kündigen» aus dem Detail: Referenzen, Text, Namen.
+    /// Mailtext für «Per E-Mail kündigen» aus dem Detail (Web v143): Referenzen, Text, Namen und – mit Unterzeichnenden –
+    /// die Adresszeilen des Absenders (ab der zweiten Zeile).
     public static func directMailText(_ parts: LetterParts) -> String {
-        [parts.references.joined(separator: "\n"), parts.body, parts.names.joined(separator: "\n")].filter { !$0.isEmpty }.joined(separator: "\n\n")
+        let names = parts.names.joined(separator: "\n") + (parts.sender.count > 1 && !parts.signers.isEmpty ? "\n" + parts.sender.dropFirst().joined(separator: "\n") : "")
+        return [parts.references.joined(separator: "\n"), parts.body, names].filter { !$0.isEmpty }.joined(separator: "\n\n")
     }
 
-    /// Referenzzeilen am Anfang eines bearbeiteten Texts abtrennen («Kundennummer: », «Vertragsnummer: »).
+    /// Prüfung vor «Per E-Mail kündigen» (Web v143, gleiche Regeln wie beim Brief), in dieser Reihenfolge.
+    public enum MailCheck: Equatable, Sendable {
+        /// Keine Person beim Vertrag: «Wer kündigt?» – «Person eintragen» / «Trotzdem senden»
+        case noSigner
+        /// Absender ohne Adresse: «Absender unvollständig» – «Adresse ergänzen» (erste Person) / «Trotzdem senden»
+        case senderIncomplete([UUID])
+        /// Weder Kunden- noch Vertragsnummer: «Kundennummer fehlt» – «Nummer eintragen» / «Ohne senden»
+        case numberMissing
+    }
+
+    /// Offene Rückfragen vor dem Mailversand (Web: nacheinander, «Trotzdem/Ohne senden» geht zur nächsten).
+    public static func mailChecks(_ c: Contract, data: AppData) -> [MailCheck] {
+        var out: [MailCheck] = []
+        let sg = defaultSigners(c, data: data)
+        if sg.isEmpty {
+            out.append(.noSigner)
+        } else {
+            let miss = signersMissingAddress(sg, data: data)
+            if !miss.isEmpty { out.append(.senderIncomplete(miss)) }
+        }
+        if c.customerNo.isEmpty && c.contractNo.isEmpty { out.append(.numberMissing) }
+        return out
+    }
+
+    /// Titel, Text und Knöpfe der Rückfragen (Web v143).
+    public static func mailCheckTexts(_ check: MailCheck, data: AppData) -> (title: String, text: String, ok: String, no: String) {
+        switch check {
+        case .noSigner:
+            return ("Wer kündigt?", "Beim Vertrag ist keine Person hinterlegt. Ohne Namen und Adresse kann der Vertragspartner die Kündigung schlecht zuordnen.",
+                    "Person eintragen", "Trotzdem senden")
+        case .senderIncomplete(let ids):
+            return ("Absender unvollständig", missingSenderText(ids.compactMap { data.person($0)?.name }), "Adresse ergänzen", "Trotzdem senden")
+        case .numberMissing:
+            return ("Kundennummer fehlt", "Mit Kunden- oder Vertragsnummer kann der Vertragspartner die Kündigung sicher zuordnen.", "Nummer eintragen", "Ohne senden")
+        }
+    }
+
+    /// Referenzzeilen am Anfang eines bearbeiteten Texts abtrennen («Kundennummer: », «Vertragsnummer: », «Rufnummer: » …, Web `REF_RE`).
     public static func splitReferences(_ text: String) -> (references: [String], body: String) {
         var lines = text.components(separatedBy: "\n")
         var refs: [String] = []
-        while let f = lines.first, f.hasPrefix("Kundennummer: ") || f.hasPrefix("Vertragsnummer: ") {
+        while let f = lines.first, referenceLabels.contains(where: { f.hasPrefix($0 + ": ") }) {
             refs.append(f)
             lines.removeFirst()
         }

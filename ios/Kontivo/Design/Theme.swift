@@ -67,6 +67,9 @@ enum KIcon {
         case "Kapitalerträge": return "chart.line.uptrend.xyaxis"
         case "Vermietung": return "key"
         case "Rente": return "hourglass"
+        case "Zulagen": return "person.badge.plus"
+        case "Unterstützung": return "heart"
+        case "Rückerstattung": return "arrow.uturn.backward.circle"
         default: return "tag"
         }
     }

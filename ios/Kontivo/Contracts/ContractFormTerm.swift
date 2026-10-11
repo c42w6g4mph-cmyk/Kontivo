@@ -185,8 +185,9 @@ struct CTFormTermSection: View {
     }
 }
 
-/// «Kündigungsweg»: 4 Kacheln (nochmals tippen hebt die Wahl auf) und genau ein Folgefeld:
-/// Online → Kündigungslink, E-Mail → E-Mail-Adresse (gleich wie Kontakt-E-Mail), Brief/Einschreiben → Adresse des Vertragspartners.
+/// «Kündigungsweg»: 3 Kacheln (nochmals tippen hebt die Wahl auf) und genau ein Folgefeld:
+/// Online → Kündigungslink, E-Mail → E-Mail-Adresse (gleich wie Kontakt-E-Mail), Brief → Adresse des Vertragspartners.
+/// (Web v145: «Einschreiben» entfällt, gleich wie Brief.)
 private struct CTFormCancelWaySection: View {
     @Bindable var form: CTFormState
     @Binding var showMore: Bool
@@ -195,7 +196,6 @@ private struct CTFormCancelWaySection: View {
         CTTileItem(value: .online, title: "Online", symbol: "globe"),
         CTTileItem(value: .email, title: "E-Mail", symbol: "envelope"),
         CTTileItem(value: .letter, title: "Brief", symbol: "doc.text"),
-        CTTileItem(value: .registered, title: "Einschreiben", symbol: "checkmark.seal"),
     ]
 
     var body: some View {
@@ -218,7 +218,7 @@ private struct CTFormCancelWaySection: View {
             case .email:
                 CTField(title: "E-Mail-Adresse für die Kündigung", placeholder: "kuendigung@anbieter.ch", text: $form.mail,
                         keyboard: .emailAddress, capitalization: .never, autocorrect: false, identifier: "form.cancelMail")
-            case .letter, .registered:
+            case .letter:
                 addressRow
             case nil:
                 EmptyView()

@@ -214,8 +214,9 @@ private struct CTFilterPopup: View {
         let act = all.filter { $0.status != .cancelled && !calc.isEnded($0) }
             .ctStableSorted { calc.monthlyCost($0) > calc.monthlyCost($1) }
         let nOld = all.count - act.count
+        // laufendes Probeabo zählt (noch) nicht (Web v157)
         let sum = act.reduce(0.0) { s, c in
-            calc.isPaused(c) ? s : s + calc.monthlyCost(c) * (dim == .holder ? calc.holderShare(c, person: person) : 1)
+            (calc.isPaused(c) || calc.trialOn(c)) ? s : s + calc.monthlyCost(c) * (dim == .holder ? calc.holderShare(c, person: person) : 1)
         }
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
@@ -228,10 +229,10 @@ private struct CTFilterPopup: View {
             } else {
                 ForEach(act) { c in
                     let f = dim == .holder ? calc.holderShare(c, person: person) : 1
-                    let off = calc.isPaused(c)
+                    let off = calc.isPaused(c) || calc.trialOn(c)
                     HStack(spacing: 10) {
                         MarkView(contract: c, data: data, size: 28)
-                        Text(data.title(of: c) + (f < 1 ? " · " + Format.shareText(f) : "") + (off ? " · pausiert" : ""))
+                        Text(data.title(of: c) + (f < 1 ? " · " + Format.shareText(f) : "") + (off ? (calc.isPaused(c) ? " · pausiert" : " · Probeabo") : ""))
                             .font(.subheadline)
                             .lineLimit(1)
                         Spacer(minLength: 6)

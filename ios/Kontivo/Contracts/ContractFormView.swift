@@ -235,7 +235,7 @@ private struct CTFormContractSection: View {
     @State private var showTaxInfo = false
 
     /// Text des Infoknopfs hinter «Steuern & Gebühren» (Web TAX_INFO, v88)
-    static let taxInfo = "Steuern und Gebühren (z.B. Serafe, Rundfunkbeitrag, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge: unter «Laufzeit & Kündigung» die Kachel «Nicht kündbar» wählen."
+    static let taxInfo = ContractFormRules.taxInfo
 
     private var categoryRow: some View {
         let cat = model.data.category(form.categoryID)

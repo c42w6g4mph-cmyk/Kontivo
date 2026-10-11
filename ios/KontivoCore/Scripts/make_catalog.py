@@ -4,7 +4,7 @@ Aufruf (im Ordner ios/KontivoCore):  python3 Scripts/make_catalog.py
 Liest die Konstanten H_* und das Array TPL («Anbieterkatalog Schweiz / Deutschland») aus ../../index.html,
 löst die Hinweis-Konstanten als Text auf und schreibt ein JSON-Array mit benannten Feldern:
 name, country ("" = international), category (Name der Vorbelegung), label, web, notice, noticeUnit (m|w|d|k),
-cancelTerm (""|p|m|q|h|y|a), cancelChannel (online|email|letter|registered|null), mandatory, hint, cancelURL (12. Feld, "" = keiner),
+cancelTerm (""|p|m|q|h|y|a), cancelChannel (online|email|letter|null; «Einschreiben» → letter), mandatory, hint, cancelURL (12. Feld, "" = keiner),
 address (13. Feld, mehrzeilig wie c.addr), mail (14.), tel (15.), confirmed (16.: 1 = Kontaktdaten aus offizieller Quelle; fehlt = 1).
 Bereinigung (Inventar 2, F10): die Zahl 0 im Feld «Kündigungsweg» wird zu null.
 """
@@ -29,7 +29,7 @@ arr = arr[:arr.rindex("];") + 1]
 # JS-Array-Literal ist (mit den H_*-Namen) gültiges Python
 rows = eval(arr, {"__builtins__": {}}, dict(consts))
 
-CHANNEL = {"Online / Kundenkonto": "online", "E-Mail": "email", "Brief": "letter", "Einschreiben": "registered"}
+CHANNEL = {"Online / Kundenkonto": "online", "E-Mail": "email", "Brief": "letter", "Einschreiben": "letter"}  # v145: Einschreiben = Brief
 out = []
 for r in rows:
     name, cc, cat, lab, web, no, nu, tm, cf, md, hint = r[:11]

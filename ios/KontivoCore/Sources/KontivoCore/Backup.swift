@@ -48,10 +48,21 @@ public struct BackupImportResult: Sendable {
 }
 
 public enum BackupError: Error, Equatable {
-    /// Keine gültige Backup-Datei
+    /// Keine gültige Backup-Datei (auch falsche Struktur, Web v143)
     case invalidFile
     /// Backup einer neueren App-Version
     case unsupportedVersion(Int)
+    /// Weder Verträge noch Einnahmen (Web v143: «Das Backup enthält keine Verträge – es wurde nichts geändert»)
+    case empty
+
+    /// Toast-Text (unsupportedVersion: Text der App)
+    public var message: String {
+        switch self {
+        case .invalidFile: return Backup.invalidMessage
+        case .empty: return Backup.emptyMessage
+        case .unsupportedVersion: return "Dieses Backup stammt aus einer neueren Version von Kontivo"
+        }
+    }
 }
 
 public enum Backup {
@@ -60,7 +71,8 @@ public enum Backup {
 
     public static let confirmTitle = "Backup einspielen?"
     public static let confirmButton = "Einspielen"
-    public static let invalidMessage = "Keine gültige Backup-Datei"
+    public static let invalidMessage = "Keine gültige Backup-Datei – es wurde nichts geändert"
+    public static let emptyMessage = "Das Backup enthält keine Verträge – es wurde nichts geändert"
     public static let doneMessage = "Backup eingespielt"
 
     /// Dateiname «kontivo-sicherung-JJJJ-MM-TT.json».
@@ -100,20 +112,24 @@ public enum Backup {
                     failed += 1
                 }
             }
+            if doc.data.contracts.isEmpty && doc.data.incomes.isEmpty { throw BackupError.empty }
             return BackupImportResult(source: .native, data: doc.data, files: files, exported: doc.exported.isEmpty ? nil : doc.exported, failedFiles: failed)
         }
-        if app == "vertraege" && WebImport.isObjectLike(o["contracts"]) {
+        // Web-Backup mit falscher Struktur (Verträge als Liste, Einnahmen kein Objekt) ablehnen (Web v143)
+        if WebImport.hasValidStructure(o) {
             let r = WebImport.importObject(o, today: today, now: now)
+            if r.data.contracts.isEmpty && r.data.incomes.isEmpty { throw BackupError.empty }
             return BackupImportResult(source: .web, data: r.data, files: r.files, exported: r.exported, failedFiles: r.failedFiles)
         }
         throw BackupError.invalidFile
     }
 
     /// «Backup vom 3.10.2026 mit 12 Verträgen und 2 Einnahmen sowie 5 Logos/Dokumenten.\n\nDie aktuellen Daten werden ersetzt.»
+    /// Ohne lesbares Datum «Backup (Datum unbekannt) mit …» (Web v143).
     public static func confirmText(exported: String?, contracts: Int, incomes: Int, files: Int, calendar: Calendar = Day.calendar) -> String {
-        var when = "unbekannt"
-        if let e = exported, let d = Timestamp.parse(e) { when = Format.shortNumericDate(Day(date: d, calendar: calendar)) }
-        return "Backup vom " + when + " mit " + Format.count(contracts, "Vertrag", "Verträgen") + " und " + Format.count(incomes, "Einnahme", "Einnahmen")
+        var when = "(Datum unbekannt)"
+        if let e = exported, let d = Timestamp.parse(e) { when = "vom " + Format.shortNumericDate(Day(date: d, calendar: calendar)) }
+        return "Backup " + when + " mit " + Format.count(contracts, "Vertrag", "Verträgen") + " und " + Format.count(incomes, "Einnahme", "Einnahmen")
             + (files > 0 ? " sowie " + Format.count(files, "Logo/Dokument", "Logos/Dokumenten") : "") + ".\n\nDie aktuellen Daten werden ersetzt."
     }
 

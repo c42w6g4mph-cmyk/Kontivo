@@ -16,7 +16,7 @@ final class WebSync07Tests: XCTestCase {
 
     func testNoCancel() throws {
         var d = AppData.initial()
-        d.contracts = [Contract(label: "Serafe", amount: 28, cycle: 1, due: Day(2026, 10, 25), notice: 1, cancelTerm: .anytime, noCancel: true)]
+        d.contracts = [Contract(label: "Rundfunkgebühr", amount: 28, cycle: 1, due: Day(2026, 10, 25), notice: 1, cancelTerm: .anytime, noCancel: true)]
         let calc = Calc(data: d, today: Day(2026, 10, 7))
         XCTAssertTrue(calc.isFixed(d.contracts[0]))
         XCTAssertNil(calc.noticeDeadline(d.contracts[0]))
@@ -24,7 +24,7 @@ final class WebSync07Tests: XCTestCase {
         XCTAssertTrue(calc.reviewList().isEmpty)
         // Web-Backup überträgt das Feld
         let json = """
-        {"app":"vertraege","settings":{"home":"CHF"},"contracts":{"s":{"partner":"Serafe","label":"Gebühren","cat":"Wohnen","amount":28,"cycle":1,"noCancel":true}},"incomes":{}}
+        {"app":"vertraege","settings":{"home":"CHF"},"contracts":{"s":{"partner":"Rundfunkgebühr","label":"Gebühren","cat":"Wohnen","amount":28,"cycle":1,"noCancel":true}},"incomes":{}}
         """
         let r = try WebImport.importBackup(Data(json.utf8), today: Day(2026, 10, 7))
         XCTAssertEqual(r.data.contracts.first?.noCancel, true)
@@ -35,7 +35,7 @@ final class WebSync07Tests: XCTestCase {
         XCTAssertFalse(sunrise?.address.isEmpty ?? true)
         XCTAssertNotNil(Catalog.entries.first { !$0.confirmed })
         XCTAssertTrue(Catalog.entries.first { !$0.confirmed }?.hintFull.hasSuffix("vor dem Versand prüfen.") ?? false)
-        XCTAssertTrue(Catalog.find("Serafe")?.isFixed ?? false)
+        XCTAssertTrue(Catalog.find("Rundfunkgebühr")?.isFixed ?? false) // Web v158: «Serafe» → «Rundfunkgebühr»
         // Länder-Variante über die Währung
         XCTAssertEqual(Catalog.match(names: ["AXA"], currency: .EUR)?.country, "DE")
         XCTAssertEqual(Catalog.match(names: ["AXA"], currency: .CHF)?.country, "CH")

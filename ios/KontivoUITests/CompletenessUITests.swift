@@ -63,7 +63,8 @@ final class CompletenessUITests: KontivoUITestCase {
 
         // Abschluss
         waitNav("Vollständigkeit")
-        wait(elContaining("gut gemacht"), "Abschluss")
+        // Web v143: Überschrift nach Prozent («Fast geschafft!», «Gute Basis!», «Ein Anfang ist gemacht») bzw. komplett
+        waitUntil("Abschluss") { self.elContaining("startklar").exists || self.elContaining("bereit").exists }
         wait(el("Kontivo erinnert dich vor jeder Frist"), "Liste Abschluss")
         shot("5-Ende")
         tap(button("vk.done"), "Fertig")

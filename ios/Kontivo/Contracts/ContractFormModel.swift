@@ -143,7 +143,7 @@ final class CTFormState {
             title = "Duplizieren"
         case .newProvider(let draft):
             c = draft
-            title = "Neuer Anbieter"
+            title = CancelResult.replacementFormTitle
         }
         base = c
         isExisting = data.contract(c.id) != nil
@@ -318,7 +318,7 @@ final class CTFormState {
         if !t.mail.isEmpty && mail.ctTrimmed.isEmpty { mail = t.mail }
         // Kontaktdaten aus dem Katalog nur in leere Felder (Web b520636)
         if !t.address.isEmpty && address.isEmpty { address = WebImport.addrSplit(t.address, partnerName: partnerName) }
-        // Katalog «Steuern & Gebühren» (Serafe, Rundfunkbeitrag): nicht kündbar statt Pflichtvertrag
+        // Katalog «Steuern & Gebühren» (Rundfunkgebühr): nicht kündbar statt Pflichtvertrag
         let tFix = t.isFixed
         if onlyEmpty {
             if tFix && !mandatory && !noWatch {
@@ -372,7 +372,7 @@ final class CTFormState {
         }
         if a.cancelTerm != b.cancelTerm && b.cancelTerm != .anytime { items.append("per " + CTFormState.termOptionText(b.cancelTerm)) }
         if a.cancelChannel != b.cancelChannel, let ch = b.cancelChannel {
-            let w: [CancelChannel: String] = [.online: "online", .email: "per E-Mail", .letter: "per Brief", .registered: "per Einschreiben"]
+            let w: [CancelChannel: String] = [.online: "online", .email: "per E-Mail", .letter: "per Brief"]
             items.append("Kündigung " + (w[ch] ?? ch.webText))
         }
         var k: [String] = []
@@ -486,12 +486,12 @@ final class CTFormState {
         if let st = stdTpl, st.name == pn {
             return .hint(st.hintFull, standardChip: !stdDone && (st.notice > 0 || st.cancelTerm != .anytime || st.mandatory))
         }
-        let cur = Catalog.find(pn)
+        let cur = Catalog.find(pn, currency: currency)
         if let c = cur, tplHint == c.name, showsTplSummary { return .summary(c, items: tplSum ?? []) }
         if let c = cur { return tplHint == c.name ? .hint(c.hintFull, standardChip: false) : .exact(c) }
         let q = (pn.isEmpty ? label : pn).ctTrimmed.lowercased()
         if q.count < 2 { return .none }
-        let hits = Catalog.suggestions(q)
+        let hits = Catalog.suggestions(q, currency: currency)
         return hits.isEmpty ? .none : .chips(hits)
     }
 
@@ -691,7 +691,7 @@ final class CTFormState {
     func termHint(_ data: AppData, today: Day) -> String {
         switch termMode {
         case .tax:
-            return "Gebühren und Abgaben wie Serafe: keine Fristen, kein Kündigen. Zählt in Kosten und Budget."
+            return ContractFormRules.taxHint
         case .trial:
             guard let tv = trial else { return "Wie lange läuft das Probeabo?" }
             return "Endet am " + Format.fmtD(tv) + ". Kontivo erinnert dich unter «Fristen»."
@@ -886,7 +886,7 @@ final class CTFormState {
         c.isRent = isRent
         c.cancelChannel = cancelChannel
         // Link nur löschen, wenn bewusst ein anderer Weg gewählt ist (E-Mail, Brief, Einschreiben; Web saveForm)
-        let otherWay: Set<CancelChannel> = [.email, .letter, .registered]
+        let otherWay: Set<CancelChannel> = [.email, .letter]
         c.cancelURL = cancelChannel.map { otherWay.contains($0) } == true ? "" : cancelURL.ctTrimmed
         // Probeabo-Datum nur in «Probeabo»; Wechsel auf «Flexibel» entfernt es. Bei fester Laufzeit oder bereits
         // behaltenem Probeabo bleibt der alte Wert (nur beim Bearbeiten).

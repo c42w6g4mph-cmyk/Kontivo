@@ -75,7 +75,7 @@ public struct CatalogEntry: Codable, Hashable, Sendable, Identifiable {
     /// Hinweis mit Prüfhinweis bei nicht bestätigten Kontaktdaten (Web `tplHint`).
     public var hintFull: String { hint + (confirmed ? "" : " Kontaktdaten nicht offiziell bestätigt – vor dem Versand prüfen.") }
 
-    /// Kategorie «Steuern & Gebühren» (Serafe, Rundfunkbeitrag): beim Übernehmen «nicht kündbar» statt Pflichtvertrag.
+    /// Kategorie «Steuern & Gebühren» (Rundfunkgebühr): beim Übernehmen «nicht kündbar» statt Pflichtvertrag.
     public var isFixed: Bool { category == "Steuern & Gebühren" }
 
     /// Land für die Anzeige (`tplFlag`): «CH», «DE» oder «CH · DE».
@@ -126,11 +126,18 @@ public enum Catalog {
         return list
     }
 
-    /// Eintrag mit genau diesem Namen (ohne Gross/Klein, getrimmt) (`tplFind`).
-    public static func find(_ name: String) -> CatalogEntry? {
+    /// Eintrag mit genau diesem Namen (ohne Gross/Klein, getrimmt) (Web `tplFind(n, cur)`, v158). Gibt es den Namen in CH und
+    /// DE (Rundfunkgebühr), entscheidet die Währung: EUR → DE, sonst CH. `currency`: Währung im Formular, sonst die
+    /// Hauptwährung (`Format.homeCurrency`).
+    public static func find(_ name: String, currency: Currency? = nil) -> CatalogEntry? {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if n.isEmpty { return nil }
-        return entries.first { $0.name.lowercased() == n }
+        let list = entries.filter { $0.name.lowercased() == n }
+        if list.count > 1 {
+            let cc = (currency ?? Format.homeCurrency) == .EUR ? "DE" : "CH"
+            if let m = list.first(where: { $0.country == cc }) { return m }
+        }
+        return list.first
     }
 
     /// Katalog-Eintrag zu einem bestehenden Vertrag (Web `tplMatch`): exakter Name (Vertragspartner, sonst Bezeichnung);
@@ -158,11 +165,12 @@ public enum Catalog {
         }.stableSorted { $0.name.compare($1.name, options: [], range: nil, locale: Locale(identifier: "de")) == .orderedAscending }
     }
 
-    /// Vorlage-Chips unter dem Vertragspartner (höchstens 5): «Name Bezeichnung» enthält den Text.
-    public static func suggestions(_ query: String, limit: Int = 5) -> [CatalogEntry] {
+    /// Vorlage-Chips unter dem Vertragspartner (höchstens 5): «Name Bezeichnung» enthält den Text. Gleicher Name in CH und DE
+    /// erscheint nur einmal, passend zur Währung (Web v158: `tplFind(t[0]) === t`).
+    public static func suggestions(_ query: String, currency: Currency? = nil, limit: Int = 5) -> [CatalogEntry] {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if q.count < 2 { return [] }
-        return Array(entries.filter { ($0.name + " " + $0.label).lowercased().contains(q) }.prefix(limit))
+        return Array(entries.filter { ($0.name + " " + $0.label).lowercased().contains(q) && find($0.name, currency: currency) == $0 }.prefix(limit))
     }
 
     /// Erster Eintrag mit derselben registrierbaren Domain.
@@ -210,7 +218,7 @@ public enum Catalog {
 
     static let rules: [Rule] = [
         Rule(pattern: "krankenkasse|krankenversicher|health insur", category: "Versicherung", label: "Krankenkasse",
-             ch: RuleValues(notice: 1, unit: .months, term: .yearEnd, channel: .registered, mandatory: true, hint: Hints.kvg),
+             ch: RuleValues(notice: 1, unit: .months, term: .yearEnd, channel: .letter, mandatory: true, hint: Hints.kvg),
              de: RuleValues(notice: 2, unit: .months, term: .monthEnd, channel: nil, mandatory: true, hint: Hints.gkv),
              any: nil, dePattern: "gesetzlich|krankenkasse"),
         Rule(pattern: "versicher|insurance", category: "Versicherung", label: "Versicherung",

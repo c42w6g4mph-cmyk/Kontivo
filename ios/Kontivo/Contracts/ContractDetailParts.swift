@@ -107,10 +107,10 @@ struct CTDetailKeyFigures: View {
         return sum > 0.005 ? sum : nil
     }
 
-    /// Anteil an den monatlichen Fixkosten in % (nur laufend, nicht pausiert, begonnen)
+    /// Anteil an den monatlichen Fixkosten in % (nur laufend, nicht pausiert, begonnen, kein laufendes Probeabo – Web v157)
     static func share(_ c: Contract, calc: Calc) -> Int? {
-        if CTDetailState.gone(c, calc: calc) || calc.isPaused(c) || calc.notStarted(c) { return nil }
-        let tot = calc.running.filter { !calc.notStarted($0) }.reduce(0.0) { $0 + calc.monthlyCost($1) }
+        if CTDetailState.gone(c, calc: calc) || !calc.countsMonthly(c) { return nil }
+        let tot = calc.running.filter { calc.countsMonthly($0) }.reduce(0.0) { $0 + calc.monthlyCost($1) }
         guard tot > 0.005 else { return nil }
         return Int(Format.jsRound(calc.monthlyCost(c) / tot * 100))
     }

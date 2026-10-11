@@ -255,8 +255,8 @@ struct CTListContent {
         for c in a { cost[c.id] = calc.monthlyCost(c) }
         let byCost: (Contract, Contract) -> Bool = { (cost[$0.id] ?? 0) > (cost[$1.id] ?? 0) }
         func defaultSum(_ list: [Contract]) -> String {
-            // wie die Summe oben: ohne pausierte und noch nicht aktive Verträge
-            let s = list.reduce(0.0) { $0 + ((calc.isPaused($1) || calc.notStarted($1)) ? 0 : (cost[$1.id] ?? 0)) }
+            // wie die Summe oben: ohne pausierte, noch nicht aktive und laufende Probeabos (Web v157)
+            let s = list.reduce(0.0) { $0 + (calc.countsMonthly($1) ? (cost[$1.id] ?? 0) : 0) }
             // nur pausierte und/oder noch nicht aktive Verträge: Zustand statt «0.00 CHF/Mt.» (Web `group`)
             if s < 0.005 && !list.isEmpty {
                 if list.allSatisfy({ calc.isPaused($0) }) { return "pausiert" }

@@ -10,7 +10,7 @@ import Foundation
 public enum ReminderKind: String, Hashable, Sendable {
     /// Kündigungsfrist («Kündigen bis …», Pflichtvertrag «Wechseln bis …»)
     case notice
-    /// Probeabo endet
+    /// Probeabo: letzter Gratistag
     case trial
 }
 
@@ -18,7 +18,7 @@ public enum ReminderKind: String, Hashable, Sendable {
 public struct ReminderDeadline: Hashable, Sendable {
     public var contractID: UUID
     public var kind: ReminderKind
-    /// Angezeigtes Datum: Kündigungsfrist bzw. Ende des Probeabos (wie in «Fristen»)
+    /// Angezeigtes Datum wie in «Fristen»: Kündigungsfrist bzw. letzter Gratistag des Probeabos (Web v143 «ein Datum überall»)
     public var date: Day
     /// Vertragsende zum Termin (nur Kündigungsfrist)
     public var end: Day?
@@ -33,8 +33,8 @@ public struct ReminderDeadline: Hashable, Sendable {
         self.mandatory = mandatory
     }
 
-    /// Letzter Tag zum Handeln: Frist selbst; Probeabo: Tag vor dem Ende («Kündigung muss vor dem … sein»).
-    public var lastDay: Day { kind == .trial ? date.addingDays(-1) : date }
+    /// Letzter Tag zum Handeln: Frist bzw. letzter Gratistag (= `date`).
+    public var lastDay: Day { date }
 }
 
 /// Eine geplante Mitteilung.
@@ -56,13 +56,13 @@ public struct ReminderNotification: Hashable, Sendable {
 extension Calc {
     /// Nächste Frist eines Vertrags für Erinnerung und Kalender, nil = keine.
     /// Grundmenge wie «Fristen»: aktiv (auch pausiert), kündbar, beobachtet, nicht gekündigt.
-    /// - Probeabo offen (Ende heute oder später, nicht behalten): Ende des Probeabos
+    /// - Probeabo läuft (`trialOn`): letzter Gratistag
     /// - jederzeit kündbar: keine Frist
     /// - behalten: nächste Frist nach dem behaltenen Termin (wie «Behalten · nächste Frist»)
     /// - sonst Kündigungsfrist zum nächsten Termin, sofern nicht verpasst
     public func reminderDeadline(for c: Contract) -> ReminderDeadline? {
         guard isActive(c), !isFixed(c), !c.noWatch, c.cancelPer == nil else { return nil }
-        if let t = c.trial, t >= today, c.trialKept != t {
+        if trialOn(c), let t = trialLast(c) {
             return ReminderDeadline(contractID: c.id, kind: .trial, date: t, end: nil, mandatory: c.mandatory)
         }
         if isAnytime(c) { return nil }
@@ -154,12 +154,12 @@ public enum Reminders {
     }
 
     /// Titel der Mitteilung: «Kündigen bis 5. November: Handy (Nimbo Mobile)», Pflichtvertrag «Wechseln bis …»,
-    /// Probeabo «Probeabo endet am 15. Oktober: Netflix».
+    /// Probeabo «Probeabo gratis bis 14. Oktober: Netflix».
     public static func title(_ d: ReminderDeadline, contract c: Contract, data: AppData, today: Day) -> String {
         let name = contractName(c, data: data)
         switch d.kind {
         case .trial:
-            return "Probeabo endet am " + dateText(d.date, today: today) + ": " + name
+            return "Probeabo gratis bis " + dateText(d.date, today: today) + ": " + name
         case .notice:
             return (d.mandatory ? "Wechseln bis " : "Kündigen bis ") + dateText(d.date, today: today) + ": " + name
         }
@@ -170,7 +170,8 @@ public enum Reminders {
         let head = n == 0 ? "Heute ist der letzte Tag." : (n == 1 ? "Noch 1 Tag." : "Noch \(n) Tage.")
         switch d.kind {
         case .trial:
-            return head + " Die Kündigung muss vor dem " + dateText(d.date, today: today) + " beim Vertragspartner sein, sonst läuft das Abo weiter."
+            let when = n == 0 ? "heute" : "bis " + dateText(d.date, today: today)
+            return head + " Die Kündigung muss " + when + " beim Vertragspartner sein, sonst läuft das Abo kostenpflichtig weiter."
         case .notice:
             let when = n == 0 ? "heute" : "bis " + dateText(d.date, today: today)
             return head + " Die Kündigung muss " + when + " beim Vertragspartner sein." + (d.mandatory ? " Wechseln oder behalten?" : " Behalten oder kündigen?")
@@ -181,7 +182,7 @@ public enum Reminders {
     public static func calendarTitle(_ d: ReminderDeadline, contract c: Contract, data: AppData) -> String {
         let name = contractName(c, data: data)
         switch d.kind {
-        case .trial: return "Probeabo endet: " + name
+        case .trial: return "Letzter Gratistag: " + name
         case .notice: return (d.mandatory ? "Letzter Tag zum Wechseln: " : "Letzter Tag zum Kündigen: ") + name
         }
     }
@@ -199,7 +200,7 @@ public enum Reminders {
             switch via {
             case .online: way = CancelChannel.online.webText
             case .mail: way = CancelChannel.email.webText
-            case .post: way = c.cancelChannel == .registered ? CancelChannel.registered.webText : CancelChannel.letter.webText
+            case .post: way = CancelChannel.letter.webText
             case .none: way = ""
             }
         }
@@ -222,7 +223,7 @@ public enum Reminders {
         if !contr.isEmpty { lines.append("Vertragsnummer: " + contr) }
         switch d.kind {
         case .trial:
-            lines.append("Kündigung muss vor dem " + Format.fmtD(d.date) + " sein.")
+            lines.append("Kündigung muss bis " + Format.fmtD(d.date) + " sein.")
         case .notice:
             lines.append("Kündigung muss bis " + Format.fmtD(d.date) + " beim Vertragspartner sein.")
             if let e = d.end { lines.append("Vertragsende: " + Format.fmtD(e)) }

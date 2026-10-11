@@ -87,14 +87,16 @@ public enum CSV {
         "kontivo-export-" + today.iso + ".csv"
     }
 
-    /// Spaltennamen (ProMonat_ mit Hauptwährung).
+    /// Spaltennamen (ProMonat_ mit Hauptwährung). Web v143: «Rhythmus_Monate», «Personen», «Kuendigungsweg» und am Schluss
+    /// «Zahlungsanker» (gespeichertes Fälligkeitsdatum, erhält «am 31.» und 29.02. beim Rundlauf) – 42 Spalten.
     public static func header(home: Currency) -> [String] {
-        ["Vertragspartner", "Bezeichnung", "Kategorie", "Betrag", "Waehrung", "Turnus_Monate", "ProMonat_" + home.rawValue,
+        ["Vertragspartner", "Bezeichnung", "Kategorie", "Betrag", "Waehrung", "Rhythmus_Monate", "ProMonat_" + home.rawValue,
          "NaechsteZahlung", "Beginn", "Ende", "Kuendigungsfrist", "Einheit", "Verlaengerung", "KuendigenBis", "Preisverlauf",
-         "Kundennummer", "Vertragsnummer", "Inhaber", "Zahlungsart", "BelastetUeber", "KuendigungPer", "Website", "Telefon", "EMail",
+         "Kundennummer", "Vertragsnummer", "Personen", "Zahlungsart", "BelastetUeber", "Kuendigungsweg", "Website", "Telefon", "EMail",
          "Status", "KuendbarPer", "Pflichtvertrag", "Notiz", "Sonderzahlungen", "Adresse", "KuendigungsLink", "Aufteilung",
          // Zustände für den Rundlauf Export → Import (Web 08d11a2/9b5dc06)
-         "NichtKuendbar", "Probeabo", "GekuendigtPer", "GekuendigtAm", "NichtErinnern", "BehaltenBis", "PausiertSeit", "PausiertBis", "ProbeaboBehalten"]
+         "NichtKuendbar", "Probeabo", "GekuendigtPer", "GekuendigtAm", "NichtErinnern", "BehaltenBis", "PausiertSeit", "PausiertBis", "ProbeaboBehalten",
+         "Zahlungsanker"]
     }
 
     /// Alle Verträge als CSV-Text (mit BOM, CRLF).
@@ -113,15 +115,20 @@ public enum CSV {
                 // Ende roh (nicht fortgeschrieben), damit der Import denselben Vertrag ergibt (Web 9b5dc06)
                 Format.fixed2(calc.monthlyCost(c)), calc.nextDue(c)?.iso ?? "", c.start?.iso ?? "", c.end?.iso ?? "",
                 String(c.notice), c.noticeUnit.rawValue, c.renewMonths == 0 ? "" : String(c.renewMonths),
-                calc.urgency(c).date?.iso ?? "", prices, c.customerNo, c.contractNo, data.holderNames(of: c).joined(separator: ", "),
+                // KuendigenBis leer bei Archiv, gekündigt oder abgelaufen (Web v156)
+                (c.status == .cancelled || c.cancelPer != nil || calc.endedByTerm(c)) ? "" : (calc.urgency(c).date?.iso ?? ""),
+                prices, c.customerNo, c.contractNo, data.holderNames(of: c).joined(separator: ", "),
                 c.payMethod, c.payAccount, c.cancelChannel?.webText ?? "", p?.web ?? "", c.tel, c.mail, c.status.rawValue,
-                // Frist 0 und «jederzeit» ausdrücklich, damit der Import keine Katalogwerte einsetzt (wie Web)
-                c.cancelTerm == .anytime ? (c.end == nil ? "jederzeit" : "") : c.cancelTerm.rawValue,
+                // Frist 0 und «jederzeit» ausdrücklich, damit der Import keine Katalogwerte einsetzt (wie Web);
+                // leer bei fester Laufzeit und nicht kündbaren Verträgen (Web v156)
+                c.cancelTerm == .anytime ? ((c.end == nil && !calc.isFixed(c)) ? "jederzeit" : "") : c.cancelTerm.rawValue,
                 c.mandatory ? "ja" : "", c.note, extras, p?.address.text ?? "", c.cancelURL, splitText(c, data),
                 c.noCancel ? "ja" : "", c.trial?.iso ?? "",
                 c.cancelPer?.iso ?? "", c.cancelledOn?.iso ?? "", c.noWatch ? "ja" : "", c.keptFor?.iso ?? "",
                 // Web: eine Pause (paused/pausedAt/pausedUntil) – hier die letzte
                 c.pauses.last?.from.iso ?? "", c.pauses.last?.until?.iso ?? "", c.trialKept != nil ? "ja" : "",
+                // gespeichertes Fälligkeitsdatum (Anker), Web v143
+                c.due?.iso ?? "",
             ]
             rows.append(fields.map { quote($0) }.joined(separator: ";"))
         }
@@ -451,7 +458,8 @@ public enum CSV {
         ("cat", ["kategorie", "category", "art"]),
         ("amount", ["betrag", "preis", "kosten", "amount", "price", "cost", "costs", "beitrag", "monatsbetrag", "zahlung", "payment"]),
         ("cur", ["waehrung", "wahrung", "currency"]),
-        ("cycle", ["turnusmonate", "turnus", "abrechnungsperiode", "abrechnungszeitraum", "zahlungsperiode", "intervall", "zyklus", "rhythmus", "zahlungsintervall", "zahlungsrhythmus", "billingperiod", "frequency", "billingcycle", "interval", "period"]),
+        ("cycle", ["turnusmonate", "rhythmusmonate", "turnus", "abrechnungsperiode", "abrechnungszeitraum", "zahlungsperiode", "intervall", "zyklus", "rhythmus", "zahlungsintervall", "zahlungsrhythmus", "billingperiod", "frequency", "billingcycle", "interval", "period"]),
+        ("dueRaw", ["zahlungsanker"]),
         ("due", ["naechstezahlung", "naechsteabbuchung", "naechstefaelligkeit", "faellig", "faelligam", "faelligkeit", "nextpayment", "nextbilling", "nextdue", "zahltag", "abbuchungsdatum"]),
         ("start", ["beginn", "vertragsbeginn", "startdatum", "start", "startdate", "abschlussdatum", "seit"]),
         ("end", ["ende", "vertragsende", "enddatum", "laufzeitende", "laufzeitbis", "enddate"]),
@@ -462,10 +470,10 @@ public enum CSV {
         ("mand", ["pflichtvertrag", "pflicht"]),
         ("custNo", ["kundennummer", "kundennr", "customernumber"]),
         ("contrNo", ["vertragsnummer", "vertragsnr", "contractnumber", "policennummer"]),
-        ("holders", ["inhaber", "vertragsinhaber", "person", "owner", "holder"]),
+        ("holders", ["inhaber", "personen", "vertragsinhaber", "person", "owner", "holder"]),
         ("payM", ["zahlungsart", "zahlungsmethode", "zahlungsmittel", "paymentmethod"]),
         ("payA", ["belastetueber", "konto", "karte"]),
-        ("cancF", ["kuendigungper"]),
+        ("cancF", ["kuendigungper", "kuendigungsweg"]),
         ("cancUrl", ["kuendigungslink", "kuendigungsurl", "cancellink", "cancelurl"]),
         ("web", ["website", "web", "url"]),
         ("tel", ["telefon", "phone"]),
@@ -490,13 +498,12 @@ public enum CSV {
         ("extras", ["sonderzahlungen", "einmalzahlungen"]),
     ]
 
-    /// Kündigungsweg aus freiem Text auf die Formularwerte abbilden (Web `csvVia`): «Einschreiben», «Brief», «E-Mail»,
-    /// «Online / Kundenkonto»; sonst der Text unverändert (dann ohne Kündigungsweg).
+    /// Kündigungsweg aus freiem Text auf die Formularwerte abbilden (Web `csvVia`, v145): Einschreiben und Brief → «Brief»,
+    /// «E-Mail», «Online / Kundenkonto»; sonst der Text unverändert (dann ohne Kündigungsweg).
     public static func via(_ x: String) -> CancelChannel? {
         let n = norm(x)
         if n.isEmpty { return nil }
-        if RX.test("einschreib|registered", n) { return .registered }
-        if RX.test("brief|post|letter", n) { return .letter }
+        if RX.test("einschreib|registered|brief|post|letter", n) { return .letter }
         if RX.test("mail", n) { return .email }
         if RX.test("online|konto|portal|web|app|link", n) { return .online }
         return CancelChannel(webText: x.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -521,8 +528,8 @@ public enum CSV {
                                    columnCount: 0, hasAmount: false, hasName: false, adjustedCycles: 0, badDates: 0)
         if rows.count < 2 { return res }
         let head = rows[0].map { norm($0) }
-        // eigener Export (Spalten «Turnus_Monate» und «KuendbarPer»): Inhaber nur am Komma trennen
-        let ownExport = head.contains("turnusmonate") && head.contains("kuendbarper")
+        // eigener Export (Spalten «Turnus_Monate»/«Rhythmus_Monate» und «KuendbarPer»): Inhaber nur am Komma trennen
+        let ownExport = (head.contains("turnusmonate") || head.contains("rhythmusmonate")) && head.contains("kuendbarper")
         var col: [String: Int] = [:]
         var taken = Set<Int>()
         for (field, aliases) in columnMap {
@@ -559,7 +566,8 @@ public enum CSV {
                 continue
             }
             var amt = number(g(r, "amount")) ?? 0
-            let tpl = Catalog.find(partner) ?? Catalog.find(label)
+            // gleicher Name in CH und DE (Rundfunkgebühr): Eintrag nach Hauptwährung (Web `tplFind(n)` ohne Formular)
+            let tpl = Catalog.find(partner, currency: data.settings.homeCurrency) ?? Catalog.find(label, currency: data.settings.homeCurrency)
             var cy = 1
             switch cycle(g(r, "cycle")) {
             case .months(let n): cy = n
@@ -663,7 +671,8 @@ public enum CSV {
                 if d == nil { res.badDates += 1 }
                 return d
             }
-            c.due = dateCounted("due")
+            // Zahlungsanker aus dem eigenen Export geht vor (ungültig zählt nicht, Web `csvDate(g(r,"dueRaw"))`)
+            c.due = date(g(r, "dueRaw")) ?? dateCounted("due")
             c.start = dateCounted("start")
             c.end = dateCounted("end")
             // Katalogwerte für Frist / Kündbar per nur, wenn die Spalte fehlt (leer, 0 oder «jederzeit» sind bewusste Angaben)

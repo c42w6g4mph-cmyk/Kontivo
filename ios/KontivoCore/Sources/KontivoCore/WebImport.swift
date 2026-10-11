@@ -36,18 +36,31 @@ public enum WebImportError: Error, Equatable {
 
 /// Web-Backup (`{app:"vertraege", version, exported, settings, contracts, incomes, files}`) → AppData.
 public enum WebImport {
-    /// Liest ein Backup der Web-App. Migrationen (migModel/migCats) laufen vor der Umwandlung.
+    /// Liest ein Backup der Web-App. Migrationen (migModel/migCats/migVia) laufen vor der Umwandlung.
     /// `today`: Tag des Imports (Pause ohne Beginn startet heute).
     public static func importBackup(_ json: Data, today: Day, now: Date = Date()) throws -> WebImportResult {
         guard let v = try? JSONParser.parse(json) else { throw WebImportError.invalidJSON }
-        guard case .object(let o) = v, JS.str(o["app"]) == "vertraege", isObjectLike(o["contracts"]) else { throw WebImportError.notAWebBackup }
+        guard case .object(let o) = v, hasValidStructure(o) else { throw WebImportError.notAWebBackup }
         return importObject(o, today: today, now: now)
     }
 
     /// Ist das ein Backup der Web-App?
     public static func isWebBackup(_ json: Data) -> Bool {
         guard let v = try? JSONParser.parse(json), case .object(let o) = v else { return false }
-        return JS.str(o["app"]) == "vertraege" && isObjectLike(o["contracts"])
+        return hasValidStructure(o)
+    }
+
+    /// Struktur wie Web v143: `app` = "vertraege", `contracts` ein Objekt (keine Liste), `incomes` fehlt/null oder ein Objekt.
+    /// Sonst wird nichts geändert («Keine gültige Backup-Datei – es wurde nichts geändert»).
+    public static func hasValidStructure(_ o: JSObject) -> Bool {
+        guard JS.str(o["app"]) == "vertraege", case .object? = o["contracts"] else { return false }
+        if let inc = o["incomes"] {
+            switch inc {
+            case .null, .object: break
+            default: return false
+            }
+        }
+        return true
     }
 
     static func isObjectLike(_ v: JSValue?) -> Bool {
@@ -260,6 +273,8 @@ public enum WebImport {
             x.cancelURL = JS.str(c["cancUrl"])
             x.trial = Day(iso: JS.str(c["trial"]))
             x.trialKept = Day(iso: JS.str(c["trialKept"]))
+            // CSV-Import der Web-App setzt trialKept = true: nativ ist «behalten» das Datum des Probeabos
+            if x.trialKept == nil, case .bool(true)? = c["trialKept"] { x.trialKept = x.trial }
             x.tel = JS.str(c["tel"])
             x.mail = JS.str(c["mail"])
             x.note = JS.str(c["note"])

@@ -170,7 +170,7 @@ public struct BankSuggestion: Identifiable, Equatable, Hashable, Sendable {
     public var ignored: Bool
 
     /// Katalogeintrag (für Kündigungsfrist und Kontaktdaten beim Anlegen).
-    public var catalogEntry: CatalogEntry? { catalogName.flatMap { BankCatalog.entry(named: $0) } }
+    public var catalogEntry: CatalogEntry? { catalogName.flatMap { BankCatalog.entry(named: $0, currency: currency) } }
 }
 
 /// Bereits erfasster Vertrag, der im Auszug gefunden wurde (Web `known`).

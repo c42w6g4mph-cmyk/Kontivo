@@ -620,7 +620,7 @@ struct DeadlineKillTarget: Identifiable {
 enum DeadlineKillChoice {
     /// Kündigungsweg starten (Link, Mail, Brief, Auswahl)
     case start
-    /// Als gekündigt markieren (Pflichtvertrag: neuen Anbieter erfassen)
+    /// Als gekündigt markieren (Pflichtvertrag: neuen Vertragspartner erfassen)
     case done
 }
 
@@ -658,27 +658,14 @@ private struct DeadlineKillSheet: View {
     }
 
     private func options(_ c: Contract) -> some View {
-        let calc = model.calc
-        let title = (c.mandatory ? "Wechseln: " : "Kündigen: ") + model.data.title(of: c)
-        let firstTitle: String
-        switch calc.cancVia(c) {
-        case .online: firstTitle = "Online kündigen"
-        case .mail: firstTitle = "Per E-Mail kündigen"
-        case .post: firstTitle = "Kündigungsschreiben erstellen"
-        case .none: firstTitle = "Kündigen: Weg wählen …"
-        }
-        let firstDetail = c.cancelChannel?.webText ?? ""
-        let doneTitle = c.mandatory ? "Gekündigt, neuen Anbieter erfassen" : "Als gekündigt markieren"
-        let per = calc.cancelEnd(c, trial: target.trial)
-        let doneDetail = per.map { "läuft bis " + Format.fmtShort($0) } ?? ""
-        let T: Day? = target.trial ? c.trial : calc.termEnd(c)
-        var hint = ""
-        if let T {
-            hint = target.trial
-                ? "Kündigung muss vor dem " + Format.fmtD(T) + " sein. "
-                : "Kündigung muss bis " + Format.fmtD(calc.noticeDeadline(for: c, end: T)) + " beim Anbieter sein. "
-        }
-        hint += "Nach dem Markieren zählt der Vertrag bis zum Ende weiter und wandert danach ins Archiv."
+        // Texte aus dem Kern (Web `killOptions`, v143/v145)
+        let k = model.calc.killOptions(c, trial: target.trial)
+        let title = k.title
+        let firstTitle = k.startTitle
+        let firstDetail = k.startDetail
+        let doneTitle = k.doneTitle
+        let doneDetail = k.doneDetail
+        let hint = k.note
         return List {
             Section {
                 Button { choose(.start) } label: { DeadlineKillRow(title: firstTitle, detail: firstDetail) }
@@ -696,7 +683,7 @@ private struct DeadlineKillSheet: View {
         }
         .scrollContentBackground(.hidden)
         .background(KColor.paper.ignoresSafeArea())
-        .navigationTitle(c.mandatory ? "Wechseln" : "Kündigen")
+        .navigationTitle(k.navTitle)
     }
 
     private func choose(_ c: DeadlineKillChoice) {
