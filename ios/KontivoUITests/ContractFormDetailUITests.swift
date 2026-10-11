@@ -140,7 +140,9 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         // Vertragsbeginn heute → Preisänderung heute liegt nicht danach
         tap(button("Vertragsbeginn wählen"), "Vertragsbeginn setzen")
         revealUp(button("form.priceOpen"), "+ Preisänderung")
-        tap(button("form.priceOpen"), "+ Preisänderung")
+        // Tipp kann während des Nachscrollens verloren gehen: dann ein zweiter Versuch
+        tapOpen(button("form.priceOpen"), "+ Preisänderung", expect: button("Gültig ab wählen"))
+        revealNear(button("Gültig ab wählen"), "Datum der Preisänderung")
         tap(button("Gültig ab wählen"), "Datum der Preisänderung")
         enter(textField("form.priceAmount"), "50", "Neuer Betrag")
         closeKeyboard()

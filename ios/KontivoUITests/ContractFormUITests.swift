@@ -77,7 +77,8 @@ final class ContractFormUITests: KontivoUITestCase {
         // 03.10.2026 + 24 Monate − 1 Tag = 02.10.2028; Verlängerung 1 Monat vorbelegt; Frist 2 Wochen
         reveal(elContaining("Kündigen bis 18. September 2028, sonst +1 Monat."), "Hinweis mit Vertragsende aus 2 Jahren")
 
-        // «Andere …» → Drehrad 18 Monate (Ende 02.04.2028)
+        // «Andere …» → Drehrad 18 Monate (Ende 02.04.2028); der Knopf liegt über dem eben gezeigten Hinweis
+        revealNear(button("termMonths.other"), "Knopf Andere …")
         tapVisible(button("termMonths.other"), "Knopf Andere …")
         wait(wheel(0), "Drehrad Monate")
         wheel(0).adjust(toPickerWheelValue: "18")

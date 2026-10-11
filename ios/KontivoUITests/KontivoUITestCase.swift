@@ -198,6 +198,17 @@ class KontivoUITestCase: XCTestCase {
         XCTAssertTrue(e.exists, "Nicht gefunden: \(what)", file: file, line: line)
     }
 
+    /// Element über oder unter dem sichtbaren Bereich (Listen laden Zeilen ausserhalb nicht): erst kurz warten, dann nach oben
+    /// suchen (Wischen nach unten), sonst wie `reveal` nach unten. Für Schritte nach einem Sprung im Formular.
+    func revealNear(_ e: XCUIElement, _ what: String, file: StaticString = #filePath, line: UInt = #line) {
+        if !(e.waitForExistence(timeout: 2) && e.isHittable) {
+            closeKeyboard()
+            var n = 0
+            while !(e.exists && e.isHittable) && n < 5 { app.swipeDown(velocity: .slow); n += 1; usleep(300_000) }
+        }
+        reveal(e, what, file: file, line: line)
+    }
+
     /// Kündigen/Wechseln aus dem Vertragsdetail: Knopf im Fristen-Kasten, sonst Menü ••• (erster Eintrag)
     func startCancelFromDetail(file: StaticString = #filePath, line: UInt = #line) {
         let words = ["Kündigen", "Wechseln"]
