@@ -52,7 +52,7 @@ public enum WebImport {
 
     /// Struktur wie Web v143: `app` = "vertraege", `contracts` ein Objekt (keine Liste), `incomes` fehlt/null oder ein Objekt.
     /// Sonst wird nichts geändert («Keine gültige Backup-Datei – es wurde nichts geändert»).
-    public static func hasValidStructure(_ o: JSObject) -> Bool {
+    static func hasValidStructure(_ o: JSObject) -> Bool {
         guard JS.str(o["app"]) == "vertraege", case .object? = o["contracts"] else { return false }
         if let inc = o["incomes"] {
             switch inc {
