@@ -10,7 +10,7 @@ Wo die Inventare einen «⚠ Fund» oder «Befund» nennen, gilt das **korrigier
 - Keine Fremdbibliotheken.
 - Sprache Deutsch, Schweizer Rechtschreibung (ss statt ß), immer «Vertragspartner», nie «Partner» in sichtbaren Texten.
 - Zahlenformat nach der Hauptwährung (Web v144, `Format.numberStyle`): Hauptwährung CHF de-CH `1’284.50` (Tausender U+2019, Dezimalpunkt), Hauptwährung EUR de-DE `1.284,50` – für alle Beträge, auch Verträge in der anderen Währung. Minuszeichen U+2212 in Anzeigen.
-- Daten lokal auf dem Gerät (JSON-Datei + Dateien-Ordner). iCloud später.
+- Daten lokal auf dem Gerät (JSON-Datei + Dateien-Ordner); iCloud-Sync über CloudKit (siehe «iCloud-Sync»), im Build ausgeschaltet bis zum Apple Developer Program.
 
 ## Ordner
 ```
@@ -155,3 +155,44 @@ Formulare bearbeiten eine Kopie (`Contract`) und übernehmen beim Sichern nur di
 - Katalog: Felder `address`, `mail`, `tel`, `confirmed` (make_catalog.py liest TPL[12–15]); `Catalog.match` (Währung → Land), `AppData.catalogFillPlan/applyCatalogFill` («Kontaktdaten ergänzen» in Verwalten); Vorlage füllt Adresse/E-Mail/Telefon nur leer
 - Kosten «Aufteilung und Entwicklung»: `Calc.costEvolution` (Jahresbalken aktuell + bis 2 Vorjahre, Liste mit Anteil und Veränderung, Verlauf), ersetzt den Ring
 - Vertragspartner-Seite: Preisverlauf je Vertrag (`CTPriceChart`), Firma als optional markiert
+
+## iCloud-Sync (11.10.2026)
+Einfacher Abgleich der eigenen Daten über die private CloudKit-Datenbank (kein Teilen, keine Familie). `data.json` bleibt die lokale Wahrheit; der Abgleich kennt nur Datensätze und hat seinen eigenen Zustand.
+
+### Aufbau
+- **Kern ohne CloudKit** (`KontivoCore/Sources/KontivoCore/Sync/`, voll getestet):
+  - `SyncKey` (Art + ID, Datensatzname `contract.<UUID>`, `file.<32 Hex>`, `settings.main`), `SyncRecord` (Nutzlast JSON, `modifiedAt`, Formatversion).
+  - `SyncCodec`: Entität ↔ Nutzlast (sortierte Schlüssel, Zeitpunkte als ganze ms → stabile Prüfsumme FNV-1a über beliebig viele Rundläufe), `SyncSettings` (abgeglichene Einstellungen).
+  - `SyncDiff.diff(old:new:)` (je Entität per `Equatable`), `SyncMerge` (unberührtes Gerät, Einfügen/Entfernen, Reihenfolgen, Doppelte zusammenführen, Mindestbestand).
+  - `SyncCore` + `SyncLedger`: Zustandsmodell, das die Ereignisse der CKSyncEngine abbildet (`captureLocalChanges`, `captureFiles`, `outgoing`, `didSave`, `didDelete`, `recordMissingOnServer`, `resolveConflict`, `applyRemote`, `finishFetch`, `zoneMissing`, `resetServerState`, `restartInitial`).
+  - `SyncTexts`/`SyncStatus`: Texte der Oberfläche.
+  - Tests: `SyncCodecTests`, `SyncCoreTests`, `SyncSimulationTests` (zwei Geräte + In-Memory-Server mit Änderungsmarken, Konflikten, «unknownItem», Änderungsliste; feste und zufällige Runden Ändern/Senden/Abrufen, am Ende identische Daten).
+- **App** (`Kontivo/Sync/`): `SyncController` (@MainActor, @Observable) mit `CKSyncEngine` (iOS 17), private Datenbank, Zone «Kontivo»; `SyncRecordMapper` (Nutzlast und `modifiedAt` in `encryptedValues`, Nutzlast > 700 KB als Anhang, Dateien als `CKAsset`, Systemfelder per `encodeSystemFields`); `SyncEngineBridge` (Delegierter, leitet an den MainActor weiter).
+- **Bedienung:** `More/MoreICloudSection.swift` (Schalter mit Status, Ausschalten mit optionalem Löschen in iCloud, Kontowechsel bestätigen), eingebunden in «Mehr → Daten».
+- **Zustand:** `Application Support/Kontivo/sync-state.plist` (binär, Dateischutz complete, nicht im Backup): je Datensatz lokale Prüfsumme und `modifiedAt`, Ausstehendes, Server-Systemfelder, Dateien auf dem Server, Engine-Zustand (`State.Serialization`), Konto, Weiterleitungen zusammengeführter Doppelter. Wird nie vor `data.json` geschrieben.
+
+### Datensätze
+Vertrag, Einnahme, Person (inkl. Absender, Unterschrift), Kategorie, Vertragspartner, Datei (Logo/Dokument/Bild, nur referenzierte), Einstellungen (ein Datensatz). Abgeglichene Einstellungen: Hauptwährung, Sortierung, Reihenfolge der Kategorien und Personen, `qualityIgnored`, `logoSkip`, `bankIgn`, `bankAlias`, `lastReview`, `reviewSnooze`, `lastHolderIDs`. Nicht: Kurse, Darstellung, `onboarded`, `dataVersion`; Erinnerungen/App-Sperre liegen in UserDefaults.
+
+### Regeln
+- **Lokale Änderungen:** keine Fachaktion kennt den Sync. `AppModel.saveNow` meldet jeden gespeicherten Stand (`SyncController.localDataSaved`); der Kern vergleicht alt/neu je Entität und prüft die Prüfsumme gegen die zuletzt bekannte Fassung. Beim Start ein voller Vergleich (Absturz zwischen Speichern und Erfassen). Backup-Import und «Alle Daten löschen» laufen über denselben Weg.
+- **Entfernte Änderungen:** vor dem Übernehmen offene lokale Änderungen speichern (`AppModel.syncFlush`), dann `applyRemote` und `AppModel.syncReplace` (speichert, ohne erneut zu erfassen). Erinnerungen planen sich danach selbst neu (`NativeHooks` beobachtet `data`).
+- **Konflikt:** pro Datensatz gewinnt die neuere Änderung (`modifiedAt`), bei Gleichstand der Server. Einstellungen: haben beide Seiten geändert, Feld für Feld gegen die letzte Fassung in iCloud. Eine noch nicht gesendete lokale Änderung gewinnt gegen eine entfernte Löschung; eine neuere entfernte Änderung gegen eine ältere lokale Löschung.
+- **Erstes Einrichten** (erster vollständiger Abruf, vorher wird nichts gesendet): iCloud leer → alles hochladen. Gerät unberührt (`SyncMerge.isUntouched`: keine Verträge, Einnahmen, Vertragspartner, nur Standardkategorien, höchstens eine Person ohne Absender/Unterschrift/Bild; Name und Währung aus der Einführung zählen nicht) → iCloud-Daten übernehmen, lokale Standarddaten nie senden; Darstellung, Kurse und Einführung bleiben lokal. Sonst vereinigen: gleiche ID → neuere gewinnt, nur lokal Vorhandenes hochladen, Listen der Einstellungen vereinigen.
+- **Doppelte** (nach jedem vollständigen Abruf): Standardkategorien gleicher Art (bei «Steuern» nur mit Standardsymbol, eigene «Steuern …» bleiben), Kategorien, Personen (z.B. «Ich») und Vertragspartner gleichen Namens werden zusammengeführt. Behalten wird die kleinste ID an der vordersten Stelle der Gruppe – alle Geräte entscheiden gleich. Verweise werden umgebogen (Personen/Vertragspartner über `mergePerson`/`mergePartners`), spätere Verweise auf die alte ID über Weiterleitungen.
+- **Reihenfolge des Eintreffens:** Verweise bleiben, bis die Entität da ist; Neue werden angehängt (Verträge/Einnahmen nach Erfassungszeit, Vertragspartner nach Name), Kategorien und Personen nach der abgeglichenen Reihenfolge. Fehlende Einträge in der Reihenfolge gelten nicht als lokale Änderung.
+- **Dateien:** referenzierte und vorhandene werden hochgeladen; abgerufene sofort gespeichert; fehlende referenzierte gezielt geholt; vom Aufräumen (7 Tage unbenutzt) oder «Alle Daten löschen» entfernte auch in iCloud gelöscht; in iCloud gelöschte, lokal noch gebrauchte wieder hochgeladen.
+- **Unsichere Daten:** solange `saveBlocked` gilt, läuft der Abgleich nicht. Danach (Vorversion, defekt, neu begonnen) und wenn die Daten leer sind, obwohl der Abgleich Verträge kennt: neu einrichten, iCloud gewinnt bei gleicher ID, nichts wird als Löschung gesendet.
+
+### CKSyncEngine-Ereignisse
+- `accountChange`: Abmelden → Abgleich ruht, Server-Wissen verworfen, Daten bleiben, Status «Nicht bei iCloud angemeldet». Anderes Konto (auch nach Neustart über `userRecordID`) → angehalten, Status und Rückfrage «Mit diesem iCloud-Konto abgleichen …» (vereinigt dann).
+- `fetchedRecordZoneChanges` → `applyRemote`; `didFetchChanges` → `finishFetch` (nicht nach einem Zonenfehler); erstes Einrichten erst nach fehlerfreiem `fetchChanges()`.
+- `sentRecordZoneChanges`: `serverRecordChanged` → Konfliktregel; `zoneNotFound` → Zone neu anlegen, alles neu senden; `unknownItem` → als neuer Datensatz senden; `quotaExceeded` → Status «iCloud-Speicher voll» (bleibt ausstehend, erneut beim nächsten Aktivieren); Netzfehler wiederholt die Engine selbst.
+- `fetchedDatabaseChanges`: Zone gelöscht/geleert (anderes Gerät «Aus iCloud löschen», iCloud-Einstellungen) → hier ausschalten, Daten bleiben; `encryptedDataReset` → Zone neu, alles neu hochladen.
+- Engine-Zustand nach jedem `stateUpdate` gespeichert (während des ersten Einrichtens erst danach).
+
+### Schalter und Sicherheit
+- Build-Schalter `KONTIVO_ICLOUD` (project.yml, Standard `"NO"`) → Info.plist `KontivoICloud`; zusammen mit `CODE_SIGN_ENTITLEMENTS = $(KONTIVO_ENTITLEMENTS_$(KONTIVO_ICLOUD))`. Ohne Schalter gibt es keinen CloudKit-Aufruf (`CKContainer` ohne Berechtigung stürzt ab). Container `KONTIVO_ICLOUD_CONTAINER` = `iCloud.$(PRODUCT_BUNDLE_IDENTIFIER)`.
+- Bildschirmfoto-/UI-Test-Modus (`-ui*`): Sync nie aktiv.
+- `UIBackgroundModes: remote-notification` für Pushes der Engine; ohne Push: Abruf beim Start und bei jedem Aktivieren, Senden 1.5 s nach einer Änderung.
+- Nur auf echten Geräten mit bezahltem Konto prüfbar: die echte Engine (Ereignisse, Push, Kontingent, Kontowechsel, Verschlüsselung). Checkliste in README «iCloud-Sync».

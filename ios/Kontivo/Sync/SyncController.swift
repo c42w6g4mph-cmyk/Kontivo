@@ -169,8 +169,14 @@ final class SyncController {
         do {
             user = try await container.userRecordID().recordName
         } catch {
-            status = .offline
-            scheduleRetry()
+            guard engine == nil, SyncConfig.userEnabled else { return }
+            if core.ledger.initialDone && core.ledger.engineState != nil && core.ledger.accountName != nil {
+                // Konto nicht abrufbar (offline): die Engine kennt das Konto aus ihrem Zustand und meldet einen Wechsel selbst
+                makeEngine(container)
+            } else {
+                status = .offline
+                scheduleRetry()
+            }
             return
         }
         guard engine == nil, SyncConfig.userEnabled else { return }

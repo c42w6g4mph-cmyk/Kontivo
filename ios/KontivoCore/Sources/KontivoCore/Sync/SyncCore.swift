@@ -451,7 +451,8 @@ public struct SyncCore: Sendable {
         for m in merged { ledger.aliases[m.from.recordName] = m.into.recordName }
         trimAliases()
         SyncMerge.repair(&data)
-        var keys = captureLocalChanges(data, previous: afterInitial, now: now)
+        // Erstes Einrichten: voller Vergleich (auch übernommene Einträge, die beim Vereinigen angepasst wurden)
+        var keys = captureLocalChanges(data, previous: r.initial ? nil : afterInitial, now: now)
         keys += captureFiles(data, isPresent: isPresent)
         ledger.lastSync = now
         r.resend = r.initial ? pendingKeys : keys
@@ -514,6 +515,7 @@ public struct SyncCore: Sendable {
     /// Einstellungen: Listen vereinigt, Reihenfolgen iCloud zuerst. Doppelte führt danach `finishFetch` zusammen.
     mutating func union(_ remote: [SyncRecord], _ data: inout AppData, isPresent: (String) -> Bool, now: Date) {
         let settingsKey = SyncKey.settings.recordName
+        let localPersons = data.persons.map { $0.id }
         let localSettings = SyncSettings(data, base: ledger.settingsBase)
         let localSettingsTime = ledger.entries[settingsKey]?.modifiedAt ?? .distantPast
         _ = applyNormal(records: remote.filter { $0.key.kind != .settings }, deletions: [], data: &data, isPresent: isPresent, now: now)
@@ -539,6 +541,21 @@ public struct SyncCore: Sendable {
             }
         } else {
             markForUpload(.settings, data, encoder: enc, now: now)
+        }
+        // Je genau eine Person auf beiden Seiten (z.B. «Ich» hier, «Sinan» in iCloud): derselbe Haushalt, eine Person.
+        // Behalten wird die kleinere ID (alle Geräte entscheiden gleich), ein eigener Name gewinnt gegen «Ich».
+        let remotePersons = remote.filter { $0.key.kind == .person }.compactMap { $0.key.uuid }
+        if localPersons.count == 1, remotePersons.count == 1, localPersons[0] != remotePersons[0],
+           let a = data.person(localPersons[0]), let b = data.person(remotePersons[0]) {
+            let pair = [a, b].sorted { $0.id.uuidString < $1.id.uuidString }
+            let keep = pair[0].id
+            let from = pair[1].id
+            let own = [pair[0].name, pair[1].name].first { Format.collapseSpaces($0).lowercased() != "ich" }
+            data.mergePerson(from, into: keep)
+            if let i = data.personIndex(keep), Format.collapseSpaces(data.persons[i].name).lowercased() == "ich", let own {
+                data.persons[i].name = own
+            }
+            ledger.aliases[SyncKey(.person, from).recordName] = SyncKey(.person, keep).recordName
         }
         // Nur lokal vorhanden: hochladen; lokale Löschungen von Datensätzen, die es in iCloud nicht gibt: vergessen
         let remoteNames = Set(remote.map { $0.key.recordName })

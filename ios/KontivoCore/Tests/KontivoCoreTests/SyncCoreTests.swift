@@ -435,6 +435,31 @@ final class SyncCoreTests: XCTestCase {
         XCTAssertEqual(core.pending(.settings), .save)
     }
 
+    func testSinglePersonOnBothSidesBecomesOne() {
+        // iCloud: «Sinan» mit Netflix; dieses Gerät: «Ich» mit Spotify → eine Person «Sinan» mit beiden Verträgen
+        var a = AppData.initial()
+        a.persons[0].name = "Sinan"
+        a.contracts.append(contract(a, "Netflix"))
+        var b = AppData.initial()
+        b.contracts.append(contract(b, "Spotify"))
+        let sinan = a.persons[0].id
+        let ich = b.persons[0].id
+        let keep = sinan.uuidString < ich.uuidString ? sinan : ich
+        let gone = keep == sinan ? ich : sinan
+        var core = SyncCore()
+        core.captureLocalChanges(b, previous: nil, now: t(5))
+        _ = core.applyRemote(records: records(a, at: t(1)), deletions: [], data: &b, isPresent: noFiles, now: t(6))
+        _ = core.finishFetch(&b, isPresent: noFiles, now: t(7))
+        XCTAssertEqual(b.persons.map { $0.id }, [keep], "kleinere ID bleibt")
+        XCTAssertEqual(b.persons[0].name, "Sinan", "eigener Name gewinnt gegen «Ich»")
+        XCTAssertTrue(b.contracts.allSatisfy { $0.holderIDs == [keep] })
+        XCTAssertEqual(core.pending(SyncKey(.person, gone)), .delete)
+        if keep == ich {
+            XCTAssertEqual(core.pending(SyncKey(.person, keep)), .save, "umbenannt gesendet")
+        }
+        XCTAssertEqual(core.ledger.aliases[SyncKey(.person, gone).recordName], SyncKey(.person, keep).recordName)
+    }
+
     func testAliasRewritesLateReferences() {
         var d = AppData.initial()
         var core = synced(d)

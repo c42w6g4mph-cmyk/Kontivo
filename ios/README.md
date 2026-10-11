@@ -1,6 +1,6 @@
 # Kontivo für iPhone und iPad (SwiftUI)
 
-Native Version der Web-App Kontivo, 1:1 nachgebaut. Stand: 10.10.2026 (Web v142); Kern (KontivoCore) 11.10.2026 auf Web v160 – Oberfläche folgt.
+Native Version der Web-App Kontivo, 1:1 nachgebaut. Stand: 10.10.2026 (Web v142); Kern (KontivoCore) 11.10.2026 auf Web v160 – Oberfläche folgt. iCloud-Sync eingebaut (11.10.2026), im Build ausgeschaltet bis zum Apple Developer Program.
 
 ## Stand
 - **Kern (KontivoCore):** Datenmodell, Rechenkern, Datenqualität, Kündigungsschreiben, Katalog, Import/Export, Fachaktionen. 46 automatische Tests, darunter der Abgleich mit der Web-App (`tests/golden.json`: 4 Stichtage × 25 Verträge × 17 Werte, 100 % gleich).
@@ -34,6 +34,42 @@ Nach jedem `git pull` mit neuen Dateien einmal `xcodegen` laufen lassen.
 
 Mit dem kostenlosen Personal Team läuft die App 7 Tage, danach einfach wieder aus Xcode starten. Für TestFlight und den App Store braucht es das Apple Developer Program (kostenpflichtig, jährlich).
 
+## iCloud-Sync
+Die Daten liegen zusätzlich in deiner privaten iCloud und sind auf iPhone und iPad mit derselben Apple-ID gleich – wie bei anderen Apps (Notizen, Erinnerungen). Bedienung: Mehr → Daten → Schalter «iCloud-Sync» (Standard an, sobald ein iCloud-Konto angemeldet ist).
+
+- **Abgeglichen:** Verträge, Einnahmen, Personen (inkl. Absender, Unterschrift, Bild), Kategorien samt Reihenfolge, Vertragspartner, Logos/Dokumente/Bilder, Hauptwährung, Sortierung, ignorierte Hinweise, «Ohne Logo», gelernte Kontoauszug-Korrekturen, Quartals-Check.
+- **Pro Gerät:** Darstellung (hell/dunkel), Wechselkurse (lädt jedes Gerät selbst), Erinnerungen, App-Sperre, Einführung.
+- **Sicher:** private CloudKit-Datenbank des Nutzers (Zone «Kontivo»). Die Vertragsdaten liegen Ende-zu-Ende verschlüsselt in den Datensätzen (`encryptedValues`), Logos/Dokumente als iCloud-Anhang (verschlüsselt gespeichert, Ende-zu-Ende mit Apples «Erweitertem Datenschutz»). Kein Server von Kontivo, kein Teilen mit anderen.
+- **Erstes Einschalten:** iCloud leer → alles wird hochgeladen. Neues Gerät ohne eigene Daten → übernimmt die iCloud-Daten (Einführung schliesst sich, Meldung «Deine Daten aus iCloud sind da»). Beide Geräte mit Daten → zusammengeführt; Standardkategorien, «Ich» und gleichnamige Personen, Kategorien und Vertragspartner werden zu einem Eintrag.
+- **Gleichzeitig geändert:** Pro Eintrag gewinnt die neuere Änderung, Einstellungen Feld für Feld. Eine noch nicht gesendete Änderung gewinnt gegen eine Löschung auf einem anderen Gerät (kein Datenverlust).
+- **Wann:** Abruf beim Öffnen und bei jedem Wechsel in die App, Senden kurz nach jeder Änderung, mit Push sofort. Offline wird gesammelt und später gesendet.
+- **Ausschalten:** Daten bleiben auf dem Gerät. Wahlweise «Ausschalten und aus iCloud löschen» (eigene Rückfrage); andere Geräte schalten den Abgleich dann aus und behalten ihre Daten.
+- **Konto:** Abgemeldet → Abgleich ruht, Daten bleiben. Anderes iCloud-Konto → angehalten, erst nach Rückfrage «Mit diesem iCloud-Konto abgleichen …» zusammengeführt.
+- «Alle Daten löschen» und «Backup laden» wirken bei eingeschaltetem Sync auch in iCloud und auf den anderen Geräten (steht in der Rückfrage).
+
+### iCloud-Sync einschalten (braucht das Apple Developer Program)
+Mit dem kostenlosen Personal Team lassen sich iCloud und Push nicht signieren. Deshalb ist der Sync im Build ausgeschaltet; der Code wird trotzdem immer gebaut und getestet. Im Debug-Build steht unter Mehr → Daten die graue Zeile «iCloud-Sync: in diesem Build aus (Apple Developer Program nötig)».
+1. Apple Developer Program abschliessen (developer.apple.com/programs). In Xcode → Settings → Accounts die Apple-ID auswählen und «Download Manual Profiles» bzw. neu anmelden – das Team heisst danach nicht mehr «(Personal Team)».
+2. In `ios/project.yml` die Zeile `KONTIVO_ICLOUD: "NO"` in `KONTIVO_ICLOUD: "YES"` ändern. Das schaltet Berechtigungen (`Kontivo/Kontivo.entitlements`: iCloud mit CloudKit, Push) und den Sync in der App gemeinsam ein.
+3. Im Terminal `cd Kontivo/ios`, dann `xcodegen` und `open Kontivo.xcodeproj`.
+4. Target «Kontivo» → Signing & Capabilities → Team = dein bezahltes Team. Unter «iCloud» muss CloudKit mit dem Container `iCloud.ch.kontivo.app` angehakt sein; ist er rot, auf ↻ bzw. «+» tippen, damit Xcode ihn anlegt. Container-Namen sind weltweit eindeutig: Ist er vergeben, die Bundle-ID ändern – der Container heisst automatisch `iCloud.<Bundle-ID>`.
+5. Auf iPhone und iPad installieren (beide mit derselben Apple-ID und eingeschaltetem iCloud). Mehr → Daten zeigt «Auf allen deinen Geräten aktuell · zuletzt …».
+6. **Vor TestFlight/App Store:** Im CloudKit Dashboard (icloud.developer.apple.com) den Container wählen → «Schema» → «Deploy Schema Changes…» nach **Production** übernehmen. Die Datensatztypen (Settings, Person, Category, Partner, Contract, Income, File) entstehen beim ersten Abgleich aus einem Debug-Build in «Development»; ohne Übernahme funktioniert der Sync in TestFlight und im App Store nicht. Beim Export setzt Xcode Push und iCloud automatisch auf «Production».
+
+### Auf echten Geräten prüfen (nur mit bezahltem Konto möglich)
+Die CI prüft den Kern (u.a. Simulation zweier Geräte mit einem Server im Speicher, zufällige Änderungen, Konflikte, Löschen, Dateien) und dass die App mit dem CloudKit-Code baut. Nicht automatisch prüfbar sind die echte CKSyncEngine (Ereignisse, Push, Kontingent, Verschlüsselung, Konto-Wechsel). Checkliste:
+1. iPhone mit Daten: Schalter an → «Auf allen deinen Geräten aktuell».
+2. iPad frisch installieren: Einführung schliesst sich, Meldung, alle Daten da, keine doppelten Kategorien oder «Ich».
+3. Vertrag auf dem iPhone ändern → iPad zeigt die Änderung (sofort per Push oder beim Öffnen). Ebenso Logo setzen, Kategorie verschieben, Einnahme löschen.
+4. iPad im Flugmodus ändern, iPhone ändert anderes; Flugmodus aus → beide gleich.
+5. Ausschalten mit «Aus iCloud löschen» auf dem iPhone → iPad meldet es, Schalter aus, Daten bleiben.
+6. In den iPhone-Einstellungen von iCloud abmelden → «Nicht bei iCloud angemeldet», Daten bleiben.
+
+### Grenzen
+- Konflikte entscheidet die Uhrzeit der Geräte: Bei falsch gestellter Uhr kann eine ältere Änderung gewinnen.
+- Ändert ein Gerät mit einer älteren App-Version einen Eintrag, gehen Felder einer neueren Version verloren – Geräte aktuell halten.
+- Der Text «Datenschutz» unter Mehr → Rechtliches erwähnt iCloud noch nicht (vor der Veröffentlichung ergänzen).
+
 ## Daten aus der Web-App übernehmen
 Web-App: Mehr → Daten → «Backup erstellen» → Datei in iCloud Drive sichern.
 iPhone-App: Mehr → Daten → «Backup laden» → Datei wählen. Verträge, Einnahmen, Personen, Absender, Unterschriften, Kategorien, Logos und Dokumente werden übernommen.
@@ -61,4 +97,5 @@ iPhone-App: Mehr → Daten → «Backup laden» → Datei wählen. Verträge, Ei
 - Auf iPhone und iPad testen (Gesten, Kalender, Mail, Drucken, Kamera/Dateien, Backup-Import einer echten Web-Sicherung)
 - App-Icon in 1024 px aus der Originalgrafik (derzeit aus 512 px hochgerechnet)
 - Datenschutzerklärung für den App Store, Hinweis, dass Backups Unterschriften enthalten
-- Danach (nur mit bezahltem Apple-Konto sinnvoll): iCloud-Sync, Widget «Nächste Frist»
+- iCloud-Sync mit bezahltem Apple-Konto einschalten und auf iPhone/iPad prüfen (siehe «iCloud-Sync»), CloudKit-Schema nach Production übernehmen, Datenschutztext um iCloud ergänzen
+- Danach: Widget «Nächste Frist»
