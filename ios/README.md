@@ -80,6 +80,7 @@ iPhone-App: Mehr → Daten → «Backup laden» → Datei wählen. Verträge, Ei
 - `docs/inventar/` – Verhalten der Web-App je Bereich (alle Texte wörtlich), Grundlage des Nachbaus
 - `KontivoCore/` – Swift Package ohne Oberfläche (`swift test` läuft auch ohne Simulator)
 - `Kontivo/` – App (SwiftUI), je Bereich ein Ordner
+- `KontivoCore/Sources/KontivoCore/Sync/` (Regeln, ohne CloudKit, getestet) und `Kontivo/Sync/` (CKSyncEngine) – iCloud-Sync, siehe ARCHITEKTUR «iCloud-Sync»
 - `project.yml` – Projektbeschreibung für XcodeGen
 
 ## Bewusst anders als die Web-App (native Möglichkeiten)
