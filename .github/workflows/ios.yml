@@ -49,7 +49,7 @@ jobs:
         id: ui
         if: steps.app.outcome == 'success' && !contains(github.event.head_commit.message, '[noui]')
         continue-on-error: true
-        timeout-minutes: 32
+        timeout-minutes: 45
         run: |
           mkdir -p ci-out
           RT=$(xcrun simctl list runtimes | grep -o 'com.apple.CoreSimulator.SimRuntime.iOS-26-[0-9]*' | tail -1)
