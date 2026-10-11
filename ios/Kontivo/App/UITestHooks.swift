@@ -8,7 +8,9 @@ import KontivoCore
 ///   -uiToday <iso>     Stichtag (Standard 2026-10-03)
 ///   -uiOnboarding      Einführung (Erststart)
 ///   -uiTab <name>      contracts | costs | budget | deadlines | more
-///   -uiSheet <name>    detail | form | income | incomes | letter | manage | partners | persons | sender | categories | quality | cancelpick
+///   -uiSheet <name>    detail | form | income | incomes | incomeDetail | incomeEdit | letter | manage | partners | persons | sender
+///                      | categories | quality | cancelpick | completeness
+///                      (incomeDetail/incomeEdit: Einnahme mit Änderungen, Beispiel «Lohn» mit Verlauf)
 ///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich onb)
 ///   -uiSplash          Intro beim Start auch im UI-Test zeigen
 extension AppModel {
@@ -62,12 +64,16 @@ extension AppModel {
         let c = data.contracts.first { $0.status == .active && $0.partnerID != nil }
         let post = data.contracts.first { calc.cancVia($0) == .post && calc.isActive($0) }
         let open = data.contracts.first { calc.cancVia($0) == .none && calc.isActive($0) }
+        let inc = data.incomes.first { !$0.prices.isEmpty } ?? data.incomes.first
         switch s {
         case "detail": if let c { present(.contractDetail(c.id)) }
         case "form": present(.contractForm(.new(prefill: nil)))
         case "edit": if let c { present(.contractForm(.edit(c.id))) }
         case "income": present(.incomeForm(nil))
         case "incomes": present(.incomesAll)
+        case "incomeDetail": if let inc { present(.incomeDetail(inc.id)) }
+        case "incomeEdit": if let inc { present(.incomeForm(inc.id)) }
+        case "completeness": present(.completeness(only: nil))
         case "letter": if let p = post { present(.letter(p.id, trial: false)) }
         case "cancelpick": if let o = open { present(.cancelChannelPick(o.id, trial: false)) }
         case "manage": present(.manage(.overview))

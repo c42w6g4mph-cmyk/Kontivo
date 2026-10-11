@@ -763,10 +763,10 @@ private struct DeadlinesEmptyView: View {
         VStack(spacing: 18) {
             EmptyHero(symbol: "stopwatch",
                       title: "Nie mehr eine\nFrist verpassen",
-                      text: "Kontivo rechnet den Kündigungstermin aus und meldet sich rechtzeitig.",
+                      text: "Kontivo rechnet den Kündigungstermin aus und zeigt ihn dir rechtzeitig hier unter «Fristen».",
                       hooks: ["Behalten oder kündigen? Du entscheidest",
                               "Kündigung als PDF: mailen oder drucken",
-                              "Auch Probe-Abos und Jahresverträge"])
+                              "Auch Probeabos und Jahresverträge"])
             if showPreview {
                 preview
                     .padding(.horizontal, 28)
@@ -796,7 +796,7 @@ private struct DeadlinesEmptyView: View {
                     Text("Fitnessstudio")
                         .font(.body.weight(.semibold))
                         .foregroundStyle(KColor.ink)
-                    Text("Frist 30.11. · noch 29 Tage")
+                    Text(verbatim: "Frist " + String(format: "%02d.%02d.", model.today.addingDays(29).day, model.today.addingDays(29).month) + " · noch 29 Tage")
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(KColor.warn)
                 }

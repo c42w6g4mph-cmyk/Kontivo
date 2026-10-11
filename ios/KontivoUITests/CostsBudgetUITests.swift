@@ -54,14 +54,19 @@ final class CostsBudgetUITests: KontivoUITestCase {
         let row = buttonStarting("QA Nebenjob")
         wait(row, "Einnahme in der Liste")
         XCTAssertTrue(row.label.contains("800.00"), "Betrag der Einnahme: \(row.label)")
-        wait(buttonContaining("Alle Einnahmen (3)"), "Alle Einnahmen (3)")
+        // Beispieldaten: 5 Einnahmen (Lohn ×2, Kinderzulage, Steuerrückerstattung, Unterstützung) + neue
+        wait(buttonContaining("Alle Einnahmen (6)"), "Alle Einnahmen (6)")
 
-        // Einnahme öffnen und wieder schliessen (Formular «Einnahme bearbeiten»)
+        // Einnahme öffnen (Ansicht, Web v155) → Bearbeiten (Formular «Bearbeiten», Web v154) → Abbrechen → Schliessen
         tap(row, "Einnahme öffnen")
-        waitNav("Einnahme bearbeiten")
+        wait(el("incomeDetail.kz.month"), "Ansicht der Einnahme")
+        tapTop("Bearbeiten")
+        waitNav("Bearbeiten")
         XCTAssertEqual(textField("income.amount").value as? String, "800.00")
         tapTop("Abbrechen")
-        waitUntil("Formular geschlossen") { !self.navExists("Einnahme bearbeiten") }
+        waitUntil("Formular geschlossen") { !self.navExists("Bearbeiten") }
+        tapTop("Schliessen")
+        waitGone(el("incomeDetail.kz.month"), "Ansicht geschlossen")
     }
 }
 

@@ -1,9 +1,10 @@
 import SwiftUI
 import KontivoCore
 
-/// Plus oben rechts in «Verträge» (Web 17862f0/fe70531): Menü
-/// «Vertrag erfassen» (Einzeln, mit Anbieter-Katalog) | «Aus Kontoauszug» (Fixkosten in Bank-Dateien finden –
-/// Konto und Kreditkarte auf einmal) mit der Wahl der Quelle: Datei, Foto aufnehmen, Fotos.
+/// Plus oben rechts in «Verträge» (Web 17862f0/fe70531, v143, v156): Menü
+/// «Vertrag erfassen» (Einzeln, mit Vorlagen-Katalog) | «Aus Kontoauszug» (Fixkosten in Bank-Dateien finden –
+/// Konto und Kreditkarte auf einmal) mit der Wahl der Quelle: Datei, Foto aufnehmen, Fotos | «Einnahme erfassen»
+/// (Lohn, Rente, Stipendium …).
 struct AddMenuButton: View {
     @Environment(AppModel.self) private var model
 
@@ -14,7 +15,7 @@ struct AddMenuButton: View {
             } label: {
                 Label {
                     Text("Vertrag erfassen")
-                    Text("Einzeln, mit Anbieter-Katalog")
+                    Text("Einzeln, mit Vorlagen-Katalog")
                 } icon: {
                     Image(systemName: "square.and.pencil")
                 }
@@ -42,6 +43,17 @@ struct AddMenuButton: View {
                 }
             }
             .accessibilityIdentifier("addBank")
+            Button {
+                model.present(.incomeForm(nil))
+            } label: {
+                Label {
+                    Text("Einnahme erfassen")
+                    Text("Lohn, Rente, Stipendium …")
+                } icon: {
+                    Image(systemName: "arrow.down.to.line")
+                }
+            }
+            .accessibilityIdentifier("addIncome")
         } label: {
             Image(systemName: "plus")
                 .fontWeight(.semibold)

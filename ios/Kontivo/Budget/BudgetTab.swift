@@ -406,15 +406,25 @@ struct KBBudgetIncomeList: View {
     @ViewBuilder
     private func incomeRow(_ r: Calc.KBIncomeRow, home: Currency) -> some View {
         if let i = model.data.income(r.incomeID) {
+            // Zweitzeile Person(en) · Rhythmus (Web v156/v159), Antippen öffnet die Einnahme-Ansicht (Web v155)
+            let sub = model.calc.kbIncomeSubline(i)
             Button {
-                model.present(.incomeForm(i.id))
+                model.present(.incomeDetail(i.id))
             } label: {
                 HStack(spacing: 11) {
                     MarkView(income: i, size: 32)
-                    Text(verbatim: i.title)
-                        .font(.body.weight(.medium))
-                        .foregroundStyle(KColor.ink)
-                        .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(verbatim: i.title)
+                            .font(.body.weight(.medium))
+                            .foregroundStyle(KColor.ink)
+                            .lineLimit(1)
+                        if !sub.isEmpty {
+                            Text(verbatim: sub)
+                                .font(.caption)
+                                .foregroundStyle(KColor.ink3)
+                                .lineLimit(1)
+                        }
+                    }
                     Spacer(minLength: 8)
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         Text(verbatim: Format.money(r.amount, i.currency))

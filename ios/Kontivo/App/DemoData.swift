@@ -255,6 +255,18 @@ enum DemoData {
    "cur": "CHF",
    "cycle": 1,
    "due": "2026-10-25",
+   "start": "2023-04-01",
+   "prices": [
+    {
+     "from": "2025-01-01",
+     "amount": 7450
+    },
+    {
+     "from": "2026-01-01",
+     "amount": 7600
+    }
+   ],
+   "note": "13. Monatslohn als eigene Einnahme erfassen",
    "holders": [
     "Sinan"
    ]
@@ -267,6 +279,42 @@ enum DemoData {
    "cur": "EUR",
    "cycle": 1,
    "due": "2026-10-28",
+   "holders": [
+    "Lara"
+   ]
+  },
+  "i3": {
+   "name": "Familienausgleichskasse",
+   "label": "Kinderzulage",
+   "cat": "Zulagen",
+   "amount": 215,
+   "cur": "CHF",
+   "cycle": 1,
+   "due": "2026-10-25",
+   "holders": [
+    "Sinan"
+   ]
+  },
+  "i4": {
+   "name": "Steueramt",
+   "label": "Steuerrückerstattung",
+   "cat": "Rückerstattung",
+   "amount": 640,
+   "cur": "CHF",
+   "cycle": 0,
+   "due": "2026-10-20",
+   "holders": [
+    "Sinan"
+   ]
+  },
+  "i5": {
+   "name": "Eltern",
+   "label": "Unterstützung",
+   "cat": "Unterstützung",
+   "amount": 300,
+   "cur": "CHF",
+   "cycle": 3,
+   "due": "2026-10-15",
    "holders": [
     "Lara"
    ]

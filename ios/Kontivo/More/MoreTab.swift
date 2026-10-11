@@ -257,7 +257,7 @@ struct MoreCurrencyGroup: View {
 
 /// Werte rechts in «Verwalten» (wie `paintMdSummary`/`paintVkRow`, iOS-Listenstil seit Web v121)
 struct MoreManageSummary {
-    /// «27 Anbieter», «2 Dubletten» (orange) bzw. «–»
+    /// «27 Vertragspartner», «2 Dubletten» (orange) bzw. «–» (Web `paintMdSummary`)
     var partners: String
     var partnerWarn: Bool
     /// Vornamen bis 2 Personen («Sinan, Lara»), sonst «3 Personen»
@@ -272,7 +272,7 @@ struct MoreManageSummary {
         let today = model.today
         let groups = Partners.groups(data, today: today)
         let dups = groups.filter { $0.isDuplicate }.count
-        partners = dups > 0 ? Format.count(dups, "Dublette", "Dubletten") : (groups.isEmpty ? "–" : Format.count(groups.count, "Anbieter", "Anbieter"))
+        partners = dups > 0 ? Format.count(dups, "Dublette", "Dubletten") : (groups.isEmpty ? "–" : Format.count(groups.count, "Vertragspartner", "Vertragspartner"))
         partnerWarn = dups > 0
         let names = data.persons.map { $0.name }
         persons = names.count <= 2 ? names.map { Format.firstName($0) }.joined(separator: ", ") : "\(names.count) Personen"
@@ -500,19 +500,19 @@ struct MoreHelpGroup: View {
 
 enum MoreTexts {
     static let disclaimer = [
-        "Kontivo ist ein Hilfsmittel zur persönlichen Übersicht. Alle Berechnungen (Kosten, Fristen, Kündigungstermine, Wechselkurse) erfolgen ohne Gewähr auf Basis deiner Eingaben. Massgebend sind allein dein Vertrag und die Angaben des Anbieters.",
+        "Kontivo ist ein Hilfsmittel zur persönlichen Übersicht. Alle Berechnungen (Kosten, Fristen, Kündigungstermine, Wechselkurse) erfolgen ohne Gewähr auf Basis deiner Eingaben. Massgebend sind allein dein Vertrag und die Angaben deines Vertragspartners.",
         "Kündigungstexte, Katalogangaben und Hinweise sind unverbindliche Vorlagen und ersetzen keine Rechts- oder Finanzberatung. Prüfe Fristen und Formvorschriften selbst. Für verpasste Fristen, falsche Beträge oder Datenverlust wird keine Haftung übernommen, soweit gesetzlich zulässig.",
     ]
 
     static let privacy = [
         "Kontivo hat kein Benutzerkonto, keine Werbung, kein Tracking und keine Analyse. Deine Verträge, Logos und Dokumente werden nur lokal auf diesem Gerät gespeichert und nicht an Kontivo übermittelt.",
         "Für einzelne Funktionen ruft die App externe Dienste auf. Dabei wird technisch bedingt deine IP-Adresse übertragen:",
-        "• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.\n• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst) und unavatar.io; das App-Symbol wird direkt von der Website des Anbieters geladen. Ein eingefügter Bild-Link wird direkt von dieser Adresse geladen.\n• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).\n• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.\n• Kontoauszug einlesen: Die Datei wird nur auf dem Gerät gelesen, nicht gespeichert und nicht übertragen.\n• Handschrift-Schriften für Namenszug-Vorschläge sind in der App enthalten (SIL Open Font License), dafür wird nichts geladen.",
+        "• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.\n• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst) und unavatar.io; das App-Symbol wird direkt von der Website des Vertragspartners geladen. Ein eingefügter Bild-Link wird direkt von dieser Adresse geladen.\n• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).\n• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.\n• Kontoauszug einlesen: Die Datei wird nur auf dem Gerät gelesen, nicht gespeichert und nicht übertragen.\n• Handschrift-Schriften für Namenszug-Vorschläge sind in der App enthalten (SIL Open Font License), dafür wird nichts geladen.",
         "Backups und CSV-Dateien erstellst und speicherst du selbst. Ohne Backup gehen deine Daten beim Löschen der App verloren. Mit «Alle Daten löschen» entfernst du alles vom Gerät.",
     ]
 
     static let brands = [
-        "Logos, Marken und Firmennamen gehören ihren jeweiligen Inhabern. Sie werden nur zur Wiedererkennung deiner eigenen Verträge angezeigt. Kontivo steht in keiner Verbindung zu den genannten Anbietern und wird von ihnen weder unterstützt noch gesponsert.",
+        "Logos, Marken und Firmennamen gehören ihren jeweiligen Inhabern. Sie werden nur zur Wiedererkennung deiner eigenen Verträge angezeigt. Kontivo steht in keiner Verbindung zu den genannten Unternehmen und wird von ihnen weder unterstützt noch gesponsert.",
     ]
 }
 
