@@ -51,6 +51,10 @@ final class SyncController {
     @ObservationIgnored private var retryDelay: Double = 15
     @ObservationIgnored private var sendTask: Task<Void, Never>?
     @ObservationIgnored private var triedMissingFiles = Set<String>()
+    /// Zuletzt gesendete Nutzlast je Datensatzname (Bestätigung ohne Rücklesen, auch bei Nutzlast als Anhang)
+    @ObservationIgnored private var sentPayloads: [String: Data] = [:]
+    /// Prüfung nach «zoneNotFound» läuft
+    @ObservationIgnored private var checkingZone = false
 
     /// `disabled`: Bildschirmfoto-/UI-Test-Modus – nie aktiv
     init(disabled: Bool = false) {
@@ -155,8 +159,13 @@ final class SyncController {
         switch account {
         case .available:
             break
-        case .noAccount, .couldNotDetermine, .temporarilyUnavailable:
+        case .noAccount:
             status = .noAccount
+            return
+        case .couldNotDetermine, .temporarilyUnavailable:
+            // Vorübergehend (z.B. offline, Konto wird geprüft): später erneut
+            status = .offline
+            scheduleRetry()
             return
         case .restricted:
             status = .restricted
@@ -372,6 +381,13 @@ final class SyncController {
         pushToEngine(keys)
     }
 
+    /// data.json ist (wieder) auf dem aktuellen Stand geschrieben: Zustand sichern
+    func dataWritten() {
+        guard loaded else { return }
+        dataBehind = false
+        persist(saved: true)
+    }
+
     // MARK: Zustand sichern
 
     /// sync-state schreiben – nie vor data.json (sonst gingen nach einem Absturz Änderungen verloren).
@@ -448,6 +464,7 @@ final class SyncController {
                 switch core.outgoing(key, data: model.data) {
                 case .save(let rec)?:
                     saves.append(SyncRecordMapper.record(for: rec, id: id, systemFields: core.ledger.systemFields[id.recordName]))
+                    sentPayloads[id.recordName] = rec.payload
                     bytes += min(rec.payload.count, SyncRecordMapper.inlineLimit)
                 case .saveFile(let fid)?:
                     guard model.files.has(fid) else {
@@ -597,7 +614,7 @@ final class SyncController {
         let res = core.applyRemote(records: records, deletions: deletions, systemFields: fields, storedFiles: stored,
                                    data: &working, isPresent: { model.files.has($0) }, now: Date())
         var saved = true
-        if res.changed { saved = model.syncReplace(working) }
+        if res.changed { saved = model.syncReplace(working); if saved { dataBehind = false } }
         base = model.data
         persist(saved: saved)
         pushToEngine(res.resend)
@@ -614,7 +631,7 @@ final class SyncController {
         var working = model.data
         let r = core.finishFetch(&working, isPresent: { model.files.has($0) }, now: Date())
         var saved = true
-        if r.changed { saved = model.syncReplace(working) }
+        if r.changed { saved = model.syncReplace(working); if saved { dataBehind = false } }
         base = model.data
         lastSync = core.ledger.lastSync
         persist(saved: saved)
@@ -637,6 +654,7 @@ final class SyncController {
         if let s = initialEngineState { core.ledger.engineState = s }
         initialEngineState = nil
         let saved = r.changed ? model.syncReplace(working) : true
+        if r.changed && saved { dataBehind = false }
         base = model.data
         lastSync = core.ledger.lastSync
         persist(saved: saved)
@@ -666,7 +684,7 @@ final class SyncController {
         for r in e.savedRecords {
             guard let key = SyncRecordMapper.key(r.recordID) else { continue }
             anySaved = true
-            let payload = key.kind == .file ? nil : SyncRecordMapper.payload(of: r)
+            let payload = key.kind == .file ? nil : (sentPayloads.removeValue(forKey: key.recordName) ?? SyncRecordMapper.payload(of: r))
             if key.kind != .file { SyncRecordMapper.removeTempFile(name: key.recordName) }
             if core.didSave(key, payload: payload, systemFields: SyncRecordMapper.systemFields(r)) { resend.append(key) }
         }
@@ -732,11 +750,32 @@ final class SyncController {
             quotaFull = false
         }
         var saved = true
-        if let w = working, w != model.data { saved = model.syncReplace(w) }
+        if let w = working, w != model.data { saved = model.syncReplace(w); if saved { dataBehind = false } }
         base = model.data
-        if missingZone { zoneMissing() }
         persist(saved: saved)
         pushToEngine(resend)
+        if missingZone { zoneNotFoundOnSend() }
+    }
+
+    /// Zone fehlt beim Senden: erst die Datenbankänderungen abrufen. Hat ein anderes Gerät sie gelöscht («Aus iCloud
+    /// löschen»), meldet das der Abruf (`deletedElsewhere`, hier aus) – dann nichts neu hochladen. Sonst Zone neu anlegen.
+    private func zoneNotFoundOnSend() {
+        guard let engine, !checkingZone else { return }
+        checkingZone = true
+        let gen = generation
+        Task { @MainActor [weak self] in
+            var fetched = true
+            do { try await engine.fetchChanges() } catch { fetched = false }
+            guard let self else { return }
+            self.checkingZone = false
+            guard gen == self.generation, self.engine === engine, SyncConfig.userEnabled else { return }
+            if !fetched {
+                // Unklar (offline): beim nächsten Abgleich erneut
+                self.scheduleRetry()
+                return
+            }
+            self.zoneMissing()
+        }
     }
 
     // MARK: Dateien

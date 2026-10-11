@@ -71,6 +71,8 @@ final class AppModel {
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     /// Änderung noch nicht gespeichert (Speichern läuft entprellt)
     @ObservationIgnored private var unsaved = false
+    /// Schreiben wegen Dateischutz (Gerät gesperrt) zurückgestellt: beim Entsperren nachholen
+    @ObservationIgnored private var writeDeferred = false
     /// Wichtige Meldung (Speicherfehler) bis zu diesem Zeitpunkt nicht überschreiben (wie toastLock der Web-App)
     @ObservationIgnored private var toastLockUntil = Date.distantPast
     /// Speicherfehler schon gemeldet (erst nach erfolgreichem Speichern wieder melden)
@@ -214,10 +216,16 @@ final class AppModel {
         return ok
     }
 
-    /// data.json schreiben, Fehler einmal melden
+    /// data.json schreiben, Fehler einmal melden. Gerät gesperrt (Dateischutz, z.B. Abgleich nach Push im Hintergrund):
+    /// nicht schreiben und nicht melden, sondern beim Entsperren nachholen.
     private func writeData() -> Bool {
+        if !UIApplication.shared.isProtectedDataAvailable {
+            writeDeferred = true
+            return false
+        }
         if files.saveData(data) {
             saveErr = false
+            writeDeferred = false
             return true
         }
         // Nur einmal melden (bis zum nächsten erfolgreichen Speichern), 5 s sichtbar und nicht überschreibbar
@@ -226,6 +234,12 @@ final class AppModel {
             showToast("Speichern fehlgeschlagen – Gerätespeicher voll? Bitte ein Backup erstellen.", seconds: 5, lock: true)
         }
         return false
+    }
+
+    /// Zurückgestelltes Schreiben nachholen (Gerät entsperrt, App aktiv)
+    func flushDeferredWrite() {
+        guard writeDeferred, !uiTestMode, !saveBlocked, !loadDeferred else { return }
+        if writeData() { sync.dataWritten() }
     }
 
     // MARK: iCloud-Sync
@@ -398,6 +412,7 @@ final class AppModel {
         }
         cancelReturnCheck()
         Task { await RateService.refreshIfNeeded(self, force: false) }
+        flushDeferredWrite()
         sync.sceneBecameActive()
     }
 
@@ -427,6 +442,7 @@ final class AppModel {
             guard let self else { return }
             Task { @MainActor in
                 if self.loadDeferred { self.retryDeferredLoad() }
+                self.flushDeferredWrite()
             }
         })
     }

@@ -545,9 +545,12 @@ public struct SyncCore: Sendable {
         }
         // Je genau eine Person auf beiden Seiten (z.B. «Ich» hier, «Sinan» in iCloud): derselbe Haushalt, eine Person.
         // Behalten wird die kleinere ID (alle Geräte entscheiden gleich), ein eigener Name gewinnt gegen «Ich».
+        // Nur wenn genau eine Seite «Ich» heisst: zwei verschiedene eigene Namen («Sinan», «Lara») sind zwei Personen,
+        // gleiche Namen führt `SyncMerge.dedupe` zusammen.
         let remotePersons = remote.filter { $0.key.kind == .person }.compactMap { $0.key.uuid }
+        let isIch = { (p: Person) in Format.collapseSpaces(p.name).lowercased() == "ich" }
         if localPersons.count == 1, remotePersons.count == 1, localPersons[0] != remotePersons[0],
-           let a = data.person(localPersons[0]), let b = data.person(remotePersons[0]) {
+           let a = data.person(localPersons[0]), let b = data.person(remotePersons[0]), isIch(a) != isIch(b) {
             let pair = [a, b].sorted { $0.id.uuidString < $1.id.uuidString }
             let keep = pair[0].id
             let from = pair[1].id
@@ -607,7 +610,8 @@ public struct SyncCore: Sendable {
     // MARK: Zurücksetzen
 
     /// Server-Wissen verwerfen (Ausschalten, Abmelden, Kontowechsel, Zone gelöscht). Die lokalen Fassungen (Änderungszeiten)
-    /// und noch nicht gesendete Löschungen bleiben; beim nächsten Einschalten folgt das erste Einrichten (Vereinigen).
+    /// und alles noch nicht Gesendete (Änderungen und Löschungen) bleiben: beim nächsten Einschalten folgt das erste Einrichten
+    /// (Vereinigen), und eine ausstehende lokale Änderung gewinnt dort gegen eine ältere iCloud-Fassung.
     public mutating func resetServerState() {
         ledger.systemFields = [:]
         ledger.serverFiles = []
@@ -615,7 +619,6 @@ public struct SyncCore: Sendable {
         ledger.engineState = nil
         ledger.initialDone = false
         ledger.lastSync = nil
-        for (name, p) in ledger.pending where p == .save { ledger.pending[name] = nil }
         initialRecords = [:]
         initialDeleted = []
     }
