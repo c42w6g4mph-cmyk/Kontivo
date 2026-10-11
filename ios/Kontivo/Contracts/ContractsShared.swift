@@ -235,8 +235,8 @@ enum ContractFormLaunch {
     /// Formular `.edit(id)` mit Sprungziel öffnen, vorher alle Fenster schliessen (Web `closeSheets(); openForm(c); formGo(…)`).
     static func edit(_ model: AppModel, _ id: UUID, focus field: ContractFormFocus?, then done: (() -> Void)? = nil) {
         focus = field.map { (id: id, field: $0) }
-        // bisheriges Formular: Felder ausserhalb der ersten Seite liegen unter «Weitere Angaben»
-        if let f = field, f != .end && f != .holders { openMoreFor = id }
+        // bisheriges Formular: Link und E-Mail liegen unter «Weitere Angaben» (wie vor v160; entfällt mit dem einseitigen Formular)
+        if let f = field, ([.cancelURL, .web, .mail, .cancelMail] as [ContractFormFocus]).contains(f) { openMoreFor = id }
         model.cancelFlowPresent(.contractForm(.edit(id)), closingOthers: true, then: done)
     }
 }
