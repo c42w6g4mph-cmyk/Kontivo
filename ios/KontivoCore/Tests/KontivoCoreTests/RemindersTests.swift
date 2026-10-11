@@ -115,8 +115,8 @@ final class RemindersTests: XCTestCase {
     }
 
     func testTodayOnlyBeforeNine() {
-        // Frist heute (Ende 08.11., 1 Monat Frist, ohne Verlängerung)
-        let c = Contract(label: "Fitness", amount: 80, cycle: 1, end: Day(2026, 11, 8), notice: 1, noticeUnit: .months)
+        // Frist heute (Ende 08.11., 1 Monat Frist, verlängert sich; ohne Verlängerung endet er von selbst, Web v160 `endsSelf`)
+        let c = Contract(label: "Fitness", amount: 80, cycle: 1, end: Day(2026, 11, 8), notice: 1, noticeUnit: .months, renewMonths: 12)
         let calc = Calc(data: data([c]), today: today)
         XCTAssertEqual(calc.reminderDeadline(for: c)?.date, today)
         XCTAssertEqual(Reminders.plan(calc: calc, leadDays: 7, minuteOfDay: 8 * 60 + 59).map { $0.fireDay }, [today])
