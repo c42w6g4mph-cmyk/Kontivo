@@ -90,7 +90,7 @@ enum CTCatalogMemory {
     static var country = ""
 }
 
-/// «Anbieter-Katalog»: Suche, Land Alle/CH/DE, Übernahme der Vorlage per Tipp (openTplPick).
+/// «Katalog» (Web v143 `openTplPick`): Suche «Vertragspartner suchen», Land Alle/CH/DE, Übernahme der Vorlage per Tipp.
 struct CTCatalogSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
@@ -119,7 +119,7 @@ struct CTCatalogSheet: View {
                 }
                 Section {
                     if list.isEmpty {
-                        Text("Kein Anbieter gefunden. Du kannst ihn einfach selbst eintippen.")
+                        Text("Nichts gefunden. Du kannst den Vertragspartner einfach selbst eintippen.")
                             .font(.subheadline)
                             .foregroundStyle(KColor.ink2)
                     }
@@ -138,8 +138,8 @@ struct CTCatalogSheet: View {
             }
             .scrollContentBackground(.hidden)
             .background(KColor.paper)
-            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Anbieter suchen")
-            .navigationTitle("Anbieter-Katalog")
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Vertragspartner suchen")
+            .navigationTitle("Katalog")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
