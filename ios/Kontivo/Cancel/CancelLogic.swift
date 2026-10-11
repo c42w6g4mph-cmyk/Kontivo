@@ -163,7 +163,8 @@ extension AppModel {
             guard let self else { return }
             switch check {
             case .noSigner:
-                ContractFormLaunch.edit(self, id, focus: .holders)
+                // Web: Formular ohne Sprungziel (Personen stehen unter «Zuordnung»)
+                ContractFormLaunch.edit(self, id, focus: nil)
             case .senderIncomplete(let ids):
                 if let p = ids.first { self.cancelFlowPresent(.manage(.sender(p)), closingOthers: true) }
             case .numberMissing:

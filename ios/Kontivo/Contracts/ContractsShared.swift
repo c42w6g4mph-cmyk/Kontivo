@@ -200,6 +200,7 @@ enum CTText {
 }
 
 /// Sprungziel beim Öffnen des Formulars (Web `formGo(id)`): Feld, zu dem das Formular scrollt und das es fokussiert.
+/// Rohwerte gleich wie `ContractFormField` des neuen Formulars (Branch swift-w-form, `ContractFormGo.request`).
 enum ContractFormFocus: String, Hashable {
     /// Vertragsende (Web `fEnd`, «Wieder aktiv setzen» bei abgelaufener Laufzeit)
     case end
@@ -213,13 +214,10 @@ enum ContractFormFocus: String, Hashable {
     case mail
     /// Kündigungsadresse E-Mail (Web `fCancMail`, «E-Mail-Adresse fehlt» bei Kündigungsweg E-Mail)
     case cancelMail
-    /// Personen (Web: «Wer kündigt?» → «Person eintragen» öffnet das Formular)
-    case holders
 }
 
-/// Formular mit Sprungziel öffnen: vor `model.present(.contractForm(.edit(id)))` `ContractFormLaunch.focus = (id, .end)`
-/// setzen; das Formular liest es beim Erscheinen mit `take(for:)` (und löscht es).
-/// `openMoreFor` = alter Weg (Unterseite «Weitere Angaben»), bleibt bis zum Umbau des Formulars bestehen.
+/// Formular mit Sprungziel öffnen (Web `closeSheets(); openForm(c); formGo(…)`): `ContractFormLaunch.edit(model, id, focus: .end)`.
+/// `openMoreFor` = alter Weg (Unterseite «Weitere Angaben» des bisherigen Formulars).
 @MainActor
 enum ContractFormLaunch {
     static var openMoreFor: UUID?
@@ -232,10 +230,13 @@ enum ContractFormLaunch {
         return f.field
     }
 
-    /// Formular `.edit(id)` mit Sprungziel öffnen, vorher alle Fenster schliessen (Web `closeSheets(); openForm(c); formGo(…)`).
+    /// Formular `.edit(id)` mit Sprungziel öffnen, vorher alle Fenster schliessen.
     static func edit(_ model: AppModel, _ id: UUID, focus field: ContractFormFocus?, then done: (() -> Void)? = nil) {
+        // ZUSAMMENFÜHREN mit swift-w-form: diese Zeile ersetzen durch
+        // `if let f = field, let g = ContractFormField(rawValue: f.rawValue) { ContractFormGo.request(id, g) }`
         focus = field.map { (id: id, field: $0) }
-        // bisheriges Formular: Link und E-Mail liegen unter «Weitere Angaben» (wie vor v160; entfällt mit dem einseitigen Formular)
+        // bisheriges Formular: Link und E-Mail liegen unter «Weitere Angaben» (wie vor v160; das neue Formular springt
+        // über `openMoreFor` zum Kündigungslink, zur E-Mail für die Kündigung bzw. zur Website)
         if let f = field, ([.cancelURL, .web, .mail, .cancelMail] as [ContractFormFocus]).contains(f) { openMoreFor = id }
         model.cancelFlowPresent(.contractForm(.edit(id)), closingOthers: true, then: done)
     }

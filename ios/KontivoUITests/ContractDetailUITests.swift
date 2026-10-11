@@ -1,22 +1,41 @@
 import XCTest
 
 /// Vertragsansicht, Kündigen und Fristen auf Stand Web v160:
-/// «Schon gekündigt …» mit «Läuft bis», Probeabo-Kasten «Behalten», Prüfung vor «Per E-Mail kündigen» (Kundennummer fehlt),
-/// Fristen «Endet von selbst» und Vertragspartner hinter dem Titel.
+/// Probeabo-Kasten «Behalten», «Schon gekündigt …» mit «Läuft bis», Fristen «Endet von selbst» und Vertragspartner hinter
+/// dem Titel, Prüfung vor «Per E-Mail kündigen» (Kundennummer fehlt).
 /// Fälle, die die Beispieldaten nicht haben, setzt das Startargument «-uiSeed» (siehe `CTUITestSeed`).
+/// Je Test nur ein Start (die UI-Tests der CI haben ein knappes Zeitbudget).
 final class ContractDetailUITests: KontivoUITestCase {
 
-    /// Menü ••• → «Schon gekündigt …» → Chip «30.11.26 (Termin)» → «Sichern»: Karte «gekündigt per 30.11.26»,
-    /// Detail mit Pille «Gekündigt · läuft bis …» und «Kündigung zurücknehmen» statt «Schon gekündigt …» (Web v154)
-    func testSchonGekuendigtLaeuftBis() {
+    /// 1) Laufendes Probeabo: Kasten «Probeabo bis 19. Oktober» · «danach kostenpflichtig …», Zeile «Probeabo: gratis bis …»;
+    ///    «Behalten» setzt das Probeabo auf behalten, danach kein Kasten mehr.
+    /// 2) Menü ••• → «Schon gekündigt …» → Chip «30.11.26 (Termin)» → «Sichern»: Karte «gekündigt per 30.11.26», Detail mit
+    ///    Pille «Gekündigt · läuft bis …» und «Kündigung zurücknehmen» statt «Schon gekündigt …» (Web v154)
+    func testProbeaboBehaltenUndSchonGekuendigt() {
         launch("-uiDemo", "-uiTab", "contracts")
+
+        // 1) Probeabo «Musik»
+        tap(buttonStarting("Musik"), "Karte Musik")
+        wait(elContaining("Probeabo bis 19. Oktober"), "Kasten Probeabo")
+        XCTAssertTrue(elContaining("danach kostenpflichtig").exists, "Untertitel Kasten")
+        XCTAssertTrue(elContaining("gratis bis 19. Oktober 2026").exists, "Zeile Probeabo")
+        ctShot("Detail – Probeabo")
+        tap(button("detail.deadline.keep"), "Behalten")
+        waitGone(button("detail.menu"), "Detail nach Behalten")
+        tap(buttonStarting("Musik"), "Karte Musik")
+        wait(button("detail.menu"), "Detail Musik")
+        XCTAssertFalse(elContaining("Probeabo bis").exists, "Probeabo-Kasten nach «Behalten»")
+        XCTAssertFalse(elContaining("gratis bis").exists, "Zeile Probeabo nach «Behalten»")
+        tapTop("Schliessen")
+        waitGone(button("detail.menu"), "Detail Musik geschlossen")
+
+        // 2) «Schon gekündigt …» bei «Fitnessabo»
         tap(buttonStarting("Fitnessabo"), "Karte Fitnessabo")
-        wait(button("Bearbeiten"), "Detail Fitnessabo")
         tap(button("detail.menu"), "Menü •••")
         tap(buttonStarting("Schon gekündigt"), "Schon gekündigt …")
         waitNav("Schon gekündigt")
-        wait(elContaining("Vorgeschlagen ist der nächste mögliche Termin"), "Text der Rückfrage")
-        wait(button("heute"), "Chip heute")
+        XCTAssertTrue(elContaining("Vorgeschlagen ist der nächste mögliche Termin").exists, "Text der Rückfrage")
+        XCTAssertTrue(button("heute").exists, "Chip heute")
         let termin = buttonStarting("30.11.26")
         wait(termin, "Chip «30.11.26 (Termin)»")
         ctShot("Detail – Schon gekündigt")
@@ -24,7 +43,6 @@ final class ContractDetailUITests: KontivoUITestCase {
         tap(button("detail.cancelled.save"), "Sichern")
         waitGone(button("detail.menu"), "Detail nach dem Sichern")
         waitUntil("Karte «gekündigt per 30.11.26»") { self.buttonStarting("Fitnessabo").label.contains("gekündigt per 30.11.26") }
-
         tap(buttonStarting("Fitnessabo"), "Karte Fitnessabo")
         wait(elContaining("Gekündigt · läuft bis 30. November 2026"), "Pille «Gekündigt · läuft bis …»")
         tap(button("detail.menu"), "Menü •••")
@@ -33,30 +51,32 @@ final class ContractDetailUITests: KontivoUITestCase {
         ctShot("Detail – gekündigt, Menü")
     }
 
-    /// Laufendes Probeabo: Kasten «Probeabo bis 19. Oktober» · «danach kostenpflichtig …», Zeile «Probeabo: gratis bis …»;
-    /// «Behalten» setzt das Probeabo auf behalten (Toast «… läuft nach dem Probeabo normal weiter»), danach kein Kasten mehr
-    func testProbeaboKastenBehalten() {
-        launch("-uiDemo", "-uiTab", "contracts")
-        tap(buttonStarting("Musik"), "Karte Musik")
-        wait(button("Bearbeiten"), "Detail Musik")
-        wait(elContaining("Probeabo bis 19. Oktober"), "Kasten Probeabo")
-        wait(elContaining("danach kostenpflichtig"), "Untertitel Kasten")
-        wait(elContaining("gratis bis 19. Oktober 2026"), "Zeile Probeabo")
-        ctShot("Detail – Probeabo")
-        tap(button("detail.deadline.keep"), "Behalten")
-        waitGone(button("detail.menu"), "Detail nach Behalten")
+    /// 1) Fristen: feste Laufzeit ohne Verlängerung als «Endet von selbst» ohne Knöpfe (Web v160), Vertragspartner grau hinter
+    ///    dem Titel (Web v143); Detail «Kündigung: nicht nötig · endet von selbst» ohne Zeitstrahl.
+    /// 2) «Per E-Mail kündigen» ohne Kunden- und Vertragsnummer: Rückfrage «Kundennummer fehlt» → «Nummer eintragen» öffnet
+    ///    das Formular.
+    func testEndetVonSelbstUndEmailPruefung() {
+        launch("-uiDemo", "-uiTab", "deadlines", "-uiSeed", "endsself,mailcheck")
 
-        tap(buttonStarting("Musik"), "Karte Musik")
-        wait(button("Bearbeiten"), "Detail Musik")
-        XCTAssertFalse(elContaining("Probeabo bis").exists, "Probeabo-Kasten nach «Behalten»")
-        XCTAssertFalse(elContaining("gratis bis").exists, "Zeile Probeabo nach «Behalten»")
-    }
+        // 1) Fristen
+        let row = buttonStarting("Fitnessabo")
+        wait(row, "Zeile Fitnessabo")
+        waitUntil("«Endet von selbst» (\(row.label))") { self.buttonStarting("Fitnessabo").label.contains("Endet von selbst") }
+        XCTAssertTrue(row.label.contains("Update Fitness"), "Vertragspartner hinter dem Titel: \(row.label)")
+        XCTAssertTrue(row.label.contains("endet 30.11."), "Chip «endet 30.11.»: \(row.label)")
+        let trial = buttonStarting("Musik")
+        XCTAssertTrue(trial.label.contains("Spotify"), "Vertragspartner Spotify: \(trial.label)")
+        XCTAssertTrue(trial.label.contains("Probeabo · gratis bis 19.10."), "Probeabo-Zeile: \(trial.label)")
+        ctShot("Fristen – Endet von selbst")
+        tap(row, "Zeile Fitnessabo")
+        reveal(elContaining("nicht nötig · endet von selbst"), "Zeile Kündigung")
+        XCTAssertFalse(el("detail.timeline").exists, "Kein Zeitstrahl bei «Endet von selbst»")
+        tapTop("Schliessen")
+        waitGone(button("detail.menu"), "Detail Fitnessabo geschlossen")
 
-    /// «Per E-Mail kündigen» ohne Kunden- und Vertragsnummer: Rückfrage «Kundennummer fehlt» → «Nummer eintragen» öffnet das Formular
-    func testEmailPruefungKundennummer() {
-        launch("-uiDemo", "-uiTab", "contracts", "-uiSeed", "mailcheck")
+        // 2) E-Mail-Prüfung bei «Handy» (Kündigungsweg E-Mail, ohne Nummern)
+        tapTab("Verträge")
         tap(buttonStarting("Handy"), "Karte Handy")
-        wait(button("Bearbeiten"), "Detail Handy")
         tap(button("detail.menu"), "Menü •••")
         tap(buttonStarting("Kündigen"), "Kündigen per E-Mail")
         let alert = app.alerts.firstMatch
@@ -71,27 +91,5 @@ final class ContractDetailUITests: KontivoUITestCase {
             tapAlertButton("Verwerfen")
         }
         waitUntil("Formular geschlossen") { !self.navExists("Bearbeiten") }
-    }
-
-    /// Fristen: feste Laufzeit ohne Verlängerung als «Endet von selbst» ohne Knöpfe (Web v160), Vertragspartner grau hinter
-    /// dem Titel (Web v143); Detail «Kündigung: nicht nötig · endet von selbst» ohne Zeitstrahl
-    func testFristenEndetVonSelbst() {
-        launch("-uiDemo", "-uiTab", "deadlines", "-uiSeed", "endsself")
-        let row = buttonStarting("Fitnessabo")
-        wait(row, "Zeile Fitnessabo")
-        waitUntil("«Endet von selbst» (\(row.label))") { self.buttonStarting("Fitnessabo").label.contains("Endet von selbst") }
-        XCTAssertTrue(row.label.contains("Update Fitness"), "Vertragspartner hinter dem Titel: \(row.label)")
-        XCTAssertTrue(row.label.contains("endet 30.11."), "Chip «endet 30.11.»: \(row.label)")
-        let trial = buttonStarting("Musik")
-        wait(trial, "Zeile Probeabo Musik")
-        XCTAssertTrue(trial.label.contains("Spotify"), "Vertragspartner Spotify: \(trial.label)")
-        XCTAssertTrue(trial.label.contains("Probeabo · gratis bis 19.10."), "Probeabo-Zeile: \(trial.label)")
-        ctShot("Fristen – Endet von selbst")
-
-        tap(row, "Zeile Fitnessabo")
-        wait(button("Bearbeiten"), "Detail Fitnessabo")
-        reveal(elContaining("nicht nötig · endet von selbst"), "Zeile Kündigung")
-        XCTAssertFalse(el("detail.timeline").exists, "Kein Zeitstrahl bei «Endet von selbst»")
-        ctShot("Detail – Endet von selbst")
     }
 }
