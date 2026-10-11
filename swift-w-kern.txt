@@ -1,0 +1,143 @@
+branch=swift-w-kern run=81 sha=2dd9134dca27a29e414d8fe4cf7c47ab266d6348
+core=failure app=failure ui=skipped
+
+===== KERN: Fehler =====
+error: emit-module command failed with exit code 1 (use -v to see invocation)
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+error: fatalError
+
+===== KERN: Ende =====
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+  53 |     /// Struktur wie Web v143: `app` = "vertraege", `contracts` ein Objekt (keine Liste), `incomes` fehlt/null oder ein Objekt.
+  54 |     /// Sonst wird nichts geändert («Keine gültige Backup-Datei – es wurde nichts geändert»).
+  55 |     public static func hasValidStructure(_ o: JSObject) -> Bool {
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+  56 |         guard JS.str(o["app"]) == "vertraege", case .object? = o["contracts"] else { return false }
+  57 |         if let inc = o["incomes"] {
+     :
+ 708 | 
+ 709 | /// JS-Objekt: Schlüssel in Einfügereihenfolge (`orderedKeys` wie `Object.keys`).
+ 710 | struct JSObject {
+     |        `- note: type declared here
+ 711 |     private(set) var keys: [String] = []
+ 712 |     private var values: [String: JSValue] = [:]
+[39/43] Compiling KontivoCore Reminders.swift
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+  53 |     /// Struktur wie Web v143: `app` = "vertraege", `contracts` ein Objekt (keine Liste), `incomes` fehlt/null oder ein Objekt.
+  54 |     /// Sonst wird nichts geändert («Keine gültige Backup-Datei – es wurde nichts geändert»).
+  55 |     public static func hasValidStructure(_ o: JSObject) -> Bool {
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+  56 |         guard JS.str(o["app"]) == "vertraege", case .object? = o["contracts"] else { return false }
+  57 |         if let inc = o["incomes"] {
+     :
+ 708 | 
+ 709 | /// JS-Objekt: Schlüssel in Einfügereihenfolge (`orderedKeys` wie `Object.keys`).
+ 710 | struct JSObject {
+     |        `- note: type declared here
+ 711 |     private(set) var keys: [String] = []
+ 712 |     private var values: [String: JSValue] = [:]
+[40/43] Compiling KontivoCore WebImport.swift
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+  53 |     /// Struktur wie Web v143: `app` = "vertraege", `contracts` ein Objekt (keine Liste), `incomes` fehlt/null oder ein Objekt.
+  54 |     /// Sonst wird nichts geändert («Keine gültige Backup-Datei – es wurde nichts geändert»).
+  55 |     public static func hasValidStructure(_ o: JSObject) -> Bool {
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+  56 |         guard JS.str(o["app"]) == "vertraege", case .object? = o["contracts"] else { return false }
+  57 |         if let inc = o["incomes"] {
+     :
+ 708 | 
+ 709 | /// JS-Objekt: Schlüssel in Einfügereihenfolge (`orderedKeys` wie `Object.keys`).
+ 710 | struct JSObject {
+     |        `- note: type declared here
+ 711 |     private(set) var keys: [String] = []
+ 712 |     private var values: [String: JSValue] = [:]
+[41/43] Compiling KontivoCore resource_bundle_accessor.swift
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+  53 |     /// Struktur wie Web v143: `app` = "vertraege", `contracts` ein Objekt (keine Liste), `incomes` fehlt/null oder ein Objekt.
+  54 |     /// Sonst wird nichts geändert («Keine gültige Backup-Datei – es wurde nichts geändert»).
+  55 |     public static func hasValidStructure(_ o: JSObject) -> Bool {
+     |                        `- error: method cannot be declared public because its parameter uses an internal type
+  56 |         guard JS.str(o["app"]) == "vertraege", case .object? = o["contracts"] else { return false }
+  57 |         if let inc = o["incomes"] {
+     :
+ 708 | 
+ 709 | /// JS-Objekt: Schlüssel in Einfügereihenfolge (`orderedKeys` wie `Object.keys`).
+ 710 | struct JSObject {
+     |        `- note: type declared here
+ 711 |     private(set) var keys: [String] = []
+ 712 |     private var values: [String: JSValue] = [:]
+error: fatalError
+
+===== APP: Fehler =====
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift:55:24: error: method cannot be declared public because its parameter uses an internal type
+** BUILD FAILED **
+
+===== APP: Ende =====
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Catalog.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Completeness.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/ContractDetailRules.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/ContractFormRules.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Day.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/ExtKostenBudget.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/ExtManage.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Format.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	EmitSwiftModule normal arm64 (in target 'KontivoCore' from project 'KontivoCore')
+	SwiftEmitModule normal arm64 Emitting\ module\ for\ KontivoCore (in target 'KontivoCore' from project 'KontivoCore')
+	Building project Kontivo with scheme Kontivo
+(3 failures)
+
+===== UI-TESTS =====
+ui=skipped
+
+--- Absturzberichte ---
+keine
+
+===== BILDSCHIRMFOTOS =====
+keine
