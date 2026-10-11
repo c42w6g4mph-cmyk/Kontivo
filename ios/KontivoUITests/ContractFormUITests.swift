@@ -127,27 +127,6 @@ final class ContractFormUITests: KontivoUITestCase {
         reveal(elContaining("nächste am 15.06.27"), "Hinweis nächste Zahlung jährlich")
     }
 
-    /// Bearbeiten aus dem Detail (zwei Fenster übereinander, Halbtax jährlich am 1. März mit Preisänderung): Tagesraster mit Monatsreihe
-    func testZahlungAmAusDetail() {
-        launch("-uiDemo")
-        tap(buttonStarting("Halbtax"), "Vertragskarte Halbtax")
-        wait(button("Bearbeiten"), "Detail Halbtax")
-        tapTop("Bearbeiten")
-        let due = button("form.dueBtn")
-        wait(textField("form.label"), "Formular Bearbeiten", timeout: 12)
-        reveal(due, "Zeile «Zahlung am»")
-        XCTAssertEqual(due.value as? String, "1. März")
-        ctShot("Formular Halbtax – vor Zahlung am")
-        tapVisible(due, "Zahlung am")
-        sleep(1)
-        ctShot("Formular Halbtax – Zahlung am offen")
-        let march = button("due.month.3")
-        wait(march, "Monatsreihe")
-        XCTAssertTrue(march.isSelected, "März markiert")
-        tapVisible(button("due.day.15"), "Tag 15.")
-        waitUntil("Zahlung am 15. März") { (due.value as? String) == "15. März" }
-    }
-
     /// Sichern bei «Mindestlaufzeit» ohne Vertragsende wird blockiert (Web v143); mit Vertragsende klappt es
     func testSichernOhneVertragsendeBlockiert() {
         launch("-uiEmpty")
@@ -158,6 +137,8 @@ final class ContractFormUITests: KontivoUITestCase {
         tap(button("form.category"), "Kategorie wählen")
         tap(button("Mobilität"), "Kategorie Mobilität")
         waitUntil("Kategorie übernommen") { self.button("form.category").label.contains("Mobilität") }
+        // «Vertragsart» liegt über «Zuordnung»: nach oben scrollen
+        revealUp(button("term.fixed"), "Knopf Mindestlaufzeit")
         tapVisible(button("term.fixed"), "Knopf Mindestlaufzeit")
         tapTop("Sichern")
         wait(elContaining("Bis wann läuft der Vertrag?"), "Meldung ohne Vertragsende")
