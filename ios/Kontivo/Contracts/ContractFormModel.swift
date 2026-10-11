@@ -124,6 +124,8 @@ final class CTFormState {
     var tplAfter: CTTplSnap?
     var tplSum: [String]?
     var tplLogoID: String?
+    /// Vorschläge unter dem Kopf erst nach einer Eingabe (Web: `openForm` leert #fSugg, `paintSugg` erst bei «input»)
+    var sugActive = false
 
     // Vorschläge unter dem Vertragspartner (Web #pSug): eigene Vertragspartner und Internet
     var sugVisible = false
@@ -278,6 +280,7 @@ final class CTFormState {
         // SwiftUI setzt den Wert beim Schliessen der Tastatur erneut: nur echte Änderungen zählen (sonst verschwindet die Katalog-Karte)
         guard v != partnerName else { return }
         partnerName = v
+        sugActive = true
         if !pSugSel.isEmpty && v.ctTrimmed != pSugSel { pSugSel = "" }
         tplHint = ""
         stdTpl = nil
@@ -294,6 +297,7 @@ final class CTFormState {
     func pickOwn(_ g: Partners.Group, data: AppData) {
         partnerName = g.partner.name
         pSugSel = g.partner.name
+        sugActive = true
         if web.ctTrimmed.isEmpty && !g.partner.web.isEmpty { web = g.partner.web }
         if address.isEmpty && !g.partner.address.isEmpty { address = g.partner.address }
         if let c0 = data.contract(g.contractIDs.first) {
@@ -312,6 +316,7 @@ final class CTFormState {
         partnerName = w.name
         pSugSel = w.name
         tplHint = ""
+        sugActive = true
         var got: [String] = []
         if !w.dom.isEmpty && web.ctTrimmed.isEmpty { web = w.dom; got.append("Website") }
         if !w.tel.isEmpty && tel.ctTrimmed.isEmpty { tel = w.tel; got.append("Telefon") }
@@ -348,6 +353,7 @@ final class CTFormState {
     /// Sonst (Katalog) mit Zusammenfassung und «Rückgängig» (tplUndo/tplAfter/tplSum).
     func applyTemplate(_ t: CatalogEntry, keepName: Bool, onlyEmpty: Bool, data: AppData) {
         let snap = tplSnapshot()
+        sugActive = true
         if !keepName {
             partnerName = t.name
             pSugSel = t.name
@@ -547,6 +553,7 @@ final class CTFormState {
     }
 
     var suggest: Suggest {
+        if !sugActive { return .none }
         let pn = partnerName.ctTrimmed
         if let st = stdTpl, st.name == pn {
             return .hint(st.hintFull, standardChip: !stdDone && (st.notice > 0 || st.cancelTerm != .anytime || st.mandatory))

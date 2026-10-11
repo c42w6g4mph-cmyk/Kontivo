@@ -324,6 +324,7 @@ private struct CTFormHead: View {
                     .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.field))
                     .accessibilityLabel("Bezeichnung")
                     .accessibilityIdentifier("form.label")
+                    .onChange(of: form.label) { _, _ in form.sugActive = true }
                 CTFormPartnerField(form: form, focus: focus)
             }
             CTFormDocsButton(form: form)
