@@ -228,10 +228,10 @@ final class WebSync160Tests: XCTestCase {
         XCTAssertNil(ar.menu.cancel)
         XCTAssertTrue(ar.menu.reactivate)
 
-        // gekündigt per: Pille «läuft bis», Kündigungsweg und «Gekündigt am»; Monatskachel wie Web v160 «beendet»
+        // gekündigt per: Pille «läuft bis», Kündigungsweg und «Gekündigt am»; Monatskachel wie Web v161 «gekündigt, läuft bis …»
         let cp = calc.detailInfo(f.c("cp"))
         XCTAssertEqual(cp.pills.map { $0.text }, ["Gekündigt · läuft bis 31. Dezember 2026"])
-        XCTAssertEqual(cp.month.status, "beendet")
+        XCTAssertEqual(cp.month.status, "gekündigt, läuft bis 31.12.26")
         XCTAssertEqual(cp.termRows.map { $0.label + " : " + $0.value },
                        ["Vertragsende : 31. Dezember 2026", "Kündigung : 1 Monat · auf Monatsende", "Kündigungsweg : Online / Kundenkonto",
                         "Gekündigt am : 1. Oktober 2026"])

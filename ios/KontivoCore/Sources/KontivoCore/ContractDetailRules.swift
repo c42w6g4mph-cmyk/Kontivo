@@ -300,9 +300,8 @@ extension Calc {
         }
         var status: String? = nil
         if share == nil {
-            // 1:1 wie Web v160: dort `c.cancelPer && !gone` – nie wahr, weil `gone` «gekündigt per» einschliesst; gekündigte
-            // Verträge zeigen deshalb «beendet» (gemeldet als Web-Fehler, Korrektur zuerst im Web)
-            if let cp = c.cancelPer, !gone {
+            // Web v161: gekündigt, aber noch nicht abgelaufen → «gekündigt, läuft bis …» (v160 zeigte fälschlich «beendet»)
+            if let cp = c.cancelPer, !endedByNotice(c), c.status != .cancelled {
                 status = "gekündigt, läuft bis " + Format.fmtShort(cp)
             } else if isPaused(c) {
                 status = "pausiert"
