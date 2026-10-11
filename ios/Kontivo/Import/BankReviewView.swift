@@ -94,7 +94,7 @@ struct BankReviewView: View {
                     .padding(.vertical, 13)
             }
             .buttonStyle(.borderedProminent)
-            .tint(KColor.teal)
+            .tint(KColor.tealFill)
             .disabled(review.selectedCount == 0 && review.selectedPrices == 0)
             .padding(.horizontal, 16)
             .padding(.top, 10)

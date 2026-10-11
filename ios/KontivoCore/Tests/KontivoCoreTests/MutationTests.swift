@@ -176,6 +176,14 @@ final class MutationTests: XCTestCase {
         d.cancelURL = "https://netflix.com/cancel"
         try data.saveContract(d, today: today)
         XCTAssertEqual(data.contract(id)?.cancelURL, "https://netflix.com/cancel")
+        // ohne Kündigungsweg bleibt der Link (Web: nur bei E-Mail/Brief löschen)
+        d.cancelChannel = nil
+        try data.saveContract(d, today: today)
+        XCTAssertEqual(data.contract(id)?.cancelURL, "https://netflix.com/cancel")
+        d.cancelChannel = .letter
+        try data.saveContract(d, today: today)
+        XCTAssertEqual(data.contract(id)?.cancelURL, "")
+        d = data.contract(id)!
         d.notice = 31
         d.noticeUnit = .dayOfMonth
         XCTAssertThrowsError(try data.saveContract(d, today: today)) { XCTAssertEqual($0 as? MutationError, .invalidNotice) }

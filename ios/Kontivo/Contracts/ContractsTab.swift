@@ -402,7 +402,7 @@ private struct CTHeroView: View {
                 .font(.subheadline)
                 .padding(.horizontal, 12).padding(.vertical, 7)
                 .foregroundStyle(on ? Color.white : KColor.teal)
-                .background(Capsule().fill(on ? KColor.teal : KColor.teal.opacity(0.11)))
+                .background(Capsule().fill(on ? KColor.tealFill : KColor.teal.opacity(0.11)))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? .isSelected : [])
@@ -426,7 +426,7 @@ private struct CTListControls: View {
                     .font(.subheadline.weight(n > 0 ? .semibold : .regular))
                     .padding(.horizontal, 12).padding(.vertical, 7)
                     .foregroundStyle(n > 0 ? Color.white : KColor.ink)
-                    .background(Capsule().fill(n > 0 ? KColor.teal : KColor.field))
+                    .background(Capsule().fill(n > 0 ? KColor.tealFill : KColor.field))
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Filter" + (n > 0 ? ", \(n) aktiv" : ""))

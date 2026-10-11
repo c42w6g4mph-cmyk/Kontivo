@@ -217,26 +217,14 @@ enum ContractFormFocus: String, Hashable {
 }
 
 /// Formular mit Sprungziel öffnen (Web `closeSheets(); openForm(c); formGo(…)`): `ContractFormLaunch.edit(model, id, focus: .end)`.
-/// `openMoreFor` = alter Weg (Unterseite «Weitere Angaben» des bisherigen Formulars).
+/// Das Sprungziel geht einmalig über `ContractFormGo.request` ans Formular (kein zweiter, liegen bleibender Weg).
 @MainActor
 enum ContractFormLaunch {
-    static var openMoreFor: UUID?
-    static var focus: (id: UUID, field: ContractFormFocus)?
-
-    /// Sprungziel für diesen Vertrag lesen und löschen (nil = keines).
-    static func take(for id: UUID) -> ContractFormFocus? {
-        guard let f = focus, f.id == id else { return nil }
-        focus = nil
-        return f.field
-    }
-
     /// Formular `.edit(id)` mit Sprungziel öffnen, vorher alle Fenster schliessen.
     static func edit(_ model: AppModel, _ id: UUID, focus field: ContractFormFocus?, then done: (() -> Void)? = nil) {
         // Sprungziel ans Formular (Web `formGo`); Rohwerte von ContractFormFocus und ContractFormField sind gleich
-        if let f = field, let g = ContractFormField(rawValue: f.rawValue) { ContractFormGo.request(id, g) }
-        // bisheriges Formular: Link und E-Mail liegen unter «Weitere Angaben» (wie vor v160; das neue Formular springt
-        // über `openMoreFor` zum Kündigungslink, zur E-Mail für die Kündigung bzw. zur Website)
-        if let f = field, ([.cancelURL, .web, .mail, .cancelMail] as [ContractFormFocus]).contains(f) { openMoreFor = id }
+        // ohne Ziel ein liegen gebliebenes löschen
+        if let f = field, let g = ContractFormField(rawValue: f.rawValue) { ContractFormGo.request(id, g) } else { ContractFormGo.pending = nil }
         model.cancelFlowPresent(.contractForm(.edit(id)), closingOthers: true, then: done)
     }
 }

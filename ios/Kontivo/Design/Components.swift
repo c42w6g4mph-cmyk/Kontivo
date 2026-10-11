@@ -137,7 +137,7 @@ struct Chip: View {
                 .lineLimit(1)
                 .padding(.horizontal, 12).padding(.vertical, 7)
                 .foregroundStyle(isOn ? Color.white : KColor.ink)
-                .background(Capsule().fill(isOn ? KColor.teal : KColor.field))
+                .background(Capsule().fill(isOn ? KColor.tealFill : KColor.field))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn ? .isSelected : [])

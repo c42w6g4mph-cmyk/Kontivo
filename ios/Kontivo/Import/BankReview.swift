@@ -204,7 +204,8 @@ final class BankReview {
                 c.cycle = r.ed.cycle
                 c.due = r.ed.due
                 c.currency = Currency(rawValue: s.currency) ?? d.settings.homeCurrency
-                c.partnerID = Self.partnerID(for: name, current: c.partnerID, catalogName: s.catalogName, in: &d)
+                // Website und Adresse aus dem Katalogeintrag zur Vorschlagswährung (wie Web `bankToContract`)
+                c.partnerID = BankImport.partnerID(named: name, current: c.partnerID, catalog: s.catalogEntry, in: &d)
                 if name != r.s.name || r.ed.categoryID != r.categoryID0 {
                     BankBridge.learn(r.s, name: name, category: cat?.name ?? s.category, in: &d)
                 }
@@ -220,16 +221,6 @@ final class BankReview {
             if d.persons.count > 1, let h = chosen.first?.ed.holderIDs, !h.isEmpty { d.settings.lastHolderIDs = h }
         }
         return out
-    }
-
-    /// Vertragspartner zum (ggf. geänderten) Namen: bestehender gleichen Namens, sonst neu (Website aus dem Katalog)
-    private static func partnerID(for name: String, current: UUID?, catalogName: String?, in d: inout AppData) -> UUID? {
-        if let cur = d.partner(current), cur.name.lowercased() == name.lowercased() { return cur.id }
-        if let p = Partners.find(name, in: d) { return p.id }
-        let web = catalogName.flatMap { Catalog.find($0, currency: d.settings.homeCurrency)?.web } ?? ""
-        let p = Partner(name: name, web: web)
-        d.partners.append(p)
-        return p.id
     }
 
     /// Neue Verträge, bei denen noch Angaben fehlen – Anlass für «Fast fertig!» (wie Web: `vkNeeds().per` der neuen Verträge)

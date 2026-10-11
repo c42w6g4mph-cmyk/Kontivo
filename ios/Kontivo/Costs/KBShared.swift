@@ -521,7 +521,7 @@ struct KBSelectLabel: View {
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity)
         .foregroundStyle(isOn ? Color.white : KColor.ink)
-        .background(Capsule().fill(isOn ? KColor.teal : KColor.surface))
+        .background(Capsule().fill(isOn ? KColor.tealFill : KColor.surface))
         .overlay(Capsule().strokeBorder(isOn ? KColor.teal : KColor.line, lineWidth: 1))
         .contentShape(Capsule())
     }

@@ -108,7 +108,9 @@ final class AppModel {
         } else {
             switch store.loadData() {
             case .missing:
-                self.data = AppData.initial(homeCurrency: .CHF)
+                // echter Erststart: Hauptwährung nach Region (Web v156 `locCur`), damit ein Sichern vor dem Ende der
+                // Einführung (App in den Hintergrund) nicht CHF festschreibt; die Einführung wählt diesen Wert vor
+                self.data = AppData.initial(homeCurrency: Currency.onboardingDefault(preferredLanguages: Locale.preferredLanguages))
             case .loaded(let d, let fromPrevious, let broken):
                 self.data = d
                 if fromPrevious {

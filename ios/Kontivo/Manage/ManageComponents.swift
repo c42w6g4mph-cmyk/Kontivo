@@ -149,7 +149,7 @@ struct MDSegment<T: Hashable>: View {
                 .padding(.vertical, 7)
                 .padding(.horizontal, 4)
                 .foregroundStyle(on ? Color.white : KColor.ink)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(on ? KColor.teal : Color.clear))
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(on ? KColor.tealFill : Color.clear))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -471,7 +471,7 @@ struct MDMainButton: View {
                 .padding(.vertical, 6)
         }
         .buttonStyle(.borderedProminent)
-        .tint(destructive ? KColor.alert : KColor.teal)
+        .tint(destructive ? KColor.alert : KColor.tealFill)
         .disabled(disabled)
         .mdPlainRow()
     }

@@ -34,6 +34,10 @@ struct NativeHooks: ViewModifier {
             .onChange(of: model.data) { _, _ in dataChanged() }
             .onChange(of: model.today) { _, _ in ReminderScheduler.shared.reschedule(model) }
             .onChange(of: links.openContractID) { _, _ in openPendingLink() }
+            // wartende Erinnerung öffnen, sobald das Formular geschlossen ist
+            .onChange(of: model.sheets.count) { _, _ in
+                if links.openContractID != nil { openPendingLink() }
+            }
             .onChange(of: lock.locked) { _, locked in
                 if !locked { openPendingLink() }
             }
@@ -44,10 +48,19 @@ struct NativeHooks: ViewModifier {
         offerReminders()
     }
 
-    /// Erinnerung antippen: erst öffnen, wenn entsperrt und die Einführung zu ist.
+    /// Erinnerung antippen: erst öffnen, wenn entsperrt und die Einführung zu ist. Ist ein Formular offen, nichts
+    /// verwerfen: Ziel bleibt gemerkt (einmal Hinweis) und öffnet sich, sobald das Formular zu ist.
     private func openPendingLink() {
         guard let id = links.openContractID, !lock.locked, model.onboarding == nil else { return }
+        if model.reminderMustWait {
+            if links.waitHintFor != id {
+                links.waitHintFor = id
+                model.toast("Der Vertrag aus der Erinnerung öffnet sich, sobald du das Formular schliesst.", seconds: 3.5)
+            }
+            return
+        }
         links.openContractID = nil
+        links.waitHintFor = nil
         model.openContractFromReminder(id)
     }
 

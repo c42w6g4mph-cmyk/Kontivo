@@ -230,7 +230,7 @@ struct AppLockCoverView: View {
                                 .padding(.vertical, 8)
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(KColor.teal)
+                        .tint(KColor.tealFill)
                         .padding(.top, 8)
                         .accessibilityIdentifier("lock.unlock")
                     }

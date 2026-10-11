@@ -47,6 +47,26 @@ final class RemindersTests: XCTestCase {
         XCTAssertEqual(Reminders.plan(calc: calc, leadDays: 60, minuteOfDay: 0).count, 1)
     }
 
+    /// Feste Laufzeit ohne Verlängerung (Leasing) endet von selbst (Web v160 `endsSelf`): keine Frist, keine Mitteilung
+    func testEndsSelfHasNoDeadline() {
+        let p = Partner(name: "Leasing AG")
+        let c = Contract(label: "Leasing", partnerID: p.id, amount: 300, cycle: 1, end: Day(2026, 12, 31),
+                         notice: 1, noticeUnit: .months, renewMonths: 0)
+        let calc = Calc(data: data([c], partners: [p]), today: today)
+        XCTAssertTrue(calc.endsSelf(c))
+        XCTAssertNil(calc.reminderDeadline(for: c))
+        XCTAssertTrue(calc.reminderDeadlines().isEmpty)
+        XCTAssertTrue(Reminders.plan(calc: calc, leadDays: 7, minuteOfDay: 0).isEmpty)
+        // mit Verlängerung wieder eine Kündigungsfrist
+        var r = c
+        r.renewMonths = 12
+        XCTAssertEqual(Calc(data: data([r], partners: [p]), today: today).reminderDeadline(for: r)?.date, Day(2026, 11, 30))
+        // Probeabo läuft: letzter Gratistag bleibt (Web: Probeabo vor `endsSelf`)
+        var t = c
+        t.trial = Day(2026, 10, 20)
+        XCTAssertEqual(Calc(data: data([t], partners: [p]), today: today).reminderDeadline(for: t)?.kind, .trial)
+    }
+
     func testMandatoryAndOtherYear() {
         let p = Partner(name: "CSS")
         var c = handy(p, mandatory: true)

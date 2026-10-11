@@ -161,7 +161,7 @@ struct KBIncomeForm: View {
                                 .font(.system(size: 12, weight: .bold))
                                 .foregroundStyle(.white)
                                 .frame(width: 26, height: 26)
-                                .background(Circle().fill(KColor.teal))
+                                .background(Circle().fill(KColor.tealFill))
                                 .overlay(Circle().strokeBorder(KColor.surface, lineWidth: 2))
                                 .offset(x: 5, y: 5)
                         }
@@ -462,7 +462,7 @@ struct KBIncomeForm: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 11)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.teal))
+                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.tealFill))
                     .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
@@ -660,7 +660,8 @@ struct KBIncomeForm: View {
 
     private func save() {
         guard !closed else { return }
-        // eingetippte, nicht hinzugefügte Änderung übernehmen (Web v143); misslingt das, bleibt das Formular offen
+        // eingetippte, nicht hinzugefügte Änderung übernehmen (Web v143); misslingt das, bleibt das Formular offen.
+        // Bewusst strenger als Web `iSave` (dort wird eine halb ausgefüllte Änderung still verworfen): nichts geht verloren.
         if subOpen && subTyped && !addPrice() { return }
         let hasTitle = !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             || !draft.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -861,7 +862,7 @@ struct KBDueGrid: View {
                                 .font(.subheadline.weight(sel ? .semibold : .regular))
                                 .foregroundStyle(sel ? Color.white : KColor.ink)
                                 .frame(maxWidth: .infinity, minHeight: 32)
-                                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(sel ? KColor.teal : KColor.field))
+                                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(sel ? KColor.tealFill : KColor.field))
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.borderless)
@@ -881,7 +882,7 @@ struct KBDueGrid: View {
                             .font(.body.weight(sel ? .semibold : .regular).monospacedDigit())
                             .foregroundStyle(sel ? Color.white : KColor.ink)
                             .frame(width: 38, height: 38)
-                            .background(Circle().fill(sel ? KColor.teal : Color.clear))
+                            .background(Circle().fill(sel ? KColor.tealFill : Color.clear))
                             .contentShape(Circle())
                     }
                     .buttonStyle(.borderless)

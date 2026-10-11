@@ -138,6 +138,8 @@ final class ReminderScheduler {
 final class NativeLinks {
     static let shared = NativeLinks()
     var openContractID: UUID?
+    /// Hinweis «öffnet nach dem Formular» für dieses Ziel schon gezeigt (nur einmal je Ziel)
+    var waitHintFor: UUID?
 }
 
 /// Empfänger der Mitteilungen: Tippen öffnet den Vertrag, im Vordergrund als Banner zeigen.
@@ -170,9 +172,16 @@ enum NativeBoot {
 }
 
 extension AppModel {
+    /// Offenes Fenster mit Eingaben, die beim Schliessen verloren gingen (Vertrags-/Einnahme-Formular, Mail, Kontoauszug):
+    /// eine angetippte Erinnerung wartet dann, bis es zu ist (`NativeHooks.openPendingLink`).
+    var reminderMustWait: Bool {
+        sheets.contains { ([.contractForm, .incomeForm, .mail, .bankImport] as [AppSheetKind]).contains($0.kind) }
+    }
+
     /// Tippen auf eine Erinnerung: Tab «Fristen», offene Fenster schliessen, Vertragsdetail öffnen.
+    /// Nie bei offenem Formular aufrufen (`reminderMustWait`), sonst gingen dessen Eingaben verloren.
     func openContractFromReminder(_ id: UUID) {
-        guard data.contract(id) != nil, onboarding == nil else { return }
+        guard data.contract(id) != nil, onboarding == nil, !reminderMustWait else { return }
         tab = .deadlines
         if sheets.last == .contractDetail(id) { return }
         dismissAll()

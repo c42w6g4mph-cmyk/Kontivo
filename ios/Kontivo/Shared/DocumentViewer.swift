@@ -313,7 +313,7 @@ struct DocActionLabel: View {
         .padding(.vertical, 6)
         .padding(.horizontal, 3)
         .foregroundStyle(prominent ? Color.white : KColor.ink)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(prominent ? KColor.teal : KColor.field))
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(prominent ? KColor.tealFill : KColor.field))
         .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }

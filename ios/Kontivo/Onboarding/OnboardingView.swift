@@ -67,6 +67,8 @@ struct OnboardingView: View {
 
     /// Hauptwährung: beim echten Erststart nach den bevorzugten Sprachen des Geräts (Web v156 `locCur`: -CH/-LI → CHF,
     /// -DE/-AT → EUR, sonst EUR); gibt es schon gespeicherte Daten (z.B. nach «Alle Daten löschen»), die bisherige.
+    /// `AppModel.init` belegt beim Erststart (`.missing`) die Daten schon mit demselben Regionswert vor; ein Sichern vor dem
+    /// Ende der Einführung (App in den Hintergrund) schreibt so nicht CHF fest, und hier gilt dann die gespeicherte.
     /// Name: erste Person ausser «Ich».
     private func prepare() {
         guard !prepared else { return }

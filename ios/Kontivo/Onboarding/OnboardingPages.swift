@@ -239,7 +239,7 @@ struct OnbPrimaryButton: View {
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 15)
-                .background(RoundedRectangle(cornerRadius: 15, style: .continuous).fill(KColor.teal))
+                .background(RoundedRectangle(cornerRadius: 15, style: .continuous).fill(KColor.tealFill))
                 .contentShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
         }
         .buttonStyle(.plain)
@@ -735,7 +735,7 @@ struct OnbAutoCard: View {
         Button(action: action) {
             HStack(spacing: 14) {
                 RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .fill(KColor.teal)
+                    .fill(KColor.tealFill)
                     .frame(width: 44, height: 44)
                     .overlay(Image(systemName: "building.columns")
                         .font(.system(size: 20, weight: .medium))

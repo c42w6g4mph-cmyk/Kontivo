@@ -13,6 +13,8 @@ enum KColor {
     static let ink3    = dyn(0x687077, 0x8D949B)
     static let line    = dyn(0xE1DED6, 0x2F343A)
     static let teal    = dyn(0x0E5A5E, 0x5FB3B5)
+    /// Gefüllte Knöpfe/Chips mit weisser Schrift (Web `--tealFill`): hell wie `teal`, dunkel gedämpfter für genug Kontrast
+    static let tealFill = dyn(0x0E5A5E, 0x2B7A7D)
     static let ok      = dyn(0x2E6A4E, 0x6FB58E)
     static let warn    = dyn(0x9A6710, 0xD9A545)
     static let alert   = dyn(0xA93227, 0xE5776A)

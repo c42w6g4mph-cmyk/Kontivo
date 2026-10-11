@@ -424,7 +424,7 @@ struct CFButton: View {
                 .foregroundStyle(secondary ? KColor.ink : Color.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 15)
-                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(secondary ? KColor.sunken : KColor.teal))
+                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(secondary ? KColor.sunken : KColor.tealFill))
                 .opacity(disabled ? 0.55 : 1)
                 .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
@@ -704,7 +704,7 @@ struct CFLogoPage: View {
                         .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 20, height: 20)
-                        .background(Circle().fill(KColor.teal))
+                        .background(Circle().fill(KColor.tealFill))
                         .padding(6)
                 }
             }

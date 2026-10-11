@@ -86,7 +86,7 @@ struct CTFormDocsChip: View {
             }
             .foregroundStyle(on ? Color.white : KColor.teal)
             .padding(.horizontal, 12).padding(.vertical, 7)
-            .background(Capsule().fill(on ? KColor.teal : KColor.teal.opacity(0.13)))
+            .background(Capsule().fill(on ? KColor.tealFill : KColor.teal.opacity(0.13)))
             .contentShape(Capsule())
         }
         .buttonStyle(.borderless)
@@ -153,7 +153,7 @@ struct CTDetailDocsButton: View {
             VStack(spacing: 4) {
                 ZStack {
                     Circle()
-                        .fill(count > 0 ? KColor.teal : KColor.teal.opacity(0.13))
+                        .fill(count > 0 ? KColor.tealFill : KColor.teal.opacity(0.13))
                     Image(systemName: "paperclip")
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(count > 0 ? Color.white : KColor.teal)

@@ -269,8 +269,8 @@ extension AppData {
         // Inhaber in der Reihenfolge der Personenliste (Web `holdersSorted`)
         d.holderIDs = persons.map { $0.id }.filter { draft.holderIDs.contains($0) }
             + draft.holderIDs.filter { id in !persons.contains { $0.id == id } }
-        // Kündigungslink nur bei «Online / Kundenkonto»
-        if d.cancelChannel != .online { d.cancelURL = "" }
+        // Kündigungslink nur löschen, wenn bewusst E-Mail oder Brief gewählt ist (Web: «kein Weg» behält den Link)
+        if d.cancelChannel == .email || d.cancelChannel == .letter { d.cancelURL = "" }
         d.label = label
         d.categoryID = cid
         d.amount = Format.round2(draft.amount)

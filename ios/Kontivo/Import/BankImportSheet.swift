@@ -189,7 +189,7 @@ struct BankFailedView: View {
                     Text("OK").font(.headline).frame(maxWidth: .infinity).padding(.vertical, 12)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(KColor.teal)
+                .tint(KColor.tealFill)
                 .padding(.top, 10)
             }
             .padding(.horizontal, 24)

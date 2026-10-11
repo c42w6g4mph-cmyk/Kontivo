@@ -227,7 +227,7 @@ struct CTDetailDeadlineBox: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity).padding(.vertical, 10)
-                        .background(KColor.teal, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .background(KColor.tealFill, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("detail.deadline.cancel")

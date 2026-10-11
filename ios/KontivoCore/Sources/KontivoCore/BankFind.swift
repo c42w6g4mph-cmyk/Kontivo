@@ -484,6 +484,20 @@ public enum BankImport {
         return c.id
     }
 
+    /// Vertragspartner zum (in der Prüfliste ggf. geänderten) Namen: bisheriger bzw. bestehender gleichen Namens, sonst neu
+    /// mit Website und Adresse aus dem Katalogeintrag zur Vorschlagswährung (Web `bankToContract`: `t[4]`, `t[12]`;
+    /// `catalog` = `BankSuggestion.catalogEntry`). Leerer Name → `current`.
+    public static func partnerID(named name: String, current: UUID?, catalog t: CatalogEntry?, in data: inout AppData) -> UUID? {
+        let pn = BU.trim(name)
+        if let cur = data.partner(current), cur.name.lowercased() == pn.lowercased() { return cur.id }
+        if pn.isEmpty { return current }
+        if let p = Partners.find(pn, in: data) { return p.id }
+        let addr = (t?.address ?? "").replacingOccurrences(of: "\r\n", with: "\n")
+        let p = Partner(name: pn, web: t?.web ?? "", address: addr.isEmpty ? PostalAddress() : WebImport.addrSplit(addr, partnerName: pn))
+        data.partners.append(p)
+        return p.id
+    }
+
     /// «Nie mehr vorschlagen» (Web `bankIgn`).
     public static func ignore(_ s: BankSuggestion, in data: inout AppData) {
         let k = ignoreKey(s)

@@ -107,7 +107,7 @@ private struct CTFormHost: View {
         }
         .onAppear {
             // Sprung von aussen (Web `openForm(c); formGo(id)`), nach dem Einblenden des Fensters
-            if case .edit(let id) = context, let f = ContractFormGo.take(for: id, data: model.data) {
+            if case .edit(let id) = context, let f = ContractFormGo.take(for: id) {
                 let fm = form
                 Task { @MainActor in
                     try? await Task.sleep(nanoseconds: 450_000_000)

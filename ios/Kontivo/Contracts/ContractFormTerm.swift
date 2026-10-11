@@ -197,7 +197,7 @@ struct CTFormTermSection: View {
         .id(ContractFormField.termMonths)
         if open {
             VStack(spacing: 10) {
-                let values = Array(1...ContractFormRules.termMonthsWheelMax)
+                let values = form.termMonthsWheelValues
                 CTWheelPicker(columns: [values.map { String($0) }, ["Monate"]],
                               selection: [values.firstIndex(of: form.termMonthsPend) ?? 23, 0],
                               widths: [0.45, 0.5],

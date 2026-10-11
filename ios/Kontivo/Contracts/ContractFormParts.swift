@@ -36,22 +36,11 @@ enum ContractFormGo {
         pending = (id, field)
     }
 
-    /// Ziel für diesen Vertrag abholen und löschen. Der frühere Weg `ContractFormLaunch.openMoreFor` (Seite «Weitere Angaben»)
-    /// springt jetzt zum passenden Feld: Kündigungsweg Online → Kündigungslink, E-Mail → E-Mail für Kündigung, sonst Website (Kontakt).
-    static func take(for id: UUID, data: AppData) -> ContractFormField? {
-        if let p = pending, p.id == id {
-            pending = nil
-            return p.field
-        }
-        if ContractFormLaunch.openMoreFor == id {
-            ContractFormLaunch.openMoreFor = nil
-            switch data.contract(id)?.cancelChannel {
-            case .online: return .cancelURL
-            case .email: return .cancelMail
-            default: return .web
-            }
-        }
-        return nil
+    /// Ziel für diesen Vertrag abholen und löschen (gilt einmal).
+    static func take(for id: UUID) -> ContractFormField? {
+        guard let p = pending, p.id == id else { return nil }
+        pending = nil
+        return p.field
     }
 }
 

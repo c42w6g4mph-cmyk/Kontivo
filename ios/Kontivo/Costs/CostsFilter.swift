@@ -110,7 +110,7 @@ struct KBCostFilterBar: View {
             .foregroundStyle(nOther > 0 ? Color.white : (open ? KColor.teal : KColor.ink2))
             .frame(minWidth: 36, minHeight: 36)
             .padding(.horizontal, nOther > 0 ? 6 : 0)
-            .background(Capsule().fill(nOther > 0 ? KColor.teal : KColor.surface))
+            .background(Capsule().fill(nOther > 0 ? KColor.tealFill : KColor.surface))
             .overlay(Capsule().strokeBorder((nOther > 0 || open) ? KColor.teal : KColor.line, lineWidth: 1))
             .contentShape(Capsule())
         }

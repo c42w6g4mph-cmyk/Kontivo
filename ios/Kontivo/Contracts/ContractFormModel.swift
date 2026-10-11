@@ -831,6 +831,14 @@ final class CTFormState {
         if termMonthsOpen { termMonthsPend = termMonths ?? 24 }
     }
 
+    /// Werte des Drehrads «Mindestlaufzeit» (1 … Max); ein grösserer gespeicherter Wert kommt dazu (wie `noticeWheelValues`),
+    /// damit Rad und Knopf «… übernehmen» denselben Wert zeigen.
+    var termMonthsWheelValues: [Int] {
+        var v = Array(1...ContractFormRules.termMonthsWheelMax)
+        if let t = termMonths, t > ContractFormRules.termMonthsWheelMax { v.append(t) }
+        return v
+    }
+
     /// «… übernehmen» im Drehrad (Web `fTermMOk`)
     @discardableResult
     func applyTermMonthsWheel() -> String? {

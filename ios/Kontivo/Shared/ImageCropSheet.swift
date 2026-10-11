@@ -233,7 +233,7 @@ struct ImageCropSheet: View {
             }
             .padding(.horizontal, 12).padding(.vertical, 7)
             .foregroundStyle(on ? Color.white : KColor.ink)
-            .background(Capsule().fill(on ? KColor.teal : KColor.field))
+            .background(Capsule().fill(on ? KColor.tealFill : KColor.field))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? .isSelected : [])

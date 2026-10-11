@@ -481,7 +481,7 @@ private struct DeadlineReviewCard: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.white)
                             .frame(maxWidth: .infinity, minHeight: 40)
-                            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.teal))
+                            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.tealFill))
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -563,7 +563,7 @@ struct DeadlineReviewSheet: View {
                     } label: {
                         Text("Fertig").font(.body.weight(.semibold)).foregroundStyle(.white)
                             .frame(maxWidth: .infinity).padding(.vertical, 13)
-                            .background(KColor.teal, in: RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous))
+                            .background(KColor.tealFill, in: RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous))
                     }
                     .buttonStyle(.plain)
                     .padding(.top, 6)
@@ -602,7 +602,7 @@ struct DeadlineReviewSheet: View {
                 .foregroundStyle(on ? Color.white : KColor.ink)
                 .lineLimit(1).minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity).frame(minHeight: 36)
-                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(on ? KColor.teal : KColor.sunken))
+                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(on ? KColor.tealFill : KColor.sunken))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -57,6 +57,7 @@ extension Calc {
     /// Nächste Frist eines Vertrags für Erinnerung und Kalender, nil = keine.
     /// Grundmenge wie «Fristen»: aktiv (auch pausiert), kündbar, beobachtet, nicht gekündigt.
     /// - Probeabo läuft (`trialOn`): letzter Gratistag
+    /// - endet von selbst (feste Laufzeit ohne Verlängerung, Web v160 `endsSelf`): keine Frist, keine Kündigung nötig
     /// - jederzeit kündbar: keine Frist
     /// - behalten: nächste Frist nach dem behaltenen Termin (wie «Behalten · nächste Frist»)
     /// - sonst Kündigungsfrist zum nächsten Termin, sofern nicht verpasst
@@ -65,7 +66,8 @@ extension Calc {
         if trialOn(c), let t = trialLast(c) {
             return ReminderDeadline(contractID: c.id, kind: .trial, date: t, end: nil, mandatory: c.mandatory)
         }
-        if isAnytime(c) { return nil }
+        // Web «Fristen»: Probeabo zuerst, dann `endsSelf` ohne Kündigungsfrist (nur Vertragsende)
+        if endsSelf(c) || isAnytime(c) { return nil }
         guard let T = termEnd(c) else { return nil }
         if isKept(c) {
             let T2 = c.end != nil ? renewAfter(c, T) : nextTerm(c, base: nil, after: T)
