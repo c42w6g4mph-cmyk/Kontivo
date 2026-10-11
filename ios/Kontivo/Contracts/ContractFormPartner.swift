@@ -1,98 +1,133 @@
 import SwiftUI
 import KontivoCore
 
-/// Feld «Vertragspartner» mit Vorschlägen (eigene Vertragspartner, Internet), Duplikat-Hinweis und Katalog-Vorlagen.
-struct CTFormPartnerBlock: View {
+/// Feld «Vertragspartner» im Kopf (Web #fPartner) mit Katalog-Knopf. Tippen sucht eigene Vertragspartner und im Internet
+/// (Liste darunter, `CTFormPartnerSuggestions`); fertig eingegeben → Währung eines bekannten Vertragspartners (v156).
+struct CTFormPartnerField: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
-    @FocusState private var focused: Bool
-    @State private var visible = false
-    @State private var webHits: [WebPartnerHit] = []
-    @State private var loading = false
-    @State private var token = 0
-    @State private var searchTask: Task<Void, Never>?
+    var focus: FocusState<ContractFormField?>.Binding
 
-    init(form: CTFormState) {
-        self.form = form
+    var body: some View {
+        HStack(spacing: 6) {
+            TextField("Vertragspartner", text: Binding(
+                get: { form.partnerName },
+                set: { v in
+                    // SwiftUI setzt den Wert beim Schliessen der Tastatur erneut: nur echte Änderungen suchen
+                    let changed = v != form.partnerName
+                    form.userTypedPartner(v)
+                    if changed { CTPartnerSearch.schedule(form) }
+                }))
+                .focused(focus, equals: .partner)
+                .textInputAutocapitalization(.words)
+                .autocorrectionDisabled()
+                .foregroundStyle(KColor.ink)
+                .submitLabel(.done)
+                .onSubmit { form.partnerCommitted(data: model.data) }
+                .accessibilityLabel("Vertragspartner")
+                .accessibilityIdentifier("form.partner")
+            Button {
+                focus.wrappedValue = nil
+                form.showCatalog = true
+            } label: {
+                Image(systemName: "book")
+                    .foregroundStyle(KColor.teal)
+                    .frame(width: 30, height: 30)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Aus Katalog wählen")
+            .accessibilityIdentifier("form.catalog")
+        }
+        .padding(.leading, 10).padding(.trailing, 4).padding(.vertical, 4)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.field))
+        .id(ContractFormField.partner)
+        .onChange(of: focus.wrappedValue == .partner) { was, now in
+            if now {
+                CTPartnerSearch.schedule(form)
+            } else if was {
+                // Web «change» beim Verlassen des Felds
+                form.partnerCommitted(data: model.data)
+                let f = form
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 250_000_000)
+                    if focus.wrappedValue != .partner { f.sugVisible = false }
+                }
+            }
+        }
     }
+}
+
+/// Suche nach Vertragspartnern (eigene sofort, Internet nach kurzer Pause), Zustand im Formular
+@MainActor
+enum CTPartnerSearch {
+    static func schedule(_ form: CTFormState) {
+        form.searchTask?.cancel()
+        let q = form.partnerName.ctTrimmed
+        if q.count < 2 || q == form.pSugSel {
+            form.sugVisible = false
+            form.webHits = []
+            form.webLoading = false
+            return
+        }
+        form.sugVisible = true
+        form.webHits = []
+        form.webLoading = q.count >= 3
+        form.searchToken += 1
+        let tok = form.searchToken
+        form.searchTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            if Task.isCancelled { return }
+            let r = await CTWebPartners.search(q)
+            if Task.isCancelled || tok != form.searchToken { return }
+            form.webHits = r
+            form.webLoading = false
+        }
+    }
+
+    static func hide(_ form: CTFormState) {
+        form.searchTask?.cancel()
+        form.sugVisible = false
+        form.webLoading = false
+    }
+}
+
+/// Vorschlagsliste unter dem Kopf (Web #pSug): «Deine Vertragspartner», «Aus dem Internet»
+struct CTFormPartnerSuggestions: View {
+    @Environment(AppModel.self) private var model
+    @Bindable var form: CTFormState
+    var focus: FocusState<ContractFormField?>.Binding
 
     var body: some View {
         let data = model.data
         let q = form.partnerName.ctTrimmed
-        let showList = visible && q.count >= 2 && q != form.pSugSel
+        let showList = form.sugVisible && q.count >= 2 && q != form.pSugSel
         let own = showList ? Partners.matches(q, in: data, today: model.today, limit: 3) : []
         let ownNames = Set(own.map { $0.partner.name.lowercased() })
-        let web = showList ? webHits.filter { !ownNames.contains($0.name.lowercased()) } : []
-        field
-        if showList && !own.isEmpty {
-            CTSuggestHeader(title: "Deine Vertragspartner")
-            ForEach(own, id: \.partner.id) { g in
-                ownRow(g, data: data)
-            }
-        }
-        if showList && !web.isEmpty {
-            CTSuggestHeader(title: "Aus dem Internet")
-            ForEach(web, id: \.self) { w in
-                webRow(w)
-            }
-        } else if showList && loading && q.count >= 3 {
-            HStack(spacing: 8) {
-                ProgressView()
-                Text("Suche …").font(.subheadline).foregroundStyle(KColor.ink2)
-            }
-        }
-        if let hint = form.duplicateHint(data, today: model.today) {
-            Label {
-                Text(hint)
-            } icon: {
-                Image(systemName: "exclamationmark.triangle")
-            }
-            .font(.footnote)
-            .foregroundStyle(KColor.warn)
-        }
-        CTTemplateRow(form: form)
-    }
-
-    private var field: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text("Vertragspartner")
-                .font(.footnote)
-                .foregroundStyle(KColor.ink2)
-            HStack(spacing: 8) {
-                TextField("z.B. Swisscom", text: Binding(
-                    get: { form.partnerName },
-                    set: { v in
-                        form.userTypedPartner(v)
-                        schedule()
-                    }))
-                    .focused($focused)
-                    .textInputAutocapitalization(.words)
-                    .autocorrectionDisabled()
-                    .foregroundStyle(KColor.ink)
-                    .submitLabel(.done)
-                Button {
-                    focused = false
-                    form.showCatalog = true
-                } label: {
-                    Image(systemName: "book")
-                        .foregroundStyle(KColor.teal)
+        let web = showList ? form.webHits.filter { !ownNames.contains($0.name.lowercased()) } : []
+        let searching = showList && web.isEmpty && form.webLoading && q.count >= 3
+        if showList && (!own.isEmpty || !web.isEmpty || searching) {
+            Section {
+                if !own.isEmpty {
+                    CTSuggestHeader(title: "Deine Vertragspartner")
+                    ForEach(own, id: \.partner.id) { g in
+                        ownRow(g, data: data)
+                    }
                 }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("Aus Katalog wählen")
-            }
-        }
-        .padding(.vertical, 2)
-        .onChange(of: focused) { _, f in
-            if f {
-                schedule()
-            } else {
-                Task {
-                    try? await Task.sleep(nanoseconds: 250_000_000)
-                    if !focused { visible = false }
+                if !web.isEmpty {
+                    CTSuggestHeader(title: "Aus dem Internet")
+                    ForEach(web, id: \.self) { w in
+                        webRow(w)
+                    }
+                } else if searching {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                        Text("Suche …").font(.subheadline).foregroundStyle(KColor.ink2)
+                    }
                 }
             }
+            .listRowBackground(KColor.surface)
         }
-        .onDisappear { searchTask?.cancel() }
     }
 
     private func ownRow(_ g: Partners.Group, data: AppData) -> some View {
@@ -151,37 +186,9 @@ struct CTFormPartnerBlock: View {
         }
     }
 
-    // MARK: Ablauf
-
-    private func schedule() {
-        searchTask?.cancel()
-        let q = form.partnerName.ctTrimmed
-        if q.count < 2 || q == form.pSugSel {
-            visible = false
-            webHits = []
-            loading = false
-            return
-        }
-        visible = true
-        webHits = []
-        loading = q.count >= 3
-        token += 1
-        let tok = token
-        searchTask = Task {
-            try? await Task.sleep(nanoseconds: 350_000_000)
-            if Task.isCancelled { return }
-            let r = await CTWebPartners.search(q)
-            if Task.isCancelled || tok != token { return }
-            webHits = r
-            loading = false
-        }
-    }
-
     private func hide() {
-        searchTask?.cancel()
-        visible = false
-        loading = false
-        focused = false
+        CTPartnerSearch.hide(form)
+        focus.wrappedValue = nil
     }
 
     /// Internet-Treffer übernehmen, danach Logo laden (nur wenn noch keins da ist)

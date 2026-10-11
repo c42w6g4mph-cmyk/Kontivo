@@ -15,6 +15,8 @@ final class ContractFlowUITests: KontivoUITestCase {
         waitNav("Neuer Vertrag")
         enter(textField("form.label"), contractName + "\n", "Bezeichnung")
         enter(textField("form.amount"), "45", "Betrag")
+        // Formular auf einer Seite (Web v145): Kategorie liegt unter «Zuordnung», Tastatur zuerst schliessen
+        closeKeyboard()
         tap(button("form.category"), "Kategorie wählen")
         tap(button("Abos & Medien"), "Kategorie Abos & Medien")
         waitUntil("Kategorie übernommen") { self.button("form.category").label.contains("Abos & Medien") }

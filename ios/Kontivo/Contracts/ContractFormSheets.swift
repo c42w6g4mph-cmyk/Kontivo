@@ -7,6 +7,7 @@ struct CTCategoryPickSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selected: UUID?
     @State private var newName = ""
+    @State private var showTaxInfo = false
 
     init(selected: Binding<UUID?>) {
         _selected = selected
@@ -17,27 +18,38 @@ struct CTCategoryPickSheet: View {
             List {
                 Section {
                     ForEach(model.data.categories) { cat in
-                        Button {
-                            selected = cat.id
-                            dismiss()
-                        } label: {
-                            HStack(spacing: 12) {
-                                MarkView(category: cat, size: 30)
-                                Text(cat.name).foregroundStyle(KColor.ink)
-                                Spacer()
-                                if selected == cat.id {
-                                    Image(systemName: "checkmark").foregroundStyle(KColor.teal)
+                        HStack(spacing: 6) {
+                            Button {
+                                selected = cat.id
+                                dismiss()
+                            } label: {
+                                HStack(spacing: 12) {
+                                    MarkView(category: cat, size: 30)
+                                    Text(cat.name).foregroundStyle(KColor.ink)
+                                    Spacer()
+                                    if selected == cat.id {
+                                        Image(systemName: "checkmark").foregroundStyle(KColor.teal)
+                                    }
                                 }
+                                .contentShape(Rectangle())
                             }
-                            .contentShape(Rectangle())
+                            .buttonStyle(.borderless)
+                            .accessibilityAddTraits(selected == cat.id ? .isSelected : [])
+                            // Info «Nicht kündbar» bei Steuern & Gebühren (Web `catInfoIc`, v158)
+                            if cat.kind == .taxes {
+                                Button { showTaxInfo = true } label: {
+                                    Image(systemName: "info.circle").foregroundStyle(KColor.ink2)
+                                }
+                                .buttonStyle(.borderless)
+                                .accessibilityLabel("Info: nicht kündbar")
+                            }
                         }
-                        .accessibilityAddTraits(selected == cat.id ? .isSelected : [])
                     }
                 }
                 .listRowBackground(KColor.surface)
                 Section {
                     HStack(spacing: 10) {
-                        TextField("Eigene Kategorie, z.B. Haustier", text: $newName)
+                        TextField("Neue Kategorie", text: $newName)
                             .submitLabel(.done)
                             .onSubmit(add)
                             .onChange(of: newName) { _, v in
@@ -55,6 +67,11 @@ struct CTCategoryPickSheet: View {
             .background(KColor.paper)
             .navigationTitle("Kategorie")
             .navigationBarTitleDisplayMode(.inline)
+            .alert("Nicht kündbar", isPresented: $showTaxInfo) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(ContractFormRules.taxInfo)
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Abbrechen") { dismiss() }
@@ -90,7 +107,7 @@ enum CTCatalogMemory {
     static var country = ""
 }
 
-/// «Anbieter-Katalog»: Suche, Land Alle/CH/DE, Übernahme der Vorlage per Tipp (openTplPick).
+/// «Katalog» (Web v143 `openTplPick`): Suche «Vertragspartner suchen», Land Alle/CH/DE, Übernahme der Vorlage per Tipp.
 struct CTCatalogSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
@@ -119,7 +136,7 @@ struct CTCatalogSheet: View {
                 }
                 Section {
                     if list.isEmpty {
-                        Text("Kein Anbieter gefunden. Du kannst ihn einfach selbst eintippen.")
+                        Text("Nichts gefunden. Du kannst den Vertragspartner einfach selbst eintippen.")
                             .font(.subheadline)
                             .foregroundStyle(KColor.ink2)
                     }
@@ -138,8 +155,8 @@ struct CTCatalogSheet: View {
             }
             .scrollContentBackground(.hidden)
             .background(KColor.paper)
-            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Anbieter suchen")
-            .navigationTitle("Anbieter-Katalog")
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Vertragspartner suchen")
+            .navigationTitle("Katalog")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

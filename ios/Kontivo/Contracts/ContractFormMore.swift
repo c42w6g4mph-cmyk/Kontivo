@@ -1,337 +1,291 @@
 import SwiftUI
-import PhotosUI
-import UniformTypeIdentifiers
 import KontivoCore
 
-/// Unterseite «Weitere Angaben»: Preisänderungen, Sonderzahlungen, Erinnerung und Wechsel, Kundendaten,
-/// Adresse des Vertragspartners, Kontakt & Notiz (Dokumente seit Web 6e77e47 als Chip auf der Hauptseite).
-struct CTFormMorePage: View {
+// Karten des Vertragsformulars nach «Kosten» (Web v145, früher Unterseite «Weitere Angaben»):
+// Sonderzahlungen · Zuordnung (Kategorie, Personen + Aufteilung, Kundennummer, Vertragsnummer nach `contrLbl`) ·
+// Kontakt (Adresse «hinzufügen»/Felder/Einfügen, Website, Telefon, E-Mail) · Notiz.
+
+// MARK: - Sonderzahlungen (Web #xList, #xForm)
+
+struct CTFormExtrasSection: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
-    @FocusState private var addressFocused: Bool
-
-    init(form: CTFormState) {
-        self.form = form
-    }
-
-    var body: some View {
-        GeometryReader { geo in
-            ScrollViewReader { proxy in
-                Form {
-                    CTMorePrices(form: form)
-                    CTMoreExtras(form: form)
-                    CTMoreReminder(form: form)
-                    CTMoreCustomer(form: form)
-                    CTMoreAddress(form: form, focused: $addressFocused)
-                    CTMoreContact(form: form)
-                }
-                .scrollContentBackground(.hidden)
-                .scrollDismissesKeyboard(.interactively)
-                .contentMargins(.horizontal, max(KMetric.gutter, (geo.size.width - KMetric.maxContent) / 2), for: .scrollContent)
-                .onAppear { scrollToAddress(proxy) }
-                .onChange(of: form.focusAddress) { _, on in if on { scrollToAddress(proxy) } }
-            }
-        }
-        .kPageBackground()
-        .kKeyboardDone()
-    }
-
-    static let addressAnchor = "ct.more.address"
-
-    /// «Erfassen/Ändern» beim Kündigungsweg Brief: zur Adresse scrollen und das erste Feld fokussieren
-    private func scrollToAddress(_ proxy: ScrollViewProxy) {
-        guard form.focusAddress else { return }
-        form.focusAddress = false
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 350_000_000)
-            withAnimation { proxy.scrollTo(CTFormMorePage.addressAnchor, anchor: .center) }
-            if !form.partnerName.ctTrimmed.isEmpty { addressFocused = true }
-        }
-    }
-}
-
-/// Abschnittskopf mit Zähler rechts («2 Änderungen»)
-private struct CTMoreHeader: View {
-    let title: String
-    var count: String = ""
-    var body: some View {
-        HStack {
-            Text(title)
-            Spacer()
-            if !count.isEmpty {
-                Text(count).textCase(nil)
-            }
-        }
-    }
-}
-
-// MARK: Preisänderungen
-
-private struct CTMorePrices: View {
-    @Environment(AppModel.self) private var model
-    @Bindable var form: CTFormState
+    var focus: FocusState<ContractFormField?>.Binding
 
     var body: some View {
         let today = model.today
-        let ps = form.sortedPrices
-        let n = ps.count
         Section {
-            if !ps.isEmpty {
-                priceRows(ps, today: today)
+            ForEach(form.extras) { x in
+                extraRow(x, today: today)
             }
-            CTOptionalDateRow(title: "Gültig ab", day: $form.priceFrom, fallback: today)
-            LabeledContent("Neuer Betrag") {
-                TextField("74.90", text: $form.priceAmountText)
-                    .accessibilityIdentifier("form.priceAmount")
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .monospacedDigit()
-            }
-            Button("Preisänderung hinzufügen") {
-                add(force: false)
-            }
-            .fontWeight(.semibold)
-            .accessibilityIdentifier("form.priceAdd")
-        } header: {
-            CTMoreHeader(title: "Preisänderungen", count: n > 0 ? "\(n)" + (n == 1 ? " Änderung" : " Änderungen") : "")
-        } footer: {
-            Text("Der Betrag unter «Kosten» ist der Anfangspreis. Jede Änderung gilt ab ihrem Datum.")
-        }
-        .listRowBackground(KColor.surface)
-    }
-
-    /// Vormerken; «Preis bleibt gleich» fragt nicht blockierend nach («Trotzdem hinzufügen»)
-    private func add(force: Bool) {
-        switch form.addPrice(force: force) {
-        case .toast(let t, let long):
-            model.toast(t, seconds: long ? 4 : 2.4)
-        case .confirmSame(let title, let message):
-            let f = form
-            let m = model
-            model.ask(title: title, message: message, ok: "Trotzdem hinzufügen") {
-                if case .toast(let t, let long) = f.addPrice(force: true) { m.toast(t, seconds: long ? 4 : 2.4) }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func priceRows(_ ps: [PriceChange], today: Day) -> some View {
-        let ni = ps.lastIndex { $0.from <= today } ?? -1
-        let cur = form.currency.rawValue
-        let base = CTNumber.parse(form.amountText)
-        CTPriceRow(label: "Anfangspreis", amount: (base.map { Format.money($0, form.currency) } ?? "—") + " " + cur,
-                   tag: ni < 0 ? .current : nil, isCurrent: ni < 0, hPad: 0)
-        ForEach(Array(ps.enumerated()), id: \.offset) { i, p in
-            CTPriceRow(label: "ab " + Format.fmtD(p.from), amount: Format.money(p.amount, form.currency) + " " + cur,
-                       tag: i == ni ? .current : (p.from > today ? .planned : nil), isCurrent: i == ni,
-                       onDelete: { form.removePrice(p.from) }, hPad: 0)
-        }
-    }
-}
-
-// MARK: Sonderzahlungen
-
-private struct CTMoreExtras: View {
-    @Environment(AppModel.self) private var model
-    @Bindable var form: CTFormState
-
-    var body: some View {
-        let today = model.today
-        let n = form.extras.count
-        Section {
-            CTExtrasList(extras: form.extras, currency: form.currency.rawValue, today: today, onDelete: { x in
-                form.extras.removeAll { $0.id == x.id }
-            }, framed: false)
-            Picker("Art", selection: $form.extraCredit) {
-                Text("Zahlung").tag(false)
-                Text("Gutschrift").tag(true)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            CTOptionalDateRow(title: "Datum", day: $form.extraDate, fallback: today)
-            LabeledContent("Betrag") {
-                TextField("120.00", text: $form.extraAmountText)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .monospacedDigit()
-            }
-            CTField(title: "Bezeichnung (optional)", placeholder: "z.B. Nebenkostenabrechnung", text: $form.extraNote, limit: 60)
-            Button("Sonderzahlung hinzufügen") {
-                model.toast(form.addExtra())
-            }
-            .fontWeight(.semibold)
-        } header: {
-            CTMoreHeader(title: "Sonderzahlungen", count: n > 0 ? "\(n) erfasst" : "")
-        } footer: {
-            Text("Zum Beispiel Nebenkostenabrechnung oder Aktivierungsgebühr. Zählt in «Kosten» und «Budget» im jeweiligen Monat, nicht in den monatlichen Fixkosten.")
-        }
-        .listRowBackground(KColor.surface)
-    }
-}
-
-// MARK: Erinnerung und Wechsel
-
-private struct CTMoreReminder: View {
-    @Environment(AppModel.self) private var model
-    @Bindable var form: CTFormState
-
-    var body: some View {
-        Section {
-            Toggle(isOn: $form.mandatory) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Pflichtvertrag")
-                    Text("Wechseln statt kündigen, z.B. Krankenkasse. Nach der Kündigung neuen Anbieter erfassen.")
-                        .font(.footnote).foregroundStyle(KColor.ink2)
+            if form.extraOpen {
+                Picker("Art", selection: $form.extraCredit) {
+                    Text("Zahlung").tag(false)
+                    Text("Gutschrift").tag(true)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .id(ContractFormField.extras)
+                CTFormDateRow(title: "Datum", day: form.extraDate, fallback: today, identifier: "form.extraDate") { form.extraDate = $0 }
+                HStack(spacing: 12) {
+                    CTRowLabel("Betrag")
+                    TextField(Format.numberStyle(form.currency) == .de ? "120,00" : "120.00", text: $form.extraAmountText)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .monospacedDigit()
+                        .foregroundStyle(KColor.teal)
+                        .accessibilityLabel("Betrag der Sonderzahlung")
+                        .accessibilityIdentifier("form.extraAmount")
+                }
+                HStack(spacing: 12) {
+                    CTRowLabel("Bezeichnung")
+                    TextField("optional", text: $form.extraNote)
+                        .multilineTextAlignment(.trailing)
+                        .foregroundStyle(KColor.teal)
+                        .accessibilityLabel("Bezeichnung der Sonderzahlung")
+                        .onChange(of: form.extraNote) { _, v in
+                            if v.count > 60 { form.extraNote = String(v.prefix(60)) }
+                        }
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    CTFormOKButton(title: "Sonderzahlung hinzufügen", identifier: "form.extraAdd") {
+                        withAnimation(.easeInOut(duration: 0.2)) { model.toast(form.addExtra()) }
+                    }
+                    Text("Zum Beispiel Nebenkostenabrechnung oder Aktivierungsgebühr. Zählt in «Kosten» und «Budget» im jeweiligen Monat, nicht in den monatlichen Fixkosten.")
+                        .font(.footnote)
+                        .foregroundStyle(KColor.ink2)
+                }
+                .padding(.vertical, 2)
+            } else {
+                CTFormAddRow(title: "Sonderzahlung", identifier: "form.extraOpen") {
+                    withAnimation(.easeInOut(duration: 0.2)) { form.extraOpen = true }
                 }
             }
-            .accessibilityIdentifier("form.mandatory")
-            Toggle(isOn: $form.noWatch) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Nicht an Frist erinnern")
-                    Text("Erscheint nicht unter «Fristen», z.B. Miete.")
-                        .font(.footnote).foregroundStyle(KColor.ink2)
-                }
-            }
-            .accessibilityIdentifier("form.noWatch")
-            // Nativ zusätzlich: Mietvertrag (Brief mit Unterschrift); ohne Wahl gilt die Erkennung aus Bezeichnung/Kategorie
-            Toggle("Mietvertrag", isOn: rentBinding)
         } header: {
-            Text("Erinnerung und Wechsel")
-        } footer: {
-            Text("Miete braucht immer einen Brief mit Unterschrift.")
+            Text("Sonderzahlungen")
         }
         .listRowBackground(KColor.surface)
     }
 
-    private var rentBinding: Binding<Bool> {
-        Binding(
-            get: {
-                if let r = form.isRent { return r }
-                let kind = model.data.category(form.categoryID)?.kind
-                return Letter.isRentHeuristic(label: form.label, partner: form.partnerName, kind: kind)
-            },
-            set: { form.isRent = $0 }
-        )
-    }
-}
-
-// MARK: Kundendaten
-
-private struct CTMoreCustomer: View {
-    @Bindable var form: CTFormState
-
-    static let payMethods = ["Lastschrift (LSV/SEPA)", "eBill", "Kreditkarte", "QR-Rechnung", "Dauerauftrag", "TWINT", "PayPal", "Sonstiges"]
-
-    var body: some View {
-        Section {
-            CTField(title: "Kundennummer", placeholder: "", text: $form.customerNo, capitalization: .never, autocorrect: false)
-            CTField(title: "Vertragsnummer", placeholder: "", text: $form.contractNo, capitalization: .never, autocorrect: false)
-            Picker("Zahlungsart", selection: $form.payMethod) {
-                Text("—").tag("")
-                ForEach(options, id: \.self) { m in
-                    Text(m).tag(m)
+    /// Zeile (Web .fpr): Bezeichnung bzw. «Sonderzahlung»/«Gutschrift», Plaketten, Datum klein; Betrag; × entfernt
+    private func extraRow(_ x: ExtraPayment, today: Day) -> some View {
+        let cr = x.amount < 0
+        return HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(x.note.isEmpty ? (cr ? "Gutschrift" : "Sonderzahlung") : x.note)
+                        .foregroundStyle(KColor.ink)
+                        .lineLimit(1)
+                    if cr && !x.note.isEmpty { CTMiniTag(text: "Gutschrift", tone: KColor.ok) }
+                    if x.date > today { CTMiniTag(text: "geplant", tone: KColor.warn) }
                 }
-            }
-            CTField(title: "Belastet über", placeholder: "z.B. Visa …4417", text: $form.payAccount, autocorrect: false)
-        } header: {
-            Text("Kundendaten")
-        }
-        .listRowBackground(KColor.surface)
-    }
-
-    private var options: [String] {
-        let m = form.payMethod
-        return (m.isEmpty || CTMoreCustomer.payMethods.contains(m)) ? CTMoreCustomer.payMethods : CTMoreCustomer.payMethods + [m]
-    }
-}
-
-// MARK: Kontakt & Notiz
-
-private struct CTMoreContact: View {
-    @Bindable var form: CTFormState
-
-    var body: some View {
-        let noPartner = form.partnerName.ctTrimmed.isEmpty
-        Section {
-            CTField(title: "Website oder Kundenportal", placeholder: "swisscom.ch/login", text: $form.web,
-                    keyboard: .URL, capitalization: .never, autocorrect: false)
-                .disabled(noPartner)
-                .opacity(noPartner ? 0.5 : 1)
-            CTField(title: "Telefon", placeholder: "", text: $form.tel, keyboard: .phonePad, capitalization: .never, autocorrect: false)
-            CTField(title: "E-Mail", placeholder: "", text: $form.mail, keyboard: .emailAddress, capitalization: .never, autocorrect: false)
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Notiz")
+                Text(Format.fmtD(x.date))
                     .font(.footnote)
                     .foregroundStyle(KColor.ink2)
-                TextField("Zugangsweg, Ansprechpartner, Besonderheiten", text: $form.note, axis: .vertical)
-                    .lineLimit(3...10)
-                    .foregroundStyle(KColor.ink)
             }
-            .padding(.vertical, 2)
-        } header: {
-            Text("Kontakt & Notiz")
-        } footer: {
-            if noPartner {
-                Text("Website: Zuerst den Vertragspartner eintragen.")
+            Spacer(minLength: 8)
+            Text(verbatim: (cr ? Format.minus : "") + Format.money(abs(x.amount), form.currency))
+                .font(.body.monospacedDigit())
+                .foregroundStyle(cr ? KColor.ok : KColor.teal)
+            Button {
+                form.extras.removeAll { $0.id == x.id }
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(KColor.ink3)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Sonderzahlung entfernen")
         }
-        .listRowBackground(KColor.surface)
+        .accessibilityElement(children: .contain)
     }
 }
 
-// MARK: Adresse des Vertragspartners
+// MARK: - Zuordnung (Web #fsAssign)
 
-private struct CTMoreAddress: View {
+struct CTFormAssignSection: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
-    var focused: FocusState<Bool>.Binding
+    var focus: FocusState<ContractFormField?>.Binding
+    @State private var showTaxInfo = false
 
     var body: some View {
-        let noPartner = form.partnerName.ctTrimmed.isEmpty
+        let data = model.data
         Section {
-            Group {
-                TextField(form.partnerName.ctTrimmed.isEmpty ? "Firma (optional)" : "Firma (optional, sonst " + form.partnerName.ctTrimmed + ")", text: $form.address.company)
-                    .textContentType(.organizationName)
-                    .focused(focused)
-                    .id(CTFormMorePage.addressAnchor)
-                TextField("Zusatz, z.B. Kundendienst oder Postfach", text: $form.address.extra)
-                TextField("Strasse und Nr.", text: $form.address.street)
-                    .textContentType(.fullStreetAddress)
-                HStack(spacing: 10) {
-                    TextField("PLZ", text: $form.address.zip)
-                        .keyboardType(.numbersAndPunctuation)
-                        .textContentType(.postalCode)
-                        .frame(maxWidth: 90)
-                    Divider()
-                    TextField("Ort", text: $form.address.city)
-                        .textContentType(.addressCity)
-                }
-                TextField("Land (optional)", text: $form.address.country)
-                    .textContentType(.countryName)
-            }
-            .textInputAutocapitalization(.words)
-            .autocorrectionDisabled()
-            .disabled(noPartner)
-            .opacity(noPartner ? 0.5 : 1)
-        } header: {
-            HStack {
-                Text("Adresse des Vertragspartners")
-                Spacer()
-                // Einfügen: Adresse aus Rechnung, Website oder Karten auf die Felder verteilen (Web v86)
-                PasteButton(payloadType: String.self) { items in
-                    guard let t = items.first else { return }
-                    Task { @MainActor in
-                        if !form.pasteAddress(t) { model.toast("Keine Adresse in der Zwischenablage") } else { model.toast("Adresse eingefügt, bitte prüfen") }
+            categoryRow
+            if data.persons.count >= 2 {
+                VStack(alignment: .leading, spacing: 8) {
+                    CTRowLabel("Personen")
+                    CTFlowLayout(spacing: 8, lineSpacing: 8) {
+                        ForEach(data.persons) { p in
+                            Chip(title: p.name, isOn: form.holderIDs.contains(p.id)) {
+                                form.toggleHolder(p.id, persons: model.data.persons)
+                            }
+                        }
                     }
                 }
-                .labelStyle(.titleOnly)
-                .buttonBorderShape(.capsule)
-                .controlSize(.mini)
-                .disabled(noPartner)
+                .padding(.vertical, 4)
+                if form.holderIDs.count >= 2 { CTFormSplitRows(form: form) }
             }
+            CTFormTextRow(title: "Kundennummer", text: $form.customerNo, identifier: "form.customerNo", field: .customerNo, focus: focus)
+            CTFormTextRow(title: form.contractNumberLabel(data), text: $form.contractNo, identifier: "form.contractNo", field: .contractNo, focus: focus)
+        } header: {
+            Text("Zuordnung")
+        }
+        .listRowBackground(KColor.surface)
+    }
+
+    private var categoryRow: some View {
+        let cat = model.data.category(form.categoryID)
+        return HStack(spacing: 6) {
+            Button {
+                form.showCategoryPicker = true
+            } label: {
+                HStack(spacing: 10) {
+                    CTRowLabel("Kategorie")
+                    Spacer(minLength: 8)
+                    if let c = cat {
+                        MarkView(category: c, size: 26)
+                        Text(c.name).foregroundStyle(KColor.teal).lineLimit(1)
+                    } else {
+                        Text("wählen").foregroundStyle(KColor.ink3)
+                    }
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(KColor.ink3)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Kategorie, " + (cat?.name ?? "wählen"))
+            .accessibilityIdentifier("form.category")
+            if cat?.kind == .taxes {
+                Button { showTaxInfo = true } label: {
+                    Image(systemName: "info.circle").font(.body).foregroundStyle(KColor.ink2)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Info: nicht kündbar")
+            }
+        }
+        .id(ContractFormField.category)
+        .alert("Nicht kündbar", isPresented: $showTaxInfo) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(ContractFormRules.taxInfo)
+        }
+    }
+}
+
+// MARK: - Kontakt (Web #fsContact)
+
+struct CTFormContactSection: View {
+    @Environment(AppModel.self) private var model
+    @Bindable var form: CTFormState
+    var focus: FocusState<ContractFormField?>.Binding
+
+    var body: some View {
+        // Website und Adresse gehören zum Vertragspartner (Datenmodell mit IDs): ohne Vertragspartner nicht speicherbar
+        let noPartner = form.partnerName.ctTrimmed.isEmpty
+        Section {
+            if form.addressVisible {
+                addressRows(noPartner: noPartner)
+            } else {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { form.showAddress() }
+                } label: {
+                    HStack {
+                        CTRowLabel("Adresse")
+                        Spacer(minLength: 8)
+                        Text("hinzufügen").foregroundStyle(KColor.ink3)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Adresse hinzufügen")
+                .accessibilityIdentifier("form.addressAdd")
+                .id(ContractFormField.address)
+            }
+            CTFormTextRow(title: "Website", text: $form.web, keyboard: .URL, contentType: .URL, identifier: "form.web", field: .web, focus: focus)
+                .disabled(noPartner)
+                .opacity(noPartner ? 0.5 : 1)
+            CTFormTextRow(title: "Telefon", text: $form.tel, keyboard: .phonePad, contentType: .telephoneNumber, identifier: "form.tel",
+                          field: .tel, focus: focus)
+            CTFormTextRow(title: "E-Mail", text: $form.mail, keyboard: .emailAddress, contentType: .emailAddress, identifier: "form.mail",
+                          field: .mail, focus: focus)
+        } header: {
+            Text("Kontakt")
         } footer: {
-            Text(noPartner ? "Zuerst den Vertragspartner eintragen."
-                 : "Für die Kündigung per Brief. Gilt für alle Verträge dieses Vertragspartners.")
+            Text("Die Adresse braucht es für die Kündigung per Brief. Sie gilt für alle Verträge dieses Vertragspartners."
+                 + (noPartner ? " Adresse und Website: zuerst den Vertragspartner eintragen." : ""))
+        }
+        .listRowBackground(KColor.surface)
+    }
+
+    /// Adressfelder wie auf der Vertragspartner-Seite (Web #fAddrW): Firma, Zusatz, Strasse, PLZ | Ort, Land; «Einfügen» verteilt
+    /// eine kopierte Adresse auf die Felder (v86)
+    @ViewBuilder
+    private func addressRows(noPartner: Bool) -> some View {
+        HStack {
+            CTRowLabel("Adresse")
+            Spacer()
+            PasteButton(payloadType: String.self) { items in
+                guard let t = items.first else { return }
+                Task { @MainActor in
+                    if form.pasteAddress(t) { model.toast("Adresse eingefügt, bitte prüfen") } else { model.toast("Keine Adresse in der Zwischenablage") }
+                }
+            }
+            .labelStyle(.titleOnly)
+            .buttonBorderShape(.capsule)
+            .controlSize(.mini)
+            .disabled(noPartner)
+        }
+        Group {
+            TextField(noPartner ? "Firma (optional)" : "Firma (optional, sonst " + form.partnerName.ctTrimmed + ")", text: $form.address.company)
+                .textContentType(.organizationName)
+                .focused(focus, equals: .address)
+                .id(ContractFormField.address)
+            TextField("Zusatz, z.B. Kundendienst oder Postfach", text: $form.address.extra)
+            TextField("Strasse und Nr.", text: $form.address.street)
+                .textContentType(.fullStreetAddress)
+            HStack(spacing: 10) {
+                TextField("PLZ", text: $form.address.zip)
+                    .keyboardType(.numbersAndPunctuation)
+                    .textContentType(.postalCode)
+                    .frame(maxWidth: 90)
+                Divider()
+                TextField("Ort", text: $form.address.city)
+                    .textContentType(.addressCity)
+            }
+            TextField("Land (optional)", text: $form.address.country)
+                .textContentType(.countryName)
+        }
+        .textInputAutocapitalization(.words)
+        .autocorrectionDisabled()
+        .foregroundStyle(KColor.ink)
+        .disabled(noPartner)
+        .opacity(noPartner ? 0.5 : 1)
+    }
+}
+
+// MARK: - Notiz
+
+struct CTFormNoteSection: View {
+    @Bindable var form: CTFormState
+    var focus: FocusState<ContractFormField?>.Binding
+
+    var body: some View {
+        Section {
+            TextField("Zugangsweg, Ansprechpartner, Besonderheiten", text: $form.note, axis: .vertical)
+                .lineLimit(3...10)
+                .foregroundStyle(KColor.ink)
+                .focused(focus, equals: .note)
+                .accessibilityLabel("Notiz")
+                .accessibilityIdentifier("form.note")
+                .id(ContractFormField.note)
+        } header: {
+            Text("Notiz")
         }
         .listRowBackground(KColor.surface)
     }
