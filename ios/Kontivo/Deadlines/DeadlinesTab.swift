@@ -7,7 +7,6 @@ struct DeadlinesTab: View {
     @Environment(AppModel.self) private var model
     @State private var openFolds: Set<String> = []
     @State private var killTarget: DeadlineKillTarget?
-    @State private var killAction: DeadlineKillAction?
     /// «In Kalender» (Knopf in der Knopfzeile bzw. langes Drücken auf eine Zeile)
     @State private var calendarTarget: DeadlineCalendarTarget?
     @State private var showReview = false
@@ -33,16 +32,14 @@ struct DeadlinesTab: View {
         }
         .kPageBackground()
         .navigationTitle("Fristen")
-        .sheet(item: $killTarget, onDismiss: runKillAction) { t in
-            DeadlineKillSheet(target: t) { choice in
-                killAction = DeadlineKillAction(target: t, choice: choice)
-            }
-            .environment(model)
-        }
+        .deadlineKillSheet($killTarget)
         .deadlineCalendar($calendarTarget)
         .sheet(isPresented: $showReview) {
             DeadlineReviewSheet().environment(model)
         }
+        #if DEBUG
+        .onAppear { CTUITestSeed.applyIfNeeded(model) }
+        #endif
     }
 
     // MARK: Inhalt (Web Variante 1, 06./07.10.2026)
@@ -175,7 +172,7 @@ struct DeadlinesTab: View {
                             HStack(spacing: 12) {
                                 MarkView(contract: c, data: model.data, size: 36)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(model.data.title(of: c)).font(.body.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1).minimumScaleFactor(0.8)
+                                    DeadlineTitle(title: model.data.title(of: c), partner: r.partner)
                                     Text(verbatim: r.sub).font(.footnote).foregroundStyle(KColor.ink2).lineLimit(1)
                                 }
                                 Spacer(minLength: 8)
@@ -221,7 +218,7 @@ struct DeadlinesTab: View {
                     ForEach(rows, id: \.self) { r in
                         if let c = model.data.contract(r.contractID) {
                             Divider().padding(.leading, 61)
-                            DeadlineListRow(contract: c, data: model.data, text: r.text + (chevron ? " ›" : ""), color: KColor.ink2) {
+                            DeadlineListRow(contract: c, data: model.data, partner: r.partner, text: r.text + (chevron ? " ›" : ""), color: KColor.ink2) {
                                 if let f = onRow { f(c) } else { model.present(.contractDetail(c.id)) }
                             }
                         }
@@ -242,23 +239,13 @@ struct DeadlinesTab: View {
         }
     }
 
+    /// «Behalten» (auch Probeabo): Toast wie Web «Fristen» (`AppData.keepToast`)
     private func keep(_ d: Calc.DeadlineItem) {
         let day = model.today
         let id = d.contractID
         let trial = d.trial
         if model.update({ $0.keep(id, trial: trial, today: day) }) {
             model.toast(AppData.keepToast)
-        }
-    }
-
-    private func runKillAction() {
-        guard let a = killAction else { return }
-        killAction = nil
-        switch a.choice {
-        case .start:
-            model.startCancel(a.target.contractID, trial: a.target.trial)
-        case .done:
-            model.cancelFlowMarkCancelled(a.target.contractID, trial: a.target.trial)
         }
     }
 
@@ -361,11 +348,7 @@ private struct DeadlineItemRow: View {
                 HStack(spacing: 12) {
                     MarkView(contract: contract, data: data, size: 40)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(data.title(of: contract))
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(KColor.ink)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
+                        DeadlineTitle(title: data.title(of: contract), partner: item.partner)
                         Text(verbatim: item.sub)
                             .font(.footnote)
                             .foregroundStyle(KColor.ink2)
@@ -405,6 +388,20 @@ private struct DeadlineItemRow: View {
     }
 }
 
+/// Titel mit Vertragspartner grau dahinter (Web `titleP`, v143: «Musik · Spotify»)
+private struct DeadlineTitle: View {
+    let title: String
+    let partner: String
+    var font: Font = .body.weight(.semibold)
+
+    var body: some View {
+        (Text(verbatim: title).font(font).foregroundStyle(KColor.ink)
+            + Text(verbatim: partner.isEmpty ? "" : " · " + partner).font(.subheadline.weight(.medium)).foregroundStyle(KColor.ink2))
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+    }
+}
+
 private struct DeadlineActionButton: View {
     let title: String
     var accent = false
@@ -431,6 +428,8 @@ private struct DeadlineActionButton: View {
 private struct DeadlineListRow: View {
     let contract: Contract
     let data: AppData
+    /// Vertragspartner grau hinter dem Titel (Web `titleP`)
+    let partner: String
     let text: String
     let color: Color
     let onOpen: () -> Void
@@ -439,11 +438,7 @@ private struct DeadlineListRow: View {
         Button(action: onOpen) {
             HStack(spacing: 12) {
                 MarkView(contract: contract, data: data, size: 36)
-                Text(data.title(of: contract))
-                    .font(.body)
-                    .foregroundStyle(KColor.ink)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                DeadlineTitle(title: data.title(of: contract), partner: partner, font: .body)
                 Spacer(minLength: 8)
                 if !text.isEmpty {
                     Text(text)
@@ -527,7 +522,6 @@ struct DeadlineReviewSheet: View {
     var body: some View {
         let calc = model.calc
         let list = calc.reviewList()
-        let home = calc.home.rawValue
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
@@ -544,7 +538,7 @@ struct DeadlineReviewSheet: View {
                                 MarkView(contract: c, data: model.data, size: 36)
                                 VStack(alignment: .leading, spacing: 1) {
                                     Text(model.data.title(of: c)).font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
-                                    Text(verbatim: Format.money(calc.monthlyCost(c)) + " " + home + "/Mt." + (c.mandatory ? " · Pflichtvertrag" : ""))
+                                    Text(verbatim: DeadlineReviewSheet.line(c, calc: calc))
                                         .font(.caption).foregroundStyle(KColor.ink3).lineLimit(1)
                                 }
                             }
@@ -590,6 +584,13 @@ struct DeadlineReviewSheet: View {
         .presentationDragIndicator(.visible)
     }
 
+    /// «Spotify · 12.95 CHF/Mt. · Pflichtvertrag» (Vertragspartner nur, wenn die Bezeichnung ihn nicht nennt; Web `partnerOf`)
+    static func line(_ c: Contract, calc: Calc) -> String {
+        let p = calc.data.partnerSuffix(of: c)
+        return (p.isEmpty ? "" : p + " · ") + Format.money(calc.monthlyCost(c)) + " " + calc.home.rawValue + "/Mt."
+            + (c.mandatory ? " · Pflichtvertrag" : "")
+    }
+
     private func set(_ id: UUID, _ v: ReviewVerdict) {
         let t = model.today
         model.update { $0.setReview(id, v, today: t) }
@@ -627,6 +628,41 @@ enum DeadlineKillChoice {
 struct DeadlineKillAction {
     let target: DeadlineKillTarget
     let choice: DeadlineKillChoice
+}
+
+/// Auswahl «Kündigen: …» (Web `killOptions`) als Fenster; die Wahl läuft erst nach dem Schliessen
+/// (Kündigungsweg starten bzw. «Als gekündigt markieren», Pflichtvertrag: Formular «Neuer Vertragspartner»).
+private struct DeadlineKillModifier: ViewModifier {
+    @Binding var target: DeadlineKillTarget?
+    @Environment(AppModel.self) private var model
+    @State private var action: DeadlineKillAction?
+
+    func body(content: Content) -> some View {
+        content.sheet(item: $target, onDismiss: run) { t in
+            DeadlineKillSheet(target: t) { choice in
+                action = DeadlineKillAction(target: t, choice: choice)
+            }
+            .environment(model)
+        }
+    }
+
+    private func run() {
+        guard let a = action else { return }
+        action = nil
+        switch a.choice {
+        case .start:
+            model.startCancel(a.target.contractID, trial: a.target.trial)
+        case .done:
+            model.cancelFlowMarkCancelled(a.target.contractID, trial: a.target.trial)
+        }
+    }
+}
+
+extension View {
+    /// «Kündigen: …» für `target` (Fristen, Probeabo-Kasten im Detail).
+    func deadlineKillSheet(_ target: Binding<DeadlineKillTarget?>) -> some View {
+        modifier(DeadlineKillModifier(target: target))
+    }
 }
 
 private struct DeadlineKillSheet: View {

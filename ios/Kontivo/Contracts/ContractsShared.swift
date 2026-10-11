@@ -199,9 +199,92 @@ enum CTText {
     }
 }
 
-/// Öffnet das Vertragsformular direkt auf «Weitere Angaben» (z.B. «Kein Link hinterlegt» aus dem Bereich Kündigung):
-/// vor `model.present(.contractForm(.edit(id)))` `ContractFormLaunch.openMoreFor = id` setzen.
+/// Sprungziel beim Öffnen des Formulars (Web `formGo(id)`): Feld, zu dem das Formular scrollt und das es fokussiert.
+/// Rohwerte gleich wie `ContractFormField` des neuen Formulars (Branch swift-w-form, `ContractFormGo.request`).
+enum ContractFormFocus: String, Hashable {
+    /// Vertragsende (Web `fEnd`, «Wieder aktiv setzen» bei abgelaufener Laufzeit)
+    case end
+    /// Kundennummer (Web `fCustNo`, «Kundennummer fehlt» → «Nummer eintragen»)
+    case customerNo
+    /// Kündigungslink (Web `fCancUrl`, «Kein Link hinterlegt» bei Kündigungsweg Online)
+    case cancelURL
+    /// Website (Web `fWeb`, «Kein Link hinterlegt» ohne Kündigungsweg Online)
+    case web
+    /// E-Mail unter «Kontakt» (Web `fMail`, «E-Mail-Adresse fehlt»)
+    case mail
+    /// Kündigungsadresse E-Mail (Web `fCancMail`, «E-Mail-Adresse fehlt» bei Kündigungsweg E-Mail)
+    case cancelMail
+}
+
+/// Formular mit Sprungziel öffnen (Web `closeSheets(); openForm(c); formGo(…)`): `ContractFormLaunch.edit(model, id, focus: .end)`.
+/// `openMoreFor` = alter Weg (Unterseite «Weitere Angaben» des bisherigen Formulars).
 @MainActor
 enum ContractFormLaunch {
     static var openMoreFor: UUID?
+    static var focus: (id: UUID, field: ContractFormFocus)?
+
+    /// Sprungziel für diesen Vertrag lesen und löschen (nil = keines).
+    static func take(for id: UUID) -> ContractFormFocus? {
+        guard let f = focus, f.id == id else { return nil }
+        focus = nil
+        return f.field
+    }
+
+    /// Formular `.edit(id)` mit Sprungziel öffnen, vorher alle Fenster schliessen.
+    static func edit(_ model: AppModel, _ id: UUID, focus field: ContractFormFocus?, then done: (() -> Void)? = nil) {
+        // ZUSAMMENFÜHREN mit swift-w-form: diese Zeile ersetzen durch
+        // `if let f = field, let g = ContractFormField(rawValue: f.rawValue) { ContractFormGo.request(id, g) }`
+        focus = field.map { (id: id, field: $0) }
+        // bisheriges Formular: Link und E-Mail liegen unter «Weitere Angaben» (wie vor v160; das neue Formular springt
+        // über `openMoreFor` zum Kündigungslink, zur E-Mail für die Kündigung bzw. zur Website)
+        if let f = field, ([.cancelURL, .web, .mail, .cancelMail] as [ContractFormFocus]).contains(f) { openMoreFor = id }
+        model.cancelFlowPresent(.contractForm(.edit(id)), closingOthers: true, then: done)
+    }
 }
+
+// MARK: - Aktionen aus Detail, Karten und Fristen
+
+extension AppModel {
+    /// «Wieder aktiv setzen» (Web v143): Archiv/Kündigung zurücknehmen; ist die Laufzeit vorbei, Formular beim Vertragsende
+    /// öffnen («Wieder aktiv – bitte das neue Vertragsende eintragen»), sonst schliessen mit «Wieder aktiv».
+    func ctReactivate(_ id: UUID) {
+        guard update({ $0.reactivate(id) }) else { return }
+        if data.reactivateNeedsEnd(id, today: today) {
+            toast(AppData.reactivateEndToast)
+            ContractFormLaunch.edit(self, id, focus: .end)
+        } else {
+            dismissAll()
+            toast(AppData.reactivateToast)
+        }
+    }
+}
+
+#if DEBUG
+/// UI-Tests: Startargument «-uiSeed a,b» passt Beispieldaten für Fälle an, die DemoData nicht hat (nichts wird gespeichert):
+/// - `mailcheck`: Swisscom «Handy» mit Kündigungsweg E-Mail und Adresse, ohne Kundennummer («Kundennummer fehlt»)
+/// - `endsself`: «Fitnessabo» ohne Verlängerung («Endet von selbst», Web v160)
+@MainActor
+enum CTUITestSeed {
+    private static var done = false
+
+    static func applyIfNeeded(_ model: AppModel) {
+        guard !done, model.uiTestMode else { return }
+        let args = ProcessInfo.processInfo.arguments
+        guard let i = args.firstIndex(of: "-uiSeed"), i + 1 < args.count else { return }
+        done = true
+        let seeds = Set(args[i + 1].split(separator: ",").map { String($0) })
+        func contract(label: String) -> UUID? { model.data.contracts.first { $0.label == label }?.id }
+        model.update { d in
+            if seeds.contains("mailcheck"), let id = contract(label: "Handy"), let k = d.contractIndex(id) {
+                d.contracts[k].cancelChannel = .email
+                d.contracts[k].mail = "kuendigung@example.ch"
+                d.contracts[k].customerNo = ""
+                d.contracts[k].contractNo = ""
+            }
+            if seeds.contains("endsself"), let id = contract(label: "Fitnessabo"), let k = d.contractIndex(id) {
+                d.contracts[k].renewMonths = 0
+            }
+        }
+    }
+}
+#endif

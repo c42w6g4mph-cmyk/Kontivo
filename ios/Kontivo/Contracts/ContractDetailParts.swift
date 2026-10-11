@@ -1,8 +1,9 @@
 import SwiftUI
 import KontivoCore
 
-// Teile des Vertragsdetails (Web 69d9888, f0e1dab, 40701ff, 4be2078, c8a6e62):
-// Kennzahlen (Variante 4), Hinweis «Angaben fehlen», Fristen-Kasten «Kündigen bis …».
+// Teile des Vertragsdetails (Web 69d9888, f0e1dab, 40701ff, 4be2078, c8a6e62, v143–v160):
+// Kennzahlen (Variante 4, Anteil bzw. Status), Hinweis «Angaben fehlen», Kasten «Kündigen bis …»/«Probeabo bis …»,
+// Rückfrage «Schon gekündigt …».
 
 /// Zwei Spalten im Verhältnis (Web .kz: grosse Kachel flex 1.3, rechte Spalte flex 1)
 struct CTRatioRow: Layout {
@@ -35,11 +36,14 @@ struct CTRatioRow: Layout {
 
 // MARK: - Kennzahlen
 
-/// Grosse Kachel «pro Monat» (Rappen klein, Anteil an den Fixkosten als Balken), rechts «pro Jahr» und
-/// «insgesamt bezahlt» (ohne Beginn «nächste Zahlung»). Beträge in Vertragswährung, bei Fremdwährung ≈ Hauptwährung.
+/// Grosse Kachel «pro Monat» (Rappen klein; Anteil an den Fixkosten als Balken bzw. ohne Anteil der Status
+/// «pausiert»/«beendet»/«startet am …» mit leerem Balken, Web v154/v157), rechts «pro Jahr» und «bisher bezahlt (ca.)»
+/// (ohne Beginn «nächste Zahlung»). Beträge in Vertragswährung, bei Fremdwährung ≈ Hauptwährung.
 struct CTDetailKeyFigures: View {
     @Environment(AppModel.self) private var model
     let contract: Contract
+    /// Anteil bzw. Status aus `Calc.detailInfo(_:).month`
+    let month: DetailMonthTile
 
     var body: some View {
         let c = contract
@@ -50,7 +54,7 @@ struct CTDetailKeyFigures: View {
         let mon = calc.curPrice(c) / Double(c.cycleForCalc)
         let paid = CTDetailKeyFigures.paidSoFar(c, calc: calc)
         let nd = calc.nextDue(c)
-        let share = CTDetailKeyFigures.share(c, calc: calc)
+        let barText: String? = month.sharePercent.map { "\($0) % deiner Fixkosten" } ?? month.status
         CTRatioRow().callAsFunction {
             VStack(alignment: .leading, spacing: 10) {
                 Text("pro Monat")
@@ -62,18 +66,20 @@ struct CTDetailKeyFigures: View {
                         Text(verbatim: "≈ " + Format.money0(calc.conv(mon, cu)) + " " + home.rawValue)
                             .font(.caption).foregroundStyle(KColor.ink2)
                     }
-                    if let pc = share {
+                    if let t = barText {
                         GeometryReader { g in
                             ZStack(alignment: .leading) {
                                 Capsule().fill(KColor.line)
-                                Capsule().fill(KColor.teal)
-                                    .frame(width: g.size.width * CGFloat(max(2, min(100, pc))) / 100)
+                                if let pc = month.sharePercent {
+                                    Capsule().fill(KColor.teal)
+                                        .frame(width: g.size.width * CGFloat(max(2, min(100, pc))) / 100)
+                                }
                             }
                         }
                         .frame(height: 6)
                         .padding(.top, 7)
                         .accessibilityHidden(true)
-                        Text(verbatim: "\(pc) % deiner Fixkosten")
+                        Text(verbatim: t)
                             .font(.caption).foregroundStyle(KColor.ink2)
                             .padding(.top, 3)
                     }
@@ -88,9 +94,9 @@ struct CTDetailKeyFigures: View {
                 tile("pro Jahr", value: Format.money0(mon * 12, cu), currency: cu.rawValue,
                      extra: fx ? "≈ " + Format.money0(calc.conv(mon * 12, cu)) + " " + home.rawValue : "")
                 if let p = paid {
-                    tile("insgesamt bezahlt", value: Format.money0(p, cu), currency: cu.rawValue, extra: "")
+                    tile(month.paidLabel, value: Format.money0(p, cu), currency: cu.rawValue, extra: "")
                 } else {
-                    tile("nächste Zahlung", value: nd.map { Format.fmtShort($0) } ?? "—", currency: "", extra: "")
+                    tile(DetailMonthTile.nextLabel, value: nd.map { Format.fmtShort($0) } ?? "—", currency: "", extra: "")
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -105,14 +111,6 @@ struct CTDetailKeyFigures: View {
         guard let s0 = c.start, s0 < calc.today else { return nil }
         let sum = calc.payments(c, from: s0, to: calc.today).reduce(0.0) { $0 + $1.amount }
         return sum > 0.005 ? sum : nil
-    }
-
-    /// Anteil an den monatlichen Fixkosten in % (nur laufend, nicht pausiert, begonnen, kein laufendes Probeabo – Web v157)
-    static func share(_ c: Contract, calc: Calc) -> Int? {
-        if CTDetailState.gone(c, calc: calc) || !calc.countsMonthly(c) { return nil }
-        let tot = calc.running.filter { calc.countsMonthly($0) }.reduce(0.0) { $0 + calc.monthlyCost($1) }
-        guard tot > 0.005 else { return nil }
-        return Int(Format.jsRound(calc.monthlyCost(c) / tot * 100))
     }
 
     /// «59» gross, «.90» bzw. «,90» klein, Währung klein (Web decAt)
@@ -134,6 +132,8 @@ struct CTDetailKeyFigures: View {
             Text(label)
                 .font(.caption.weight(.medium))
                 .foregroundStyle(KColor.ink2)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             (Text(verbatim: value).font(.system(size: 20, weight: .bold))
                 + Text(verbatim: currency.isEmpty ? "" : " " + currency).font(.caption.weight(.semibold)).foregroundStyle(KColor.ink2))
                 .foregroundStyle(KColor.ink)
@@ -199,65 +199,159 @@ struct CTDetailCompletenessHint: View {
     }
 }
 
-// MARK: - Fristen-Kasten
+// MARK: - Kasten oben
 
-/// Nur bei Frist in ≤ 60 Tagen (Web .dfrist): «Kündigen bis 1. November» · «sonst verlängert bis …» · «noch n Tage»,
-/// Knöpfe «Kündigen»/«Wechseln» und «Behalten».
+/// Kasten aus dem Kern (Web .dfrist): «Kündigen/Wechseln bis 1. November» · «sonst verlängert bis … · noch n Tage» bzw.
+/// «Probeabo bis 19. Oktober» · «danach kostenpflichtig · noch n Tage», Knöpfe «Kündigen»/«Wechseln» und «Behalten».
 struct CTDetailDeadlineBox: View {
-    @Environment(AppModel.self) private var model
-    let contract: Contract
+    let box: DetailDeadlineBox
     let onCancel: () -> Void
     let onKeep: () -> Void
 
     var body: some View {
-        let c = contract
-        let calc = model.calc
-        let u = calc.urgency(c)
-        if let D = u.date, let T = calc.termEnd(c), let dn = u.days {
-            let rt = CTDetailState.gone(c, calc: calc) ? nil : calc.renewTo(c)
-            let alert = dn <= 7
-            let tone = alert ? KColor.alert : KColor.warn
-            let title = (c.mandatory ? "Wechseln bis " : "Kündigen bis ") + "\(D.day). " + Format.monthNames[D.month - 1]
-                + (D.year != calc.today.year ? " \(D.year)" : "")
-            let sub = (rt.map { "sonst verlängert bis " + Format.fmtShort($0) } ?? "Vertragsende " + Format.fmtShort(T))
-                + " · " + (dn == 0 ? "heute" : "noch \(dn)" + (dn == 1 ? " Tag" : " Tage"))
-            VStack(alignment: .leading, spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: title)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(tone)
-                    Text(verbatim: sub)
-                        .font(.footnote)
-                        .foregroundStyle(KColor.ink2)
+        let alert = box.tone == .alert
+        let tone = alert ? KColor.alert : KColor.warn
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: box.title)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(tone)
+                Text(verbatim: box.subtitle)
+                    .font(.footnote)
+                    .foregroundStyle(KColor.ink2)
+            }
+            .accessibilityElement(children: .combine)
+            HStack(spacing: 8) {
+                Button(action: onCancel) {
+                    Text(box.cancelTitle)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity).padding(.vertical, 10)
+                        .background(KColor.teal, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
-                .accessibilityElement(children: .combine)
-                HStack(spacing: 8) {
-                    Button(action: onCancel) {
-                        Text(c.mandatory ? "Wechseln" : "Kündigen")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity).padding(.vertical, 10)
-                            .background(KColor.teal, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("detail.deadline.cancel")
-                    Button(action: onKeep) {
-                        Text("Behalten")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(KColor.ink)
-                            .frame(maxWidth: .infinity).padding(.vertical, 10)
-                            .background(KColor.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("detail.deadline.keep")
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("detail.deadline.cancel")
+                Button(action: onKeep) {
+                    Text(box.keepTitle)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(KColor.ink)
+                        .frame(maxWidth: .infinity).padding(.vertical, 10)
+                        .background(KColor.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("detail.deadline.keep")
+            }
+        }
+        .padding(.horizontal, 13).padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(tone.opacity(alert ? 0.09 : 0.11), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .padding(.top, 2).padding(.bottom, 8)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("detail.deadline")
+    }
+}
+
+// MARK: - «Schon gekündigt …» / «Beendet …» (Web v154)
+
+/// Rückfrage «Schon gekündigt» bzw. «Vertrag beendet» mit Feld «Läuft bis» (vorbelegt: nächster Termin, nicht kündbar: heute)
+/// und Chips «heute» / «31.12.26 (Termin)». «Sichern» meldet das Datum; der Aufrufer markiert nach dem Schliessen
+/// (`AppModel.cancelFlowMarkCancelled(_:trial:per:)`, Toast und bei «Nur Anbieter wechseln» das Formular «Neuer Vertragspartner»).
+struct CTAlreadyCancelledSheet: View {
+    let contractID: UUID
+    let onSave: (Day) -> Void
+
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    @State private var day: Day?
+    @State private var saved = false
+
+    var body: some View {
+        let prompt = model.data.contract(contractID).map { model.calc.alreadyCancelledPrompt($0) }
+        NavigationStack {
+            Group {
+                if let p = prompt {
+                    form(p)
+                } else {
+                    Text("Dieser Vertrag existiert nicht mehr.")
+                        .font(.subheadline)
+                        .foregroundStyle(KColor.ink2)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .padding(.horizontal, 13).padding(.vertical, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(tone.opacity(alert ? 0.09 : 0.11), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .padding(.top, 2).padding(.bottom, 8)
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier("detail.deadline")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Abbrechen") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(prompt?.ok ?? "Sichern") {
+                        guard let p = prompt, !saved else { return }
+                        saved = true
+                        onSave(day ?? p.defaultDate)
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(prompt == nil)
+                    .accessibilityIdentifier("detail.cancelled.save")
+                }
+            }
         }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func form(_ p: AlreadyCancelledPrompt) -> some View {
+        let sel = day ?? p.defaultDate
+        return Form {
+            Section {
+                DatePicker(p.fieldLabel, selection: Binding(get: { sel.date() }, set: { day = Day(date: $0) }), displayedComponents: .date)
+                    .accessibilityIdentifier("detail.cancelled.date")
+                HStack(spacing: 8) {
+                    ForEach(Array(p.chips.enumerated()), id: \.offset) { i, ch in
+                        Chip(title: ch.title, isOn: sel == ch.day) { day = ch.day }
+                            .accessibilityIdentifier("detail.cancelled.chip\(i)")
+                    }
+                }
+                .padding(.vertical, 2)
+            } header: {
+                Text(p.text)
+                    .font(.subheadline)
+                    .foregroundStyle(KColor.ink2)
+                    .textCase(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, 6)
+            }
+            .listRowBackground(KColor.surface)
+        }
+        .scrollContentBackground(.hidden)
+        .background(KColor.paper.ignoresSafeArea())
+        .navigationTitle(p.title)
+    }
+}
+
+/// Zielvertrag für «Schon gekündigt …» und gewähltes «Läuft bis»; markiert nach dem Schliessen des Fensters.
+private struct CTAlreadyCancelledModifier: ViewModifier {
+    @Binding var target: CTIDItem?
+    @Environment(AppModel.self) private var model
+    @State private var chosen: (id: UUID, day: Day)?
+
+    func body(content: Content) -> some View {
+        content.sheet(item: $target, onDismiss: run) { t in
+            CTAlreadyCancelledSheet(contractID: t.id) { d in chosen = (id: t.id, day: d) }
+                .environment(model)
+                .environment(\.locale, Locale(identifier: "de_CH"))
+        }
+    }
+
+    private func run() {
+        guard let c = chosen else { return }
+        chosen = nil
+        model.cancelFlowMarkCancelled(c.id, trial: false, per: c.day)
+    }
+}
+
+extension View {
+    /// «Schon gekündigt …» / «Beendet …» für den Vertrag in `target` (Detail-Menü, Vertragskarten).
+    func ctAlreadyCancelledSheet(_ target: Binding<CTIDItem?>) -> some View {
+        modifier(CTAlreadyCancelledModifier(target: target))
     }
 }

@@ -373,6 +373,20 @@ extension Calc {
         if !c.contractNo.isEmpty { assign.append(DetailRow(Letter.contractNumberLabel(c, data: data), c.contractNo)) }
 
         // Menü •••
+        let menu = detailMenu(c)
+
+        return ContractDetailInfo(gone: gone, ended: ended, fixed: fixd, endsSelf: selfEnd, trialRunning: trialRun,
+                                  deadline: uDate, deadlineDays: uDays, deadlineEnd: uT ?? te, due60: due60,
+                                  pills: pills, box: box, month: DetailMonthTile(sharePercent: share, status: status),
+                                  costRows: cost, termRows: term, assignmentRows: assign, menu: menu)
+    }
+
+    /// Menü ••• allein (Web `dMenu`, v143/v150/v154) – gleiche Regeln wie `detailInfo(_:).menu`, ohne den Rest der Ansicht zu
+    /// rechnen (z.B. für Wischen/langes Drücken auf Vertragskarten).
+    public func detailMenu(_ c: Contract) -> DetailMenu {
+        let gone = c.status == .cancelled || c.cancelPer != nil || endedByTerm(c)
+        let fixd = isFixed(c)
+        let ended = endedByNotice(c) || endedByTerm(c)
         let kok = !(c.cancelPer != nil || c.status == .cancelled || fixd)
         let via: String = {
             switch cancVia(c) {
@@ -382,9 +396,9 @@ extension Calc {
             case .none: return "Weg wählen"
             }
         }()
-        var menu = DetailMenu(cancel: kok ? (title: kword, subtitle: via) : nil,
+        var menu = DetailMenu(cancel: kok ? (title: c.mandatory ? "Wechseln" : "Kündigen", subtitle: via) : nil,
                               uncancel: c.cancelPer != nil && !ended,
-                              unkeep: kept && !gone,
+                              unkeep: isKept(c) && !gone,
                               pause: (c.status != .cancelled && !ended && !fixd && !c.mandatory && !isRent(c)) ? (isPaused(c) ? "Fortsetzen" : "Pausieren") : nil,
                               reactivate: c.status == .cancelled || ended,
                               alreadyCancelled: nil)
@@ -392,11 +406,7 @@ extension Calc {
             menu.alreadyCancelled = fixd ? (title: "Beendet …", subtitle: "z.B. nach Umzug")
                 : (title: "Schon gekündigt …", subtitle: "Datum eintragen, bis wann er läuft")
         }
-
-        return ContractDetailInfo(gone: gone, ended: ended, fixed: fixd, endsSelf: selfEnd, trialRunning: trialRun,
-                                  deadline: uDate, deadlineDays: uDays, deadlineEnd: uT ?? te, due60: due60,
-                                  pills: pills, box: box, month: DetailMonthTile(sharePercent: share, status: status),
-                                  costRows: cost, termRows: term, assignmentRows: assign, menu: menu)
+        return menu
     }
 
     /// «heute», «noch 1 Tag», «noch 8 Tage» (Kasten oben).

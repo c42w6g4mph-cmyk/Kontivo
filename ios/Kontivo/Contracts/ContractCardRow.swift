@@ -131,25 +131,26 @@ struct ContractCardRow: View {
 
 // MARK: - Aktionen auf Karten (Wischen und langes Drücken, native Ergänzung)
 
-/// Wischaktionen und Kontextmenü einer Vertragskarte: Pausieren/Fortsetzen, Duplizieren, Kündigen/Wechseln.
-/// Bedingungen wie im Menü ••• des Vertragsdetails.
+/// Wischaktionen und Kontextmenü einer Vertragskarte: Kündigen/Wechseln, Pausieren/Fortsetzen, Duplizieren, Bearbeiten,
+/// «Schon gekündigt …»/«Beendet …» bzw. «Wieder aktiv setzen». Regeln wie im Menü ••• des Vertragsdetails (`Calc.detailMenu`):
+/// keine Pause bei «Nur Anbieter wechseln», Miete und nicht kündbaren, beendete Verträge nur Duplizieren/Wieder aktiv.
 struct CTCardActions: ViewModifier {
     @Environment(AppModel.self) private var model
     let contract: Contract
     @Binding var pauseTarget: CTIDItem?
+    /// «Schon gekündigt …» / «Beendet …» (Rückfrage «Läuft bis» in ContractsTab)
+    @Binding var cancelledTarget: CTIDItem?
 
     func body(content: Content) -> some View {
         let calc = model.calc
-        let archived = contract.status == .cancelled
-        let fixd = calc.isFixed(contract)
-        let canCancel = !(contract.cancelPer != nil || archived || fixd)
-        let canPause = !archived && !fixd && !contract.mandatory && !calc.isRent(contract)
+        let m = calc.detailMenu(contract)
+        let trial = calc.trialOn(contract)
         let paused = calc.isPaused(contract)
         let cancelTitle = contract.mandatory ? "Wechseln" : CTText.cancelButton(calc.cancVia(contract))
         let cancelSymbol = contract.mandatory ? "arrow.left.arrow.right" : "xmark.circle"
         content
             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                if canPause {
+                if m.pause != nil {
                     Button {
                         togglePause(paused)
                     } label: {
@@ -165,9 +166,9 @@ struct CTCardActions: ViewModifier {
                 .tint(KColor.ink3)
             }
             .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                if canCancel {
+                if m.cancel != nil {
                     Button {
-                        model.startCancel(contract.id, trial: false)
+                        model.startCancel(contract.id, trial: trial)
                     } label: {
                         Label(cancelTitle, systemImage: cancelSymbol)
                     }
@@ -175,14 +176,14 @@ struct CTCardActions: ViewModifier {
                 }
             }
             .contextMenu {
-                if canCancel {
+                if m.cancel != nil {
                     Button {
-                        model.startCancel(contract.id, trial: false)
+                        model.startCancel(contract.id, trial: trial)
                     } label: {
                         Label(cancelTitle, systemImage: cancelSymbol)
                     }
                 }
-                if canPause {
+                if m.pause != nil {
                     Button {
                         togglePause(paused)
                     } label: {
@@ -198,6 +199,19 @@ struct CTCardActions: ViewModifier {
                     model.present(.contractForm(.edit(contract.id)))
                 } label: {
                     Label("Bearbeiten", systemImage: "pencil")
+                }
+                if m.reactivate {
+                    Button {
+                        model.ctReactivate(contract.id)
+                    } label: {
+                        Label("Wieder aktiv setzen", systemImage: "arrow.uturn.backward")
+                    }
+                } else if let a = m.alreadyCancelled {
+                    Button {
+                        cancelledTarget = CTIDItem(id: contract.id)
+                    } label: {
+                        Label(a.title, systemImage: "checkmark.circle")
+                    }
                 }
             }
     }

@@ -3,6 +3,8 @@ import UIKit
 import KontivoCore
 
 /// Kündigungsschreiben: Unterzeichnende wählen, Empfänger, Betreff und Text bearbeiten, Unterschriften, PDF erstellen.
+/// Web v143–v160: KVG-Hinweis, «Fehlt noch» nur ohne Kunden- und Vertragsnummer, Beschriftung nach `contractNumberLabel`,
+/// nach dem PDF beim Schliessen «Brief verschickt?». Native Zusätze: «Per Mail senden», «Drucken» (Viewer: «Teilen»).
 struct LetterView: View {
     let contractID: UUID
     let trial: Bool
@@ -19,8 +21,10 @@ struct LetterView: View {
     @State private var autoBody = ""
     @State private var custNo = ""
     @State private var contrNo = ""
-    @State private var missCust = false
-    @State private var missContr = false
+    /// «Fehlt noch — wird beim Vertrag gespeichert»: nur wenn Kunden- UND Vertragsnummer fehlen (Web v156)
+    @State private var showMissing = false
+    /// Zeitpunkt des letzten PDFs: beim Schliessen «Brief verschickt?» (Web `closeLetter`)
+    @State private var madeAt: Date?
     @State private var addrStatus = ""
     @State private var searching = false
     @State private var sheet: LetterSheet?
@@ -59,6 +63,7 @@ struct LetterView: View {
             }
         }
         .onAppear(perform: setup)
+        .onDisappear(perform: askSentIfClosed)
         .sheet(item: $sheet) { s in sheetContent(s) }
         .alert(ask?.title ?? "", isPresented: askShown, presenting: ask) { a in
             Button("Trotzdem erstellen") { continueAfter(a) }
@@ -80,7 +85,18 @@ struct LetterView: View {
         let rent = calc.isRent(c)
         whoSection(parts)
         recipientSection(c)
-        if missCust || missContr { missingSection }
+        if Letter.showsKvgHint(c, data: model.data) {
+            Section {
+                Text(Letter.kvgHint)
+                    .font(.footnote)
+                    .foregroundStyle(KColor.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("letter.kvg")
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 4))
+        }
+        if showMissing { missingSection(c) }
         Section {
             TextField("Betreff", text: $subject)
                 .focused($focus, equals: .subject)
@@ -219,19 +235,22 @@ struct LetterView: View {
         .listRowBackground(KColor.surface)
     }
 
-    private var missingSection: some View {
+    /// Nummern direkt nachtragen (beide fehlen); Vertragsnummer beschriftet wie im Formular («Policennummer», «Rufnummer» …)
+    private func missingSection(_ c: Contract) -> some View {
         Section {
-            if missCust {
+            if c.customerNo.isEmpty {
                 TextField("Kundennummer", text: $custNo)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .focused($focus, equals: .customer)
+                    .accessibilityIdentifier("letter.custNo")
             }
-            if missContr {
-                TextField("Vertragsnummer", text: $contrNo)
+            if c.contractNo.isEmpty {
+                TextField(Letter.contractNumberLabel(c, data: model.data), text: $contrNo)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .focused($focus, equals: .contract)
+                    .accessibilityIdentifier("letter.contrNo")
             }
         } header: {
             Text("Fehlt noch — wird beim Vertrag gespeichert").textCase(nil)
@@ -305,8 +324,7 @@ struct LetterView: View {
         subject = p.subject
         autoBody = p.bodyText
         bodyText = p.bodyText
-        missCust = c.customerNo.isEmpty
-        missContr = c.contractNo.isEmpty
+        showMissing = Letter.showsMissingNumbers(c)
         addrStatus = p.to.count <= 1 ? "Keine Adresse hinterlegt" : ""
     }
 
@@ -422,17 +440,17 @@ struct LetterView: View {
                 if !nC.isEmpty && d.contracts[i].customerNo.isEmpty { d.contracts[i].customerNo = nC }
                 if !nV.isEmpty && d.contracts[i].contractNo.isEmpty { d.contracts[i].contractNo = nV }
             }
+            let numLabels = Letter.referenceLabels.filter { $0 != "Kundennummer" }
+            let nLabel = Letter.contractNumberLabel(model.data.contract(id) ?? c, data: model.data)
             if !nC.isEmpty && !refs.contains(where: { $0.hasPrefix("Kundennummer: ") }) { refs.append("Kundennummer: " + nC) }
-            if !nV.isEmpty && !refs.contains(where: { $0.hasPrefix("Vertragsnummer: ") }) { refs.append("Vertragsnummer: " + nV) }
+            if !nV.isEmpty && !refs.contains(where: { r in numLabels.contains { r.hasPrefix($0 + ": ") } }) { refs.append(nLabel + ": " + nV) }
             // Nachgetragene Nummern als Referenzzeilen in den Text übernehmen (gilt auch für weitere PDFs), «Fehlt noch» ausblenden
             let wasAuto = bodyText == autoBody
             bodyText = refs.joined(separator: "\n") + "\n\n" + split.body
             if wasAuto { autoBody = bodyText }
             custNo = ""
             contrNo = ""
-            let saved = model.data.contract(id)
-            missCust = saved?.customerNo.isEmpty ?? true
-            missContr = saved?.contractNo.isEmpty ?? true
+            showMissing = model.data.contract(id).map { Letter.showsMissingNumbers($0) } ?? false
         }
         let rent = calc.isRent(c)
         let data = model.data
@@ -489,6 +507,7 @@ struct LetterView: View {
             model.toast("PDF konnte nicht erstellt werden")
             return
         }
+        madeAt = Date()
         switch job.intent {
         case .view:
             let ref = DocumentRef(data: pdf, type: "application/pdf", title: job.title, fileName: job.fileName,
@@ -500,6 +519,26 @@ struct LetterView: View {
                                    contractID: contractID, trial: trial, over: me)
         case .print:
             LetterActions.printPDF(model, data: pdf, jobName: LetterActions.pdfName(job.fileName))
+        }
+    }
+}
+
+// MARK: - Nach dem Schliessen
+
+extension LetterView {
+    /// Nach dem PDF beim Schliessen fragen «Brief verschickt?» (Web `closeLetter`, Kern `cancelledQuestion(letter: true)`);
+    /// nicht, solange das Schreiben noch offen ist (z.B. Viewer darüber) und nicht, wenn seit dem PDF schon gefragt wurde.
+    fileprivate func askSentIfClosed() {
+        guard let made = madeAt else { return }
+        let me = AppSheet.letter(contractID, trial: trial)
+        if model.sheets.contains(where: { $0.id == me.id }) { return }
+        madeAt = nil
+        let id = contractID
+        if CancelQuestionLog.asked(id, since: made) { return }
+        let m = model
+        let t = trial
+        CancelWindowFlow.afterDismiss(m, wait: 250, keepStack: false, still: { m.data.contract(id) != nil }) {
+            m.askCancelled(id, trial: t, letter: true)
         }
     }
 }
