@@ -6,6 +6,7 @@ struct ContractsTab: View {
     @Environment(AppModel.self) private var model
     @State private var showFilter = false
     @State private var pauseTarget: CTIDItem?
+    @State private var cancelledTarget: CTIDItem?
 
     var body: some View {
         @Bindable var model = model
@@ -13,7 +14,7 @@ struct ContractsTab: View {
             if model.data.contracts.isEmpty {
                 CTEmptyContracts()
             } else {
-                CTContractsList(showFilter: $showFilter, pauseTarget: $pauseTarget)
+                CTContractsList(showFilter: $showFilter, pauseTarget: $pauseTarget, cancelledTarget: $cancelledTarget)
                     .searchable(text: $model.searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Suchen")
             }
         }
@@ -32,6 +33,10 @@ struct ContractsTab: View {
             CTPauseSheet(contractID: t.id)
                 .environment(model)
         }
+        .ctAlreadyCancelledSheet($cancelledTarget)
+        #if DEBUG
+        .onAppear { CTUITestSeed.applyIfNeeded(model) }
+        #endif
     }
 }
 
@@ -41,6 +46,7 @@ private struct CTContractsList: View {
     @Environment(AppModel.self) private var model
     @Binding var showFilter: Bool
     @Binding var pauseTarget: CTIDItem?
+    @Binding var cancelledTarget: CTIDItem?
 
     var body: some View {
         let calc = model.calc
@@ -117,7 +123,7 @@ private struct CTContractsList: View {
         }
         .listRowBackground(KColor.surface)
         .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 14))
-        .modifier(CTCardActions(contract: c, pauseTarget: $pauseTarget))
+        .modifier(CTCardActions(contract: c, pauseTarget: $pauseTarget, cancelledTarget: $cancelledTarget))
     }
 
     @ViewBuilder

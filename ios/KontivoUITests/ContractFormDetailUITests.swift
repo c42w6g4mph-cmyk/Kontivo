@@ -142,7 +142,7 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         wait(button("Bearbeiten"), "Detail Swisscom", timeout: 15)
         wait(el("detail.kz.month"), "Kachel pro Monat")
         wait(elContaining("pro Jahr"), "Kachel pro Jahr")
-        wait(elContaining("insgesamt bezahlt"), "Kachel insgesamt bezahlt")
+        wait(elContaining("bisher bezahlt (ca.)"), "Kachel bisher bezahlt (Web v156)")
         wait(elContaining("monatlich am 15."), "Zeile Zahlung")
         XCTAssertFalse(buttonContaining("Preisänderung").exists, "Keine Preisänderung im Detail")
         XCTAssertFalse(button("Weitere Aktionen").exists, "Keine Aktionen unten")
@@ -163,7 +163,7 @@ final class ContractFormDetailUITests: KontivoUITestCase {
 
         tap(button("detail.menu"), "Menü •••")
         wait(button("Duplizieren"), "Menü Duplizieren")
-        wait(button("Ins Archiv"), "Menü Ins Archiv")
+        wait(buttonStarting("Schon gekündigt"), "Menü Schon gekündigt … (Web v154)")
         wait(button("Löschen"), "Menü Löschen")
         ctShot("Detail – Menü")
     }

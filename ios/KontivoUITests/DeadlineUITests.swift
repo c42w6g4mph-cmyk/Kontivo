@@ -61,6 +61,12 @@ final class DeadlineUITests: KontivoUITestCase {
         XCTAssertTrue(button("PDF erstellen").exists, "Zurück im Kündigungsschreiben")
         tapTop("Schliessen")
         waitUntil("Kündigung geschlossen") { !self.navExists("Kündigung") }
+        // Web v143: nach dem PDF fragt Kontivo beim Schliessen «Brief verschickt?»
+        let sent = app.alerts.firstMatch
+        wait(sent, "Rückfrage «Brief verschickt?»")
+        XCTAssertTrue(sent.label.contains("Brief verschickt") || elContaining("Brief verschickt").exists, "Titel: \(sent.label)")
+        tapAlertButton("Noch nicht")
+        waitGone(sent, "Rückfrage geschlossen")
     }
 
     /// Hausrat: keine Empfängeradresse, zweiter Inhaber ohne Absender → beide Rückfragen, dann Viewer

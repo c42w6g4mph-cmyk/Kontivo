@@ -4,7 +4,7 @@ import MessageUI
 import KontivoCore
 
 /// Mail verfassen (MFMailComposeViewController, Anhang optional). Schliesst sich nach Senden/Abbrechen selbst;
-/// nach «gesendet» mit `cancelContractID` folgt die Rückfrage «Gekündigt?».
+/// nach «gesendet» mit `cancelContractID` folgt die Rückfrage «Gekündigt?» (mit PDF-Anhang «Brief verschickt?»).
 struct MailComposeView: View {
     let draft: MailDraft
 
@@ -23,6 +23,7 @@ struct MailComposeView: View {
         let m = model
         let contractID = draft.cancelContractID
         let trial = draft.cancelTrial
+        let letter = draft.attachment != nil
         // Nur dieses Mail-Fenster schliessen (nie das darunterliegende)
         guard CancelWindowFlow.dismiss(m, ifTop: .mail(draft)) else { return }
         switch result {
@@ -30,7 +31,7 @@ struct MailComposeView: View {
             if let id = contractID {
                 // Erst nach dem Schliessen des Mail-Fensters fragen (sonst geht die Rückfrage verloren)
                 CancelWindowFlow.afterDismiss(m, wait: CancelWindowFlow.Wait.all, still: { m.data.contract(id) != nil }) {
-                    m.cancelQuestion = PendingCancel(contractID: id, trial: trial)
+                    m.askCancelled(id, trial: trial, letter: letter)
                 }
             }
         case .failed:

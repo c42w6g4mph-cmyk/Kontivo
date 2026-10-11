@@ -1,9 +1,11 @@
 import SwiftUI
 import KontivoCore
 
-/// Vertragsdetail (openDetail) als reine Ansicht (Web v125–v141): Kopf mit Dokumente-Knopf, Pillen, Kennzahlen,
-/// Hinweis «Angaben fehlen», Fristen-Kasten (nur bei Frist ≤ 60 Tage), Abschnitte mit Preisverlauf, Sonderzahlungen, Notiz.
-/// Aktionen im Menü ••• oben (Web 4be2078). Bearbeiten (inkl. Preise, Dokumente löschen) nur im Formular.
+/// Vertragsdetail (Web `openDetail`, Stand v160) als reine Ansicht. Zustände, Zeilen, Texte und Menü kommen aus dem Kern
+/// (`Calc.detailInfo(_:)`, `Calc.detailMenu(_:)`): Kopf mit Dokumente-Knopf, Pillen, Kennzahlen mit Anteil bzw. Status,
+/// Hinweis «Angaben fehlen», Kasten «Kündigen/Wechseln bis …» bzw. «Probeabo bis …», Abschnitte mit Preisverlauf,
+/// Sonderzahlungen, Notiz. Aktionen im Menü ••• oben (Untertitel unter dem Titel, Web v150). Bearbeiten nur im Formular.
+/// Native Zusätze: «In Kalender» im Menü, Dokumentliste mit Anhängen, Kontakt-Zeilen mit «Kopieren».
 struct ContractDetailView: View {
     let contractID: UUID
     @Environment(AppModel.self) private var model
@@ -13,6 +15,10 @@ struct ContractDetailView: View {
     @State private var askDelete = false
     @State private var showDocs = false
     @State private var calendarFor: UUID?
+    /// «Schon gekündigt …» / «Beendet …»: Rückfrage «Läuft bis» (Web v154)
+    @State private var cancelledFor: CTIDItem?
+    /// Probeabo-Kasten «Kündigen»: Auswahl wie in «Fristen» (Web `killOptions(id, true)`)
+    @State private var killTarget: DeadlineKillTarget?
 
     init(contractID: UUID) {
         self.contractID = contractID
@@ -59,6 +65,8 @@ struct ContractDetailView: View {
             }
         }
         .deadlineCalendar(contractID: $calendarFor)
+        .deadlineKillSheet($killTarget)
+        .ctAlreadyCancelledSheet($cancelledFor)
         .sheet(isPresented: $showPause) {
             CTPauseSheet(contractID: contractID, onPaused: { model.dismissAll() })
                 .environment(model)
@@ -81,7 +89,7 @@ struct ContractDetailView: View {
 
     private func content(_ c: Contract) -> some View {
         let calc = model.calc
-        let due60 = CTDetailState.due60(c, calc: calc)
+        let info = calc.detailInfo(c)
         return ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 CTDetailHeader(contract: c) { showDocs = true }
@@ -90,14 +98,11 @@ struct ContractDetailView: View {
                             Color.clear.preference(key: CTDetailScrollKey.self, value: g.frame(in: .named("ctDetail")).minY)
                         }
                     )
-                CTDetailPills(contract: c, due60: due60)
-                CTDetailKeyFigures(contract: c)
+                CTDetailPills(pills: info.pills)
+                CTDetailKeyFigures(contract: c, month: info.month)
                 CTDetailCompletenessHint(contract: c)
-                if due60 {
-                    CTDetailDeadlineBox(contract: c, onCancel: { model.startCancel(contractID, trial: false) }, onKeep: {
-                        let t = model.today
-                        run({ $0.keep(contractID, trial: false, today: t) }, toast: AppData.keepToast)
-                    })
+                if let box = info.box {
+                    CTDetailDeadlineBox(box: box, onCancel: { boxCancel(info) }, onKeep: { boxKeep(info) })
                 }
                 if calc.specialCancelHint(c) {
                     Text(verbatim: Calc.specialCancelText)
@@ -108,7 +113,7 @@ struct ContractDetailView: View {
                         .padding(.bottom, 10)
                         .accessibilityIdentifier("detail.skr")
                 }
-                CTDetailSections(contract: c, due60: due60)
+                CTDetailSections(contract: c, info: info)
             }
             .padding(.horizontal, KMetric.gutter)
             .padding(.bottom, 32)
@@ -121,65 +126,80 @@ struct ContractDetailView: View {
         }
     }
 
-    // MARK: Menü ••• (Web 4be2078): Kündigen mit Weg, Pausieren, Duplizieren, Archiv, Löschen
+    // MARK: Kasten oben
+
+    /// Frist-Kasten (≤ 60 Tage): Kündigungsweg starten (laufendes Probeabo: fürs Probeabo, Web `dTrial`).
+    /// Probeabo-Kasten: Auswahl «Kündigen: …» mit «Als gekündigt markieren» (Web `trialkill` → `killOptions(id, true)`).
+    private func boxCancel(_ info: ContractDetailInfo) {
+        if info.due60 {
+            model.startCancel(contractID, trial: info.trialRunning)
+        } else {
+            killTarget = DeadlineKillTarget(contractID: contractID, trial: true)
+        }
+    }
+
+    /// Frist-Kasten: für diesen Termin behalten (Web `keep`); Probeabo-Kasten: Probeabo behalten (Web `trialkeep`).
+    private func boxKeep(_ info: ContractDetailInfo) {
+        let t = model.today
+        let id = contractID
+        if info.due60 {
+            run({ $0.keep(id, trial: false, today: t) }, toast: AppData.keepToast)
+        } else {
+            run({ $0.keep(id, trial: true, today: t) }, toast: AppData.keepTrialToast)
+        }
+    }
+
+    // MARK: Menü ••• (Web `dMenu`, v143/v150/v154)
 
     private func actionsMenu(_ c: Contract) -> some View {
         let calc = model.calc
-        let fixd = calc.isFixed(c)
-        let archived = c.status == .cancelled
-        let kok = !(c.cancelPer != nil || archived || fixd)
-        let kword = c.mandatory ? "Wechseln" : "Kündigen"
-        let via: String = {
-            switch calc.cancVia(c) {
-            case .online: return "online"
-            case .mail: return "per E-Mail"
-            case .post: return "per Brief"
-            case .none: return "Weg wählen"
-            }
-        }()
+        let m = calc.detailMenu(c)
+        let trial = calc.trialOn(c)
         return Menu {
-            if kok {
+            if let k = m.cancel {
                 Button {
-                    model.startCancel(contractID, trial: false)
+                    model.startCancel(contractID, trial: trial)
                 } label: {
-                    Text(kword)
-                    Text(via)
+                    Text(k.title)
+                    Text(k.subtitle)
                 }
             }
-            if c.cancelPer != nil {
+            if m.uncancel {
                 Button("Kündigung zurücknehmen") {
                     run({ $0.undoCancel(contractID) }, toast: "Kündigung zurückgenommen")
                 }
             }
-            if calc.isKept(c) {
+            if m.unkeep {
                 Button("«Behalten» zurücksetzen") {
                     run({ $0.unkeep(contractID) }, toast: "Wieder offen")
                 }
             }
-            if !archived && !fixd && !c.mandatory && !calc.isRent(c) {
-                if calc.isPaused(c) {
-                    Button("Fortsetzen") {
+            if let p = m.pause {
+                Button(p) {
+                    if calc.isPaused(c) {
                         let t = model.today
                         run({ $0.resume(contractID, today: t) }, toast: "Fortgesetzt")
+                    } else {
+                        showPause = true
                     }
-                } else {
-                    Button("Pausieren") { showPause = true }
                 }
             }
-            if DeadlineCalendar.canAdd(c, calc: model.calc) {
+            if DeadlineCalendar.canAdd(c, calc: calc) {
                 Button { calendarFor = c.id } label: { Label(DeadlineCalendar.menuTitle, systemImage: DeadlineCalendar.symbol) }
             }
             Button("Duplizieren") {
                 model.present(.contractForm(.duplicate(contractID)))
             }
-            if archived {
+            if m.reactivate {
                 Button("Wieder aktiv setzen") {
-                    run({ $0.reactivate(contractID) }, toast: "Wieder aktiv")
+                    model.ctReactivate(contractID)
                 }
-            } else {
-                Button("Ins Archiv") {
-                    let t = model.today
-                    run({ $0.archive(contractID, today: t) }, toast: "Ins Archiv verschoben")
+            } else if let a = m.alreadyCancelled {
+                Button {
+                    cancelledFor = CTIDItem(id: contractID)
+                } label: {
+                    Text(a.title)
+                    Text(a.subtitle)
                 }
             }
             Button("Löschen", role: .destructive) {
@@ -204,22 +224,6 @@ struct ContractDetailView: View {
         model.update { $0.deleteContract(id) }
         model.toast("Gelöscht")
         dismiss()
-    }
-}
-
-/// Zustände, die mehrere Teile des Details brauchen
-enum CTDetailState {
-    /// Gekündigt (Archiv oder «gekündigt per») oder abgelaufen: keine Frist und kein nächster Termin mehr
-    static func gone(_ c: Contract, calc: Calc) -> Bool {
-        c.status == .cancelled || c.cancelPer != nil || calc.endedByTerm(c)
-    }
-
-    /// Frist in ≤ 60 Tagen: Kasten «Kündigen bis …» mit Kündigen/Behalten oben (Web due60)
-    static func due60(_ c: Contract, calc: Calc) -> Bool {
-        if gone(c, calc: calc) || calc.isFixed(c) { return false }
-        let u = calc.urgency(c)
-        guard u.date != nil, let d = u.days, d >= 0, d <= 60 else { return false }
-        return !calc.isAnytime(c) && !c.noWatch && c.cancelPer == nil && !calc.isKept(c) && calc.termEnd(c) != nil
     }
 }
 
@@ -289,66 +293,31 @@ private struct CTDetailHeader: View {
 
 // MARK: - Pillen
 
+/// Pillen aus dem Kern (Rangfolge und Texte wie Web `openDetail`); ohne Pille 10 pt Abstand.
 private struct CTDetailPills: View {
-    @Environment(AppModel.self) private var model
-    let contract: Contract
-    let due60: Bool
+    let pills: [DetailPill]
 
     var body: some View {
-        let pills = CTDetailPills.pills(contract, calc: model.calc, due60: due60)
         if pills.isEmpty {
             Color.clear.frame(height: 10)
         } else {
             CTFlowLayout(spacing: 6, lineSpacing: 6) {
                 ForEach(pills.indices, id: \.self) { i in
-                    Pill(text: pills[i].text, tone: pills[i].tone)
+                    Pill(text: pills[i].text, tone: CTDetailPills.tone(pills[i].tone))
                 }
             }
             .padding(.top, 12)
             .padding(.bottom, 10)
+            .accessibilityIdentifier("detail.pills")
         }
     }
 
-    struct Item {
-        var text: String
-        var tone: Pill.Tone
-    }
-
-    /// Rangfolge wie die Web-App (openDetail): Archiv → gekündigt per → befristet abgelaufen → behalten → Frist rot/orange;
-    /// Frist-Pille entfällt, wenn der Kasten «Kündigen bis …» erscheint; «Pausiert …» nur bei nicht gekündigten/abgelaufenen Verträgen.
-    static func pills(_ c: Contract, calc: Calc, due60: Bool) -> [Item] {
-        var main: Item?
-        let archived = c.status == .cancelled
-        let gone = CTDetailState.gone(c, calc: calc)
-        let fixd = calc.isFixed(c)
-        let u = calc.urgency(c)
-        if archived {
-            main = Item(text: "Gekündigt" + (c.cancelledAt.map { " am " + Format.fmtD($0) } ?? ""), tone: .neutral)
-        } else if let cp = c.cancelPer {
-            main = Item(text: "Gekündigt · " + (calc.endedByNotice(c) ? "beendet am " : "läuft bis ") + Format.fmtD(cp), tone: .neutral)
-        } else if calc.endedByTerm(c), let e = c.end {
-            main = Item(text: "Beendet am " + Format.fmtD(e), tone: .neutral)
-        } else if calc.reviewKill(c) {
-            main = Item(text: "Zum Kündigen vorgemerkt", tone: .warn)
-        } else if calc.isKept(c) {
-            main = Item(text: "Behalten bis nächster Termin", tone: .neutral)
-        } else if !fixd && !due60 && u.level == .alert, let d = u.days {
-            main = Item(text: "Frist " + Format.inDays(d), tone: .alert)
-        } else if !fixd && !due60 && u.level == .warn, let d = u.days {
-            main = Item(text: "Frist " + Format.inDays(d), tone: .warn)
+    static func tone(_ t: DetailTone) -> Pill.Tone {
+        switch t {
+        case .neutral: return .neutral
+        case .warn: return .warn
+        case .alert: return .alert
         }
-        if !gone && main == nil && fixd {
-            main = Item(text: "Nicht kündbar", tone: .neutral)
-        }
-        if !gone && calc.isPaused(c), let p = calc.currentPause(c) {
-            main = Item(text: p.until.map { "Pausiert bis " + Format.fmtD($0) } ?? "Pausiert seit " + Format.fmtD(p.from), tone: .neutral)
-        }
-        var out: [Item] = []
-        if let m = main { out.append(m) }
-        if let nc = calc.nextChange(c) {
-            out.append(Item(text: "Neuer Preis ab " + Format.fmtD(nc.from) + ": " + Format.money(nc.amount, c.currency) + " " + c.currency.rawValue, tone: .warn))
-        }
-        return out
     }
 }
 
@@ -358,26 +327,24 @@ private struct CTDetailSections: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openURL) private var openURL
     let contract: Contract
-    let due60: Bool
+    let info: ContractDetailInfo
 
     var body: some View {
         let c = contract
-        let data = model.data
         let calc = model.calc
         VStack(alignment: .leading, spacing: 0) {
-            // Kosten: Zeilen und Preisverlauf (nur Ansicht; Preise erfassen nur unter «Bearbeiten»)
+            // Kosten: Zeilen (Betrag, Zahlung, Bezahlung) und Preisverlauf (nur Ansicht; Preise erfassen unter «Bearbeiten»)
             SectionHead(title: "Kosten")
-            let cr = costRows(c, calc: calc)
-            if !cr.isEmpty {
-                KCard { CTDetailRowsView(rows: cr) }
+            if !info.costRows.isEmpty {
+                KCard { CTDetailRowsView(rows: info.costRows, today: calc.today) }
             }
             if !calc.pricesOf(c).isEmpty {
                 CTPriceChart(contract: c, today: calc.today)
-                    .padding(.top, cr.isEmpty ? 0 : 8)
+                    .padding(.top, info.costRows.isEmpty ? 0 : 8)
             }
-            CTDetailGroup(title: "Laufzeit & Kündigung", rows: termRows(c, calc: calc))
-            assignment(c, data: data)
-            contact(c, data: data)
+            CTDetailGroup(title: "Laufzeit & Kündigung", rows: info.termRows, today: calc.today)
+            assignment(c)
+            contact(c)
             let xs = calc.extrasOf(c)
             if !xs.isEmpty {
                 SectionHead(title: "Sonderzahlungen")
@@ -396,113 +363,50 @@ private struct CTDetailSections: View {
         }
     }
 
-    /// Web: «Betrag» nur bei nicht monatlicher Zahlung; «Zahlung» = Zahlungsregel (+ «nächste am …»)
-    private func costRows(_ c: Contract, calc: Calc) -> [CTDetailRow] {
-        var r: [CTDetailRow] = []
-        if c.cycleForCalc != 1 {
-            r.append(CTDetailRow("Betrag", Format.money(calc.curPrice(c), c.currency) + " " + c.currency.rawValue))
-        }
-        let rule = Calc.payRule(cycle: c.cycle, due: c.due)
-        if !rule.isEmpty {
-            var row = CTDetailRow("Zahlung", rule)
-            if c.cycleForCalc != 1, let nd = calc.nextDue(c), CTDetailKeyFigures.paidSoFar(c, calc: calc) != nil {
-                row.sub = "nächste am " + Format.fmtShort(nd)
-            }
-            r.append(row)
-        }
-        return r
-    }
-
-    private func termRows(_ c: Contract, calc: Calc) -> [CTDetailRow] {
-        var r: [CTDetailRow] = []
-        let te = calc.termEnd(c)
-        let gone = CTDetailState.gone(c, calc: calc)
-        let fixed = calc.isFixed(c)
-        if let s = c.start { r.append(CTDetailRow("Beginn", Format.fmtD(s))) }
-        if c.end != nil, let e = calc.effEnd(c) {
-            let missed = !gone && (te.map { $0 > e } ?? false)
-            r.append(CTDetailRow("Vertragsende", Format.fmtD(e) + (missed ? " · Frist verpasst" : "")))
-        }
-        let nt = Format.noticeText(c)
-        if fixed {
-            r.append(CTDetailRow("Kündigung", calc.isTax(c) ? "nicht kündbar · Steuern & Gebühren" : "nicht kündbar"))
-        } else {
-            r.append(CTDetailRow("Kündigung", (nt.isEmpty ? "ohne Frist" : nt)
-                + (c.end == nil ? " · " + (c.cancelTerm != .anytime ? "auf " + Format.termText(c.cancelTerm) : "jederzeit") : "")))
-        }
-        let u = calc.urgency(c)
-        if !gone && !fixed && !due60, let d = u.date {
-            let days = u.days ?? 0
-            if days >= 0, let T = te {
-                // Mini-Zeitstrahl heute → kündigen bis → Ende (Web termLine)
-                r.append(CTDetailRow(timeline: CTTimeline(today: calc.today, deadline: d, end: T, anytime: calc.isAnytime(c), days: days)))
-            } else if let T = te {
-                r.append(CTDetailRow("Nächster Termin", "per " + Format.fmtShort(T) + ", kündigen bis " + Format.fmtShort(d) + " (abgelaufen)"))
-            }
-        }
-        if c.mandatory && !fixed { r.append(CTDetailRow("Pflichtvertrag", "nur Wechsel möglich")) }
-        if c.noWatch && !fixed { r.append(CTDetailRow("Frist", "wird nicht beobachtet")) }
-        if fixed {
-            // keine Verlängerungs-Zeilen
-        } else if !gone, let rt = calc.renewTo(c) {
-            r.append(CTDetailRow("Sonst verlängert bis", Format.fmtD(rt)))
-        } else if c.renewMonths > 0 {
-            r.append(CTDetailRow("Verlängerung", "automatisch um \(c.renewMonths)" + (c.renewMonths == 1 ? " Monat" : " Monate")))
-        }
-        if let ch = c.cancelChannel { r.append(CTDetailRow("Kündigung per", ch.webText)) }
-        if c.cancelPer != nil, let on = c.cancelledOn { r.append(CTDetailRow("Gekündigt am", Format.fmtD(on))) }
-        if let tr = c.trial { r.append(CTDetailRow("Probeabo endet", Format.fmtD(tr))) }
-        return r
-    }
-
-    private func assignmentRows(_ c: Contract, data: AppData) -> [CTDetailRow] {
-        var rows: [CTDetailRow] = []
-        if let cat = data.category(c.categoryID) { rows.append(CTDetailRow("Kategorie", cat.name)) }
-        let hn = data.holdersText(of: c)
-        if !hn.isEmpty { rows.append(CTDetailRow(c.holderIDs.count > 1 ? "Personen" : "Person", hn)) }
-        if !c.customerNo.isEmpty { rows.append(CTDetailRow("Kundennummer", c.customerNo)) }
-        if !c.contractNo.isEmpty { rows.append(CTDetailRow("Vertragsnummer", c.contractNo)) }
-        if !c.payMethod.isEmpty { rows.append(CTDetailRow("Zahlungsart", c.payMethod)) }
-        if !c.payAccount.isEmpty { rows.append(CTDetailRow("Belastet über", c.payAccount)) }
-        return rows
-    }
-
+    /// Zuordnung aus dem Kern (Vertragspartner, Kategorie, Person(en), Kundennummer, Vertrags-/Policen-/Versicherten-/Rufnummer);
+    /// Vertragspartner als Verweis auf «Vertragspartner bearbeiten» (Web `data-peopen`).
     @ViewBuilder
-    private func assignment(_ c: Contract, data: AppData) -> some View {
-        let partner = data.partner(c.partnerID)
-        let rows = assignmentRows(c, data: data)
-        if partner != nil || !rows.isEmpty {
+    private func assignment(_ c: Contract) -> some View {
+        let rows = info.assignmentRows
+        if !rows.isEmpty {
             SectionHead(title: "Zuordnung")
             KCard {
-                if let p = partner, !p.name.isEmpty {
-                    Button {
-                        model.present(.manage(.partner(p.id)))
-                    } label: {
-                        HStack(alignment: .firstTextBaseline, spacing: 12) {
-                            Text("Vertragspartner")
-                                .font(.subheadline)
-                                .foregroundStyle(KColor.ink2)
-                            Spacer(minLength: 8)
-                            Text(p.name + " ›")
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(KColor.teal)
-                                .multilineTextAlignment(.trailing)
-                        }
-                        .padding(.horizontal, 14).padding(.vertical, 11)
-                        .contentShape(Rectangle())
+                ForEach(Array(rows.enumerated()), id: \.offset) { i, r in
+                    if i > 0 { Divider().padding(.leading, 14) }
+                    if i == 0 && r.label == "Vertragspartner", let p = model.data.partner(c.partnerID) {
+                        partnerLink(label: r.label, name: r.value, id: p.id)
+                    } else {
+                        CTDetailRowView(row: r, today: model.today)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Öffnet den Vertragspartner")
-                    if !rows.isEmpty { Divider().padding(.leading, 14) }
                 }
-                CTDetailRowsView(rows: rows)
             }
         }
     }
 
+    private func partnerLink(label: String, name: String, id: UUID) -> some View {
+        Button {
+            model.present(.manage(.partner(id)))
+        } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(label)
+                    .font(.subheadline)
+                    .foregroundStyle(KColor.ink2)
+                Spacer(minLength: 8)
+                Text(name + " ›")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(KColor.teal)
+                    .multilineTextAlignment(.trailing)
+            }
+            .padding(.horizontal, 14).padding(.vertical, 11)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Öffnet den Vertragspartner")
+    }
+
     @ViewBuilder
-    private func contact(_ c: Contract, data: AppData) -> some View {
-        let web = data.partner(c.partnerID)?.web.trimmingCharacters(in: .whitespaces) ?? ""
+    private func contact(_ c: Contract) -> some View {
+        let web = model.data.partner(c.partnerID)?.web.trimmingCharacters(in: .whitespaces) ?? ""
         let tel = c.tel.trimmingCharacters(in: .whitespaces)
         let mail = c.mail.trimmingCharacters(in: .whitespaces)
         if !web.isEmpty || !tel.isEmpty || !mail.isEmpty {
@@ -562,31 +466,22 @@ private struct CTDetailSections: View {
 
 // MARK: - Zeilen
 
-struct CTDetailRow: Identifiable {
-    let id = UUID()
-    let label: String
-    let value: String
-    /// Zusatz unter dem Wert (z.B. «nächste am 15.10.26»)
-    var sub = ""
-    var timeline: CTTimeline?
-    init(_ label: String, _ value: String) {
-        self.label = label
-        self.value = value
-    }
-    init(timeline: CTTimeline) {
-        label = ""
-        value = ""
-        self.timeline = timeline
-    }
-}
-
-/// Nächste Kündigung als Zeitstrahl: Punkt heute, Frist (teal, anteilig 28–62 %), Vertragsende (Ring)
+/// Nächste Kündigung als Zeitstrahl (Web `termLine`): Punkt heute, Frist (teal, anteilig 28–62 %), Ende (Ring).
+/// Daten aus `DetailTimeline` (bei «Behalten» der nächste Termin, beim Probeabo der letzte Gratistag).
 struct CTTimeline {
     let today: Day
     let deadline: Day
     let end: Day
     let anytime: Bool
     let days: Int
+
+    init(_ t: DetailTimeline, today: Day) {
+        self.today = today
+        deadline = t.deadline
+        end = t.end
+        anytime = t.anytime
+        days = t.days
+    }
 
     var position: CGFloat {
         let tot = max(1, today.days(to: end))
@@ -644,6 +539,7 @@ private struct CTTimelineView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: "Nächste Kündigung: bis " + Format.fmtD(t.deadline) + " kündigen, Vertragsende " + Format.fmtD(t.end)
                                  + (t.remaining.isEmpty ? "" : ", " + t.remaining)))
+        .accessibilityIdentifier("detail.timeline")
     }
 
     private func label(_ date: String, _ sub: String, align: HorizontalAlignment) -> some View {
@@ -657,39 +553,54 @@ private struct CTTimelineView: View {
 /// Abschnitt mit Kopf und Zeilen «Bezeichnung | Wert»; entfällt ohne Zeilen
 private struct CTDetailGroup: View {
     let title: String
-    let rows: [CTDetailRow]
+    let rows: [DetailRow]
+    let today: Day
+
     var body: some View {
         if !rows.isEmpty {
             SectionHead(title: title)
             KCard {
-                CTDetailRowsView(rows: rows)
+                CTDetailRowsView(rows: rows, today: today)
             }
         }
     }
 }
 
 private struct CTDetailRowsView: View {
-    let rows: [CTDetailRow]
+    let rows: [DetailRow]
+    let today: Day
+
     var body: some View {
         ForEach(Array(rows.enumerated()), id: \.offset) { i, r in
             if i > 0 { Divider().padding(.leading, 14) }
-            if let tl = r.timeline {
-                CTTimelineView(t: tl)
-            } else {
+            CTDetailRowView(row: r, today: today)
+        }
+    }
+}
+
+/// Eine Zeile aus dem Kern: Zeitstrahl oder «Bezeichnung | Wert» mit Zusatz darunter («nächste am …»)
+private struct CTDetailRowView: View {
+    let row: DetailRow
+    let today: Day
+
+    var body: some View {
+        if let tl = row.timeline {
+            CTTimelineView(t: CTTimeline(tl, today: today))
+        } else {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text(r.label)
+                Text(row.label)
                     .font(.subheadline)
                     .foregroundStyle(KColor.ink2)
                 Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text(r.value)
+                    Text(row.value)
                         .font(.body)
                         .foregroundStyle(KColor.ink)
                         .multilineTextAlignment(.trailing)
                         .monospacedDigit()
                         .textSelection(.enabled)
-                    if !r.sub.isEmpty {
-                        Text(r.sub)
+                    if !row.sub.isEmpty {
+                        Text(row.sub)
                             .font(.footnote)
                             .foregroundStyle(KColor.ink2)
                             .monospacedDigit()
@@ -698,7 +609,6 @@ private struct CTDetailRowsView: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 11)
             .accessibilityElement(children: .combine)
-            }
         }
     }
 }

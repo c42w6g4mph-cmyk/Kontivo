@@ -6,7 +6,7 @@ import KontivoCore
 /// Kündigungsschreiben direkt verschicken oder drucken (aus dem Brief und aus dem PDF-Viewer):
 /// - Mail mit PDF-Anhang (MFMailComposeViewController); ohne Mail-Konto Teilen-Menü mit dem PDF
 /// - Drucken (UIPrintInteractionController) mit dem PDF
-/// Nach dem Senden bzw. Teilen folgt (ausser bei Miete) die Rückfrage «Gekündigt?».
+/// Nach dem Senden bzw. Teilen folgt (ausser bei Miete) die Rückfrage «Brief verschickt?» (Kern `cancelledQuestion`).
 @MainActor
 enum LetterActions {
     /// «Per Mail senden»: Mail-Fenster über `over`; ohne Mail-Konto das Teilen-Menü.
@@ -31,7 +31,7 @@ enum LetterActions {
         CancelWindowFlow.present(model, .mail(draft), over: over)
     }
 
-    /// Teilen-Menü mit der Datei (z.B. andere Mail-App, Dateien, AirDrop). Nach erfolgreichem Teilen optional «Gekündigt?».
+    /// Teilen-Menü mit der Datei (z.B. andere Mail-App, Dateien, AirDrop). Nach erfolgreichem Teilen optional «Brief verschickt?».
     static func share(_ model: AppModel, pdf: Data, fileName: String, askContractID: UUID?, trial: Bool) {
         guard let url = DocShareFile.write(pdf, name: fileName), let top = CancelFlowUI.topViewController() else {
             model.toast("Teilen fehlgeschlagen")
@@ -44,7 +44,7 @@ enum LetterActions {
                 guard completed, let id = askContractID, model.data.contract(id) != nil else { return }
                 // kurz warten, bis das Teilen-Menü weg ist
                 try? await Task.sleep(nanoseconds: 450_000_000)
-                model.cancelQuestion = PendingCancel(contractID: id, trial: trial)
+                model.askCancelled(id, trial: trial, letter: true)
             }
         }
         if let pop = vc.popoverPresentationController, let v = top.view {
