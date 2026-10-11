@@ -295,8 +295,9 @@ public struct SyncCore: Sendable {
         for (k, v) in systemFields { ledger.systemFields[k] = v }
         for id in storedFiles where SyncKey.isFileID(id) {
             ledger.serverFiles.insert(id)
-            let name = SyncKey(kind: .file, rawID: id).recordName
-            if ledger.pending[name] == .save { ledger.pending[name] = nil }
+            // Liegt (wieder) auf dem Server: nicht erneut hochladen; eine ältere lokale Löschung entscheidet das nächste
+            // Aufräumen neu (sonst löschte dieses Gerät, was ein anderes gerade wieder hochgeladen hat)
+            ledger.pending[SyncKey(kind: .file, rawID: id).recordName] = nil
         }
         if !ledger.initialDone {
             for r in records where r.key.kind != .file {
