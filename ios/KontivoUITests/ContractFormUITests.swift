@@ -24,9 +24,9 @@ final class ContractFormUITests: KontivoUITestCase {
         tap(button("termMonths.24"), "Knopf 2 Jahre")
         wait(elContaining("Zuerst den Vertragsbeginn eintragen"), "Meldung ohne Vertragsbeginn")
         tap(button("Vertragsbeginn wählen"), "Vertragsbeginn (heute, 03.10.2026)")
+        XCTAssertTrue(button("termMonths.24").isSelected, "Knopf 2 Jahre gewählt")
         // 03.10.2026 + 24 Monate − 1 Tag; Verlängerung 1 Monat vorbelegt
         reveal(elContaining("Kündigen bis 2. Oktober 2028, sonst +1 Monat."), "Hinweis mit Vertragsende aus 2 Jahren")
-        XCTAssertTrue(button("termMonths.24").isSelected, "Knopf 2 Jahre gewählt")
 
         revealUp(button("termMonths.other"), "Knopf Andere …")
         tap(button("termMonths.other"), "Knopf Andere …")
@@ -95,9 +95,11 @@ final class ContractFormUITests: KontivoUITestCase {
         tap(one, "Frist 1 Monat")
         XCTAssertTrue(one.isSelected)
         reveal(elContaining("Ohne Mindestlaufzeit: kündbar mit der angegebenen Frist."), "Hinweis mit Frist")
+        revealUp(one, "Frist 1 Monat")
         tap(one, "Frist 1 Monat nochmals")
         XCTAssertTrue(one.isSelected, "Zweites Tippen löst die Frist nicht")
 
+        revealUp(button("notice.other"), "Andere …")
         tap(button("notice.other"), "Andere …")
         let n = wheel(0)
         wait(n, "Drehrad Frist")
