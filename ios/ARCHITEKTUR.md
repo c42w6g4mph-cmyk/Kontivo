@@ -9,7 +9,7 @@ Wo die Inventare einen «⚠ Fund» oder «Befund» nennen, gilt das **korrigier
 - Swift 5 Sprachmodus (`SWIFT_VERSION = 5.0`), SwiftUI, Observation (`@Observable`), Swift Charts, PDFKit, PencilKit, MessageUI, EventKitUI.
 - Keine Fremdbibliotheken.
 - Sprache Deutsch, Schweizer Rechtschreibung (ss statt ß), immer «Vertragspartner», nie «Partner» in sichtbaren Texten.
-- Zahlenformat fest de-CH: `1’284.50` (Tausender U+2019, Dezimalpunkt), auch für EUR. Minuszeichen U+2212 in Anzeigen.
+- Zahlenformat nach der Hauptwährung (Web v144, `Format.numberStyle`): Hauptwährung CHF de-CH `1’284.50` (Tausender U+2019, Dezimalpunkt), Hauptwährung EUR de-DE `1.284,50` – für alle Beträge, auch Verträge in der anderen Währung. Minuszeichen U+2212 in Anzeigen.
 - Daten lokal auf dem Gerät (JSON-Datei + Dateien-Ordner). iCloud später.
 
 ## Ordner

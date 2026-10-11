@@ -1,6 +1,6 @@
 # Kontivo für iPhone und iPad (SwiftUI)
 
-Native Version der Web-App Kontivo, 1:1 nachgebaut. Stand: 10.10.2026 (Web v142).
+Native Version der Web-App Kontivo, 1:1 nachgebaut. Stand: 10.10.2026 (Web v142); Kern (KontivoCore) 11.10.2026 auf Web v160 – Oberfläche folgt.
 
 ## Stand
 - **Kern (KontivoCore):** Datenmodell, Rechenkern, Datenqualität, Kündigungsschreiben, Katalog, Import/Export, Fachaktionen. 46 automatische Tests, darunter der Abgleich mit der Web-App (`tests/golden.json`: 4 Stichtage × 25 Verträge × 17 Werte, 100 % gleich).
