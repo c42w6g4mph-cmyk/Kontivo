@@ -4874,7 +4874,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     var sh="";if(!gone&&!isPaused(c)&&!notStarted(c)&&!trialOn(c)){var tot=running().filter(function(x){return !notStarted(x)&&!trialOn(x);}).reduce(function(n,x){return n+monthlyCost(x);},0);
       if(tot>0.005){var pc=Math.round(monthlyCost(c)/tot*100);sh='<span class="kzbar" aria-hidden="true"><i style="width:'+Math.max(2,Math.min(100,pc))+'%"></i></span><em>'+pc+" % deiner Fixkosten</em>";}}
     /* ohne Anteil (gekündigt/pausiert/beendet/noch nicht gestartet): Status statt Leerfläche */
-    if(!sh){var st0=c.cancelPer&&!gone?"gekündigt, läuft bis "+fmtShort(parseD(c.cancelPer)):isPaused(c)?"pausiert":gone?"beendet":notStarted(c)?"startet am "+fmtShort(parseD(c.start)):"";
+    if(!sh){var st0=c.cancelPer&&!endedByNotice(c)&&c.status!=="cancelled"?"gekündigt, läuft bis "+fmtShort(parseD(c.cancelPer)):isPaused(c)?"pausiert":gone?"beendet":notStarted(c)?"startet am "+fmtShort(parseD(c.start)):"";
       if(st0)sh='<span class="kzbar off" aria-hidden="true"><i style="width:0"></i></span><em>'+esc(st0)+"</em>";}
     var tile=function(v,lab,extra){return '<div class="kzt"><small>'+lab+"</small><b>"+v+"</b>"+(extra||"")+"</div>";};
     var cur='<u>'+esc(cu)+"</u>",mt=money(mon,cu),k=decAt(mt),big=k<0?mt:mt.slice(0,k)+"<i>"+mt.slice(k)+"</i>";
