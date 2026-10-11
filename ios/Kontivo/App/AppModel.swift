@@ -10,6 +10,8 @@ final class AppModel {
     // MARK: Daten
     var data: AppData
     let files: FileStore
+    /// iCloud-Sync (nur aktiv, wenn der Build iCloud kann und der Nutzer ihn nicht ausgeschaltet hat; nie im UI-Test-Modus)
+    let sync: SyncController
 
     // MARK: Navigation
     var tab: AppTab = .contracts
@@ -52,6 +54,8 @@ final class AppModel {
     @ObservationIgnored private var loadDeferred = false
     /// Meldung zum Laden, wird beim ersten Aktivieren gezeigt
     @ObservationIgnored private var pendingLoadNotice: LoadNotice?
+    /// Geladene Daten nicht sicher (Vorversion, defekt): beim Start des iCloud-Sync gewinnt iCloud bei gleicher ID
+    @ObservationIgnored private var loadedUnsafe = false
 
     // MARK: Heute
     /// Heutiges Datum (beobachtet): wird beim Aktivieren und um Mitternacht/bei Zeitänderung neu gesetzt
@@ -61,8 +65,12 @@ final class AppModel {
 
     // MARK: Meldungen
     var toastText: String?
+    /// Zähler: Dateien aus iCloud nachgeladen (Logos/Dokumente neu zeichnen)
+    var fileRevision = 0
     @ObservationIgnored private var toastTask: Task<Void, Never>?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
+    /// Änderung noch nicht gespeichert (Speichern läuft entprellt)
+    @ObservationIgnored private var unsaved = false
     /// Wichtige Meldung (Speicherfehler) bis zu diesem Zeitpunkt nicht überschreiben (wie toastLock der Web-App)
     @ObservationIgnored private var toastLockUntil = Date.distantPast
     /// Speicherfehler schon gemeldet (erst nach erfolgreichem Speichern wieder melden)
@@ -90,6 +98,7 @@ final class AppModel {
             store = FileStore()
         }
         self.files = store
+        self.sync = SyncController(disabled: uiTest)
         let t = Day.today(in: .current)
         self.currentDay = t
         self.selectedYear = t.year
@@ -104,11 +113,13 @@ final class AppModel {
                 self.data = d
                 if fromPrevious {
                     saveBlocked = true
+                    loadedUnsafe = true
                     pendingLoadNotice = .previous(brokenName: broken)
                 }
             case .failed(let broken):
                 self.data = AppData.initial(homeCurrency: .CHF)
                 saveBlocked = true
+                loadedUnsafe = true
                 pendingLoadNotice = .failed(brokenName: broken)
             case .unavailable:
                 self.data = AppData.initial(homeCurrency: .CHF)
@@ -124,6 +135,7 @@ final class AppModel {
         if saveBlocked { return }
         startOnboardingIfNeeded()
         scheduleFileCleanup()
+        sync.start(self)
     }
 
     /// Bestehende Daten: Einführung gilt als gesehen; ohne Daten startet die Einführung
@@ -181,6 +193,7 @@ final class AppModel {
 
     func scheduleSave() {
         saveTask?.cancel()
+        unsaved = true
         saveTask = Task { [weak self] in
             try? await Task.sleep(nanoseconds: 350_000_000)
             guard !Task.isCancelled else { return }
@@ -192,8 +205,17 @@ final class AppModel {
     @discardableResult
     func saveNow() -> Bool {
         saveTask?.cancel()
+        unsaved = false
         if uiTestMode { return true }
         if saveBlocked { return false }
+        let ok = writeData()
+        // iCloud-Sync: lokale Änderungen durch Vergleich alt/neu erkennen (auch wenn das Schreiben scheiterte)
+        sync.localDataSaved(data, persisted: ok)
+        return ok
+    }
+
+    /// data.json schreiben, Fehler einmal melden
+    private func writeData() -> Bool {
         if files.saveData(data) {
             saveErr = false
             return true
@@ -204,6 +226,40 @@ final class AppModel {
             showToast("Speichern fehlgeschlagen – Gerätespeicher voll? Bitte ein Backup erstellen.", seconds: 5, lock: true)
         }
         return false
+    }
+
+    // MARK: iCloud-Sync
+
+    /// Vor dem Übernehmen entfernter Änderungen: offene lokale Änderungen speichern (und damit als lokal erfassen).
+    func syncFlush() {
+        if unsaved { saveNow() }
+    }
+
+    /// Änderungen aus iCloud übernehmen und speichern – ohne sie erneut als lokale Änderung zu erfassen.
+    /// Erinnerungen planen sich danach neu (Beobachter auf `data`). false = data.json nicht geschrieben.
+    @discardableResult
+    func syncReplace(_ d: AppData) -> Bool {
+        if uiTestMode || saveBlocked { return false }
+        if d != data { data = d }
+        return writeData()
+    }
+
+    /// Neues Gerät hat die Daten aus iCloud übernommen: Einführung schliessen, Meldung
+    func syncAdoptedICloudData(endOnboarding: Bool) {
+        if data.settings.onboarded == 0 {
+            update { $0.settings.onboarded = 1 }
+            saveNow()
+        }
+        if endOnboarding && onboarding == .firstRun {
+            goTab(.contracts)
+            closeOnboarding()
+        }
+        toast(SyncTexts.adoptedToast, seconds: 3.5)
+    }
+
+    /// Dateien (Logos, Dokumente) aus iCloud nachgeladen: Ansichten neu zeichnen
+    func filesDidArrive() {
+        fileRevision += 1
     }
 
     // MARK: Fenster
@@ -342,6 +398,7 @@ final class AppModel {
         }
         cancelReturnCheck()
         Task { await RateService.refreshIfNeeded(self, force: false) }
+        sync.sceneBecameActive()
     }
 
     /// Heute neu bestimmen (Tageswechsel, Zeitzone). Kosten/Budget gehen mit, wenn sie auf dem alten Monat standen.
@@ -383,18 +440,22 @@ final class AppModel {
             loadDeferred = false
             saveBlocked = false
             startOnboardingIfNeeded()
+            sync.start(self)
         case .loaded(let d, let fromPrevious, let broken):
             loadDeferred = false
             data = d
             if fromPrevious {
+                loadedUnsafe = true
                 showLoadNotice(.previous(brokenName: broken))
             } else {
                 saveBlocked = false
                 startOnboardingIfNeeded()
                 scheduleFileCleanup()
+                sync.start(self)
             }
         case .failed(let broken):
             loadDeferred = false
+            loadedUnsafe = true
             showLoadNotice(.failed(brokenName: broken))
         }
     }
@@ -421,10 +482,12 @@ final class AppModel {
                     guard let self else { return }
                     self.saveBlocked = false
                     self.onboarding = .firstRun
+                    self.startSyncAfterUnsafeLoad()
                 },
                 action: { [weak self] in
                     guard let self else { return }
                     self.saveBlocked = false
+                    self.startSyncAfterUnsafeLoad()
                     MoreRequests.openBackupImport(self)
                 })
         }
@@ -436,6 +499,13 @@ final class AppModel {
         saveNow()
         startOnboardingIfNeeded()
         scheduleFileCleanup()
+        startSyncAfterUnsafeLoad()
+    }
+
+    /// iCloud-Sync nach unsicherem Laden starten: bei gleicher ID gewinnt iCloud, nichts wird als Löschung gesendet
+    private func startSyncAfterUnsafeLoad() {
+        sync.start(self, localDataUnsafe: loadedUnsafe)
+        loadedUnsafe = false
     }
 
     // MARK: Verwaiste Dateien
@@ -449,12 +519,19 @@ final class AppModel {
             try? await Task.sleep(nanoseconds: 3_000_000_000)
             guard let self, !self.saveBlocked, !self.uiTestMode else { return }
             UserDefaults.standard.set(day, forKey: key)
-            self.files.collectGarbage(keeping: Set(self.data.referencedFileIDs), olderThanDays: 7)
+            if self.files.collectGarbage(keeping: Set(self.data.referencedFileIDs), olderThanDays: 7) > 0 {
+                // iCloud-Sync: aufgeräumte Dateien auch dort löschen
+                self.sync.filesChanged()
+            }
         }
     }
 
     // MARK: Dateien (Logos, Dokumente, Bilder)
-    func image(_ id: String?) -> UIImage? { files.image(id) }
+    func image(_ id: String?) -> UIImage? {
+        // Beobachtet: aus iCloud nachgeladene Logos/Bilder erscheinen ohne Neustart
+        _ = fileRevision
+        return files.image(id)
+    }
 
     /// Datei speichern; bei Fehler Toast und nil
     func storeFile(_ data: Data, type: String) -> String? {

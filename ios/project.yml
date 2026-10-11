@@ -23,6 +23,7 @@ targets:
       - path: Kontivo
         excludes:
           - Resources/PrivacyInfo.xcprivacy
+          - Kontivo.entitlements
       # Datenschutz-Manifest (App Store): ausdrücklich als Ressource ins App-Bundle
       - path: Kontivo/Resources/PrivacyInfo.xcprivacy
         buildPhase: resources
@@ -69,6 +70,11 @@ targets:
         NSPhotoLibraryUsageDescription: Kontivo liest auf deinen Wunsch Fotos deines Kontoauszugs, um Fixkosten zu finden. Die Bilder werden nur auf diesem Gerät gelesen und nicht gespeichert.
         LSSupportsOpeningDocumentsInPlace: false
         UISupportsDocumentBrowser: false
+        # iCloud-Sync: zur Laufzeit nur aktiv, wenn KONTIVO_ICLOUD (unten) YES ist; Push weckt den Abgleich im Hintergrund
+        KontivoICloud: $(KONTIVO_ICLOUD)
+        KontivoICloudContainer: $(KONTIVO_ICLOUD_CONTAINER)
+        UIBackgroundModes:
+          - remote-notification
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ch.kontivo.app
@@ -78,6 +84,14 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: NO
+        # iCloud-Sync einschalten: "NO" → "YES" (braucht das Apple Developer Program), dann `xcodegen`.
+        # Schaltet die Berechtigungen (Kontivo.entitlements: iCloud/CloudKit, Push) und den Sync in der App gemeinsam ein.
+        # Anleitung: ios/README.md «iCloud-Sync einschalten».
+        KONTIVO_ICLOUD: "NO"
+        KONTIVO_ICLOUD_CONTAINER: iCloud.$(PRODUCT_BUNDLE_IDENTIFIER)
+        KONTIVO_ENTITLEMENTS_YES: Kontivo/Kontivo.entitlements
+        KONTIVO_ENTITLEMENTS_NO: ""
+        CODE_SIGN_ENTITLEMENTS: $(KONTIVO_ENTITLEMENTS_$(KONTIVO_ICLOUD))
   KontivoUITests:
     type: bundle.ui-testing
     platform: iOS

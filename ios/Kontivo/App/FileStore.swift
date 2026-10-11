@@ -100,6 +100,27 @@ final class FileStore {
         }
     }
 
+    // MARK: Zustand des iCloud-Sync (neben data.json, nicht im Backup)
+    private var syncStateURL: URL { base.appendingPathComponent("sync-state.plist") }
+
+    enum SyncStateLoad {
+        case missing
+        case loaded(Data)
+        /// Nicht lesbar (Gerät gesperrt, Dateischutz) – später erneut versuchen
+        case unavailable
+    }
+
+    func loadSyncState() -> SyncStateLoad {
+        guard FileManager.default.fileExists(atPath: syncStateURL.path) else { return .missing }
+        guard let d = try? Data(contentsOf: syncStateURL) else { return .unavailable }
+        return .loaded(d)
+    }
+
+    @discardableResult
+    func saveSyncState(_ d: Data) -> Bool {
+        (try? d.write(to: syncStateURL, options: [.atomic, .completeFileProtection])) != nil
+    }
+
     // MARK: Dateien
     static func newID() -> String {
         var bytes = [UInt8](repeating: 0, count: 16)

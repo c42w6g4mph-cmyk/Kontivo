@@ -200,7 +200,7 @@ final class MoreDataFlow {
             case .empty:
                 model.toast(Backup.emptyMessage)
             case .ok(let r):
-                self.show(MoreAsk(title: Backup.confirmTitle, message: MoreDataFlow.backupConfirmText(r),
+                self.show(MoreAsk(title: Backup.confirmTitle, message: MoreDataFlow.backupConfirmText(r) + (model.sync.isActive ? SyncTexts.replaceNote : ""),
                                   confirm: Backup.confirmButton, destructive: true) { [weak self] in
                     self?.restore(r, model: model)
                 }, delayed: true)
@@ -298,8 +298,9 @@ final class MoreDataFlow {
     func askWipe(model: AppModel) {
         let nc = model.data.contracts.count
         let ni = model.data.incomes.count
-        let text = "Gelöscht werden " + Format.count(nc, "Vertrag", "Verträge") + ", " + Format.count(ni, "Einnahme", "Einnahmen")
+        var text = "Gelöscht werden " + Format.count(nc, "Vertrag", "Verträge") + ", " + Format.count(ni, "Einnahme", "Einnahmen")
             + ", eigene Kategorien, Personen, Absender sowie hochgeladene Logos und Dokumente.\n\nDarstellung und Währung bleiben erhalten.\n\nTipp: Speichere vorher ein Backup."
+        if model.sync.isActive { text += SyncTexts.wipeNote }
         show(MoreAsk(title: "Alle Daten löschen?", message: text, confirm: "Weiter", destructive: true) { [weak self] in
             self?.show(MoreAsk(title: "Wirklich endgültig löschen?", message: "Das lässt sich nicht rückgängig machen.",
                                confirm: "Endgültig löschen", destructive: true) { [weak self] in

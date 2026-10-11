@@ -437,6 +437,7 @@ struct MoreDataGroup: View {
 
     var body: some View {
         MoreGroup(title: "Daten") {
+            MoreICloudSection() // iCloud-Sync (Bereich sync: More/MoreICloudSection.swift)
             VStack(spacing: 8) {
                 HStack(spacing: 8) {
                     MoreTile(symbol: "square.and.arrow.up", title: "Backup erstellen") { flow.exportBackup(model: model) }
