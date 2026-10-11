@@ -1,7 +1,7 @@
 import SwiftUI
 import KontivoCore
 
-/// Fenster «Alle Einnahmen»: nach heutigem Betrag absteigend; Tippen öffnet das Formular.
+/// Fenster «Alle Einnahmen»: nach heutigem Betrag absteigend; Tippen öffnet die Einnahme-Ansicht (Web v155).
 struct IncomesAllView: View {
     @Environment(AppModel.self) private var model
 
@@ -48,7 +48,7 @@ struct IncomesAllView: View {
     private func row(_ i: Income, calc: Calc) -> some View {
         let st = calc.kbIncomeStatus(i)
         return Button {
-            model.present(.incomeForm(i.id))
+            model.present(.incomeDetail(i.id))
         } label: {
             HStack(spacing: 11) {
                 MarkView(income: i, size: 32)

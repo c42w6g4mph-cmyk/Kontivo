@@ -1,10 +1,11 @@
 import SwiftUI
 import KontivoCore
 
-// MARK: - Vollständigkeit (Web openVk/paintVk/vkNext, v120–v134)
+// MARK: - Vollständigkeit (Web openVk/paintVk/vkNext, v120–v134, v143)
 //
-// Ein zentraler Ablauf: Start (Ring, «Los geht’s · ca. n Minuten»), 1 Logos (Raster mit Austausch/Suche/«Ohne Logo»),
-// 2 Fristen (eine Frage pro Vertrag mit Katalog-Vorschlag), 3 Absender (pro Person), Abschluss.
+// Ein zentraler Ablauf: Start (Ring, «Los geht’s · ca. n Minuten»; fehlen nur Logos: «Alles startklar!»), 1 Fristen (eine Frage
+// pro Vertrag mit Katalog-Vorschlag), 2 Absender (pro Person), 3 optional Logos am Schluss (Raster mit Austausch/Suche/«Ohne Logo»,
+// «Ohne Logos fertig»), Abschluss (Ring und Überschrift nach Prozent, Liste nur bei komplett). Logos zählen nicht als Frage.
 // Öffnen: `model.present(.manage(.completeness(only: nil)))` (alle) bzw. `only: vertragsID` (Hinweis im Vertragsdetail).
 // Regeln und Texte: KontivoCore/Completeness.swift.
 
@@ -42,8 +43,8 @@ final class CompletenessFlowState {
     var senders: [UUID] = []
     var si = 0
     var draft = CompletenessTermDraft()
-    /// Logos beim Öffnen (zählt als eine Frage, auch wenn später alle erledigt sind)
-    var initialLogoCount = 0
+    /// Logo-Schritt schon gezeigt (Web `vk.logoDone`): kommt nur einmal, «Zurück» bzw. «Logos ergänzen» setzt zurück
+    var logoDone = false
     var offline = false
     /// Übernahme läuft (Schliessen gesperrt)
     var busy = false
@@ -55,8 +56,8 @@ final class CompletenessFlowState {
 
     init(only: UUID?) { self.only = only }
 
-    /// Anzahl Fragen (`vkQCount`)
-    var questionCount: Int { (logos.isEmpty && initialLogoCount == 0 ? 0 : 1) + terms.count + senders.count }
+    /// Anzahl Fragen (`vkQCount`, Web v143): Fristen + Absender; Logos sind optional und zählen nicht
+    var questionCount: Int { terms.count + senders.count }
 
     func report(_ model: AppModel) -> CompletenessReport {
         let f = model.files
@@ -68,7 +69,6 @@ final class CompletenessFlowState {
         if didSetup { return }
         didSetup = true
         let n = report(model)
-        initialLogoCount = n.logoPartners.count
         terms = n.termContracts
         senders = n.senderPersons
         if only != nil {
@@ -76,13 +76,13 @@ final class CompletenessFlowState {
             next(from: .start, model)
         } else {
             auto = Completeness.autoPlan(model.data, today: model.today)
-            // Logos zählen seit Web v143 nicht mehr als Frage; bis die Seite «Alles startklar!» gebaut ist, bleibt der Start
-            // mit optionalen Logos erhalten
+            // nichts zu tun: direkt der Abschluss; fehlen nur Logos, zeigt der Start «Alles startklar!» (CFStartPage)
             if n.total > 0 && n.questionCount == 0 && n.logoPartners.isEmpty && auto.isEmpty { step = .end }
         }
     }
 
-    /// Weiter (Web `vkNext`)
+    /// Weiter (Web `vkNext`, v143): Fristen → Adresse → optional Logos am Schluss → Abschluss.
+    /// `from: .logo` (Logos übernommen bzw. «Ohne Logos fertig») führt zum Abschluss.
     func next(from: Step, _ model: AppModel) {
         var from = from
         if from == .start {
@@ -94,19 +94,6 @@ final class CompletenessFlowState {
             let n = report(model)
             terms = n.termContracts
             senders = n.senderPersons
-            if !n.logoPartners.isEmpty {
-                step = .logo
-                pick = nil
-                logos = n.logoPartners.compactMap { pid in
-                    guard let p = model.data.partner(pid) else { return nil }
-                    return CFLogoTile(id: pid, name: p.name, currency: model.mdCurrency(partner: pid), web: p.web, query: p.name)
-                }
-                startSearch(model)
-                return
-            }
-            from = .logo
-        }
-        if from == .logo {
             if !terms.isEmpty {
                 step = .term
                 ti = 0
@@ -128,27 +115,58 @@ final class CompletenessFlowState {
             }
             from = .sender
         }
-        if from == .sender && step == .sender && si < senders.count - 1 {
-            si += 1
-            return
+        if from == .sender {
+            if step == .sender && si < senders.count - 1 {
+                si += 1
+                return
+            }
+            if logoStep(model) { return }
         }
         step = .end
     }
 
-    /// Zurück (Web `vkBack`)
+    /// Optionaler Logo-Schritt (Web `vkLogoStep`): nur einmal und nur, wenn Vertragspartnern ein Logo fehlt.
+    @discardableResult
+    func logoStep(_ model: AppModel) -> Bool {
+        let n = report(model)
+        if n.logoPartners.isEmpty || logoDone { return false }
+        logoDone = true
+        step = .logo
+        pick = nil
+        logos = n.logoPartners.compactMap { pid in
+            guard let p = model.data.partner(pid) else { return nil }
+            return CFLogoTile(id: pid, name: p.name, currency: model.mdCurrency(partner: pid), web: p.web, query: p.name)
+        }
+        startSearch(model)
+        return true
+    }
+
+    /// «Logos ergänzen» auf der Startseite «Alles startklar!» (Web data-vk="logos")
+    func startLogos(_ model: AppModel) {
+        logoDone = false
+        if !logoStep(model) { step = .end }
+    }
+
+    /// Zurück (Web `vkBack`): aus den Logos zur letzten Adresse bzw. Frist
     func back(_ model: AppModel) {
         if step == .logo && pick != nil { pick = nil; return }
+        if step == .logo {
+            logoDone = false
+            searchTask?.cancel()
+            if !senders.isEmpty { step = .sender; si = senders.count - 1; return }
+            if !terms.isEmpty { step = .term; ti = terms.count - 1; initTerm(model); return }
+        }
         if step == .term && ti > 0 { ti -= 1; initTerm(model); return }
         if step == .sender && si > 0 { si -= 1; return }
         if step == .sender && !terms.isEmpty { step = .term; ti = terms.count - 1; initTerm(model); return }
-        if (step == .sender || step == .term) && !logos.isEmpty { step = .logo; pick = nil; return }
         if only == nil { step = .start }
     }
 
+    /// Zurück-Knopf (Web `vkHead`): Logos nur mit Start bzw. vorherigen Fragen
     var backVisible: Bool {
         switch step {
         case .start, .end: return false
-        case .logo: return only == nil || pick != nil
+        case .logo: return only == nil || pick != nil || !terms.isEmpty || !senders.isEmpty
         case .term, .sender: return true
         }
     }
@@ -538,6 +556,26 @@ struct CFStartPage: View {
                     .font(.subheadline)
                     .foregroundStyle(KColor.ink2)
                     .multilineTextAlignment(.center)
+            } else if report.questionCount == 0 && flow.auto.isEmpty {
+                // startklar, nur Logos fehlen: optionales Angebot statt Fragen (Web v143)
+                CFDoneMark()
+                Text(Completeness.readyTitle)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(KColor.ink)
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 6)
+                    .accessibilityAddTraits(.isHeader)
+                Text(Completeness.readyLogosText(report.logoPartners.count))
+                    .font(.subheadline)
+                    .foregroundStyle(KColor.ink2)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 320)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, 14)
+                CFButton(title: Completeness.readyLogosButton, identifier: "vk.readyLogos") {
+                    flow.startLogos(model)
+                }
+                CFButton(title: Completeness.readyDoneButton, secondary: true, identifier: "vk.readyDone") { close() }
             } else {
                 CFRing(percent: report.percent)
                     .padding(.top, 14)
@@ -571,6 +609,12 @@ struct CFStartPage: View {
             }
         }
         .frame(maxWidth: .infinity)
+        .onAppear {
+            // nichts mehr offen (z.B. zurück zum Start nach der letzten Frage): Abschluss (Web paintVk «start»)
+            if report.total > 0 && report.questionCount == 0 && flow.auto.isEmpty && report.logoPartners.isEmpty {
+                flow.step = .end
+            }
+        }
     }
 
     private func attributed(_ s: String) -> AttributedString {
@@ -591,7 +635,8 @@ struct CFLogoPage: View {
         let anyOk = flow.logos.contains { $0.state == .ok }
         let load = flow.loading
         VStack(alignment: .leading, spacing: 0) {
-            CFProgress(index: 0, total: flow.questionCount, label: Completeness.logoStepLabel,
+            // optionaler Schritt am Schluss: Balken voll (Web `vkProg(max(1, vkQCount()), …)`)
+            CFProgress(index: Swift.max(1, flow.questionCount), total: flow.questionCount, label: Completeness.logoStepLabel,
                        gain: Completeness.gainText(report, single: flow.only != nil))
             CFQuestion(title: anyOk || load ? Completeness.logoQuestionFound : Completeness.logoQuestionNone,
                        text: flow.offline ? Completeness.logoTextOffline : (anyOk || load ? Completeness.logoTextFound : Completeness.logoTextNone))
@@ -758,7 +803,7 @@ struct CFTermPage: View {
             let calc = model.calc
             let name = Completeness.termName(c, data: model.data)
             let t = Catalog.match(names: [model.data.partnerName(of: c), c.label], currency: c.currency)
-            let idx = (flow.logos.isEmpty ? 0 : 1) + flow.ti
+            let idx = flow.ti
             VStack(alignment: .leading, spacing: 0) {
                 CFProgress(index: idx, total: flow.questionCount, label: Completeness.questionLabel(idx + 1, of: flow.questionCount),
                            gain: Completeness.gainText(report, single: flow.only != nil))
@@ -944,7 +989,7 @@ struct CFSenderPage: View {
 
     var body: some View {
         if flow.si < flow.senders.count, let p = model.data.person(flow.senders[flow.si]) {
-            let idx = (flow.logos.isEmpty ? 0 : 1) + flow.terms.count + flow.si
+            let idx = flow.terms.count + flow.si
             let others = model.data.completenessSameCandidates(for: p.id)
             VStack(alignment: .leading, spacing: 0) {
                 CFProgress(index: idx, total: flow.questionCount, label: Completeness.questionLabel(idx + 1, of: flow.questionCount),
@@ -1028,15 +1073,7 @@ struct CFEndPage: View {
         let single = flow.only != nil
         VStack(spacing: 0) {
             if report.isComplete {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 50, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 110, height: 110)
-                    .background(Circle().fill(KColor.ok))
-                    .background(Circle().fill(KColor.ok.opacity(0.15)).padding(-14))
-                    .padding(.top, 24)
-                    .padding(.bottom, 16)
-                    .accessibilityHidden(true)
+                CFDoneMark()
             } else {
                 CFRing(percent: report.percent)
                     .padding(.top, 14)
@@ -1055,19 +1092,37 @@ struct CFEndPage: View {
                 .frame(maxWidth: 320)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.bottom, 14)
-            VStack(alignment: .leading, spacing: 9) {
-                ForEach(Completeness.endList, id: \.self) { s in
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Text("✓").font(.body.weight(.bold)).foregroundStyle(KColor.ok).accessibilityHidden(true)
-                        Text(s).font(.body).foregroundStyle(KColor.ink)
+            // Liste mit Haken nur, wenn alles startklar ist (Web v143)
+            if Completeness.showsEndList(report) {
+                VStack(alignment: .leading, spacing: 9) {
+                    ForEach(Completeness.endList, id: \.self) { s in
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            Text("✓").font(.body.weight(.bold)).foregroundStyle(KColor.ok).accessibilityHidden(true)
+                            Text(s).font(.body).foregroundStyle(KColor.ink)
+                        }
                     }
                 }
+                .frame(maxWidth: 300, alignment: .leading)
+                .padding(.top, 6)
             }
-            .frame(maxWidth: 300, alignment: .leading)
-            .padding(.top, 6)
             CFButton(title: "Fertig", identifier: "vk.done") { close() }
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+/// Grosser Haken (Web `.vkok`): Abschluss komplett und Startseite «Alles startklar!»
+struct CFDoneMark: View {
+    var body: some View {
+        Image(systemName: "checkmark")
+            .font(.system(size: 50, weight: .bold))
+            .foregroundStyle(.white)
+            .frame(width: 110, height: 110)
+            .background(Circle().fill(KColor.ok))
+            .background(Circle().fill(KColor.ok.opacity(0.15)).padding(-14))
+            .padding(.top, 24)
+            .padding(.bottom, 16)
+            .accessibilityHidden(true)
     }
 }
 

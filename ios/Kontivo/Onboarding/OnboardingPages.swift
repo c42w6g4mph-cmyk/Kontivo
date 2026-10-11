@@ -58,7 +58,7 @@ enum OnbTab: String, CaseIterable, Hashable {
         case .list: return ["Alle Vertragsdetails auf einen Blick", "Per Kontoauszug in Minuten erfasst", "Monatliche Fixkosten sofort sichtbar"]
         case .stat: return ["Alle Abbuchungen übersichtlich geplant", "Bezahlt oder offen sofort erkennen", "Keine Überraschungen im Briefkasten"]
         case .budget: return ["Einnahmen minus Fixkosten klar berechnet", "Monatlich und jährlich auf einen Blick"]
-        case .term: return ["Kündigungsfristen automatisch berechnet", "Rechtzeitig vor Fristablauf informiert", "Kündigen mit einem Tipp – Schreiben fertig"]
+        case .term: return ["Kündigungsfristen automatisch berechnet", "Rechtzeitig unter «Fristen» angezeigt", "Kündigen mit einem Tipp – Schreiben fertig"]
         case .more: return []
         }
     }

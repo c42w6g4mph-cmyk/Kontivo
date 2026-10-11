@@ -89,6 +89,8 @@ struct AppSheetView: View {
         case .incomeForm(let id):
             IncomeFormView(incomeID: id)
                 .interactiveDismissDisabled(true)
+        case .incomeDetail(let id):
+            IncomeDetailView(incomeID: id)
         case .incomesAll:
             IncomesAllView()
         case .letter(let id, let trial):

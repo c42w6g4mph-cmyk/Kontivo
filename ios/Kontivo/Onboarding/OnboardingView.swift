@@ -65,7 +65,8 @@ struct OnboardingView: View {
 
     // MARK: Vorbelegung
 
-    /// Hauptwährung: beim echten Erststart EUR; gibt es schon gespeicherte Daten (z.B. nach «Alle Daten löschen»), die bisherige.
+    /// Hauptwährung: beim echten Erststart nach den bevorzugten Sprachen des Geräts (Web v156 `locCur`: -CH/-LI → CHF,
+    /// -DE/-AT → EUR, sonst EUR); gibt es schon gespeicherte Daten (z.B. nach «Alle Daten löschen»), die bisherige.
     /// Name: erste Person ausser «Ich».
     private func prepare() {
         guard !prepared else { return }
@@ -73,7 +74,7 @@ struct OnboardingView: View {
         let s = model.data.settings
         if mode == .firstRun {
             let saved = FileManager.default.fileExists(atPath: model.files.base.appendingPathComponent("data.json").path)
-            home = saved ? s.homeCurrency : .EUR
+            home = saved ? s.homeCurrency : Currency.onboardingDefault(preferredLanguages: Locale.preferredLanguages)
         } else {
             home = s.homeCurrency
         }

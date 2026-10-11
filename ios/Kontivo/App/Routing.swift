@@ -10,6 +10,8 @@ enum AppSheet: Identifiable, Hashable {
     case contractForm(ContractFormContext)
     /// Einnahme erfassen (nil) oder bearbeiten
     case incomeForm(UUID?)
+    /// Einnahme ansehen (Web v155 `openIncDetail`): Kacheln, Verlauf, Angaben, Bearbeiten, Menü Duplizieren/Löschen
+    case incomeDetail(UUID)
     /// Fenster «Alle Einnahmen»
     case incomesAll
     /// Kündigungsschreiben (Brief) für einen Vertrag; trial = Kündigung des Probeabos
@@ -32,6 +34,7 @@ enum AppSheet: Identifiable, Hashable {
         case .contractDetail(let u): return "detail-\(u)"
         case .contractForm(let c): return "form-\(c.idPart)"
         case .incomeForm(let u): return "income-\(u?.uuidString ?? "neu")"
+        case .incomeDetail(let u): return "incdetail-\(u)"
         case .incomesAll: return "incomes"
         case .letter(let u, let t): return "letter-\(u)-\(t)"
         case .cancelChannelPick(let u, let t): return "cvia-\(u)-\(t)"
@@ -49,6 +52,7 @@ enum AppSheet: Identifiable, Hashable {
         case .contractDetail: return .contractDetail
         case .contractForm: return .contractForm
         case .incomeForm: return .incomeForm
+        case .incomeDetail: return .incomeDetail
         case .incomesAll: return .incomesAll
         case .letter: return .letter
         case .cancelChannelPick: return .cancelChannelPick
@@ -62,7 +66,7 @@ enum AppSheet: Identifiable, Hashable {
 }
 
 enum AppSheetKind: Hashable {
-    case contractDetail, contractForm, incomeForm, incomesAll, letter, cancelChannelPick, mail, document, manage, bankImport, completeness
+    case contractDetail, contractForm, incomeForm, incomeDetail, incomesAll, letter, cancelChannelPick, mail, document, manage, bankImport, completeness
 
     /// Darf nicht zweimal direkt übereinander liegen (Doppeltippen öffnet sonst z.B. zwei Mail-Fenster).
     /// Vertragsdetail und Verwalten dürfen übereinander liegen (z.B. Vertragspartner → anderer Vertrag).
