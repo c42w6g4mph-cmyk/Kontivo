@@ -6478,7 +6478,8 @@ async function fetchRate(){
 var rateBusy=false;
 async function autoRate(force){
   var s=state.settings;if(rateBusy){if(force)toast("Kurse werden geladen …");return;}
-  if(!force&&s.rateChecked===iso(today())&&s.rates&&s.rates.USD)return;
+  /* EZB veröffentlicht werktags ca. 16 Uhr: solange der Stand nicht von heute ist, alle 3 Stunden erneut prüfen (vorher nur 1× pro Tag → am Morgen geprüft = Vortageskurs bis morgen) */
+  if(!force&&s.rates&&s.rates.USD&&(s.rateDate===iso(today())||(s.rateCheckedAt&&Date.now()-s.rateCheckedAt<3*3600e3)))return;
   if(navigator.onLine===false){if(force)toast("Keine Internetverbindung");return;}
   rateBusy=true;if(force)toast("Lade Kurse…");
   var x=null;try{x=await fetchRate();}catch(e){x=null;}
@@ -6487,11 +6488,12 @@ async function autoRate(force){
   var old=JSON.stringify(s.rates);
   s.rates={EUR:Math.round(x.rates.EUR*10000)/10000};
   ["USD","GBP","TRY"].forEach(function(c){if(x.rates[c])s.rates[c]=Math.round(x.rates[c]*1e6)/1e6;});
-  s.rateDate=/^\d{4}-\d{2}-\d{2}$/.test(x.d)?x.d:iso(today());s.rateChecked=iso(today());s.rateSrc=x.src||"ezb";s.rateAuto=true;
+  s.rateDate=/^\d{4}-\d{2}-\d{2}$/.test(x.d)?x.d:iso(today());s.rateChecked=iso(today());s.rateCheckedAt=Date.now();s.rateSrc=x.src||"ezb";s.rateAuto=true;
   saveSettings();paintRateStamp();if(old!==JSON.stringify(s.rates))render();
   if(force)toast("Kurse aktualisiert");
 }
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")autoRate(false);});
+setInterval(function(){if(document.visibilityState==="visible")autoRate(false);},3600e3);
 /* In einem anderen Fenster geändert: Stand übernehmen statt ihn später zu überschreiben */
 window.addEventListener("storage",function(e){if(e.key!==LS||e.storageArea!==localStorage||loadBad!=null||!e.newValue)return;
   loadLocal();render();toast("In einem anderen Fenster geändert – aktualisiert");});
