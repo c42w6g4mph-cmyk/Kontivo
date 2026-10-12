@@ -2696,7 +2696,7 @@ function renderView(){
     });
     items.sort(function(x,y){return x.d-y.d;});
     var tItem=function(x){var c=x.c,dn=daysBetween(t1,x.d),sub,chip,cc="",acts=false;
-      if(x.k==="end"){sub=x.c.cancelPer?"Gekündigt":"Endet von selbst";chip="endet "+ddmm(x.d);cc="end";}
+      if(x.k==="end"){sub=x.c.cancelPer?"Gekündigt":"Endet von selbst";chip="endet "+ddmm(x.d);cc=x.c.cancelPer?"end":"";}
       else if(x.k==="trial"){sub="Probeabo · gratis bis "+ddmm(x.d);chip=inDays(dn);cc=!x.act?"":dn<=7?"alert":"warn";acts=!!x.act;}
       else if(x.k==="kept"){sub="Behalten · nächste Frist "+ddmm(x.d);chip=inDays(dn);cc="ok";}
       else if(x.k==="keptEnd"){sub="Behalten · läuft bis "+ddmm(x.d);chip=inDays(dn);cc="ok";}
