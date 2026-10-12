@@ -532,8 +532,60 @@ final class SyncCoreTests: XCTestCase {
         XCTAssertFalse(core.ledger.initialDone)
         XCTAssertTrue(core.ledger.systemFields.isEmpty)
         XCTAssertEqual(core.pending(SyncKey(.contract, prev.contracts[0].id)), .delete, "lokale Löschung bleibt")
-        XCTAssertNil(core.pending(SyncKey(.income, prev.incomes[0].id)))
+        XCTAssertEqual(core.pending(SyncKey(.income, prev.incomes[0].id)), .save, "nicht gesendete Änderung bleibt")
         XCTAssertEqual(core.ledger.entries[SyncKey(.income, prev.incomes[0].id).recordName]?.modifiedAt, t(3))
+    }
+
+    func testOfflineEditSurvivesResetAndReunion() {
+        // Offline Betrag ändern → Sync aus (zurücksetzen) → wieder an: die neuere, nie gesendete Änderung bleibt und wird gesendet
+        let cloud = SyncCodecTests.sample()
+        var d = cloud
+        var core = synced(cloud, at: t(1))
+        let prev = d
+        d.contracts[0].amount = 77
+        core.captureLocalChanges(d, previous: prev, now: t(10))
+        core.resetServerState()
+        // Wieder eingeschaltet: Start erfasst erneut (unverändert), erstes Einrichten mit der älteren iCloud-Fassung
+        core.captureLocalChanges(d, previous: nil, now: t(20))
+        _ = core.applyRemote(records: records(cloud, at: t(1)), deletions: [], data: &d, isPresent: noFiles, now: t(21))
+        let fin = core.finishFetch(&d, isPresent: noFiles, now: t(22))
+        XCTAssertFalse(fin.adopted)
+        XCTAssertEqual(d.contracts[0].amount, 77, "lokale Änderung bleibt")
+        let k = SyncKey(.contract, d.contracts[0].id)
+        XCTAssertEqual(core.pending(k), .save)
+        guard case .save(let rec)? = core.outgoing(k, data: d) else { return XCTFail("nicht gesendet") }
+        XCTAssertEqual(rec.modifiedAt, t(10))
+        // Unveränderte Einträge werden nicht erneut gesendet
+        XCTAssertNil(core.pending(SyncKey(.income, d.incomes[0].id)))
+
+        // Neuere iCloud-Fassung gewinnt dagegen weiterhin
+        var cloud2 = cloud
+        cloud2.contracts[0].amount = 99
+        var d2 = cloud
+        var core2 = synced(cloud, at: t(1))
+        let p2 = d2
+        d2.contracts[0].amount = 77
+        core2.captureLocalChanges(d2, previous: p2, now: t(10))
+        core2.resetServerState()
+        _ = core2.applyRemote(records: records(cloud2, at: t(30)), deletions: [], data: &d2, isPresent: noFiles, now: t(31))
+        _ = core2.finishFetch(&d2, isPresent: noFiles, now: t(32))
+        XCTAssertEqual(d2.contracts[0].amount, 99)
+        XCTAssertNil(core2.pending(SyncKey(.contract, d2.contracts[0].id)))
+    }
+
+    func testTwoDifferentOwnNamesStayTwoPersons() {
+        var a = AppData.initial()
+        a.persons[0].name = "Sinan"
+        a.contracts.append(contract(a, "Netflix"))
+        var b = AppData.initial()
+        b.persons[0].name = "Lara"
+        b.contracts.append(contract(b, "Spotify"))
+        var core = SyncCore()
+        core.captureLocalChanges(b, previous: nil, now: t(5))
+        _ = core.applyRemote(records: records(a, at: t(1)), deletions: [], data: &b, isPresent: noFiles, now: t(6))
+        _ = core.finishFetch(&b, isPresent: noFiles, now: t(7))
+        XCTAssertEqual(Set(b.persons.map { $0.name }), ["Sinan", "Lara"])
+        XCTAssertTrue(core.ledger.aliases.keys.allSatisfy { !$0.hasPrefix("person.") })
     }
 
     func testZoneMissingUploadsEverything() {
