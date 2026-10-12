@@ -50,7 +50,7 @@ private struct CTContractsList: View {
 
     var body: some View {
         let calc = model.calc
-        let h = calc.hero()
+        let h = calc.hero(filter: model.costFilter)
         // Web: Hero-Filter zurücksetzen, sobald sein Zähler 0 ist (z.B. letzter pausierter Vertrag fortgesetzt)
         let hero = CTListContent.effectiveHero(model.heroFilter, h)
         let content = CTListContent.build(data: model.data, calc: calc, filter: model.costFilter,
@@ -358,7 +358,7 @@ private struct CTHeroView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        let h = model.calc.hero()
+        let h = model.calc.hero(filter: model.costFilter)
         VStack(alignment: .leading, spacing: 4) {
             Text("Aktuelle Fixkosten pro Monat")
                 .font(.subheadline.weight(.medium))

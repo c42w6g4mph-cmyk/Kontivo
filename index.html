@@ -2517,12 +2517,14 @@ function syncLine(){
 
 /* ---------- Rendern ---------- */
 function renderHero(){
-  var fut=running().filter(notStarted).length,a=running().filter(function(c){return !notStarted(c);}),mSum=0,np=active().length-a.length-fut;
+  /* Filter (Kategorie, Vertragspartner, Person) gilt auch für die Summe; bei Person nur deren Anteil */
+  var lf=fltCount(),fm=function(c){return !lf||fltMatch(c,null);},HH=state.flt.holder;
+  var run=running().filter(fm),fut=run.filter(notStarted).length,a=run.filter(function(c){return !notStarted(c);}),mSum=0,np=active().filter(fm).length-a.length-fut;
   /* laufendes Probeabo kostet (noch) nichts: erst ab Probe-Ende in der Summe */
-  a.forEach(function(c){if(!trialOn(c))mSum+=monthlyCost(c);});
+  a.forEach(function(c){if(!trialOn(c))mSum+=monthlyCost(c)*(HH?holderShare(c,HH):1);});
   document.getElementById("hMonth").textContent=money(mSum);
   document.getElementById("hCur").textContent=state.settings.home;
-  document.getElementById("hSub").textContent=nf0.format(mSum*12)+" "+state.settings.home+" pro Jahr"+((!np&&!fut&&a.length)?" · "+a.length+(a.length===1?" aktiver Vertrag":" aktive Verträge"):"");
+  document.getElementById("hSub").textContent=nf0.format(mSum*12)+" "+state.settings.home+" pro Jahr"+(lf?" · "+fltLabel():((!np&&!fut&&a.length)?" · "+a.length+(a.length===1?" aktiver Vertrag":" aktive Verträge"):""));
   var hf=state.heroF||"";
   /* Filter zurücksetzen, sobald sein Zähler 0 ist (z.B. letzter pausierter Vertrag fortgesetzt) */
   if((hf==="act"&&(!(np||fut)||!a.length))||(hf==="paused"&&!np)||(hf==="fut"&&!fut))hf=state.heroF="";
@@ -2590,6 +2592,7 @@ function renderView(){
   document.getElementById("cTerm").textContent=tCount?tCount:"";
 
   if(state.tab==="list"){
+    renderHero();/* Summe oben folgt dem Filter (Filter-Blatt ruft nur renderView) */
     var q=(state.q||"").trim().toLowerCase();
     var mq=function(c){if(!q)return true;return [c.label,c.partner,c.cat,holdersOf(c).join(" "),c.custNo,c.contrNo,c.note].join(" ").toLowerCase().indexOf(q)>=0;};
     if(q)a=a.filter(mq);

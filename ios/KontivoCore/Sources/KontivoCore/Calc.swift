@@ -546,15 +546,21 @@ public struct Calc {
         public var showsChips: Bool
     }
 
-    public func hero() -> Hero {
-        let run = running
+    /// Mit Filter (Web v161 `renderHero`): Kategorie/Vertragspartner/Person gelten auch für die Summe, bei Person nur deren Anteil;
+    /// die Unterzeile nennt dann den Filter («… pro Jahr · Wohnen»).
+    public func hero(filter f: CostFilter = CostFilter()) -> Hero {
+        let lf = f.count > 0
+        let fm: (Contract) -> Bool = { !lf || self.matches($0, f) }
+        let run = running.filter(fm)
         let fut = run.filter { notStarted($0) }.count
         let a = run.filter { !notStarted($0) }
         // laufendes Probeabo kostet (noch) nichts: erst ab Probe-Ende in der Summe (Web v157)
-        let sum = a.reduce(0.0) { $0 + (trialOn($1) ? 0 : monthlyCost($1)) }
-        let np = active.count - a.count - fut
+        let sum = a.reduce(0.0) { $0 + (trialOn($1) ? 0 : monthlyCost($1) * holderShare($1, person: f.person)) }
+        let np = active.filter(fm).count - a.count - fut
         var sub = Format.money0(sum * 12) + " " + home.rawValue + " pro Jahr"
-        if np == 0 && fut == 0 && !a.isEmpty {
+        if lf {
+            sub += " · " + [f.category, f.partner, f.person.flatMap { data.person($0)?.name }].compactMap { $0 }.joined(separator: " · ")
+        } else if np == 0 && fut == 0 && !a.isEmpty {
             sub += " · \(a.count)" + (a.count == 1 ? " aktiver Vertrag" : " aktive Verträge")
         }
         return Hero(monthlyTotal: sum, yearlyTotal: sum * 12, activeCount: a.count, pausedCount: np, futureCount: fut,
