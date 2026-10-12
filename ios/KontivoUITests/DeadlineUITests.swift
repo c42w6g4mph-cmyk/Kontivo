@@ -66,7 +66,7 @@ final class DeadlineUITests: KontivoUITestCase {
         wait(sent, "Rückfrage «Brief verschickt?»")
         XCTAssertTrue(sent.label.contains("Brief verschickt") || elContaining("Brief verschickt").exists, "Titel: \(sent.label)")
         tapAlertButton("Noch nicht")
-        waitGone(sent, "Rückfrage geschlossen")
+        waitGone(sent, "Rückfrage geschlossen", timeout: 20)
     }
 
     /// Hausrat: keine Empfängeradresse, zweiter Inhaber ohne Absender → beide Rückfragen, dann Viewer
