@@ -11,26 +11,30 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" id="themeColor" content="#F3F1EC">
+<meta name="theme-color" id="themeColor" content="#F4F4F2">
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221024%22 height=%221024%22 viewBox=%220 0 1024 1024%22%3E%3Cdefs%3E%3C/defs%3E%3Cg%3E%3Crect width=%221024%22 height=%221024%22 rx=%22228%22 fill=%22%230E5A5E%22/%3E%3Cg transform=%22translate(-82.55,-76.22) scale(1.15)%22%3E%3CclipPath id=%22cu1%22%3E%3Crect x=%220%22 y=%22292%22 width=%221024%22 height=%22440%22/%3E%3C/clipPath%3E%3Cpolygon points=%22339.78,292.00 393.78,292.00 439.78,349.50 439.78,732.00 339.78,732.00%22 fill=%22%23F3F1EC%22/%3E%3Cg clip-path=%22url(%23cu1)%22%3E%3Cpath d=%22M693.00,792 L469.00,512 L693.00,232%22 fill=%22none%22 stroke=%22%230E5A5E%22 stroke-width=%22144%22 stroke-linejoin=%22miter%22 stroke-miterlimit=%2210%22/%3E%3Cpath d=%22M693.00,792 L469.00,512 L693.00,232%22 fill=%22none%22 stroke=%22%23F3F1EC%22 stroke-width=%2280%22 stroke-linejoin=%22miter%22 stroke-miterlimit=%2210%22/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E">
 <style>
 :root{
-  --paper:#F3F1EC;
-  --glow:rgba(120,185,178,.30);
-  --surface:#FBFAF7;
-  --sunken:#E9E6DF;
-  --field:#EFEDE7;
-  --ink:#1B1E23;
-  --ink2:#5F666E;
-  --ink3:#687077;
-  --line:#E1DED6;
-  --teal:#0E5A5E;
-  --tealFill:#0E5A5E;
+  --paper:#F4F4F2;
+  --glow:transparent;
+  --surface:#FFFFFF;
+  --sunken:#EEEEEC;
+  --field:#F1F1EF;
+  --ink:#121314;
+  --ink2:#5E6064;
+  --ink3:#6A6C70;
+  --line:#E6E6E3;
+  --teal:#86671F;
+  --tealFill:#86671F;
   --alertFill:#A93227;
   --ok:#2E6A4E;
-  --warn:#9A6710;
+  --warn:#86671F;
   --alert:#A93227;
+  --brass:#A88437;
+  --brassFab:#8F6E22;
+  --onBrass:#FFFFFF;
+  --serif:ui-serif,"New York","Kontivo Serif",Georgia,serif;
   --r:13px;
   --lift:0%;
   box-sizing:border-box;
@@ -39,14 +43,16 @@
   color-scheme:light dark;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --paper:#15171A; --surface:#1E2125; --sunken:#272B30; --field:#272B30;
-  --ink:#E9EAE5; --ink2:#9AA1A8; --ink3:#8D949B; --line:#2F343A;
-  --teal:#5FB3B5; --tealFill:#2B7A7D; --alertFill:#C0473B; --ok:#6FB58E; --warn:#D9A545; --alert:#E5776A; --lift:26%; --glow:rgba(95,179,181,.15);
+  --paper:#0C0C0D; --surface:#17171A; --sunken:#1F1F22; --field:#1F1F22;
+  --ink:#EDEDEE; --ink2:#9C9DA2; --ink3:#8F9095; --line:#28282C;
+  --teal:#D4AF62; --tealFill:#D4AF62; --alertFill:#C0473B; --ok:#6FB58E; --warn:#D4AF62; --alert:#E5776A; --lift:26%; --glow:transparent;
+  --brass:#D4AF62; --brassFab:#D4AF62; --onBrass:#141414;
 }}
 :root[data-theme="dark"]{
-  --paper:#15171A; --surface:#1E2125; --sunken:#272B30; --field:#272B30;
-  --ink:#E9EAE5; --ink2:#9AA1A8; --ink3:#8D949B; --line:#2F343A;
-  --teal:#5FB3B5; --tealFill:#2B7A7D; --alertFill:#C0473B; --ok:#6FB58E; --warn:#D9A545; --alert:#E5776A; --lift:26%; --glow:rgba(95,179,181,.15);
+  --paper:#0C0C0D; --surface:#17171A; --sunken:#1F1F22; --field:#1F1F22;
+  --ink:#EDEDEE; --ink2:#9C9DA2; --ink3:#8F9095; --line:#28282C;
+  --teal:#D4AF62; --tealFill:#D4AF62; --alertFill:#C0473B; --ok:#6FB58E; --warn:#D4AF62; --alert:#E5776A; --lift:26%; --glow:transparent;
+  --brass:#D4AF62; --brassFab:#D4AF62; --onBrass:#141414;
 }
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -1593,6 +1599,77 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .fnotef{display:block;width:100%;min-height:84px;border:0;background:transparent;padding:12px 0;font-size:16px;color:var(--ink);resize:vertical;outline:0;font-family:inherit}
 #sheetForm .fnote2,#sheetInc .fnote2{margin:8px 2px 0}
 #sheetForm .fnote2:empty{display:none}
+
+/* ===== Design «Graphit & Messing» (13.10.2026) =====
+   Regeln: grosse Beträge in Serifenschrift (iOS: New York), sonst Systemschrift; Messing = einzige Akzentfarbe
+   (Geld/Zeit), Rot nur für Abgelaufenes/Gekündigtes; Flächen: Gruppen auf ruhigem Grund, Radius 16 (Gruppen) / 10 (Steuerelemente).
+   SwiftUI: .font(.system(.largeTitle, design: .serif)), List(.insetGrouped), Color("Brass") */
+@font-face{font-family:"Kontivo Serif";src:url("fonts/kontivo-serif.woff") format("woff");font-weight:500;font-display:swap}
+body{background:var(--paper)!important}
+/* Schrift */
+.big,.kz b,.kbig,.kc b,#fKz b,#iKz b,.kzt b,.tstat b{font-family:var(--serif)!important;font-weight:500!important;letter-spacing:-.01em!important}
+.big{font-size:clamp(42px,12.5vw,50px)!important}
+.big .u,.kz b u,.kbig .ru,.kc b u{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif!important;letter-spacing:0!important}
+.top h1{letter-spacing:-.025em!important}
+.camt .a,.kz b,.kc b,.mrow .ma,.grphead span:last-child{font-variant-numeric:tabular-nums}
+/* Messing */
+#addBtn{background:var(--brassFab)!important;color:var(--onBrass)!important;box-shadow:none!important}
+.kzbar i{background:var(--brass)!important}
+.bcol .bp{background:color-mix(in srgb,var(--brass) 18%,var(--surface))!important}
+.col .pd{background:color-mix(in srgb,var(--brass) 22%,var(--surface))!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .bcol .bp,:root:not([data-theme="light"]) .col .pd{background:color-mix(in srgb,var(--ink) 14%,var(--surface))!important}}
+:root[data-theme="dark"] .bcol .bp,:root[data-theme="dark"] .col .pd{background:color-mix(in srgb,var(--ink) 14%,var(--surface))!important}
+:root .bcol.on .bp,:root .col.on .pd,:root .col.on .op,:root:not([data-theme="light"]) .bcol.on .bp,:root:not([data-theme="light"]) .col.on .pd{background:var(--brass)!important}
+.tabbar .badge{background:var(--brassFab)!important;color:var(--onBrass)!important}
+/* Flächen */
+.grp .card,.dgrp,.kzm,.kzt,.mrows2,.mcard,.kcard,.searchwrap,.sortbtn,.fcard{background:var(--surface)!important;box-shadow:none!important;border:0!important}
+.dgrp,.kzm,.kzt,.mrows2,.mcard,.kcard,.fcard,.readout{border-radius:16px!important}
+.searchrow .searchwrap,.searchrow .sortbtn,.fsel,.hchip{border-radius:10px!important}
+.sheet{background:var(--paper)!important}
+.grp .card{border-radius:0!important;margin:0!important}
+.grp .grphead+.card{border-radius:16px 16px 0 0!important}
+.grp .card:last-child{border-radius:0 0 16px 16px!important}
+.grp .grphead+.card:last-child{border-radius:16px!important}
+.grp .card+.card{background-image:linear-gradient(var(--line),var(--line))!important;background-size:calc(100% - 62px) 1px!important;background-position:62px 0!important;background-repeat:no-repeat!important}
+.grphead span:first-child{font-weight:600;color:var(--ink)}
+.kzc{display:grid!important;grid-template-rows:1fr 1fr;gap:8px}.kzt{display:flex;flex-direction:column;justify-content:center}
+/* Kategorie-Symbole neutral (Logos bleiben farbig) */
+.mark:not(:has(img)){background:var(--sunken)!important}
+.mark:not(:has(img)) .cicon{stroke:var(--ink)!important;stroke-width:1.5!important}
+.mgi{background:var(--sunken)!important;color:var(--ink)!important}
+.mgi.i4.w{background:color-mix(in srgb,var(--brass) 18%,var(--surface))!important;color:var(--teal)!important}
+.tabbar svg,.mgi svg{stroke-width:1.6!important}
+/* Markenzeichen: Messingstrich */
+.hero .heroSub,.kh .ksub{position:relative;padding-top:12px}
+.hero .heroSub:before,.kh .ksub:before{content:"";position:absolute;top:0;left:0;width:40px;height:2px;border-radius:1px;background:var(--brass)}
+.kh .ksub{display:block}
+/* Kopf und Suche */
+.hlabel{font-size:13px!important}
+.searchrow{gap:6px!important}
+.searchrow .searchwrap{height:38px!important}
+.searchrow .sortbtn{height:38px!important;width:42px!important;padding:0!important;justify-content:center!important}
+#filterLbl,#sortLbl{display:none!important}
+/* Fristen-Kopf wie die Summe */
+.tstat{display:block!important;text-align:left!important;padding:4px 2px 14px!important;background:transparent!important;border:0!important}
+.tstat i{display:none!important}
+.tstat b{display:block;font-size:34px!important;line-height:1.1}
+.tstat span{display:block;position:relative;padding-top:12px;margin-top:8px;color:var(--ink2)}
+.tstat span:before{content:"";position:absolute;top:0;left:0;width:40px;height:2px;background:var(--brass);border-radius:1px}
+.tchip{background:transparent!important;padding:0!important;color:var(--ink2)!important;font-weight:600!important}
+.tchip.warn{color:var(--teal)!important}
+.tchip.end{color:var(--alert)!important}
+.tchip.ok{color:var(--ok)!important}
+/* Budget/Kosten-Kopf */
+.kmo{text-transform:none!important;letter-spacing:0!important;font-weight:600!important;color:var(--ink2)!important}
+.ksep{display:none!important}.kfq{display:block!important;margin-top:4px}
+.kvs{color:var(--ink2)!important}.kvs i{color:var(--brass)!important}
+/* Formular */
+.chips button[aria-pressed="true"],.fchq button[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
+.fok{background:var(--brassFab)!important;color:var(--onBrass)!important}
+/* Währungen: Flaggen bleiben, Auswahl dezent */
+.obcur{border:1.5px solid var(--line)}
+.obcur[aria-pressed="true"]{border-color:var(--brass)!important;background:var(--surface)!important}
+.obcur[aria-pressed="true"] i{background:var(--brass)!important;color:var(--onBrass)!important}
 </style>
 </head>
 <body>
@@ -1615,7 +1692,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 
 
   <div class="hero" id="hero">
-    <div class="hlabel">Aktuelle Fixkosten pro Monat</div>
+    <div class="hlabel">Fixkosten pro Monat</div>
     <div class="big"><span id="hMonth">0.00</span><span class="u" id="hCur">CHF</span></div>
     <div class="heroSub" id="hSub"></div>
     <div class="hchips" id="hChips"></div>
@@ -2524,7 +2601,8 @@ function renderHero(){
   a.forEach(function(c){if(!trialOn(c))mSum+=monthlyCost(c)*(HH?holderShare(c,HH):1);});
   document.getElementById("hMonth").textContent=money(mSum);
   document.getElementById("hCur").textContent=state.settings.home;
-  document.getElementById("hSub").textContent=nf0.format(mSum*12)+" "+state.settings.home+" pro Jahr"+(lf?" · "+fltLabel():((!np&&!fut&&a.length)?" · "+a.length+(a.length===1?" aktiver Vertrag":" aktive Verträge"):""));
+  /* ruhige Unterzeile ohne Aufzählung; bei Filter: Filtername */
+  document.getElementById("hSub").textContent=nf0.format(mSum*12)+" "+state.settings.home+" im Jahr"+(lf?" – "+fltLabel():"");
   var hf=state.heroF||"";
   /* Filter zurücksetzen, sobald sein Zähler 0 ist (z.B. letzter pausierter Vertrag fortgesetzt) */
   if((hf==="act"&&(!(np||fut)||!a.length))||(hf==="paused"&&!np)||(hf==="fut"&&!fut))hf=state.heroF="";
@@ -2623,7 +2701,7 @@ function renderView(){
       /* wie die Summe oben: ohne pausierte und noch nicht aktive Verträge */
       var sm=list.reduce(function(n,c){return n+(isPaused(c)||notStarted(c)||trialOn(c)?0:monthlyCost(c));},0);
       var st=sumTxt;if(st==null&&sm<0.005&&list.length){st=list.every(isPaused)?"pausiert":list.every(notStarted)?"noch nicht aktiv":list.every(function(c){return isPaused(c)||notStarted(c);})?"pausiert / noch nicht aktiv":null;}
-      out+='<div class="grp">'+(title?'<div class="grphead"><span>'+esc(title)+'</span><span>'+(sumTxt===false?"":(st!=null?st:money(sm)+" "+H+"/Mt."))+"</span></div>":"");
+      out+='<div class="grp">'+(title?'<div class="grphead"><span>'+esc(title)+'</span><span>'+(sumTxt===false?"":(st!=null?st:(list.length<2?"":money(sm)+" "+H+"/Mt.")))+"</span></div>":"");
       list.forEach(function(c){out+=cardHtml(c,mode||"list");});out+="</div>";
     }
     var byCost=function(x,y){return monthlyCost(y)-monthlyCost(x);};
@@ -2742,7 +2820,7 @@ function applyTheme(){
   var t=state.settings.theme||"auto",r=document.documentElement;
   if(t==="light"||t==="dark")r.setAttribute("data-appearance",t);else r.removeAttribute("data-appearance");
   document.querySelectorAll("#themeSeg button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.th===t);});
-  var tc=document.getElementById("themeColor");if(tc)tc.setAttribute("content",getComputedStyle(r).getPropertyValue("--paper").trim()||"#F3F1EC");
+  var tc=document.getElementById("themeColor");if(tc)tc.setAttribute("content",getComputedStyle(r).getPropertyValue("--paper").trim()||"#F4F4F2");
 }
 try{window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){applyTheme();});}catch(e){}
 document.getElementById("themeSeg").addEventListener("click",function(ev){
