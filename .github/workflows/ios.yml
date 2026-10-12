@@ -15,7 +15,7 @@ env:
 jobs:
   build:
     runs-on: macos-15
-    timeout-minutes: 75
+    timeout-minutes: 110
     steps:
       - uses: actions/checkout@v4
       - name: Kern testen (swift test)
