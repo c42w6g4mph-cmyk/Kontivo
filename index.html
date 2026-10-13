@@ -7875,7 +7875,8 @@ function bankToContract(s,holders){
    bk.items[i] = {s: Vorschlag, on, ed: {name, amount, cycle, cat, holders, due}}, bk.price[i] = {s, on}
    SwiftUI: List mit Sections, DisclosureGroup pro Zeile, Toggle als Häkchen. */
 var bk=null,BK_CUR=["CHF","EUR","USD","GBP","TRY"];
-function bkHolders(){var HL=state.settings.holders||["Ich"],lh=(state.settings.lastHolders||[]).filter(function(h){return HL.indexOf(h)>=0;});return lh.length?lh:[HL[0]];}
+/* Vorbelegung beim Import: immer genau eine Person (zuletzt gewählte einzelne, sonst die erste). «Beide» nur, wenn du es im Eintrag wählst */
+function bkHolders(){var HL=state.settings.holders||["Ich"],lh=(state.settings.lastHolders||[]).filter(function(h){return HL.indexOf(h)>=0;});return lh.length===1?lh:[HL[0]];}
 function openBank(res,label){
   var H=bkHolders();
   bk={res:res,label:label,open:-1,openInc:-1,step:"fix",showIgn:false,
@@ -8173,7 +8174,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
     state.incomes[stamp+"i"+k]={name:e.name,label:e.label||"",cat:e.cat,amount:e.amount,cur:it.s.cur,cycle:e.cycle,due:e.due||it.s.due,start:it.s.first||"",end:"",
       holders:e.holders.slice(),prices:[],note:"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg||"":"",color:"",status:"active",t:Date.now()};ni++;});
   var H=bk.items.filter(function(it){return it.on;}).map(function(it){return it.ed.holders;})[0];
-  if(H&&(state.settings.holders||[]).length>1)state.settings.lastHolders=H.slice();
+  if(H&&H.length===1&&(state.settings.holders||[]).length>1)state.settings.lastHolders=H.slice();
   saveLocal();bk=null;closeSheets();goTab(n||p||!ni?"list":"budget");render();
   toast([n?n+(n===1?" Vertrag angelegt":" Verträge angelegt"):"",ni?ni+(ni===1?" Einnahme":" Einnahmen")+(n?"":" angelegt"):"",p?p+(p===1?" Preis angepasst":" Preise angepasst"):""].filter(Boolean).join(", ")+" — bitte kurz prüfen",3200);
   /* was danach noch fehlt (Logo nicht gefunden, Absender, feste Laufzeit): Vervollständigen anbieten */
