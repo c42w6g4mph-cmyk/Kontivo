@@ -1726,6 +1726,17 @@ body{background:var(--paper)!important}
 #sheetBank .bked .field input,#sheetBank .bked .field select{background:var(--surface)}
 #sheetBank .bkproof{background:var(--surface)}
 #sheetBank .bkkn{padding-left:14px}
+
+/* Haken in Messing statt Grün (Ladeanzeige, bereits erfasst, Frist vorhanden); Ladeanzeige: nur der Ring dreht */
+.bksteps .done i{background:var(--brass)!important;border-color:var(--brass)!important;color:var(--onBrass)!important}
+.bkok{background:color-mix(in srgb,var(--brass) 18%,transparent)!important}.bkok svg{stroke:var(--teal)!important}
+.bkq i.ok{background:var(--sunken)!important;color:var(--ink2)!important}
+.bklogo::before,.bklogo::after{display:none!important}
+.bklogo .bkLogoSvg{display:block;width:84px;height:84px;border-radius:20px;box-shadow:0 10px 26px rgba(0,0,0,.22)}
+.bklogo .bkLogoSvg .splSeg{transform-box:view-box;transform-origin:50% 50%;animation:bkspin 1.4s linear infinite}
+@media (prefers-reduced-motion:reduce){.bklogo .bkLogoSvg .splSeg{animation-duration:4s}}
+.bklogo2 .bklsr{color:var(--teal)!important;font-weight:600}
+#sheetBank .logocands:empty{display:none}
 </style>
 </head>
 <body>
@@ -7869,7 +7880,7 @@ function openBank(res,label){
   var H=bkHolders();
   bk={res:res,label:label,open:-1,openInc:-1,step:"fix",showIgn:false,
     items:res.sugg.filter(function(s){return !s.match;}).map(function(s){
-      return {s:s,on:s.conf!=="niedrig"&&!s.ignored,logo:null,term:"",ed:{name:s.name,amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
+      return {s:s,on:s.conf!=="niedrig"&&!s.ignored,logo:null,term:"",ed:{name:s.name,label:s.tpl?s.tpl[3]||"":"",amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
     price:res.sugg.filter(function(s){return s.match&&s.match.kind==="price";}).map(function(s){return {s:s,on:true};}),
     inc:((res.inc&&res.inc.sugg)||[]).map(function(s){return {s:s,on:s.conf==="hoch",logo:null,
       ed:{label:s.label,name:s.name,amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
@@ -7883,15 +7894,15 @@ var BKPER={1:"pro Monat",2:"alle 2 Monate",3:"pro Quartal",6:"pro Halbjahr",12:"
 function bkPer(c){return BKPER[c]||"alle "+c+" Monate";}
 /* Untertitel: Vertragspartner (falls oben die Bezeichnung steht) · Beleg · Hinweis in Messing */
 function bkSub(it){var s=it.s,e=it.ed,t=[];
-  if(s.tpl&&s.tpl[3]&&lnorm(s.tpl[3])!==lnorm(e.name))t.push(esc(e.name));
+  if(e.label&&lnorm(e.label)!==lnorm(e.name))t.push(esc(e.name));
   t.push(s.conf==="niedrig"?"einmal am "+bkDay(s.last):s.n+"× im Auszug");
   if(s.change&&Math.abs(e.amount-s.change.amount)<0.005)t.push('<em>neuer Preis ab '+bkDay(s.change.from)+'</em>');
   else if(s.varies)t.push('<em>Betrag schwankt</em>');
   return t.join(" · ");}
-function bkTitle(it){var s=it.s;return s.tpl&&s.tpl[3]&&lnorm(s.tpl[3])!==lnorm(it.ed.name)?s.tpl[3]:it.ed.name;}
+function bkTitle(it){var l=it.ed.label;return l&&lnorm(l)!==lnorm(it.ed.name)?l:it.ed.name;}
 function bkNoCancel(it){return it.ed.cat===catByKey("Steuern & Gebühren");}
 function bkHasTerm(it){return bkHasTermBase(it)||it.term==="1"||it.term==="3"||it.term==="x";}
-function bkMark(it,inc){var e=it.ed;return markHtml({partner:e.name,cat:e.cat,label:inc?e.label:"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg:""});}
+function bkMark(it,inc){var e=it.ed;return markHtml({partner:e.name,cat:e.cat,label:e.label||"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg:""});}
 function bkRow(it,i){
   var e=it.ed,cur=it.s.cur,maybe=it.s.conf==="niedrig";
   var tags='<span class="bkq"><i>'+esc(e.cat)+'</i>'+(maybe||bkNoCancel(it)?"":bkHasTerm(it)?'<i class="ok">✓ Frist</i>':'<i class="miss">Frist fehlt</i>')+'</span>';
@@ -7912,14 +7923,16 @@ function bkIncRow(it,i){var e=it.ed,cur=it.s.cur;
 function bkHseg(e,attr){var HL=state.settings.holders||["Ich"];if(HL.length<2)return "";var all=HL.every(function(h){return e.holders.indexOf(h)>=0;});
   return '<div class="field"><label>Person</label><div class="hseg">'+HL.map(function(h){return '<button type="button" '+attr+'="'+esc(h)+'" aria-pressed="'+(!all&&e.holders.length===1&&e.holders[0]===h)+'">'+esc(h)+'</button>';}).join("")+
     '<button type="button" '+attr+'="*" aria-pressed="'+all+'">'+(HL.length===2?"Beide":"Alle")+'</button></div></div>';}
-function bkLogoField(it,attr){if(!it.logo)return "";
-  return '<div class="bklogo2">'+bkMark(it)+'<span>Logo gefunden</span><button type="button" '+attr+'>Entfernen</button></div>';}
+function bkLogoField(it,attr,sattr){
+  return '<div class="bklogo2">'+bkMark(it)+'<span>'+(it.logo?"Logo":"Kein Logo")+'</span>'+(it.logo?'<button type="button" '+attr+'>Entfernen</button>':"")+
+    '<button type="button" class="bklsr" '+sattr+'>'+(it.logo?"Ändern":"Logo suchen")+'</button></div><div class="logocands" id="bkLC"></div>';}
 function bkEditor(it,i){
   var e=it.ed,s=it.s,cyc=[1,2,3,6,12,24];if(cyc.indexOf(e.cycle)<0)cyc.push(e.cycle);
   return '<div class="bked" data-bki="'+i+'">'+
     '<div class="bkhead">'+bkMark(it)+'<span><b>'+esc(bkTitle(it))+'</b><small>'+esc(e.cat)+'</small></span></div>'+
-    bkLogoField(it,'data-bklogox="'+i+'"')+
-    '<div class="field"><label for="bkN">Vertragspartner</label><input id="bkN" data-bke="name" value="'+esc(e.name)+'" autocomplete="off"></div>'+
+    bkLogoField(it,'data-bklogox="'+i+'"','data-bklogos="'+i+'"')+
+    '<div class="bk2"><div class="field"><label for="bkL">Bezeichnung</label><input id="bkL" data-bke="label" value="'+esc(e.label||"")+'" placeholder="z.B. iCloud, Miete" autocomplete="off"></div>'+
+    '<div class="field"><label for="bkN">Vertragspartner</label><input id="bkN" data-bke="name" value="'+esc(e.name)+'" autocomplete="off"></div></div>'+
     '<div class="bk2"><div class="field"><label for="bkA">Betrag ('+esc(s.cur)+')</label><input id="bkA" class="num" data-bke="amount" inputmode="decimal" value="'+esc(amtIn(e.amount,s.cur))+'"></div>'+
     '<div class="field"><label for="bkC">Rhythmus</label><select id="bkC" data-bke="cycle">'+cyc.map(function(c){return '<option value="'+c+'"'+(c===e.cycle?" selected":"")+'>'+esc(CYCLE[c]||"alle "+c+" Monate")+'</option>';}).join("")+'</select></div></div>'+
     '<div class="bk2"><div class="field"><label for="bkK">Kategorie</label><select id="bkK" data-bke="cat">'+allCats().map(function(c){return '<option'+(c===e.cat?" selected":"")+'>'+esc(c)+'</option>';}).join("")+'</select></div>'+
@@ -7936,7 +7949,7 @@ function bkIncEditor(it,i){
   if(s.skipped)rng+=(rng?" ":"")+(s.skipped===1?"1 höherer Eingang (z.B. 13. Monatslohn, Bonus) ist nicht mitgerechnet.":s.skipped+" höhere Eingänge (z.B. 13. Monatslohn, Bonus) sind nicht mitgerechnet.");
   return '<div class="bked" data-iki="'+i+'">'+
     '<div class="bkhead">'+bkMark(it,true)+'<span><b>'+esc(e.label||e.name)+'</b><small>Einnahme · '+esc(e.cat)+'</small></span></div>'+
-    bkLogoField(it,'data-iklogox="'+i+'"')+
+    bkLogoField(it,'data-iklogox="'+i+'"','data-iklogos="'+i+'"')+
     '<div class="bk2"><div class="field"><label for="ikL">Bezeichnung</label><input id="ikL" data-ike="label" value="'+esc(e.label)+'" placeholder="z.B. Lohn" autocomplete="off"></div>'+
     '<div class="field"><label for="ikN">Von</label><input id="ikN" data-ike="name" value="'+esc(e.name)+'" autocomplete="off"></div></div>'+
     '<div class="bk2"><div class="field"><label for="ikA">Betrag ('+esc(s.cur)+')</label><input id="ikA" class="num" data-ike="amount" inputmode="decimal" value="'+esc(amtIn(e.amount,s.cur))+'"></div>'+
@@ -8052,12 +8065,14 @@ function bankReadFile(f){return new Promise(function(res){if(f.size>20e6){res({f
   rd.onerror=function(){res({f:f,r:null,head:""});};rd.readAsArrayBuffer(f);});}
 /* Ladeanzeige: Fenster sofort öffnen, Schritte nacheinander abhaken (Variante 2, 09.10.2026) */
 var bkRun=0;
+/* Logo für die Ladeanzeige: gleiche Grafik wie im Intro, beim Laden dreht nur das Messing-Segment (Splash wird später entfernt, daher hier kopieren) */
+var BK_LOGO=(function(){var e=document.querySelector("#splash .splLogo");return e?e.outerHTML.replace('class="splLogo"','class="bkLogoSvg"').replace(/splLa/g,"bkLa"):"";})();
 function bkLoad(step,nTx){var L=["Kontoauszug lesen","Wiederkehrende Zahlungen suchen","Mit deinen Verträgen abgleichen"];
   if(nTx!=null)L[0]=nTx+(nTx===1?" Buchung gelesen":" Buchungen gelesen");
   document.getElementById("bkT").textContent="Kontoauszug";
   var g=document.getElementById("bkGo");g.textContent="Bitte kurz warten …";g.disabled=true;
   var fav=document.querySelector('link[rel="icon"]');
-  document.getElementById("bkBody").innerHTML='<div class="bkload" role="status" aria-live="polite"><div class="bklogo"><img src="'+(fav?fav.href:"icon-192.png")+'" alt=""></div>'+
+  document.getElementById("bkBody").innerHTML='<div class="bkload" role="status" aria-live="polite"><div class="bklogo">'+(BK_LOGO||'<img src="'+(fav?fav.href:"icon-192.png")+'" alt="">')+'</div>'+
     '<h3>Kontivo sucht deine Fixkosten</h3><p>Das dauert nur einen Moment.<br>Die Datei bleibt auf diesem Gerät.</p><ul class="bksteps">'+
     L.map(function(t,i){var c=i<step?"done":i===step?"now":"";return '<li class="'+c+'"><i aria-hidden="true">'+(i<step?"✓":"")+"</i>"+esc(t)+"</li>";}).join("")+"</ul></div>";}
 /* dem Browser Zeit zum Zeichnen geben, bevor gerechnet wird */
@@ -8105,6 +8120,8 @@ document.getElementById("bkBody").addEventListener("click",function(e){
   if(t.dataset.bkback!=null){bk.open=-1;bk.openInc=-1;paintBank();document.getElementById("bkBody").scrollTop=bk.scroll||0;return;}
   if(t.dataset.bkterm!=null){var it4=bk.items[+t.dataset.bkterm];it4.term=t.dataset.v;
     t.parentNode.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",x===t);});return;}
+  if(t.dataset.bklogos!=null||t.dataset.iklogos!=null){var inc2=t.dataset.iklogos!=null,il3=inc2?bk.inc[+t.dataset.iklogos]:bk.items[+t.dataset.bklogos],me=bk;
+    runCands("bkLC",il3.ed.name,il3.s.cur,function(r){if(bk!==me)return;if(il3.logo&&il3.logo.id&&il3.logo.id!==r.id)bkDropLogo(il3.logo.id);il3.logo=r;paintBank();},il3.ed.label||"",il3.s.tpl?il3.s.tpl[4]||"":"");return;}
   if(t.dataset.bklogox!=null){var il=bk.items[+t.dataset.bklogox];if(il.logo){bkDropLogo(il.logo.id);il.logo=null;}paintBank();return;}
   if(t.dataset.iklogox!=null){var il2=bk.inc[+t.dataset.iklogox];if(il2.logo){bkDropLogo(il2.logo.id);il2.logo=null;}paintBank();return;}
   if(t.dataset.bkh!=null||t.dataset.ikh!=null){var inc=t.dataset.ikh!=null,ed=t.closest(".bked"),it2=inc?bk.inc[+ed.dataset.iki]:bk.items[+ed.dataset.bki],v=inc?t.dataset.ikh:t.dataset.bkh;
@@ -8126,7 +8143,7 @@ function bkInput(e){
   else if(k==="label")it.ed.label=v.trim();
   else it.ed[k]=v;
   it.on=true;
-  if(k==="cat"||k==="label"||k==="name"){var hd=ed.querySelector(".bkhead");if(hd)hd.outerHTML='<div class="bkhead">'+bkMark(it,!!fi)+'<span><b>'+esc(fi?(it.ed.label||it.ed.name):bkTitle(it))+'</b><small>'+esc((fi?"Einnahme · ":"")+it.ed.cat)+'</small></span></div>';}
+  if(k==="cat"||k==="label"||k==="name"){var hd=ed.querySelector(".bkhead");if(hd)hd.outerHTML='<div class="bkhead">'+bkMark(it,!!fi)+'<span><b>'+esc(fi?(it.ed.label||it.ed.name):bkTitle(it))+'</b><small>'+esc((fi?"Einnahme · ":"")+it.ed.cat)+'</small></span></div>';var lm=ed.querySelector(".bklogo2 .mark");if(lm)lm.outerHTML=bkMark(it,!!fi);}
 }
 document.getElementById("bkBody").addEventListener("input",bkInput);
 document.getElementById("bkBody").addEventListener("change",bkInput);
@@ -8141,7 +8158,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
     /* Betrag geändert: bei erkannter Preisänderung ist es der neue Preis, sonst der einzige */
     if(s.change){if(Math.abs(it.ed.amount-s.change.amount)>0.004){if(Math.abs(it.ed.amount-s.change.prev)<0.005)s.change=null;else s.change=Object.assign({},s.change,{amount:it.ed.amount});}}
     s.amount=it.ed.amount;
-    var c=bankToContract(s,it.ed.holders);if(s.tpl&&lnorm(it.ed.name)!==lnorm(it.s.name)){c.label=c.label||s.tpl[3];}
+    var c=bankToContract(s,it.ed.holders);c.label=it.ed.label||"";
     if(it.logo&&it.logo.id){c.logoId=it.logo.id;c.logoBg=it.logo.bg||"";}
     /* Schnellwahl Kündigungsfrist (Schritt 3): jederzeit kündbar mit 1 bzw. 3 Monaten Frist, oder nicht kündbar */
     if(!bkHasTermBase(it)){if(it.term==="1"||it.term==="3"){c.notice=+it.term;c.noticeU="m";c.cancTerm="";}else if(it.term==="x"){c.noCancel=true;c.mand=false;c.cancTerm="";}}
