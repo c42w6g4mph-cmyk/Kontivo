@@ -6734,15 +6734,18 @@ function tileFix(im){var w=im.naturalWidth,h=im.naturalHeight,full={sx:0,sy:0,sw
     /* Eckenradius: entlang der Diagonale bis zur Kachelfarbe (Abstand ≈ 0,29 × Radius) */
     var dg=0;while(dg<bw*.2&&!near(P(x0+dg,y0+dg)))dg++;var rad=Math.min(bw*.3,Math.max(0,(dg-rim)/0.29));
     var hex="#"+T.slice(0,3).map(function(v){return ("0"+v.toString(16)).slice(-2);}).join("").toUpperCase();
-    var ins=rim+0.5,fx=w/N,fy=h/N;
-    return {sx:(x0+ins)*fx,sy:(y0+ins)*fy,sw:(bw-2*ins)*fx,sh:(bh-2*ins)*fy,bg:hex,tile:true,rgb:T,rad:rad/(bw-2*ins)};
+    /* nicht zuschneiden (kein Zoom), nur auf die Kachel begrenzen; Rand und Ecken übermalt tileDraw.
+       App-Symbole (iOS 26 mit Glas-Kante) haben ~22 % Eckenradius und einen hellen Saum bis ~4 % */
+    var fx=w/N,fy=h/N;
+    return {sx:x0*fx,sy:y0*fy,sw:bw*fx,sh:bh*fy,bg:hex,tile:true,rgb:T,rad:Math.max(0.2237,rad/bw),band:Math.min(0.08,Math.max(0.045,(rim+1.5)/bw))};
   }catch(e){return full;}}
-/* Kachel zeichnen; alles ausserhalb der (verkleinerten) runden Kachel in Kachelfarbe – so bleibt kein Saum und keine helle Ecke */
+/* Kachel zeichnen; Saum (band) und alles ausserhalb der runden Kachel in Kachelfarbe übermalen – Inhalt bleibt gleich gross */
 function tileDraw(g,im,tf){g.fillStyle=tf.bg||"#FFFFFF";g.fillRect(0,0,512,512);g.imageSmoothingQuality="high";g.drawImage(im,tf.sx,tf.sy,tf.sw,tf.sh,0,0,512,512);
-  if(!tf.tile||!(tf.rad>0.01))return;
-  try{var r=tf.rad*512+3,id=g.getImageData(0,0,512,512),dd=id.data,T=tf.rgb;
-    for(var y=0;y<r;y++)for(var x=0;x<r;x++){var dx=r-x,dy=r-y;if(dx*dx+dy*dy<=r*r)continue;
-      [[x,y],[511-x,y],[x,511-y],[511-x,511-y]].forEach(function(p){var i=(p[1]*512+p[0])*4;dd[i]=T[0];dd[i+1]=T[1];dd[i+2]=T[2];dd[i+3]=255;});}
+  if(!tf.tile)return;
+  try{var b=Math.round((tf.band||0.045)*512),R=Math.max(0,tf.rad*512-b),lo=b,hi=511-b,id=g.getImageData(0,0,512,512),d=id.data,T=tf.rgb;
+    for(var y=0;y<512;y++)for(var x=0;x<512;x++){var out=x<lo||x>hi||y<lo||y>hi;
+      if(!out&&R>0){var cx=x<lo+R?lo+R:(x>hi-R?hi-R:x),cy=y<lo+R?lo+R:(y>hi-R?hi-R:y);if(cx!==x&&cy!==y){var dx=x-cx,dy=y-cy;out=dx*dx+dy*dy>R*R;}}
+      if(out){var i=(y*512+x)*4;d[i]=T[0];d[i+1]=T[1];d[i+2]=T[2];d[i+3]=255;}}
     g.putImageData(id,0,0);}catch(e){}}
 async function logoBlob(url){
   var big=url.replace(/\/\d+x\d+bb\.(jpg|jpeg|png|webp)$/i,"/512x512bb.png");
