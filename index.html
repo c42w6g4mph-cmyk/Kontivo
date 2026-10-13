@@ -6901,8 +6901,8 @@ async function allCands(name,cur,alt,web,manual){
   if(manual&&!d2){var base=ltok(name).filter(function(t){return LGEN.indexOf(t)<0;}).join("");
     var tl=cur==="EUR"?["de","com","ch"]:["ch","com","de"];
     for(var gi=0;base&&gi<tl.length;gi++){var g=null;try{g=await siteCand(base+"."+tl[gi],2.5);}catch(e){g=null;}if(g){all.push(g);break;}}}
-  /* Profilbild (X/Instagram) ist meist am saubersten → bevorzugt, auch bei der automatischen Suche (dort nur 1 Abfrage, Gratis-Dienst begrenzt) */
-  if(r[0].social&&r[0].social.length){try{(await socialCands(manual?r[0].social:r[0].social.slice(0,1))).forEach(function(c){c.score=6.5;all.push(c);});}catch(e){}}
+  /* Profilbild (X/Instagram) ist meist am saubersten → bevorzugt, auch bei der automatischen Suche (X und Instagram; X liefert oft nichts) */
+  if(r[0].social&&r[0].social.length){try{(await socialCands(r[0].social)).forEach(function(c){c.score=6.5;all.push(c);});}catch(e){}}
   var seen={};all=all.filter(function(c){if(seen[c.url])return false;seen[c.url]=1;return true;});
   all.sort(candSort);all.dom=d2;return all;
 }
