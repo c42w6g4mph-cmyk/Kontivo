@@ -43,16 +43,16 @@
   color-scheme:light dark;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --paper:#0C0C0D; --surface:#17171A; --sunken:#1F1F22; --field:#1F1F22;
-  --ink:#EDEDEE; --ink2:#9C9DA2; --ink3:#8F9095; --line:#28282C;
-  --teal:#D4AF62; --tealFill:#D4AF62; --alertFill:#C0473B; --ok:#6FB58E; --warn:#D4AF62; --alert:#E5776A; --lift:26%; --glow:transparent;
-  --brass:#D4AF62; --brassFab:#D4AF62; --onBrass:#141414;
+  --paper:#2C2D30; --surface:#36373B; --sunken:#414246; --field:#414246;
+  --ink:#E8E6E2; --ink2:#A8A7A3; --ink3:#9C9B97; --line:#45464A;
+  --teal:#C6AB78; --tealFill:#C6AB78; --alertFill:#C0473B; --ok:#7DBF98; --warn:#C6AB78; --alert:#E8837A; --lift:26%; --glow:transparent;
+  --brass:#C6AB78; --brassFab:#C6AB78; --onBrass:#1E1D1A;
 }}
 :root[data-theme="dark"]{
-  --paper:#0C0C0D; --surface:#17171A; --sunken:#1F1F22; --field:#1F1F22;
-  --ink:#EDEDEE; --ink2:#9C9DA2; --ink3:#8F9095; --line:#28282C;
-  --teal:#D4AF62; --tealFill:#D4AF62; --alertFill:#C0473B; --ok:#6FB58E; --warn:#D4AF62; --alert:#E5776A; --lift:26%; --glow:transparent;
-  --brass:#D4AF62; --brassFab:#D4AF62; --onBrass:#141414;
+  --paper:#2C2D30; --surface:#36373B; --sunken:#414246; --field:#414246;
+  --ink:#E8E6E2; --ink2:#A8A7A3; --ink3:#9C9B97; --line:#45464A;
+  --teal:#C6AB78; --tealFill:#C6AB78; --alertFill:#C0473B; --ok:#7DBF98; --warn:#C6AB78; --alert:#E8837A; --lift:26%; --glow:transparent;
+  --brass:#C6AB78; --brassFab:#C6AB78; --onBrass:#1E1D1A;
 }
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -346,8 +346,8 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 
 /* Liquid-Glass-Leiste */
 :root{--glass:rgba(250,250,248,.7);--glassEdge:rgba(255,255,255,.75);--glassShade:rgba(20,30,35,.14)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:rgba(30,30,33,.6);--glassEdge:rgba(255,255,255,.14);--glassShade:rgba(0,0,0,.45)}}
-:root[data-theme="dark"]{--glass:rgba(30,30,33,.6);--glassEdge:rgba(255,255,255,.14);--glassShade:rgba(0,0,0,.45)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:rgba(54,55,59,.72);--glassEdge:rgba(255,255,255,.14);--glassShade:rgba(0,0,0,.45)}}
+:root[data-theme="dark"]{--glass:rgba(54,55,59,.72);--glassEdge:rgba(255,255,255,.14);--glassShade:rgba(0,0,0,.45)}
 .wrap{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))}
 
 .tabbar{position:fixed;left:12px;right:12px;bottom:max(10px,calc(env(safe-area-inset-bottom,0px) - 12px));z-index:45;max-width:540px;margin:0 auto;
@@ -1216,7 +1216,7 @@ textarea.lt{min-height:260px;font-size:16px;line-height:1.45;resize:none;font-fa
 input[type=file]{display:none}
 /* Darstellung: Wahl in den Einstellungen übersteuert System und Viewer */
 :root[data-appearance="light"]{color-scheme:light;--paper:#F4F4F2;--surface:#FFFFFF;--sunken:#EEEEEC;--field:#F1F1EF;--ink:#121314;--ink2:#5E6064;--ink3:#6A6C70;--line:#E6E6E3;--teal:#86671F;--tealFill:#86671F;--ok:#2E6A4E;--warn:#86671F;--alert:#A93227;--alertFill:#A93227;--brass:#A88437;--brassFab:#8F6E22;--onBrass:#FFFFFF;--glow:transparent;--lift:0%;--glass:rgba(250,250,248,.7);--glassEdge:rgba(255,255,255,.75);--glassShade:rgba(20,20,22,.14)}
-:root[data-appearance="dark"]{color-scheme:dark;--paper:#0C0C0D;--surface:#17171A;--sunken:#1F1F22;--field:#1F1F22;--ink:#EDEDEE;--ink2:#9C9DA2;--ink3:#8F9095;--line:#28282C;--teal:#D4AF62;--tealFill:#D4AF62;--ok:#6FB58E;--warn:#D4AF62;--alert:#E5776A;--alertFill:#C0473B;--brass:#D4AF62;--brassFab:#D4AF62;--onBrass:#141414;--glow:transparent;--lift:26%;--glass:rgba(30,30,33,.6);--glassEdge:rgba(255,255,255,.12);--glassShade:rgba(0,0,0,.45)}
+:root[data-appearance="dark"]{color-scheme:dark;--paper:#2C2D30;--surface:#36373B;--sunken:#414246;--field:#414246;--ink:#E8E6E2;--ink2:#A8A7A3;--ink3:#9C9B97;--line:#45464A;--teal:#C6AB78;--tealFill:#C6AB78;--ok:#7DBF98;--warn:#C6AB78;--alert:#E8837A;--alertFill:#C0473B;--brass:#C6AB78;--brassFab:#C6AB78;--onBrass:#1E1D1A;--glow:transparent;--lift:26%;--glass:rgba(54,55,59,.72);--glassEdge:rgba(255,255,255,.12);--glassShade:rgba(0,0,0,.35)}
 #themeSeg{margin:0 0 18px}
 /* v74 */
 .review.rvsmall{margin-top:18px;border-left-color:var(--line)}
