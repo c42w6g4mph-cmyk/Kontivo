@@ -1634,10 +1634,10 @@ body{background:var(--paper)!important}
 .searchrow .searchwrap,.searchrow .sortbtn,.fsel,.hchip{border-radius:10px!important}
 .sheet{background:var(--paper)!important}
 .grp .card{border-radius:0!important;margin:0!important}
-.grp .grphead+.card{border-radius:16px 16px 0 0!important}
-.grp .card:last-child{border-radius:0 0 16px 16px!important}
-.grp .grphead+.card:last-child{border-radius:16px!important}
-.grp .card+.card{background-image:linear-gradient(var(--line),var(--line))!important;background-size:calc(100% - 62px) 1px!important;background-position:62px 0!important;background-repeat:no-repeat!important}
+/* Gruppe = eine Fläche: oben/unten gerundet, auch ohne Überschrift (Sortierung nach Betrag/Name, Archiv); Trennlinie über die ganze Breite */
+.grp>.grphead+.card,.grp>.card:first-child{border-top-left-radius:16px!important;border-top-right-radius:16px!important}
+.grp>.card:last-child{border-bottom-left-radius:16px!important;border-bottom-right-radius:16px!important}
+.grp .card+.card{background-image:linear-gradient(var(--line),var(--line))!important;background-size:100% 1px!important;background-position:0 0!important;background-repeat:no-repeat!important}
 .grphead span:first-child{font-weight:600;color:var(--ink)}
 .kzc{display:grid!important;grid-template-rows:1fr 1fr;gap:8px}.kzt{display:flex;flex-direction:column;justify-content:center}
 /* Kategorie-Symbole: siehe «Kategorien in Pastell» */
@@ -1646,8 +1646,8 @@ body{background:var(--paper)!important}
 .mgi.i4.w{background:color-mix(in srgb,var(--brass) 18%,var(--surface))!important;color:var(--teal)!important}
 .tabbar svg,.mgi svg{stroke-width:1.6!important}
 /* Markenzeichen: Messingstrich */
-.hero .heroSub,.kh .ksub{position:relative;padding-top:12px}
-.hero .heroSub:before,.kh .ksub:before{content:"";position:absolute;top:0;left:0;width:40px;height:2px;border-radius:1px;background:var(--brass)}
+.kh .ksub{position:relative;padding-top:12px}
+.kh .ksub:before{content:"";position:absolute;top:0;left:0;width:40px;height:2px;border-radius:1px;background:var(--brass)}
 .kh .ksub{display:block}
 /* Kopf und Suche */
 .hlabel{font-size:13px!important}
