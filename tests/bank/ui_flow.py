@@ -25,12 +25,13 @@ with sync_playwright() as p:
         pg.screenshot(path=f"{OUT}/1_liste_{theme}.png")
         # Swisscom aufklappen und bearbeiten
         pg.click('#bkBody .bkmain:has-text("Swisscom")'); pg.wait_for_timeout(300)
-        pg.fill('#bkA', "81.50"); pg.click('#bkBody [data-bkh="*"]'); pg.select_option('#bkC', "1")
+        # Vorschlag öffnet das normale Vertragsformular
+        pg.fill('#fAmt', "81.50"); pg.select_option('#fCycle', "1")
         pg.screenshot(path=f"{OUT}/2_bearbeiten_{theme}.png")
         if theme == "light":
-            pg.click('#bkGo'); pg.wait_for_timeout(200)  # Bearbeiten → Fertig (zurück zur Liste)
+            pg.click('#saveForm'); pg.wait_for_timeout(400)  # Sichern → zurück zur Liste
             # Rundfunkgebühr (Vielleicht) aufklappen → Nie mehr vorschlagen
-            pg.click('#bkBody .bkmain:has-text("Rundfunkgebühr")'); pg.click('#bkBody [data-bkign]'); pg.wait_for_timeout(200)
+            pg.click('#bkBody .bkmain:has-text("Rundfunkgebühr")'); pg.wait_for_timeout(400); pg.click('#fBankIgn'); pg.wait_for_timeout(300)
             # Mobiliar ankreuzen
             pg.click('#bkBody .bkr:has-text("Die Mobiliar") [data-bkyes]'); pg.wait_for_timeout(200)
             # geführte Schritte: Weiter bis «… übernehmen»

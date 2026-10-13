@@ -1741,6 +1741,11 @@ body{background:var(--paper)!important}
 .bkwho{background:var(--surface);border-radius:14px;padding:10px 12px;margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}
 .bkwho>span{font-size:14px;font-weight:500}.bkwho .hseg{box-shadow:inset 0 0 0 1px var(--line)}.bkwho .hseg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .bkwho small{grid-column:1/-1;font-size:12px;color:var(--ink2)}
+.lcand .lci{display:block;width:52px;height:52px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--line);flex:none}
+.lcand .lci img{width:100%;height:100%;border-radius:0;box-shadow:none;display:block}
+.lcand.app .lci img{transform:scale(1.1)}.lcand.wide .lci img{padding:6px}
+.lcand .lci+span{font-size:10.5px;line-height:1.2;color:var(--ink2);text-align:center;max-width:64px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.fbankign{display:block;width:100%;margin:18px 0 0;padding:13px;border-radius:12px;background:var(--surface);color:var(--alert);font-size:15.5px;font-weight:500}
 </style>
 </head>
 <body>
@@ -1999,6 +2004,7 @@ body{background:var(--paper)!important}
 
   <h3 class="fsec">Notiz</h3>
   <div class="fcard"><textarea id="fNote" class="fnotef" aria-label="Notiz" placeholder="Zugangsweg, Ansprechpartner, Besonderheiten"></textarea></div>
+  <button type="button" class="fbankign" id="fBankIgn" hidden>Nie mehr vorschlagen</button>
   <div style="height:14px"></div>
   </div>
 </div>
@@ -3425,6 +3431,7 @@ function renderBudget(v){
 document.addEventListener("click",function(ev){if(!ev.target.closest("#xAll"))return;state._xAll=!state._xAll;renderView();});
 function openSheet(el){document.getElementById("scrim").classList.add("on");el.classList.add("on");el.scrollTop=0;}
 function closeSheets(){
+  if(fBank&&bk){bkBackToList();return;}
   document.getElementById("scrim").classList.remove("on");
   ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetLetter","sheetSig","sheetSigPick","sheetBank","sheetVk"].forEach(function(i){document.getElementById(i).classList.remove("on");});
   if(typeof vk!=="undefined"&&vk&&!vk.busy)vk=null;
@@ -3615,7 +3622,7 @@ function selVal(id,v,lbl){var s=document.getElementById(id);v=v==null?"":String(
   [].slice.call(s.querySelectorAll("option[data-x]")).forEach(function(o){o.remove();});
   if(v&&![].some.call(s.options,function(o){return o.value===v;})){var o=document.createElement("option");o.value=v;o.textContent=lbl?lbl(v):v;o.dataset.x="1";s.appendChild(o);}
   s.value=v;}
-function openForm(c,asCopy,title){clearCands();webWaitClear();
+function openForm(c,asCopy,title){clearCands();webWaitClear();document.getElementById("fBankIgn").hidden=!(fBank&&!fBank.inc);
   editId=(c&&!asCopy)?c._id:null;
   draft={cat:(c&&c.cat)||"",color:(c&&c.color)||"",logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",
     docs:(c&&c.docs&&!asCopy?c.docs.slice():[]),extras:(c&&!asCopy?extrasOf(c):[]),split:(c&&splitOf(c)?Object.assign({},c.split):null),prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),holders:c?holdersOf(c).slice():bkHolders()};
@@ -4361,6 +4368,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
      Keine automatische Logo-Suche im Hintergrund (Logos nur als Vorschlag mit Bestätigung) */
   if(!editId&&!c.logoId&&c.partner&&!draft.logoRemoved){var sib=samePartner(c.partner).filter(function(k){var o=state.contracts[k];return o.logoId&&KBlob.has(o.logoId);})[0];
     if(sib){c.logoId=state.contracts[sib].logoId;c.logoBg=state.contracts[sib].logoBg||"#FFFFFF";}}
+  if(fBank&&!fBank.inc&&bk){bkFormDone(c);return;}
   var cid=editId||uid();putContract(cid,c);
   /* Adresse gehört zum Vertragspartner: geänderte Adresse auf alle seine Verträge übertragen */
   if(c.partner&&c.addr&&c.addr!==((prev&&prev.addr)||""))setPartnerAddr(c.partner,c.addr);
@@ -5597,10 +5605,10 @@ function openIncDetail(idv){var c=Object.assign({},state.incomes[idv]);if(!state
   });});
   openSheet(document.getElementById("sheetDetail"));}
 function openIncome(idv){clearCands();document.getElementById("oILogo").open=false;document.getElementById("iLogoTap").setAttribute("aria-expanded","false");
-  var c=idv?state.incomes[idv]:null;incId=idv||null;
+  var c=(idv&&typeof idv==="object")?idv:(idv?state.incomes[idv]:null);incId=(typeof idv==="string")?idv:null;
   idraft={logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",cat:(c&&c.cat)||"Lohn",prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),
     holders:c?holdersOf(c).slice():[(state.settings.holders||["Ich"])[0]]};
-  document.getElementById("incTitle").textContent=c?"Bearbeiten":"Neue Einnahme";
+  document.getElementById("incTitle").textContent=fBank?"Vorschlag":(incId?"Bearbeiten":"Neue Einnahme");
   document.getElementById("iName").value=(c&&c.name)||"";
   document.getElementById("iLabel").value=(c&&c.label)||"";
   document.getElementById("iAmt").value=c?amtIn(c.amount,c.cur):"";setTimeout(amtPh);
@@ -5611,7 +5619,7 @@ function openIncome(idv){clearCands();document.getElementById("oILogo").open=fal
   document.getElementById("iEnd").value=(c&&c.end)||"";
   document.getElementById("iNote").value=(c&&c.note)||"";
   document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iPBak=null;iOpenSub(false);iDueOpen=false;
-  document.getElementById("iDel").hidden=!c;
+  document.getElementById("iDel").hidden=!incId;
   iPaintChips();iPaintPrices();iPaintDue();datesPaint();openSheet(document.getElementById("sheetInc"));formSnap.i=formSig("sheetInc",idraft);
 }
 document.getElementById("iSave").addEventListener("click",function(){
@@ -5625,6 +5633,7 @@ document.getElementById("iSave").addEventListener("click",function(){
     due:document.getElementById("iDue").value||iso(today()),start:document.getElementById("iStart").value||"",
     end:document.getElementById("iEnd").value||"",holders:idraft.holders.slice(),prices:idraft.prices.slice(),
     note:document.getElementById("iNote").value.trim(),logoId:idraft.logoId||"",logoBg:idraft.logoBg||"",color:(prev&&prev.color)||"",status:"active",t:(prev&&prev.t)||Date.now()};
+  if(fBank&&fBank.inc&&bk){bkIncFormDone(c);return;}
   var nid=incId||uid();putIncome(nid,c);closeSheets();render();toast(incId?"Aktualisiert":"Einnahme erfasst");
 });
 document.getElementById("iCancel").addEventListener("click",closeSheets);
@@ -6704,6 +6713,39 @@ async function logoCands(name,cur,dom){
 function loadImg(src){return new Promise(function(res,rej){var im=new Image();im.crossOrigin="anonymous";
   im.onload=function(){res(im);};im.onerror=function(){rej(new Error("img"));};im.src=src;});}
 /* Prüft Grösse, Seitenverhältnis und dass das Bild nicht leer/einfarbig ist; liefert ein 512er-PNG */
+/* App-Symbole und Kacheln mit Rand (weisse Ecken, Rahmen, feiner Saum) sauber zuschneiden:
+   Kachelfarbe aus den Seitenmitten; ist die Kachel kleiner als das Bild (Rahmen), auf die Kachel zuschneiden
+   und 4 % nach innen gehen. Rückgabe: Ausschnitt + Hintergrundfarbe. SwiftUI: gleiche Regel mit CGImage-Pixeln */
+function tileFix(im){var w=im.naturalWidth,h=im.naturalHeight,full={sx:0,sy:0,sw:w,sh:h,bg:"",tile:false};
+  try{var N=128,cv=document.createElement("canvas");cv.width=cv.height=N;var g=cv.getContext("2d");g.drawImage(im,0,0,N,N);var d=g.getImageData(0,0,N,N).data;
+    var P=function(x,y){var i=(y*N+x)*4;return [d[i],d[i+1],d[i+2],d[i+3]];};
+    var dist=function(a,b){if(a[3]<40&&b[3]<40)return 0;if((a[3]<40)!==(b[3]<40))return 999;return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2]);};
+    var C=P(1,1),bg=function(p){return p[3]<40||dist(p,C)<36;};
+    var x0=N,y0=N,x1=-1,y1=-1;for(var y=0;y<N;y++)for(var x=0;x<N;x++)if(!bg(P(x,y))){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+    if(x1<0)return full;
+    var bw=x1-x0+1,bh=y1-y0+1;if(bw/bh<0.85||bw/bh>1.18)return full;
+    /* Kachel? Seitenmitten knapp innerhalb der Fläche gleichfarbig und nicht Hintergrund */
+    var m=Math.max(3,Math.round(bw*0.05)),cx=Math.round((x0+x1)/2),cy=Math.round((y0+y1)/2);
+    var E=[P(cx,y0+m),P(cx,y1-m),P(x0+m,cy),P(x1-m,cy)];
+    if(E.some(function(p){return bg(p);}))return full;
+    for(var a=1;a<4;a++)if(dist(E[0],E[a])>60)return full;
+    /* Ecken der Kachel (12 % diagonal nach innen) müssen auch Kachel sein – sonst ist es ein runder Logo-Kreis, keine Kachel */
+    var q=function(fx2,fy2){return P(Math.round(x0+bw*fx2),Math.round(y0+bh*fy2));};
+    if([q(.12,.12),q(.88,.12),q(.12,.88),q(.88,.88)].some(function(p){return bg(p);}))return full;
+    var rgb=[0,1,2].map(function(k){return Math.round((E[0][k]+E[1][k]+E[2][k]+E[3][k])/4);});
+    var hex="#"+rgb.map(function(v){return ("0"+v.toString(16)).slice(-2);}).join("").toUpperCase();
+    var fx=w/N,fy=h/N,ins=0.04;
+    var sx=(x0+bw*ins)*fx,sy=(y0+bh*ins)*fy,sw=bw*(1-2*ins)*fx,sh=bh*(1-2*ins)*fy;
+    return {sx:sx,sy:sy,sw:sw,sh:sh,bg:hex,tile:true,C:C,rgb:rgb};
+  }catch(e){return full;}}
+/* Kachel zeichnen; deckende helle Ecken (abgerundete App-Symbole als JPG) in Kachelfarbe übermalen */
+function tileDraw(g,im,tf){g.fillStyle=tf.bg||"#FFFFFF";g.fillRect(0,0,512,512);g.imageSmoothingQuality="high";g.drawImage(im,tf.sx,tf.sy,tf.sw,tf.sh,0,0,512,512);
+  if(!tf.tile||!tf.C||tf.C[3]<40)return;
+  try{var R=150,id=g.getImageData(0,0,512,512),d=id.data,C=tf.C,T=tf.rgb;
+    [[0,0],[511,0],[0,511],[511,511]].forEach(function(c){for(var y=0;y<R;y++)for(var x=0;x<R;x++){if(x+y>R)continue;
+      var px=c[0]?511-x:x,py=c[1]?511-y:y,i=(py*512+px)*4;
+      if(Math.abs(d[i]-C[0])+Math.abs(d[i+1]-C[1])+Math.abs(d[i+2]-C[2])<90){d[i]=T[0];d[i+1]=T[1];d[i+2]=T[2];d[i+3]=255;}}});
+    g.putImageData(id,0,0);}catch(e){}}
 async function logoBlob(url){
   var big=url.replace(/\/\d+x\d+bb\.(jpg|jpeg|png|webp)$/i,"/512x512bb.png");
   var srcs=[big,url,"https://images.weserv.nl/?url="+encodeURIComponent(big.replace(/^https?:\/\//,""))+"&w=512&h=512&fit=cover&output=png"];
@@ -6718,8 +6760,8 @@ async function logoBlob(url){
       var sd=Math.sqrt(Math.max(0,sq/n-(sum/n)*(sum/n)));
       if(sd<6||op/n<0.6)return {err:"leer"};
       var cv=document.createElement("canvas");cv.width=cv.height=512;var c2=cv.getContext("2d");
-      c2.fillStyle="#FFFFFF";c2.fillRect(0,0,512,512);c2.imageSmoothingQuality="high";c2.drawImage(im,0,0,512,512);
-      var bl=await new Promise(function(r){cv.toBlob(r,"image/png");});if(bl)return {blob:bl};
+      var tf=tileFix(im);tileDraw(c2,im,tf);
+      var bl=await new Promise(function(r){cv.toBlob(r,"image/png");});if(bl)return {blob:bl,bg:tf.bg||"#FFFFFF"};
     }catch(e){/* Bild ohne Freigabe (CORS) – nächste Quelle */}
   }
   return {err:"laden"};
@@ -6790,6 +6832,9 @@ async function padBlob(url,minPx,full){
     var im;try{im=await loadImg(srcs[i]);}catch(e){continue;}
     var w=im.naturalWidth,h=im.naturalHeight;if(Math.max(w,h)<(minPx||200))return {err:"klein"};
     try{
+      var tf0=tileFix(im);if(tf0.tile&&tf0.sw>=120){var cvt=document.createElement("canvas");cvt.width=cvt.height=512;var gt=cvt.getContext("2d");
+        tileDraw(gt,im,tf0);
+        var blt=await new Promise(function(r){cvt.toBlob(r,"image/png");});if(blt)return {blob:blt,bg:tf0.bg};}
       var tries=["#FFFFFF","#1C1C1E"];
       for(var j=0;j<tries.length;j++){
         var cv=document.createElement("canvas");cv.width=cv.height=512;var g=cv.getContext("2d");
@@ -6876,7 +6921,7 @@ function paintCands(box,cs,onPick){
   if(!cs.length){box.innerHTML='<div class="lcmsg">Nichts gefunden. Tipp: Vertragspartner oder Bezeichnung so schreiben, wie die Firma heisst, eine Website eintragen, oder «Logo im Web suchen».</div>';return;}
   var list=cs.slice(0,10);
   box.innerHTML='<div class="lcmsg">'+(list[0].score>=3?"Tippe auf das passende Logo:":"Keine eindeutige Übereinstimmung – passt eines davon?")+"</div>"+
-    list.map(function(c,i){return '<button type="button" class="lcand'+(c.score>=3?"":" weak")+(c.src==="wiki"?" wide":"")+'" data-i="'+i+'"><img src="'+esc(c.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer"><span>'+esc(c.title)+"</span><em>"+(LSRC[c.src]||"App Store")+"</em></button>";}).join("");
+    list.map(function(c,i){return '<button type="button" class="lcand'+(c.score>=3?"":" weak")+(c.src==="wiki"?" wide":"")+(LSRC[c.src]?"":" app")+'" data-i="'+i+'"><span class="lci"><img src="'+esc(c.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer"></span><span>'+esc(c.title)+"</span><em>"+(LSRC[c.src]||"App Store")+"</em></button>";}).join("");
   box.onclick=async function(ev){var b=ev.target.closest(".lcand");if(!b)return;
     toast("Übernehme Logo…");var r;try{r=await takeLogo(list[+b.dataset.i]);}catch(e){r={err:"speicher"};}
     if(!r||!r.id){toast(LERR[r&&r.err]||"Übernahme fehlgeschlagen");return;}
@@ -8020,10 +8065,10 @@ function bkPriceRow(p,i){var s=p.s,m=s.match,c=state.contracts[m.id];
 function bkFixCount(){return bk.items.filter(function(it){return bk.showIgn||!it.s.ignored;}).length;}
 function bkTermList(){return bk.items.map(function(it,i){return i;}).filter(function(i){var it=bk.items[i];return it.on&&!(it.s.ignored&&!bk.showIgn)&&!bkHasTermBase(it);});}
 /* Katalog-Anbieter: Kündigungsregel bekannt (auch «jederzeit», Frist 0) */
-function bkHasTermBase(it){return bkNoCancel(it)||!!it.s.tpl;}
+function bkHasTermBase(it){if(it.over)return bkOverTerm(it.over);return bkNoCancel(it)||!!it.s.tpl;}
 function bkSteps(){var L=[];if(bkFixCount()||bk.price.length||!bk.inc.length)L.push("fix");if(bk.inc.length)L.push("inc");if(bkTermList().length)L.push("term");return L;}
 /* Person für alle Einträge auf einmal; Quelle: Kontoinhaber im Auszug */
-function bkWhoBar(){var HL=state.settings.holders||[];if(HL.length<2)return "";
+function bkWhoBar(){var HL=state.settings.holders||[];if(HL.length<2||!(bk.items.filter(function(it){return !it.s.ignored;}).length+bk.inc.length))return "";
   var all=[].concat(bk.items,bk.inc),cur=all.length&&all.every(function(it){return it.ed.holders.length===1&&it.ed.holders[0]===all[0].ed.holders[0];})?all[0].ed.holders[0]:"";
   var why=bk.ownerHit?"Kontoinhaber laut Auszug: "+esc(bk.owner):bk.joint?"Gemeinschaftskonto – bitte je Eintrag prüfen":"Im Eintrag einzeln änderbar";
   return '<div class="bkwho"><span>Zuordnen an</span><div class="hseg">'+HL.map(function(h){return '<button type="button" data-bkall="'+esc(h)+'" aria-pressed="'+(cur===h)+'">'+esc(h)+'</button>';}).join("")+'</div><small>'+why+'</small></div>';}
@@ -8150,6 +8195,33 @@ document.getElementById("bankFile").addEventListener("change",async function(ev)
 /* Aktionsmenü im Detail: Tippen daneben schliesst */
 document.addEventListener("click",function(e){var dm=document.getElementById("dMenu");if(!dm||dm.hidden)return;
   if(e.target.closest("#dMenu")||e.target.closest(".dmbtn"))return;dm.hidden=true;var mb=document.querySelector("#detailBody .dmbtn");if(mb)mb.setAttribute("aria-expanded","false");},true);
+/* Vorschlag bearbeiten = dasselbe Formular wie «Neuer Vertrag» / «Neue Einnahme» (gleiches Design und Layout).
+   «Sichern» schreibt nicht in die Daten, sondern zurück in den Vorschlag; danach geht es zurück zur Liste. */
+var fBank=null;
+function bkOverTerm(c){return !!(c.noCancel||+c.notice||c.end||c.mand);}
+function bkContractOf(it){if(it.over)return Object.assign({},it.over);
+  var s=Object.assign({},it.s,{name:it.ed.name,cycle:it.ed.cycle,cat:it.ed.cat,due:it.ed.due||it.s.due});
+  if(s.change){if(Math.abs(it.ed.amount-s.change.amount)>0.004){if(Math.abs(it.ed.amount-s.change.prev)<0.005)s.change=null;else s.change=Object.assign({},s.change,{amount:it.ed.amount});}}
+  s.amount=it.ed.amount;var c=bankToContract(s,it.ed.holders);c.label=it.ed.label||"";
+  if(it.logo&&it.logo.id){c.logoId=it.logo.id;c.logoBg=it.logo.bg||"";}
+  if(!bkHasTermBase(it)){if(it.term==="1"||it.term==="3"){c.notice=+it.term;c.noticeU="m";c.cancTerm="";}else if(it.term==="x"){c.noCancel=true;c.mand=false;c.cancTerm="";}}
+  return c;}
+function bkOpenForm(i){var it=bk.items[i];fBank={i:i,scroll:document.getElementById("sheetBank").scrollTop};
+  document.getElementById("sheetBank").classList.remove("on");openForm(bkContractOf(it),false,"Vorschlag");}
+function bkOpenInc(i){var it=bk.inc[i],e=it.ed;fBank={i:i,inc:true,scroll:document.getElementById("sheetBank").scrollTop};
+  document.getElementById("sheetBank").classList.remove("on");
+  openIncome(it.over?Object.assign({},it.over):{name:e.name,label:e.label||"",cat:e.cat,amount:e.amount,cur:it.s.cur,cycle:e.cycle,due:e.due||it.s.due,start:"",end:"",holders:e.holders.slice(),prices:[],note:"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg||"":""});}
+function bkBackToList(){var sc=fBank?fBank.scroll:0;fBank=null;["sheetForm","sheetInc"].forEach(function(id){document.getElementById(id).classList.remove("on");});
+  var sh=document.getElementById("sheetBank");openSheet(sh);paintBank();sh.scrollTop=sc||0;}
+function bkFormDone(c){var it=bk&&bk.items[fBank.i];if(!it){fBank=null;closeSheets();return;}
+  it.over=c;it.on=true;it.ed=Object.assign({},it.ed,{name:c.partner||it.ed.name,label:c.label||"",amount:curPrice(c),cycle:+c.cycle||1,cat:c.cat,holders:(c.holders||[]).slice(),due:c.due});
+  if(it.logo&&it.logo.id&&it.logo.id!==c.logoId)bkDropLogo(it.logo.id);it.logo=c.logoId?{id:c.logoId,bg:c.logoBg||""}:null;
+  if(bkOverTerm(c))it.term="";bkBackToList();}
+function bkIncFormDone(c){var it=bk&&bk.inc[fBank.i];if(!it){fBank=null;closeSheets();return;}
+  it.over=c;it.on=true;it.ed=Object.assign({},it.ed,{name:c.name,label:c.label||"",amount:c.amount,cycle:+c.cycle||1,cat:c.cat,holders:(c.holders||[]).slice(),due:c.due});
+  if(it.logo&&it.logo.id&&it.logo.id!==c.logoId)bkDropLogo(it.logo.id);it.logo=c.logoId?{id:c.logoId,bg:c.logoBg||""}:null;bkBackToList();}
+document.getElementById("fBankIgn").addEventListener("click",function(){if(!fBank||!bk)return;var it=bk.items[fBank.i],k=bankIgnKey(it.s),L=state.settings.bankIgn||[];
+  if(L.indexOf(k)<0){L.push(k);state.settings.bankIgn=L;saveSettings();}it.s.ignored=true;it.on=false;var nm=it.ed.name;bkBackToList();toast("«"+nm+"» wird nicht mehr vorgeschlagen");});
 function bkBack(){
   if(bk&&(bk.open>=0||bk.openInc>=0)){bk.open=-1;bk.openInc=-1;paintBank();return true;}
   var st=bk?bkSteps():[],si=bk?st.indexOf(bk.step):0;
@@ -8163,8 +8235,8 @@ document.getElementById("bkBody").addEventListener("click",function(e){
   if(t.dataset.ikon!=null){var ii=bk.inc[+t.dataset.ikon];ii.on=!ii.on;t.setAttribute("aria-checked",ii.on);t.parentNode.classList.toggle("off",!ii.on);bkFoot();return;}
   if(t.dataset.bkyes!=null||t.dataset.bkno!=null){var iy=bk.items[+(t.dataset.bkyes!=null?t.dataset.bkyes:t.dataset.bkno)];iy.on=t.dataset.bkyes!=null;paintBank();return;}
   if(t.dataset.bkpon!=null){var p=bk.price[+t.dataset.bkpon];p.on=!p.on;t.setAttribute("aria-checked",p.on);bkFoot();return;}
-  if(t.dataset.bkopen!=null){bk.open=+t.dataset.bkopen;bk.scroll=document.getElementById("bkBody").scrollTop;paintBank();return;}
-  if(t.dataset.ikopen!=null){bk.openInc=+t.dataset.ikopen;bk.scroll=document.getElementById("bkBody").scrollTop;paintBank();return;}
+  if(t.dataset.bkopen!=null){bkOpenForm(+t.dataset.bkopen);return;}
+  if(t.dataset.ikopen!=null){bkOpenInc(+t.dataset.ikopen);return;}
   if(t.dataset.bkback!=null){bk.open=-1;bk.openInc=-1;paintBank();document.getElementById("bkBody").scrollTop=bk.scroll||0;return;}
   if(t.dataset.bkterm!=null){var it4=bk.items[+t.dataset.bkterm];it4.term=t.dataset.v;
     t.parentNode.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",x===t);});return;}
@@ -8203,6 +8275,8 @@ document.getElementById("bkGo").addEventListener("click",function(){
   var n=0,p=0,ni=0,stamp=uid();
   bk.items.forEach(function(it,k){
     if(!it.on||(it.s.ignored&&!bk.showIgn)){if(it.logo)bkDropLogo(it.logo.id);return;}
+    if(it.over){var co=bkContractOf(it);if(!bkOverTerm(co)&&(it.term==="1"||it.term==="3")){co.notice=+it.term;co.noticeU="m";co.cancTerm="";}else if(!bkOverTerm(co)&&it.term==="x"){co.noCancel=true;}
+      state.contracts[stamp+k]=co;n++;return;}
     var s=Object.assign({},it.s,{name:it.ed.name,cycle:it.ed.cycle,cat:it.ed.cat,due:it.ed.due||it.s.due});
     /* Betrag geändert: bei erkannter Preisänderung ist es der neue Preis, sonst der einzige */
     if(s.change){if(Math.abs(it.ed.amount-s.change.amount)>0.004){if(Math.abs(it.ed.amount-s.change.prev)<0.005)s.change=null;else s.change=Object.assign({},s.change,{amount:it.ed.amount});}}
@@ -8219,7 +8293,8 @@ document.getElementById("bkGo").addEventListener("click",function(){
     pr.sort(function(a,b){return a.from<b.from?-1:1;});c.prices=pr;p++;});
   bk.inc.forEach(function(it,k){
     if(!it.on){if(it.logo)bkDropLogo(it.logo.id);return;}var e=it.ed;
-    state.incomes[stamp+"i"+k]={name:e.name,label:e.label||"",cat:e.cat,amount:e.amount,cur:it.s.cur,cycle:e.cycle,due:e.due||it.s.due,start:it.s.first||"",end:"",
+    if(it.over){state.incomes[stamp+"i"+k]=Object.assign({},it.over,{t:Date.now()});ni++;return;}
+    state.incomes[stamp+"i"+k]={name:e.name,label:e.label||"",cat:e.cat,amount:e.amount,cur:it.s.cur,cycle:e.cycle,due:e.due||it.s.due,start:"",end:"",
       holders:e.holders.slice(),prices:[],note:"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg||"":"",color:"",status:"active",t:Date.now()};ni++;});
   var H=bk.items.filter(function(it){return it.on;}).map(function(it){return it.ed.holders;})[0];
   if(H&&H.length===1&&(state.settings.holders||[]).length>1)state.settings.lastHolders=H.slice();
@@ -8231,7 +8306,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
       text:"Bei "+cntTxt(open0,"neuem Vertrag","neuen Verträgen")+" fehlen noch Angaben wie Kündigungsfrist, Logo oder Absender. In einer Minute erledigt – dann erinnert Kontivo dich rechtzeitig."}).then(function(y){if(y)openVk();});},900);}
 });
 /* Test-Haken (tests/bank/check.py) */
-window.KontivoBank=function(){return {bk:function(){return bk;},steps:function(){return bkSteps();},findInc:bankFindInc,read:bankRead,merge:bankMerge,head:bankHead,find:bankFind,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
+window.KontivoBank=function(){return {tileFix:tileFix,tileDraw:tileDraw,bk:function(){return bk;},steps:function(){return bkSteps();},findInc:bankFindInc,read:bankRead,merge:bankMerge,head:bankHead,find:bankFind,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
 document.getElementById("csvImp").addEventListener("click",function(){document.getElementById("csvFile").click();});
 document.getElementById("csvFile").addEventListener("change",function(ev){
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;
