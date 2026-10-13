@@ -4,3 +4,4 @@ kontivo-wortmarke-hell.svg    Wortmarke für helle Flächen (#121314 / Messing #
 kontivo-wortmarke-dunkel.svg  Wortmarke für dunkle Flächen (#E8E6E2 / Messing #C6AB78)
 Wortmarke: K = Logo-K (eigene Form), O = Kreisdiagramm (1/3 Messing ab 12 Uhr, kantig),
 «ntivo» = Inter Display Bold als Vektorpfade (SIL Open Font License 1.1, kommerziell und für Logos erlaubt).
+In der App wird «ntivo» in der iOS-Systemschrift dargestellt (wie bisher). Diese Dateien nutzen Inter Display, weil SF Pro für Logos/Werbemittel nicht lizenziert ist; Abweichungen in Buchstabenform sind daher gewollt.
