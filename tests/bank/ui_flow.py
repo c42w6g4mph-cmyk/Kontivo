@@ -20,7 +20,7 @@ with sync_playwright() as p:
         pg.evaluate("s=>localStorage.setItem('vertraege.v1',s)", json.dumps(st)); pg.reload(); pg.wait_for_timeout(500)
         pg.click('.tabbar button[data-tab="set"]'); pg.wait_for_timeout(300)
         if theme == "light": pg.screenshot(path=f"{OUT}/0_mehr.png")
-        pg.set_input_files("#bankFile", S + "ch_postfinance.csv"); pg.wait_for_timeout(700)
+        pg.set_input_files("#bankFile", S + "ch_postfinance.csv"); pg.wait_for_timeout(1500)
         assert pg.is_visible("#sheetBank.on"), "Sheet nicht offen"
         pg.screenshot(path=f"{OUT}/1_liste_{theme}.png")
         # Swisscom aufklappen und bearbeiten
@@ -28,11 +28,15 @@ with sync_playwright() as p:
         pg.fill('#bkA', "81.50"); pg.click('#bkBody [data-bkh="*"]'); pg.select_option('#bkC', "1")
         pg.screenshot(path=f"{OUT}/2_bearbeiten_{theme}.png")
         if theme == "light":
-            pg.click('#bkBody .bkdone'); pg.wait_for_timeout(200)
+            pg.click('#bkGo'); pg.wait_for_timeout(200)  # Bearbeiten → Fertig (zurück zur Liste)
             # Rundfunkgebühr (Vielleicht) aufklappen → Nie mehr vorschlagen
             pg.click('#bkBody .bkmain:has-text("Rundfunkgebühr")'); pg.click('#bkBody [data-bkign]'); pg.wait_for_timeout(200)
             # Mobiliar ankreuzen
-            pg.click('#bkBody .bkrow:has-text("Die Mobiliar") [data-bkon]')
+            pg.click('#bkBody .bkr:has-text("Die Mobiliar") [data-bkyes]'); pg.wait_for_timeout(200)
+            # geführte Schritte: Weiter bis «… übernehmen»
+            for _ in range(4):
+                if pg.get_attribute("#bkGo", "data-mode") == "go": break
+                pg.click("#bkGo"); pg.wait_for_timeout(250)
             btn = pg.inner_text("#bkGo"); print("Knopf:", btn)
             pg.click("#bkGo"); pg.wait_for_timeout(500)
             pg.screenshot(path=f"{OUT}/3_nachher.png")
@@ -46,10 +50,10 @@ with sync_playwright() as p:
             imm = [c for c in cs.values() if c["partner"].startswith("Immo")][0]; print("Immo:", imm["cat"], imm["amount"], imm["holders"])
             stv = [c for c in cs.values() if c["partner"].startswith("Steuer")][0]; print("Steuer:", stv["cat"], stv.get("noCancel"))
             # zweiter Import: Rundfunkgebühr ausgeblendet, angelegte jetzt «bereits erfasst»
-            pg.click('.tabbar button[data-tab="set"]'); pg.set_input_files("#bankFile", S + "ch_postfinance.csv"); pg.wait_for_timeout(600)
+            pg.click('.tabbar button[data-tab="set"]'); pg.set_input_files("#bankFile", S + "ch_postfinance.csv"); pg.wait_for_timeout(1500)
             pg.screenshot(path=f"{OUT}/4_zweiter_import.png")
             print("Zweiter Import:", pg.inner_text("#bkBody")[:400].replace("\n", " | "))
-            pg.click("#bkX")
+            pg.click("#bkX"); pg.wait_for_timeout(300)
             # Datei, die kein Auszug ist
             open(OUT + "/x.csv", "w").write("a;b;c\n1;2;3\n")
             pg.set_input_files("#bankFile", OUT + "/x.csv"); pg.wait_for_timeout(400)
