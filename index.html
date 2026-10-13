@@ -1633,9 +1633,8 @@ body{background:var(--paper)!important}
 .grp .card+.card{background-image:linear-gradient(var(--line),var(--line))!important;background-size:calc(100% - 62px) 1px!important;background-position:62px 0!important;background-repeat:no-repeat!important}
 .grphead span:first-child{font-weight:600;color:var(--ink)}
 .kzc{display:grid!important;grid-template-rows:1fr 1fr;gap:8px}.kzt{display:flex;flex-direction:column;justify-content:center}
-/* Kategorie-Symbole neutral (Logos bleiben farbig) */
-.mark:not(:has(img)){background:var(--sunken)!important}
-.mark:not(:has(img)) .cicon{stroke:var(--ink)!important;stroke-width:1.5!important}
+/* Kategorie-Symbole: siehe «Kategorien in Pastell» */
+.mark:not(:has(img)) .cicon{stroke-width:1.6!important}
 .mgi{background:var(--sunken)!important;color:var(--ink)!important}
 .mgi.i4.w{background:color-mix(in srgb,var(--brass) 18%,var(--surface))!important;color:var(--teal)!important}
 .tabbar svg,.mgi svg{stroke-width:1.6!important}
@@ -1668,6 +1667,18 @@ body{background:var(--paper)!important}
 .fok{background:var(--brassFab)!important;color:var(--onBrass)!important}
 /* Einführung: Haken in Messing */
 .obprom i{background:var(--brassFab)!important}.obprom i svg{stroke:var(--onBrass)!important}
+/* Kategorien in Pastell: Fläche = Kategoriefarbe hell gemischt, Symbol in Kategoriefarbe (Logos unverändert). SwiftUI: color.opacity(0.16) */
+.mark:not(:has(img)),.pci,.mk{background:color-mix(in srgb,var(--c,#5F666E) 16%,var(--surface))!important}
+.mark:not(:has(img)) .cicon,.pci svg,.mk svg{stroke:var(--c,#5F666E)!important}
+@media (prefers-color-scheme:dark){:root:not([data-appearance="light"]) .mark:not(:has(img)),:root:not([data-appearance="light"]) .pci,:root:not([data-appearance="light"]) .mk{background:color-mix(in srgb,var(--c,#5F666E) 30%,var(--surface))!important}
+ :root:not([data-appearance="light"]) .mark:not(:has(img)) .cicon,:root:not([data-appearance="light"]) .pci svg,:root:not([data-appearance="light"]) .mk svg{stroke:color-mix(in srgb,var(--c,#5F666E) 45%,#fff)!important}}
+:root[data-appearance="dark"] .mark:not(:has(img)),:root[data-appearance="dark"] .pci,:root[data-appearance="dark"] .mk{background:color-mix(in srgb,var(--c,#5F666E) 30%,var(--surface))!important}
+:root[data-appearance="dark"] .mark:not(:has(img)) .cicon,:root[data-appearance="dark"] .pci svg,:root[data-appearance="dark"] .mk svg{stroke:color-mix(in srgb,var(--c,#5F666E) 45%,#fff)!important}
+/* Wortmarke: erstes O als Zeitring */
+.wmO{display:inline-block;width:.56em;height:.56em;vertical-align:baseline;margin:0 .015em 0 .02em;overflow:visible}
+/* Labels ohne Versalien */
+#onb .obtab,#onb .obsec,#onb .obli em,.aemo,.bpt span,.sheet h3.bkh,.bkproof span,.qh,.kcard .kmo{text-transform:none!important;letter-spacing:0!important}
+#onb .obtab{font-size:13px!important;font-weight:600!important}
 /* Währungen: Flaggen bleiben, Auswahl dezent */
 .obcur{border:1.5px solid var(--line)}
 .obcur[aria-pressed="true"]{border-color:var(--brass)!important;background:var(--surface)!important}
@@ -1676,7 +1687,7 @@ body{background:var(--paper)!important}
 </head>
 <body>
 <!-- Intro beim Öffnen (~1 s, nur CSS, blockiert keine Tipps). SwiftUI: eigene SplashView mit .transition(.opacity) -->
-<div id="splash" aria-hidden="true"><div class="splLw"><span class="splRing"></span><span class="splRing r2"></span><img class="splLogo" src="apple-touch-icon.png" alt=""></div><div class="splWm"><span class="splKw"><svg class="splK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="splKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="splKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#splKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#splKc)"/></svg></span><span style="--i:0">o</span><span style="--i:1">n</span><span style="--i:2">t</span><span style="--i:3">i</span><span style="--i:4">v</span><span style="--i:5">o</span></div><div class="splSl">Deine Verträge, ganz entspannt.</div></div>
+<div id="splash" aria-hidden="true"><div class="splLw"><span class="splRing"></span><span class="splRing r2"></span><img class="splLogo" src="apple-touch-icon.png" alt=""></div><div class="splWm"><span class="splKw"><svg class="splK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="splKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="splKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#splKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#splKc)"/></svg></span><span style="--i:0"><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-opacity=".2" stroke-width="22"/><path d="M50 12A38 38 0 1 1 12 50" fill="none" style="stroke:var(--brass)" stroke-width="22" stroke-linecap="round"/></svg></span><span style="--i:1">n</span><span style="--i:2">t</span><span style="--i:3">i</span><span style="--i:4">v</span><span style="--i:5">o</span></div><div class="splSl">Deine Verträge, ganz entspannt.</div></div>
 
 <div class="amdim" id="addDim"></div>
 <div class="amenu" id="addMenu" role="menu" aria-label="Hinzufügen" inert aria-hidden="true">
@@ -2366,7 +2377,7 @@ function colorFor(c){
 function markHtml(c,cls){
   var col=colorFor(c);
   if(c.logoId&&KBlob.has(c.logoId)) return '<div class="mark '+(cls||"")+'" style="background:'+esc(c.logoBg||"#fff")+'"><img src="'+esc(KBlob.url(c.logoId))+'" alt=""></div>';
-  return '<div class="mark '+(cls||"")+'" style="background:'+esc(col)+'">'+catIcon(c.cat||"Sonstiges")+"</div>";
+  return '<div class="mark '+(cls||"")+'" style="--c:'+esc(col)+'">'+catIcon(c.cat||"Sonstiges")+"</div>";
 }
 
 /* ---------- Rechnen ---------- */
@@ -3070,10 +3081,10 @@ function renderStat(v){
         segs.map(function(sg){var v=segV(r.g,sg);return v>0.004?'<i style="flex:'+v.toFixed(2)+';--c:'+sg.c+'"></i>':"";}).join("")+'</span></span><span class="aev">'+fmtG(r.t)+"</span></div>";}).join("")+"</div>"+
       (noSt&&SC==="year"?'<p class="aenote">Vorjahre ausgeblendet: Bei einigen Verträgen fehlt der Vertragsbeginn.</p>':"");
     var markK=function(sg){if(sg.oth)return '<div class="mark aestack" aria-hidden="true">'+[0,1,2,3].map(function(i){var k=restK[i];return '<i style="--c:'+(k?colK(k,top.length+i):OTH)+'"></i>';}).join("")+"</div>";
-      if(G==="cat")return '<div class="mark" style="background:'+esc(catColor(sg.k))+'">'+catIcon(sg.k)+"</div>";
+      if(G==="cat")return '<div class="mark" style="--c:'+esc(catColor(sg.k))+'">'+catIcon(sg.k)+"</div>";
       var pc=pool.filter(function(c){return statKey(c,"partner")===sg.k;})[0];
       if(pc&&pc.logoId&&KBlob.has(pc.logoId))return markHtml(pc);
-      return '<div class="mark" style="background:'+esc(sg.c)+'">'+catIcon(pc?pc.cat||"Sonstiges":"Sonstiges")+"</div>";};
+      return '<div class="mark" style="--c:'+esc(sg.c)+'">'+catIcon(pc?pc.cat||"Sonstiges":"Sonstiges")+"</div>";};
     var fk=state.flt[G]||"";
     var hasLogo=function(sg){if(G!=="partner"||sg.oth)return false;var pc=pool.filter(function(c){return statKey(c,"partner")===sg.k;})[0];return !!(pc&&pc.logoId&&KBlob.has(pc.logoId));};
     var cmpK=function(sg){if(!prev)return "";var v=segV(groups,sg),pv=segV(prev.g,sg);if(pv<0.005)return '<span class="aec">neu</span>';
@@ -3184,7 +3195,7 @@ function emptyStat(){
 function emptyTerm(){
   return emptyHero({icon:"term",title:"Nie mehr eine<br>Frist verpassen",
     text:"Kontivo rechnet den Kündigungstermin aus und zeigt ihn dir rechtzeitig hier unter «Fristen».",
-    hooks:["Behalten oder kündigen? Du entscheidest","Kündigung als PDF: mailen oder drucken","Auch Probeabos und Jahresverträge"],illu:true,preview:epHead("Als Nächstes","")+'<div class="eprow"><span class="pci" style="background:'+catColor("Freizeit & Sport")+'">'+catIcon("Freizeit & Sport")+'</span><span class="t">Fitnessstudio<small class="w">Frist '+(function(){var d=addDays(today(),29);return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+".";})()+' · noch 29 Tage</small></span></div>'+
+    hooks:["Behalten oder kündigen? Du entscheidest","Kündigung als PDF: mailen oder drucken","Auch Probeabos und Jahresverträge"],illu:true,preview:epHead("Als Nächstes","")+'<div class="eprow"><span class="pci" style="--c:'+catColor("Freizeit & Sport")+'">'+catIcon("Freizeit & Sport")+'</span><span class="t">Fitnessstudio<small class="w">Frist '+(function(){var d=addDays(today(),29);return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+".";})()+' · noch 29 Tage</small></span></div>'+
       '<div class="epacts"><span>Behalten</span><span>Kündigen</span></div>',
     btn:['data-onb="c"',"Ersten Vertrag erfassen"]});
 }
@@ -3387,7 +3398,7 @@ function openCatPick(kind){
   document.getElementById("pickTitle").textContent="Kategorie";
   var l=document.getElementById("pickList");l.dataset.dim="catpick-"+kind;
   l.innerHTML=list.map(function(k){
-    return '<button class="pick pickcat" data-pv="'+esc(k)+'" aria-pressed="'+(cur===k)+'"><span class="pci" style="background:'+catColor(k)+'">'+catIcon(k)+
+    return '<button class="pick pickcat" data-pv="'+esc(k)+'" aria-pressed="'+(cur===k)+'"><span class="pci" style="--c:'+catColor(k)+'">'+catIcon(k)+
       '</span><span class="pcn">'+esc(k)+(kind==="c"&&catKey(k)==="Steuern & Gebühren"?catInfoIc():"")+"</span></button>";}).join("")+
     (kind==="c"?'<div class="catadd"><input id="newCat" type="text" placeholder="Neue Kategorie" autocomplete="off" maxlength="30"><button type="button" id="newCatAdd">Hinzufügen</button></div>':"");
   var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
@@ -3922,7 +3933,7 @@ function tplRows(){
   var list=TPL.filter(function(t){return (!tplCC||!t[1]||t[1]===tplCC)&&(!q||(t[0]+" "+t[3]+" "+t[2]).toLowerCase().indexOf(q)>=0);})
     .sort(function(a,b){return a[0].localeCompare(b[0],"de");});
   if(!list.length)return '<p class="note" style="margin:14px 2px">Nichts gefunden. Du kannst den Vertragspartner einfach selbst eintippen.</p>';
-  return list.map(function(t){return '<button class="pick pickcat" data-tplp="'+TPL.indexOf(t)+'"><span class="pci" style="background:'+catColor(t[2])+'">'+catIcon(t[2])+
+  return list.map(function(t){return '<button class="pick pickcat" data-tplp="'+TPL.indexOf(t)+'"><span class="pci" style="--c:'+catColor(t[2])+'">'+catIcon(t[2])+
     '</span><span class="pcn">'+esc(t[0])+'<em class="tsub">'+esc(t[3])+"</em></span><span class=\"tcc\">"+esc(tplFlag(t))+"</span></button>";}).join("");
 }
 function openTplPick(){
@@ -6082,7 +6093,7 @@ MD_PAGES.cat=function(){
   return mdSec(cntTxt(l.length,"Kategorie","Kategorien"),'<button type="button" class="mdlink" data-mdrun="cedit">'+(ed?"Fertig":"Bearbeiten")+'</button>')+
     '<div class="mdgrp'+(ed?" editing":"")+'" id="catRows">'+l.map(function(x,i){var cs=Object.keys(state.contracts).map(function(k){return state.contracts[k];}).filter(function(c){return (c.cat||"Sonstiges")===x.n;}),fixed=x.n==="Sonstiges";
       return '<div class="mdrow crow" data-ci="'+i+'">'+(ed?'<button type="button" class="cdelb" data-cdel="'+esc(x.n)+'" aria-label="'+esc(x.n)+' löschen"'+(fixed?" disabled":"")+'><i></i></button>':"")+
-        '<button type="button" class="crowb" data-mdgo="ce" data-n="'+esc(x.n)+'"><span class="pci" style="background:'+catColor(x.n)+'">'+catIcon(x.n)+'</span><span class="t"><b>'+esc(x.n)+'</b><small>'+
+        '<button type="button" class="crowb" data-mdgo="ce" data-n="'+esc(x.n)+'"><span class="pci" style="--c:'+catColor(x.n)+'">'+catIcon(x.n)+'</span><span class="t"><b>'+esc(x.n)+'</b><small>'+
         cntTxt(cs.length,"Vertrag","Verträge")+(cs.length?" · "+money(perMonth(cs))+" "+H0()+"/Mt.":"")+'</small></span></button>'+
         (ed?'<span class="drag" data-drag="'+i+'" role="button" aria-label="'+esc(x.n)+' verschieben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg></span>':"")+'</div>';}).join("")+
     (ed?"":'<button class="mdrow mdadd" data-mdgo="cenew" type="button"><span class="mdplus">+</span><span class="t"><b>Kategorie hinzufügen</b></span></button>')+'</div>'+
@@ -6096,7 +6107,7 @@ function ceSwatches(c,i,n){
 MD_PAGES.ce=function(p){
   var e=catEntry(p.n);if(!e)return mdEmpty("Diese Kategorie existiert nicht mehr.");
   var fixed=p.n==="Sonstiges",ids=Object.keys(state.contracts).filter(function(k){return (state.contracts[k].cat||"Sonstiges")===p.n;});
-  return '<div class="mdhead"><span class="pci big" style="background:'+catColor(p.n)+'">'+catIcon(p.n)+'</span><div class="field"><label for="ceName">Name</label><input id="ceName" type="text" maxlength="30" autocomplete="off" enterkeyhint="done" value="'+esc(p.n)+'"'+(fixed?" disabled":"")+"></div></div>"+
+  return '<div class="mdhead"><span class="pci big" style="--c:'+catColor(p.n)+'">'+catIcon(p.n)+'</span><div class="field"><label for="ceName">Name</label><input id="ceName" type="text" maxlength="30" autocomplete="off" enterkeyhint="done" value="'+esc(p.n)+'"'+(fixed?" disabled":"")+"></div></div>"+
     (fixed?'<p class="mdhint" style="margin-top:-4px">«Sonstiges» fängt alles ohne Kategorie auf und lässt sich weder umbenennen noch löschen.</p>':"")+
     ceSwatches(safeCol(e.c)||catColor(p.n),e.i||"tag")+
     mdSec(cntTxt(ids.length,"Vertrag","Verträge"))+(ids.length?'<div class="mdgrp">'+ids.map(function(k){return mdCRow(k,state.contracts[k]);}).join("")+"</div>":mdEmpty("Noch keine Verträge in dieser Kategorie."))+
@@ -6104,7 +6115,7 @@ MD_PAGES.ce=function(p){
 };
 MD_PAGES.cenew=function(p){
   if(!p.c){var l=catList();p.c=COLORS[(l.length+3)%COLORS.length];p.i="tag";}
-  return '<div class="mdhead"><span class="pci big" style="background:'+p.c+'"><svg class="cicon" viewBox="0 0 24 24" aria-hidden="true">'+(p.i==="tag"?TAG_ICON:CAT_ICON[p.i])+'</svg></span><div class="field"><label for="ceNew">Name</label><input id="ceNew" type="text" maxlength="30" autocomplete="off" placeholder="z.B. Haustier" enterkeyhint="done" value="'+esc(p.nm||"")+'"></div></div>'+
+  return '<div class="mdhead"><span class="pci big" style="--c:'+p.c+'"><svg class="cicon" viewBox="0 0 24 24" aria-hidden="true">'+(p.i==="tag"?TAG_ICON:CAT_ICON[p.i])+'</svg></span><div class="field"><label for="ceNew">Name</label><input id="ceNew" type="text" maxlength="30" autocomplete="off" placeholder="z.B. Haustier" enterkeyhint="done" value="'+esc(p.nm||"")+'"></div></div>'+
     ceSwatches(p.c,p.i)+'<div class="mdbar"><button class="lbtn main" type="button" data-mdrun="cenew">Hinzufügen</button></div>';
 };
 function ceUpdate(n,patch){var l=catList().map(function(x){return Object.assign({},x);});/* k (Fachschlüssel) bleibt erhalten */
@@ -6123,7 +6134,7 @@ MD_PAGES.cdel=function(p){
   var src=p.src||md.stack[md.stack.length-2].n,n=catCount(src),others=allCats().filter(function(k){return k!==src;});
   if(p.to==null)p.to=others.indexOf("Sonstiges")>=0?"Sonstiges":others[0];
   return mdEmpty(n?"In «"+esc(src)+"» "+(n===1?"ist 1 Vertrag":"sind "+n+" Verträge")+". In welche Kategorie sollen sie?":"«"+esc(src)+"» ist leer und kann gelöscht werden.")+
-    (n?'<div class="mdgrp">'+others.map(function(k){return '<button class="mdrow mdpick" data-mdsel="'+esc(k)+'" aria-pressed="'+(p.to===k)+'" type="button"><span class="pci" style="background:'+catColor(k)+'">'+catIcon(k)+'</span><span class="t"><b>'+esc(k)+'</b></span><span class="rad"></span></button>';}).join("")+"</div>":"")+
+    (n?'<div class="mdgrp">'+others.map(function(k){return '<button class="mdrow mdpick" data-mdsel="'+esc(k)+'" aria-pressed="'+(p.to===k)+'" type="button"><span class="pci" style="--c:'+catColor(k)+'">'+catIcon(k)+'</span><span class="t"><b>'+esc(k)+'</b></span><span class="rad"></span></button>';}).join("")+"</div>":"")+
     '<div class="mdbar"><button class="lbtn main dangerbtn" type="button" data-mdrun="cdelgo">Kategorie löschen</button></div>';
 };
 function ceDelete(src,to){
@@ -8021,7 +8032,7 @@ function obPage(p){
   if(p.k==="welcome"){var ck='<i>'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</i>';
     return '<div class="obscr obwel"><img class="oblogo" src="'+esc(LOGO)+'" alt="">'+
       '<p class="obslogan">Deine Verträge, ganz entspannt.</p>'+
-      '<p class="obt obwt"><span>Willkommen bei</span><b class="obwm" aria-label="Kontivo"><svg class="obK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="obKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="obKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#obKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#obKc)"/></svg>ontivo</b></p>'+
+      '<p class="obt obwt"><span>Willkommen bei</span><b class="obwm" aria-label="Kontivo"><svg class="obK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="obKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="obKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#obKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#obKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-opacity=".2" stroke-width="22"/><path d="M50 12A38 38 0 1 1 12 50" fill="none" style="stroke:var(--brass)" stroke-width="22" stroke-linecap="round"/></svg>ntivo</b></p>'+
       '<p class="obs">Maximale Transparenz über alles,<br>was jeden Monat fix weggeht.</p>'+
       '<div class="obprom"><span>'+ck+'Fixkosten, Budget &amp; Fristen im Blick</span><span>'+ck+'Kontoauszug rein – Fixkosten erkannt</span><span>'+ck+'Ohne Bankanbindung – ganz privat</span><span>'+ck+'Für dich, deine Familie oder deine WG</span></div>'+
       '<div class="obgrow"></div>'+obNext("Los geht’s")+
@@ -8033,7 +8044,7 @@ function obPage(p){
       '<div class="obfade"></div><div class="obbar" aria-hidden="true">'+bar+'</div></div>'+obNext()+'</div>';}
   if(p.k==="tips"){
     return '<div class="obscr">'+obTop('<span class="obtab">'+obSvg(OB_ICON.set)+'Gut zu wissen</span>')+'<p class="obt">Clever bis ins Detail</p>'+
-      '<div class="oblist">'+OB_TIPS.map(function(t){return '<div class="obli"><span class="mk" style="background:'+t[0]+'">'+obSvg(t[1])+'</span><span class="tx"><b>'+esc(t[2])+(t[4]?'<em>Bald</em>':'')+'</b><small>'+esc(t[3])+'</small></span></div>';}).join("")+'</div>'+
+      '<div class="oblist">'+OB_TIPS.map(function(t){return '<div class="obli"><span class="mk" style="--c:'+t[0]+'">'+obSvg(t[1])+'</span><span class="tx"><b>'+esc(t[2])+(t[4]?'<em>Bald</em>':'')+'</b><small>'+esc(t[3])+'</small></span></div>';}).join("")+'</div>'+
       obNext(last?"Fertig":"Weiter")+'</div>';}
   if(p.k==="setup"){
     var nm=(state.settings.holders||[]).filter(function(h){return h!=="Ich";})[0]||"";
@@ -8051,7 +8062,7 @@ function obPage(p){
         '<span><b>Automatisch finden</b><small>Kontoauszug wählen, Vorschläge bestätigen</small></span></button>'+
       '<p class="obsec">Mit Vorlage starten</p><p class="obs">Tipp an, was du hast – den Rest ergänzt du.</p><div class="obchips row">'+
       OB_QUICK.map(function(q,j){var cat=obCat(q[1]),e=catEntry(cat);
-        return '<button type="button" class="obchip" data-obq="'+j+'" aria-pressed="'+(ob.quick===j)+'"><span class="mk" style="background:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span>'+
+        return '<button type="button" class="obchip" data-obq="'+j+'" aria-pressed="'+(ob.quick===j)+'"><span class="mk" style="--c:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span>'+
           '<span class="tx"><b>'+esc(obQn(q)).replace("versicherung","&shy;versicherung")+'</b><small>'+esc(cat)+'</small></span></button>';}).join("")+'</div>'+
       '<div class="obgrow"></div><button type="button" class="obbtn" data-ob="create"'+(ob.quick<0?' disabled':'')+'>'+(ob.quick<0?'Vertrag erfassen':esc(obQn(OB_QUICK[ob.quick]))+' erfassen')+'</button>'+
       '<button type="button" class="obghost" data-ob="done">Erst mal umschauen</button></div>';}
