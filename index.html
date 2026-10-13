@@ -6901,7 +6901,8 @@ async function allCands(name,cur,alt,web,manual){
   if(manual&&!d2){var base=ltok(name).filter(function(t){return LGEN.indexOf(t)<0;}).join("");
     var tl=cur==="EUR"?["de","com","ch"]:["ch","com","de"];
     for(var gi=0;base&&gi<tl.length;gi++){var g=null;try{g=await siteCand(base+"."+tl[gi],2.5);}catch(e){g=null;}if(g){all.push(g);break;}}}
-  if(manual&&r[0].social&&r[0].social.length){try{(await socialCands(r[0].social)).forEach(function(c){all.push(c);});}catch(e){}}
+  /* Profilbild (X/Instagram) ist meist am saubersten → bevorzugt, auch bei der automatischen Suche (dort nur 1 Abfrage, Gratis-Dienst begrenzt) */
+  if(r[0].social&&r[0].social.length){try{(await socialCands(manual?r[0].social:r[0].social.slice(0,1))).forEach(function(c){c.score=6.5;all.push(c);});}catch(e){}}
   var seen={};all=all.filter(function(c){if(seen[c.url])return false;seen[c.url]=1;return true;});
   all.sort(candSort);all.dom=d2;return all;
 }
@@ -6927,6 +6928,12 @@ function paintCands(box,cs,onPick){
   var list=cs.slice(0,10);
   box.innerHTML='<div class="lcmsg">'+(list[0].score>=3?"Tippe auf das passende Logo:":"Keine eindeutige Übereinstimmung – passt eines davon?")+"</div>"+
     list.map(function(c,i){return '<button type="button" class="lcand'+(c.score>=3?"":" weak")+(c.src==="wiki"?" wide":"")+(LSRC[c.src]?"":" app")+'" data-i="'+i+'"><span class="lci"><img src="'+esc(c.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer"></span><span>'+esc(c.title)+"</span><em>"+(LSRC[c.src]||"App Store")+"</em></button>";}).join("");
+  /* Vorschaubilder wie beim Speichern aufbereiten (Glas-Saum, weisser Rahmen) – sieht man vor dem Antippen */
+  list.forEach(function(c,i){if(c.src==="social"||c.src==="site")return;var big=String(c.url||c.thumb).replace(/\/\d+x\d+bb\.(jpg|jpeg|png|webp)$/i,"/512x512bb.png");
+    loadImg(big).catch(function(){return loadImg(c.thumb);}).then(function(im){var tf=tileFix(im);if(!tf.tile)return;
+      var cv=document.createElement("canvas");cv.width=cv.height=512;tileDraw(cv.getContext("2d"),im,tf);
+      var sm=document.createElement("canvas");sm.width=sm.height=128;var g=sm.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(cv,0,0,128,128);
+      var el=box.querySelector('.lcand[data-i="'+i+'"] img');if(el){el.src=sm.toDataURL("image/png");el.closest(".lcand").classList.remove("wide");}}).catch(function(){});});
   box.onclick=async function(ev){var b=ev.target.closest(".lcand");if(!b)return;
     toast("Übernehme Logo…");var r;try{r=await takeLogo(list[+b.dataset.i]);}catch(e){r={err:"speicher"};}
     if(!r||!r.id){toast(LERR[r&&r.err]||"Übernahme fehlgeschlagen");return;}
@@ -8161,8 +8168,9 @@ function bkLogos(){
   var tick=function(){if(bk!==me)return;if(me.loading){bkLoad(3,me.nTx,me.logoRun);return;}if(document.getElementById("sheetBank").classList.contains("on"))paintBank();};
   tick();var next=0;
   async function one(it){var r=null,t=it.s.tpl;
-    try{if(t&&t[4]){var sc=await siteCand(regDom(t[4]),3);if(sc){var a=await takeLogo(sc);if(a&&a.id)r=a;}}
-      if(!r){var nm=lusable(it.ed.name)?it.ed.name:(t?t[0]:it.ed.name);r=await autoLogo(nm,it.s.cur,it.ed.label||null,t?t[4]||"":"");}}catch(e){r=null;}
+    /* zuerst die normale Suche (Profilbild bevorzugt), sonst das Website-Symbol aus dem Katalog (z.B. «O2») */
+    try{var nm=lusable(it.ed.name)?it.ed.name:(t&&lusable(t[0])?t[0]:"");if(nm)r=await autoLogo(nm,it.s.cur,it.ed.label||null,t?t[4]||"":"");
+      if(!r&&t&&t[4]){var sc=await siteCand(regDom(t[4]),3);if(sc){var a=await takeLogo(sc);if(a&&a.id)r=a;}}}catch(e){r=null;}
     if(bk!==me){if(r&&r.id)bkDropLogo(r.id);return;}
     if(r&&r.id&&!it.logo&&!it.over)it.logo=r;me.logoRun.done++;tick();}
   async function worker(){while(next<q.length&&bk===me){var it=q[next++];await one(it);}}
