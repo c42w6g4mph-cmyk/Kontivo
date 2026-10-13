@@ -7632,19 +7632,22 @@ function bankPretty(s){s=String(s||"").trim();if(s&&s===s.toUpperCase()&&/[A-Z]{
 var BKSTOP=["com","www","net","online","payment","payments","europe","international","sca","bv","debit","card","karte","nr","los","gatos","stockholm"];
 function bankTok(s){return ltok(s).filter(function(t){return !/\d/.test(t)&&BKSTOP.indexOf(t)<0;});}
 /* Katalog: alle markanten Wörter des Namens müssen vorkommen; kurze Namen (CSS, O2) nur im Namen, nicht im Freitext */
-var BKALIAS={"Rundfunkgebühr":/rundfunk|beitragsservice|\bserafe\b/,"SBB Halbtax":/halbtax/,"Deutschlandticket":/deutschlandticket|d ticket/,"Die Mobiliar":/\bmobiliar\b/,"Amazon Prime":/amazon prime|prime video|amzn prime/,"Zurich":/zurich (versicherung|insurance|schweiz|lebens)/};
+var BKALIAS={"Rundfunkgebühr":/rundfunk|beitragsservice|\bserafe\b/,"SBB Halbtax":/halbtax/,"Deutschlandticket":/deutschlandticket|d ticket/,"Die Mobiliar":/\bmobiliar\b/,"Amazon Prime":/amazon prime|prime video|amzn prime/,"O2":/\bo2\b|telefonica germany|telefonica o2/,"Zurich":/zurich (versicherung|insurance|schweiz|lebens)/};
+/* Produkte, deren Nennung im Text den Namen des Anbieters schlägt (Firmen-Aliase wie Zurich nicht: «8000 Zürich, Schweiz» in der Adresse) */
+var BKPROD=["Deutschlandticket","SBB Halbtax","Amazon Prime","O2","Rundfunkgebühr"];
 function bankTpl(name,text,cur){
   var nn=" "+lnorm(name)+" ",nt=" "+lnorm(name+" "+text)+" ",cc=cur==="EUR"?"DE":(cur==="CHF"?"CH":""),via=BKVIA.test(nn),best=null;
+  /* inN: 2 = Produkt-Alias im Text (Deutschlandticket über Stadtwerke, O2 über Telefónica), 1 = Name, 0 = nur Text */
   var inN=0;
-  var better=function(t,n){if(!best)return true;var d=(n?1:0)-inN;if(d)return d>0;return ((t[1]===cc)-(best[1]===cc)||t[0].length-best[0].length)>0;};
+  var better=function(t,n){if(!best)return true;var d=n-inN;if(d)return d>0;return ((t[1]===cc)-(best[1]===cc)||t[0].length-best[0].length)>0;};
   TPL.forEach(function(t){
-    var al=BKALIAS[t[0]];if(al){if(al.test(nt)){var n1=al.test(nn);if(better(t,n1)){best=t;inN=n1?1:0;}}return;}
+    var al=BKALIAS[t[0]];if(al){if(al.test(nt)){var n1=al.test(nn)?1:(BKPROD.indexOf(t[0])>=0?2:0);if(better(t,n1)){best=t;inN=n1;}}return;}
     var tk=ltok(t[0]);if(!tk.length||(t[1]&&cc&&t[1]!==cc&&TPL.some(function(o){return o!==t&&o[1]===cc&&ltok(o[0])[0]===tk[0];})))return;
     /* ein Wort (CSS, Zurich, Netflix): nur im Namen, sonst Fehltreffer über Ortsnamen; bei PayPal & Co. auch im Freitext */
     var hay=tk.length===1&&!via?nn:nt;
     /* ein Wort: muss vorne im Namen stehen (davor nur Allerweltswörter) – «Garten Center Spiegel» ist nicht «Der Spiegel» */
     if(tk.length===1&&!via){var nt2=bankTok(name),ix=nt2.indexOf(tk[0]);if(ix>0&&nt2.slice(0,ix).some(function(w){return w.length>3&&LGEN.indexOf(w)<0&&!/^(lastschrift|zahlung|erechnung|ebill|dauerauftrag|gutschrift|belastung|einkauf|kauf|abo|abonnement|rechnung)$/.test(w);}))return;}
-    if(tk.every(function(x){return hay.indexOf(" "+x+" ")>=0;})){var n2=tk.every(function(x){return nn.indexOf(" "+x+" ")>=0;});if(better(t,n2)){best=t;inN=n2?1:0;}}
+    if(tk.every(function(x){return hay.indexOf(" "+x+" ")>=0;})){var n2=tk.every(function(x){return nn.indexOf(" "+x+" ")>=0;});if(better(t,n2?1:0)){best=t;inN=n2?1:0;}}
   });
   return best;
 }
@@ -7653,6 +7656,7 @@ var BKSKIP=/bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlu
 var BKSHOP=/\b(cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|blumen|baumarkt)\b/;
 /* Alltagseinkäufe (Detailhandel, Tankstellen, Fast Food): nie ein Vertrag, ausser ein Katalogeintrag passt (Migros Bank, Coop Mobile) */
 var BKRETAIL=/\b(migros|migrolino|coop|denner|aldi|lidl|rewe|edeka|kaufland|netto|penny|spar|volg|landi|manor|globus|jumbo|obi|bauhaus|hornbach|ikea|dm|rossmann|mueller|douglas|zalando|galaxus|digitec|interdiscount|mediamarkt|media markt|saturn|fust|brack|shell|bp|avia|aral|esso|tamoil|agrola|socar|jet|starbucks|mcdonald s?|mcdonalds|burger king|subway|k kiosk|valora|avec|tchibo|decathlon|h und m|zara|c und a|tk maxx|primark)\b/;
+var BKFEE=/entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt|kontogebuhr|kontogebuehr|kontoabschluss|abschluss entgelt/;
 var BKVIA=/paypal|klarna|amazon|apple com bill|google|stripe|adyen|sumup|wero|twint/;
 /* Kategorie: Katalog, sonst Stichwörter, sonst Branchenregel, sonst Sonstiges */
 var BKCAT=[[/steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Steuern & Gebühren"],
@@ -7663,7 +7667,16 @@ var BKCAT=[[/steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Ste
   [/versicherung|praemie|police|krankenkasse|kranken/,"Versicherung"],
   [/strom|energie|gas|wasser|stadtwerke|abschlag|akonto/,"Energie & Wasser"],
   [/swisscom|sunrise|salt|telekom|vodafone|mobilfunk|internet|festnetz/,"Mobilfunk & Internet"],
-  [/netflix|spotify|abo|zeitung|streaming|disney|apple com bill|youtube/,"Abos & Medien"]];
+  [/netflix|spotify|abo|zeitung|streaming|disney|apple com bill|youtube/,"Abos & Medien"],
+  [/entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt/,"Finanzen"]];
+/* Zeitraum im Verwendungszweck → Rhythmus: «Rundfunk 07.2026 - 09.2026» = 3, «Jahresgebühr» = 12 */
+function bankPeriod(txt){var t=String(txt||""),m=t.match(/\b(\d{1,2})[.\/](\d{4})\s*(?:-|–|bis)\s*(\d{1,2})[.\/](\d{4})\b/);
+  if(m){var n=(+m[4]-+m[2])*12+(+m[3]-+m[1])+1;if([1,2,3,6,12].indexOf(n)>=0)return n;}
+  var l=lnorm(t);
+  if(/jahresgebuhr|jahresgebuehr|jahresbeitrag|jahresabo|jahrespramie|jahrespraemie|jahrlich|jaehrlich|annual|yearly/.test(l))return 12;
+  if(/halbjahr|halbjahrlich/.test(l))return 6;
+  if(/quartal|vierteljahr/.test(l))return 3;
+  return 0;}
 function bankCat(s){
   if(s.tpl){var c=catByKey(s.tpl[2]);if(allCats().indexOf(c)>=0)return c;}
   var t=lnorm(s.name+" "+s.text);
@@ -7681,6 +7694,8 @@ function bankFind(r,ign){
     if(t.a>=0)return;
     var nm=t.name&&!bankIsType(t.name)?bankNameClean(t.name.split(/\s*,\s*/)[0]):bankNameFrom(t.text);
     nm=nm.split(/;|\s·\s/)[0].trim();
+    /* Kontoführung ohne Empfänger («ENTGELTABSCHLUSS · Entgeltabrechnung siehe Anlage») → Vertragspartner = die Bank */
+    if(!(t.name&&!bankIsType(t.name))&&BKFEE.test(lnorm((t.type||"")+" "+(t.text||""))))nm=r.bank||"Bank";
     /* PayPal, Klarna & Co.: eigentlicher Händler steht im Text («Ihr Einkauf bei Muster Cloud») */
     if(BKVIA.test(lnorm(nm))){var vm=String(t.text||"").match(/(?:einkauf bei|purchase at|payment to|zahlung an|abo bei|bei)\s+([^,;·\/]{3,40})/i);if(vm&&!BKVIA.test(lnorm(vm[1])))nm=vm[1].replace(/\s+\d.*$/,"").trim();}
     var nd=bankDesc(nm);if(nd.length>=2)nm=nd;
@@ -7805,8 +7820,9 @@ function bankFind(r,ign){
       /* Einzelzahlung nur bei bekanntem Anbieter oder SEPA-Lastschrift mit Gläubiger-ID; Rhythmus vermutlich jährlich */
       var t0=tx[0];if(!g.tpl&&((!t0.cred&&kind!=="dd")||BKVIA.test(lnorm(name))))return;
       /* kurzer Auszug und Zahlung ganz am Ende: eher monatlich; bei langem Auszug (> 10 Monate) wäre eine Monatszahlung mehrfach drin */
-      cyc=(dd(t0.d,ref)<40&&span>40&&span<=300)?1:12;
-      if(g.tpl&&!g.tpl[1]&&cyc===12&&dd(t0.d,ref)>45)return;   /* internationale Monatsabos (Netflix…) mit nur einer Zahlung: eher Einkauf */
+      var per=bankPeriod(t0.text);
+      cyc=per||((dd(t0.d,ref)<40&&span>40&&span<=300)?1:12);
+      if(!per&&g.tpl&&!g.tpl[1]&&cyc===12&&dd(t0.d,ref)>45)return;   /* internationale Monatsabos (Netflix…) mit nur einer Zahlung: eher Einkauf */
       conf="niedrig";
     }
     /* nächste Zahlung: ab letzter Buchung im Rhythmus weiter bis heute */
