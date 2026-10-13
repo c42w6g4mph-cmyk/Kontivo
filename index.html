@@ -8168,13 +8168,16 @@ function bkLogos(){
   var tick=function(){if(bk!==me)return;if(me.loading){bkLoad(3,me.nTx,me.logoRun);return;}if(document.getElementById("sheetBank").classList.contains("on"))paintBank();};
   tick();var next=0;
   async function one(it){var r=null,t=it.s.tpl;
-    /* zuerst die normale Suche (Profilbild bevorzugt), sonst das Website-Symbol aus dem Katalog (z.B. «O2») */
-    try{var nm=lusable(it.ed.name)?it.ed.name:(t&&lusable(t[0])?t[0]:"");if(nm)r=await autoLogo(nm,it.s.cur,it.ed.label||null,t?t[4]||"":"");
-      if(!r&&t&&t[4]){var sc=await siteCand(regDom(t[4]),3);if(sc){var a=await takeLogo(sc);if(a&&a.id)r=a;}}}catch(e){r=null;}
+    /* genau wie beim einzelnen Vertrag: Katalog-Anbieter wie tplLogo (Website-Symbol, sonst Suche mit Katalogname),
+       sonst wie autoAttach (Suche mit Vertragspartner, Bezeichnung als Ersatz) */
+    try{if(t){if(t[4]){var sc=await siteCand(regDom(t[4]),3);if(sc){var a=await takeLogo(sc);if(a&&a.id)r=a;}}
+        if(!r&&lusable(t[0]))r=await autoLogo(t[0],it.s.cur,null,t[4]||"");}
+      if(!r)r=await autoLogo(it.ed.name,it.s.cur,it.ed.label||"",t?t[4]||"":"");}catch(e){r=null;}
     if(bk!==me){if(r&&r.id)bkDropLogo(r.id);return;}
     if(r&&r.id&&!it.logo&&!it.over)it.logo=r;me.logoRun.done++;tick();}
   async function worker(){while(next<q.length&&bk===me){var it=q[next++];await one(it);}}
-  return Promise.all([worker(),worker(),worker()]);
+  /* 2 gleichzeitig: mehr führt bei den Gratis-Diensten (Bild-Proxy, Profilbilder) zu Absagen → schlechtere Quelle */
+  return Promise.all([worker(),worker()]);
 }
 function bkDropLogo(id){var used=false;[state.contracts,state.incomes].forEach(function(m){Object.keys(m).forEach(function(k){if(m[k].logoId===id)used=true;});});
   if(!used){try{KBlob.del(id);}catch(e){}}}
