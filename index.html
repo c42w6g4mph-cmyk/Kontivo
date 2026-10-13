@@ -1737,6 +1737,10 @@ body{background:var(--paper)!important}
 @media (prefers-reduced-motion:reduce){.bklogo .bkLogoSvg .splSeg{animation-duration:4s}}
 .bklogo2 .bklsr{color:var(--teal)!important;font-weight:600}
 #sheetBank .logocands:empty{display:none}
+
+.bkwho{background:var(--surface);border-radius:14px;padding:10px 12px;margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}
+.bkwho>span{font-size:14px;font-weight:500}.bkwho .hseg{box-shadow:inset 0 0 0 1px var(--line)}.bkwho .hseg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.bkwho small{grid-column:1/-1;font-size:12px;color:var(--ink2)}
 </style>
 </head>
 <body>
@@ -3614,7 +3618,7 @@ function selVal(id,v,lbl){var s=document.getElementById(id);v=v==null?"":String(
 function openForm(c,asCopy,title){clearCands();webWaitClear();
   editId=(c&&!asCopy)?c._id:null;
   draft={cat:(c&&c.cat)||"",color:(c&&c.color)||"",logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",
-    docs:(c&&c.docs&&!asCopy?c.docs.slice():[]),extras:(c&&!asCopy?extrasOf(c):[]),split:(c&&splitOf(c)?Object.assign({},c.split):null),prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),holders:c?holdersOf(c).slice():(function(){var HL=state.settings.holders||["Ich"],lh=(state.settings.lastHolders||[]).filter(function(h){return HL.indexOf(h)>=0;});return lh.length?lh:[HL[0]];})()};
+    docs:(c&&c.docs&&!asCopy?c.docs.slice():[]),extras:(c&&!asCopy?extrasOf(c):[]),split:(c&&splitOf(c)?Object.assign({},c.split):null),prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),holders:c?holdersOf(c).slice():bkHolders()};
   var ft=document.getElementById("formTitle");ft.textContent=title||(asCopy?"Duplizieren":(c?"Bearbeiten":"Neuer Vertrag"));ft.dataset.t=ft.textContent;
   document.getElementById("fPartner").value=(c&&c.partner)||"";
   document.getElementById("fLabel").value=(c&&c.label)||"";
@@ -4360,7 +4364,7 @@ document.getElementById("saveForm").addEventListener("click",function(){
   var cid=editId||uid();putContract(cid,c);
   /* Adresse gehört zum Vertragspartner: geänderte Adresse auf alle seine Verträge übertragen */
   if(c.partner&&c.addr&&c.addr!==((prev&&prev.addr)||""))setPartnerAddr(c.partner,c.addr);
-  if(!editId&&(state.settings.holders||[]).length>1&&(c.holders||[]).length&&(c.holders||[]).join("|")!==(state.settings.lastHolders||[]).join("|")){state.settings.lastHolders=c.holders.slice();saveSettings();}
+  if(!editId&&(state.settings.holders||[]).length>1&&(c.holders||[]).length===1&&(c.holders||[]).join("|")!==(state.settings.lastHolders||[]).join("|")){state.settings.lastHolders=c.holders.slice();saveSettings();}
   closeSheets();render();toast(editId?"Aktualisiert":"Vertrag angelegt");
 });
 document.getElementById("cancelForm").addEventListener("click",function(){
@@ -7386,7 +7390,7 @@ function bankCsv(txt){
   /* zwei Namensspalten (Auftraggeber/Empfänger): die mit wechselnden Werten ist der Vertragspartner, die konstante bist du */
   var nmCol=col.name;if(col.name2>=0&&col.name>=0){var ds=function(i){var o={};data.slice(0,300).forEach(function(r){var v=g(r,i);if(v)o[v]=1;});return Object.keys(o).length;};
     if(ds(col.name2)>ds(col.name))nmCol=col.name2;}
-  rows=null;
+  var preRows=hi>0?rows.slice(0,hi):[];rows=null;
   data.forEach(function(row){
     var d=bankDate(g(row,col.date));
     var ty=g(row,col.type),text=col.text.map(function(i){return g(row,i);}).filter(Boolean).join(" · ");
@@ -7427,7 +7431,13 @@ function bankCsv(txt){
     else{var iC=(body.match(/\b(?:CH|LI)\d{2}[ \d]{4}/g)||[]).length,iE=(body.match(/\b(?:DE|AT|LU|NL|FR|IT|ES|BE|IE)\d{2}[ \dA-Z]{4}/g)||[]).length;
       if(iC!==iE)cur=iC>iE?"CHF":"EUR";}}
   if(cur)tx.forEach(function(t){if(!t.cur)t.cur=cur;});
-  return {fmt:"CSV",bank:col.guess?"":bankBankOf(col.head||[]),tx:tx};
+  /* Kontoinhaber: Vorspann («Kontoinhaber;Sinan Bayat») oder die konstante zweite Namensspalte (Auftraggeber = du) */
+  var owner="";preRows.some(function(row){for(var k=0;k<row.length-1;k++){var lab=String(row[k]||"").trim();
+      if(/^(konto)?inhaber|kontoinhaber|account ?(holder|owner)|name des kontoinhabers|titulaire|kunde$/i.test(lab)){var v=row.slice(k+1).map(function(x){return String(x||"").trim();}).filter(Boolean)[0]||"";if(v&&!/\d{4}/.test(v)){owner=v;return true;}}
+      var m=lab.match(/(?:konto)?inhaber\s*:\s*(.+)/i);if(m){owner=m[1].trim();return true;}}return false;});
+  if(!owner&&col.name2>=0&&col.name>=0){var oc=nmCol===col.name2?col.name:col.name2,ov={};data.slice(0,300).forEach(function(r){var v=g(r,oc);if(v)ov[v]=(ov[v]||0)+1;});
+    var top=Object.keys(ov).sort(function(a,b){return ov[b]-ov[a];})[0];if(top&&ov[top]>=data.length*0.6)owner=top;}
+  return {fmt:"CSV",bank:col.guess?"":bankBankOf(col.head||[]),tx:tx,owner:owner};
 }
 /* letzte Buchung, die selbst kein Einzelposten ist (Sammelbuchung mit mehreren Posten) */
 function bankParent(tx){for(var i=tx.length-1;i>=0;i--)if(!tx[i].sub)return tx[i];return null;}
@@ -7485,7 +7495,8 @@ function bankCamt(txt){
     });
   });
   var ver=(txt.match(/camt\.05[234]/)||["camt"])[0];
-  return {fmt:ver,bank:"",tx:tx};
+  var owner=((one(one(one(doc,"Acct"),"Ownr"),"Nm"))||{}).textContent||"";
+  return {fmt:ver,bank:"",tx:tx,owner:owner.trim()};
 }
 /* ---- MT940 ---- */
 function bankMt940(txt){
@@ -7868,8 +7879,31 @@ function bankToContract(s,holders){
     web:t?t[4]:"",tel:t?t[14]||"":"",mail:t?t[13]||"":"",addr:t?t[12]||"":"",note:"",color:"",logoId:"",logoBg:"",
     prices:s.change?[{from:s.change.from,amount:s.change.amount}]:[],docs:[],extras:[],status:"active",cancelledAt:"",t:Date.now()};
   if(c.cat===catByKey("Steuern & Gebühren")){c.noCancel=true;c.mand=false;c.cancTerm="";}
+  c.payM=bankPayM(s);var nr=bankNums(s);c.custNo=nr.cust;c.contrNo=nr.contr;
   return c;
 }
+/* Zahlungsart aus der Buchungsart (Lastschrift, Dauerauftrag, Karte, eBill, QR) */
+function bankPayM(s){var h=lnorm((s.text||"")+" "+(s.raw||""));
+  if(/e ?bill|e ?rechnung/.test(h))return "eBill";
+  if(s.kind==="dd"||s.cred||s.mref)return "Lastschrift (LSV/SEPA)";
+  if(s.kind==="so")return "Dauerauftrag";
+  if(s.kind==="card")return "Kreditkarte";
+  if(/\bqr\b|qr rechnung|qr-rechnung/.test(h))return "QR-Rechnung";
+  return "";}
+/* Kunden- und Vertragsnummer, wenn sie ausdrücklich im Buchungstext steht («Kd-Nr. 123456», «Police 12.345.678») */
+function bankNums(s){var t=String(s.text||"")+" "+String(s.raw||""),o={cust:"",contr:""};
+  var m=t.match(/(?:kunden?[- ]?(?:nr|nummer)|kd\.?[- ]?nr|kundennr|customer (?:no|number|id))\.?:?\s*([A-Z0-9][A-Z0-9.\-\/]{3,24})/i);if(m)o.cust=m[1].replace(/[.\-\/]$/,"");
+  var v=t.match(/(?:vertrags?[- ]?(?:nr|nummer)|police(?:n[- ]?nr)?|polizze|policy (?:no|number)|versicherungs[- ]?(?:nr|nummer)|abo[- ]?nr)\.?:?\s*([A-Z0-9][A-Z0-9.\-\/]{3,24})/i);if(v)o.contr=v[1].replace(/[.\-\/]$/,"");
+  if(o.cust&&!/\d/.test(o.cust))o.cust="";if(o.contr&&!/\d/.test(o.contr))o.contr="";
+  return o;}
+/* Bezeichnung ohne Katalog aus dem Zahlungsgrund («Miete Wohnung 3.OG» → Miete) */
+var BKLABEL=[[/\bmiete\b|mietzins|wohnungsmiete/,"Miete"],[/nebenkosten|heizkosten/,"Nebenkosten"],[/parkplatz|einstellplatz|tiefgarage|garage/,"Parkplatz"],
+  [/hypothek|darlehen|kreditrate|\bkredit\b/,"Kredit"],[/leasing/,"Leasing"],[/steuer|steuerverwaltung|finanzamt/,"Steuern"],
+  [/krankenkasse|krankenversicherung|grundversicherung/,"Krankenkasse"],[/hausrat/,"Hausrat"],[/haftpflicht/,"Haftpflicht"],
+  [/fitness|\bgym\b/,"Fitness"],[/mitgliederbeitrag|mitgliedsbeitrag|jahresbeitrag|vereinsbeitrag/,"Mitgliedschaft"],[/spende/,"Spende"],
+  [/kita|krippe|tagesmutter|hort/,"Kinderbetreuung"],[/schulgeld|studiengebuehr|semestergebuehr/,"Ausbildung"]];
+function bankLabel(s){if(s.tpl&&s.tpl[3])return s.tpl[3];var h=lnorm((s.text||"")+" "+(s.raw||"")+" "+(s.name||""));
+  for(var i=0;i<BKLABEL.length;i++)if(BKLABEL[i][0].test(h))return BKLABEL[i][1];return "";}
 /* ---------- Kontoauszug: Vorschläge prüfen (#sheetBank) ----------
    Checkliste (Variante 1) mit Inline-Bearbeitung (Variante 5): Zeile antippen klappt Felder auf.
    bk.items[i] = {s: Vorschlag, on, ed: {name, amount, cycle, cat, holders, due}}, bk.price[i] = {s, on}
@@ -7877,14 +7911,20 @@ function bankToContract(s,holders){
 var bk=null,BK_CUR=["CHF","EUR","USD","GBP","TRY"];
 /* Vorbelegung beim Import: immer genau eine Person (zuletzt gewählte einzelne, sonst die erste). «Beide» nur, wenn du es im Eintrag wählst */
 function bkHolders(){var HL=state.settings.holders||["Ich"],lh=(state.settings.lastHolders||[]).filter(function(h){return HL.indexOf(h)>=0;});return lh.length===1?lh:[HL[0]];}
+/* Name aus dem Auszug (Kontoinhaber, «Lohn Sinan Bayat») → Person in Kontivo. Treffer über den Vornamen,
+   sonst über den ganzen Namen. Mehrere Treffer (Gemeinschaftskonto «Sinan und Lara Bayat») → keine Zuordnung. */
+function bkWho(txt){var HL=state.settings.holders||[];if(HL.length<2||!txt)return [];var t=bankTok(txt);
+  var hit=HL.filter(function(h){var w=bankTok(h);return w.length&&(t.indexOf(w[0])>=0||w.every(function(x){return t.indexOf(x)>=0;}));});
+  return hit;}
 function openBank(res,label){
-  var H=bkHolders();
+  var H=bkHolders(),ow=bkWho(res.owner||"");if(ow.length===1)H=ow;
   bk={res:res,label:label,open:-1,openInc:-1,step:"fix",showIgn:false,
     items:res.sugg.filter(function(s){return !s.match;}).map(function(s){
-      return {s:s,on:s.conf!=="niedrig"&&!s.ignored,logo:null,term:"",ed:{name:s.name,label:s.tpl?s.tpl[3]||"":"",amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
+      return {s:s,on:s.conf!=="niedrig"&&!s.ignored,logo:null,term:"",ed:{name:s.name,label:bankLabel(s),amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
     price:res.sugg.filter(function(s){return s.match&&s.match.kind==="price";}).map(function(s){return {s:s,on:true};}),
-    inc:((res.inc&&res.inc.sugg)||[]).map(function(s){return {s:s,on:s.conf==="hoch",logo:null,
-      ed:{label:s.label,name:s.name,amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
+    inc:((res.inc&&res.inc.sugg)||[]).map(function(s){var w=bkWho(s.text+" "+(s.raw||""));return {s:s,on:s.conf==="hoch",logo:null,
+      ed:{label:s.label,name:s.name,amount:s.amount,cycle:s.cycle,cat:s.cat,holders:w.length===1?w:H.slice(),due:s.due}};}),
+    owner:res.owner||"",ownerHit:ow.length===1?ow[0]:"",joint:ow.length>1,
     logoRun:{done:0,total:0}};
   if(!bkFixCount()&&!bk.price.length&&bk.inc.length)bk.step="inc";
   paintBank();openSheet(document.getElementById("sheetBank"));bkLogos();
@@ -7982,6 +8022,11 @@ function bkTermList(){return bk.items.map(function(it,i){return i;}).filter(func
 /* Katalog-Anbieter: Kündigungsregel bekannt (auch «jederzeit», Frist 0) */
 function bkHasTermBase(it){return bkNoCancel(it)||!!it.s.tpl;}
 function bkSteps(){var L=[];if(bkFixCount()||bk.price.length||!bk.inc.length)L.push("fix");if(bk.inc.length)L.push("inc");if(bkTermList().length)L.push("term");return L;}
+/* Person für alle Einträge auf einmal; Quelle: Kontoinhaber im Auszug */
+function bkWhoBar(){var HL=state.settings.holders||[];if(HL.length<2)return "";
+  var all=[].concat(bk.items,bk.inc),cur=all.length&&all.every(function(it){return it.ed.holders.length===1&&it.ed.holders[0]===all[0].ed.holders[0];})?all[0].ed.holders[0]:"";
+  var why=bk.ownerHit?"Kontoinhaber laut Auszug: "+esc(bk.owner):bk.joint?"Gemeinschaftskonto – bitte je Eintrag prüfen":"Im Eintrag einzeln änderbar";
+  return '<div class="bkwho"><span>Zuordnen an</span><div class="hseg">'+HL.map(function(h){return '<button type="button" data-bkall="'+esc(h)+'" aria-pressed="'+(cur===h)+'">'+esc(h)+'</button>';}).join("")+'</div><small>'+why+'</small></div>';}
 function bkLogoLine(){var r=bk.logoRun;if(!r.total||r.done>=r.total)return "";return '<p class="bkload2"><i aria-hidden="true"></i>Logos werden gesucht … '+r.done+" von "+r.total+'</p>';}
 function paintBank(){
   var r=bk.res,b=document.getElementById("bkBody"),st=bkSteps(),si=Math.max(0,st.indexOf(bk.step)),h="";
@@ -7998,7 +8043,7 @@ function paintBank(){
     var nIgn=bk.items.filter(function(it){return it.s.ignored;}).length;
     h+='<h3 class="bkt">'+(sure.length||maybe.length?"Sind das deine Fixkosten?":"Keine neuen Fixkosten")+'</h3>';
     if(sure.length||maybe.length)h+='<p class="bki">Alles mit Häkchen wird übernommen. Kategorie, Logo und – bei bekannten Anbietern – die Kündigungsfrist sind schon ergänzt. Tippe auf einen Eintrag, um etwas zu ändern.</p>';
-    h+=bkLogoLine();
+    h+=bkLogoLine()+bkWhoBar();
     if(bk.price.length)h+='<h4 class="bkh2"><span>Neuer Preis bei erfassten Verträgen</span><span>'+bk.price.length+'</span></h4><div class="bklist">'+bk.price.map(bkPriceRow).join("")+'</div>';
     if(sure.length)h+=(bk.price.length?'<h4 class="bkh2"><span>Neu gefunden</span><span>'+sure.length+'</span></h4>':"")+'<div class="bklist">'+sure.map(function(i){return bkRow(bk.items[i],i);}).join("")+'</div>';
     if(maybe.length)h+='<h4 class="bkh2"><span>Nur einmal im Auszug – gehört das dazu?</span><span>'+maybe.length+'</span></h4><div class="bklist">'+maybe.map(function(i){return bkRow(bk.items[i],i);}).join("")+'</div>';
@@ -8008,7 +8053,7 @@ function paintBank(){
     if(nIgn)h+='<button type="button" class="bkshow" data-bkshow>'+(bk.showIgn?"Ausgeblendete verbergen":nIgn+(nIgn===1?" ausgeblendeter Vorschlag":" ausgeblendete Vorschläge")+" ›")+'</button>';
   } else if(bk.step==="inc"){
     var ik=(r.inc&&r.inc.known)||[];
-    h+='<h3 class="bkt">Und deine Einnahmen?</h3><p class="bki">Regelmässige Gutschriften aus dem Auszug. Umbuchungen, TWINT und Rückerstattungen sind ausgeschlossen. Alles mit Häkchen wird übernommen.</p>'+bkLogoLine();
+    h+='<h3 class="bkt">Und deine Einnahmen?</h3><p class="bki">Regelmässige Gutschriften aus dem Auszug. Umbuchungen, TWINT und Rückerstattungen sind ausgeschlossen. Alles mit Häkchen wird übernommen.</p>'+bkLogoLine()+(bkSteps()[0]==='inc'?bkWhoBar():'');
     h+='<div class="bklist">'+bk.inc.map(bkIncRow).join("")+'</div>';
     if(ik.length)h+='<p class="bki">'+(ik.length===1?"1 Einnahme ist schon in Kontivo.":ik.length+" Einnahmen sind schon in Kontivo.")+'</p>';
   } else {
@@ -8059,7 +8104,8 @@ function bankMerge(rs){
     var k=(r.bank||r.fmt)+"|"+t.d+"|"+t.a+"|"+lnorm(t.name+" "+t.text).slice(0,60);
     if(seen[k]!=null&&seen[k]!==fi)return;seen[k]=fi;tx.push(t);});});
   tx.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
-  return {fmt:rs.map(function(r){return r.fmt;}).join(", "),bank:"",tx:tx,from:tx[0].d,to:tx[tx.length-1].d,files:rs.length};
+  var ow=rs.map(function(r){return r.owner||"";}).filter(Boolean);
+  return {fmt:rs.map(function(r){return r.fmt;}).join(", "),bank:"",tx:tx,from:tx[0].d,to:tx[tx.length-1].d,files:rs.length,owner:ow.length===rs.length&&ow.every(function(o){return lnorm(o)===lnorm(ow[0]);})?ow[0]:""};
 }
 function bankReadFile(f){return new Promise(function(res){if(f.size>20e6){res({f:f,r:null,head:"",big:true});return;}var rd=new FileReader();
   rd.onload=function(){var r=null;try{r=bankRead(rd.result);}catch(e){r=null;}res({f:f,r:r,head:bkLastHead});};
@@ -8095,6 +8141,7 @@ document.getElementById("bankFile").addEventListener("change",async function(ev)
   bkLoad(2,r.tx.length);await bkPaint();await bkWait(Math.max(0,900-(Date.now()-t0)));
   if(run!==bkRun||!sh.classList.contains("on"))return;
   try{res.inc=bankFindInc(r);}catch(e){res.inc=null;}
+  res.owner=r.owner||"";
   res.sugg.forEach(function(s){if(BK_CUR.indexOf(s.cur)<0)s.cur=state.settings.home;});
   var label=ok.length>1?ok.length+" Dateien":(ok[0].r.bank||"");
   openBank(res,label);
@@ -8131,6 +8178,7 @@ document.getElementById("bkBody").addEventListener("click",function(e){
   if(t.dataset.bkign!=null){var it3=bk.items[+t.dataset.bkign],k=bankIgnKey(it3.s),L=state.settings.bankIgn||[];
     if(L.indexOf(k)<0){L.push(k);state.settings.bankIgn=L;saveSettings();}
     it3.s.ignored=true;it3.on=false;bk.open=-1;paintBank();toast("«"+it3.ed.name+"» wird nicht mehr vorgeschlagen");return;}
+  if(t.dataset.bkall!=null){var hv=t.dataset.bkall;[].concat(bk.items,bk.inc).forEach(function(x){x.ed.holders=[hv];});paintBank();return;}
   if(t.dataset.bkshow!=null){bk.showIgn=!bk.showIgn;paintBank();return;}
   if(t.dataset.bkknown!=null){bk.showKnown=!bk.showKnown;paintBank();return;}
 });
