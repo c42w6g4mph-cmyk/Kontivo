@@ -1743,7 +1743,7 @@ body{background:var(--paper)!important}
 .bkwho small{grid-column:1/-1;font-size:12px;color:var(--ink2)}
 .lcand .lci{display:block;width:52px;height:52px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--line);flex:none}
 .lcand .lci img{width:100%;height:100%;border-radius:0;box-shadow:none;display:block}
-.lcand.app .lci img{transform:scale(1.1)}.lcand.wide .lci img{padding:6px}
+.lcand.sel .lci{box-shadow:0 0 0 2px var(--brass)}.lcand.wide .lci img{padding:6px}
 .lcand .lci+span{font-size:10.5px;line-height:1.2;color:var(--ink2);text-align:center;max-width:64px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .fbankign{display:block;width:100%;margin:18px 0 0;padding:13px;border-radius:12px;background:var(--surface);color:var(--alert);font-size:15.5px;font-weight:500}
 </style>
@@ -6717,34 +6717,35 @@ function loadImg(src){return new Promise(function(res,rej){var im=new Image();im
    Kachelfarbe aus den Seitenmitten; ist die Kachel kleiner als das Bild (Rahmen), auf die Kachel zuschneiden
    und 4 % nach innen gehen. Rückgabe: Ausschnitt + Hintergrundfarbe. SwiftUI: gleiche Regel mit CGImage-Pixeln */
 function tileFix(im){var w=im.naturalWidth,h=im.naturalHeight,full={sx:0,sy:0,sw:w,sh:h,bg:"",tile:false};
-  try{var N=128,cv=document.createElement("canvas");cv.width=cv.height=N;var g=cv.getContext("2d");g.drawImage(im,0,0,N,N);var d=g.getImageData(0,0,N,N).data;
-    var P=function(x,y){var i=(y*N+x)*4;return [d[i],d[i+1],d[i+2],d[i+3]];};
+  try{var N=160,cv=document.createElement("canvas");cv.width=cv.height=N;var g=cv.getContext("2d");g.drawImage(im,0,0,N,N);var d=g.getImageData(0,0,N,N).data;
+    var P=function(x,y){x=Math.max(0,Math.min(N-1,Math.round(x)));y=Math.max(0,Math.min(N-1,Math.round(y)));var i=(y*N+x)*4;return [d[i],d[i+1],d[i+2],d[i+3]];};
     var dist=function(a,b){if(a[3]<40&&b[3]<40)return 0;if((a[3]<40)!==(b[3]<40))return 999;return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2]);};
     var C=P(1,1),bg=function(p){return p[3]<40||dist(p,C)<36;};
     var x0=N,y0=N,x1=-1,y1=-1;for(var y=0;y<N;y++)for(var x=0;x<N;x++)if(!bg(P(x,y))){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
     if(x1<0)return full;
     var bw=x1-x0+1,bh=y1-y0+1;if(bw/bh<0.85||bw/bh>1.18)return full;
-    /* Kachel? Seitenmitten knapp innerhalb der Fläche gleichfarbig und nicht Hintergrund */
-    var m=Math.max(3,Math.round(bw*0.05)),cx=Math.round((x0+x1)/2),cy=Math.round((y0+y1)/2);
-    var E=[P(cx,y0+m),P(cx,y1-m),P(x0+m,cy),P(x1-m,cy)];
-    if(E.some(function(p){return bg(p);}))return full;
-    for(var a=1;a<4;a++)if(dist(E[0],E[a])>60)return full;
-    /* Ecken der Kachel (12 % diagonal nach innen) müssen auch Kachel sein – sonst ist es ein runder Logo-Kreis, keine Kachel */
-    var q=function(fx2,fy2){return P(Math.round(x0+bw*fx2),Math.round(y0+bh*fy2));};
-    if([q(.12,.12),q(.88,.12),q(.12,.88),q(.88,.88)].some(function(p){return bg(p);}))return full;
-    var rgb=[0,1,2].map(function(k){return Math.round((E[0][k]+E[1][k]+E[2][k]+E[3][k])/4);});
-    var hex="#"+rgb.map(function(v){return ("0"+v.toString(16)).slice(-2);}).join("").toUpperCase();
-    var fx=w/N,fy=h/N,ins=0.04;
-    var sx=(x0+bw*ins)*fx,sy=(y0+bh*ins)*fy,sw=bw*(1-2*ins)*fx,sh=bh*(1-2*ins)*fy;
-    return {sx:sx,sy:sy,sw:sw,sh:sh,bg:hex,tile:true,C:C,rgb:rgb};
+    /* Kachelfarbe 10 % innerhalb der Seitenmitten; Kachel nur, wenn alle vier gleich und auch die Ecken (14 % diagonal) Kachel sind */
+    var cx=(x0+x1)/2,cy=(y0+y1)/2,E=[P(cx,y0+bh*.1),P(cx,y1-bh*.1),P(x0+bw*.1,cy),P(x1-bw*.1,cy)];
+    if(E.some(bg))return full;for(var a=1;a<4;a++)if(dist(E[0],E[a])>60)return full;
+    var T=[0,1,2].map(function(k){return Math.round((E[0][k]+E[1][k]+E[2][k]+E[3][k])/4);}).concat([255]);
+    var near=function(p){return dist(p,T)<54;};
+    if([[.14,.14],[.86,.14],[.14,.86],[.86,.86]].some(function(f){return !near(P(x0+bw*f[0],y0+bh*f[1]));}))return full;
+    /* Saum: von jeder Seitenmitte nach innen bis zur Kachelfarbe */
+    var rim=0,lim=Math.round(bw*.08);
+    [[0,1],[0,-1],[1,0],[-1,0]].forEach(function(v){var sx0=v[0]?(v[0]>0?x0:x1):cx,sy0=v[1]?(v[1]>0?y0:y1):cy,k=0;
+      while(k<lim&&!near(P(sx0+v[0]*k,sy0+v[1]*k)))k++;rim=Math.max(rim,k);});
+    /* Eckenradius: entlang der Diagonale bis zur Kachelfarbe (Abstand ≈ 0,29 × Radius) */
+    var dg=0;while(dg<bw*.2&&!near(P(x0+dg,y0+dg)))dg++;var rad=Math.min(bw*.3,Math.max(0,(dg-rim)/0.29));
+    var hex="#"+T.slice(0,3).map(function(v){return ("0"+v.toString(16)).slice(-2);}).join("").toUpperCase();
+    var ins=rim+0.5,fx=w/N,fy=h/N;
+    return {sx:(x0+ins)*fx,sy:(y0+ins)*fy,sw:(bw-2*ins)*fx,sh:(bh-2*ins)*fy,bg:hex,tile:true,rgb:T,rad:rad/(bw-2*ins)};
   }catch(e){return full;}}
-/* Kachel zeichnen; deckende helle Ecken (abgerundete App-Symbole als JPG) in Kachelfarbe übermalen */
+/* Kachel zeichnen; alles ausserhalb der (verkleinerten) runden Kachel in Kachelfarbe – so bleibt kein Saum und keine helle Ecke */
 function tileDraw(g,im,tf){g.fillStyle=tf.bg||"#FFFFFF";g.fillRect(0,0,512,512);g.imageSmoothingQuality="high";g.drawImage(im,tf.sx,tf.sy,tf.sw,tf.sh,0,0,512,512);
-  if(!tf.tile||!tf.C||tf.C[3]<40)return;
-  try{var R=150,id=g.getImageData(0,0,512,512),d=id.data,C=tf.C,T=tf.rgb;
-    [[0,0],[511,0],[0,511],[511,511]].forEach(function(c){for(var y=0;y<R;y++)for(var x=0;x<R;x++){if(x+y>R)continue;
-      var px=c[0]?511-x:x,py=c[1]?511-y:y,i=(py*512+px)*4;
-      if(Math.abs(d[i]-C[0])+Math.abs(d[i+1]-C[1])+Math.abs(d[i+2]-C[2])<90){d[i]=T[0];d[i+1]=T[1];d[i+2]=T[2];d[i+3]=255;}}});
+  if(!tf.tile||!(tf.rad>0.01))return;
+  try{var r=tf.rad*512+3,id=g.getImageData(0,0,512,512),dd=id.data,T=tf.rgb;
+    for(var y=0;y<r;y++)for(var x=0;x<r;x++){var dx=r-x,dy=r-y;if(dx*dx+dy*dy<=r*r)continue;
+      [[x,y],[511-x,y],[x,511-y],[511-x,511-y]].forEach(function(p){var i=(p[1]*512+p[0])*4;dd[i]=T[0];dd[i+1]=T[1];dd[i+2]=T[2];dd[i+3]=255;});}
     g.putImageData(id,0,0);}catch(e){}}
 async function logoBlob(url){
   var big=url.replace(/\/\d+x\d+bb\.(jpg|jpeg|png|webp)$/i,"/512x512bb.png");
@@ -6852,7 +6853,11 @@ async function padBlob(url,minPx,full){
   }
   return {err:"laden"};
 }
+var LOGO_TAKEN={};
 async function takeLogo(c){if(typeof c==="string")c={url:c};
+  var hit=LOGO_TAKEN[c.url];if(hit&&KBlob.has(hit.id))return hit;
+  var r0=await takeLogo0(c);if(r0&&r0.id)LOGO_TAKEN[c.url]=r0;return r0;}
+async function takeLogo0(c){
   var r=c.src==="wiki"?await padBlob(c.url):(c.src==="site"||c.src==="social")?await padBlob(c.url,120,true):await logoBlob(c.url);if(!r.blob)return r;
   if(!assets)return {err:"speicher"};var up=await assets.upload(r.blob);return {id:up.id,bg:r.bg||"#FFFFFF"};}
 /* Reihenfolge nach Punkten; bei Gleichstand Wikipedia vor App Store */
@@ -6925,16 +6930,22 @@ function paintCands(box,cs,onPick){
   box.onclick=async function(ev){var b=ev.target.closest(".lcand");if(!b)return;
     toast("Übernehme Logo…");var r;try{r=await takeLogo(list[+b.dataset.i]);}catch(e){r={err:"speicher"};}
     if(!r||!r.id){toast(LERR[r&&r.err]||"Übernahme fehlgeschlagen");return;}
-    box.innerHTML="";box.onclick=null;onPick(r);toast("Logo übernommen");};
+    /* Liste bleibt stehen: anderes Logo direkt antippen, ohne neu zu suchen */
+    box.querySelectorAll(".lcand").forEach(function(x){x.classList.toggle("sel",x===b);});onPick(r);toast("Logo übernommen");};
 }
+var LC_CACHE={};
 async function runCands(boxId,name,cur,onPick,alt,web){
   var box=document.getElementById(boxId);name=String(name||"").trim();alt=String(alt||"").trim();
   var primary=name||alt,secondary=null,dom=domainOf(web);  /* Bezeichnung (z.B. «Lohn») nur, wenn kein Firmenname */
   if(!primary&&!dom){toast("Zuerst den Namen eintragen");return;}
   if(navigator.onLine===false){toast("Keine Internetverbindung");return;}
+  /* letzte Suchen merken (gleicher Name/Website): erneutes Öffnen zeigt sofort dieselbe Auswahl */
+  var key=lnorm(primary)+"|"+cur+"|"+dom,hit=LC_CACHE[key];
+  if(hit&&Date.now()-hit.t<20*60e3){paintCands(box,hit.cs,onPick);return;}
   box.innerHTML='<div class="lcmsg">Suche Logos…</div>';
   var cs=[];try{cs=primary?await allCands(primary,cur,secondary,web,true):[];}catch(e){cs=[];}
   var d2=dom||cs.dom||"",fc=cs.some(function(c){return c.src==="site";})?null:faviconCand(d2);if(fc)cs=cs.concat([fc]);
+  if(cs.length)LC_CACHE[key]={t:Date.now(),cs:cs};
   paintCands(box,cs,onPick);
 }
 document.getElementById("logoAuto").addEventListener("click",function(){
@@ -7977,7 +7988,7 @@ function bkHolders(){var HL=state.settings.holders||["Ich"],lh=(state.settings.l
 function bkWho(txt){var HL=state.settings.holders||[];if(HL.length<2||!txt)return [];var t=bankTok(txt);
   var hit=HL.filter(function(h){var w=bankTok(h);return w.length&&(t.indexOf(w[0])>=0||w.every(function(x){return t.indexOf(x)>=0;}));});
   return hit;}
-function openBank(res,label){
+function openBank(res,label,quiet){
   var H=bkHolders(),ow=bkWho(res.owner||"");if(ow.length===1)H=ow;
   bk={res:res,label:label,open:-1,openInc:-1,step:"fix",showIgn:false,
     items:res.sugg.filter(function(s){return !s.match;}).map(function(s){
@@ -7988,7 +7999,7 @@ function openBank(res,label){
     owner:res.owner||"",ownerHit:ow.length===1?ow[0]:"",joint:ow.length>1,
     logoRun:{done:0,total:0}};
   if(!bkFixCount()&&!bk.price.length&&bk.inc.length)bk.step="inc";
-  paintBank();openSheet(document.getElementById("sheetBank"));bkLogos();
+  if(!quiet){paintBank();openSheet(document.getElementById("sheetBank"));bkLogos();}
 }
 function bkMon(d){var p=String(d).split("-");return MON[+p[1]-1].slice(0,3)+" "+p[0].slice(2);}
 function bkDay(d){var p=String(d).split("-");return (+p[2])+"."+(+p[1])+"."+p[0].slice(2);}
@@ -8140,19 +8151,22 @@ function bkFoot(){
 }
 /* Logos im Hintergrund suchen, während du die Liste prüfst (nur Firmennamen gehen ins Netz).
    Gefundenes Logo steht in der Liste – mit «übernehmen» bestätigt, im Eintrag entfernbar. */
-async function bkLogos(){
-  if(!bk||navigator.onLine===false||!assets)return;var me=bk,q=[];
+/* Logos suchen: startet schon während des Einlesens (Ladeanzeige), 3 gleichzeitig.
+   Katalog-Anbieter über ihre Website (auch kurze Namen wie «O2»), sonst über die normale Logo-Suche. */
+function bkLogos(){
+  if(!bk||navigator.onLine===false||!assets)return Promise.resolve();var me=bk,q=[];
   me.items.forEach(function(it){if(!it.s.ignored)q.push(it);});me.inc.forEach(function(it){q.push(it);});
-  q=q.filter(function(it){return lusable(it.ed.name);});
-  me.logoRun={done:0,total:q.length};if(!q.length)return;paintBank();
-  for(var j=0;j<q.length;j++){
-    if(bk!==me)return;var it=q[j],r=null,t=it.s.tpl;
+  q=q.filter(function(it){var t=it.s.tpl;return !it.logo&&(lusable(it.ed.name)||(t&&(t[4]||lusable(t[0]))));});
+  me.logoRun={done:0,total:q.length};if(!q.length)return Promise.resolve();
+  var tick=function(){if(bk!==me)return;if(me.loading){bkLoad(3,me.nTx,me.logoRun);return;}if(document.getElementById("sheetBank").classList.contains("on"))paintBank();};
+  tick();var next=0;
+  async function one(it){var r=null,t=it.s.tpl;
     try{if(t&&t[4]){var sc=await siteCand(regDom(t[4]),3);if(sc){var a=await takeLogo(sc);if(a&&a.id)r=a;}}
-      if(!r)r=await autoLogo(it.ed.name,it.s.cur,null,t?t[4]||"":"");}catch(e){r=null;}
+      if(!r){var nm=lusable(it.ed.name)?it.ed.name:(t?t[0]:it.ed.name);r=await autoLogo(nm,it.s.cur,it.ed.label||null,t?t[4]||"":"");}}catch(e){r=null;}
     if(bk!==me){if(r&&r.id)bkDropLogo(r.id);return;}
-    if(r&&r.id)it.logo=r;me.logoRun.done=j+1;
-    if(bk.open<0&&bk.openInc<0)paintBank();
-  }
+    if(r&&r.id&&!it.logo&&!it.over)it.logo=r;me.logoRun.done++;tick();}
+  async function worker(){while(next<q.length&&bk===me){var it=q[next++];await one(it);}}
+  return Promise.all([worker(),worker(),worker()]);
 }
 function bkDropLogo(id){var used=false;[state.contracts,state.incomes].forEach(function(m){Object.keys(m).forEach(function(k){if(m[k].logoId===id)used=true;});});
   if(!used){try{KBlob.del(id);}catch(e){}}}
@@ -8175,7 +8189,8 @@ function bankReadFile(f){return new Promise(function(res){if(f.size>20e6){res({f
 var bkRun=0;
 /* Logo für die Ladeanzeige: gleiche Grafik wie im Intro, beim Laden dreht nur das Messing-Segment (Splash wird später entfernt, daher hier kopieren) */
 var BK_LOGO=(function(){var e=document.querySelector("#splash .splLogo");return e?e.outerHTML.replace('class="splLogo"','class="bkLogoSvg"').replace(/splLa/g,"bkLa"):"";})();
-function bkLoad(step,nTx){var L=["Kontoauszug lesen","Wiederkehrende Zahlungen suchen","Mit deinen Verträgen abgleichen"];
+function bkLoad(step,nTx,lr){var L=["Kontoauszug lesen","Wiederkehrende Zahlungen suchen","Mit deinen Verträgen abgleichen","Logos suchen"];
+  if(lr&&lr.total)L[3]="Logos suchen ("+lr.done+" von "+lr.total+")";
   if(nTx!=null)L[0]=nTx+(nTx===1?" Buchung gelesen":" Buchungen gelesen");
   document.getElementById("bkT").textContent="Kontoauszug";
   var g=document.getElementById("bkGo");g.textContent="Bitte kurz warten …";g.disabled=true;
@@ -8205,7 +8220,11 @@ document.getElementById("bankFile").addEventListener("change",async function(ev)
   res.owner=r.owner||"";
   res.sugg.forEach(function(s){if(BK_CUR.indexOf(s.cur)<0)s.cur=state.settings.home;});
   var label=ok.length>1?ok.length+" Dateien":(ok[0].r.bank||"");
-  openBank(res,label);
+  openBank(res,label,true);bk.loading=true;bk.nTx=r.tx.length;
+  /* Logos schon jetzt suchen; höchstens ~8 s warten, der Rest kommt in der Liste nach */
+  bkLoad(3,r.tx.length,{done:0,total:0});var lp=bkLogos();await Promise.race([lp,bkWait(8000)]);
+  if(run!==bkRun||!sh.classList.contains("on")||!bk)return;
+  bk.loading=false;paintBank();sh.scrollTop=0;
   if(bad.length)toast(bad.length===1?"«"+bad[0].f.name+"» nicht erkannt – übersprungen":bad.length+" Dateien nicht erkannt – übersprungen",3200);
 });
 /* Aktionsmenü im Detail: Tippen daneben schliesst */
