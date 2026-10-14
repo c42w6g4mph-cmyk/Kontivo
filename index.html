@@ -2678,15 +2678,20 @@ function renderHero(){
   /* Filter (Kategorie, Vertragspartner, Person) gilt auch für die Summe; bei Person nur deren Anteil */
   var lf=fltCount(),fm=function(c){return !lf||fltMatch(c,null);},HH=state.flt.holder;
   var run=running().filter(fm),fut=run.filter(notStarted).length,a=run.filter(function(c){return !notStarted(c);}),mSum=0,np=active().filter(fm).length-a.length-fut;
-  /* laufendes Probeabo kostet (noch) nichts: erst ab Probe-Ende in der Summe */
-  a.forEach(function(c){if(!trialOn(c))mSum+=monthlyCost(c)*(HH?holderShare(c,HH):1);});
-  document.getElementById("hMonth").textContent=money(mSum);
-  document.getElementById("hCur").textContent=state.settings.home;
-  /* ruhige Unterzeile ohne Aufzählung; bei Filter: Filtername */
-  document.getElementById("hSub").textContent=nf0.format(mSum*12)+" "+state.settings.home+" im Jahr"+(lf?" – "+fltLabel():"");
   var hf=state.heroF||"";
   /* Filter zurücksetzen, sobald sein Zähler 0 ist (z.B. letzter pausierter Vertrag fortgesetzt) */
   if((hf==="act"&&(!(np||fut)||!a.length))||(hf==="paused"&&!np)||(hf==="fut"&&!fut))hf=state.heroF="";
+  /* Summe folgt dem Status-Filter: aktiv (Standard), pausiert oder noch nicht aktiv.
+     Laufendes Probeabo kostet (noch) nichts: erst ab Probe-Ende in der Summe */
+  var sl=hf==="paused"?active().filter(fm).filter(isPaused):hf==="fut"?run.filter(notStarted):a;
+  sl.forEach(function(c){if(!trialOn(c))mSum+=monthlyCost(c)*(HH?holderShare(c,HH):1);});
+  document.getElementById("hMonth").textContent=money(mSum);
+  document.getElementById("hCur").textContent=state.settings.home;
+  var hl=document.querySelector(".hero .hlabel");if(hl)hl.textContent=hf==="paused"?"Pausiert, pro Monat":hf==="fut"?"Noch nicht aktiv, pro Monat":"Fixkosten pro Monat";
+  /* ruhige Unterzeile ohne Aufzählung; bei Filter: Filtername */
+  document.getElementById("hSub").textContent=hf==="paused"?"Zählt nicht zu deinen Fixkosten, solange pausiert":
+    hf==="fut"?"Zählt ab Vertragsbeginn zu deinen Fixkosten":
+    nf0.format(mSum*12)+" "+state.settings.home+" im Jahr"+(lf?" – "+fltLabel():"");
   document.getElementById("hChips").innerHTML=((np||fut)?'<button class="hchip act'+(hf==="act"?" on":"")+'" data-hf="act" aria-pressed="'+(hf==="act")+'"><b>'+a.length+"</b> aktiv ›</button>":"")+
     (np?'<button class="hchip act'+(hf==="paused"?" on":"")+'" data-hf="paused" aria-pressed="'+(hf==="paused")+'"><b>'+np+"</b> pausiert ›</button>":"")+
     (fut?'<button class="hchip act'+(hf==="fut"?" on":"")+'" data-hf="fut" aria-pressed="'+(hf==="fut")+'"><b>'+fut+"</b> noch nicht aktiv ›</button>":"");
