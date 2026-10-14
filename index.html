@@ -843,7 +843,11 @@ body.hasplus .topadd{display:inline-flex}
 .dmenu button:last-child{border-bottom:0}.dmenu button:active{background:var(--sunken)}.dmenu small{font-size:12.5px;color:var(--ink3);line-height:1.3}.dmenu button span{white-space:nowrap}.dmenu .red{color:var(--alert)}
 @keyframes dmin{from{opacity:0;transform:scale(.85)}}
 @media (prefers-reduced-motion:reduce){.dmenu{animation:none}}
-.shbar h2{flex:1;text-align:center;margin:0!important;font-size:18px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Titel immer in der Mitte des Fensters (iOS), unabhängig von Knopfbreite oder ausgeblendetem «Zurück»; Knöpfe bleiben links/rechts */
+.shbar h2{position:absolute;left:104px;right:104px;top:50%;transform:translateY(calc(-50% - 2px));text-align:center;margin:0!important;font-size:18px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.shbar>h2+*{margin-left:auto}
+/* Detail mit zwei Knöpfen rechts (••• + Bearbeiten): Titel zwischen den Knöpfen, sonst überdeckt er ••• */
+.shbar:has(.dmbtn) h2{position:static;transform:none;flex:1;min-width:0}
 .shx{font-size:16px;color:var(--ink2);padding:6px 0;min-width:78px;text-align:left}
 .shok{font-size:16px;font-weight:700;color:var(--teal);padding:6px 0;min-width:78px;text-align:right}
 .searchrow{display:flex;gap:8px;align-items:center;margin-top:14px}
