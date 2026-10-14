@@ -1618,7 +1618,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 @font-face{font-family:"Kontivo Serif";src:url("fonts/kontivo-serif.woff") format("woff");font-weight:500;font-display:swap}
 body{background:var(--paper)!important}
 /* Schrift */
-.big,.kz b,.kbig,.kc b,#fKz b,#iKz b,.kzt b,.tstat b{font-family:var(--serif)!important;font-weight:500!important;letter-spacing:-.01em!important}
+.big,.kz b,.kbig,.kc b,#fKz b,#iKz b,.kzt b,.tstat b,.ptc .v{font-family:var(--serif)!important;font-weight:500!important;letter-spacing:-.01em!important}
 .big{font-size:clamp(42px,12.5vw,50px)!important}
 .big .u,.kz b u,.kbig .ru,.kc b u{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif!important;letter-spacing:0!important}
 .top h1{letter-spacing:-.025em!important}
@@ -1676,7 +1676,7 @@ body{background:var(--paper)!important}
 /* Einführung: Haken in Messing */
 .obprom i{background:var(--brassFab)!important}.obprom i svg{stroke:var(--onBrass)!important}
 /* Kategorien in Pastell: Fläche = Kategoriefarbe hell gemischt, Symbol in Kategoriefarbe (Logos unverändert). SwiftUI: color.opacity(0.16) */
-.mark:not(:has(img)),.pci,.mk{background:color-mix(in srgb,var(--c,#5F666E) 16%,var(--surface))!important}
+.mark:not(:has(img)),.pci,.mk{background:color-mix(in srgb,var(--c,#5F666E) 20%,var(--surface))!important}
 .mark:not(:has(img)) .cicon,.pci svg,.mk svg{stroke:var(--c,#5F666E)!important}
 @media (prefers-color-scheme:dark){:root:not([data-appearance="light"]) .mark:not(:has(img)),:root:not([data-appearance="light"]) .pci,:root:not([data-appearance="light"]) .mk{background:color-mix(in srgb,var(--c,#5F666E) 30%,var(--surface))!important}
  :root:not([data-appearance="light"]) .mark:not(:has(img)) .cicon,:root:not([data-appearance="light"]) .pci svg,:root:not([data-appearance="light"]) .mk svg{stroke:color-mix(in srgb,var(--c,#5F666E) 45%,#fff)!important}}
@@ -1748,6 +1748,26 @@ body{background:var(--paper)!important}
 .lcand.sel .lci{box-shadow:0 0 0 2px var(--brass)}.lcand.wide .lci img{padding:6px}
 .lcand .lci+span{font-size:10.5px;line-height:1.2;color:var(--ink2);text-align:center;max-width:64px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .fbankign{display:block;width:100%;margin:18px 0 0;padding:13px;border-radius:12px;background:var(--surface);color:var(--alert);font-size:15.5px;font-weight:500}
+/* Entwicklung und Preistreiber (14.10.2026) – Säulenfarben wie das Monatsdiagramm: Vergangenheit blass Messing, gewählt Messing, Zukunft grau */
+.ptcard{padding:14px 16px 6px}
+.ptlb{font-size:12.5px;font-weight:600;color:var(--ink3);margin-bottom:6px}
+.ptcols{display:flex;justify-content:space-around;align-items:flex-start;padding:2px 6px 0;border-bottom:1px solid var(--line)}
+.ptc{display:flex;flex-direction:column;align-items:center;width:84px;padding:0;background:none;border:0;color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ptc .ptp{font-size:10.5px;font-weight:600;color:var(--ink3);height:14px;line-height:14px}
+.ptc .v{font-size:19px;line-height:1.15;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ptc.fut .v{color:var(--ink2)}
+.ptd{font-style:normal;font-size:12px;font-weight:600;height:16px;line-height:16px;color:var(--ink3)}.ptd.up{color:var(--warn)}.ptd.down{color:var(--ok)}
+.ptbx{height:96px;width:100%;display:flex;align-items:flex-end;justify-content:center;margin-top:8px}
+.ptbx i{display:block;width:56px;border-radius:8px 8px 2px 2px;background:color-mix(in srgb,var(--brass) 22%,var(--surface));transition:background-color .15s}
+.ptc.cur .ptbx i{background:var(--brass)}.ptc.fut .ptbx i{background:color-mix(in srgb,var(--ink) 12%,var(--surface))}
+.ptc .pty{font-size:12.5px;color:var(--ink3);margin:6px 0 8px}.ptc.cur .pty{color:var(--teal);font-weight:700}
+.ptsep{height:1px;background:var(--line);margin:0 -16px 12px;opacity:0}
+.ptlist .mrow:first-child{border-top:0}
+.ptrow .mark{width:36px;height:36px;border-radius:10px}.ptrow .mn{font-size:15.5px}
+.ptv{flex:none;display:flex;align-items:baseline;gap:4px;white-space:nowrap}.ptv b{font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}.ptv u{text-decoration:none;font-size:11px;font-weight:500;color:var(--ink2)}
+.ptv.up b{color:var(--warn)}.ptv.down b{color:var(--ok)}
+.ptmore{display:block;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--line);font-size:14px;font-weight:600;color:var(--teal);background:none}
+.ptnote{font-size:12.5px;color:var(--ink3);margin:2px 0 10px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -2245,8 +2265,10 @@ var LOGO=document.querySelector('link[rel="apple-touch-icon"]').href;
 
 var CATS=["Wohnen","Energie & Wasser","Versicherung","Gesundheit","Mobilfunk & Internet","Abos & Medien","Mobilität","Familie & Bildung","Freizeit & Sport","Steuern & Gebühren","Finanzen","Sonstiges"];
 var COLORS=["#4A5A66","#A93227","#1F4E8C","#6B4E9E","#8A6A1F","#2E6A4E","#B0562A","#3F4A55"];
-var CAT_COLOR={"Wohnen":"#6B4E9E","Energie & Wasser":"#B0562A","Versicherung":"#4A5A66","Gesundheit":"#B03A5B","Mobilfunk & Internet":"#1F4E8C","Abos & Medien":"#A93227",
-  "Mobilität":"#3F4A55","Familie & Bildung":"#3F6E9A","Freizeit & Sport":"#2E6A4E","Steuern & Gebühren":"#6E7B3A","Finanzen":"#8A6A1F","Sonstiges":"#5F666E",
+/* 14.10.2026: kräftigere, klar unterscheidbare Kategoriefarben (vorher drei fast gleiche Grautöne). Alte Standardfarben in
+   gespeicherten Kategorien werden beim Anzeigen ersetzt (CAT_OLD), selbst gewählte Farben bleiben. */
+var CAT_COLOR={"Wohnen":"#6A4FB3","Energie & Wasser":"#D0692B","Versicherung":"#2F7F7A","Gesundheit":"#C2416B","Mobilfunk & Internet":"#2563B8","Abos & Medien":"#C0392B",
+  "Mobilität":"#8B5A3C","Familie & Bildung":"#3B8BC9","Freizeit & Sport":"#2E8B57","Steuern & Gebühren":"#7E8F25","Finanzen":"#B08A1E","Sonstiges":"#6B7280",
   "Lohn":"#2E6A4E","Nebeneinkommen":"#4A5A66","Bonus":"#8A6A1F","Kapitalerträge":"#1F4E8C","Vermietung":"#6B4E9E","Rente":"#B0562A","Zulagen":"#B23A6F","Unterstützung":"#3D6FA8","Rückerstattung":"#5F7A2E"};
 var CAT_MIG={"Energie":"Energie & Wasser","Streaming & Software":"Abos & Medien","Fitness & Freizeit":"Freizeit & Sport","Steuern":"Steuern & Gebühren","Kinderbetreuung":"Familie & Bildung"};
 /* Altfelder umstellen: settings.rate → settings.rates.EUR, holder → holders[] */
@@ -2357,7 +2379,11 @@ function catByKey(k){if(!k)return "";var e=catList().filter(function(x){return x
 /* Design 13.10.2026: altes Petrol/Türkis aus gespeicherten Farben beim Anzeigen ersetzen (Daten bleiben unverändert) */
 var OLD_COL={"#0e5a5e":"#4A5A66","#2f86a6":"#3F6E9A","#2b7a7d":"#4A5A66","#5fb3b5":"#4A5A66"};function newCol(c){return OLD_COL[String(c||"").toLowerCase()]||c;}
 function safeCol(c){return /^#[0-9a-f]{3,8}$/i.test(String(c||""))?newCol(String(c)):"";}
-function catColor(k){var e=catEntry(k);if(e&&safeCol(e.c))return e.c;return CAT_COLOR[k]||"#5F666E";}
+var CAT_OLD={"Wohnen":"#6b4e9e","Energie & Wasser":"#b0562a","Versicherung":"#4a5a66","Gesundheit":"#b03a5b","Mobilfunk & Internet":"#1f4e8c","Abos & Medien":"#a93227",
+  "Mobilität":"#3f4a55","Familie & Bildung":"#3f6e9a","Freizeit & Sport":"#2e6a4e","Steuern & Gebühren":"#6e7b3a","Finanzen":"#8a6a1f","Sonstiges":"#5f666e"};
+function catColor(k){var e=catEntry(k),c=e&&safeCol(e.c),key=(e&&e.k)||k;
+  if(c&&CAT_OLD[key]&&c.toLowerCase()===CAT_OLD[key]&&CAT_COLOR[key])return CAT_COLOR[key];
+  if(c)return c;return CAT_COLOR[k]||CAT_COLOR[key]||"#6B7280";}
 function catIcon(cat){var e=catEntry(cat),i;
   if(e)i=e.i==="tag"?TAG_ICON:(CAT_ICON[e.i]||TAG_ICON);
   else i=CAT_ICON[cat]||(cat&&INC_CATS.indexOf(cat)<0?TAG_ICON:CAT_ICON["Sonstiges"]);
@@ -2977,14 +3003,19 @@ function openPick(dim){
     var ks=dim==="holder"?holdersOf(c):[statKey(c,dim)],on=c.status!=="cancelled"&&!isEnded(c);
     ks.forEach(function(k){if(k){cnt[k]=(cnt[k]||0)+1;if(on)act[k]=(act[k]||0)+1;}});
   });
-  var keys=Object.keys(cnt);
-  if(dim==="cat")keys.sort(function(a,b){var AC=allCats(),ia=AC.indexOf(a),ib=AC.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+  var keys=Object.keys(cnt),amt=null,aTot=0;
+  /* Kosten-Seite: Betrag im gewählten Jahr und Anteil je Kategorie/Vertragspartner, grösste zuerst (ersetzt die frühere Aufteilung) */
+  if(state.tab==="stat"&&dim!=="holder"){var Yp=state.year||today().getFullYear();amt={};
+    Object.keys(state.contracts).forEach(function(id){var c=Object.assign({_id:id},state.contracts[id]);if(state.flt.holder&&!fltMatch(c,dim))return;
+      var k=statKey(c,dim),v=ptYearSum(c,Yp);if(v>0.004){amt[k]=(amt[k]||0)+v;aTot+=v;}});}
+  if(amt)keys.sort(function(a,b){return (amt[b]||0)-(amt[a]||0)||a.localeCompare(b,"de-CH",{sensitivity:"base"});});
+  else if(dim==="cat")keys.sort(function(a,b){var AC=allCats(),ia=AC.indexOf(a),ib=AC.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
   else keys.sort(function(a,b){return a.localeCompare(b,"de-CH",{sensitivity:"base"});});
   var title={cat:"Kategorie",partner:"Vertragspartner",holder:"Person"}[dim],allTxt={cat:"Alle Kategorien",partner:"Alle Vertragspartner",holder:"Alle Personen"}[dim];
   document.getElementById("pickTitle").textContent=title;
   var cur=state.flt[dim];
   var h='<button class="pick" data-pv="" aria-pressed="'+(!cur)+'"><span>'+allTxt+"</span><span></span></button>";
-  keys.forEach(function(k){h+='<button class="pick" data-pv="'+esc(k)+'" data-lp="'+esc(k)+'" aria-pressed="'+(cur===k)+'"><span>'+esc(k)+"</span><span>"+(act[k]?act[k]+(act[k]===1?" aktiver Vertrag":" aktive Verträge"):"nur beendete")+"</span></button>";});
+  keys.forEach(function(k){h+='<button class="pick" data-pv="'+esc(k)+'" data-lp="'+esc(k)+'" aria-pressed="'+(cur===k)+'"><span>'+esc(k)+"</span><span>"+(amt?(amt[k]?nf0.format(amt[k])+" "+esc(state.settings.home)+" · "+Math.round(amt[k]/aTot*100)+" %":"keine Zahlungen "+(state.year||today().getFullYear())):(act[k]?act[k]+(act[k]===1?" aktiver Vertrag":" aktive Verträge"):"nur beendete"))+"</span></button>";});
   if(keys.length)h+='<p class="lphint">Lange drücken zeigt die Beträge</p>';
   var l=document.getElementById("pickList");l.innerHTML=h;l.dataset.dim=dim;
   openSheet(document.getElementById("sheetPick"));
@@ -3032,6 +3063,66 @@ function showLpop(dim,key){
   document.addEventListener("pointerdown",function(e){var p=document.getElementById("lpop");if(p&&!e.target.closest("#lpop")){closeLpop();eat=Date.now();}},true);
 })();
 function statKey(c,t){return t==="cat"?(c.cat||"Sonstiges"):(String(c.partner||"Ohne Namen").trim()||"Ohne Namen");}
+/* ---------- Entwicklung und Preistreiber (14.10.2026) ----------
+   Beantwortet: Wie entwickeln sich meine Fixkosten (Vorjahr · gewähltes Jahr · Folgejahr, je pro Monat = Jahrestotal ÷ 12,
+   gleiche Berechnung wie «Ø pro Monat»)? Was treibt die Veränderung (je Vertrag, Differenz gewähltes Jahr − Vorjahr ÷ 12)?
+   Summe aller Vertragsdifferenzen = Differenz der Säulen (inkl. Sonderzahlungen). Künftige Jahre = «Prognose»: nur bereits
+   eingetragene Änderungen (Preise, Beginn, Ende, Pausen), keine Teuerung. Säule antippen setzt das Jahr der ganzen Seite.
+   Filter (Person/Kategorie/Vertragspartner) gilt wie oben. SwiftUI: Swift Charts BarMark (3 Balken) + List je Vertrag. */
+function ptYearSum(c,y){var s=0,f=holderShare(c);payments(c,new Date(y,0,1),new Date(y,11,31)).forEach(function(p){s+=conv(p.a,c.cur)*f;});return s;}
+function ptReason(c,ya,yb,sa,sb){
+  var my=function(d){return MON[d.getMonth()]+(d.getFullYear()!==yb?" "+d.getFullYear():"");},st=parseD(c.start),lim=limitOf(c),T=today();
+  if(sa<0.005&&sb>=0.005){var f0=null;payments(c,new Date(yb,0,1),new Date(yb,11,31)).forEach(function(p){if(!p.ex&&(!f0||p.d<f0))f0=p.d;});
+    return st&&st.getFullYear()===yb?"neu seit "+my(st):(f0?"neu ab "+my(f0):"neu");}
+  if(sb<0.005&&sa>=0.005){if(c.paused)return "pausiert";if(lim)return (lim>T?"endet im ":"beendet im ")+my(lim);return "keine Zahlung mehr";}
+  var pc=pricesOf(c),inB=pc.filter(function(e){var d=parseD(e.from);return d&&d.getFullYear()===yb;}),inA=pc.filter(function(e){var d=parseD(e.from);return d&&d.getFullYear()===ya;});
+  var pct=function(e){var d=parseD(e.from),old=priceAt(c,addDays(d,-1)),nw=+e.amount;if(!(old>0))return null;return Math.round((nw-old)/old*100);};
+  if(inB.length){var e=inB[inB.length-1],q=pct(e),d=parseD(e.from);
+    if(q===null)return "Preis geändert seit "+MON[d.getMonth()];if(q===0)return "Preis angepasst";
+    return "Preis "+(q>0?"↑ ":"↓ ")+Math.abs(q)+" % seit "+MON[d.getMonth()];}
+  if(lim&&lim.getFullYear()===yb)return (lim>T?"endet im ":"beendet im ")+MON[lim.getMonth()];
+  if(inA.length){var qa=pct(inA[inA.length-1]);return qa>0?"Erhöhung gilt ganzes Jahr":qa<0?"Senkung gilt ganzes Jahr":"Preisänderung gilt ganzes Jahr";}
+  if(st&&st.getFullYear()===ya)return "erstes volles Jahr";
+  var exB=extrasOf(c).filter(function(x){return parseD(x.date).getFullYear()===yb;}),exA=extrasOf(c).filter(function(x){return parseD(x.date).getFullYear()===ya;});
+  if(exB.length)return (exB[0].amount<0?"Gutschrift im ":"Sonderzahlung im ")+MON[parseD(exB[0].date).getMonth()];
+  if(exA.length)return (exA[0].amount<0?"Gutschrift":"Sonderzahlung")+" im Vorjahr";
+  if(c.paused)return "pausiert";
+  return sb>sa?"mehr Zahlungen im Jahr":"weniger Zahlungen im Jahr";
+}
+function ptSection(pool,Y,nowY,H){
+  /* Säulen: Vorjahr · aktuelles Jahr · Folgejahr (fest um heute); nur wenn oben weiter weg geblättert wird, um das gewählte Jahr */
+  var B=(Y>=nowY-1&&Y<=nowY+1)?nowY:Y,ys=[B-1,B,B+1],tot={},per={};if(ys.indexOf(Y-1)<0)ys.unshift(Y-1);ys.forEach(function(y){tot[y]=0;});
+  var inF=pool.filter(function(c){return fltMatch(c,null);});
+  inF.forEach(function(c){per[c._id]={};ys.forEach(function(y){var v=ptYearSum(c,y);per[c._id][y]=v;tot[y]+=v;});});
+  var cy=[B-1,B,B+1],mo=function(y){return tot[y]/12;},mx=Math.max(mo(cy[0]),mo(cy[1]),mo(cy[2]))||1;
+  var dTxt=function(a,b){if(!(tot[a]>0.004))return '<em class="ptd">&nbsp;</em>';var d=Math.round((tot[b]-tot[a])/12);
+    if(!d)return '<em class="ptd">±0</em>';return '<em class="ptd '+(d>0?"up":"down")+'">'+(d>0?"↑ ":"↓ ")+nf0.format(Math.abs(d))+"</em>";};
+  var o='<div class="grp ptgrp"><div class="grphead"><span>Entwicklung und Preistreiber</span></div><div class="dcard ptcard">'+
+    '<div class="ptlb">Deine Fixkosten pro Monat in '+H+'</div><div class="ptcols" role="group" aria-label="Fixkosten pro Monat">';
+  cy.forEach(function(y,i){var cls=y===Y?"cur":(y<Y?"past":"fut");
+    o+='<button class="ptc '+cls+'" data-pty="'+y+'" aria-pressed="'+(y===Y)+'" aria-label="'+y+(y>nowY?" Prognose":"")+": "+nf0.format(mo(y))+" "+H+' pro Monat">'+
+      '<span class="ptp">'+(y>nowY?"Prognose":"&nbsp;")+'</span><span class="v">'+nf0.format(mo(y))+"</span>"+(i?dTxt(y-1,y):'<em class="ptd">&nbsp;</em>')+
+      '<span class="ptbx"><i style="height:'+Math.max(3,mo(y)/mx*100).toFixed(1)+'%"></i></span><span class="pty">'+y+"</span></button>";});
+  o+="</div>";
+  var noSt=inF.filter(function(c){return !c.start&&per[c._id][Y-1]>0.004;}).length;
+  if(!(tot[Y-1]>0.004)){o+='<p class="ptnote">Für '+(Y-1)+" sind keine Zahlungen erfasst – noch kein Vergleich möglich.</p></div></div>";return o;}
+  var rows=inF.map(function(c){var a=per[c._id][Y-1],b=per[c._id][Y];return {c:c,a:a,b:b,d:(b-a)/12};}).filter(function(r){return Math.abs(r.d)>=0.5;})
+    .sort(function(x,y){return Math.abs(y.d)-Math.abs(x.d);});
+  var n0=inF.filter(function(c){return per[c._id][Y]>0.004||per[c._id][Y-1]>0.004;}).length-rows.length;
+  o+='<div class="ptsep"></div><div class="ptlb">'+(Y>nowY?"Prognose":"Was sich verändert hat")+" · "+(Y-1)+" → "+Y+"</div>";
+  if(!rows.length)o+='<p class="ptnote">Keine Veränderung gegenüber '+(Y-1)+".</p>";
+  var lim=state.ptAll?rows.length:Math.min(rows.length,rows.length>7?6:7);
+  o+='<div class="ptlist">'+rows.slice(0,lim).map(function(r){var c=r.c,d=Math.round(r.d);
+    return '<button class="mrow ptrow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">'+esc(ptReason(c,Y-1,Y,r.a,r.b))+"</span></span>"+
+      '<span class="ptv '+(d>0?"up":"down")+'"><b>'+(d>0?"+":"−")+nf0.format(Math.abs(d))+"</b><u>"+H+'/Mt.</u></span><span class="aechev" aria-hidden="true">›</span></button>';}).join("");
+  if(rows.length>lim){var rest=rows.slice(lim),rs=Math.round(rest.reduce(function(n,r){return n+r.d;},0));
+    o+='<button class="ptmore" data-ptall>'+rest.length+(rest.length===1?" weiterer Vertrag":" weitere Verträge")+" · "+(rs>0?"+":rs<0?"−":"±")+nf0.format(Math.abs(rs))+" "+H+"/Mt. ›</button>";}
+  else if(state.ptAll&&rows.length>7)o+='<button class="ptmore" data-ptall>Weniger anzeigen</button>';
+  o+="</div>";
+  if(rows.length&&n0>0)o+='<p class="ptnote">'+(Y>nowY?"Alle anderen Verträge bleiben gleich.":"Alle anderen Verträge sind gleich geblieben.")+"</p>";
+  if(noSt)o+='<p class="ptnote">'+noSt+(noSt===1?" Vertrag hat":" Verträge haben")+" keinen Vertragsbeginn und "+(noSt===1?"wird":"werden")+" auch für "+(Y-1)+" voll gezählt.</p>";
+  return o+"</div></div>";
+}
 function renderStat(v){
   var nowY=today().getFullYear(),Y=state.year||nowY,H=esc(state.settings.home),FL=state.flt,G=state.sg||"cat";
   /* Personenfilter zurücksetzen, wenn nur noch eine Person Verträge hat (Chips wären ausgeblendet, Filter unsichtbar) */
@@ -3117,66 +3208,7 @@ function renderStat(v){
     '<button data-msort="date" aria-pressed="'+(MSO==="date")+'">Datum</button><button data-msort="amt" aria-pressed="'+(MSO==="amt")+'">Betrag</button></span>':"")+'</div><div class="mrows mrows2">'+
     (sm.items.length?openI.map(mrow).join("")+(paidI.length&&openI.length?'<button class="tfold pfold" data-paidtog aria-expanded="'+(!!state.showPaid)+'"><span>Bereits bezahlt ('+paidI.length+')</span><i></i></button>':"")+
       ((state.showPaid||!openI.length)?paidI.map(mrow).join(""):""):'<div class="mempty">In diesem Monat ist nichts fällig.</div>')+"</div></div>";
-  /* Aufteilung und Entwicklung (06.10.2026): eine Karte mit Total, Vergleich zum Vorjahr, waagrechten Jahresbalken (aktuelles Jahr
-     und bis zu 2 Vorjahre, nach Gruppen eingefärbt) und darunter der Liste je Gruppe (Top 4 + Übrige). Zeile antippen klappt den
-     Verlauf über die Jahre auf, darin «Nur … anzeigen» setzt den Filter. Monatsansicht: derselbe Monat in den Vorjahren.
-     Vorjahre nur, wenn alle betroffenen Verträge einen Beginn haben (sonst würden sie rückwirkend voll gezählt).
-     SwiftUI: Card mit HStack-Balken (GeometryReader), List mit DisclosureGroup, Mini-Verlauf mit Swift Charts LineMark */
-  var SC=state.ss||"year",groups=SC==="month"?gM[sel]:gY;
-  var perOf=function(y){return SC==="month"?[new Date(y,sel,1),new Date(y,sel+1,0)]:[new Date(y,0,1),new Date(y,11,31)];};
-  var grpOf=function(y){var r=perOf(y),g={};pool.forEach(function(c){if(!fltMatch(c,G))return;var f3=holderShare(c),k=statKey(c,G);
-    payments(c,r[0],r[1]).forEach(function(p){g[k]=(g[k]||0)+conv(p.a,c.cur)*f3;});});return g;};
-  var keys=Object.keys(groups).filter(function(k){return groups[k]>0.004;}).sort(function(a,b){return groups[b]-groups[a];});
-  var gTot=keys.reduce(function(n,k){return n+groups[k];},0);
-  var fmtG=function(n){return SC==="year"?nf0.format(n):money(n);};
-  var PAL=["#4A5A66","#8A6A1F","#1F4E8C","#6B4E9E","#A93227","#2E6A4E","#B0562A","#3F4A55"];
-  var colK=function(k,i){return G==="cat"?catColor(k):PAL[i%PAL.length];};
-  var OTH="#9AA0A6",perTxt=function(y){return (SC==="month"?MON[sel]+" ":"")+y;};
-  var noSt=pool.some(function(c){return !c.start&&fltMatch(c,G);});
-  var hist=[];if(!noSt)for(var hy=1;hy<=2;hy++){var gh=grpOf(Y-hy),th=0;Object.keys(gh).forEach(function(k){th+=gh[k];});if(th>0.004)hist.push({y:Y-hy,g:gh,t:th});else break;}
-  var top=keys.slice(0,keys.length>5?4:5),restK=keys.slice(top.length);
-  var segs=top.map(function(k,i){return {k:k,c:colK(k,i)};});if(restK.length)segs.push({k:"Übrige",c:OTH,oth:1});
-  var segV=function(g,sg){if(!sg.oth)return g[sg.k]||0;var t=0;Object.keys(g).forEach(function(k){if(top.indexOf(k)<0)t+=g[k];});return t;};
-  var act=(state.ringSel&&groups[state.ringSel]!=null)?state.ringSel:"";
-  o+='<div class="grp brkgrp"><div class="grphead"><span>Aufteilung und Entwicklung</span></div><div class="dcard aecard">';
-  if(!keys.length){o+='<div class="dsegs">'+segBtns()+'</div><div class="empty" style="padding:18px 2px 8px">Im '+MON[sel]+" ist nichts fällig.</div></div></div>";}
-  else{
-    var prev=hist[0],chip="";
-    if(prev){var dpc=(gTot-prev.t)/prev.t*100,rp=Math.round(Math.abs(dpc));
-      chip=rp<1?'<span class="aechip">wie '+prev.y+"</span>":'<span class="aechip '+(dpc>0?"up":"down")+'">'+(dpc>0?"↑ ":"↓ ")+rp+" % vs. "+prev.y+"</span>";}
-    var rows=[{y:Y,g:groups,t:gTot,cur:1}].concat(hist),mxT=Math.max.apply(null,rows.map(function(r){return r.t;}))||1;
-    o+='<div class="dsegs aesegs">'+segBtns()+"</div>"+
-      '<div class="aeh"><span class="aemo">'+(SC==="month"?MON[sel]+" ":"Entwicklung ")+(hist.length?hist[hist.length-1].y+"–"+Y:Y)+"</span>"+chip+"</div>"+
-      '<div class="aebars" role="img" aria-label="'+esc(rows.map(function(r){return perTxt(r.y)+": "+fmtG(r.t)+" "+state.settings.home;}).join(", "))+'">'+
-      rows.map(function(r){return '<div class="aebr'+(r.cur?" cur":"")+'"><span class="aey">'+r.y+'</span><span class="aetr"><span class="aefill" style="width:'+(r.t/mxT*100).toFixed(1)+'%">'+
-        segs.map(function(sg){var v=segV(r.g,sg);return v>0.004?'<i style="flex:'+v.toFixed(2)+';--c:'+sg.c+'"></i>':"";}).join("")+'</span></span><span class="aev">'+fmtG(r.t)+"</span></div>";}).join("")+"</div>"+
-      (noSt&&SC==="year"?'<p class="aenote">Vorjahre ausgeblendet: Bei einigen Verträgen fehlt der Vertragsbeginn.</p>':"");
-    var markK=function(sg){if(sg.oth)return '<div class="mark aestack" aria-hidden="true">'+[0,1,2,3].map(function(i){var k=restK[i];return '<i style="--c:'+(k?colK(k,top.length+i):OTH)+'"></i>';}).join("")+"</div>";
-      if(G==="cat")return '<div class="mark" style="--c:'+esc(catColor(sg.k))+'">'+catIcon(sg.k)+"</div>";
-      var pc=pool.filter(function(c){return statKey(c,"partner")===sg.k;})[0];
-      if(pc&&pc.logoId&&KBlob.has(pc.logoId))return markHtml(pc);
-      return '<div class="mark" style="--c:'+esc(sg.c)+'">'+catIcon(pc?pc.cat||"Sonstiges":"Sonstiges")+"</div>";};
-    var fk=state.flt[G]||"";
-    var hasLogo=function(sg){if(G!=="partner"||sg.oth)return false;var pc=pool.filter(function(c){return statKey(c,"partner")===sg.k;})[0];return !!(pc&&pc.logoId&&KBlob.has(pc.logoId));};
-    var cmpK=function(sg){if(!prev)return "";var v=segV(groups,sg),pv=segV(prev.g,sg);if(pv<0.005)return '<span class="aec">neu</span>';
-      var pc=Math.round((v-pv)/pv*100);if(Math.abs(pc)<1)return '<span class="aec">wie '+prev.y+"</span>";
-      return '<span class="aec '+(pc>0?"up":"down")+'">'+(pc>0?"↑ ":"↓ ")+Math.abs(pc)+" % "+(pc>0?"mehr":"weniger")+"</span>";};
-    var mini=function(sg){var ser=rows.slice().reverse(),vals=ser.map(function(r){return segV(r.g,sg);}),n=vals.length;
-      if(n<2)return '<p class="aenote" style="margin:0 0 4px">Noch keine Vorjahre zum Vergleich.</p>';
-      var mx2=Math.max.apply(null,vals)||1;
-      return '<div class="aecols" style="--c:'+sg.c+'" aria-hidden="true">'+vals.map(function(v,i){return '<div'+(i===n-1?' class="cur"':"")+'><span style="height:'+Math.max(2,v/mx2*100).toFixed(1)+'%"></span></div>';}).join("")+"</div>"+
-        '<div class="aecl">'+vals.map(function(v,i){return "<div>"+ser[i].y+"<b>"+fmtG(v)+"</b></div>";}).join("")+"</div>";};
-    o+='<div class="aelist">'+segs.map(function(sg,i){var v=segV(groups,sg),on=sg.oth?!!state.sgAll:act===sg.k;
-      var attr=sg.oth?'data-sgall aria-expanded="'+(!!state.sgAll)+'"':'data-sf="'+G+"|"+esc(sg.k)+'" aria-expanded="'+on+'"';
-      var dim=fk&&(sg.oth?top.indexOf(fk)>=0:sg.k!==fk),isF=fk&&!sg.oth&&sg.k===fk;
-      var h='<button class="mrow aerow'+(on?" open":"")+(dim?" dim":"")+'" '+attr+">"+markK(sg)+'<span class="mt"><span class="mn">'+esc(sg.k)+'</span><span class="mm aemm">'+(hasLogo(sg)?'<i class="aedot" style="--c:'+sg.c+'"></i>':"")+"<span>"+Math.round(v/gTot*100)+" %</span>"+(prev?"<span>·</span>"+cmpK(sg):"")+"</span></span>"+
-        '<span class="ma"><span><b>'+fmtG(v)+"</b> <u>"+H+'</u></span></span><span class="aechev" aria-hidden="true">›</span></button>';
-      if(on&&!sg.oth)h+='<div class="aeopen">'+mini(sg)+(isF?'<button class="aeonly" data-fdel="'+G+'">Filter aufheben</button>':'<button class="aeonly" data-sfilter="'+G+"|"+esc(sg.k)+'">Nur '+esc(sg.k)+" anzeigen ›</button>")+"</div>";
-      if(on&&sg.oth)h+='<div class="dlist aerest">'+restK.map(function(k){return '<button class="dli" data-sfilter="'+G+"|"+esc(k)+'"><i style="--c:'+OTH+'"></i><span class="dn1">'+esc(k)+'</span><span class="dv"><b>'+fmtG(groups[k])+"</b> "+H+"<em>"+Math.round(groups[k]/gTot*100)+" %</em></span></button>";}).join("")+"</div>";
-      return h;}).join("")+"</div></div></div>";
-  }
-  function segBtns(){return '<div class="pseg" role="group" aria-label="Zeitraum"><button data-ss="year" aria-pressed="'+(SC==="year")+'">Jahr</button><button data-ss="month" aria-pressed="'+(SC==="month")+'">'+MS[sel]+"</button></div>"+
-     '<div class="pseg" role="group" aria-label="Aufteilen nach"><button data-sg="cat" aria-pressed="'+(G==="cat")+'">Kategorie</button><button data-sg="partner" aria-pressed="'+(G==="partner")+'">Vertragspartner</button></div>';}
+  o+=ptSection(pool,Y,nowY,H);
   v.innerHTML=o+"</div>";
 }
 var TITLES={list:"Verträge",stat:"Kosten",budget:"Budget",term:"Fristen",arch:"Archiv",set:"Mehr"};
@@ -5414,6 +5446,9 @@ document.getElementById("view").addEventListener("click",function(ev){
   var ssb=ev.target.closest("[data-ss]");
   if(ssb){state.ss=ssb.dataset.ss;state.sgAll=false;renderView();return;}
   if(ev.target.closest("[data-sgall]")){state.sgAll=!state.sgAll;renderView();return;}
+  var pty=ev.target.closest("[data-pty]");
+  if(pty){var py=+pty.dataset.pty;if(py!==(state.year||today().getFullYear())){var y1=window.scrollY;state.year=py;state.sel=(py===today().getFullYear())?today().getMonth():0;state.ptAll=false;renderView();window.scrollTo(0,y1);}return;}
+  if(ev.target.closest("[data-ptall]")){var y2=window.scrollY;state.ptAll=!state.ptAll;renderView();window.scrollTo(0,y2);return;}
   var yb=ev.target.closest("[data-y]");
   if(yb){var ny=(state.year||today().getFullYear())+(+yb.dataset.y);state.year=ny;
     state.sel=(ny===today().getFullYear())?today().getMonth():0;renderView();return;}
