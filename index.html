@@ -1766,6 +1766,11 @@ body{background:var(--paper)!important}
 .ptrow .mark{width:36px;height:36px;border-radius:10px}.ptrow .mn{font-size:15.5px}
 .ptv{flex:none;display:flex;align-items:baseline;gap:4px;white-space:nowrap}.ptv b{font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}.ptv u{text-decoration:none;font-size:11px;font-weight:500;color:var(--ink2)}
 .ptv.up b{color:var(--warn)}.ptv.down b{color:var(--ok)}
+.ptrow.open .aechev{transform:rotate(90deg)}.ptrow .mm{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}.ptrow .mt{gap:1px}
+.ptsub{margin:-4px 0 8px 47px;border-left:2px solid var(--line);padding-left:12px}
+.ptsr{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 0;background:none;border:0;color:inherit;font:inherit}
+.ptsr .mark{width:28px;height:28px;border-radius:8px;flex:none}.ptsr .mn{font-size:14.5px}.ptsr .ptv b{font-size:14.5px}
+.ptonly{display:block;padding:6px 0 4px;font-size:13.5px;font-weight:600;color:var(--teal);background:none;border:0}
 .ptmore{display:block;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--line);font-size:14px;font-weight:600;color:var(--teal);background:none}
 .ptnote{font-size:12.5px;color:var(--ink3);margin:2px 0 10px;line-height:1.4}
 </style>
@@ -3090,36 +3095,49 @@ function ptReason(c,ya,yb,sa,sb){
   return sb>sa?"mehr Zahlungen im Jahr":"weniger Zahlungen im Jahr";
 }
 function ptSection(pool,Y,nowY,H){
-  /* Säulen: Vorjahr · aktuelles Jahr · Folgejahr (fest um heute); nur wenn oben weiter weg geblättert wird, um das gewählte Jahr */
+  /* Säulen: Vorjahr · aktuelles Jahr · Folgejahr (fest um heute); nur wenn oben weiter weg geblättert wird, um das gewählte Jahr.
+     Werte = Jahrestotal (gleich «Total JJJJ» oben). Treiber je Kategorie: Wechsel innerhalb einer Kategorie (alte → neue Miete)
+     heben sich auf; Antippen klappt die betroffenen Verträge mit Grund auf. */
   var B=(Y>=nowY-1&&Y<=nowY+1)?nowY:Y,ys=[B-1,B,B+1],tot={},per={};if(ys.indexOf(Y-1)<0)ys.unshift(Y-1);ys.forEach(function(y){tot[y]=0;});
   var inF=pool.filter(function(c){return fltMatch(c,null);});
   inF.forEach(function(c){per[c._id]={};ys.forEach(function(y){var v=ptYearSum(c,y);per[c._id][y]=v;tot[y]+=v;});});
-  var cy=[B-1,B,B+1],mo=function(y){return tot[y]/12;},mx=Math.max(mo(cy[0]),mo(cy[1]),mo(cy[2]))||1;
-  var dTxt=function(a,b){if(!(tot[a]>0.004))return '<em class="ptd">&nbsp;</em>';var d=Math.round((tot[b]-tot[a])/12);
+  var cy=[B-1,B,B+1],mx=Math.max(tot[cy[0]],tot[cy[1]],tot[cy[2]])||1;
+  var dTxt=function(a,b){if(!(tot[a]>0.004))return '<em class="ptd">&nbsp;</em>';var d=Math.round(tot[b]-tot[a]);
     if(!d)return '<em class="ptd">±0</em>';return '<em class="ptd '+(d>0?"up":"down")+'">'+(d>0?"↑ ":"↓ ")+nf0.format(Math.abs(d))+"</em>";};
   var o='<div class="grp ptgrp"><div class="grphead"><span>Entwicklung und Preistreiber</span></div><div class="dcard ptcard">'+
-    '<div class="ptlb">Deine Fixkosten pro Monat in '+H+'</div><div class="ptcols" role="group" aria-label="Fixkosten pro Monat">';
+    '<div class="ptlb">Deine Fixkosten pro Jahr in '+H+'</div><div class="ptcols" role="group" aria-label="Fixkosten pro Jahr">';
   cy.forEach(function(y,i){var cls=y===Y?"cur":(y<Y?"past":"fut");
-    o+='<button class="ptc '+cls+'" data-pty="'+y+'" aria-pressed="'+(y===Y)+'" aria-label="'+y+(y>nowY?" Prognose":"")+": "+nf0.format(mo(y))+" "+H+' pro Monat">'+
-      '<span class="ptp">'+(y>nowY?"Prognose":"&nbsp;")+'</span><span class="v">'+nf0.format(mo(y))+"</span>"+(i?dTxt(y-1,y):'<em class="ptd">&nbsp;</em>')+
-      '<span class="ptbx"><i style="height:'+Math.max(3,mo(y)/mx*100).toFixed(1)+'%"></i></span><span class="pty">'+y+"</span></button>";});
+    o+='<button class="ptc '+cls+'" data-pty="'+y+'" aria-pressed="'+(y===Y)+'" aria-label="'+y+(y>nowY?" Prognose":"")+": "+nf0.format(tot[y])+" "+H+'">'+
+      '<span class="ptp">'+(y>nowY?"Prognose":"&nbsp;")+'</span><span class="v">'+nf0.format(tot[y])+"</span>"+(i?dTxt(y-1,y):'<em class="ptd">&nbsp;</em>')+
+      '<span class="ptbx"><i style="height:'+Math.max(3,tot[y]/mx*100).toFixed(1)+'%"></i></span><span class="pty">'+y+"</span></button>";});
   o+="</div>";
   var noSt=inF.filter(function(c){return !c.start&&per[c._id][Y-1]>0.004;}).length;
   if(!(tot[Y-1]>0.004)){o+='<p class="ptnote">Für '+(Y-1)+" sind keine Zahlungen erfasst – noch kein Vergleich möglich.</p></div></div>";return o;}
-  var rows=inF.map(function(c){var a=per[c._id][Y-1],b=per[c._id][Y];return {c:c,a:a,b:b,d:(b-a)/12};}).filter(function(r){return Math.abs(r.d)>=0.5;})
-    .sort(function(x,y){return Math.abs(y.d)-Math.abs(x.d);});
-  var n0=inF.filter(function(c){return per[c._id][Y]>0.004||per[c._id][Y-1]>0.004;}).length-rows.length;
+  /* je Kategorie: Summe Vorjahr/Jahr und die geänderten Verträge */
+  var G={};inF.forEach(function(c){var a=per[c._id][Y-1],b=per[c._id][Y];if(a<0.005&&b<0.005)return;var k=statKey(c,"cat");
+    var g=G[k]=G[k]||{k:k,a:0,b:0,ch:[]};g.a+=a;g.b+=b;if(Math.abs(b-a)>=0.5)g.ch.push({c:c,a:a,b:b,d:b-a});});
+  var cats=Object.keys(G).map(function(k){var g=G[k];g.d=g.b-g.a;g.ch.sort(function(x,y){return Math.abs(y.d)-Math.abs(x.d);});return g;})
+    .filter(function(g){return Math.abs(g.d)>=0.5||g.ch.length;}).sort(function(x,y){return Math.abs(y.d)-Math.abs(x.d);});
+  var n0=Object.keys(G).length-cats.length;
+  var why=function(g){var ch=g.ch;if(!ch.length)return "";
+    if(ch.length===1)return titleOf(ch[0].c)+" "+ptReason(ch[0].c,Y-1,Y,ch[0].a,ch[0].b);
+    /* Wechsel: ein Vertrag endet (oder fällt weg), ein anderer beginnt in einem der beiden Jahre (alte → neue Wohnung) */
+    var stY=function(r){var d=parseD(r.c.start);return d&&(d.getFullYear()===Y||d.getFullYear()===Y-1);},
+        endY=function(r){var d=limitOf(r.c);return r.b<0.005||(d&&(d.getFullYear()===Y||d.getFullYear()===Y-1)&&r.d<0);};
+    if(ch.length===2){var up=ch.filter(function(r){return r.d>0&&(r.a<0.005||stY(r));})[0],dn=ch.filter(function(r){return r.d<0&&endY(r);})[0];
+      if(up&&dn){var nm=function(r){return titleOf(r.c)===titleOf(up===r?dn.c:up.c)?(r.c.partner||titleOf(r.c)):titleOf(r.c);};
+        return titleOf(up.c)===titleOf(dn.c)?"Neue "+titleOf(up.c)+": "+(up.c.partner||titleOf(up.c)):"Wechsel: "+nm(dn)+" → "+nm(up);}}
+    return titleOf(ch[0].c)+" "+ptReason(ch[0].c,Y-1,Y,ch[0].a,ch[0].b)+" und "+(ch.length-1)+(ch.length===2?" weiterer":" weitere");};
   o+='<div class="ptsep"></div><div class="ptlb">'+(Y>nowY?"Prognose":"Was sich verändert hat")+" · "+(Y-1)+" → "+Y+"</div>";
-  if(!rows.length)o+='<p class="ptnote">Keine Veränderung gegenüber '+(Y-1)+".</p>";
-  var lim=state.ptAll?rows.length:Math.min(rows.length,rows.length>7?6:7);
-  o+='<div class="ptlist">'+rows.slice(0,lim).map(function(r){var c=r.c,d=Math.round(r.d);
-    return '<button class="mrow ptrow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span><span class="mm">'+esc(ptReason(c,Y-1,Y,r.a,r.b))+"</span></span>"+
-      '<span class="ptv '+(d>0?"up":"down")+'"><b>'+(d>0?"+":"−")+nf0.format(Math.abs(d))+"</b><u>"+H+'/Mt.</u></span><span class="aechev" aria-hidden="true">›</span></button>';}).join("");
-  if(rows.length>lim){var rest=rows.slice(lim),rs=Math.round(rest.reduce(function(n,r){return n+r.d;},0));
-    o+='<button class="ptmore" data-ptall>'+rest.length+(rest.length===1?" weiterer Vertrag":" weitere Verträge")+" · "+(rs>0?"+":rs<0?"−":"±")+nf0.format(Math.abs(rs))+" "+H+"/Mt. ›</button>";}
-  else if(state.ptAll&&rows.length>7)o+='<button class="ptmore" data-ptall>Weniger anzeigen</button>';
-  o+="</div>";
-  if(rows.length&&n0>0)o+='<p class="ptnote">'+(Y>nowY?"Alle anderen Verträge bleiben gleich.":"Alle anderen Verträge sind gleich geblieben.")+"</p>";
+  if(!cats.length)o+='<p class="ptnote">Keine Veränderung gegenüber '+(Y-1)+".</p>";
+  var sgn=function(d,u){var r=Math.round(d);return '<span class="ptv '+(r>0?"up":r<0?"down":"")+'"><b>'+(r>0?"+":r<0?"−":"±")+nf0.format(Math.abs(r))+"</b><u>"+u+"</u></span>";};
+  o+='<div class="ptlist">'+cats.map(function(g){var on=state.ptOpen===g.k;
+    var h='<button class="mrow ptrow'+(on?" open":"")+'" data-ptcat="'+esc(g.k)+'" aria-expanded="'+on+'"><div class="mark" style="--c:'+esc(catColor(g.k))+'">'+catIcon(g.k)+'</div>'+
+      '<span class="mt"><span class="mn">'+esc(g.k)+'</span><span class="mm">'+esc(why(g))+"</span></span>"+sgn(g.d,H)+'<span class="aechev" aria-hidden="true">›</span></button>';
+    if(on)h+='<div class="ptsub">'+g.ch.map(function(r){return '<button class="ptsr" data-open="'+esc(r.c._id)+'">'+markHtml(r.c)+'<span class="mt"><span class="mn">'+esc(titleOf(r.c))+'</span><span class="mm">'+esc(ptReason(r.c,Y-1,Y,r.a,r.b))+"</span></span>"+sgn(r.d,H)+"</button>";}).join("")+
+      '<button class="ptonly" data-sfilter="cat|'+esc(g.k)+'">Nur '+esc(g.k)+" anzeigen ›</button></div>";
+    return h;}).join("")+"</div>";
+  if(cats.length&&n0>0)o+='<p class="ptnote">'+(Y>nowY?"Alle anderen Kategorien bleiben gleich.":"Alle anderen Kategorien sind gleich geblieben.")+"</p>";
   if(noSt)o+='<p class="ptnote">'+noSt+(noSt===1?" Vertrag hat":" Verträge haben")+" keinen Vertragsbeginn und "+(noSt===1?"wird":"werden")+" auch für "+(Y-1)+" voll gezählt.</p>";
   return o+"</div></div>";
 }
@@ -5447,8 +5465,9 @@ document.getElementById("view").addEventListener("click",function(ev){
   if(ssb){state.ss=ssb.dataset.ss;state.sgAll=false;renderView();return;}
   if(ev.target.closest("[data-sgall]")){state.sgAll=!state.sgAll;renderView();return;}
   var pty=ev.target.closest("[data-pty]");
-  if(pty){var py=+pty.dataset.pty;if(py!==(state.year||today().getFullYear())){var y1=window.scrollY;state.year=py;state.sel=(py===today().getFullYear())?today().getMonth():0;state.ptAll=false;renderView();window.scrollTo(0,y1);}return;}
-  if(ev.target.closest("[data-ptall]")){var y2=window.scrollY;state.ptAll=!state.ptAll;renderView();window.scrollTo(0,y2);return;}
+  if(pty){var py=+pty.dataset.pty;if(py!==(state.year||today().getFullYear())){var y1=window.scrollY;state.year=py;state.sel=(py===today().getFullYear())?today().getMonth():0;state.ptOpen="";renderView();window.scrollTo(0,y1);}return;}
+  var ptc=ev.target.closest("[data-ptcat]");
+  if(ptc){var y2=window.scrollY,k2=ptc.dataset.ptcat;state.ptOpen=state.ptOpen===k2?"":k2;renderView();window.scrollTo(0,y2);return;}
   var yb=ev.target.closest("[data-y]");
   if(yb){var ny=(state.year||today().getFullYear())+(+yb.dataset.y);state.year=ny;
     state.sel=(ny===today().getFullYear())?today().getMonth():0;renderView();return;}
