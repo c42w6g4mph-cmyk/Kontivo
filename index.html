@@ -1295,8 +1295,9 @@ from{opacity:.3;transform:translateX(-16px)}to{opacity:1;transform:none}
 :root[data-theme="dark"] #onb .obimgL{display:none!important}:root[data-theme="dark"] #onb .obimgD{display:block!important}
 #onb .obbtn{flex:none;width:100%;border-radius:15px;background:var(--tealFill);color:#fff;font-size:17px;font-weight:600;padding:15px;margin-top:6px}
 #onb .obbtn:disabled{opacity:.4}
-#onb .obghost{flex:none;width:100%;color:var(--teal);font-size:15px;font-weight:500;padding:8px 0 2px}
+#onb .obghost{flex:none;width:100%;height:32px;line-height:22px;color:var(--teal);font-size:15px;font-weight:500;padding:8px 0 2px}
 #onb .obgrow{flex:1}
+#onb .obwel .obghost{margin-top:1px} /* .obwel hat gap 9px statt 10px: Knöpfe auf gleicher Höhe wie die anderen Seiten */
 /* Willkommen */
 #onb .obwel{align-items:center;text-align:center;gap:9px;padding-top:4vh;container-type:inline-size}
 #splash{position:fixed;inset:0;z-index:9999;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;animation:splOut .5s ease 2s forwards}
@@ -1357,7 +1358,7 @@ from{transform:scale(.6);opacity:0}
 #onb .obchips.row .obchip{flex-direction:row;align-items:center;gap:9px;padding:8px 10px}
 #onb .obchips.row .obchip .mk{width:27px;height:27px}
 
-#onb .oblist{flex:1;min-height:0;overflow-y:auto;display:grid;gap:14px;align-content:start;padding:6px 2px 0}
+#onb .oblist{flex:1;min-height:0;overflow-y:auto;display:grid;gap:18px;align-content:start;padding:6px 2px 0}
 #onb .obli{display:flex;align-items:center;gap:13px}
 #onb .obli .mk{width:36px;height:36px;border-radius:10px;flex:none;display:grid;place-items:center}
 #onb .obli .mk svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
@@ -1784,10 +1785,18 @@ body{background:var(--paper)!important}
 #onb .obmr .tx{flex:1;min-width:0;display:grid}#onb .obmr b{font-size:14.5px;font-weight:600}#onb .obmr small{font-size:12px;color:var(--ink3)}
 #onb .obmr .am{font-size:14.5px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}#onb .obmr .am u{text-decoration:none;font-size:10.5px;color:var(--ink3);margin-left:3px;font-weight:500}
 #onb .obcb{width:22px;height:22px;border-radius:50%;background:var(--brass);display:grid;place-items:center;flex:none}#onb .obcb svg{width:12px;height:12px;fill:none;stroke:var(--onBrass);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-#onb .obsrc{display:flex;gap:6px;justify-content:center;flex-wrap:nowrap;flex:none}
-#onb .obsrc span{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--ink2);background:var(--surface);border-radius:99px;padding:6px 10px;white-space:nowrap}
-#onb .obsrc svg{width:15px;height:15px;fill:none;stroke:var(--teal);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-#onb .obsrc em{font-style:normal;font-size:10.5px;font-weight:700;color:var(--teal);background:color-mix(in srgb,var(--brass) 16%,transparent);border-radius:6px;padding:1px 5px}
+#onb .obsrl{background:var(--surface);border-radius:18px;padding:2px 14px;flex:none;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+#onb .obsr{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}#onb .obsr:first-child{border-top:0}
+#onb .obsr i{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;background:var(--tealFill)}
+#onb .obsr i svg{width:21px;height:21px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#onb .obsr span{display:grid;gap:1px;min-width:0}
+#onb .obsr b{display:flex;align-items:center;gap:7px;font-size:15.5px;font-weight:600;color:var(--ink)}
+#onb .obsr small{font-size:13px;line-height:1.3;color:var(--ink2)}
+#onb .obsr em{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--teal);background:color-mix(in srgb,var(--brass) 16%,transparent);border-radius:6px;padding:1px 6px}
+#onb .obflow{display:grid;place-items:center;margin:-4px 0 -6px;flex:none}#onb .obflow svg{width:20px;height:20px;fill:none;stroke:var(--brass);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#onb .obghost.ph{visibility:hidden;pointer-events:none}
+@media (max-height:740px){#onb .obscr{gap:8px}#onb .obwel .obghost{margin-top:0}#onb .obsr{padding:6px 0}#onb .obsa{display:none}#onb .obmh{margin-bottom:0}#onb .obsr i{width:32px;height:32px}#onb .obflow{display:none}#onb .obmr{padding:4px 0}#onb .obmr small{font-size:11px}#onb .oblist{gap:12px}}
+#onb .obor{display:flex;align-items:center;gap:12px;color:var(--ink3);font-size:13px;font-weight:600;margin:4px 0 0;flex:none}#onb .obor:before,#onb .obor:after{content:"";flex:1;height:1px;background:var(--line)}
 </style>
 </head>
 <body>
@@ -8487,22 +8496,21 @@ var OB_PAGES=[
   {k:"welcome"},
   {k:"auto"},
   /* Linie (15.10.2026): Titel = Nutzen als kurze Aussage, je drei Punkte im gleichen Stil, kein Begriff doppelt über die Seiten */
-  {k:"tab",tab:"list",t:"Alle Verträge im Blick",b:["Fixkosten pro Monat sofort sichtbar","CHF und EUR automatisch umgerechnet","Alle Details zu jedem Vertrag"]},
-  {k:"tab",tab:"stat",t:"Jeder Monat geplant",b:["Jede Abbuchung mit Datum","Bezahlt und offen sofort erkennbar","Preiserhöhungen auf einen Blick"]},
-  {k:"tab",tab:"budget",t:"Wissen, was dir bleibt",b:["Einnahmen minus Fixkosten berechnet","Pro Monat und pro Jahr","Mit Richtwerten für CH und DE"]},
-  {k:"tab",tab:"term",t:"Keine Frist verpassen",b:["Kündigungsfristen automatisch berechnet","Behalten oder kündigen – du entscheidest","Kündigungsschreiben mit einem Tipp"]},
-  {k:"tips"},
+  {k:"tab",tab:"list",t:"Endlich alles im Blick",b:["Was du monatlich zahlst, auf einen Blick","CHF und EUR automatisch umgerechnet","Geordnet nach Kategorie oder Person"]},
+  {k:"tab",tab:"stat",t:"Nie mehr überrascht",b:["Du weisst, wann was abgebucht wird","Bezahlt und offen auf einen Blick","Du siehst, was teurer geworden ist"]},
+  {k:"tab",tab:"budget",t:"Wissen, was dir bleibt",b:["Einnahmen und Fixkosten verrechnet","Pro Monat und aufs Jahr gerechnet","Vergleich mit Richtwerten für CH und DE"]},
+  {k:"tab",tab:"term",t:"Nie mehr zu spät kündigen",b:["Deine Fristen automatisch berechnet","Behalten oder kündigen – du entscheidest","Kündigungsschreiben mit einem Tipp"]},
   {k:"setup",first:true},
   {k:"start",first:true}];
 var OB_TIPS=[ /* [Farbe, Symbol, Titel, Text, bald verfügbar] – Farben aus der Kategorie-Palette */
-  ["#C0392B",'<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8v12M3 12h18"/><path d="M12 8c-2-4-6-4-6-1s4 1 6 1c2 0 6 2 6-1s-4-3-6 1"/>',"Probeabos im Blick","Erinnerung, bevor Kosten entstehen."],
-  ["#6A4FB3",'<path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/>',"Dokumente am Vertrag","PDFs und Fotos direkt beim Vertrag."],
-  ["#3B8BC9",'<path d="M7 18a4.5 4.5 0 0 1-.6-9 6 6 0 0 1 11.5 1.2A3.9 3.9 0 0 1 17.5 18z"/><path d="M9.5 13.5l2 2 3.5-3.5"/>',"iCloud-Sync","Auf iPhone und iPad immer gleich.",true],
-  ["#D0692B",'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',"Erinnerung vor jeder Frist","Mitteilung, bevor es zu spät ist.",true],
-  ["#2F7F7A",'<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',"App-Sperre mit Face ID","Nur du siehst deine Verträge.",true]];
+  ["#C0392B",'<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8v12M3 12h18"/><path d="M12 8c-2-4-6-4-6-1s4 1 6 1c2 0 6 2 6-1s-4-3-6 1"/>',"Probeabos im Blick","Du wirst erinnert, bevor es etwas kostet."],
+  ["#2E8B57",'<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a4.5 4.5 0 0 1 5 4.8"/>',"Kosten teilen","Für Familie oder WG – jeder sieht seinen Anteil."],
+  ["#6A4FB3",'<path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/>',"Dokumente am Vertrag","Rechnung und Vertrag immer griffbereit."],
+  ["#3B8BC9",'<path d="M7 18a4.5 4.5 0 0 1-.6-9 6 6 0 0 1 11.5 1.2A3.9 3.9 0 0 1 17.5 18z"/><path d="M9.5 13.5l2 2 3.5-3.5"/>',"iCloud-Sync","Deine Verträge auf iPhone und iPad.",true],
+  ["#D0692B",'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',"Erinnerung vor jeder Frist","Kontivo meldet sich, bevor es zu spät ist.",true]];
 /* Schnellstart: Bezeichnung → Kategorie (fällt auf «Sonstiges» zurück, falls umbenannt/gelöscht) */
 var OB_QUICK=[["Miete","Wohnen"],["Strom","Energie & Wasser"],["Handy","Mobilfunk & Internet"],["Internet","Mobilfunk & Internet"],
-  ["Streaming","Abos & Medien"],["Fitness","Freizeit & Sport"],["Autoversicherung","Versicherung"],["Rundfunkgebühr","Steuern & Gebühren"]];
+  ["Streaming","Abos & Medien"],["Versicherung","Versicherung"]];
 function locCur(){try{var L=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||""]);for(var i=0;i<L.length;i++){if(/-CH$|-LI$/i.test(L[i]))return "CHF";if(/-(DE|AT)$/i.test(L[i]))return "EUR";}}catch(e){}return "EUR";}
 function obQn(q){return q[0];}
 var OB_CUR={EUR:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#003399"/><g fill="#FFCC00"><circle cx="15.00" cy="4.00" r="1.05"/><circle cx="18.00" cy="4.80" r="1.05"/><circle cx="20.20" cy="7.00" r="1.05"/><circle cx="21.00" cy="10.00" r="1.05"/><circle cx="20.20" cy="13.00" r="1.05"/><circle cx="18.00" cy="15.20" r="1.05"/><circle cx="15.00" cy="16.00" r="1.05"/><circle cx="12.00" cy="15.20" r="1.05"/><circle cx="9.80" cy="13.00" r="1.05"/><circle cx="9.00" cy="10.00" r="1.05"/><circle cx="9.80" cy="7.00" r="1.05"/><circle cx="12.00" cy="4.80" r="1.05"/></g></svg>',"Euro"],CHF:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#DA291C"/><path d="M13 4h4v4h4v4h-4v4h-4v-4H9V8h4z" fill="#fff"/></svg>',"Franken"],USD:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><rect y="0.000" width="30" height="1.538" fill="#B22234"/><rect y="3.077" width="30" height="1.538" fill="#B22234"/><rect y="6.154" width="30" height="1.538" fill="#B22234"/><rect y="9.231" width="30" height="1.538" fill="#B22234"/><rect y="12.308" width="30" height="1.538" fill="#B22234"/><rect y="15.385" width="30" height="1.538" fill="#B22234"/><rect y="18.462" width="30" height="1.538" fill="#B22234"/><rect width="13" height="10.77" fill="#3C3B6E"/><g fill="#fff"><circle cx="1.6" cy="1.4" r=".55"/><circle cx="3.8" cy="1.4" r=".55"/><circle cx="6.0" cy="1.4" r=".55"/><circle cx="8.2" cy="1.4" r=".55"/><circle cx="10.4" cy="1.4" r=".55"/><circle cx="12.6" cy="1.4" r=".55"/><circle cx="2.7" cy="3.3" r=".55"/><circle cx="4.9" cy="3.3" r=".55"/><circle cx="7.1" cy="3.3" r=".55"/><circle cx="9.3" cy="3.3" r=".55"/><circle cx="11.5" cy="3.3" r=".55"/><circle cx="1.6" cy="5.2" r=".55"/><circle cx="3.8" cy="5.2" r=".55"/><circle cx="6.0" cy="5.2" r=".55"/><circle cx="8.2" cy="5.2" r=".55"/><circle cx="10.4" cy="5.2" r=".55"/><circle cx="12.6" cy="5.2" r=".55"/><circle cx="2.7" cy="7.1" r=".55"/><circle cx="4.9" cy="7.1" r=".55"/><circle cx="7.1" cy="7.1" r=".55"/><circle cx="9.3" cy="7.1" r=".55"/><circle cx="11.5" cy="7.1" r=".55"/><circle cx="1.6" cy="9.0" r=".55"/><circle cx="3.8" cy="9.0" r=".55"/><circle cx="6.0" cy="9.0" r=".55"/><circle cx="8.2" cy="9.0" r=".55"/><circle cx="10.4" cy="9.0" r=".55"/><circle cx="12.6" cy="9.0" r=".55"/></g></svg>',"US-Dollar"],GBP:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#012169"/><path d="M0 0l30 20M30 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l30 20M30 0L0 20" stroke="#C8102E" stroke-width="1.5"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6"/><path d="M15 0v20M0 10h30" stroke="#C8102E" stroke-width="3.4"/></svg>',"Pfund"],TRY:['<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#E30A17"/><circle cx="11.5" cy="10" r="5" fill="#fff"/><circle cx="12.8" cy="10" r="4" fill="#E30A17"/><path d="M17.3 10l3.9-1.3-2.4 3.3V8l2.4 3.3z" fill="#fff"/></svg>',"Lira"]};
@@ -8516,39 +8524,46 @@ var ob={pages:[],i:0,first:false,home:"EUR",more:false,quick:-1,x0:null};
 function obSvg(p,cls){return '<svg viewBox="0 0 24 24" aria-hidden="true"'+(cls?' class="'+cls+'"':'')+'>'+p+'</svg>';}
 function obTabName(tab){var t=OB_TABS.filter(function(x){return x[0]===tab;})[0];return '<span class="obtab">'+obSvg(OB_ICON[tab])+esc(t[1])+'</span>';}
 function obTop(left){return '<div class="obtop">'+(left||'<span></span>')+(ob.i<obLastTour()?'<button type="button" class="obskip" data-ob="skip">Überspringen</button>':'')+'</div>';}
-function obLastTour(){for(var j=0;j<ob.pages.length;j++)if(ob.pages[j].k==="tips")return j;return ob.pages.length-1;}
+function obLastTour(){var l=-1;for(var j=0;j<ob.pages.length;j++)if(!ob.pages[j].first)l=j;return l<0?ob.pages.length-1:l;}
 function obNext(label){return '<button type="button" class="obbtn" data-ob="next">'+(label||"Weiter")+'</button>';}
+/* Platzhalter in Höhe des Zweitknopfs, damit «Weiter» auf allen Seiten gleich hoch steht */
+var OB_PH='<button type="button" class="obghost ph" tabindex="-1" aria-hidden="true">&nbsp;</button>';
 function obPage(p){
   var last=ob.i===ob.pages.length-1;
   if(p.k==="welcome"){var ck='<i>'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</i>';
     return '<div class="obscr obwel"><img class="oblogo" src="'+esc(LOGO)+'" alt="">'+
       '<p class="obslogan">Deine Verträge, ganz entspannt.</p>'+
       '<p class="obt obwt"><span>Willkommen bei</span><b class="obwm" aria-label="Kontivo"><svg class="obK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="obKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="obKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#obKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#obKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b></p>'+
-      '<p class="obs">Maximale Transparenz über alles,<br>was jeden Monat fix weggeht.</p>'+
-      '<div class="obprom"><span>'+ck+'Fixkosten, Budget &amp; Fristen im Blick</span><span>'+ck+'Ohne Bankanbindung – ganz privat</span><span>'+ck+'Für dich, deine Familie oder deine WG</span></div>'+
+      '<p class="obs">Du weisst jederzeit, was jeden Monat<br>fix weggeht – und was dir bleibt.</p>'+
+      '<div class="obprom"><span>'+ck+'Alle Fixkosten auf einen Blick</span><span>'+ck+'Nie mehr zu viel bezahlen</span><span>'+ck+'Ganz privat, ohne Bankanbindung</span></div>'+
       '<div class="obgrow"></div>'+obNext("Los geht’s")+
       (ob.first?'<button type="button" class="obghost" data-ob="backup">Ich habe schon ein Backup</button>':'<button type="button" class="obghost" data-ob="close">Schliessen</button>')+'</div>';}
   /* Verträge automatisch erfassen (15.10.2026): Vorschläge aus Kontoauszug, PDF oder Foto; Beispiele ohne Markennamen.
      PDF/Foto erst nativ (Vision/PDFKit), im Web «bald». SwiftUI: eigene Onboarding-Seite mit Beispielliste. */
-  if(p.k==="auto"){var H2=ob.home||"EUR",eu=H2==="EUR",fm=function(v){var t=v.toFixed(2);return eu?t.replace(".",","):t;};
-    var ex=[["Abos & Medien","Streaming","monatlich",eu?13.99:13.90],["Mobilfunk & Internet","Handy","monatlich",eu?29.99:29.90],["Versicherung","Krankenkasse","monatlich",eu?389.40:412.30],["Energie & Wasser","Strom","quartalsweise",eu?180:180.50]];
-    var ck2='<span class="obcb">'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</span>';
-    return '<div class="obscr">'+obTop('<span class="obtab">'+obSvg('<path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/>')+'Automatisch erfassen</span>')+
+  if(p.k==="auto"){
+    /* Immer EUR wie die Screenshots der Tour (Entscheid 15.10.2026). Quellen als Kacheln, jede Zeile nennt ihre Quelle. */
+    var ck2='<span class="obcb">'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</span>',SP='<path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/>';
+    var SRC=[["bank",'<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',"Kontoauszug laden","CSV-Datei aus dem E-Banking",false,"Kontoauszug"],
+      ["pdf",'<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 13h6M9 17h4"/>',"PDF hochladen","Kontoauszug, Rechnung oder Vertrag",true,"PDF"],
+      ["foto",'<path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.4"/>',"Foto machen","Kontoauszug oder Rechnung abfotografieren",true,"Foto"]];
+    var ex=[["Abos & Medien","Streaming","monatlich",13.99,0],["Energie & Wasser","Strom","monatlich",96,1],["Versicherung","Haftpflicht","jährlich",64.9,2]];
+    return '<div class="obscr">'+obTop('<span class="obtab">'+obSvg(SP)+'Automatisch erfassen</span>')+
       '<p class="obt">Alle Verträge von Hand erfassen?<br><span class="obacc">Nicht mit Kontivo.</span></p>'+
-      '<p class="obs">Kontivo liest deine Unterlagen und schlägt dir deine Verträge vor. Du bestätigst nur noch.</p>'+
-      '<div class="obmock"><div class="obmh">'+obSvg('<path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/>')+ex.length+' Verträge gefunden</div>'+
-      ex.map(function(e){var cat=obCat(e[0])||e[0];return '<div class="obmr"><span class="mk" style="--c:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span><span class="tx"><b>'+e[1]+'</b><small>'+e[2]+'</small></span><span class="am">'+fm(e[3])+'<u>'+H2+'</u></span>'+ck2+'</div>';}).join("")+'</div>'+
-      '<div class="obsrc"><span>'+obSvg('<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>')+'Kontoauszug</span><span>'+obSvg('<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/>')+'PDF<em>bald</em></span><span>'+obSvg('<path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.4"/>')+'Foto<em>bald</em></span></div>'+
-      '<div class="obgrow"></div>'+obNext()+'</div>';}
+      '<p class="obs obsa">Kontivo erkennt deine Verträge – du bestätigst nur noch. So einfach geht’s:</p>'+
+      '<div class="obsrl">'+SRC.map(function(q){return '<div class="obsr"><i>'+obSvg(q[1])+'</i><span><b>'+q[2]+(q[4]?'<em>bald</em>':'')+'</b><small>'+q[3]+'</small></span></div>';}).join("")+'</div>'+
+      '<div class="obflow" aria-hidden="true">'+obSvg('<path d="M12 4v15M6.5 13.5L12 19l5.5-5.5"/>')+'</div>'+
+      '<div class="obmock"><div class="obmh">'+obSvg(SP)+ex.length+' Verträge erkannt</div>'+
+      ex.map(function(e){var cat=obCat(e[0])||e[0];return '<div class="obmr"><span class="mk" style="--c:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span><span class="tx"><b>'+e[1]+'</b><small>'+e[2]+' · aus '+SRC[e[4]][5]+'</small></span><span class="am">'+e[3].toFixed(2).replace(".",",")+'<u>EUR</u></span>'+ck2+'</div>';}).join("")+'</div>'+
+      '<div class="obgrow"></div>'+obNext()+OB_PH+'</div>';}
   if(p.k==="tab"){
     var bar=OB_TABS.map(function(t){return '<span class="'+(t[0]===p.tab?'on':'')+'">'+obSvg(OB_ICON[t[0]])+esc(t[1])+'</span>';}).join("");
     return '<div class="obscr">'+obTop(obTabName(p.tab))+'<p class="obt">'+esc(p.t)+'</p><ul class="obpts">'+p.b.map(function(x){return '<li>'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+esc(x)+'</li>';}).join("")+'</ul>'+
       '<div class="obshot"><img class="obimgL" src="onb/'+p.tab+'-light.webp" alt=""><img class="obimgD" src="onb/'+p.tab+'-dark.webp" alt="">'+
-      '<div class="obfade"></div><div class="obbar" aria-hidden="true">'+bar+'</div></div>'+obNext()+'</div>';}
+      '<div class="obfade"></div><div class="obbar" aria-hidden="true">'+bar+'</div></div>'+obNext()+OB_PH+'</div>';}
   if(p.k==="tips"){
     return '<div class="obscr">'+obTop('<span class="obtab">'+obSvg(OB_ICON.set)+'Gut zu wissen</span>')+'<p class="obt">Clever bis ins Detail</p>'+
       '<div class="oblist">'+OB_TIPS.map(function(t){return '<div class="obli"><span class="mk" style="--c:'+t[0]+'">'+obSvg(t[1])+'</span><span class="tx"><b>'+esc(t[2])+(t[4]?'<em>Bald</em>':'')+'</b><small>'+esc(t[3])+'</small></span></div>';}).join("")+'</div>'+
-      obNext(last?"Fertig":"Weiter")+'</div>';}
+      obNext(last?"Fertig":"Weiter")+OB_PH+'</div>';}
   if(p.k==="setup"){
     var nm=(state.settings.holders||[]).filter(function(h){return h!=="Ich";})[0]||"";
     return '<div class="obscr">'+obTop('<span class="obtab">Fast geschafft</span>')+'<p class="obt">Noch zwei Angaben</p>'+
@@ -8560,10 +8575,10 @@ function obPage(p){
       '<div class="obgrow"></div>'+obNext()+'<button type="button" class="obghost" data-ob="backup">Backup einspielen</button></div>';}
   if(p.k==="start"){
     return '<div class="obscr">'+obTop('<span class="obtab">Letzter Schritt</span>')+'<p class="obt">Womit fangen wir an?</p>'+
-      '<p class="obs">Lass Kontivo suchen oder starte mit einer Vorlage.</p>'+
+      '<p class="obs">Am schnellsten geht es mit deinem Kontoauszug.</p>'+
       '<button type="button" class="obauto" data-ob="bank"><span class="ic">'+obSvg('<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>')+'</span>'+
-        '<span><b>Automatisch finden</b><small>Kontoauszug wählen, Vorschläge bestätigen</small></span></button>'+
-      '<p class="obsec">Mit Vorlage starten</p><p class="obs">Tipp an, was du hast – den Rest ergänzt du.</p><div class="obchips row">'+
+        '<span><b>Automatisch erfassen</b><small>Kontoauszug wählen, Verträge bestätigen</small></span></button>'+
+      '<div class="obor"><span>oder</span></div><p class="obsec">Selbst erfassen – tipp an, was du hast</p><div class="obchips row">'+
       OB_QUICK.map(function(q,j){var cat=obCat(q[1]),e=catEntry(cat);
         return '<button type="button" class="obchip" data-obq="'+j+'" aria-pressed="'+(ob.quick===j)+'"><span class="mk" style="--c:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span>'+
           '<span class="tx"><b>'+esc(obQn(q)).replace("versicherung","&shy;versicherung")+'</b><small>'+esc(cat)+'</small></span></button>';}).join("")+'</div>'+
