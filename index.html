@@ -784,6 +784,9 @@ body.hasplus .topadd{display:inline-flex}
 @keyframes bkspin{to{transform:rotate(360deg)}}
 .sheet .bkload h3{font-size:21px;font-weight:700;margin:0 0 6px;color:var(--ink);border:0;padding:0;text-transform:none;letter-spacing:-.01em}
 .bkload>p{color:var(--ink2);font-size:15px;margin:0 0 22px;line-height:1.4}
+.safenote{display:flex;gap:11px;align-items:center;text-align:left;width:100%;max-width:360px;margin-top:26px;padding:12px 14px;border-radius:16px;background:color-mix(in srgb,var(--ok) 9%,var(--surface));font-size:13px;line-height:1.4;color:var(--ink2)}
+.safenote svg{flex:none;width:22px;height:22px;fill:none;stroke:var(--ok);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.safenote b{color:var(--ok);font-weight:600}
 .bksteps{list-style:none;padding:0;margin:0;width:100%;max-width:300px;text-align:left;display:grid;gap:14px}
 .bksteps li{display:flex;align-items:center;gap:12px;font-size:16px;color:var(--ink3)}.bksteps li.done{color:var(--ink)}.bksteps li.now{color:var(--ink);font-weight:600}
 .bksteps i{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;border:2px solid var(--line);font-style:normal;font-size:13px;line-height:1}
@@ -1809,7 +1812,7 @@ body{background:var(--paper)!important}
 <div class="amdim" id="addDim"></div>
 <div class="amenu" id="addMenu" role="menu" aria-label="Hinzufügen" inert aria-hidden="true">
   <button role="menuitem" data-am="form"><div>Vertrag erfassen<small>Einzeln, mit Vorlagen-Katalog</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
-  <button role="menuitem" data-am="bank"><div>Aus Kontoauszug<small>Fixkosten in Bank-Dateien finden – Konto und Kreditkarte auf einmal</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></button>
+  <button role="menuitem" data-am="bank"><div>Aus Kontoauszug<small>Fixkosten automatisch finden – die Datei bleibt auf deinem Gerät</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></button>
   <button role="menuitem" data-am="inc"><div>Einnahme erfassen<small>Lohn, Rente, Stipendium …</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg></button>
 </div>
 <div class="minibar" id="miniBar" aria-hidden="true"><span id="miniTitle"></span></div>
@@ -8308,8 +8311,10 @@ function bkLoad(step,nTx,lr){var L=["Kontoauszug lesen","Wiederkehrende Zahlunge
   var g=document.getElementById("bkGo");g.textContent="Bitte kurz warten …";g.disabled=true;
   var fav=document.querySelector('link[rel="icon"]');
   document.getElementById("bkBody").innerHTML='<div class="bkload" role="status" aria-live="polite"><div class="bklogo">'+(BK_LOGO||'<img src="'+(fav?fav.href:"icon-192.png")+'" alt="">')+'</div>'+
-    '<h3>Kontivo sucht deine Fixkosten</h3><p>Das dauert nur einen Moment.<br>Die Datei bleibt auf diesem Gerät.</p><ul class="bksteps">'+
-    L.map(function(t,i){var c=i<step?"done":i===step?"now":"";return '<li class="'+c+'"><i aria-hidden="true">'+(i<step?"✓":"")+"</i>"+esc(t)+"</li>";}).join("")+"</ul></div>";}
+    '<h3>Kontivo sucht deine Fixkosten</h3><p>Das dauert nur einen Moment.</p><ul class="bksteps">'+
+    L.map(function(t,i){var c=i<step?"done":i===step?"now":"";return '<li class="'+c+'"><i aria-hidden="true">'+(i<step?"✓":"")+"</i>"+esc(t)+"</li>";}).join("")+"</ul>"+BK_SAFE+"</div>";}
+/* Vertrauen wie in der Einführung (16.10.2026): gleiche grüne Box. SwiftUI: eigene SafeNote-View, in Onboarding und Import verwendet */
+var BK_SAFE='<div class="safenote"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg><span><b>Bleibt auf deinem Gerät.</b> Die Datei wird nur hier gelesen – nie hochgeladen, nie gespeichert.</span></div>';
 /* dem Browser Zeit zum Zeichnen geben, bevor gerechnet wird */
 function bkPaint(){return new Promise(function(r){requestAnimationFrame(function(){setTimeout(r,30);});});}
 function bkWait(ms){return new Promise(function(r){setTimeout(r,ms);});}
