@@ -1789,13 +1789,16 @@ body{background:var(--paper)!important}
 #onb .obsr{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}#onb .obsr:first-child{border-top:0}
 #onb .obsr i{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;background:var(--tealFill)}
 #onb .obsr i svg{width:21px;height:21px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#onb .obsafe{display:flex;gap:11px;align-items:center;flex:none;padding:12px 14px;border-radius:16px;background:color-mix(in srgb,var(--ok) 9%,var(--surface));font-size:13px;line-height:1.4;color:var(--ink2)}
+#onb .obsafe svg{flex:none;width:22px;height:22px;fill:none;stroke:var(--ok);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#onb .obsafe b{color:var(--ok);font-weight:600}#onb .obsafe i{font-style:normal}
 #onb .obsr span{display:grid;gap:1px;min-width:0}
 #onb .obsr b{display:flex;align-items:center;gap:7px;font-size:15.5px;font-weight:600;color:var(--ink)}
 #onb .obsr small{font-size:13px;line-height:1.3;color:var(--ink2)}
 #onb .obsr em{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--teal);background:color-mix(in srgb,var(--brass) 16%,transparent);border-radius:6px;padding:1px 6px}
 #onb .obflow{display:grid;place-items:center;margin:-4px 0 -6px;flex:none}#onb .obflow svg{width:20px;height:20px;fill:none;stroke:var(--brass);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #onb .obghost.ph{visibility:hidden;pointer-events:none}
-@media (max-height:740px){#onb .obscr{gap:8px}#onb .obwel .obghost{margin-top:0}#onb .obsr{padding:6px 0}#onb .obsa{display:none}#onb .obmh{margin-bottom:0}#onb .obsr i{width:32px;height:32px}#onb .obflow{display:none}#onb .obmr{padding:4px 0}#onb .obmr small{font-size:11px}#onb .oblist{gap:12px}}
+@media (max-height:740px){#onb .obscr{gap:8px}#onb .obwel .obghost{margin-top:0}#onb .obsr{padding:6px 0}#onb .obmh{margin-bottom:0}#onb .obsr i{width:32px;height:32px}#onb .obflow{display:none}#onb .obmr{padding:4px 0}#onb .obmr small{font-size:11px}#onb .oblist{gap:12px}}
 #onb .obor{display:flex;align-items:center;gap:12px;color:var(--ink3);font-size:13px;font-weight:600;margin:4px 0 0;flex:none}#onb .obor:before,#onb .obor:after{content:"";flex:1;height:1px;background:var(--line)}
 </style>
 </head>
@@ -8545,16 +8548,17 @@ function obPage(p){
     var ck2='<span class="obcb">'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</span>',SP='<path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/>';
     var SRC=[["bank",'<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',"Kontoauszug laden","CSV-Datei aus dem E-Banking",false,"Kontoauszug"],
       ["pdf",'<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 13h6M9 17h4"/>',"PDF hochladen","Kontoauszug, Rechnung oder Vertrag",true,"PDF"],
-      ["foto",'<path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.4"/>',"Foto machen","Kontoauszug oder Rechnung abfotografieren",true,"Foto"]];
-    var ex=[["Abos & Medien","Streaming","monatlich",13.99,0],["Energie & Wasser","Strom","monatlich",96,1],["Versicherung","Haftpflicht","jährlich",64.9,2]];
+      ["foto",'<path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.4"/>',"Foto machen","Kontoauszug, Rechnung oder Brief",true,"Foto"]];
     return '<div class="obscr">'+obTop('<span class="obtab">'+obSvg(SP)+'Automatisch erfassen</span>')+
       '<p class="obt">Alle Verträge von Hand erfassen?<br><span class="obacc">Nicht mit Kontivo.</span></p>'+
-      '<p class="obs obsa">Kontivo erkennt deine Verträge – du bestätigst nur noch. So einfach geht’s:</p>'+
-      '<div class="obsrl">'+SRC.map(function(q){return '<div class="obsr"><i>'+obSvg(q[1])+'</i><span><b>'+q[2]+(q[4]?'<em>bald</em>':'')+'</b><small>'+q[3]+'</small></span></div>';}).join("")+'</div>'+
-      '<div class="obflow" aria-hidden="true">'+obSvg('<path d="M12 4v15M6.5 13.5L12 19l5.5-5.5"/>')+'</div>'+
-      '<div class="obmock"><div class="obmh">'+obSvg(SP)+ex.length+' Verträge erkannt</div>'+
-      ex.map(function(e){var cat=obCat(e[0])||e[0];return '<div class="obmr"><span class="mk" style="--c:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span><span class="tx"><b>'+e[1]+'</b><small>'+e[2]+' · aus '+SRC[e[4]][5]+'</small></span><span class="am">'+e[3].toFixed(2).replace(".",",")+'<u>EUR</u></span>'+ck2+'</div>';}).join("")+'</div>'+
-      '<div class="obgrow"></div>'+obNext()+OB_PH+'</div>';}
+      '<p class="obs obsa">Kontivo erkennt deine Verträge – du bestätigst nur noch.</p>'+
+      '<div class="obsrl">'+SRC.map(function(q){return '<div class="obsr"><i>'+obSvg(q[1])+'</i><span><b>'+q[2]+(q[4]?'<em>bald</em>':'')+'</b><small>'+q[3]+'</small></span></div>';}).join("")+
+      /* Vertrauen (15.10.2026): Auszug wird nur auf dem Gerät gelesen, nicht hochgeladen, nicht gespeichert – gespeichert werden nur bestätigte Verträge, lokal */
+      '</div>'+
+
+      '<div class="obgrow"></div>'+
+      '<div class="obsafe">'+obSvg('<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>')+'<span><b>Bleibt auf deinem Gerät.</b> Kontoauszug und Fotos werden nur hier gelesen – nie hochgeladen, nie gespeichert.</span></div>'+
+      obNext()+OB_PH+'</div>';}
   if(p.k==="tab"){
     var bar=OB_TABS.map(function(t){return '<span class="'+(t[0]===p.tab?'on':'')+'">'+obSvg(OB_ICON[t[0]])+esc(t[1])+'</span>';}).join("");
     return '<div class="obscr">'+obTop(obTabName(p.tab))+'<p class="obt">'+esc(p.t)+'</p><ul class="obpts">'+p.b.map(function(x){return '<li>'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+esc(x)+'</li>';}).join("")+'</ul>'+
