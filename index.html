@@ -1597,6 +1597,9 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .frow.fwrap .fpaya{flex:1 1 100%;max-width:none;padding-top:0;margin-top:-6px}
 .fadd{display:flex;align-items:center;gap:8px;width:100%;min-height:46px;border-top:1px solid var(--line);color:var(--teal);font-weight:600;font-size:15px;text-align:left}
 .fadd svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+/* «+ Preisänderung» als kleine Plakette rechts unter dem Betrag, erst sichtbar mit Betrag (16.10.2026). SwiftUI: Button(.borderless) in .capsule, .frame(maxWidth:.infinity, alignment:.trailing) */
+.fadd.fpill{width:auto;min-height:0;margin:-4px 0 10px auto;padding:5px 11px;gap:5px;border-top:0;border-radius:99px;background:color-mix(in srgb,var(--teal) 13%,transparent);font-size:13px}
+.fadd.fpill svg{width:12px;height:12px}
 .fadd[aria-expanded="true"]{color:var(--ink2)}
 .fsub{border-top:1px solid var(--line)}
 .fcan{display:block;width:100%;margin:-6px 0 10px;padding:8px;color:var(--ink2);font-size:15px}
@@ -1983,7 +1986,7 @@ body{background:var(--paper)!important}
     <div id="fChart"></div>
     <div class="frow"><label for="fAmt" id="fAmtL">Betrag</label><span class="fv"><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="59.90"><select id="fCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
     <div id="pList"></div>
-    <button type="button" class="fadd" id="pOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Preisänderung</button>
+    <button type="button" class="fadd fpill" id="pOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Preisänderung</button>
     <div class="fsub" id="pForm" hidden>
       <div class="frow"><label for="pFrom">Gültig ab</label><input id="pFrom" type="date"></div>
       <div class="frow"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="74.90"></div>
@@ -4682,7 +4685,7 @@ function draftPC(){var g=function(i){return document.getElementById(i).value;};
 function paintKz(){var el=document.getElementById("fKz"),c=draftPC();if(!(c.amount>0)&&!c.prices.length){el.hidden=true;return;}
   var mon=curPrice(c)/c.cycle,u="<u>"+esc(c.cur)+"</u>";el.hidden=false;
   el.innerHTML="<div><small>pro Monat</small><b>"+money(mon,c.cur)+u+"</b></div><div><small>pro Jahr</small><b>"+nf0.format(mon*12,c.cur)+u+"</b></div>";}
-function paintPrices(){paintOptCounts();spRefresh();paintKz();
+function paintPrices(){paintOptCounts();spRefresh();paintKz();if(typeof syncPOpen==="function")syncPOpen();
   var l=document.getElementById("pList"),ps=pricesOf({prices:draft.prices}),cur=document.getElementById("fCur").value;
   document.getElementById("fAmtL").textContent=ps.length?"Anfangspreis":"Betrag";
   document.getElementById("fChart").innerHTML=ps.length?priceChart(draftPC()):"";
@@ -4700,7 +4703,11 @@ function paintPrices(){paintOptCounts();spRefresh();paintKz();
 }
 /* Unterbereich «+ Preisänderung» / «+ Sonderzahlung» auf- und zuklappen */
 function openSub(k,on){var f=document.getElementById(k+"Form"),b=document.getElementById(k+"Open");if(!f||!b)return;
-  f.hidden=!on;b.setAttribute("aria-expanded",!!on);b.hidden=!!on;}
+  f.hidden=!on;b.setAttribute("aria-expanded",!!on);b.hidden=!!on;if(k==="p")syncPOpen();}
+/* Plakette «+ Preisänderung» erst, wenn ein Betrag da ist (oder schon Preisänderungen erfasst sind) */
+function syncPOpen(){var b=document.getElementById("pOpen"),f=document.getElementById("pForm");if(!b||!f)return;
+  b.hidden=!f.hidden||(!document.getElementById("fAmt").value.trim()&&!(draft.prices||[]).length);}
+document.getElementById("fAmt").addEventListener("input",syncPOpen);
 document.getElementById("pOpen").addEventListener("click",function(){openSub("p",true);var i=document.getElementById("pFrom");try{i.focus();}catch(e){}});
 document.getElementById("xOpen").addEventListener("click",function(){openSub("x",true);var i=document.getElementById("xDate");try{i.focus();}catch(e){}});
 /* Abbrechen im Unterformular: angetippte Preisänderung zurücklegen */
