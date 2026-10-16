@@ -5357,12 +5357,15 @@ function skrRule(c,f){var k=catKey(c.cat),de=c.cur==="EUR";
     tip:"Miete: von Hand unterschreiben und eingeschrieben senden."};
   if(de&&k==="Versicherung")return {src:"§ 40 VVG",tail:"Frist ab Mitteilung",
     txt:"Bei einer Prämienerhöhung kannst du innert eines Monats nach Erhalt der Mitteilung kündigen, frühestens auf den Tag der Erhöhung."};
+  if(!de&&(k==="Versicherung"||k==="Gesundheit"||/versicher|krankenkass/i.test([c.label,c.partner].join(" "))))return {none:true,
+    txt:"Bei Zusatz- und Sachversicherungen regeln die Versicherungsbedingungen (AVB), ob und bis wann du bei einer Prämienerhöhung kündigen kannst – meist auf den Tag der Erhöhung. Die Frist steht in der Mitteilung; ohne Kündigung gilt die neue Prämie als angenommen."};
   return {none:true,txt:c.cur==="CHF"?"In der Schweiz gibt es dafür meist kein gesetzliches Sonderkündigungsrecht. Ob und bis wann du kündigen kannst, steht in den AGB bzw. Versicherungsbedingungen und oft in der Mitteilung selbst.":
     "Für diesen Vertrag gibt es kein allgemeines gesetzliches Sonderkündigungsrecht. Ob und bis wann du kündigen kannst, steht in den AGB und meist in der Mitteilung. Eine Preiserhöhung ohne gültige Klausel musst du nicht hinnehmen."};
 }
-function skrInfo(c){var t=today(),ps=pricesOf(c),prev=+c.amount||0;
-  for(var i=0;i<ps.length;i++){var f=parseD(ps[i].from),a=+ps[i].amount,up=prev>0&&a>prev,pct=up?Math.round((a/prev-1)*100):0;prev=a;
-    if(!up||!f)continue;var r=skrRule(c,f),end=r.until||new Date(f.getFullYear(),f.getMonth(),f.getDate()+30);
+function skrInfo(c){var t=today(),ps=pricesOf(c),L=[],prev=+c.amount||0;
+  ps.forEach(function(p){var a=+p.amount;L.push({f:parseD(p.from),up:prev>0&&a>prev,pct:prev>0?Math.round((a/prev-1)*100):0});prev=a;});
+  for(var i=L.length-1;i>=0;i--){var f=L[i].f,pct=L[i].pct;/* neueste Erhöhung zuerst (angekündigte vor vergangenen) */
+    if(!L[i].up||!f)continue;var r=skrRule(c,f),end=r.until||new Date(f.getFullYear(),f.getMonth(),f.getDate()+30);
     if(end<t)continue;
     var dd=r.until?String(r.until.getDate()).padStart(2,"0")+"."+String(r.until.getMonth()+1).padStart(2,"0")+"."+(r.until.getFullYear()!==t.getFullYear()?String(r.until.getFullYear()).slice(2):""):"";
     return {f:f,pct:pct,r:r,until:r.until,head:r.none?"Preis erhöht":"Sonderkündigung möglich",
