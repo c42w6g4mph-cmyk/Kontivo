@@ -3558,7 +3558,7 @@ function buildCatChips(){
   document.getElementById("iCats").addEventListener("click",function(){openCatPick("i");});
 }
 var TAX_INFO="Steuern und Gebühren (z.B. Rundfunkgebühr, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge: unter «Laufzeit & Kündigung» die Kachel «Nicht kündbar» wählen.";
-var MAND_INFO="Pflichtverträge sind Verträge, die du haben musst. Du kannst sie nicht ersatzlos kündigen, sondern nur zu einem anderen Anbieter wechseln.\n\nBeispiele: Krankenkasse, Autohaftpflicht, Strom.";
+var MAND_INFO="Pflichtverträge sind Verträge, die du haben musst. Du kannst sie nicht ersatzlos kündigen, sondern nur zu einem anderen Anbieter wechseln.\n\nBeispiele: Krankenkasse, Autohaftpflicht.";
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-mandinfo]");if(!b)return;e.preventDefault();e.stopPropagation();ask({title:"Pflichtvertrag",text:MAND_INFO,alert:true});},true);
 function catInfoIc(){return '<span class="catinfo" role="button" tabindex="0" data-catinfo aria-label="Info: nicht kündbar">i</span>';}
 function paintCatField(pre,cat){
@@ -3572,7 +3572,7 @@ function paintCats(){paintCatField("f",draft.cat);
   document.querySelectorAll("#termSeg [data-tm]").forEach(function(b){b.disabled=tx&&b.dataset.tm!=="tax";});
   if(tx&&termMode!=="tax"){draft.taxForced=true;setTermMode("tax");}
   else if(!tx&&draft.taxForced){draft.taxForced=false;if(termMode==="tax")setTermMode("open");}
-  syncTermSel();paintOptCounts();}
+  syncTermSel();paintOptCounts();if(typeof chPowerDefault==="function")chPowerDefault();}
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-catinfo]");if(!b)return;e.preventDefault();e.stopPropagation();
   ask({title:"Nicht kündbar",text:TAX_INFO,alert:true});},true);
 function openCatPick(kind){
@@ -4395,6 +4395,7 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
   if(!onlyEmpty&&/leasing/i.test(t[3])){setTermMode("fixed");$("fRenew").value="";}
   if(t[1]==="DE"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="EUR";
   if(t[1]==="CH"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="CHF";
+  chPowerDefault();
   draft.tplHint=t[0];draft.tplIdx=TPL.indexOf(t);
   if(!onlyEmpty){draft.tplUndo=snap;draft.tplAfter=tplSnap();draft.tplSum=tplSumItems(snap,draft.tplAfter);}
   paintLogo();paintSwatches();paintSugg();updTermHint();if(!quiet&&onlyEmpty)toast("Vorlage übernommen — bitte prüfen");
@@ -4589,11 +4590,19 @@ function updPayHint(){var h=document.getElementById("fPayHint");if(!h)return;
   h.textContent=r?"Zahlung "+r+(n?" · nächste am "+fmtShort(n):""):"";h.hidden=!r;}
 ["fDue","fCycle","fStart"].forEach(function(i){var el=document.getElementById(i);el.addEventListener("input",updPayHint);el.addEventListener("change",updPayHint);});
 ["fCycle","fStart"].forEach(function(i){document.getElementById(i).addEventListener("change",paintPrices);});
-document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(!b)return;
+document.getElementById("termSeg").addEventListener("click",function(ev){var b=ev.target.closest("[data-tm]");if(!b)return;draft.tmTouched=true;
   /* Mindestlaufzeit gewählt: Verlängerung «1 Monat» vorbelegen (danach monatlich kündbar, z.B. Handy CH, TKG in DE) – sonst endete der Vertrag still */
   if(b.dataset.tm==="fixed"&&termMode!=="fixed"&&!document.getElementById("fRenew").value)document.getElementById("fRenew").value="1";
   setTermMode(b.dataset.tm);});
 /* Nach einer Vorlage: «nicht kündbar» wählt die Kachel «Nicht kündbar», sonst zurück auf «Flexibel» */
+/* Strom in der Schweiz (16.10.2026): Haushalte < 100 MWh können den Anbieter nicht wählen (Grundversorgung) → standardmässig «Nicht kündbar», kein Pflichtvertrag.
+   Nur bei neuen Verträgen und solange die Art nicht von Hand gewählt wurde. DE bleibt wechselbar. SwiftUI: onChange(cat/cur/name) → Vorschlag */
+function isChPowerD(){var t=[document.getElementById("fLabel").value,document.getElementById("fPartner").value].join(" ");
+  return document.getElementById("fCur").value==="CHF"&&catKey(draft.cat||"")==="Energie & Wasser"&&!/wasser|gas|fernw|wärme|waerme|heiz|öl|oel|pellet|holz|solar|abwasser|kehricht/i.test(t);}
+function chPowerDefault(){if(editId||draft.tmTouched||!draft.cat)return;
+  if(isChPowerD()){if(termMode!=="tax"){draft.chPower=true;setTermMode("tax");}document.getElementById("fMand").checked=false;paintOptCounts();}
+  else if(draft.chPower){draft.chPower=false;if(termMode==="tax")setTermMode("open");}}
+["fCur","fLabel","fPartner"].forEach(function(i){document.getElementById(i).addEventListener(i==="fCur"?"change":"input",chPowerDefault);});
 function syncWatch(){var f=document.getElementById("fNoCancel").checked;
   if(f&&termMode!=="tax")setTermMode("tax");else if(!f&&termMode==="tax")setTermMode("open");paintOptCounts();}
 ["fMand","fNoWatch"].forEach(function(i){document.getElementById(i).addEventListener("change",paintOptCounts);});
