@@ -4345,7 +4345,8 @@ function tplSnap(){var o={cat:draft.cat,termMode:termMode,fEnd:document.getEleme
 function tplSumItems(a,b){var I=[],ch=function(i){return a[i]!==b[i];};
   if(a.cat!==b.cat&&b.cat)I.push(b.cat);
   if((ch("fNotice")||ch("fNoticeU"))&&b.fNotice){var n=+b.fNotice,u=b.fNoticeU;I.push((u==="k"?"Frist bis zum "+n+".":"Frist "+n+" "+({m:n===1?"Monat":"Monate",w:n===1?"Woche":"Wochen",d:n===1?"Tag":"Tage"}[u]||"")));}
-  if(ch("fTermP")&&b.fTermP){var o=document.querySelector('#fTermP option[value="'+b.fTermP+'"]');if(o)I.push("per "+o.textContent);}
+  if(a.termMode!==b.termMode&&b.termMode==="fixed")I.push(b.fRenew?"Mindestlaufzeit":"feste Laufzeit");
+  if(ch("fTermP")&&b.fTermP&&b.termMode!=="fixed"){var o=document.querySelector('#fTermP option[value="'+b.fTermP+'"]');if(o)I.push("per "+o.textContent);}
   if(ch("fCancF")&&b.fCancF)I.push("Kündigung "+({"Online / Kundenkonto":"online","E-Mail":"per E-Mail","Brief":"per Brief","Einschreiben":"per Einschreiben","Telefon":"per Telefon"}[b.fCancF]||b.fCancF));
   var k=[["fWeb","Website"],["fCancUrl","Kündigungslink"],["fTel","Telefon"],["fMail","E-Mail"],["fAddr","Adresse"]].filter(function(x){return ch(x[0])&&b[x[0]];}).map(function(x){return x[1];});
   if(k.length)I.push(k.length>2?"Kontaktdaten":k.join(", "));
@@ -4390,6 +4391,8 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
   if(onlyEmpty){if(tFix&&!$("fMand").checked&&!$("fNoWatch").checked)$("fNoCancel").checked=true;else if(t[9]&&!tFix&&!$("fMand").checked&&!$("fNoWatch").checked&&!$("fNoCancel").checked)$("fMand").checked=true;}
   else{$("fNoCancel").checked=tFix;$("fMand").checked=!!t[9]&&!tFix;if(t[9]||tFix)$("fNoWatch").checked=false;}
   syncWatch();
+  /* Leasing: feste Laufzeit ohne Verlängerung; Laufzeit/Ende kennt nur der Vertrag. SwiftUI: kind = .term, renew = nil */
+  if(!onlyEmpty&&/leasing/i.test(t[3])){setTermMode("fixed");$("fRenew").value="";}
   if(t[1]==="DE"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="EUR";
   if(t[1]==="CH"&&!document.getElementById("fAmt").value)document.getElementById("fCur").value="CHF";
   draft.tplHint=t[0];draft.tplIdx=TPL.indexOf(t);
