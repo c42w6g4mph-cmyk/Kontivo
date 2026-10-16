@@ -1624,7 +1624,9 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .fcard .cvaddr{background:transparent;border-radius:0;margin:0;padding:10px 0}
 .fcard .sndform.ig{background:var(--surface);margin:0}
 .fadda{color:var(--ink3);font-size:16px}
-.frow{position:relative}.frow .dph{display:none;position:absolute;right:2px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:16px;color:var(--ink3)}
+.frow{position:relative}
+.miss{animation:missF 1.8s ease-out}@keyframes missF{0%,35%{background:color-mix(in srgb,var(--alert) 16%,transparent)}100%{background:transparent}}
+.fht.miss,.fhp.miss{box-shadow:0 0 0 2px var(--alert)}.frow .dph{display:none;position:absolute;right:2px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:16px;color:var(--ink3)}
 .frow input[type=date].emp{min-width:8.5em;color:transparent}.frow input[type=date].emp::-webkit-calendar-picker-indicator{opacity:0}.frow input[type=date].emp+.dph{display:block}
 .frow input[type=date].emp:focus{color:var(--teal)}.frow input[type=date].emp:focus+.dph{display:none}
 .frow .igr input{text-align:left;color:var(--ink);font-weight:400;max-width:none;padding:11px 14px;border-radius:0}
@@ -3801,6 +3803,14 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();document.getElemen
 /* Eine Seite (seit 10.10.2026, früher «Weitere Angaben» als zweite Seite): formGo(id) scrollt zu einem Feld und setzt den Fokus.
    formPage(false) bleibt als «nach oben». SwiftUI: ScrollViewReader.scrollTo + @FocusState */
 function formPage(){var sh=document.getElementById("sheetForm");sh.scrollTop=0;syncCancUrl();}
+/* Fehlende Angabe beim Sichern: Meldung + direkt ins Feld springen (Fokus synchron, damit iOS die Tastatur öffnet; Datum öffnet die Auswahl) + kurz markieren.
+   SwiftUI: @FocusState + ScrollViewReader.scrollTo(id) */
+function goMiss(id,msg){toast(msg);var el=document.getElementById(id);if(!el)return;
+  if(id==="pFrom"||id==="pAmt")openSub("p",true);if(id==="xDate"||id==="xAmt")openSub("x",true);if((id==="iPFrom"||id==="iPAmt")&&typeof iOpenSub==="function")iOpenSub(true);
+  try{el.focus({preventScroll:true});}catch(e){}
+  if(el.type==="date"&&el.showPicker)try{el.showPicker();}catch(e){}
+  el.scrollIntoView({block:"center",behavior:"smooth"});
+  var row=el.closest(".frow")||el;row.classList.remove("miss");void row.offsetWidth;row.classList.add("miss");setTimeout(function(){row.classList.remove("miss");},1800);}
 function formGo(id,noFocus){setTimeout(function(){var el=document.getElementById(id);if(!el)return;
   if(id==="pFrom"||id==="pAmt")openSub("p",true);if(id==="xDate"||id==="xAmt")openSub("x",true);
   el.scrollIntoView({block:"center",behavior:"smooth"});if(!noFocus&&el.focus)try{el.focus({preventScroll:true});}catch(e){}},260);}
@@ -4733,9 +4743,9 @@ document.getElementById("pList").addEventListener("click",function(ev){
 });
 document.getElementById("pAdd").addEventListener("click",function(){
   var f=document.getElementById("pFrom").value,a=parseAmt(document.getElementById("pAmt").value);
-  if(!f){toast("Datum für die Preisänderung fehlt");return;}
-  var fs=document.getElementById("fStart").value;if(fs&&f<=fs){toast("Datum muss nach dem Vertragsbeginn liegen");return;}
-  if(a==null||a<0){toast("Neuen Betrag prüfen");return;}
+  if(!f){goMiss("pFrom","Datum für die Preisänderung fehlt");return;}
+  var fs=document.getElementById("fStart").value;if(fs&&f<=fs){goMiss("pFrom","Datum muss nach dem Vertragsbeginn liegen");return;}
+  if(a==null||a<0){goMiss("pAmt",a==null&&!document.getElementById("pAmt").value.trim()?"Neuer Betrag fehlt":"Neuen Betrag prüfen");return;}
   /* Falle: «Betrag» oben schon auf den neuen Preis gesetzt → Änderung ohne Wirkung. Nicht blockierend nachfragen. */
   var pv=parseAmt(document.getElementById("fAmt").value)||0;pricesOf({prices:draft.prices}).forEach(function(p){if(p.from<f)pv=+p.amount;});
   if(Math.abs(Math.round(a*100)/100-pv)<0.005&&!this.dataset.ok){var me=this,cur=document.getElementById("fCur").value;
@@ -4762,8 +4772,8 @@ function paintExtras(){
 document.getElementById("xList").addEventListener("click",function(ev){var b=ev.target.closest("[data-xdel]");if(!b)return;draft.extras.splice(+b.dataset.xdel,1);paintExtras();});
 document.getElementById("xAdd").addEventListener("click",function(){
   var d=document.getElementById("xDate").value,a=parseAmt(document.getElementById("xAmt").value),n=document.getElementById("xNote").value.trim();
-  if(!d){toast("Datum der Sonderzahlung fehlt");return;}
-  if(a==null||a<=0){toast("Betrag prüfen");return;}
+  if(!d){goMiss("xDate","Datum der Sonderzahlung fehlt");return;}
+  if(a==null||a<=0){goMiss("xAmt",document.getElementById("xAmt").value.trim()?"Betrag prüfen":"Betrag fehlt");return;}
   a=Math.round(Math.abs(a)*100)/100;
   draft.extras.push({date:d,amount:xKind==="cr"?-a:a,note:n});
   ["xDate","xAmt","xNote"].forEach(function(i){document.getElementById(i).value="";});
@@ -4783,12 +4793,12 @@ document.getElementById("saveForm").addEventListener("click",function(){
   if($v("xDate")||$v("xAmt")){document.getElementById("xAdd").click();if($v("xDate")||$v("xAmt")){formGo("xDate",true);return;}}
   var partner=document.getElementById("fPartner").value.trim();
   var amt=parseAmt(document.getElementById("fAmt").value);
-  if(!partner&&!document.getElementById("fLabel").value.trim()){toast("Bezeichnung fehlt");return;}
+  if(!partner&&!document.getElementById("fLabel").value.trim()){goMiss("fLabel","Bezeichnung fehlt");return;}
   if(!draft.cat){toast("Bitte eine Kategorie wählen");document.getElementById("fCats").scrollIntoView({behavior:"smooth",block:"center"});openCatPick("c");return;}
-  if(amt==null||amt<0){toast("Betrag prüfen");return;}
+  if(amt==null||amt<0){goMiss("fAmt",document.getElementById("fAmt").value.trim()?"Betrag prüfen":"Betrag fehlt");return;}
   var nV=noticeVal(document.getElementById("fNotice").value,document.getElementById("fNoticeU").value);
   if(nV==null){toast("Kündigungsfrist prüfen");formGo("fNoticeC",true);return;}
-  if(termMode==="fixed"&&!document.getElementById("fEnd").value){toast("Bis wann läuft der Vertrag? Bitte das Vertragsende eintragen");var fe=document.getElementById("fEnd");fe.scrollIntoView({block:"center",behavior:"smooth"});fe.focus();return;}
+  if(termMode==="fixed"&&!document.getElementById("fEnd").value){goMiss("fEnd","Vertragsende fehlt");return;}
   if(termMode==="trial"&&!document.getElementById("fTrial").value){toast("Wie lange läuft das Probeabo?");document.getElementById("fTrialD").scrollIntoView({block:"center",behavior:"smooth"});return;}
   var cF=document.getElementById("fCancF").value;
   var prev=editId?state.contracts[editId]:null;
@@ -6080,7 +6090,7 @@ document.getElementById("iPList").addEventListener("click",function(ev){var b=ev
   document.getElementById("iPFrom").value=p.from;document.getElementById("iPAmt").value=amtIn(p.amount,document.getElementById("iCur").value);iPaintPrices();iOpenSub(true);});
 document.getElementById("iPAdd").addEventListener("click",function(){
   var f=document.getElementById("iPFrom").value,a=parseAmt(document.getElementById("iPAmt").value);
-  if(!f){toast("Datum fehlt");return;}if(a==null||a<0){toast("Betrag prüfen");return;}
+  if(!f){goMiss("iPFrom","Datum fehlt");return;}if(a==null||a<0){goMiss("iPAmt",document.getElementById("iPAmt").value.trim()?"Betrag prüfen":"Betrag fehlt");return;}
   idraft.prices=idraft.prices.filter(function(p){return p.from!==f;});idraft.prices.push({from:f,amount:Math.round(a*100)/100});iPBak=null;
   document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iOpenSub(false);iPaintPrices();});
 /* Zahltag: Tag im Monat (+ Monat bei seltener Zahlung), «einmalig» = Datum */
@@ -6157,7 +6167,7 @@ document.getElementById("iSave").addEventListener("click",function(){
   /* eingetippte, nicht hinzugefügte Änderung übernehmen */
   if(document.getElementById("iPFrom").value||document.getElementById("iPAmt").value.trim()){document.getElementById("iPAdd").click();if(document.getElementById("iPFrom").value)return;}
   var name=document.getElementById("iName").value.trim(),amt=parseAmt(document.getElementById("iAmt").value);
-  if(!name&&!document.getElementById("iLabel").value.trim()){toast("Bezeichnung fehlt");return;}if(amt==null||amt<0){toast("Betrag prüfen");return;}
+  if(!name&&!document.getElementById("iLabel").value.trim()){goMiss("iLabel","Bezeichnung fehlt");return;}if(amt==null||amt<0){goMiss("iAmt",document.getElementById("iAmt").value.trim()?"Betrag prüfen":"Betrag fehlt");return;}
   var prev=incId?state.incomes[incId]:null;
   var c={name:name,label:document.getElementById("iLabel").value.trim(),cat:idraft.cat,amount:Math.round(amt*100)/100,
     cur:document.getElementById("iCur").value,cycle:+document.getElementById("iCycle").value,
