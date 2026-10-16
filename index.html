@@ -503,8 +503,10 @@ body.hasplus .topadd{display:inline-flex}
 .skrl{display:flex;align-items:center;gap:9px;width:100%;margin:0 0 10px;padding:10px 12px;border-radius:12px;background:var(--field);text-align:left;font-size:13.5px;color:var(--ink2);line-height:1.3}
 .skrl i{flex:none;display:grid;place-items:center;width:17px;height:17px;border-radius:50%;border:1.2px solid currentColor;font:italic 600 10.5px/1 Georgia,serif}
 .skrl span{flex:1;min-width:0}.skrl b{color:var(--ink);font-weight:600}.skrl em{font-style:normal;color:var(--teal);font-size:18px;line-height:1}
-.skrv{padding:2px 2px 8px}.skrd{margin:2px 2px 6px;font-size:14px;color:var(--ink2)}
-.skrbig{margin:0 2px 14px;font-size:24px;font-weight:650;color:var(--ink);line-height:1.2}.skrbig small{display:block;font-size:13px;font-weight:500;color:var(--ink2);margin-top:2px}
+.skrv{padding:2px 0 8px}.skri{margin:0 2px 14px;font-size:15px;line-height:1.45;color:var(--ink)}
+.skrc{background:var(--field);border-radius:12px;padding:0 14px}.skrr{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:15px}.skrr:first-child{border-top:0}
+.skrr>span{color:var(--ink2);flex:none}.skrr b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}.skrr b.skrk{color:var(--teal)}.skrr small{display:block;font-size:12.5px;font-weight:400;color:var(--ink2);margin-top:1px}
+.skrh{margin:18px 4px 6px;font-size:13px;font-weight:600;color:var(--ink3)}.skrt p{margin:0;padding:11px 0;font-size:14px;line-height:1.45;color:var(--ink2)}.skrt p+p{border-top:1px solid var(--line)}
 /* Kennzahlen im Detail */
 .kz{display:flex;gap:8px;margin:2px 0 12px}
 .kzm{flex:1.3;min-width:0;background:var(--field);border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:10px}
@@ -5343,41 +5345,45 @@ var docsFor="";
    Sichtbar ab Ankündigung bis zur Frist; ohne berechenbare Frist bis 30 Tage nach Wirksamkeit. SwiftUI: Button + .sheet */
 /* KVG-Regel nur bei Erhöhung per 1.1. (Grundversicherungsprämien wechseln nur dann); sonst AVB-Text */
 function isKvg(c){var t=[c.label,c.partner,c.cat].join(" ");return c.cur==="CHF"&&/krankenkass|krankenversich|grundversich|kvg/i.test(t)&&!/zusatz|spital|vvg/i.test(t);}
-function skrRule(c,f){var k=catKey(c.cat),de=c.cur==="EUR";
-  if(isKvg(c)&&f.getMonth()===0&&f.getDate()===1)return {until:new Date(f.getFullYear(),f.getMonth()-1,0),src:"Art. 7 Abs. 2 KVG",
-    txt:"Bei einer neuen Prämie kannst du die Grundversicherung mit einer Frist von einem Monat kündigen – auf das Ende des Monats vor der neuen Prämie. Die Kündigung muss bis dann beim Versicherer eintreffen.",
-    tip:"Die Kündigung gilt erst, wenn die neue Krankenkasse deine Aufnahme bestätigt hat."};
-  if(de&&k==="Energie & Wasser"&&!/wasser/i.test([c.label,c.partner].join(" ")))return {until:new Date(f.getFullYear(),f.getMonth(),f.getDate()-1),src:"§ 41 Abs. 5 EnWG",
-    txt:"Bei einer Preiserhöhung für Strom oder Gas kannst du ohne Frist kündigen – bis zu dem Tag, an dem der neue Preis gilt."};
-  if(de&&k==="Mobilfunk & Internet")return {until:new Date(addMonths(f,1).getTime()-86400000),min:true,src:"§ 57 Abs. 1 TKG",
-    txt:"Bei einer einseitigen Preiserhöhung kannst du innert 3 Monaten nach Erhalt der Mitteilung kündigen, frühestens auf den Tag der Änderung. Da die Mitteilung 1–2 Monate vorher kommen muss, reicht es mindestens bis zum angezeigten Datum.",
-    tip:"Genaues Datum: 3 Monate nach Erhalt des Briefs bzw. der E-Mail."};
-  if(de&&isRent(c))return {src:"§ 561 BGB",tail:"Frist ab Mitteilung",
-    txt:"Nach einer Mieterhöhung kannst du bis zum Ende des zweiten Monats nach Erhalt kündigen; die Wohnung endet dann mit Ablauf des übernächsten Monats.",
-    tip:"Miete: von Hand unterschreiben und eingeschrieben senden."};
-  if(de&&k==="Versicherung")return {src:"§ 40 VVG",tail:"Frist ab Mitteilung",
-    txt:"Bei einer Prämienerhöhung kannst du innert eines Monats nach Erhalt der Mitteilung kündigen, frühestens auf den Tag der Erhöhung."};
-  if(!de&&(k==="Versicherung"||k==="Gesundheit"||/versicher|krankenkass/i.test([c.label,c.partner].join(" "))))return {none:true,
-    txt:"Bei Zusatz- und Sachversicherungen regeln die Versicherungsbedingungen (AVB), ob und bis wann du bei einer Prämienerhöhung kündigen kannst – meist auf den Tag der Erhöhung. Die Frist steht in der Mitteilung; ohne Kündigung gilt die neue Prämie als angenommen."};
-  return {none:true,txt:c.cur==="CHF"?"In der Schweiz gibt es dafür meist kein gesetzliches Sonderkündigungsrecht. Ob und bis wann du kündigen kannst, steht in den AGB bzw. Versicherungsbedingungen und oft in der Mitteilung selbst.":
-    "Für diesen Vertrag gibt es kein allgemeines gesetzliches Sonderkündigungsrecht. Ob und bis wann du kündigen kannst, steht in den AGB und meist in der Mitteilung. Eine Preiserhöhung ohne gültige Klausel musst du nicht hinnehmen."};
+function skrRule(c,f){var k=catKey(c.cat),de=c.cur==="EUR",P=c.partner||"dem Vertragspartner",dayB=new Date(f.getFullYear(),f.getMonth(),f.getDate()-1);
+  if(isKvg(c)&&f.getMonth()===0&&f.getDate()===1)return {until:new Date(f.getFullYear(),f.getMonth()-1,0),end:dayB,src:"Art. 7 Abs. 2 KVG",
+    tips:["Die Kündigung muss bis dann bei "+P+" eintreffen – am besten eingeschrieben.","Sie gilt erst, wenn die neue Krankenkasse deine Aufnahme bestätigt hat."]};
+  if(de&&k==="Energie & Wasser"&&!/wasser/i.test([c.label,c.partner].join(" ")))return {until:dayB,end:dayB,src:"§ 41 Abs. 5 EnWG",
+    tips:["Ohne Kündigungsfrist – die Kündigung muss vor dem neuen Preis eintreffen.","Kündige selbst, nicht über den neuen Anbieter."]};
+  if(de&&k==="Mobilfunk & Internet")return {until:new Date(addMonths(f,1).getTime()-86400000),min:true,end:dayB,endMin:true,src:"§ 57 Abs. 1 TKG",
+    tips:["Genau gilt: 3 Monate nach Erhalt der Mitteilung. Das angezeigte Datum ist das früheste mögliche Ende dieser Frist."]};
+  if(de&&isRent(c))return {when:"Ende des 2. Monats nach Erhalt der Mitteilung",endTxt:"Ende des übernächsten Monats",src:"§ 561 BGB",
+    tips:["Von Hand unterschreiben und eingeschrieben senden."]};
+  if(de&&k==="Versicherung")return {when:"1 Monat nach Erhalt der Mitteilung",end:dayB,src:"§ 40 VVG",
+    tips:["Die Frist läuft ab dem Tag, an dem der Brief bzw. die E-Mail bei dir eingetroffen ist."]};
+  if(!de&&(k==="Versicherung"||k==="Gesundheit"||/versicher|krankenkass/i.test([c.label,c.partner].join(" "))))return {none:true,when:"siehe Mitteilung",
+    tips:["Bei Zusatz- und Sachversicherungen regeln die Versicherungsbedingungen (AVB) das Kündigungsrecht – meist auf den Tag der Erhöhung.","Ohne Kündigung gilt die neue Prämie als angenommen."]};
+  return {none:true,when:"siehe Mitteilung",tips:c.cur==="CHF"?["In der Schweiz gibt es dafür kein allgemeines Gesetz. Ob und bis wann du kündigen kannst, steht in den AGB und oft in der Mitteilung."]:
+    ["Es gibt kein allgemeines gesetzliches Sonderkündigungsrecht. Ob und bis wann du kündigen kannst, steht in den AGB und meist in der Mitteilung.","Eine Erhöhung ohne gültige Preisklausel musst du nicht hinnehmen."]};
 }
 function skrInfo(c){var t=today(),ps=pricesOf(c),L=[],prev=+c.amount||0;
-  ps.forEach(function(p){var a=+p.amount;L.push({f:parseD(p.from),up:prev>0&&a>prev,pct:prev>0?Math.round((a/prev-1)*100):0});prev=a;});
-  for(var i=L.length-1;i>=0;i--){var f=L[i].f,pct=L[i].pct;/* neueste Erhöhung zuerst (angekündigte vor vergangenen) */
-    if(!L[i].up||!f)continue;var r=skrRule(c,f),end=r.until||new Date(f.getFullYear(),f.getMonth(),f.getDate()+30);
+  ps.forEach(function(p){var a=+p.amount;L.push({f:parseD(p.from),a:a,prev:prev,up:prev>0&&a>prev,pct:prev>0?Math.round((a/prev-1)*100):0});prev=a;});
+  for(var i=L.length-1;i>=0;i--){var x=L[i],f=x.f;/* neueste Erhöhung zuerst (angekündigte vor vergangenen) */
+    if(!x.up||!f)continue;var r=skrRule(c,f),end=r.until||new Date(f.getFullYear(),f.getMonth(),f.getDate()+30);
     if(end<t)continue;
     var dd=r.until?String(r.until.getDate()).padStart(2,"0")+"."+String(r.until.getMonth()+1).padStart(2,"0")+"."+(r.until.getFullYear()!==t.getFullYear()?String(r.until.getFullYear()).slice(2):""):"";
-    return {f:f,pct:pct,r:r,until:r.until,head:r.none?"Preis erhöht":"Sonderkündigung möglich",
-      tail:r.none?"Kündigungsrecht prüfen":(r.until?(r.min?"bis mind. ":"bis ")+dd:r.tail)};}
+    return {f:f,a:x.a,prev:x.prev,pct:x.pct,r:r,until:r.until,head:r.none?"Preis erhöht":"Sonderkündigung möglich",
+      tail:r.none?"Kündigungsrecht prüfen":(r.until?(r.min?"bis mind. ":"bis ")+dd:"Frist ab Mitteilung")};}
   return null;}
-function openSkr(idv){var c=state.contracts[idv],x=c&&skrInfo(c);if(!x)return;var r=x.r,t=today(),fut=x.f>t;
+/* Blatt: Einleitung, Eckdaten (Neuer Preis / Kündigen bis / Vertrag endet), Gut zu wissen, Grundlage */
+function openSkr(idv){var c=state.contracts[idv],x=c&&skrInfo(c);if(!x)return;var r=x.r,t=today(),fut=x.f>t,P=c.partner||titleOf(c),cy=+c.cycle||1;
   document.getElementById("pickTitle").textContent=x.head;
   var l=document.getElementById("pickList");l.dataset.dim="skr";
-  var dn=x.until?daysBetween(t,x.until):null;
-  l.innerHTML='<div class="skrv"><p class="skrd">Preis '+(fut?"steigt ab ":"gestiegen am ")+fmtShort(x.f)+" um "+x.pct+"\u00a0%</p>"+
-    (x.until?'<p class="skrbig">'+(r.min?"mindestens bis ":"bis ")+x.until.getDate()+". "+MON[x.until.getMonth()]+" "+x.until.getFullYear()+"<small>"+(dn===0?"heute":"noch "+dn+(dn===1?" Tag":" Tage"))+"</small></p>":"")+
-    '<div class="fqcard"><p>'+esc(r.txt)+"</p>"+(r.tip?"<p>"+esc(r.tip)+"</p>":"")+"</div>"+
+  var dn=x.until?daysBetween(t,x.until):null,dm=(x.a-x.prev)/cy;
+  var row=function(k,v,sub,cls){return '<div class="skrr"><span>'+k+'</span><b'+(cls?' class="'+cls+'"':"")+'>'+v+(sub?"<small>"+sub+"</small>":"")+"</b></div>";};
+  var rows=row("Neuer Preis",money(x.a)+" "+esc(c.cur),(fut?"ab ":"seit ")+fmtShort(x.f)+" · +"+x.pct+" % (+"+money(dm)+"/Mt.)");
+  if(x.until)rows+=row("Kündigen bis",(r.min?"mind. ":"")+fmtShort(x.until),(dn===0?"heute":"noch "+dn+(dn===1?" Tag":" Tage"))+(r.min?"":" · Eingang zählt"),"skrk");
+  else rows+=row("Kündigen bis",esc(r.when),"",r.none?"":"skrk");
+  if(r.end)rows+=row("Vertrag endet",(r.endMin?"frühestens ":"")+fmtShort(r.end),"");else if(r.endTxt)rows+=row("Vertrag endet",esc(r.endTxt),"");
+  l.innerHTML='<div class="skrv"><p class="skri">'+(r.none?esc(P)+" erhöht den Preis. Ob du deshalb ausserordentlich kündigen darfst, regeln die Vertragsbedingungen."
+      :"Weil "+esc(P)+" den Preis erhöht, darfst du ausserordentlich kündigen – auch wenn der Vertrag sonst noch weiterlaufen würde.")+"</p>"+
+    '<div class="skrc">'+rows+"</div>"+
+    '<p class="skrh">Gut zu wissen</p><div class="skrc skrt">'+r.tips.map(function(s){return "<p>"+esc(s)+"</p>";}).join("")+"</div>"+
     '<p class="fqf"><span>'+(r.src?"Grundlage: "+esc(r.src)+" · ":"")+"Massgebend sind dein Vertrag und die Mitteilung. Keine Rechtsberatung.</span></p></div>";
   var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;}
 function openDocsPick(idv){
