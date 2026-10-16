@@ -2990,13 +2990,16 @@ function fitTitles(){fitQ=0;fitHeads();
     var w=el.clientWidth,s=el.scrollWidth;if(!w||s<=w+1)return;
     var base=parseFloat(getComputedStyle(el).fontSize)||16;
     el.style.fontSize=Math.max(12,Math.floor(base*w/s*10)/10)+"px";});}
-/* Detailkopf: Schrift schrittweise kleiner – bis 17px für höchstens 2 Zeilen, bis 14px damit das längste Wort ganz passt; erst dann Silbentrennung (.fitbrk).
+/* Detailkopf: Schrift schrittweise kleiner – erst für eine Zeile (bis ~78 %), sonst bis 17px für höchstens 2 Zeilen, bis 14px damit das längste Wort ganz passt; erst dann Silbentrennung (.fitbrk).
    SwiftUI: .lineLimit(2).minimumScaleFactor(0.6) */
 function fitHeads(){
   document.querySelectorAll(".detailhead h2").forEach(function(el){
     el.style.fontSize="";el.classList.remove("fitbrk");
     if(!el.clientWidth)return;
     var sz=parseFloat(getComputedStyle(el).fontSize)||22,min=17,lh=function(){return parseFloat(getComputedStyle(el).lineHeight)||sz*1.15;};
+    var base=sz,one=Math.max(min,Math.round(base*.78));/* zuerst: auf eine Zeile verkleinern (bis ~78 %) */
+    while(sz>one&&el.offsetHeight>lh()*1.5){sz-=1;el.style.fontSize=sz+"px";}
+    if(el.offsetHeight>lh()*1.5){sz=base;el.style.fontSize="";}
     while(sz>min&&el.offsetHeight>lh()*2+2){sz-=1;el.style.fontSize=sz+"px";}
     while(sz>14&&el.scrollWidth>el.clientWidth+1){sz-=1;el.style.fontSize=sz+"px";}/* ganzes Wort hat Vorrang: notfalls bis 14px */
     if(el.scrollWidth>el.clientWidth+1)el.classList.add("fitbrk");});
