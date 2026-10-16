@@ -5341,9 +5341,10 @@ var docsFor="";
    DE Strom/Gas: § 41 Abs. 5 EnWG – bis zum Wirksamwerden. DE Telekom: § 57 Abs. 1 TKG – 3 Monate nach Mitteilung (Mitteilung 1–2 Monate vorher → mind. bis Erhöhung + 1 Monat).
    DE Versicherung: § 40 VVG – 1 Monat nach Mitteilung. DE Miete: § 561 BGB – bis Ende des 2. Monats nach Mitteilung. Übrige: AGB/AVB.
    Sichtbar ab Ankündigung bis zur Frist; ohne berechenbare Frist bis 30 Tage nach Wirksamkeit. SwiftUI: Button + .sheet */
+/* KVG-Regel nur bei Erhöhung per 1.1. (Grundversicherungsprämien wechseln nur dann); sonst AVB-Text */
 function isKvg(c){var t=[c.label,c.partner,c.cat].join(" ");return c.cur==="CHF"&&/krankenkass|krankenversich|grundversich|kvg/i.test(t)&&!/zusatz|spital|vvg/i.test(t);}
 function skrRule(c,f){var k=catKey(c.cat),de=c.cur==="EUR";
-  if(isKvg(c))return {until:new Date(f.getFullYear(),f.getMonth()-1,0),src:"Art. 7 Abs. 2 KVG",
+  if(isKvg(c)&&f.getMonth()===0&&f.getDate()===1)return {until:new Date(f.getFullYear(),f.getMonth()-1,0),src:"Art. 7 Abs. 2 KVG",
     txt:"Bei einer neuen Prämie kannst du die Grundversicherung mit einer Frist von einem Monat kündigen – auf das Ende des Monats vor der neuen Prämie. Die Kündigung muss bis dann beim Versicherer eintreffen.",
     tip:"Die Kündigung gilt erst, wenn die neue Krankenkasse deine Aufnahme bestätigt hat."};
   if(de&&k==="Energie & Wasser"&&!/wasser/i.test([c.label,c.partner].join(" ")))return {until:new Date(f.getFullYear(),f.getMonth(),f.getDate()-1),src:"§ 41 Abs. 5 EnWG",
