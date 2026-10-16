@@ -447,6 +447,7 @@ body.hasplus .topadd{display:inline-flex}
 .yearnav.ynt{margin:0;gap:4px}
 .yearnav.ynt button{width:36px;height:36px;font-size:16px}
 .yearnav.ynt strong{font-size:18px;min-width:50px}
+.yearnav.ynt .ynrep{margin-left:6px;color:var(--teal);border-color:color-mix(in srgb,var(--teal) 35%,var(--line))}.ynrep svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;display:block;margin:auto}
 .minibar{position:fixed;left:0;right:0;top:0;z-index:44;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;text-align:center;
   font-size:16px;font-weight:600;background:color-mix(in srgb,var(--paper) 84%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);
   border-bottom:1px solid var(--line);opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .18s,transform .18s}
@@ -1861,6 +1862,8 @@ body{background:var(--paper)!important}
 
   <div id="view"></div>
   <section class="setpage" id="setPage" hidden aria-label="Mehr">
+  <div class="sgroup"><div class="sgh">Bericht</div>
+    <button type="button" class="srowbtn" data-rep><span>Fixkosten-Bericht<small style="display:block;font-size:12.5px;color:var(--ink3)">PDF zum Teilen, Ablegen oder Drucken</small></span><em>›</em></button></div>
   <div class="sgroup"><div class="sgh">Darstellung</div>
     <div class="seg2" id="themeSeg" role="group" aria-label="Darstellung" style="margin:0">
       <button type="button" data-th="auto" aria-pressed="true">Automatisch</button>
@@ -3327,7 +3330,8 @@ function setTopYear(Y,nowY){
   if(Y==null){el.innerHTML="";el.hidden=true;updMini();return;}
   el.hidden=false;
   el.innerHTML='<div class="yearnav ynt"><button data-y="-1" aria-label="Vorjahr">‹</button><strong>'+Y+'</strong>'+
-    '<button data-y="1" aria-label="Folgejahr"'+(Y>=nowY+5?" disabled":"")+'>›</button></div>';
+    '<button data-y="1" aria-label="Folgejahr"'+(Y>=nowY+5?" disabled":"")+'>›</button>'+
+    (state.tab==="stat"?'<button type="button" class="ynrep" data-rep aria-label="Fixkosten-Bericht als PDF"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M6 11v8h12v-8"/></svg></button>':"")+'</div>';
   updMini();
 }
 function updMini(){
@@ -5375,6 +5379,161 @@ function letterPdf(L){
   out+="trailer\n<< /Size "+(objs.length+1)+" /Root "+cat+" 0 R >>\nstartxref\n"+xref+"\n%%EOF";
   var bytes=new Uint8Array(out.length);for(var k=0;k<out.length;k++)bytes[k]=out.charCodeAt(k)&255;
   return new Blob([bytes],{type:"application/pdf"});}
+/* ---------- Fixkosten-Bericht als PDF (16.10.2026, Design V3 «App-Look»): Seite 1 Zusammenfassung, ab Seite 2 Vertragsblätter.
+   Eigener PDF-Schreiber wie beim Kündigungsschreiben (Helvetica, Helvetica-Bold, Times-Roman für Zahlen), A4 595×842 pt.
+   SwiftUI: UIGraphicsPDFRenderer mit denselben Bausteinen + ShareLink */
+var REP_TW={32:250,39:180,43:564,44:250,45:333,46:250,37:833,48:500,49:500,50:500,51:500,52:500,53:500,54:500,55:500,56:500,57:500,67:667,72:722,70:556,69:611,85:722,82:667};
+function repTW(s,pt){var w=0;for(var i=0;i<s.length;i++){var b=pdfByte(s[i]);w+=REP_TW[b]||500;}return w/1000*pt;}
+function repCol(h){h=String(h||"#6B7280").replace("#","");if(h.length===3)h=h.split("").map(function(x){return x+x;}).join("");var n=parseInt(h,16);return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255];}
+function repFit(s,bold,pt,w){s=pdfClean(s);if(pdfWidth(s,bold,pt)<=w)return s;while(s.length>1&&pdfWidth(s+"…",bold,pt)>w)s=s.slice(0,-1);return s.trim()+"…";}
+function repNum(v,cur){return nf0.format(Math.round(v),cur||state.settings.home);}
+function repData(o){
+  var H=state.settings.home,t=today(),h=o.holder||"",sh=function(c){return h?holderShare(c,h):1;};
+  var L=Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;})
+    .filter(function(c){return isActiveC(c)&&!isPaused(c)&&sh(c)>0;});
+  L.forEach(function(c){c._f=sh(c);c._m=monthlyCost(c)*c._f;c._ck=c.cat||"Sonstiges";});
+  var tot=L.reduce(function(n,c){return n+c._m;},0),cats={};
+  L.forEach(function(c){cats[c._ck]=(cats[c._ck]||0)+c._m;});
+  var CL=Object.keys(cats).map(function(k){return {n:k,v:cats[k]};}).sort(function(a,b){return b.v-a.v;});
+  var top=L.slice().sort(function(a,b){return b._m-a._m;}).slice(0,5);
+  var fr=L.map(function(c){var d=noticeDeadline(c);if(!d||isAnytime(c)||c.noWatch)return null;var n=daysBetween(t,d);if(n<0||n>90)return null;
+      var sk=typeof skrInfo==="function"?skrInfo(c):null;
+      return {c:c,d:d,n:n,sub:(c.partner||"")+(sk&&sk.pct?" · Preis +"+sk.pct+" % ab "+fmtShort(sk.f):(c.mand?" · Wechsel möglich":" · verlängert sich sonst"))};})
+    .filter(Boolean).sort(function(a,b){return a.d-b.d;}).slice(0,4);
+  /* 12 Monate ab aktuellem Monat: alle Zahlungen (inkl. Jahreszahlungen, angekündigter Preise, Sonderzahlungen) */
+  var M=[];for(var i=0;i<12;i++){var a=new Date(t.getFullYear(),t.getMonth()+i,1),b=new Date(t.getFullYear(),t.getMonth()+i+1,0),s=0,big=null;
+    L.forEach(function(c){payments(c,a,b).forEach(function(p){var v=conv(p.a,c.cur||"CHF")*c._f;s+=v;if((+c.cycle||1)>1||p.ex){if(!big||v>big.v)big={v:v,n:titleOf(c)};}});});
+    M.push({d:a,v:s,big:big});}
+  var avgM=M.reduce(function(n,x){return n+x.v;},0)/12,year=M.reduce(function(n,x){return n+x.v;},0);
+  var med=M.map(function(x){return x.v;}).sort(function(a,b){return a-b;})[6];
+  M.forEach(function(x){x.hi=x.v>med*1.12&&x.big;});
+  /* Einnahmen (Durchschnitt nächste 12 Monate) */
+  var inc=0,a0=new Date(t.getFullYear(),t.getMonth(),1),b0=new Date(t.getFullYear(),t.getMonth()+12,0);
+  incList().forEach(function(c){var f=h?holderShare(c,h):1;if(!f)return;occurrences(c,a0,b0).forEach(function(d){inc+=conv(priceAt(c,d),c.cur||"CHF")*f;});});inc/=12;
+  /* Vorjahr: gleiche Verträge, Preis vor 12 Monaten */
+  var y1=new Date(t.getFullYear()-1,t.getMonth(),t.getDate()),prev=0;
+  Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k],f=h?holderShare(c,h):1;if(!f)return;var st=parseD(c.start);if(st&&st>y1)return;
+    if(c.status==="cancelled"&&parseD(c.cancelPer)&&parseD(c.cancelPer)<y1)return;
+    prev+=conv(priceAt(c,y1),c.cur||"CHF")/(+c.cycle||1)*f;});
+  return {H:H,t:t,who:h||holderStats().map(function(x){return x.name;}).join(" & ")||"",L:L,tot:tot,CL:CL,top:top,fr:fr,M:M,year:year,inc:inc,diff:tot-prev,ids:o.ids!==false};
+}
+function repTerm(c){if(isFixed(c))return isTax(c)?"nicht kündbar (Steuern & Gebühren)":"nicht kündbar";if(endsSelf(c))return "endet von selbst";
+  if(c.mand)return "nur mit neuem Anbieter"+(noticeText(c)?" · "+noticeText(c):"");
+  return (noticeText(c)||"ohne Frist")+(!c.end?" · "+(c.cancTerm?"auf "+TERMS[c.cancTerm]:"jederzeit"):"");}
+function reportPdf(R){
+  var W=595,Hh=842,LM=42,RM=W-42,pages=[],ops=[],H=R.H;
+  var col=function(c,fill){var v=repCol(c);return v.map(function(x){return x.toFixed(3);}).join(" ")+(fill?" rg":" RG");};
+  var rr=function(x,y,w,h,r,c){var k=0.5523*r;ops.push(col(c,true)+" "+(x+r)+" "+y+" m "+(x+w-r)+" "+y+" l "+(x+w-r+k)+" "+y+" "+(x+w)+" "+(y+r-k)+" "+(x+w)+" "+(y+r)+" c "+(x+w)+" "+(y+h-r)+" l "+(x+w)+" "+(y+h-r+k)+" "+(x+w-r+k)+" "+(y+h)+" "+(x+w-r)+" "+(y+h)+" c "+(x+r)+" "+(y+h)+" l "+(x+r-k)+" "+(y+h)+" "+x+" "+(y+h-r+k)+" "+x+" "+(y+h-r)+" c "+x+" "+(y+r)+" l "+x+" "+(y+r-k)+" "+(x+r-k)+" "+y+" "+(x+r)+" "+y+" c f");};
+  var rect=function(x,y,w,h,c){ops.push(col(c,true)+" "+x.toFixed(1)+" "+y.toFixed(1)+" "+w.toFixed(1)+" "+h.toFixed(1)+" re f");};
+  var hl=function(x1,x2,y,c,lw){ops.push("q "+(lw||0.6)+" w "+col(c)+" "+x1+" "+y.toFixed(1)+" m "+x2+" "+y.toFixed(1)+" l S Q");};
+  var tx=function(s,x,y,o){o=o||{};var f=o.f||"F1",pt=o.pt||9;s=pdfClean(s);
+    var w=f==="F3"?repTW(s,pt):pdfWidth(s,f==="F2",pt);if(o.al==="r")x-=w;else if(o.al==="c")x-=w/2;
+    ops.push("BT "+col(o.c||"#121314",true)+" /"+f+" "+pt+" Tf "+x.toFixed(1)+" "+y.toFixed(1)+" Td ("+pdfEsc(s)+") Tj ET");return w;};
+  var lab=function(s,x,y,c){tx(s.toUpperCase(),x,y,{f:"F2",pt:6.6,c:c||"#6A6C70"});};
+  var arc=function(cx,cy,r,a0,a1){var out="",st=Math.PI/2,a=a0,first=true;while(a<a1-1e-6){var b=Math.min(a1,a+st),k=4/3*Math.tan((b-a)/4);
+      var x0=cx+r*Math.cos(a),y0=cy+r*Math.sin(a),x3=cx+r*Math.cos(b),y3=cy+r*Math.sin(b);
+      if(first){out+=x0.toFixed(2)+" "+y0.toFixed(2)+" m ";first=false;}
+      out+=(x0-k*r*Math.sin(a)).toFixed(2)+" "+(y0+k*r*Math.cos(a)).toFixed(2)+" "+(x3+k*r*Math.sin(b)).toFixed(2)+" "+(y3-k*r*Math.cos(b)).toFixed(2)+" "+x3.toFixed(2)+" "+y3.toFixed(2)+" c ";a=b;}return out;};
+  var logo=function(x,y,s){var u=s/1024,X=function(v){return (x+v*u).toFixed(2);},Y=function(v){return (y+s-v*u).toFixed(2);};
+    rr(x,y,s,s,228*u,"#111113");var cx=x+512*u,cy=y+s-512*u,r=382*u;
+    ops.push("q "+(64*u).toFixed(2)+" w "+col("#ECEAE6")+" "+arc(cx,cy,r,Math.PI/2,Math.PI*11/6)+"S Q");
+    ops.push("q "+(64*u).toFixed(2)+" w "+col("#C6AB78")+" "+arc(cx,cy,r,-Math.PI/6,Math.PI/2)+"S Q");
+    var sc=0.88,tr=function(px,py){return [512+(px-516.4)*sc,512+(py-512)*sc];};
+    var p=[[339.78,292],[393.78,292],[439.78,349.5],[439.78,732],[339.78,732]].map(function(q){return tr(q[0],q[1]);});
+    ops.push(col("#ECEAE6",true)+" "+p.map(function(q,i){return X(q[0])+" "+Y(q[1])+(i?" l":" m");}).join(" ")+" h f");
+    var a=tr(693,792),b=tr(469,512),c2=tr(693,232),ca=tr(0,292),cb=tr(1024,732);
+    ops.push("q "+X(ca[0])+" "+Y(cb[1])+" "+((cb[0]-ca[0])*u).toFixed(2)+" "+((cb[1]-ca[1])*u).toFixed(2)+" re W n "+(144*sc*u).toFixed(2)+" w "+col("#111113")+" "+X(a[0])+" "+Y(a[1])+" m "+X(b[0])+" "+Y(b[1])+" l "+X(c2[0])+" "+Y(c2[1])+" l S "+(80*sc*u).toFixed(2)+" w "+col("#ECEAE6")+" "+X(a[0])+" "+Y(a[1])+" m "+X(b[0])+" "+Y(b[1])+" l "+X(c2[0])+" "+Y(c2[1])+" l S Q");};
+  var foot=function(p,n){hl(LM,RM,40,"#E6E6E3",0.6);tx("Kontivo · Deine Verträge, ganz entspannt",LM,28,{pt:6.8,c:"#9C9B97"});
+    tx("Stand "+fmtShort(R.t)+" · Beträge in "+H+(R.L.some(function(c){return (c.cur||"CHF")!==H;})?" · Fremdwährungen zum Kurs vom "+fmtShort(R.t):""),W/2,28,{pt:6.8,c:"#9C9B97",al:"c"});
+    tx("Seite "+p+" von "+n,RM,28,{pt:6.8,c:"#9C9B97",al:"r"});};
+  var head=function(sub){logo(LM,Hh-70,26);tx("KONTIVO",LM+34,Hh-53,{f:"F2",pt:10.5});tx(sub,LM+34,Hh-65,{pt:7.5,c:"#6A6C70"});
+    if(R.who)tx(R.who,RM,Hh-53,{pt:7.8,c:"#6A6C70",al:"r"});tx("Stand "+R.t.getDate()+". "+MON[R.t.getMonth()]+" "+R.t.getFullYear(),RM,Hh-64,{pt:7.8,c:"#6A6C70",al:"r"});};
+  var per=Math.max(1,Math.ceil(R.L.length/10)),N=1+per;
+  /* ---------- Seite 1 ---------- */
+  head("Fixkosten-Bericht");
+  var top=Hh-92,gap=8,bw=(RM-LM-gap*2),c1=bw*0.42,c2=(bw-c1)/2,th=54;
+  rr(LM,top-th*2-gap,c1,th*2+gap,12,"#F4F4F2");
+  lab("Fixkosten pro Monat",LM+14,top-20);var nw=tx(repNum(R.tot),LM+14,top-58,{f:"F3",pt:34});tx(H,LM+18+nw,top-58,{pt:9,c:"#6A6C70"});
+  if(R.inc>0){var q=Math.round(R.tot/R.inc*100),bx=LM+14,bwid=c1-28;rr(bx,top-th*2-gap+30,bwid,4.5,2.2,"#E6E6E3");rr(bx,top-th*2-gap+30,Math.max(4.5,bwid*Math.min(1,R.tot/R.inc)),4.5,2.2,"#A88437");
+    tx(q+" % der Einnahmen · "+repNum(Math.max(0,R.inc-R.tot))+" "+H+" bleiben",bx,top-th*2-gap+16,{pt:7.2,c:"#6A6C70"});}
+  var tiles=[["pro Jahr",repNum(R.year),"#121314"],["Verträge",String(R.L.length),"#121314"],["Fristen in 90 Tagen",String(R.fr.length),R.fr.length?"#A93227":"#121314"],["Teurer seit Vorjahr",(R.diff>=0.5?"+":R.diff<=-0.5?"-":"±")+repNum(Math.abs(R.diff)),"#121314"]];
+  tiles.forEach(function(tl,i){var x=LM+c1+gap+(i%2)*(c2+gap),y=top-(i<2?th:th*2+gap);rr(x,y,c2,th,12,"#F4F4F2");lab(tl[0],x+12,y+th-17);tx(tl[1],x+12,y+12,{f:"F3",pt:19,c:tl[2]});});
+  /* Kategorien + Grösste Posten / Handlungsbedarf */
+  var y2=top-th*2-gap-14,hw=(RM-LM-gap)/2,bh=230;
+  rr(LM,y2-bh,hw,bh,12,"#F9F9F7");rr(LM+hw+gap,y2-bh,hw,bh,12,"#F9F9F7");
+  tx("Nach Kategorie",LM+12,y2-20,{f:"F2",pt:9.2});tx(H+" / Monat",LM+hw-12,y2-20,{pt:7.5,c:"#6A6C70",al:"r"});
+  var cy=y2-42,maxC=R.CL.length>9?9:R.CL.length;R.CL.slice(0,maxC).forEach(function(e){var cc=catColor(e.n);rr(LM+12,cy-4,13,13,3.5,cc);tx(pdfClean(e.n).charAt(0).toUpperCase(),LM+18.5,cy-0.5,{f:"F2",pt:7,c:"#FFFFFF",al:"c"});
+    tx(repFit(e.n,false,8.4,hw-110),LM+31,cy,{pt:8.4});tx(repNum(e.v),LM+hw-12,cy,{pt:8.4,al:"r"});
+    var bx=LM+31,bwd=hw-43;rr(bx,cy-9,bwd,2.6,1.3,"#ECEBE7");rr(bx,cy-9,Math.max(2.6,bwd*e.v/(R.tot||1)),2.6,1.3,cc);cy-=21;});
+  if(R.CL.length>maxC)tx("+ "+(R.CL.length-maxC)+" weitere",LM+31,cy,{pt:7.2,c:"#6A6C70"});
+  var rx=LM+hw+gap+12,rw=hw-24,ry=y2-20;tx("Grösste Posten",rx,ry,{f:"F2",pt:9.2});tx("Anteil",rx+rw,ry,{pt:7.5,c:"#6A6C70",al:"r"});ry-=18;
+  R.top.forEach(function(c){tx(repFit(titleOf(c),true,8.2,rw-110),rx,ry,{f:"F2",pt:8.2});tx(repFit(partnerOf(c)||c.cat||"",false,6.8,rw-110),rx,ry-9,{pt:6.8,c:"#6A6C70"});
+    tx(money(c._m,H),rx+rw-34,ry,{pt:8.2,al:"r"});tx(Math.round(c._m/(R.tot||1)*100)+" %",rx+rw,ry,{pt:7.5,c:"#6A6C70",al:"r"});hl(rx,rx+rw,ry-14,"#EFEEEA");ry-=22;});
+  ry-=6;tx("Handlungsbedarf",rx,ry,{f:"F2",pt:9.2});tx("nächste 90 Tage",rx+rw,ry,{pt:7.5,c:"#6A6C70",al:"r"});ry-=18;
+  if(!R.fr.length){tx("Keine Kündigungsfristen in den nächsten 90 Tagen.",rx,ry,{pt:7.8,c:"#6A6C70"});}
+  R.fr.forEach(function(f){var red=f.n<=30,pt="bis "+String(f.d.getDate()).padStart(2,"0")+"."+String(f.d.getMonth()+1).padStart(2,"0")+".",pw=pdfWidth(pt,true,6.8)+12;
+    tx(repFit(titleOf(f.c),true,8.2,rw-pw-8),rx,ry,{f:"F2",pt:8.2});tx(repFit(f.sub,false,6.8,rw-pw-8),rx,ry-9,{pt:6.8,c:"#6A6C70"});
+    rr(rx+rw-pw,ry-3,pw,11,5.5,red?"#F6E1DE":"#F3EAD7");tx(pt,rx+rw-pw/2,ry,{f:"F2",pt:6.8,c:red?"#A93227":"#86671F",al:"c"});hl(rx,rx+rw,ry-14,"#EFEEEA");ry-=22;});
+  /* 12-Monats-Vorschau */
+  var y3=y2-bh-gap,ch=200;rr(LM,y3-ch,RM-LM,ch,12,"#F9F9F7");
+  tx("Fixkosten der nächsten 12 Monate",LM+12,y3-20,{f:"F2",pt:9.2});tx("inkl. Jahreszahlungen und angekündigter Preise",RM-12,y3-20,{pt:7.5,c:"#6A6C70",al:"r"});
+  var mx=Math.max.apply(null,R.M.map(function(x){return x.v;}))||1,gx=LM+12,gw=RM-LM-24,slot=gw/12,bwd2=slot-8,base=y3-ch+44,maxH=110;
+  R.M.forEach(function(m,i){var hgt=Math.max(1.5,m.v/mx*maxH),x=gx+i*slot+4;
+    rr(x,base,bwd2,hgt,3,m.hi?"#A88437":"#E3D7BC");tx(MON[m.d.getMonth()].slice(0,3),x+bwd2/2,base-11,{pt:6.8,c:"#6A6C70",al:"c"});
+    if(m.hi)tx(repNum(m.v),x+bwd2/2,base+hgt+4,{pt:6.4,c:"#86671F",al:"c"});});
+  var ly=y3-ch+14;rr(LM+12,ly,7,7,1.5,"#E3D7BC");var lw2=tx("regulär ~"+repNum(R.tot)+" / Mt.",LM+23,ly+0.5,{pt:7,c:"#6A6C70"});
+  var pk=R.M.filter(function(m){return m.hi;}).map(function(m){return MON[m.d.getMonth()].slice(0,3)+" ("+m.big.n+")";});
+  if(pk.length){rr(LM+35+lw2,ly,7,7,1.5,"#A88437");tx(repFit("Spitzen: "+pk.join(" · "),false,7,RM-LM-70-lw2),LM+46+lw2,ly+0.5,{pt:7,c:"#6A6C70"});}
+  tx(R.L.length?"Ab Seite 2: alle Verträge mit Kündigungsregel"+(R.ids?", Kunden-Nr.":"")+" und Kontakt – zum Ablegen oder Weitergeben.":"",LM,y3-ch-18,{pt:7.5,c:"#6A6C70"});
+  foot(1,N);pages.push(ops);
+  /* ---------- Vertragsblätter: 2 Spalten × 5 Zeilen pro Seite ---------- */
+  var cOrd={};R.CL.forEach(function(e,i){cOrd[e.n]=i;});var S=R.L.slice().sort(function(a,b){return (cOrd[a._ck]-cOrd[b._ck])||b._m-a._m;});/* Reihenfolge wie «Nach Kategorie» */
+  for(var p=0;p<per;p++){ops=[];var py=Hh-60;tx("Vertragsblätter",LM,py,{f:"F2",pt:13});
+    tx("Seite "+(p+2)+" von "+N+" · "+Math.min(S.length,(p+1)*10)+" von "+S.length+" Verträgen",RM,py,{pt:7.5,c:"#6A6C70",al:"r"});hl(LM,RM,py-8,"#121314",1);
+    var cw=(RM-LM-10)/2,chh=126,y0=py-20;
+    S.slice(p*10,p*10+10).forEach(function(c,i){var x=LM+(i%2)*(cw+10),y=y0-Math.floor(i/2)*(chh+9)-chh,cc=catColor(c._ck);
+      rr(x,y,cw,chh,11,"#F4F4F2");rr(x+11,y+chh-36,22,22,6,cc);tx((pdfClean(c.partner||titleOf(c)).charAt(0)||"?").toUpperCase(),x+22,y+chh-28.5,{f:"F2",pt:9.5,c:"#FFFFFF",al:"c"});
+      var am=money(c._m,H),aw=repTW(pdfClean(am),12.5)+pdfWidth(" /Mt.",false,6.8);
+      tx(repFit(titleOf(c),true,9,cw-56-aw),x+40,y+chh-21,{f:"F2",pt:9});tx(repFit((c.partner||"")+(c.partner?" · ":"")+c._ck,false,6.8,cw-56-aw),x+40,y+chh-31,{pt:6.8,c:"#6A6C70"});
+      var ex=tx(" /Mt.",x+cw-11,y+chh-22,{pt:6.8,c:"#6A6C70",al:"r"});tx(am,x+cw-11-ex,y+chh-22,{f:"F3",pt:12.5,al:"r"});
+      hl(x+11,x+cw-11,y+chh-44,"#E6E6E3");
+      var ref=[c.custNo?["Kunden-Nr.",c.custNo]:null,c.contrNo?[contrLbl(c).replace("nummer","-Nr."),c.contrNo]:null].filter(Boolean);
+      var nd=noticeDeadline(c),kb=isFixed(c)?"—":isAnytime(c)?"jederzeit":nd?fmtShort(nd):"—";
+      var rows=[["Person",holdersOf(c).join(", ")+(c._f<1?" (Anteil "+Math.round(c._f*100)+" %)":"")||"—"],
+        ["Zahlung",(CYCLE[+c.cycle||1]||"")+" · "+money(curPrice(c),c.cur||"CHF")+" "+(c.cur||"CHF")],["Kündigung",repTerm(c)],["Kündbar bis",kb]]
+        .concat(R.ids?(ref.length?ref:[["Kunden-Nr.","—"]]):[]).concat([["Kontakt",[c.cancF,domainOf(c.web),c.tel].filter(Boolean).join(" · ")||"—"]]);
+      var ry2=y+chh-56;rows.slice(0,7).forEach(function(r){tx(r[0],x+11,ry2,{pt:6.9,c:"#8A8B8F"});tx(repFit(r[1],false,6.9,cw-82),x+70,ry2,{pt:6.9});ry2-=10.2;});});
+    foot(p+2,N);pages.push(ops);}
+  /* ---------- PDF zusammensetzen ---------- */
+  var objs=[],add=function(o){objs.push(o);return objs.length;};
+  var f1=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>"),f2=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>"),f3=add("<< /Type /Font /Subtype /Type1 /BaseFont /Times-Roman /Encoding /WinAnsiEncoding >>");
+  var pagesIdx=objs.length+1;objs.push(null);var kids=[],res="<< /Font << /F1 "+f1+" 0 R /F2 "+f2+" 0 R /F3 "+f3+" 0 R >> >>";
+  pages.forEach(function(ps){var stream=ps.join("\n");var cn=add("<< /Length "+stream.length+" >>\nstream\n"+stream+"\nendstream");
+    kids.push(add("<< /Type /Page /Parent "+pagesIdx+" 0 R /MediaBox [0 0 595 842] /Resources "+res+" /Contents "+cn+" 0 R >>"));});
+  objs[pagesIdx-1]="<< /Type /Pages /Kids ["+kids.map(function(k){return k+" 0 R";}).join(" ")+"] /Count "+kids.length+" >>";
+  var info=add("<< /Title (Kontivo Fixkosten-Bericht) /Producer (Kontivo) >>"),cat=add("<< /Type /Catalog /Pages "+pagesIdx+" 0 R >>");
+  var out="%PDF-1.4\n%âãÏÓ\n",offs=[];objs.forEach(function(o,i){offs.push(out.length);out+=(i+1)+" 0 obj\n"+o+"\nendobj\n";});
+  var xref=out.length;out+="xref\n0 "+(objs.length+1)+"\n0000000000 65535 f \n";offs.forEach(function(o){out+=("0000000000"+o).slice(-10)+" 00000 n \n";});
+  out+="trailer\n<< /Size "+(objs.length+1)+" /Root "+cat+" 0 R /Info "+info+" 0 R >>\nstartxref\n"+xref+"\n%%EOF";
+  var bytes=new Uint8Array(out.length);for(var k=0;k<out.length;k++)bytes[k]=out.charCodeAt(k)&255;
+  return new Blob([bytes],{type:"application/pdf"});}
+/* Auswahl vor dem Erstellen: Personen, Kundennummern (beim Teilen ausblendbar). Zugang: «Mehr» → Bericht und Teilen-Symbol im Tab «Kosten» */
+var repOpt={holder:"",ids:true};
+function openRepOpts(){var hs=holderStats().map(function(x){return x.name;});if(state.tab==="stat")repOpt.holder=state.bHolder||"";/* aus «Kosten»: aktiven Personenfilter übernehmen */
+  if(!Object.keys(state.contracts).some(function(k){return isActiveC(state.contracts[k]);})){toast("Noch keine aktiven Verträge für den Bericht");return;}
+  document.getElementById("pickTitle").textContent="Fixkosten-Bericht";
+  var l=document.getElementById("pickList");l.dataset.dim="rep";
+  l.innerHTML='<p class="note" style="margin:0 2px 12px">PDF mit Übersicht, 12-Monats-Vorschau und allen Vertragsblättern – zum Teilen, Ablegen oder Drucken.</p>'+
+    (hs.length>1?'<div class="seg2" id="repWho" role="group" aria-label="Personen">'+[""].concat(hs).map(function(h){return '<button type="button" data-rh="'+esc(h)+'" aria-pressed="'+(repOpt.holder===h)+'">'+esc(h||"Alle")+"</button>";}).join("")+"</div>":"")+
+    '<div class="swlist"><label class="swrow"><span class="t"><b>Kunden- und Vertragsnummern</b><small>Beim Weitergeben an Dritte ausschalten</small></span><input type="checkbox" class="swi" id="repIds"'+(repOpt.ids?" checked":"")+"></label></div>"+
+    '<button class="lbtn main" type="button" data-repgo>PDF erstellen</button>';
+  var sh=document.getElementById("sheetPick");sh.classList.add("on");sh.classList.remove("over");document.getElementById("scrim").classList.add("on");sh.scrollTop=0;}
+document.getElementById("pickList").addEventListener("click",function(ev){if(this.dataset.dim!=="rep")return;
+  var b=ev.target.closest("[data-rh]");if(b){repOpt.holder=b.dataset.rh;this.querySelectorAll("[data-rh]").forEach(function(x){x.setAttribute("aria-pressed",x===b);});return;}
+  if(ev.target.closest("[data-repgo]")){repOpt.ids=document.getElementById("repIds").checked;var blob;
+    try{blob=reportPdf(repData(repOpt));}catch(e){console.error(e);toast("Bericht konnte nicht erstellt werden");return;}
+    closeSheets();openDoc({blob:blob,name:"Kontivo-Fixkosten-"+iso(today())+".pdf",title:"Fixkosten-Bericht",type:"application/pdf"});}});
+document.addEventListener("click",function(e){if(e.target.closest&&e.target.closest("[data-rep]")){e.preventDefault();openRepOpts();}});
 document.getElementById("ltPdf").addEventListener("click",async function(){
   if(!ltC)return;if(!ltSigners.length){toast("Bitte wählen, wer kündigt");document.getElementById("ltWho").scrollIntoView({block:"center",behavior:"smooth"});return;}
   var base=letterParts(ltC,ltSigners);
