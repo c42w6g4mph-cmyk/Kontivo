@@ -1624,7 +1624,9 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .fcard .cvaddr{background:transparent;border-radius:0;margin:0;padding:10px 0}
 .fcard .sndform.ig{background:var(--surface);margin:0}
 .fadda{color:var(--ink3);font-size:16px}
-.frow input[type=date].emp{min-width:8.5em;background:color-mix(in srgb,var(--teal) 8%,transparent)}
+.frow{position:relative}.frow .dph{display:none;position:absolute;right:2px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:16px;color:var(--ink3)}
+.frow input[type=date].emp{min-width:8.5em;color:transparent}.frow input[type=date].emp::-webkit-calendar-picker-indicator{opacity:0}.frow input[type=date].emp+.dph{display:block}
+.frow input[type=date].emp:focus{color:var(--teal)}.frow input[type=date].emp:focus+.dph{display:none}
 .frow .igr input{text-align:left;color:var(--ink);font-weight:400;max-width:none;padding:11px 14px;border-radius:0}
 .fcard .seg2{margin:0;background:color-mix(in srgb,var(--ink) 8%,transparent)}
 .fcard .seg2 button[aria-pressed="true"]{background:var(--surface)}
@@ -1984,12 +1986,12 @@ body{background:var(--paper)!important}
   <h3 class="fsec" id="fsCost">Kosten</h3>
   <div class="fcard">
     <div id="fChart"></div>
-    <div class="frow"><label for="fAmt" id="fAmtL">Betrag</label><span class="fv"><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="eingeben"><select id="fCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
+    <div class="frow"><label for="fAmt" id="fAmtL">Betrag</label><span class="fv"><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><select id="fCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
     <div id="pList"></div>
     <button type="button" class="fadd fpill" id="pOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Preisänderung</button>
     <div class="fsub" id="pForm" hidden>
       <div class="frow"><label for="pFrom">Gültig ab</label><input id="pFrom" type="date"></div>
-      <div class="frow"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="eingeben"></div>
+      <div class="frow"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"></div>
       <button class="fok" id="pAdd" type="button">Preisänderung hinzufügen</button><button class="fcan" id="pCancel" type="button">Abbrechen</button>
     </div>
     <div class="frow"><label for="fCycle">Zahlungsrhythmus</label><select id="fCycle">
@@ -2014,8 +2016,8 @@ body{background:var(--paper)!important}
     <div class="fsub" id="xForm" hidden>
       <div class="seg2" id="xKind" role="group" aria-label="Art" style="margin:10px 0 2px"><button type="button" data-xk="pay" aria-pressed="true">Zahlung</button><button type="button" data-xk="cr" aria-pressed="false">Gutschrift</button></div>
       <div class="frow"><label for="xDate">Datum</label><input id="xDate" type="date"></div>
-      <div class="frow"><label for="xAmt">Betrag</label><input id="xAmt" class="num" type="text" inputmode="decimal" placeholder="eingeben"></div>
-      <div class="frow"><label for="xNote">Bezeichnung</label><input id="xNote" type="text" placeholder="optional" autocomplete="off" maxlength="60"></div>
+      <div class="frow"><label for="xAmt">Betrag</label><input id="xAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"></div>
+      <div class="frow"><label for="xNote">Bezeichnung</label><input id="xNote" type="text" placeholder="hinzufügen" autocomplete="off" maxlength="60"></div>
       <button class="fok" id="xAdd" type="button">Sonderzahlung hinzufügen</button>
       <p class="note" style="margin:0 0 12px">Zum Beispiel Nebenkostenabrechnung oder Aktivierungsgebühr. Zählt in «Kosten» und «Budget» im jeweiligen Monat, nicht in den monatlichen Fixkosten.</p>
     </div>
@@ -2052,7 +2054,7 @@ body{background:var(--paper)!important}
       <div class="seg2 fseg" id="fCancT" role="group" aria-label="Kündigungsweg"><button type="button" data-cv="Online / Kundenkonto" aria-pressed="false">Online</button><button type="button" data-cv="E-Mail" aria-pressed="false">E-Mail</button><button type="button" data-cv="Brief" aria-pressed="false">Brief</button><button type="button" data-cv="Telefon" aria-pressed="false">Telefon</button></div>
       <div hidden><select id="fCancF"><option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Telefon</option></select></div></div>
     <div class="frow tmcanc" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="sonst Website" autocomplete="off"></div>
-    <div class="frow tmcanc" id="fCancMailW" hidden><label for="fCancMail">E-Mail für Kündigung</label><input id="fCancMail" type="email" placeholder="kuendigung@anbieter.ch" autocomplete="off"></div>
+    <div class="frow tmcanc" id="fCancMailW" hidden><label for="fCancMail">E-Mail für Kündigung</label><input id="fCancMail" type="email" placeholder="hinzufügen" autocomplete="off"></div>
     <div class="frow tmcanc cvaddr" id="fCancAddrW" hidden><span class="t"><b id="fCancAddrT"></b><small id="fCancAddrS"></small></span><button type="button" class="mdlink" id="fCancAddrB">Erfassen</button></div>
     <label class="frow fsw tmcanc" id="fRemindW"><span class="t"><b>An Frist erinnern</b><small>Erscheint unter «Fristen»</small></span><input type="checkbox" class="swi" id="fRemind"></label>
     <label class="frow fsw tmcanc"><span class="t"><b>Pflichtvertrag<span class="catinfo" role="button" tabindex="0" data-mandinfo aria-label="Info: Pflichtvertrag">i</span></b><small>Kündigen nur mit neuem Anbieter</small></span><input type="checkbox" class="swi" id="fMand"></label>
@@ -2118,12 +2120,12 @@ body{background:var(--paper)!important}
   <h3 class="fsec">Betrag</h3>
   <div class="fcard">
     <div id="iChart"></div>
-    <div class="frow"><label for="iAmt" id="iAmtL">Betrag netto</label><span class="fv"><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="eingeben"><select id="iCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
+    <div class="frow"><label for="iAmt" id="iAmtL">Betrag netto</label><span class="fv"><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><select id="iCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
     <div id="iPList"></div>
     <button type="button" class="fadd" id="iPOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Änderung, z.B. Lohnerhöhung</button>
     <div class="fsub" id="iPForm" hidden>
       <div class="frow"><label for="iPFrom">Gültig ab</label><input id="iPFrom" type="date"></div>
-      <div class="frow"><label for="iPAmt">Neuer Betrag</label><input id="iPAmt" class="num" type="text" inputmode="decimal" placeholder="–"></div>
+      <div class="frow"><label for="iPAmt">Neuer Betrag</label><input id="iPAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"></div>
       <button class="fok" id="iPAdd" type="button">Änderung hinzufügen</button><button class="fcan" id="iPCancel" type="button">Abbrechen</button>
     </div>
     <div class="frow"><label for="iCycle">Zahlungsrhythmus</label><select id="iCycle">
@@ -4669,7 +4671,12 @@ function paintOptCounts(){if(typeof paintNotice==="function")paintNotice();var r
 function fAddrShow(on){document.getElementById("fAddrW").hidden=!on;document.getElementById("fAddrAdd").hidden=!!on;}
 document.getElementById("fAddrAdd").addEventListener("click",function(){fAddrShow(true);var i=document.querySelector("#fAddrG input");if(i)i.focus();});
 /* leere Datumsfelder sichtbar machen (iOS zeigt sonst nichts) */
-function datesPaint(){document.querySelectorAll("#sheetForm .frow input[type=date],#sheetInc .frow input[type=date]").forEach(function(i){i.classList.toggle("emp",!i.value);});}
+/* Leere Datumsfelder zeigen «hinzufügen» wie die übrigen Felder (16.10.2026): Overlay .dph, Wert per Setter-Hook auch bei Code-Änderungen aktuell.
+   SwiftUI: Optional<Date> mit Button «hinzufügen», der den DatePicker einblendet */
+function datesPaint(){document.querySelectorAll("#sheetForm .frow input[type=date],#sheetInc .frow input[type=date]").forEach(function(i){
+  if(!i._dph){var sp=document.createElement("span");sp.className="dph";sp.textContent="hinzufügen";sp.setAttribute("aria-hidden","true");i.insertAdjacentElement("afterend",sp);i._dph=sp;
+    try{var d=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value");Object.defineProperty(i,"value",{configurable:true,get:function(){return d.get.call(this);},set:function(v){d.set.call(this,v);this.classList.toggle("emp",!d.get.call(this));}});}catch(e){}}
+  i.classList.toggle("emp",!i.value);});}
 ["sheetForm","sheetInc"].forEach(function(i){document.getElementById(i).addEventListener("change",function(e){if(e.target.type==="date")datesPaint();});});
 document.getElementById("sheetForm").addEventListener("input",function(e){if(e.target.type==="date")datesPaint();});
 function fAddrPaint(){var pn=document.getElementById("fPartner").value,o=addrSplit(document.getElementById("fAddr").value,pn),F=function(i){var f=PA_F[i],pl=i===0?firmPh(pn):f[2];
@@ -4765,8 +4772,8 @@ document.getElementById("xAdd").addEventListener("click",function(){
 document.getElementById("fCur").addEventListener("change",paintExtras);
 document.getElementById("fCur").addEventListener("change",paintPrices);
 /* Platzhalter im Zahlenformat der Hauptwährung */
-/* Betragsfelder: Platzhalter «eingeben» statt Beispielbetrag – ein Beispiel wirkte wie ein schon erfasster Wert (16.10.2026) */
-function amtPh(){["fAmt","iAmt","pAmt","xAmt"].forEach(function(i){var e=document.getElementById(i);if(e)e.placeholder="eingeben";});}
+/* Betragsfelder: Platzhalter «hinzufügen» (wie alle Felder) statt Beispielbetrag – ein Beispiel wirkte wie ein schon erfasster Wert (16.10.2026) */
+function amtPh(){["fAmt","iAmt","pAmt","xAmt"].forEach(function(i){var e=document.getElementById(i);if(e)e.placeholder="hinzufügen";});}
 document.getElementById("fCur").addEventListener("change",amtPh);
 
 document.getElementById("saveForm").addEventListener("click",function(){
