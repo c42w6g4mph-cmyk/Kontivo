@@ -8119,8 +8119,12 @@ function bankTpl(name,text,cur){
     if(tk.length===1&&!via){var nt2=bankTok(name),ix=nt2.indexOf(tk[0]);if(ix>0&&nt2.slice(0,ix).some(function(w){return w.length>3&&LGEN.indexOf(w)<0&&!/^(lastschrift|zahlung|erechnung|ebill|dauerauftrag|gutschrift|belastung|einkauf|kauf|abo|abonnement|rechnung)$/.test(w);}))return;}
     if(tk.every(function(x){return hay.indexOf(" "+x+" ")>=0;})){var n2=tk.every(function(x){return nn.indexOf(" "+x+" ")>=0;});if(better(t,n2?1:0)){best=t;inN=n2?1:0;}}
   });
+  /* gleicher Name, mehrere Verträge (CSS Krankenkasse/Zusatzversicherung, Mainova Strom/Gas): Bezeichnung aus dem Buchungstext wählen */
+  if(best){var sib=TPL.filter(function(o){return o[0]===best[0]&&o[1]===best[1];});
+    if(sib.length>1){var pick=sib.filter(function(o){var r=BKLABTPL[o[3]];if(r)return r.test(nt);var lt=ltok(o[3]);return lt.length&&lt.every(function(x){return nt.indexOf(" "+x+" ")>=0;});})[0];if(pick)best=pick;}}
   return best;
 }
+var BKLABTPL={"Zusatzversicherung":/zusatz|\bvvg\b|spitalvers|ambulant|halbprivat|\bprivat\b/,"Krankenkasse":/grundvers|\bkvg\b|obligatorisch|\bokp\b/};
 var BKSKIP=/bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlung gaa|\bgaa\b|\bga \d{4,}|^ga\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b/;
 /* Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant) */
 var BKSHOP=/\b(cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|blumen|baumarkt)\b/;
@@ -8174,7 +8178,7 @@ function bankFind(r,ign){
     /* Kartenbezug am Automaten einer Bank («Sparkasse Konstanz», «UBS») = Bargeld */
     if((t.kind==="card"||(!t.kind&&Math.abs(t.a)%10===0))&&/^(sparkasse|volksbank|raiffeisen|commerzbank|deutsche bank|postbank|hypovereinsbank|targobank|santander|ubs|postfinance|zkb|kantonalbank|migros bank|valiant|atm|geldautomat)\b/.test(lnorm(nm)))return;
     if(BKSKIP.test(hay)||BKSHOP.test(lnorm(nm)))return;
-    var tk=bankTok(nm),key=tp?"tpl:"+tp[0]:(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
+    var tk=bankTok(nm),key=tp?"tpl:"+tp[0]+(TPL.some(function(o){return o!==tp&&o[0]===tp[0];})?"·"+tp[3]:""):(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
     if(!key)return;key=key+"|"+(t.cur||home);
     (groups[key]=groups[key]||{key:key,tpl:tp,tx:[],names:{},cur:t.cur||home}).tx.push(t);
     groups[key].names[nm]=(groups[key].names[nm]||0)+1;
@@ -8226,7 +8230,7 @@ function bankFind(r,ign){
     s.match=bankMatch(s);
     if(s.match&&s.match.kind==="known"){if(!used[s.match.id]){used[s.match.id]=1;known.push(s);}return;}
     if(s.match)used[s.match.id]=1;
-    if(ign.indexOf(bankIgnKey(s))>=0){s.ignored=true;}
+    if(ign.indexOf(bankIgnKey(s))>=0||ign.indexOf(bankIgnKey(s).split("·")[0])>=0){s.ignored=true;}/* «·Bezeichnung» seit v212: alte Einträge «tpl:CSS» gelten weiter */
     out.push(s);
   });
   /* erkannte Gruppe, die als Vertrag bereits existiert, aber die strengen Regeln nicht erfüllt (schwankende Rechnung, nur 1 Zahlung) */
@@ -8370,7 +8374,7 @@ function bankFindInc(r){
 }
 function bankIgnKey(s){return s.key.split("|")[0];}
 /* Gelernte Korrekturen (lokal): Gruppenschlüssel → {n: Vertragspartner, c: Kategorie}; gesetzt beim Anlegen, wenn du Name/Kategorie änderst */
-function bankApplyAlias(s){var a=(state.settings.bankAlias||{})[bankIgnKey(s)];if(a&&a.n){s.alias=a;s.name=a.n;}return s;}
+function bankApplyAlias(s){var A=state.settings.bankAlias||{},a=A[bankIgnKey(s)]||A[bankIgnKey(s).split("·")[0]];if(a&&a.n){s.alias=a;s.name=a.n;}return s;}
 /* Abgleich mit erfassten Verträgen: gleicher Vertragspartner (Katalogname oder gemeinsames markantes Wort) und gleiche Währung */
 /* markantes Wort eines Namens: erstes Wort ≥ 3 Zeichen, nicht generisch (Versicherung, Stadt …) */
 function bankKey1(n){var t=bankTok(n).filter(function(x){return x.length>=3&&LGEN.indexOf(x)<0&&LPLACE.indexOf(x)<0;});return t[0]||"";}
