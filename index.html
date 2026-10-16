@@ -1984,12 +1984,12 @@ body{background:var(--paper)!important}
   <h3 class="fsec" id="fsCost">Kosten</h3>
   <div class="fcard">
     <div id="fChart"></div>
-    <div class="frow"><label for="fAmt" id="fAmtL">Betrag</label><span class="fv"><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="59.90"><select id="fCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
+    <div class="frow"><label for="fAmt" id="fAmtL">Betrag</label><span class="fv"><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="eingeben"><select id="fCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
     <div id="pList"></div>
     <button type="button" class="fadd fpill" id="pOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Preisänderung</button>
     <div class="fsub" id="pForm" hidden>
       <div class="frow"><label for="pFrom">Gültig ab</label><input id="pFrom" type="date"></div>
-      <div class="frow"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="74.90"></div>
+      <div class="frow"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="eingeben"></div>
       <button class="fok" id="pAdd" type="button">Preisänderung hinzufügen</button><button class="fcan" id="pCancel" type="button">Abbrechen</button>
     </div>
     <div class="frow"><label for="fCycle">Zahlungsrhythmus</label><select id="fCycle">
@@ -2014,7 +2014,7 @@ body{background:var(--paper)!important}
     <div class="fsub" id="xForm" hidden>
       <div class="seg2" id="xKind" role="group" aria-label="Art" style="margin:10px 0 2px"><button type="button" data-xk="pay" aria-pressed="true">Zahlung</button><button type="button" data-xk="cr" aria-pressed="false">Gutschrift</button></div>
       <div class="frow"><label for="xDate">Datum</label><input id="xDate" type="date"></div>
-      <div class="frow"><label for="xAmt">Betrag</label><input id="xAmt" class="num" type="text" inputmode="decimal" placeholder="120.00"></div>
+      <div class="frow"><label for="xAmt">Betrag</label><input id="xAmt" class="num" type="text" inputmode="decimal" placeholder="eingeben"></div>
       <div class="frow"><label for="xNote">Bezeichnung</label><input id="xNote" type="text" placeholder="optional" autocomplete="off" maxlength="60"></div>
       <button class="fok" id="xAdd" type="button">Sonderzahlung hinzufügen</button>
       <p class="note" style="margin:0 0 12px">Zum Beispiel Nebenkostenabrechnung oder Aktivierungsgebühr. Zählt in «Kosten» und «Budget» im jeweiligen Monat, nicht in den monatlichen Fixkosten.</p>
@@ -2118,7 +2118,7 @@ body{background:var(--paper)!important}
   <h3 class="fsec">Betrag</h3>
   <div class="fcard">
     <div id="iChart"></div>
-    <div class="frow"><label for="iAmt" id="iAmtL">Betrag netto</label><span class="fv"><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="6500.00"><select id="iCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
+    <div class="frow"><label for="iAmt" id="iAmtL">Betrag netto</label><span class="fv"><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="eingeben"><select id="iCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
     <div id="iPList"></div>
     <button type="button" class="fadd" id="iPOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Änderung, z.B. Lohnerhöhung</button>
     <div class="fsub" id="iPForm" hidden>
@@ -4765,8 +4765,8 @@ document.getElementById("xAdd").addEventListener("click",function(){
 document.getElementById("fCur").addEventListener("change",paintExtras);
 document.getElementById("fCur").addEventListener("change",paintPrices);
 /* Platzhalter im Zahlenformat der Hauptwährung */
-function amtPh(){var de=numStyle(document.getElementById("fCur").value)==="DE";document.getElementById("fAmt").placeholder=de?"59,90":"59.90";
-  var ic=document.getElementById("iCur");if(ic)document.getElementById("iAmt").placeholder=numStyle(ic.value)==="DE"?"6500,00":"6500.00";}
+/* Betragsfelder: Platzhalter «eingeben» statt Beispielbetrag – ein Beispiel wirkte wie ein schon erfasster Wert (16.10.2026) */
+function amtPh(){["fAmt","iAmt","pAmt","xAmt"].forEach(function(i){var e=document.getElementById(i);if(e)e.placeholder="eingeben";});}
 document.getElementById("fCur").addEventListener("change",amtPh);
 
 document.getElementById("saveForm").addEventListener("click",function(){
