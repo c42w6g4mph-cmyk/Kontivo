@@ -5346,8 +5346,10 @@ var docsFor="";
 /* KVG-Regel nur bei Erhöhung per 1.1. (Grundversicherungsprämien wechseln nur dann); sonst AVB-Text */
 function isKvg(c){var t=[c.label,c.partner,c.cat].join(" ");return c.cur==="CHF"&&/krankenkass|krankenversich|grundversich|kvg/i.test(t)&&!/zusatz|spital|vvg/i.test(t);}
 function skrRule(c,f){var k=catKey(c.cat),de=c.cur==="EUR",P=c.partner||"dem Vertragspartner",dayB=new Date(f.getFullYear(),f.getMonth(),f.getDate()-1);
-  if(isKvg(c)&&f.getMonth()===0&&f.getDate()===1)return {until:new Date(f.getFullYear(),f.getMonth()-1,0),end:dayB,src:"Art. 7 Abs. 2 KVG",
-    tips:["Die Kündigung muss bis dann bei "+P+" eintreffen – am besten eingeschrieben.","Sie gilt erst, wenn die neue Krankenkasse deine Aufnahme bestätigt hat."]};
+  if(isKvg(c)&&f.getMonth()===0&&f.getDate()===1){var ku=new Date(f.getFullYear(),f.getMonth()-1,0);while(ku.getDay()===0||ku.getDay()===6)ku.setDate(ku.getDate()-1);/* letzter Arbeitstag */
+    return {until:ku,end:dayB,src:"Art. 7 Abs. 2 KVG",
+    tips:["Oft kündigt die neue Krankenkasse für dich: Du unterschreibst die vorbereitete Kündigung, sie leitet sie weiter. Kurz vor Ende November besser selbst kündigen.",
+      "Die Kündigung muss bis dann bei "+P+" eintreffen – am besten eingeschrieben.","Sie gilt erst, wenn die neue Krankenkasse deine Aufnahme bestätigt hat."]};}
   if(de&&k==="Energie & Wasser"&&!/wasser/i.test([c.label,c.partner].join(" ")))return {until:dayB,end:dayB,src:"§ 41 Abs. 5 EnWG",
     tips:["Ohne Kündigungsfrist – die Kündigung muss vor dem neuen Preis eintreffen.","Kündige selbst, nicht über den neuen Anbieter."]};
   if(de&&k==="Mobilfunk & Internet")return {until:new Date(addMonths(f,1).getTime()-86400000),min:true,end:dayB,endMin:true,src:"§ 57 Abs. 1 TKG",
