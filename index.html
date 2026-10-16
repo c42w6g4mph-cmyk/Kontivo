@@ -1625,8 +1625,11 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .fcard .sndform.ig{background:var(--surface);margin:0}
 .fadda{color:var(--ink3);font-size:16px}
 .frow{position:relative}
-.miss{animation:missF 1.8s ease-out}@keyframes missF{0%,35%{background:color-mix(in srgb,var(--alert) 16%,transparent)}100%{background:transparent}}
-.fht.miss,.fhp.miss{box-shadow:0 0 0 2px var(--alert)}.frow .dph{display:none;position:absolute;right:2px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:16px;color:var(--ink3)}
+/* Markierung fehlender Angaben: Zeile als abgerundete Fläche über die ganze Kartenbreite (bis an den Kartenrand), Kopffelder mit rotem Rahmen */
+@keyframes missF{0%,40%{opacity:1}100%{opacity:0}}
+.frow.miss{isolation:isolate}.frow.miss input:focus,.frow.miss select:focus{background:transparent!important}
+.frow.miss::before{content:"";position:absolute;top:3px;bottom:3px;left:-8px;right:-8px;border-radius:10px;background:color-mix(in srgb,var(--alert) 16%,transparent);z-index:-1;pointer-events:none;animation:missF 1.8s ease-out forwards}
+.fht.miss,.fhp.miss{animation:missR 1.8s ease-out}@keyframes missR{0%,40%{box-shadow:0 0 0 2px var(--alert)}100%{box-shadow:0 0 0 2px transparent}}.frow .dph{display:none;position:absolute;right:2px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:16px;color:var(--ink3)}
 .frow input[type=date].emp{min-width:8.5em;color:transparent}.frow input[type=date].emp::-webkit-calendar-picker-indicator{opacity:0}.frow input[type=date].emp+.dph{display:block}
 .frow input[type=date].emp:focus{color:var(--teal)}.frow input[type=date].emp:focus+.dph{display:none}
 .frow .igr input{text-align:left;color:var(--ink);font-weight:400;max-width:none;padding:11px 14px;border-radius:0}
