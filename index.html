@@ -2037,7 +2037,7 @@ body{background:var(--paper)!important}
     <div class="frow tmcanc" id="fCancMailW" hidden><label for="fCancMail">E-Mail für Kündigung</label><input id="fCancMail" type="email" placeholder="kuendigung@anbieter.ch" autocomplete="off"></div>
     <div class="frow tmcanc cvaddr" id="fCancAddrW" hidden><span class="t"><b id="fCancAddrT"></b><small id="fCancAddrS"></small></span><button type="button" class="mdlink" id="fCancAddrB">Erfassen</button></div>
     <label class="frow fsw tmcanc" id="fRemindW"><span class="t"><b>An Frist erinnern</b><small>Erscheint unter «Fristen»</small></span><input type="checkbox" class="swi" id="fRemind"></label>
-    <label class="frow fsw tmcanc"><span class="t"><b>Nur Anbieter wechseln</b><small>Pflichtversicherung, z.B. Krankenkasse: kündigen nur mit neuem Anbieter</small></span><input type="checkbox" class="swi" id="fMand"></label>
+    <label class="frow fsw tmcanc"><span class="t"><b>Pflichtvertrag<span class="catinfo" role="button" tabindex="0" data-mandinfo aria-label="Info: Pflichtvertrag">i</span></b><small>Kündigen nur mit neuem Anbieter</small></span><input type="checkbox" class="swi" id="fMand"></label>
     <!-- nur bei gekündigten Verträgen: Daten korrigieren (c.cancelledOn, c.cancelPer) -->
     <div class="frow" id="fCancOnW" hidden><label for="fCancOn">Gekündigt am</label><input id="fCancOn" type="date"></div>
     <div class="frow" id="fCancPerW" hidden><label for="fCancPer">Läuft bis</label><input id="fCancPer" type="date"></div>
@@ -3537,6 +3537,8 @@ function buildCatChips(){
   document.getElementById("iCats").addEventListener("click",function(){openCatPick("i");});
 }
 var TAX_INFO="Steuern und Gebühren (z.B. Rundfunkgebühr, Motorfahrzeugsteuer) gelten als nicht kündbar: keine Fristen, kein Kündigen, nicht unter «Fristen». Andere nicht kündbare Verträge: unter «Laufzeit & Kündigung» die Kachel «Nicht kündbar» wählen.";
+var MAND_INFO="Pflichtverträge sind Verträge, die du haben musst. Du kannst sie nicht ersatzlos kündigen, sondern nur zu einem anderen Anbieter wechseln.\n\nBeispiele: Krankenkasse, Autohaftpflicht, Strom.";
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-mandinfo]");if(!b)return;e.preventDefault();e.stopPropagation();ask({title:"Pflichtvertrag",text:MAND_INFO,alert:true});},true);
 function catInfoIc(){return '<span class="catinfo" role="button" tabindex="0" data-catinfo aria-label="Info: nicht kündbar">i</span>';}
 function paintCatField(pre,cat){
   var ic=document.getElementById(pre+"CatIcon"),nm=document.getElementById(pre+"CatName");
