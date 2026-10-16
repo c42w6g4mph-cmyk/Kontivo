@@ -654,7 +654,6 @@ body.hasplus .topadd{display:inline-flex}
 .card.termc .camt{align-self:flex-start;padding-top:2px}
 /* Formular: Raster und Vorlagen */
 .sugg{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 12px}
-.sugg .tplhd{flex:1 1 100%;margin:4px 4px 0;font-size:13px;font-weight:600;color:var(--ink3)}
 .tpllist{flex:1 1 100%;background:var(--surface);border-radius:var(--r);overflow:hidden}
 .tplrow{display:flex;align-items:center;gap:11px;width:100%;padding:10px 13px;text-align:left}.tplrow+.tplrow,.tplmore{border-top:1px solid var(--line)}
 .tplrow .mark{width:34px;height:34px;border-radius:9px}.tplrow .mark svg{width:18px;height:18px}
@@ -935,6 +934,7 @@ body.hasplus .topadd{display:inline-flex}
 .psug .mdrow .mark{width:34px;height:34px;border-radius:9px;font-size:12px}
 .psug .mdrow .t b{font-size:14.5px}.psug .mdrow .t small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .psug .pmsg{font-size:12.5px;color:var(--ink3);padding:8px 0}
+.psug .pmore{display:block;width:100%;text-align:left;padding:8px 0;font-size:13.5px;color:var(--teal);font-weight:600}
 .dupnote{margin-top:6px;font-size:12.5px;color:var(--warn)}
 .legal{margin-top:8px}.legalg .legal{margin:0;padding:10px 0;border-top:1px solid var(--line)}.legalg .legal:first-of-type{border-top:0;padding-top:2px}.legalg .legal summary{font-size:15px;color:var(--ink)}.legal summary{font-size:13px;color:var(--ink3);cursor:pointer}.legal .note{margin:8px 0 0;font-size:12.5px}
 .ceic .cicon{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -4339,21 +4339,16 @@ function paintSugg(){
     el.innerHTML='<span class="sl tplh">'+esc(hn)+"</span>";return;}
   /* exakter Treffer (z.B. «CSS», «O2»), noch nicht übernommen: genau diese Vorlage anbieten */
   if(cur){var alle=tplAll(cur[0]);
-    el.innerHTML=tplListHtml(alle.length>1?alle:[cur],alle.length>1);return;}
+    el.innerHTML="";return;}/* Katalogtreffer stehen in der gemeinsamen Trefferliste unter dem Feld (paintPSug) */
   if(q.length<2){el.innerHTML="";return;}
   var hits=TPL.filter(function(t){return (t[0]+" "+t[3]).toLowerCase().indexOf(q)>=0;});hits=hits.filter(function(t){return tplAll(t[0]).indexOf(t)>=0;}).slice(0,5);
-  el.innerHTML=hits.length?tplListHtml(hits):"";
+  el.innerHTML="";
 }
-/* Vorlagen als Liste (Variante A, 16.10.2026): Kategorie-Symbol, Name, Kurzinfo (Bezeichnung · Kündigung), «Übernehmen»; max. 3, Rest über «Weitere».
-   SwiftUI: Section("Aus dem Katalog ausfüllen") { ForEach(templates) { Label + Button } } */
+/* Kurzinfo zur Kündigung für Katalogtreffer in der Trefferliste */
 function tplTerm(t){if(t[2]==="Steuern & Gebühren")return "nicht kündbar";if(t[9])return "Pflichtvertrag";
   var n=+t[5]||0;if(!n)return "jederzeit kündbar";var u={d:["Tag","Tage"],w:["Woche","Wochen"],m:["Monat","Monate"]}[t[6]]||["Monat","Monate"];
   return n+" "+(n===1?u[0]:u[1])+" Frist";}
-function tplListHtml(L,variant){var more=!draft.tplMore&&L.length>3,V=more?L.slice(0,3):L;
-  return '<p class="tplhd">Aus dem Katalog ausfüllen</p><div class="tpllist">'+V.map(function(t){
-    var sub=[t[3]||t[2],t[1]&&variant?(t[1]==="CH"?"Schweiz":t[1]==="DE"?"Deutschland":t[1]):"",tplTerm(t)].filter(Boolean).join(" · ");
-    return '<button type="button" class="tplrow" data-tpl="'+TPL.indexOf(t)+'">'+markHtml({cat:t[2]||"Sonstiges"})+'<span class="t"><b>'+esc(t[0])+"</b><small>"+esc(sub)+'</small></span><em>Übernehmen</em></button>';}).join("")+
-    (more?'<button type="button" class="tplmore" data-tplmore>Weitere '+(L.length-3)+" anzeigen</button>":"")+"</div>";}
+
 /* Vorlage übernehmen. onlyEmpty (Internet-Treffer, «Übliche Frist übernehmen»): nur leere Felder füllen.
    Kategorie nur, wenn es sie (noch) gibt; Pflichtvertrag hebt «nicht beobachten» auf */
 /* Katalog-Zusammenfassung: Schnappschuss vor dem Übernehmen (für «Rückgängig») und Liste, was sich geändert hat */
@@ -4427,7 +4422,6 @@ document.getElementById("sheetForm").addEventListener("click",function(ev){if(ev
 document.getElementById("fSugg").addEventListener("click",function(ev){
   if(ev.target.closest("[data-tplundo]")){tplUndo();return;}
   if(ev.target.closest("[data-std]")&&draft.stdTpl){var st=draft.stdTpl;applyTpl(st,true,false,true);draft.stdTpl=st;draft.stdDone=true;paintSugg();return;}
-  if(ev.target.closest("[data-tplmore]")){draft.tplMore=true;paintSugg();return;}
   var b=ev.target.closest("[data-tpl]");if(!b)return;applyTpl(TPL[+b.dataset.tpl]);tplLogo(TPL[+b.dataset.tpl]);
 });
 var tplCC="",tplQ="";
@@ -7026,6 +7020,12 @@ function stdFor(w){
 function ownPartnerMatches(q){
   q=q.toLowerCase();return partnerGroups().filter(function(o){return o.name.toLowerCase().indexOf(q)>=0;}).slice(0,3);
 }
+/* Gemeinsame Trefferliste (16.10.2026): Deine Vertragspartner · Katalog · Internet. Gleiche Website nur einmal, Katalog gewinnt.
+   SwiftUI: .searchSuggestions mit drei Sections */
+function tplHits(q){var n=q.trim().toLowerCase();if(n.length<2)return [];
+  var ex=TPL.filter(function(t){return t[0].toLowerCase()===n;});
+  var L=ex.length?ex:TPL.filter(function(t){return (t[0]+" "+t[3]).toLowerCase().indexOf(n)>=0&&tplAll(t[0]).indexOf(t)>=0;});
+  return L.slice(0,draft.tplMore?8:3).concat(L.length>3&&!draft.tplMore?[null]:[]);}
 function paintPSug(web,loading){
   var el=document.getElementById("pSug"),q=(document.getElementById("fPartner").value||"").trim();
   if(!el)return;
@@ -7034,7 +7034,12 @@ function paintPSug(web,loading){
   if(own.length){h+='<div class="ph">Deine Vertragspartner</div>'+own.map(function(o,i){var c=o.logoC||state.contracts[o.ids[0]];
     return '<button type="button" class="mdrow" data-po="'+i+'">'+markHtml(c)+'<span class="t"><b>'+esc(o.name)+'</b><small>'+o.ids.length+(o.ids.length===1?" Vertrag":" Verträge")+(o.web?" · "+esc(domainOf(o.web)):"")+'</small></span></button>';}).join("");}
   var ownNames=own.map(function(o){return o.name.toLowerCase();});
-  var wl=(web||[]).filter(function(w){return ownNames.indexOf(w.name.toLowerCase())<0;});
+  var th=tplHits(q),tl=th.filter(Boolean),tDom={};tl.forEach(function(t){if(t[4])tDom[regDom(t[4])]=1;});
+  if(tl.length){h+='<div class="ph">Katalog</div>'+tl.map(function(t){var multi=tplAll(t[0]).length>1;
+    var sub=[t[3]||t[2],multi&&t[1]?(t[1]==="CH"?"Schweiz":t[1]==="DE"?"Deutschland":t[1]):"",tplTerm(t)].filter(Boolean).join(" · ");
+    return '<button type="button" class="mdrow" data-pt="'+TPL.indexOf(t)+'">'+markHtml({cat:t[2]||"Sonstiges"})+'<span class="t"><b>'+esc(t[0])+"</b><small>"+esc(sub)+"</small></span></button>";}).join("")+
+    (th.indexOf(null)>=0?'<button type="button" class="pmore" data-ptmore>Weitere Katalogtreffer</button>':"");}
+  var wl=(web||[]).filter(function(w){return ownNames.indexOf(w.name.toLowerCase())<0&&!tDom[regDom(w.dom)];});
   if(wl.length){h+='<div class="ph">Aus dem Internet</div>'+wl.map(function(w){var i=(web||[]).indexOf(w);
     var img=w.file?"https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.file)+"?width=96":"https://www.google.com/s2/favicons?sz=64&domain="+encodeURIComponent(w.dom);
     return '<button type="button" class="mdrow" data-pw="'+i+'"><div class="mark" style="background:#fff"><img src="'+esc(img)+'" alt="" onerror="this.remove()"></div><span class="t"><b>'+esc(w.name)+'</b><small>'+esc(w.dom)+(w.desc?" · "+esc(w.desc):"")+'</small></span></button>';}).join("");}
@@ -7101,6 +7106,8 @@ function pickOwnPartner(o){
   box.addEventListener("mousedown",function(ev){ev.preventDefault();});
   box.addEventListener("click",function(ev){
     var o=ev.target.closest("[data-po]");if(o){pickOwnPartner(box._own[+o.dataset.po]);return;}
+    var t=ev.target.closest("[data-pt]");if(t){var T=TPL[+t.dataset.pt];hidePSug();applyTpl(T);pSugSel=T[0];tplLogo(T);return;}
+    if(ev.target.closest("[data-ptmore]")){draft.tplMore=true;paintPSug(pSugWeb,false);return;}
     var w=ev.target.closest("[data-pw]");if(w)pickWebPartner(pSugWeb[+w.dataset.pw]);
   });
 })();
