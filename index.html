@@ -500,7 +500,11 @@ body.hasplus .topadd{display:inline-flex}
 .tflex .mrows2{border-top:1px solid var(--line);border-radius:0;background:transparent}
 
 .tacts button{flex:1;padding:8px 10px;border-radius:10px;font-size:14px;font-weight:600;background:var(--sunken);color:var(--ink)}
-.skr{margin:0 0 10px;padding:9px 12px;border-radius:10px;background:color-mix(in srgb,var(--warn) 10%,var(--field));font-size:13px;color:var(--ink2);line-height:1.4}
+.skrl{display:flex;align-items:center;gap:9px;width:100%;margin:0 0 10px;padding:10px 12px;border-radius:12px;background:var(--field);text-align:left;font-size:13.5px;color:var(--ink2);line-height:1.3}
+.skrl i{flex:none;display:grid;place-items:center;width:17px;height:17px;border-radius:50%;border:1.2px solid currentColor;font:italic 600 10.5px/1 Georgia,serif}
+.skrl span{flex:1;min-width:0}.skrl b{color:var(--ink);font-weight:600}.skrl em{font-style:normal;color:var(--teal);font-size:18px;line-height:1}
+.skrv{padding:2px 2px 8px}.skrd{margin:2px 2px 6px;font-size:14px;color:var(--ink2)}
+.skrbig{margin:0 2px 14px;font-size:24px;font-weight:650;color:var(--ink);line-height:1.2}.skrbig small{display:block;font-size:13px;font-weight:500;color:var(--ink2);margin-top:2px}
 /* Kennzahlen im Detail */
 .kz{display:flex;gap:8px;margin:2px 0 12px}
 .kzm{flex:1.3;min-width:0;background:var(--field);border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:10px}
@@ -4385,7 +4389,7 @@ document.getElementById("pAdd").addEventListener("click",function(){
   draft.prices.push({from:f,amount:Math.round(a*100)/100});
   document.getElementById("pFrom").value="";document.getElementById("pAmt").value="";
   var prevA=parseAmt(document.getElementById("fAmt").value)||0;pricesOf({prices:draft.prices}).forEach(function(p){if(p.from<f)prevA=+p.amount;});
-  pBak=null;paintPrices();openSub("p",false);toast(a>prevA&&prevA>0?"Preiserhöhung vorgemerkt. Tipp: oft gilt ein Sonderkündigungsrecht.":"Preisänderung ab "+fmtD(f)+" vorgemerkt",a>prevA&&prevA>0?4000:undefined);
+  pBak=null;paintPrices();openSub("p",false);toast(a>prevA&&prevA>0?"Preiserhöhung vorgemerkt – Hinweis zur Kündigung steht im Detail.":"Preisänderung ab "+fmtD(f)+" vorgemerkt",a>prevA&&prevA>0?4000:undefined);
 });
 document.getElementById("fAmt").addEventListener("input",paintPrices);
 /* Sonderzahlungen im Formular */
@@ -5190,9 +5194,8 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   if(!gone&&isPaused(c))pill='<span class="pill">Pausiert '+(c.pausedUntil?"bis "+fmtD(c.pausedUntil):"seit "+fmtD(c.pausedAt||iso(today())))+"</span>";
   var nc=nextChange(c);
   if(nc)pill+='<span class="pill warn">Neuer Preis ab '+fmtD(nc.from)+": "+money(nc.amount,c.cur)+" "+esc(c.cur)+"</span>";
-  /* Preiserhöhung (angekündigt oder in den letzten 60 Tagen): Hinweis auf ein mögliches Sonderkündigungsrecht */
-  var skr=!gone&&!isFixed(c)&&(function(){var t=today(),ps=pricesOf(c),prev=+c.amount||0;for(var i=0;i<ps.length;i++){var f=parseD(ps[i].from);
-      if(f>t)return +ps[i].amount>priceAt(c,t);if(daysBetween(f,t)<=60&&+ps[i].amount>prev)return true;prev=+ps[i].amount;}return false;})();
+  /* Preiserhöhung: kurze Zeile mit ⓘ, Erklärung im Blatt (skrInfo/openSkr) */
+  var skr=!gone&&!isFixed(c)?skrInfo(c):null;
   var hist=(pricesOf(c).length?'<div class="pchwrap">'+priceChart(c)+"</div>":"");/* Detail = reine Ansicht: Preise nur im Bearbeiten-Modus (Weitere Angaben) */
   var xs=extrasOf(c),xh="";
   if(xs.length){var t2=today();
@@ -5231,7 +5234,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
     "</div>"+
     (pill?'<div class="pills">'+pill+"</div>":'<div style="height:10px"></div>')+kz+
     vkHintHtml(idv)+fr+
-    (skr?'<p class="skr">Preiserhöhung: In Deutschland und der Schweiz besteht oft ein Sonderkündigungsrecht, meist innert 4–6 Wochen nach der Mitteilung. Massgebend ist dein Vertrag.</p>':"")+
+    (skr?'<button type="button" class="skrl" data-act="skr"><i aria-hidden="true">i</i><span><b>'+esc(skr.head)+'</b>'+(skr.tail?" · "+esc(skr.tail):"")+'</span><em aria-hidden="true">›</em></button>':"")+
     secs.map(function(sc){var rr=sc[1].filter(Boolean);if(!rr.length)return sc[0]==="Kosten"?'<h3 class="dsec">Kosten</h3>'+hist:"";
       return '<h3 class="dsec">'+esc(sc[0])+'</h3>'+'<dl class="dgrp">'+rr.map(function(r){if(r[2])return '<div class="dl dtl">'+r[1]+"</div>";return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+(r[0]==="Vertragspartner"?'<button type="button" class="dlink" data-peopen="'+esc(String(r[1]).trim().toLowerCase())+'" data-peid="'+esc(c._id)+'">'+esc(r[1])+" ›</button>":esc(r[1]))+(r[3]?'<span class="dsub">'+esc(r[3])+"</span>":"")+"</dd></div>";}).join("")+"</dl>"+(sc[0]==="Kosten"?hist:"");}).join("")+
     ((c.web||c.tel||c.mail)?'<h3 class="dsec">Kontakt</h3><div class="links">'+
@@ -5254,6 +5257,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
       if(a==="trialkill"){closeSheets();setTimeout(function(){killOptions(idv,true);},180);return;}
       if(a==="trialkeep"){var tk=stripId(c);tk.trialKept=c.trial;putContract(idv,tk);closeSheets();render();toast("Behalten – läuft nach dem Probeabo normal weiter");return;}
       if(a==="docs"){openDocsPick(idv);return;}
+      if(a==="skr"){openSkr(idv);return;}
       if(a==="edit"){closeSheets();setTimeout(function(){openForm(c);},180);}
       else if(a==="dup"){closeSheets();setTimeout(function(){openForm(c,true);},180);}
       else if(a==="pause"){
@@ -5332,6 +5336,46 @@ document.addEventListener("visibilitychange",function(){if(document.visibilitySt
    (ohne Bearbeiten). SwiftUI: Sheet mit List + fileImporter/PhotosPicker, nativ zusätzlich Dokumentscanner */
 var CLIP_IC='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/></svg>';
 var docsFor="";
+/* Sonderkündigung bei Preiserhöhung (16.10.2026). Regeln nach Land (Währung) und Kategorie, keine Rechtsberatung.
+   CH Grundversicherung: Art. 7 Abs. 2 KVG – Kündigung 1 Monat auf Ende des Monats vor der neuen Prämie (per 1.1. → bis 30.11.).
+   DE Strom/Gas: § 41 Abs. 5 EnWG – bis zum Wirksamwerden. DE Telekom: § 57 Abs. 1 TKG – 3 Monate nach Mitteilung (Mitteilung 1–2 Monate vorher → mind. bis Erhöhung + 1 Monat).
+   DE Versicherung: § 40 VVG – 1 Monat nach Mitteilung. DE Miete: § 561 BGB – bis Ende des 2. Monats nach Mitteilung. Übrige: AGB/AVB.
+   Sichtbar ab Ankündigung bis zur Frist; ohne berechenbare Frist bis 30 Tage nach Wirksamkeit. SwiftUI: Button + .sheet */
+function isKvg(c){var t=[c.label,c.partner,c.cat].join(" ");return c.cur==="CHF"&&/krankenkass|krankenversich|grundversich|kvg/i.test(t)&&!/zusatz|spital|vvg/i.test(t);}
+function skrRule(c,f){var k=catKey(c.cat),de=c.cur==="EUR";
+  if(isKvg(c))return {until:new Date(f.getFullYear(),f.getMonth()-1,0),src:"Art. 7 Abs. 2 KVG",
+    txt:"Bei einer neuen Prämie kannst du die Grundversicherung mit einer Frist von einem Monat kündigen – auf das Ende des Monats vor der neuen Prämie. Die Kündigung muss bis dann beim Versicherer eintreffen.",
+    tip:"Die Kündigung gilt erst, wenn die neue Krankenkasse deine Aufnahme bestätigt hat."};
+  if(de&&k==="Energie & Wasser"&&!/wasser/i.test([c.label,c.partner].join(" ")))return {until:new Date(f.getFullYear(),f.getMonth(),f.getDate()-1),src:"§ 41 Abs. 5 EnWG",
+    txt:"Bei einer Preiserhöhung für Strom oder Gas kannst du ohne Frist kündigen – bis zu dem Tag, an dem der neue Preis gilt."};
+  if(de&&k==="Mobilfunk & Internet")return {until:new Date(addMonths(f,1).getTime()-86400000),min:true,src:"§ 57 Abs. 1 TKG",
+    txt:"Bei einer einseitigen Preiserhöhung kannst du innert 3 Monaten nach Erhalt der Mitteilung kündigen, frühestens auf den Tag der Änderung. Da die Mitteilung 1–2 Monate vorher kommen muss, reicht es mindestens bis zum angezeigten Datum.",
+    tip:"Genaues Datum: 3 Monate nach Erhalt des Briefs bzw. der E-Mail."};
+  if(de&&isRent(c))return {src:"§ 561 BGB",tail:"Frist ab Mitteilung",
+    txt:"Nach einer Mieterhöhung kannst du bis zum Ende des zweiten Monats nach Erhalt kündigen; die Wohnung endet dann mit Ablauf des übernächsten Monats.",
+    tip:"Miete: von Hand unterschreiben und eingeschrieben senden."};
+  if(de&&k==="Versicherung")return {src:"§ 40 VVG",tail:"Frist ab Mitteilung",
+    txt:"Bei einer Prämienerhöhung kannst du innert eines Monats nach Erhalt der Mitteilung kündigen, frühestens auf den Tag der Erhöhung."};
+  return {none:true,txt:c.cur==="CHF"?"In der Schweiz gibt es dafür meist kein gesetzliches Sonderkündigungsrecht. Ob und bis wann du kündigen kannst, steht in den AGB bzw. Versicherungsbedingungen und oft in der Mitteilung selbst.":
+    "Für diesen Vertrag gibt es kein allgemeines gesetzliches Sonderkündigungsrecht. Ob und bis wann du kündigen kannst, steht in den AGB und meist in der Mitteilung. Eine Preiserhöhung ohne gültige Klausel musst du nicht hinnehmen."};
+}
+function skrInfo(c){var t=today(),ps=pricesOf(c),prev=+c.amount||0;
+  for(var i=0;i<ps.length;i++){var f=parseD(ps[i].from),a=+ps[i].amount,up=prev>0&&a>prev,pct=up?Math.round((a/prev-1)*100):0;prev=a;
+    if(!up||!f)continue;var r=skrRule(c,f),end=r.until||new Date(f.getFullYear(),f.getMonth(),f.getDate()+30);
+    if(end<t)continue;
+    var dd=r.until?String(r.until.getDate()).padStart(2,"0")+"."+String(r.until.getMonth()+1).padStart(2,"0")+"."+(r.until.getFullYear()!==t.getFullYear()?String(r.until.getFullYear()).slice(2):""):"";
+    return {f:f,pct:pct,r:r,until:r.until,head:r.none?"Preis erhöht":"Sonderkündigung möglich",
+      tail:r.none?"Kündigungsrecht prüfen":(r.until?(r.min?"bis mind. ":"bis ")+dd:r.tail)};}
+  return null;}
+function openSkr(idv){var c=state.contracts[idv],x=c&&skrInfo(c);if(!x)return;var r=x.r,t=today(),fut=x.f>t;
+  document.getElementById("pickTitle").textContent=x.head;
+  var l=document.getElementById("pickList");l.dataset.dim="skr";
+  var dn=x.until?daysBetween(t,x.until):null;
+  l.innerHTML='<div class="skrv"><p class="skrd">Preis '+(fut?"steigt ab ":"gestiegen am ")+fmtShort(x.f)+" um "+x.pct+"\u00a0%</p>"+
+    (x.until?'<p class="skrbig">'+(r.min?"mindestens bis ":"bis ")+x.until.getDate()+". "+MON[x.until.getMonth()]+" "+x.until.getFullYear()+"<small>"+(dn===0?"heute":"noch "+dn+(dn===1?" Tag":" Tage"))+"</small></p>":"")+
+    '<div class="fqcard"><p>'+esc(r.txt)+"</p>"+(r.tip?"<p>"+esc(r.tip)+"</p>":"")+"</div>"+
+    '<p class="fqf"><span>'+(r.src?"Grundlage: "+esc(r.src)+" · ":"")+"Massgebend sind dein Vertrag und die Mitteilung. Keine Rechtsberatung.</span></p></div>";
+  var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;}
 function openDocsPick(idv){
   var c=state.contracts[idv];if(!c)return;docsFor=idv;var ds=c.docs||[];
   document.getElementById("pickTitle").textContent="Dokumente";
