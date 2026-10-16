@@ -1546,7 +1546,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .fhf .fhp{font-size:16px;height:38px;color:var(--ink2)}
 .fhf .fwb input{padding-right:40px}.fhf .fib{top:0;right:0;width:38px;height:38px}
 .fhead .ddoc.on i{background:var(--tealFill);color:#fff}
-#sheetForm .psug,#sheetForm .dupnote{margin-top:8px}
+#sheetForm .psug,#sheetForm .dupnote,#sheetInc .psug{margin-top:8px}
 .fkz{display:flex;gap:8px;margin:12px 0 0}
 .fkz>div{flex:1;background:var(--field);border-radius:12px;padding:10px 12px;min-width:0}
 .fkz small{display:block;font-size:12.5px;color:var(--ink2)}
@@ -2114,6 +2114,7 @@ body{background:var(--paper)!important}
       <input id="iName" class="fhp" type="text" placeholder="Quelle, z.B. Arbeitgeber AG" aria-label="Quelle" autocomplete="off">
     </div>
   </div>
+  <div class="psug" id="iSug" hidden></div>
   <details class="logodet" id="oILogo"><summary>Logo</summary><div class="logopanel">
     <button class="lbtn main" id="iLogoAuto" type="button">Logo automatisch finden</button>
     <div class="lcands" id="iLogoCands"></div>
@@ -2131,7 +2132,7 @@ body{background:var(--paper)!important}
     <div id="iChart"></div>
     <div class="frow"><label for="iAmt" id="iAmtL">Betrag netto</label><span class="fv"><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><select id="iCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
     <div id="iPList"></div>
-    <button type="button" class="fadd" id="iPOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Änderung, z.B. Lohnerhöhung</button>
+    <button type="button" class="fadd fpill" id="iPOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Änderung</button>
     <div class="fsub" id="iPForm" hidden>
       <div class="frow"><label for="iPFrom">Gültig ab</label><input id="iPFrom" type="date"></div>
       <div class="frow"><label for="iPAmt">Neuer Betrag</label><input id="iPAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"></div>
@@ -6247,7 +6248,7 @@ function iPaintKz(){var el=document.getElementById("iKz"),c=iDraftPC();if(!(c.am
   var cp=curPrice(c),u="<u>"+esc(c.cur)+"</u>";
   el.innerHTML=c.cycle?"<div><small>pro Monat</small><b>"+money(cp/c.cycle,c.cur)+u+"</b></div><div><small>pro Jahr</small><b>"+nf0.format(cp/c.cycle*12,c.cur)+u+"</b></div>":
     "<div><small>einmalig</small><b>"+money(cp,c.cur)+u+"</b></div>";}
-function iPaintPrices(){iPaintKz();
+function iPaintPrices(){iPaintKz();if(typeof iSyncPOpen==="function")iSyncPOpen();
   var l=document.getElementById("iPList"),ps=pricesOf({prices:idraft.prices}),cur=document.getElementById("iCur").value;
   document.getElementById("iAmtL").textContent=ps.length?"Anfangsbetrag netto":"Betrag netto";
   document.getElementById("iChart").innerHTML=ps.length?priceChart(iDraftPC(),{inc:1}):"";
@@ -6259,7 +6260,11 @@ function iPaintPrices(){iPaintKz();
     r+='<div class="frow fpr" data-ipedit="'+esc(p.from)+'"><span class="fl">ab '+fmtShort(parseD(p.from))+(i===ni?'<span class="tag">aktuell</span>':(fut?'<span class="tag fut">geplant</span>':""))+
        '</span><span class="pa">'+money(p.amount,cur)+"</span>"+pb+'<button type="button" class="del" data-ipdel="'+esc(p.from)+'" aria-label="Änderung entfernen">×</button></div>';prev=p.amount;});
   l.innerHTML=r;}
-function iOpenSub(on){document.getElementById("iPForm").hidden=!on;var b=document.getElementById("iPOpen");b.hidden=!!on;b.setAttribute("aria-expanded",!!on);}
+function iOpenSub(on){document.getElementById("iPForm").hidden=!on;var b=document.getElementById("iPOpen");b.hidden=!!on;b.setAttribute("aria-expanded",!!on);iSyncPOpen();}
+/* «+ Änderung» wie beim Vertrag: kleine Plakette unter dem Betrag, erst sichtbar mit Betrag oder vorhandenen Änderungen */
+function iSyncPOpen(){var b=document.getElementById("iPOpen"),f=document.getElementById("iPForm");if(!b||!f)return;
+  b.hidden=!f.hidden||(!document.getElementById("iAmt").value.trim()&&!(idraft.prices||[]).length);}
+document.getElementById("iAmt").addEventListener("input",iSyncPOpen);
 document.getElementById("iPOpen").addEventListener("click",function(){iOpenSub(true);try{document.getElementById("iPFrom").focus();}catch(e){}});
 document.getElementById("iPCancel").addEventListener("click",function(){if(iPBak){idraft.prices.push(iPBak);iPBak=null;}
   document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iOpenSub(false);iPaintPrices();});
@@ -6327,6 +6332,7 @@ function openIncDetail(idv){var c=Object.assign({},state.incomes[idv]);if(!state
   openSheet(document.getElementById("sheetDetail"));}
 function openIncome(idv){clearCands();document.getElementById("oILogo").open=false;document.getElementById("iLogoTap").setAttribute("aria-expanded","false");
   var c=(idv&&typeof idv==="object")?idv:(idv?state.incomes[idv]:null);incId=(typeof idv==="string")?idv:null;
+  hideISug();iSugSel=(c&&c.name)||"";
   idraft={logoId:(c&&c.logoId)||"",logoBg:(c&&c.logoBg)||"",cat:(c&&c.cat)||"Lohn",prices:(c&&c.prices?c.prices.map(function(p){return {from:p.from,amount:+p.amount};}):[]),
     holders:c?holdersOf(c).slice():[(state.settings.holders||["Ich"])[0]]};
   document.getElementById("incTitle").textContent=fBank?"Vorschlag":(incId?"Bearbeiten":"Neue Einnahme");
@@ -7696,6 +7702,41 @@ async function runCands(boxId,name,cur,onPick,alt,web){
 document.getElementById("logoAuto").addEventListener("click",function(){
   runCands("logoCands",document.getElementById("fPartner").value,document.getElementById("fCur")?document.getElementById("fCur").value:"CHF",
     function(r){draft.logoId=r.id;draft.logoBg=r.bg;paintLogo();},document.getElementById("fLabel").value,document.getElementById("fWeb").value);});
+/* Einnahme: Quelle (Arbeitgeber) wie Vertragspartner im Internet suchen (16.10.2026) – Vorschlag mit Logo, Übernahme per Tipp.
+   Gleiche Quelle wie webPartners(); bisherige Quellen aus den eigenen Einnahmen zuerst. SwiftUI: .searchSuggestions */
+var iSugTok=0,iSugTimer=0,iSugSel="",iSugWeb=[];
+function hideISug(){var el=document.getElementById("iSug");if(el){el.hidden=true;el.innerHTML="";}iSugTok++;}
+function paintISug(web,loading){var el=document.getElementById("iSug"),q=(document.getElementById("iName").value||"").trim();if(!el)return;
+  if(q.length<2||q===iSugSel){hideISug();return;}
+  var seen={},own=incList().filter(function(c){var n=String(c.name||"").trim();if(!n||seen[n.toLowerCase()]||n.toLowerCase().indexOf(q.toLowerCase())<0)return false;seen[n.toLowerCase()]=1;return true;}).slice(0,3),h="";
+  if(own.length)h+='<div class="ph">Deine Quellen</div>'+own.map(function(c,i){return '<button type="button" class="mdrow" data-io="'+i+'">'+incMark(c)+'<span class="t"><b>'+esc(c.name)+'</b><small>'+esc(c.label||c.cat||"")+"</small></span></button>";}).join("");
+  var wl=(web||[]).filter(function(w){return !seen[w.name.toLowerCase()];});
+  if(wl.length)h+='<div class="ph">Aus dem Internet</div>'+wl.map(function(w){var i=web.indexOf(w);
+    var img=w.file?"https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.file)+"?width=96":"https://www.google.com/s2/favicons?sz=64&domain="+encodeURIComponent(w.dom);
+    return '<button type="button" class="mdrow" data-iw="'+i+'"><div class="mark" style="background:#fff"><img src="'+esc(img)+'" alt="" onerror="this.remove()"></div><span class="t"><b>'+esc(w.name)+'</b><small>'+esc(w.dom)+(w.desc?" · "+esc(w.desc):"")+"</small></span></button>";}).join("");
+  else if(loading)h+='<div class="pmsg">Suche …</div>';
+  iSugWeb=web||[];if(!h){hideISug();return;}el.innerHTML=h;el.hidden=false;el._own=own;}
+function scheduleISug(){clearTimeout(iSugTimer);var q=(document.getElementById("iName").value||"").trim();
+  if(q.length<2||q===iSugSel){hideISug();return;}var tok=++iSugTok;paintISug([],q.length>=3);
+  iSugTimer=setTimeout(async function(){var w=[];try{w=await webPartners(q);}catch(e){w=[];}if(tok!==iSugTok)return;paintISug(w,false);},350);}
+async function pickWebIncome(w){var nm=document.getElementById("iName");nm.value=w.name;iSugSel=w.name;hideISug();
+  if(idraft.logoId&&KBlob.has(idraft.logoId)){toast("Übernommen");return;}
+  if(!assets||navigator.onLine===false){toast("Übernommen");return;}
+  toast("Lade Logo …");var r=null,d0=idraft;
+  try{if(w.file){var q=await rateJson("https://commons.wikimedia.org/w/api.php?format=json&origin=*&action=query&prop=imageinfo&iiprop=url|size&iiurlwidth=512&titles="+encodeURIComponent("File:"+w.file)).catch(function(){return null;});
+      var pg=q&&q.query&&q.query.pages,ii=pg&&Object.keys(pg).map(function(k){return pg[k].imageinfo&&pg[k].imageinfo[0];}).filter(Boolean)[0];
+      if(ii&&(ii.thumburl||ii.url)){var t=await takeLogo({url:ii.thumburl||ii.url,src:"wiki"});if(t&&t.id)r=t;}}
+    if(!r){var sc=await siteCand(regDom(w.dom),3);if(sc){var t2=await takeLogo(sc);if(t2&&t2.id)r=t2;}}}catch(e){r=null;}
+  if(idraft!==d0||!document.getElementById("sheetInc").classList.contains("on")||nm.value.trim()!==String(w.name).trim())return;
+  if(r&&!(idraft.logoId&&KBlob.has(idraft.logoId))){idraft.logoId=r.id;idraft.logoBg=r.bg;iPaintLogo();toast("Übernommen: Logo");}else toast("Kein Logo gefunden – unter «Logo» selbst wählen");}
+(function(){var inp=document.getElementById("iName"),box=document.getElementById("iSug");
+  inp.addEventListener("input",function(){if(iSugSel&&inp.value.trim()!==iSugSel)iSugSel="";scheduleISug();});
+  inp.addEventListener("focus",scheduleISug);
+  document.addEventListener("pointerdown",function(ev){if(box.hidden)return;if(ev.target===inp||box.contains(ev.target))return;hideISug();},true);
+  box.addEventListener("mousedown",function(ev){ev.preventDefault();});
+  box.addEventListener("click",function(ev){var o=ev.target.closest("[data-io]");
+    if(o){var c=box._own[+o.dataset.io];inp.value=c.name;iSugSel=c.name;if(c.logoId&&!(idraft.logoId&&KBlob.has(idraft.logoId))){idraft.logoId=c.logoId;idraft.logoBg=c.logoBg||"#FFFFFF";iPaintLogo();}hideISug();return;}
+    var w=ev.target.closest("[data-iw]");if(w)pickWebIncome(iSugWeb[+w.dataset.iw]);});})();
 document.getElementById("iLogoAuto").addEventListener("click",function(){
   runCands("iLogoCands",document.getElementById("iName").value,document.getElementById("iCur").value,
     function(r){idraft.logoId=r.id;idraft.logoBg=r.bg;iPaintLogo();},document.getElementById("iLabel").value);});
