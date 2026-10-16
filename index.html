@@ -7120,7 +7120,8 @@ function pickOwnPartner(o){
   var inp=document.getElementById("fPartner"),box=document.getElementById("pSug");
   inp.addEventListener("input",function(){if(pSugSel&&inp.value.trim()!==pSugSel)pSugSel="";schedulePSug();});
   inp.addEventListener("focus",function(){schedulePSug();});
-  inp.addEventListener("blur",function(){setTimeout(hidePSug,220);});
+  /* Nicht beim Schliessen der Tastatur (blur) zuklappen – nur bei Tipp ausserhalb von Feld und Liste oder nach einer Auswahl (16.10.2026) */
+  document.addEventListener("pointerdown",function(ev){if(box.hidden)return;if(ev.target===inp||box.contains(ev.target))return;hidePSug();},true);
   box.addEventListener("mousedown",function(ev){ev.preventDefault();});
   box.addEventListener("click",function(ev){
     var o=ev.target.closest("[data-po]");if(o){pickOwnPartner(box._own[+o.dataset.po]);return;}
