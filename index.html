@@ -1183,7 +1183,8 @@ details.logodet>summary{display:none}
 .ddoc i{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--teal) 13%,transparent)}
 .ddoc svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ddoc.on i{background:var(--tealFill);color:#fff}
-.detailhead h2{overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}/* lange Komposita umbrechen statt abschneiden */
+.detailhead h2{overflow-wrap:normal;-webkit-hyphens:manual;hyphens:manual;line-height:1.15}/* Grösse passt fitTitles an (Wort bleibt ganz, max. 2 Zeilen) */
+.detailhead h2.fitbrk{overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}/* nur wenn selbst die kleinste Grösse nicht reicht */
 .pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:999px;background:var(--sunken);color:var(--ink2)}
 .pill.alert{background:color-mix(in srgb,var(--alert) 16%,transparent);color:var(--alert);font-weight:600}
 .pill.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn);font-weight:600}
@@ -2984,11 +2985,22 @@ document.getElementById("themeSeg").addEventListener("click",function(ev){
 function render(){applyTheme();renderHero();renderView();syncLine();paintFab();}
 /* Lange Titel in Karten einzeilig halten: Schrift leicht verkleinern (min. 13px), danach «…» */
 var fitQ=0;
-function fitTitles(){fitQ=0;
+function fitTitles(){fitQ=0;fitHeads();
   document.querySelectorAll(".card .cmain .n").forEach(function(el){el.style.fontSize="";
     var w=el.clientWidth,s=el.scrollWidth;if(!w||s<=w+1)return;
     var base=parseFloat(getComputedStyle(el).fontSize)||16;
     el.style.fontSize=Math.max(12,Math.floor(base*w/s*10)/10)+"px";});}
+/* Detailkopf: Schrift schrittweise kleiner – bis 17px für höchstens 2 Zeilen, bis 14px damit das längste Wort ganz passt; erst dann Silbentrennung (.fitbrk).
+   SwiftUI: .lineLimit(2).minimumScaleFactor(0.6) */
+function fitHeads(){
+  document.querySelectorAll(".detailhead h2").forEach(function(el){
+    el.style.fontSize="";el.classList.remove("fitbrk");
+    if(!el.clientWidth)return;
+    var sz=parseFloat(getComputedStyle(el).fontSize)||22,min=17,lh=function(){return parseFloat(getComputedStyle(el).lineHeight)||sz*1.15;};
+    while(sz>min&&el.offsetHeight>lh()*2+2){sz-=1;el.style.fontSize=sz+"px";}
+    while(sz>14&&el.scrollWidth>el.clientWidth+1){sz-=1;el.style.fontSize=sz+"px";}/* ganzes Wort hat Vorrang: notfalls bis 14px */
+    if(el.scrollWidth>el.clientWidth+1)el.classList.add("fitbrk");});
+}
 function fitSoon(){if(!fitQ)fitQ=requestAnimationFrame(fitTitles);}
 try{new MutationObserver(fitSoon).observe(document.body,{childList:true,subtree:true});}catch(e){}
 window.addEventListener("resize",fitSoon);
