@@ -653,7 +653,15 @@ body.hasplus .topadd{display:inline-flex}
 .camt .sv3{color:var(--ok);font-weight:600;white-space:nowrap}
 .card.termc .camt{align-self:flex-start;padding-top:2px}
 /* Formular: Raster und Vorlagen */
-.sugg{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:-4px 0 12px}
+.sugg{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 12px}
+.sugg .tplhd{flex:1 1 100%;margin:4px 4px 0;font-size:13px;font-weight:600;color:var(--ink3)}
+.tpllist{flex:1 1 100%;background:var(--surface);border-radius:var(--r);overflow:hidden}
+.tplrow{display:flex;align-items:center;gap:11px;width:100%;padding:10px 13px;text-align:left}.tplrow+.tplrow,.tplmore{border-top:1px solid var(--line)}
+.tplrow .mark{width:34px;height:34px;border-radius:9px}.tplrow .mark svg{width:18px;height:18px}
+.tplrow .t{flex:1;min-width:0;display:grid;gap:1px}.tplrow b{font-size:15.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tplrow small{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tplrow em{flex:none;font-style:normal;font-size:14px;font-weight:600;color:var(--teal)}
+.tplmore{display:block;width:100%;padding:11px 13px;text-align:left;font-size:14px;color:var(--ink2)}
 .sugg:empty{display:none}
 .sugg .sl{font-size:12.5px;color:var(--ink3)}
 .sugg .chip{padding:6px 11px;font-size:12.5px;border-color:color-mix(in srgb,var(--teal) 40%,var(--line));color:var(--teal);font-weight:600}
@@ -4331,12 +4339,21 @@ function paintSugg(){
     el.innerHTML='<span class="sl tplh">'+esc(hn)+"</span>";return;}
   /* exakter Treffer (z.B. «CSS», «O2»), noch nicht übernommen: genau diese Vorlage anbieten */
   if(cur){var alle=tplAll(cur[0]);
-    if(alle.length>1){el.innerHTML='<span class="sl">Vorlage</span>'+alle.map(function(t){return '<button type="button" class="chip" data-tpl="'+TPL.indexOf(t)+'">'+esc(t[0]+" · "+t[3])+"</button>";}).join("");return;}
-    el.innerHTML='<span class="sl">Vorlage</span><button type="button" class="chip" data-tpl="'+TPL.indexOf(cur)+'">'+esc(cur[0])+" übernehmen</button>";return;}
+    el.innerHTML=tplListHtml(alle.length>1?alle:[cur],alle.length>1);return;}
   if(q.length<2){el.innerHTML="";return;}
   var hits=TPL.filter(function(t){return (t[0]+" "+t[3]).toLowerCase().indexOf(q)>=0;});hits=hits.filter(function(t){return tplAll(t[0]).indexOf(t)>=0;}).slice(0,5);
-  el.innerHTML=hits.length?'<span class="sl">Vorlage</span>'+hits.map(function(t){return '<button type="button" class="chip" data-tpl="'+TPL.indexOf(t)+'">'+esc(tplAll(t[0]).length>1?t[0]+" · "+t[3]:t[0])+"</button>";}).join(""):"";
+  el.innerHTML=hits.length?tplListHtml(hits):"";
 }
+/* Vorlagen als Liste (Variante A, 16.10.2026): Kategorie-Symbol, Name, Kurzinfo (Bezeichnung · Kündigung), «Übernehmen»; max. 3, Rest über «Weitere».
+   SwiftUI: Section("Aus dem Katalog ausfüllen") { ForEach(templates) { Label + Button } } */
+function tplTerm(t){if(t[2]==="Steuern & Gebühren")return "nicht kündbar";if(t[9])return "Pflichtvertrag";
+  var n=+t[5]||0;if(!n)return "jederzeit kündbar";var u={d:["Tag","Tage"],w:["Woche","Wochen"],m:["Monat","Monate"]}[t[6]]||["Monat","Monate"];
+  return n+" "+(n===1?u[0]:u[1])+" Frist";}
+function tplListHtml(L,variant){var more=!draft.tplMore&&L.length>3,V=more?L.slice(0,3):L;
+  return '<p class="tplhd">Aus dem Katalog ausfüllen</p><div class="tpllist">'+V.map(function(t){
+    var sub=[t[3]||t[2],t[1]&&variant?(t[1]==="CH"?"Schweiz":t[1]==="DE"?"Deutschland":t[1]):"",tplTerm(t)].filter(Boolean).join(" · ");
+    return '<button type="button" class="tplrow" data-tpl="'+TPL.indexOf(t)+'">'+markHtml({cat:t[2]||"Sonstiges"})+'<span class="t"><b>'+esc(t[0])+"</b><small>"+esc(sub)+'</small></span><em>Übernehmen</em></button>';}).join("")+
+    (more?'<button type="button" class="tplmore" data-tplmore>Weitere '+(L.length-3)+" anzeigen</button>":"")+"</div>";}
 /* Vorlage übernehmen. onlyEmpty (Internet-Treffer, «Übliche Frist übernehmen»): nur leere Felder füllen.
    Kategorie nur, wenn es sie (noch) gibt; Pflichtvertrag hebt «nicht beobachten» auf */
 /* Katalog-Zusammenfassung: Schnappschuss vor dem Übernehmen (für «Rückgängig») und Liste, was sich geändert hat */
@@ -4400,7 +4417,7 @@ function applyTpl(t,keepName,quiet,onlyEmpty){
   if(!onlyEmpty){draft.tplUndo=snap;draft.tplAfter=tplSnap();draft.tplSum=tplSumItems(snap,draft.tplAfter);}
   paintLogo();paintSwatches();paintSugg();updTermHint();if(!quiet&&onlyEmpty)toast("Vorlage übernommen — bitte prüfen");
 }
-document.getElementById("fPartner").addEventListener("input",function(){draft.tplHint="";draft.tplIdx=null;draft.stdTpl=null;paintSugg();});
+document.getElementById("fPartner").addEventListener("input",function(){draft.tplHint="";draft.tplIdx=null;draft.stdTpl=null;draft.tplMore=false;paintSugg();});
 document.getElementById("fLabel").addEventListener("input",paintSugg);
 /* Bekannter Vertragspartner (eigene Verträge, alle in derselben Währung): Währung übernehmen, solange noch kein Betrag steht. SwiftUI: onSubmit des Felds */
 document.getElementById("fPartner").addEventListener("change",function(){if(editId||document.getElementById("fAmt").value)return;
@@ -4410,6 +4427,7 @@ document.getElementById("sheetForm").addEventListener("click",function(ev){if(ev
 document.getElementById("fSugg").addEventListener("click",function(ev){
   if(ev.target.closest("[data-tplundo]")){tplUndo();return;}
   if(ev.target.closest("[data-std]")&&draft.stdTpl){var st=draft.stdTpl;applyTpl(st,true,false,true);draft.stdTpl=st;draft.stdDone=true;paintSugg();return;}
+  if(ev.target.closest("[data-tplmore]")){draft.tplMore=true;paintSugg();return;}
   var b=ev.target.closest("[data-tpl]");if(!b)return;applyTpl(TPL[+b.dataset.tpl]);tplLogo(TPL[+b.dataset.tpl]);
 });
 var tplCC="",tplQ="";
