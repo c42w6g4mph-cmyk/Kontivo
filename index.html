@@ -4637,9 +4637,8 @@ function syncCancUrl(){var $=function(i){return document.getElementById(i);},v=$
   $("fCancT").querySelectorAll("[data-cv]").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.cv===v);});
   $("fCancUrlW").hidden=off||v!=="Online / Kundenkonto";
   $("fCancMailW").hidden=off||v!=="E-Mail";if(document.activeElement!==$("fCancMail"))$("fCancMail").value=$("fMail").value;
-  var post=v==="Brief",ad=addrSplit($("fAddr").value,$("fPartner").value),line=[ad.street,[ad.zip,ad.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
-  $("fCancAddrW").hidden=off||!post;$("fCancAddrT").textContent="Adresse des Vertragspartners";
-  $("fCancAddrS").textContent=line||"Noch keine Adresse – wird für den Brief gebraucht";$("fCancAddrB").textContent=line?"Ändern":"Erfassen";}
+  /* Adresse nur noch einmal: im Feld «Adresse» bei den Kontaktdaten (16.10.2026); keine zweite Zeile unter Kündigung */
+  $("fCancAddrW").hidden=true;}
 document.getElementById("fCancF").addEventListener("change",syncCancUrl);
 document.getElementById("fCancT").addEventListener("click",function(ev){var b=ev.target.closest("[data-cv]");if(!b)return;
   var f=document.getElementById("fCancF");f.value=f.value===b.dataset.cv?"":b.dataset.cv;syncCancUrl();paintOptCounts();});
