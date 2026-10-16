@@ -1019,6 +1019,7 @@ body.hasplus .topadd{display:inline-flex}
 .vbar .vback i{flex:none;width:9px;height:9px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-left:3px}
 .vbar .vt{font-size:16px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .vbody{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:18px 14px 24px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.vbody{touch-action:pan-x pan-y}.vbody.zoomed{align-items:flex-start}.vbody.zoomed img,.vbody.zoomed canvas{max-width:none;flex:none}
 .vbody img,.vbody canvas{max-width:100%;height:auto;background:#fff;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.14),0 0 0 1px rgba(0,0,0,.05)}
 .vmsg{color:var(--ink2);font-size:14px;text-align:center;padding:40px 10px;line-height:1.6;max-width:360px}
 .vacts{display:flex;gap:8px;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line)}
@@ -5021,7 +5022,7 @@ async function openDoc(d){
   if(!d)return;
   docFree();curDoc=d;var tok=++docToken,url=d.blob?URL.createObjectURL(d.blob):KBlob.url(d.id),type=d.type||guessType(d.name);if(d.blob)curUrl=url;
   document.getElementById("vTitle").textContent=d.title||d.name||"Dokument";
-  document.getElementById("vEdit").hidden=!d.blob;document.getElementById("vMailTxt").hidden=!d.mail;
+  document.getElementById("vEdit").hidden=!d.edit;/* «Text ändern» nur beim Kündigungsschreiben */vZoomReset();document.getElementById("vMailTxt").hidden=!d.mail;
   document.getElementById("vSave").querySelector("span").textContent=d.blob?"Drucken oder teilen":"Teilen";
   document.getElementById("vBackL").textContent=d.blob?"Zurück":"Schliessen";
   document.getElementById("viewer").classList.add("on");vMsg("Wird geladen…");
@@ -5043,9 +5044,9 @@ async function openDoc(d){
       var w=Math.min(body.clientWidth-28,900),dpr=Math.min(2,window.devicePixelRatio||1),n=Math.min(pdf.numPages,40);
       for(var p=1;p<=n;p++){
         var page=await pdf.getPage(p);if(tok!==docToken)return;
-        var vp1=page.getViewport({scale:1}),vp=page.getViewport({scale:w/vp1.width*dpr});
+        var vp1=page.getViewport({scale:1}),vp=page.getViewport({scale:w/vp1.width*dpr*(n<=12?2:1)});/* doppelte Auflösung, damit Zoom scharf bleibt */
         var cv=document.createElement("canvas");cv.width=Math.round(vp.width);cv.height=Math.round(vp.height);
-        cv.style.width=w+"px";body.appendChild(cv);
+        cv.style.width=w+"px";cv.dataset.bw=w;body.appendChild(cv);
         await page.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
       }
       if(pdf.numPages>n)body.insertAdjacentHTML("beforeend",'<div class="vmsg">Weitere '+(pdf.numPages-n)+" Seiten — mit «Teilen» vollständig öffnen.</div>");
@@ -5056,6 +5057,23 @@ async function openDoc(d){
   }
   vMsg("Für diesen Dateityp gibt es keine Vorschau. Tippe auf «Teilen».");
 }
+/* Zoom in der Dokument-Vorschau (16.10.2026): Pinch mit zwei Fingern (1×–4×) und Doppeltipp (1× ↔ 2.5×). Die App selbst bleibt ohne Browser-Zoom.
+   SwiftUI: PDFKit PDFView (autoScales, Zoom eingebaut) */
+var vZoom=1;
+function vZoomReset(){vZoom=1;var b=document.getElementById("vBody");if(b)b.classList.remove("zoomed");}
+function vSetZoom(z,fx,fy){var b=document.getElementById("vBody"),old=vZoom;z=Math.max(1,Math.min(4,z));if(Math.abs(z-old)<0.001)return;
+  var sl=b.scrollLeft,st=b.scrollTop;vZoom=z;b.classList.toggle("zoomed",z>1.01);
+  b.querySelectorAll("canvas,img").forEach(function(el){if(!el.dataset.bw)el.dataset.bw=el.getBoundingClientRect().width/old;el.style.width=(+el.dataset.bw*z)+"px";});
+  b.scrollLeft=(sl+fx)*z/old-fx;b.scrollTop=(st+fy)*z/old-fy;}
+(function(){var b=document.getElementById("vBody"),d0=0,z0=1,lastTap=0;
+  var dist=function(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);};
+  var foc=function(t){var r=b.getBoundingClientRect();return [(t[0].clientX+t[1].clientX)/2-r.left,(t[0].clientY+t[1].clientY)/2-r.top];};
+  b.addEventListener("touchstart",function(e){if(e.touches.length===2){d0=dist(e.touches);z0=vZoom;e.preventDefault();}
+    else if(e.touches.length===1){var now=Date.now();if(now-lastTap<300){var r=b.getBoundingClientRect();vSetZoom(vZoom>1.01?1:2.5,e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);e.preventDefault();lastTap=0;}else lastTap=now;}},{passive:false});
+  b.addEventListener("touchmove",function(e){if(e.touches.length===2&&d0){e.preventDefault();var f=foc(e.touches);vSetZoom(z0*dist(e.touches)/d0,f[0],f[1]);}},{passive:false});
+  b.addEventListener("touchend",function(e){if(e.touches.length<2)d0=0;});
+  b.addEventListener("dblclick",function(e){var r=b.getBoundingClientRect();vSetZoom(vZoom>1.01?1:2.5,e.clientX-r.left,e.clientY-r.top);});
+})();
 document.getElementById("vClose").addEventListener("click",function(){
   docToken++;curDoc=null;docFree();document.getElementById("viewer").classList.remove("on");document.getElementById("vBody").innerHTML="";});
 /* Ein Knopf «Teilen» (iOS-Menü mit Mail, Drucken, In Dateien sichern): eine Web-App darf weder Mail mit Anhang
@@ -5565,7 +5583,7 @@ document.getElementById("ltPdf").addEventListener("click",async function(){
   var fnm=String(ltC.partner||ltC.label||"Vertrag").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/Ä/g,"Ae").replace(/Ö/g,"Oe").replace(/Ü/g,"Ue").replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"");
   var nm="Kuendigung-"+fnm.replace(/[^\w\-]+/g,"_")+"-"+iso(today())+".pdf";
   var mtxt=[L.ref.join("\n"),L.body,L.names.join("\n")+(L.sender.length>1?"\n"+L.sender.slice(1).join("\n"):"")].filter(Boolean).join("\n\n");
-  openDoc({blob:blob,name:nm,title:"Kündigung · "+(ltC.partner||ltC.label||"Vertrag"),type:"application/pdf",
+  openDoc({blob:blob,name:nm,edit:true,title:"Kündigung · "+(ltC.partner||ltC.label||"Vertrag"),type:"application/pdf",
     mail:isRent(ltC)?null:{to:String((state.contracts[ltC._id]||ltC).mail||"").trim(),subject:subj,text:mtxt}});
   /* Detail darunter mit den gespeicherten Nummern/Adresse neu zeichnen */
   if(document.getElementById("sheetDetail").classList.contains("on")&&state.contracts[ltC._id])openDetail(ltC._id);
