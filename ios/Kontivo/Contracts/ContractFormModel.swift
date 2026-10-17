@@ -188,6 +188,10 @@ final class CTFormState {
         case .newProvider(let draft):
             c = draft
             title = CancelResult.replacementFormTitle
+        case .bankSuggestion(let b):
+            // Bereich import: Vorschlag aus dem Kontoauszug (Web `openForm(c, false, "Vorschlag")`)
+            c = b.contract
+            title = "Vorschlag"
         }
         base = c
         let existing = data.contract(c.id) != nil
@@ -239,6 +243,13 @@ final class CTFormState {
         colorHex = c.colorHex
         logoID = c.logoID
         logoBg = c.logoBg
+        if case .bankSuggestion(let b) = context {
+            // Bereich import: Vertragspartner gibt es evtl. noch nicht – Name, Website, Adresse aus dem Vorschlag
+            partnerName = b.partnerName
+            web = b.web
+            address = b.address
+            addressShown = !b.address.isEmpty
+        }
         initialPartnerID = partner?.id
         initialWeb = partner?.web ?? ""
         initialAddress = partner?.address ?? PostalAddress()
@@ -1248,6 +1259,18 @@ final class CTFormState {
         let t = { (x: String) in Format.collapseSpaces(x) }
         let addr = PostalAddress(company: t(address.company), extra: t(address.extra), street: t(address.street),
                                  zip: t(address.zip), city: t(address.city), country: t(address.country))
+        if case .bankSuggestion(var b) = context {
+            // Bereich import: zurück in den Vorschlag statt sichern (Web `bkFormDone`)
+            c.id = b.contract.id
+            b.contract = c
+            b.partnerName = pname
+            b.web = webT
+            b.address = addr
+            b.logoID = logoID
+            b.logoBg = logoBg
+            BankFormBridge.shared.contractDone(b)
+            return true
+        }
         let touched = logoTouched
         let lid = logoID
         let lbg = logoBg

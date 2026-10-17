@@ -135,6 +135,7 @@ private struct CTFormHost: View {
         if form.save(model: model) {
             form.closed = true
             dismiss()
+            if case .bankSuggestion = context { return }   // Bereich import: zurück zur Vorschlagsliste, ohne Meldung
             model.toast(existing ? "Aktualisiert" : "Vertrag angelegt")
         }
     }
@@ -171,6 +172,12 @@ private struct CTFormPage: View {
                     CTFormAssignSection(form: form, focus: $focus)
                     CTFormContactSection(form: form, focus: $focus)
                     CTFormNoteSection(form: form, focus: $focus)
+                    if case .bankSuggestion(let b) = form.context {
+                        // Bereich import: «Nie mehr vorschlagen» (Web `#fBankIgn`)
+                        Section { BankFormIgnoreButton(draftID: b.id) }
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                    }
                 }
                 .listSectionSpacing(.compact)
                 .scrollContentBackground(.hidden)

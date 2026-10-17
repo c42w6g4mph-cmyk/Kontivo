@@ -85,6 +85,9 @@ enum ContractFormContext: Hashable {
     case duplicate(UUID)
     /// Pflichtvertrag gekündigt: Entwurf für den neuen Anbieter (Titel «Neuer Anbieter»)
     case newProvider(Contract)
+    /// Vorschlag aus dem Kontoauszug (Bereich import, Web v181 `bkOpenForm`): Titel «Vorschlag», «Sichern» schreibt nicht in die Daten,
+    /// sondern über `BankFormBridge.contractDone` zurück in den Vorschlag; unten «Nie mehr vorschlagen»
+    case bankSuggestion(BankFormDraft)
 
     var idPart: String {
         switch self {
@@ -92,6 +95,7 @@ enum ContractFormContext: Hashable {
         case .edit(let u): return "edit-\(u)"
         case .duplicate(let u): return "dup-\(u)"
         case .newProvider(let c): return "np-\(c.id)"
+        case .bankSuggestion(let b): return "bank-\(b.id)"
         }
     }
 }
