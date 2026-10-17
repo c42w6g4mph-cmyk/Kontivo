@@ -112,7 +112,7 @@ final class WebSync160Tests: XCTestCase {
                        Contract(label: "Leasing", amount: 300, due: Day(2026, 10, 20), end: Day(2027, 6, 30), notice: 3)]
         let h2 = Calc(data: d, today: today).hero()
         XCTAssertEqual(h2.monthlyTotal, 300, accuracy: 1e-9)
-        XCTAssertEqual(h2.subtitle, "3’600 CHF pro Jahr · 2 aktive Verträge")
+        XCTAssertEqual(h2.subtitle, "3’600 CHF im Jahr")   // Web v164
         // Budget-Leerseite und Pop-up ohne laufendes Probeabo
         XCTAssertEqual(Calc(data: d, today: today).kbBudgetEmptyText(),
                        "Deine Fixkosten sind schon da: 300.00 CHF im Monat. Es fehlen nur deine Einnahmen.")

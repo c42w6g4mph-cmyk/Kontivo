@@ -294,7 +294,7 @@ final class MutationTests: XCTestCase {
         let h = calc.hero()
         XCTAssertEqual(h.activeCount, 3)
         XCTAssertEqual(h.monthlyTotal, 50 + 18.9 * 0.94, accuracy: 1e-9) // laufendes Probeabo zählt erst ab Probe-Ende (Web v157)
-        XCTAssertTrue(h.subtitle.hasSuffix(" CHF pro Jahr · 3 aktive Verträge"))
+        XCTAssertTrue(h.subtitle.hasSuffix(" CHF im Jahr"), h.subtitle)   // Web v164: ruhige Unterzeile ohne Aufzählung
         let y = calc.costYear(2026, filter: Calc.CostFilter())
         XCTAssertEqual(y.months[9].items.count, 2)
         XCTAssertEqual(y.months[11].sum, 18.9 * 0.94 + 12.95, accuracy: 1e-9)

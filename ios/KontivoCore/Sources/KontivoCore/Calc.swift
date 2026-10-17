@@ -532,39 +532,85 @@ public struct Calc {
 
     // MARK: Kopfbereich (renderHero)
 
+    /// Status-Filter der Chips im Kopf «Verträge» (Web `state.heroF`: "act" | "paused" | "fut").
+    public enum HeroStatus: String, Hashable, Sendable, CaseIterable {
+        case active = "act", paused, future = "fut"
+    }
+
     public struct Hero: Hashable, Sendable {
-        /// Summe Monatskosten der laufenden, begonnenen Verträge (Hauptwährung)
+        /// Summe Monatskosten (Hauptwährung) der Verträge des Status-Filters (Standard: laufend und begonnen), ohne laufende Probeabos
         public var monthlyTotal: Double
         public var yearlyTotal: Double
         /// laufend und begonnen
         public var activeCount: Int
         public var pausedCount: Int
         public var futureCount: Int
-        /// «1’234 CHF pro Jahr · 3 aktive Verträge»
+        /// Beschriftung über der Summe (Web v189 `.hlabel`): «Fixkosten pro Monat», «Pausiert, pro Monat», «Noch nicht aktiv, pro Monat»
+        public var label: String = Calc.heroLabelDefault
+        /// Unterzeile (Web v164/v189 `#hSub`): «24’240 CHF im Jahr», mit Filter «… im Jahr – Wohnen · Lara»;
+        /// bei Status «pausiert» bzw. «noch nicht aktiv» ein erklärender Satz statt der Jahressumme
         public var subtitle: String
         /// Chips nur, wenn pausierte oder künftige existieren
         public var showsChips: Bool
+        /// Wirksamer Status-Filter (nil, wenn der gewünschte Filter keinen Vertrag mehr hat; Web setzt `heroF` dann zurück)
+        public var status: HeroStatus? = nil
     }
 
-    /// Mit Filter (Web v161 `renderHero`): Kategorie/Vertragspartner/Person gelten auch für die Summe, bei Person nur deren Anteil;
-    /// die Unterzeile nennt dann den Filter («… pro Jahr · Wohnen»).
-    public func hero(filter f: CostFilter = CostFilter()) -> Hero {
+    public static let heroLabelDefault = "Fixkosten pro Monat"
+    public static let heroLabelPaused = "Pausiert, pro Monat"
+    public static let heroLabelFuture = "Noch nicht aktiv, pro Monat"
+    public static let heroSubPaused = "Zählt nicht zu deinen Fixkosten, solange pausiert"
+    public static let heroSubFuture = "Zählt ab Vertragsbeginn zu deinen Fixkosten"
+
+    /// Wirksamer Status-Filter (Web `renderHero`): «aktiv» nur, solange es pausierte oder künftige und mindestens einen aktiven
+    /// gibt; «pausiert»/«noch nicht aktiv» nur mit mindestens einem solchen Vertrag; sonst nil.
+    public static func effectiveHeroStatus(_ s: HeroStatus?, active a: Int, paused np: Int, future fut: Int) -> HeroStatus? {
+        switch s {
+        case .active?: return (np == 0 && fut == 0) || a == 0 ? nil : s
+        case .paused?: return np == 0 ? nil : s
+        case .future?: return fut == 0 ? nil : s
+        case nil: return nil
+        }
+    }
+
+    /// Kopf «Verträge» (Web v224 `renderHero`): Filter Kategorie/Vertragspartner/Person gelten auch für die Summe (bei Person nur
+    /// deren Anteil, v161); die Summe folgt dem Status-Filter `status` (v189: pausiert / noch nicht aktiv, sonst laufend und
+    /// begonnen) mit passender Beschriftung. Laufendes Probeabo kostet (noch) nichts (v157). Unterzeile ruhig ohne Aufzählung (v164).
+    public func hero(filter f: CostFilter = CostFilter(), status: HeroStatus? = nil) -> Hero {
         let lf = f.count > 0
         let fm: (Contract) -> Bool = { !lf || self.matches($0, f) }
         let run = running.filter(fm)
         let fut = run.filter { notStarted($0) }.count
         let a = run.filter { !notStarted($0) }
-        // laufendes Probeabo kostet (noch) nichts: erst ab Probe-Ende in der Summe (Web v157)
-        let sum = a.reduce(0.0) { $0 + (trialOn($1) ? 0 : monthlyCost($1) * holderShare($1, person: f.person)) }
         let np = active.filter(fm).count - a.count - fut
-        var sub = Format.money0(sum * 12) + " " + home.rawValue + " pro Jahr"
-        if lf {
-            sub += " · " + [f.category, f.partner, f.person.flatMap { data.person($0)?.name }].compactMap { $0 }.joined(separator: " · ")
-        } else if np == 0 && fut == 0 && !a.isEmpty {
-            sub += " · \(a.count)" + (a.count == 1 ? " aktiver Vertrag" : " aktive Verträge")
+        let hf = Calc.effectiveHeroStatus(status, active: a.count, paused: np, future: fut)
+        let sl: [Contract]
+        switch hf {
+        case .paused?: sl = active.filter(fm).filter { isPaused($0) }
+        case .future?: sl = run.filter { notStarted($0) }
+        default: sl = a
+        }
+        let sum = sl.reduce(0.0) { $0 + (trialOn($1) ? 0 : monthlyCost($1) * holderShare($1, person: f.person)) }
+        let label: String
+        let sub: String
+        switch hf {
+        case .paused?:
+            label = Calc.heroLabelPaused
+            sub = Calc.heroSubPaused
+        case .future?:
+            label = Calc.heroLabelFuture
+            sub = Calc.heroSubFuture
+        default:
+            label = Calc.heroLabelDefault
+            sub = Format.money0(sum * 12) + " " + home.rawValue + " im Jahr" + (lf ? " – " + filterLabel(f) : "")
         }
         return Hero(monthlyTotal: sum, yearlyTotal: sum * 12, activeCount: a.count, pausedCount: np, futureCount: fut,
-                    subtitle: sub, showsChips: np > 0 || fut > 0)
+                    label: label, subtitle: sub, showsChips: np > 0 || fut > 0, status: hf)
+    }
+
+    /// Filtertext «Kategorie · Vertragspartner · Person» (Web `fltLabel`).
+    public func filterLabel(_ f: CostFilter) -> String {
+        [f.category, f.partner, f.person.flatMap { data.person($0)?.name }].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
     }
 
     /// Quartals-Check fällig: ≥ 90 Tage seit letzter Prüfung (sonst seit erster Erfassung), nicht verschoben, mind. 1 aktiver Vertrag.
