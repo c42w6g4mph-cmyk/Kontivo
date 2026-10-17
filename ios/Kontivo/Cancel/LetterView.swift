@@ -92,14 +92,14 @@ struct LetterView: View {
                 .accessibilityIdentifier("letter.kvg")
         }
         if showMissing { missingSection(c) }
-        LetterField(label: "Betreff") {
+        LetterLabeled(label: "Betreff") {
             TextField("", text: $subject)
                 .font(.system(size: 16))
                 .focused($focus, equals: .subject)
                 .letterBox()
                 .accessibilityLabel("Betreff")
         }
-        LetterField(label: "Text") {
+        LetterLabeled(label: "Text") {
             TextEditor(text: $bodyText)
                 .font(.system(size: 16))
                 .lineSpacing(4.6)
@@ -160,7 +160,7 @@ struct LetterView: View {
     }
 
     @ViewBuilder private func recipientSection(_ c: Contract) -> some View {
-        LetterField(label: "Empfänger") {
+        LetterLabeled(label: "Empfänger") {
             ZStack(alignment: .topLeading) {
                 if toText.isEmpty {
                     Text("Firma AG\nStrasse Nr.\nPLZ Ort")
@@ -211,7 +211,7 @@ struct LetterView: View {
                 .foregroundStyle(KColor.ink2)
             HStack(alignment: .top, spacing: 11) {
                 if c.customerNo.isEmpty {
-                    LetterField(label: "Kundennummer") {
+                    LetterLabeled(label: "Kundennummer") {
                         TextField("", text: $custNo)
                             .font(.system(size: 16))
                             .textInputAutocapitalization(.never)
@@ -224,7 +224,7 @@ struct LetterView: View {
                 }
                 if c.contractNo.isEmpty {
                     let l = Letter.contractNumberLabel(c, data: model.data)
-                    LetterField(label: l) {
+                    LetterLabeled(label: l) {
                         TextField("", text: $contrNo)
                             .font(.system(size: 16))
                             .textInputAutocapitalization(.never)
@@ -681,7 +681,7 @@ private struct LetterSignatureRow: View {
 }
 
 /// Feld mit Beschriftung darüber (Web `.field`: label 12.5 Tinte 2, Abstand 5, 12 darunter)
-private struct LetterField<Content: View>: View {
+private struct LetterLabeled<Content: View>: View {
     let label: String
     @ViewBuilder var content: Content
     var body: some View {

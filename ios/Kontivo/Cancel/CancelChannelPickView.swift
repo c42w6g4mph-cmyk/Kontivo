@@ -18,11 +18,18 @@ struct CancelChannelPickView: View {
         var id: String { channel.rawValue }
     }
 
-    private let options: [Option] = [
-        Option(channel: .online, title: "Online", detail: "Kundenkonto, Kündigungsbutton"),
-        Option(channel: .email, title: "Per E-Mail", detail: "Mail mit fertigem Text"),
-        Option(channel: .letter, title: "Per Brief", detail: "PDF mit Unterschrift"),
-    ]
+    /// Web `openCancViaPick`: Online · Per E-Mail · Per Brief · Per Telefon (v210). Aus `CancelChannel.allCases`, damit «Telefon»
+    /// erscheint, sobald der Kern den Weg kennt (TODO core-API).
+    private let options: [Option] = CancelChannel.allCases.compactMap { ch in
+        let t: [String: (String, String)] = [
+            "Online / Kundenkonto": ("Online", "Kundenkonto, Kündigungsbutton"),
+            "E-Mail": ("Per E-Mail", "Mail mit fertigem Text"),
+            "Brief": ("Per Brief", "PDF mit Unterschrift"),
+            "Telefon": ("Per Telefon", "Kundendienst anrufen"),
+        ]
+        guard let v = t[ch.webText] else { return nil }
+        return Option(channel: ch, title: v.0, detail: v.1)
+    }
 
     var body: some View {
         let c = model.data.contract(contractID)

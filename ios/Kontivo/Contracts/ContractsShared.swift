@@ -221,15 +221,6 @@ struct CTInfoButton: View {
     }
 }
 
-// MARK: - Telefon
-
-enum CTPhone {
-    /// Nummer zum Wählen (Web `String(c.tel).replace(/[^\d+]/g, "")`)
-    static func dialDigits(_ s: String) -> String {
-        String(s.filter { ("0"..."9").contains($0) || $0 == "+" })
-    }
-}
-
 // MARK: - Texte
 
 enum CTText {

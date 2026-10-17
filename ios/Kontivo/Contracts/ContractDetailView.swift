@@ -280,7 +280,7 @@ private struct CTDetailHeader: View {
             .accessibilityAddTraits(.isHeader)
             CTDetailDocsButton(count: contract.documents.count, action: onDocs)
         }
-        .padding(.top, 18)
+        .padding(.top, 14)
         .padding(.bottom, 6)
     }
 }

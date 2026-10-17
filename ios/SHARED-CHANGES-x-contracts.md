@@ -10,15 +10,27 @@
 | `.github/workflows/ios.yml` | Zeile `shoot … 10b-detail-sonderkuendigung -uiSeed skr -uiSheet detail:Krankenkasse` | Vergleich Web ↔ Swift |
 
 ## Lokale Stellen «TODO core-API» (bei der Integration auf Kern umstellen)
-| Stelle | Lokal | Kern (Bereich core) |
+Kern-API laut `swift-x-core` (Commits c9a9c23, 198112a, cbbb623, 6838d3a; SHARED-CHANGES-x-core.md):
+
+| Stelle (contracts) | Lokal | Kern (Bereich core) |
 |---|---|---|
-| `Contracts/ContractsTab.swift` `CTHeroText` | Summe/Beschriftung/Unterzeile je Status-Filter (v189) | `Calc.hero(filter:status:)` mit `label`, `status` (Commit c9a9c23 auf swift-x-core). `HeroFilter` (App) ↔ `Calc.HeroStatus` abbilden, dann `CTHeroText` löschen. |
-| `Contracts/ContractSpecialCancel.swift` `CTSpecialCancel` | Regeln/Zeile/Blatt Sonderkündigung (v205–v209) | `Calc.specialCancel(_:)` / `SpecialCancelInfo` / `SpecialCancelSheet` (SpecialCancel.swift). `CTSkrLine`/`CTSkrSheet` (Ansicht) bleiben, Daten aus dem Kern. Danach `Calc.specialCancelHint`/`specialCancelText` (alt) nicht mehr verwenden. |
-| `Contracts/ContractFormPartner.swift` `CTCatalogHits` | Katalogtreffer für die Trefferliste (`tplAll`, `tplHits`, `tplTerm`) | z.B. `Catalog.all(named:currency:)`, `Catalog.hits(_:currency:more:)`, `CatalogEntry.termShort` |
-| `Contracts/ContractsShared.swift` `CTFormText` | «Pflichtvertrag», «Kündigen nur mit neuem Anbieter», Info-Text (v202/v210) | `ContractFormRules.mandatoryTitle/-Subtitle/-Info` |
-| `Cancel/CancelLogic.swift` `cancelFlowPhone` | «Anrufen» (Web v210 `ktel`): ohne Nummer «Telefonnummer fehlt» → Formular bei Telefon, sonst `tel:` und Rückfrage «Gekündigt?» | Kündigungsweg Telefon im Modell (`CancelChannel` «Telefon», `CancelVia.tel`). Dann: `startCancel` `case .tel: cancelFlowPhone(c, trial:)`; Kündigungsweg-Kachel «Telefon» im Formular (`CTCancelWaySegment`); Auswahl «Per Telefon · Kundendienst anrufen» in `CancelChannelPickView`; Menü-Untertitel kommt aus `Calc.detailMenu`. `ContractFormFocus.tel` ist schon da. |
+| `Contracts/ContractsTab.swift` `CTHeroText` + `CTListContent.effectiveHero` | Summe/Beschriftung/Unterzeile je Status-Filter (v189) | `calc.hero(filter:status:)` → `h.label`, `h.subtitle`, `h.monthlyTotal`, `h.status`; App-`HeroFilter` → `Calc.HeroStatus` (`.active/.paused/.future`). `CTHeroText` löschen. |
+| `Contracts/ContractSpecialCancel.swift` `CTSpecialCancel` (`info`, `sheet`, `rule`, `isKvg`) | Regeln/Texte v205–v209 | `calc.specialCancel(c)` (Zeile: `head`, `tail`) und `calc.specialCancelSheet(c)` (`title`, `intro`, `rows[key,value,sub,accent]`, `tips`, `footer`). `CTSkrLine`/`CTSkrSheet` (Ansicht) behalten, nur die Daten tauschen; `CTSkr*`-Typen löschen. Alt `Calc.specialCancelHint/specialCancelText` nicht mehr verwenden. |
+| `Contracts/ContractFormPartner.swift` `CTCatalogHits` (`all`, `hits`, `term`, `subtitle`) | Katalogtreffer v213 | `Catalog.all/find(label:preferred:)`, `Catalog.hits`, `hitSubtitle`, `hitDomains`, `CatalogEntry.termShort` |
+| `Contracts/ContractFormModel.swift` `isChPower`/`chPowerDefault`, Leasing in `applyTemplate` | v210/v214 | `isSwissPower`/`swissPowerStep`, `isLeasing` (Ablauf `tmTouched`/`chPower` im Formular bleibt) |
+| `Contracts/ContractFormModel.swift` `save`/`addPrice`/`addExtra` Meldungen «… fehlt» | v218 Texte lokal | `checkContract`/`checkPriceChange`/`checkExtra` mit Zielfeld; Zielfeld auf `form.miss(_:)` abbilden (Markierung `ctMiss` bleibt) |
+| `Contracts/ContractsShared.swift` `CTFormText` | «Pflichtvertrag», «Kündigen nur mit neuem Anbieter», Info-Text | `ContractFormRules.mandatoryTitle/-Subtitle/-Info` |
+
+### Kündigungsweg Telefon (v210) – Kern hat ihn schon (CancelChannel.phone, CancelVia.tel)
+Der Bereich core hat dafür auch App-Stellen im Bereich contracts geändert (`cancelFlowPhone` in CancelLogic, `CTText.cancelButton(.tel)` «Anrufen», `ContractFormFocus.tel`, Segment/Auswahl Telefon). Auf diesem Branch:
+- `ContractFormFocus.tel` ist wortgleich ergänzt (Merge ohne Konflikt); `cancelFlowPhone` gibt es hier bewusst **nicht** (Version von core übernehmen).
+- `CTCancelWaySegment.items` (ContractFormParts) und `CancelChannelPickView.options` bauen die Liste aus `CancelChannel.allCases` → mit `.phone` erscheinen «Telefon» bzw. «Per Telefon · Kundendienst anrufen» automatisch. **Merge-Konflikt** an diesen zwei Stellen und in `ContractFormTerm.cancelWayRows` (`switch`): jeweils die Fassung von contracts nehmen (`default:` deckt `.phone` ab, kein Folgefeld wie Web).
 
 ## Integrationshinweise
-- `CTPageHeader` (Titelzeile «Verträge» mit Plus, Web `.top` 57 pt) und `CTSheetBar` (Fensterleiste Detail/Formular, Web `.shbar`) sind lokal gebaut. Falls der Bereich design gemeinsame Bausteine dafür hat, diese verwenden.
+- Bereich design hat (swift-x-design, SHARED-CHANGES-x-design.md) gemeinsame Bausteine gebaut. Bei der Integration umstellen:
+  - `CTPageHeader` (ContractsTab.swift) → `KTabHeader(title: "Verträge") { AddMenuButton() im KAddButton-Look }` + `.kTabPage(title:)` (bringt zusätzlich die Mini-Kopfzeile `.minibar` beim Scrollen, die hier noch fehlt).
+  - `CTSheetBar`/`CTBarCancelButton`/`CTBarConfirmButton` (ContractSheetBar.swift; Detail, Formular, Brief) → `.kSheetBar()` + `ToolbarItem { KBarButton(…) }.kPlain()`. `CTBarMenuLabel` (••• 34 pt, `--sunken`) bleibt oder wandert nach Design.
+  - `CTIcon.named("x")` → `KIcon.view("ic.x", size)`; alle verwendeten Namen gibt es bei design (search, filter, sort, clip, more, pen, book, plus). Danach `ic.ct.*.imageset` löschen.
+  - `CTListMetric.side` (17) → `KMetric.gutter` (bei design jetzt 17), `CTListMetric.groupRadius` → `KMetric.groupRadius`.
 - Der Verträge-Tab blendet die Navigationsleiste aus (`.toolbar(.hidden, for: .navigationBar)`), Titel und Plus scrollen mit der Seite (wie Web).
 - `MarkView` (design): Web-Radien 12 (50 pt), 17 (76 pt), 9 (34 pt) statt `size * 0.25`; Pastell-Kategorien (Web v166) kommen vom Bereich design.

@@ -108,31 +108,6 @@ extension AppModel {
 
     // MARK: Wege
 
-    /// «Anrufen» (Web v210 `ktel`, Kündigungsweg Telefon aus dem Katalog, z.B. Sunrise, Salt): ohne Nummer «Telefonnummer fehlt» →
-    /// Formular beim Feld Telefon; sonst Kundendienst anrufen und beim Zurückkommen «Gekündigt?» fragen.
-    // TODO core-API: Kündigungsweg Telefon (`CancelChannel` «Telefon», `CancelVia.tel`) baut der Bereich core. Dann in
-    // `startCancel` den Fall `.tel` hierher leiten (`case .tel: cancelFlowPhone(c, trial: trial)`).
-    func cancelFlowPhone(_ c: Contract, trial: Bool) {
-        let tn = CTPhone.dialDigits(c.tel)
-        let id = c.id
-        if tn.isEmpty {
-            CancelWindowFlow.ask(self, title: "Telefonnummer fehlt",
-                                 message: "Trag die Nummer des Kundendiensts beim Vertrag unter «Kontakt» ein.",
-                                 ok: "Eintragen") { [weak self] in
-                guard let self else { return }
-                ContractFormLaunch.edit(self, id, focus: .tel)
-            }
-            return
-        }
-        guard let url = URL(string: "tel:" + tn) else { return }
-        pendingCancel = PendingCancel(contractID: id, trial: trial)
-        toast("Nach dem Anruf hier bestätigen")
-        CancelWindowFlow.afterDismiss(self, wait: 350, keepStack: false,
-                                      still: { [weak self] in self?.pendingCancel?.contractID == id }) { [weak self] in
-            self?.cancelFlowOpenExternal(url, pending: PendingCancel(contractID: id, trial: trial))
-        }
-    }
-
     private func cancelFlowOnline(_ c: Contract, trial: Bool, calc: Calc) {
         guard let url = CancelLinks.web(calc.cancLink(c)) else {
             toast("Kein Link hinterlegt. Trag Website oder Kündigungslink ein.")

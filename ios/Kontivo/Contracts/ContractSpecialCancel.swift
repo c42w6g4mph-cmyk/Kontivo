@@ -188,7 +188,7 @@ struct CTSkrLine: View {
         Button(action: action) {
             HStack(alignment: .center, spacing: 9) {
                 Text("i")
-                    .font(.custom("Georgia", size: 10.5).weight(.semibold))
+                    .font(.custom("Georgia", size: 10.5).weight(.semibold).italic())
                     .foregroundStyle(KColor.ink2)
                     .frame(width: 17, height: 17)
                     .overlay(Circle().strokeBorder(KColor.ink2, lineWidth: 1))

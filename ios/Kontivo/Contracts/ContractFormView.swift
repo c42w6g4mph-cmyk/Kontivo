@@ -165,7 +165,7 @@ private struct CTFormPage: View {
                         CTFormNoteSection(form: form, focus: $focus)
                     }
                     .padding(.horizontal, max(CTListMetric.side, (geo.size.width - KMetric.maxContent) / 2))
-                    .padding(.top, 12)
+                    .padding(.top, 9)
                     .padding(.bottom, 32)
                 }
                 .scrollDismissesKeyboard(.interactively)

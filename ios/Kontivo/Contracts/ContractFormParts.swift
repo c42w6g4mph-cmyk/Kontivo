@@ -450,7 +450,12 @@ struct CTCancelWaySegment: View {
         var id: CancelChannel { value }
     }
 
-    private static let items: [Item] = [Item(value: .online, title: "Online"), Item(value: .email, title: "E-Mail"), Item(value: .letter, title: "Brief")]
+    /// Aus `CancelChannel.allCases` (Web v210: Online · E-Mail · Brief · Telefon). Kommt der Weg «Telefon» im Kern dazu
+    /// (`webText` «Telefon»), erscheint die vierte Kachel ohne weitere Änderung.
+    private static let items: [Item] = CancelChannel.allCases.map { ch in
+        let t: [String: String] = ["Online / Kundenkonto": "Online", "E-Mail": "E-Mail", "Brief": "Brief", "Telefon": "Telefon"]
+        return Item(value: ch, title: t[ch.webText] ?? ch.webText)
+    }
 
     var body: some View {
         HStack(spacing: 2) {
