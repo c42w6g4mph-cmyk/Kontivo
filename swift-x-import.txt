@@ -1,0 +1,146 @@
+branch=swift-x-import run=130 sha=b8926f79a6027f540a899c6186121fe98bdf4107
+core=failure app=failure ui=skipped
+
+===== KERN: Fehler =====
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+error: fatalError
+
+===== KERN: Ende =====
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+181 |             if [1, 2, 3, 6, 12].contains(n) { return n }
+182 |         }
+[41/49] Compiling KontivoCore BankRead.swift
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+178 |     static func period(_ txt: String) -> Int {
+179 |         if let m = rxPeriod.match(txt) {
+180 |             let n = ((Int(m.s(4)) ?? 0) - (Int(m.s(2)) ?? 0)) * 12 + ((Int(m.s(3)) ?? 0) - (Int(m.s(1)) ?? 0)) + 1
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+181 |             if [1, 2, 3, 6, 12].contains(n) { return n }
+182 |         }
+[42/49] Compiling KontivoCore BankStatementText.swift
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+178 |     static func period(_ txt: String) -> Int {
+179 |         if let m = rxPeriod.match(txt) {
+180 |             let n = ((Int(m.s(4)) ?? 0) - (Int(m.s(2)) ?? 0)) * 12 + ((Int(m.s(3)) ?? 0) - (Int(m.s(1)) ?? 0)) + 1
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+181 |             if [1, 2, 3, 6, 12].contains(n) { return n }
+182 |         }
+[43/49] Compiling KontivoCore BankTypes.swift
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+178 |     static func period(_ txt: String) -> Int {
+179 |         if let m = rxPeriod.match(txt) {
+180 |             let n = ((Int(m.s(4)) ?? 0) - (Int(m.s(2)) ?? 0)) * 12 + ((Int(m.s(3)) ?? 0) - (Int(m.s(1)) ?? 0)) + 1
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+181 |             if [1, 2, 3, 6, 12].contains(n) { return n }
+182 |         }
+[44/49] Compiling KontivoCore BankUtil.swift
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+178 |     static func period(_ txt: String) -> Int {
+179 |         if let m = rxPeriod.match(txt) {
+180 |             let n = ((Int(m.s(4)) ?? 0) - (Int(m.s(2)) ?? 0)) * 12 + ((Int(m.s(3)) ?? 0) - (Int(m.s(1)) ?? 0)) + 1
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+181 |             if [1, 2, 3, 6, 12].contains(n) { return n }
+182 |         }
+[45/49] Compiling KontivoCore BudgetShare.swift
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+178 |     static func period(_ txt: String) -> Int {
+179 |         if let m = rxPeriod.match(txt) {
+180 |             let n = ((Int(m.s(4)) ?? 0) - (Int(m.s(2)) ?? 0)) * 12 + ((Int(m.s(3)) ?? 0) - (Int(m.s(1)) ?? 0)) + 1
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+181 |             if [1, 2, 3, 6, 12].contains(n) { return n }
+182 |         }
+[46/49] Compiling KontivoCore CSV.swift
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+178 |     static func period(_ txt: String) -> Int {
+179 |         if let m = rxPeriod.match(txt) {
+180 |             let n = ((Int(m.s(4)) ?? 0) - (Int(m.s(2)) ?? 0)) * 12 + ((Int(m.s(3)) ?? 0) - (Int(m.s(1)) ?? 0)) + 1
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+181 |             if [1, 2, 3, 6, 12].contains(n) { return n }
+182 |         }
+[47/49] Compiling KontivoCore Calc.swift
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+178 |     static func period(_ txt: String) -> Int {
+179 |         if let m = rxPeriod.match(txt) {
+180 |             let n = ((Int(m.s(4)) ?? 0) - (Int(m.s(2)) ?? 0)) * 12 + ((Int(m.s(3)) ?? 0) - (Int(m.s(1)) ?? 0)) + 1
+    |                 `- error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+181 |             if [1, 2, 3, 6, 12].contains(n) { return n }
+182 |         }
+error: fatalError
+
+===== APP: Fehler =====
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift:180:17: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
+** BUILD FAILED **
+
+===== APP: Ende =====
+SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Reminders.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Sync/SyncCodec.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Sync/SyncCore.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Sync/SyncKey.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Sync/SyncMerge.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Sync/SyncTexts.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/WebImport.swift (in target 'KontivoCore' from project 'KontivoCore')
+    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal x86_64 Compiling Calc.swift, Catalog.swift, Completeness.swift, ContractDetailRules.swift, ContractFormRules.swift, Day.swift, ExtKostenBudget.swift, ExtManage.swift, Format.swift, Letter.swift, Models.swift, Mutations.swift (in target 'KontivoCore' from project 'KontivoCore')
+
+SwiftCompile normal arm64 Compiling\ resource_bundle_accessor.swift,\ Backup.swift,\ BankCatalog.swift,\ BankFind.swift,\ BankIncome.swift,\ BankName.swift,\ BankRead.swift,\ BankStatementText.swift,\ BankTypes.swift,\ BankUtil.swift,\ BudgetShare.swift,\ CSV.swift /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/KontivoCore.build/Debug-iphonesimulator/KontivoCore.build/DerivedSources/resource_bundle_accessor.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Backup.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankFind.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankIncome.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankName.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankRead.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankStatementText.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankTypes.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankUtil.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BudgetShare.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/CSV.swift (in target 'KontivoCore' from project 'KontivoCore')
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift (in target 'KontivoCore' from project 'KontivoCore')
+	SwiftCompile normal x86_64 Compiling\ resource_bundle_accessor.swift,\ Backup.swift,\ BankCatalog.swift,\ BankFind.swift,\ BankIncome.swift,\ BankName.swift,\ BankRead.swift,\ BankStatementText.swift,\ BankTypes.swift,\ BankUtil.swift,\ BudgetShare.swift,\ CSV.swift /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/KontivoCore.build/Debug-iphonesimulator/KontivoCore.build/DerivedSources/resource_bundle_accessor.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Backup.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankFind.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankIncome.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankName.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankRead.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankStatementText.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankTypes.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankUtil.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BudgetShare.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/CSV.swift (in target 'KontivoCore' from project 'KontivoCore')
+	Building project Kontivo with scheme Kontivo
+(3 failures)
+
+===== UI-TESTS =====
+ui=skipped
+
+--- Absturzberichte ---
+keine
+
+===== BILDSCHIRMFOTOS =====
+keine
