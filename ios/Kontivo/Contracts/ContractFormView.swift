@@ -97,6 +97,10 @@ private struct CTFormHost: View {
         }
         // Steuern & Gebühren erzwingen «Nicht kündbar» (Web paintCats)
         .onChange(of: form.categoryID) { _, _ in form.categoryChanged(model.data) }
+        // Strom in der Schweiz: «Nicht kündbar» als Vorschlag (Web v210 `chPowerDefault` bei Währung, Bezeichnung, Vertragspartner)
+        .onChange(of: form.currency) { _, _ in form.chPowerDefault(model.data) }
+        .onChange(of: form.label) { _, _ in form.chPowerDefault(model.data) }
+        .onChange(of: form.partnerName) { _, _ in form.chPowerDefault(model.data) }
         // Dokumente (Knopf rechts im Kopf): Datei oder Foto direkt in den Entwurf
         .fileImporter(isPresented: $form.showFileImporter, allowedContentTypes: [.pdf, .png, .jpeg, .webP, .heic, .image]) { result in
             CTFormDocs.importFile(result, form: form, model: model)
@@ -175,6 +179,12 @@ private struct CTFormPage: View {
                 .listSectionSpacing(.compact)
                 .scrollContentBackground(.hidden)
                 .scrollDismissesKeyboard(.interactively)
+                // Web v214: Trefferliste schliesst bei Tipp ausserhalb von Feld und Liste
+                .simultaneousGesture(SpatialTapGesture(coordinateSpace: .global).onEnded { v in
+                    guard form.sugVisible else { return }
+                    if form.sugFrame.contains(v.location) || form.partnerFieldFrame.contains(v.location) { return }
+                    CTPartnerSearch.hide(form)
+                })
                 .contentMargins(.horizontal, max(KMetric.gutter, (geo.size.width - KMetric.maxContent) / 2), for: .scrollContent)
                 .onChange(of: form.goTo) { _, f in
                     guard let f else { return }
@@ -191,8 +201,8 @@ private struct CTFormPage: View {
         form.goTo = nil
         var f = f0
         switch f0 {
-        case .prices: form.priceOpen = true
-        case .extras: form.extraOpen = true
+        case .prices, .priceAmount: form.priceOpen = true
+        case .extras, .extraDate, .extraAmount: form.extraOpen = true
         case .address: form.addressShown = true
         case .cancelURL: if form.cancelChannel != .online { f = .web }
         case .cancelMail: if form.cancelChannel != .email { f = .mail }
@@ -322,6 +332,7 @@ private struct CTFormHead: View {
                     .onSubmit { focus.wrappedValue = .partner }
                     .padding(.horizontal, 10).padding(.vertical, 8)
                     .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.field))
+                    .ctMiss(form, .label, ring: true)
                     .accessibilityLabel("Bezeichnung")
                     .accessibilityIdentifier("form.label")
                     .onChange(of: form.label) { _, _ in form.sugActive = true }
@@ -520,10 +531,6 @@ private struct CTFormCostSection: View {
             priceRows(today: today)
             if form.priceOpen {
                 priceForm(today: today)
-            } else {
-                CTFormAddRow(title: "Preisänderung", identifier: "form.priceOpen") {
-                    withAnimation(.easeInOut(duration: 0.2)) { form.openPriceForm() }
-                }
             }
             Picker(selection: Binding(get: { form.cycle }, set: { v in
                 if let t = form.setCycle(v, today: model.today) { model.toast(t) }
@@ -564,10 +571,40 @@ private struct CTFormCostSection: View {
 
     /// Betrag (bzw. Anfangspreis) und Währung in einer Zeile (Web #fAmt + #fCur)
     private var amountRow: some View {
+        VStack(alignment: .trailing, spacing: 0) {
+            amountLine
+                .ctMiss(form, .amount)
+            // Web v215: «+ Preisänderung» als kleine Plakette rechts unter dem Betrag, erst mit Betrag (oder erfassten Preisen)
+            if !form.priceOpen && (!form.amountText.ctTrimmed.isEmpty || !form.prices.isEmpty) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { form.openPriceForm() }
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 10, weight: .bold))
+                        Text("Preisänderung")
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundStyle(KColor.teal)
+                    .padding(.horizontal, 11).padding(.vertical, 5)
+                    .background(Capsule().fill(KColor.teal.opacity(0.13)))
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(.borderless)
+                .padding(.top, 2)
+                .padding(.bottom, 4)
+                .accessibilityLabel("Preisänderung")
+                .accessibilityIdentifier("form.priceOpen")
+            }
+        }
+        .id(ContractFormField.amount)
+    }
+
+    private var amountLine: some View {
         HStack(spacing: 8) {
             CTRowLabel(form.prices.isEmpty ? "Betrag" : "Anfangspreis")
                 .layoutPriority(1)
-            TextField(CTNumber.placeholder(form.currency), text: $form.amountText)
+            TextField("", text: $form.amountText, prompt: Text("hinzufügen").foregroundColor(KColor.ink3))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .monospacedDigit()
@@ -594,7 +631,6 @@ private struct CTFormCostSection: View {
             .accessibilityLabel("Währung, " + form.currency.rawValue)
             .accessibilityIdentifier("form.currency")
         }
-        .id(ContractFormField.amount)
     }
 
     /// Preisliste (Web #pList .fpr): «ab TT.MM.JJ», Plakette aktuell/geplant, Betrag, Veränderung in %, × entfernt,
@@ -653,17 +689,21 @@ private struct CTFormCostSection: View {
     @ViewBuilder
     private func priceForm(today: Day) -> some View {
         CTFormDateRow(title: "Gültig ab", day: form.priceFrom, fallback: today, identifier: "form.priceFrom") { form.priceFrom = $0 }
+            .ctMiss(form, .prices)
             .id(ContractFormField.prices)
         HStack(spacing: 12) {
             CTRowLabel("Neuer Betrag")
-            TextField(Format.numberStyle(form.currency) == .de ? "74,90" : "74.90", text: $form.priceAmountText)
+            TextField("", text: $form.priceAmountText, prompt: Text("hinzufügen").foregroundColor(KColor.ink3))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .monospacedDigit()
                 .foregroundStyle(KColor.teal)
+                .focused(focus, equals: .priceAmount)
                 .accessibilityLabel("Neuer Betrag")
                 .accessibilityIdentifier("form.priceAmount")
         }
+        .ctMiss(form, .priceAmount)
+        .id(ContractFormField.priceAmount)
         HStack(spacing: 12) {
             CTFormOKButton(title: "Preisänderung hinzufügen", identifier: "form.priceAdd") { add(force: false) }
             Button("Abbrechen") {

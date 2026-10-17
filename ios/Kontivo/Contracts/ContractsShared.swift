@@ -194,6 +194,33 @@ struct CTImageItem: Identifiable {
     let image: UIImage
 }
 
+// MARK: - Formulartexte (Web v202/v210)
+
+// TODO core-API: Texte gehören in `ContractFormRules` (Bereich core: mandatoryTitle/-Subtitle/-Info). Bei der Integration ersetzen.
+enum CTFormText {
+    static let mandatoryTitle = "Pflichtvertrag"
+    static let mandatorySubtitle = "Kündigen nur mit neuem Anbieter"
+    static let mandatoryInfo = "Pflichtverträge sind Verträge, die du haben musst. Du kannst sie nicht ersatzlos kündigen, sondern nur zu einem anderen Anbieter wechseln.\n\nBeispiele: Krankenkasse, Autohaftpflicht."
+}
+
+/// Infoknopf «i» (Web `.catinfo`: 19 pt Kreis, Rand 1.4 Tinte 3, «i» kursiv Georgia 11.5/600 Tinte 2)
+struct CTInfoButton: View {
+    let label: String
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text("i")
+                .font(.custom("Georgia", size: 11.5).weight(.semibold).italic())
+                .foregroundStyle(KColor.ink2)
+                .frame(width: 19, height: 19)
+                .overlay(Circle().strokeBorder(KColor.ink3, lineWidth: 1.4))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(label)
+    }
+}
+
 // MARK: - Telefon
 
 enum CTPhone {
@@ -278,6 +305,7 @@ extension AppModel {
 /// UI-Tests: Startargument «-uiSeed a,b» passt Beispieldaten für Fälle an, die DemoData nicht hat (nichts wird gespeichert):
 /// - `mailcheck`: Swisscom «Handy» mit Kündigungsweg E-Mail und Adresse, ohne Kundennummer («Kundennummer fehlt»)
 /// - `endsself`: «Fitnessabo» ohne Verlängerung («Endet von selbst», Web v160)
+/// - `skr`: «Krankenkasse» (CSS) mit neuer Prämie ab 1.1.2027 (Sonderkündigung KVG, Web v205)
 @MainActor
 enum CTUITestSeed {
     private static var done = false
@@ -298,6 +326,9 @@ enum CTUITestSeed {
             }
             if seeds.contains("endsself"), let id = contract(label: "Fitnessabo"), let k = d.contractIndex(id) {
                 d.contracts[k].renewMonths = 0
+            }
+            if seeds.contains("skr"), let id = contract(label: "Krankenkasse"), let k = d.contractIndex(id) {
+                d.contracts[k].prices = [PriceChange(from: Day(2027, 1, 1), amount: 430)]
             }
         }
     }

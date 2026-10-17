@@ -82,6 +82,10 @@ extension AppModel {
         case "sender": if let p = data.persons.first { present(.manage(.sender(p.id))) }
         case "categories": present(.manage(.categories))
         case "quality": present(.manage(.quality))
+        // Detail eines bestimmten Vertrags: «detail:<Bezeichnung>» (Bereich contracts)
+        case let x where x.hasPrefix("detail:"):
+            let lab = String(x.dropFirst("detail:".count))
+            if let k = data.contracts.first(where: { $0.label == lab }) { present(.contractDetail(k.id)) }
         default: break
         }
     }

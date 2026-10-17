@@ -27,19 +27,24 @@ struct CTFormExtrasSection: View {
                 .labelsHidden()
                 .id(ContractFormField.extras)
                 CTFormDateRow(title: "Datum", day: form.extraDate, fallback: today, identifier: "form.extraDate") { form.extraDate = $0 }
+                    .ctMiss(form, .extraDate)
+                    .id(ContractFormField.extraDate)
                 HStack(spacing: 12) {
                     CTRowLabel("Betrag")
-                    TextField(Format.numberStyle(form.currency) == .de ? "120,00" : "120.00", text: $form.extraAmountText)
+                    TextField("", text: $form.extraAmountText, prompt: Text("hinzufügen").foregroundColor(KColor.ink3))
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .monospacedDigit()
                         .foregroundStyle(KColor.teal)
+                        .focused(focus, equals: .extraAmount)
                         .accessibilityLabel("Betrag der Sonderzahlung")
                         .accessibilityIdentifier("form.extraAmount")
                 }
+                .ctMiss(form, .extraAmount)
+                .id(ContractFormField.extraAmount)
                 HStack(spacing: 12) {
                     CTRowLabel("Bezeichnung")
-                    TextField("optional", text: $form.extraNote)
+                    TextField("", text: $form.extraNote, prompt: Text("hinzufügen").foregroundColor(KColor.ink3))
                         .multilineTextAlignment(.trailing)
                         .foregroundStyle(KColor.teal)
                         .accessibilityLabel("Bezeichnung der Sonderzahlung")

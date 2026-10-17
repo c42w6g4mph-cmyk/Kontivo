@@ -13,11 +13,14 @@ enum ContractFormField: String, Hashable {
     case label, partner, amount, prices, payAccount, extras
     case start, end, termMonths, notice, trial, cancelWay, cancelURL, cancelMail, cancelOn, cancelPer
     case category, customerNo, contractNo, address, web, tel, mail, note
+    /// Unterbereiche (Web v218 `goMiss`: pAmt, xDate, xAmt)
+    case priceAmount, extraDate, extraAmount
 
     /// Textfeld (bekommt den Fokus), sonst nur scrollen
     var isText: Bool {
         switch self {
-        case .label, .partner, .amount, .payAccount, .cancelURL, .cancelMail, .customerNo, .contractNo, .address, .web, .tel, .mail, .note:
+        case .label, .partner, .amount, .payAccount, .cancelURL, .cancelMail, .customerNo, .contractNo, .address, .web, .tel, .mail, .note,
+             .priceAmount, .extraAmount:
             return true
         default:
             return false
@@ -41,6 +44,52 @@ enum ContractFormGo {
         guard let p = pending, p.id == id else { return nil }
         pending = nil
         return p.field
+    }
+}
+
+// MARK: - Markierung fehlender Angaben (Web v218/v219 `goMiss`, `.frow.miss`)
+
+/// Zeile kurz als abgerundete Fläche (Radius 10, 3 oben/unten, 8 über den Rand, Rot 16 %) markieren; 40 % halten, dann bis 1.8 s
+/// ausblenden. Kopffelder (`ring`) mit rotem Rahmen 2 pt.
+struct CTMissMark: ViewModifier {
+    let form: CTFormState
+    let field: ContractFormField
+    var ring = false
+    var radius: CGFloat = 10
+    @State private var on = 0.0
+
+    func body(content: Content) -> some View {
+        content
+            .background {
+                if !ring {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .fill(KColor.alert.opacity(0.16))
+                        .padding(.vertical, 3)
+                        .padding(.horizontal, -8)
+                        .opacity(on)
+                        .allowsHitTesting(false)
+                }
+            }
+            .overlay {
+                if ring {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .strokeBorder(KColor.alert, lineWidth: 2)
+                        .padding(-2)
+                        .opacity(on)
+                        .allowsHitTesting(false)
+                }
+            }
+            .onChange(of: form.missToken) { _, _ in
+                guard form.missField == field else { return }
+                on = 1
+                withAnimation(.easeOut(duration: 1.08).delay(0.72)) { on = 0 }
+            }
+    }
+}
+
+extension View {
+    func ctMiss(_ form: CTFormState, _ field: ContractFormField, ring: Bool = false, radius: CGFloat = 10) -> some View {
+        modifier(CTMissMark(form: form, field: field, ring: ring, radius: radius))
     }
 }
 
@@ -76,7 +125,7 @@ struct CTFormTextRow: View {
         HStack(spacing: 12) {
             CTRowLabel(title)
                 .layoutPriority(1)
-            TextField(placeholder, text: $text)
+            TextField("", text: $text, prompt: Text(placeholder).foregroundColor(KColor.ink3))
                 .keyboardType(keyboard)
                 .textInputAutocapitalization(capitalization)
                 .autocorrectionDisabled(!autocorrect)
@@ -124,13 +173,15 @@ struct CTFormDateRow: View {
                     .accessibilityLabel(title + " entfernen")
                 }
             } else {
+                // Web v217: leeres Datum zeigt «hinzufügen» wie die übrigen Felder
                 Button {
                     set(fallback)
                 } label: {
-                    Text("wählen")
-                        .foregroundStyle(KColor.teal)
-                        .padding(.horizontal, 14).padding(.vertical, 6)
-                        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(KColor.teal.opacity(0.12)))
+                    Text("hinzufügen")
+                        .font(.system(size: 16))
+                        .foregroundStyle(KColor.ink3)
+                        .padding(.vertical, 6)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel(title + " wählen")
