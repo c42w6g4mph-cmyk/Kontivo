@@ -84,6 +84,14 @@ public struct CatalogEntry: Codable, Hashable, Sendable, Identifiable {
     /// Art der vorbelegten Kategorie.
     public var categoryKind: CategoryKind? { Category.defaultKind(forName: category) }
 
+    /// Leasing (Bezeichnung enthält «Leasing», Web v214): beim Übernehmen feste Laufzeit ohne Verlängerung
+    /// (Art «Mindestlaufzeit», Verlängerung leer); Laufzeit/Ende kennt nur der Vertrag.
+    public var isLeasing: Bool { label.range(of: "leasing", options: .caseInsensitive) != nil }
+
+    /// Strom Schweiz (Land CH, Bezeichnung «Strom», Web v215): beim Übernehmen in einem neuen Vertrag «Nicht kündbar»,
+    /// kein Pflichtvertrag (Grundversorgung, keine Anbieterwahl) – auch bei Namen mit «Wasser» (Energie Wasser Bern).
+    public var isSwissPower: Bool { country == "CH" && label == "Strom" }
+
     /// Währung beim Übernehmen (nur wenn noch kein Betrag eingetragen ist): DE → EUR, CH → CHF.
     public var suggestedCurrency: Currency? {
         if country == "DE" { return .EUR }

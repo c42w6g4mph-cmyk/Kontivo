@@ -78,8 +78,8 @@ public enum ContractFormRules {
     /// Laufzeit-Hinweis bei «Nicht kündbar» (Web v158)
     public static let taxHint = "Gebühren und Abgaben wie die Rundfunkgebühr: keine Fristen, kein Kündigen. Zählt in Kosten und Budget."
 
-    /// Sichern bei «Mindestlaufzeit» ohne Vertragsende (Web v143)
-    public static let missingEndText = "Bis wann läuft der Vertrag? Bitte das Vertragsende eintragen"
+    /// Sichern bei «Mindestlaufzeit» ohne Vertragsende (Web v218: «… fehlt», danach direkt ins Feld)
+    public static let missingEndText = "Vertragsende fehlt"
     /// Sichern bei «Probeabo» ohne Dauer
     public static let missingTrialText = "Wie lange läuft das Probeabo?"
     /// Mindestlaufzeit ohne Vertragsbeginn (Web v146: danach zum Beginn springen)
@@ -92,9 +92,15 @@ public enum ContractFormRules {
     public static let discardText = "Deine Eingaben in diesem Formular gehen verloren."
     public static let discardOK = "Verwerfen"
     public static let discardKeep = "Weiter bearbeiten"
-    /// Schalter «Nur Anbieter wechseln» (Web v151, ersetzt «Pflichtvertrag»)
-    public static let mandatoryTitle = "Nur Anbieter wechseln"
-    public static let mandatorySubtitle = "Pflichtversicherung, z.B. Krankenkasse: kündigen nur mit neuem Anbieter"
+    /// Schalter «Pflichtvertrag» mit Infoknopf (Web v202, ersetzt «Nur Anbieter wechseln»)
+    public static let mandatoryTitle = "Pflichtvertrag"
+    public static let mandatorySubtitle = "Kündigen nur mit neuem Anbieter"
+    /// Infoknopf «i» beim Schalter (Web `MAND_INFO`, v210 ohne «Strom»): Hinweis mit Titel `mandatoryInfoTitle`, nur «OK»
+    public static let mandatoryInfoTitle = "Pflichtvertrag"
+    public static let mandatoryInfo = "Pflichtverträge sind Verträge, die du haben musst. Du kannst sie nicht ersatzlos kündigen, sondern nur zu einem anderen Anbieter wechseln.\n\nBeispiele: Krankenkasse, Autohaftpflicht."
+    public static let mandatoryInfoAccessibility = "Info: Pflichtvertrag"
+    /// Einheitlicher Platzhalter leerer Felder (Web v216/v217): Beträge, Datumsfelder, Notiz/E-Mail bei Sonderzahlung und Kündigung
+    public static let placeholder = "hinzufügen"
     /// Schalter «An Frist erinnern» (positive Anzeige von `noWatch`, Web v145)
     public static let remindTitle = "An Frist erinnern"
     public static let remindSubtitle = "Erscheint unter «Fristen»"
@@ -102,6 +108,113 @@ public enum ContractFormRules {
     /// Verlängerung, die beim Wechsel auf «Mindestlaufzeit» leer mit 1 Monat vorbelegt wird (Web v156: danach monatlich kündbar,
     /// sonst endete der Vertrag still)
     public static let defaultRenewOnFixed = 1
+
+    // MARK: Fehlende Angaben beim Sichern (Web v218 `goMiss`)
+
+    /// Feld, in das die App bei einer fehlenden Angabe springt (Fokus, Datumsauswahl öffnen, Zeile kurz markieren).
+    public enum FormField: String, Hashable, Sendable {
+        case label, category, amount, notice, end, trial
+        case priceFrom, priceAmount, extraDate, extraAmount
+        case incomeLabel, incomeAmount, incomePriceFrom, incomePriceAmount
+    }
+
+    /// Fehlende bzw. ungültige Angabe: Toast-Text und Zielfeld.
+    public struct Missing: Hashable, Sendable {
+        public var field: FormField
+        public var message: String
+        public init(_ field: FormField, _ message: String) {
+            self.field = field
+            self.message = message
+        }
+    }
+
+    /// «Betrag fehlt» bei leerem Feld, sonst «Betrag prüfen» (Web v218).
+    public static func amountMessage(_ raw: String) -> String {
+        raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Betrag fehlt" : "Betrag prüfen"
+    }
+
+    /// Vertrag sichern (Web `saveForm`, Reihenfolge wie dort): Bezeichnung (ohne Vertragspartner), Kategorie, Betrag,
+    /// Kündigungsfrist, Vertragsende bei «Mindestlaufzeit», Dauer beim Probeabo. nil = alles da.
+    public static func checkContract(partner: String, label: String, hasCategory: Bool, amountText: String, noticeValid: Bool,
+                                     mode: ContractTermMode, end: Day?, trial: Day?) -> Missing? {
+        if partner.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return Missing(.label, "Bezeichnung fehlt")
+        }
+        if !hasCategory { return Missing(.category, "Bitte eine Kategorie wählen") }
+        if (Format.parseAmount(amountText) ?? -1) < 0 { return Missing(.amount, amountMessage(amountText)) }
+        if !noticeValid { return Missing(.notice, "Kündigungsfrist prüfen") }
+        if mode == .fixed && end == nil { return Missing(.end, missingEndText) }
+        if mode == .trial && trial == nil { return Missing(.trial, missingTrialText) }
+        return nil
+    }
+
+    /// Preisänderung hinzufügen (Web `pAdd`): Datum, nach dem Vertragsbeginn, neuer Betrag («Neuer Betrag fehlt» / «Neuen Betrag prüfen»).
+    public static func checkPriceChange(from: Day?, start: Day?, amountText: String) -> Missing? {
+        guard let f = from else { return Missing(.priceFrom, "Datum für die Preisänderung fehlt") }
+        if let s0 = start, f <= s0 { return Missing(.priceFrom, "Datum muss nach dem Vertragsbeginn liegen") }
+        let a = Format.parseAmount(amountText)
+        if a == nil || a! < 0 {
+            let empty = a == nil && amountText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            return Missing(.priceAmount, empty ? "Neuer Betrag fehlt" : "Neuen Betrag prüfen")
+        }
+        return nil
+    }
+
+    /// Sonderzahlung hinzufügen (Web `xAdd`): Datum, Betrag > 0.
+    public static func checkExtra(date: Day?, amountText: String) -> Missing? {
+        if date == nil { return Missing(.extraDate, "Datum der Sonderzahlung fehlt") }
+        if let a = Format.parseAmount(amountText), a > 0 { return nil }
+        return Missing(.extraAmount, amountMessage(amountText))
+    }
+
+    /// Einnahme sichern (Web `iSave`): Bezeichnung (ohne Quelle), Betrag.
+    public static func checkIncome(name: String, label: String, amountText: String) -> Missing? {
+        if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return Missing(.incomeLabel, "Bezeichnung fehlt")
+        }
+        if let a = Format.parseAmount(amountText), a >= 0 { return nil }
+        return Missing(.incomeAmount, amountMessage(amountText))
+    }
+
+    /// Änderung einer Einnahme hinzufügen (Web `iPAdd`): Datum, Betrag.
+    public static func checkIncomePrice(from: Day?, amountText: String) -> Missing? {
+        if from == nil { return Missing(.incomePriceFrom, "Datum fehlt") }
+        if let a = Format.parseAmount(amountText), a >= 0 { return nil }
+        return Missing(.incomePriceAmount, amountMessage(amountText))
+    }
+
+    // MARK: Strom Schweiz und Leasing (Web v210/v214/v215)
+
+    /// Strom in der Schweiz (Web `isChPowerD`, v210/v215): Haushalte können den Anbieter nicht wählen (Grundversorgung) →
+    /// neue Verträge standardmässig «Nicht kündbar», kein Pflichtvertrag. Gewählter Katalogeintrag «Strom» CH gilt immer
+    /// (auch «Energie Wasser Bern»); sonst CHF, Kategorie «Energie & Wasser» und Bezeichnung/Vertragspartner ohne Wasser, Gas,
+    /// Fernwärme, Heizung, Öl, Pellets, Holz, Solar, Abwasser, Kehricht.
+    public static func isSwissPower(currency: Currency, categoryKind: CategoryKind?, label: String, partner: String,
+                                    catalogEntry: CatalogEntry? = nil) -> Bool {
+        if let t = catalogEntry, t.isSwissPower { return true }
+        let t = label + " " + partner
+        return currency == .CHF && categoryKind == .energy
+            && !RX.test("wasser|gas|fernw|wärme|waerme|heiz|öl|oel|pellet|holz|solar|abwasser|kehricht", t, ignoreCase: true)
+    }
+
+    /// Was der Vorschlag «Strom CH» im Formular tun soll (Web `chPowerDefault`).
+    public enum SwissPowerStep: Hashable, Sendable {
+        /// nichts ändern
+        case keep
+        /// Art «Nicht kündbar» wählen (falls nicht schon), Pflichtvertrag aus; Merker «vom Vorschlag gesetzt» an
+        case setNotCancellable
+        /// früher vom Vorschlag gesetzt, passt nicht mehr: zurück auf «Flexibel» (falls «Nicht kündbar»), Merker aus
+        case revert
+    }
+
+    /// Nur bei neuen Verträgen, solange die Art nicht von Hand gewählt wurde und eine Kategorie gesetzt ist. Aufrufen bei
+    /// Änderung von Währung, Bezeichnung, Vertragspartner, Kategorie und nach einer Katalog-Vorlage.
+    /// `appliedBefore`: Merker `draft.chPower`.
+    public static func swissPowerStep(isNew: Bool, kindTouched: Bool, hasCategory: Bool, isSwissPower: Bool, appliedBefore: Bool) -> SwissPowerStep {
+        if !isNew || kindTouched || !hasCategory { return .keep }
+        if isSwissPower { return .setNotCancellable }
+        return appliedBefore ? .revert : .keep
+    }
 
     // MARK: Laufzeit-Hinweis
 
