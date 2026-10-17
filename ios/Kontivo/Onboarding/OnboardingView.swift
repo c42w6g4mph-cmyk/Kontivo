@@ -2,9 +2,9 @@ import SwiftUI
 import UIKit
 import KontivoCore
 
-/// Einführung als Vollbild (wie `#onb` der Web-App).
-/// Erststart: 8 Seiten (Willkommen, 4 Tabs, Gut zu wissen, Einrichten, Womit fangen wir an?); Tour aus «Mehr»: 6 Seiten.
-/// Wischen links/rechts, Fortschrittsstriche oben, «Überspringen» auf den Tab-Seiten. Schliessen setzt `onboarded = 1`.
+/// Einführung als Vollbild (wie `#onb` der Web-App v224).
+/// Erststart: 8 Seiten (Willkommen, Automatisch erfassen, 4 Tabs, Einrichten, Womit fangen wir an?); Tour aus «Mehr»: 6 Seiten.
+/// Wischen links/rechts, Fortschrittsstriche oben, «Überspringen» bis vor die letzte Tour-Seite. Schliessen setzt `onboarded = 1`.
 struct OnboardingView: View {
     let mode: OnboardingMode
 
@@ -17,26 +17,31 @@ struct OnboardingView: View {
     @State private var prepared = false
 
     private var pages: [OnbPage] { mode == .firstRun ? OnbPage.firstRun : OnbPage.tour }
-    /// Index der Seite «Gut zu wissen» – davor gibt es «Überspringen»
-    private var tipsIndex: Int { pages.firstIndex(of: .tips) ?? pages.count - 1 }
+    /// Letzte Seite der Tour (Web `obLastTour`): davor gibt es «Überspringen»
+    private var lastTourIndex: Int { pages.lastIndex(where: { !$0.firstOnly }) ?? pages.count - 1 }
 
     var body: some View {
-        VStack(spacing: 0) {
-            OnbProgress(count: pages.count, index: index)
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-            TabView(selection: $index) {
-                ForEach(pages.indices, id: \.self) { i in
-                    pageView(i)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 16)
-                        .tag(i)
+        GeometryReader { geo in
+            let metrics = OnbMetrics(width: geo.size.width + geo.safeAreaInsets.leading + geo.safeAreaInsets.trailing,
+                                     height: geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom)
+            VStack(spacing: 0) {
+                OnbProgress(count: pages.count, index: index)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                TabView(selection: $index) {
+                    ForEach(pages.indices, id: \.self) { i in
+                        pageView(i)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 16)
+                            .tag(i)
+                    }
                 }
+                .tabViewStyle(.page(indexDisplayMode: .never))
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(maxWidth: 460)
+            .frame(maxWidth: .infinity)
+            .environment(\.onbMetrics, metrics)
         }
-        .frame(maxWidth: 460)
-        .frame(maxWidth: .infinity)
         .background(OnbBackground().ignoresSafeArea())
         .onAppear(perform: prepare)
         .onChange(of: index) { old, new in
@@ -52,10 +57,10 @@ struct OnboardingView: View {
         switch pages[i] {
         case .welcome:
             OnbWelcomePage(first: mode == .firstRun, onNext: { next(from: i) }, onSecondary: { mode == .firstRun ? backup() : close() })
+        case .auto:
+            OnbAutoPage(showSkip: i < lastTourIndex, onSkip: skip, onNext: { next(from: i) })
         case .tab(let t):
-            OnbTabPage(tab: t, showSkip: i < tipsIndex, onSkip: skip, onNext: { next(from: i) })
-        case .tips:
-            OnbTipsPage(isLast: i == pages.count - 1, showSkip: i < tipsIndex, onSkip: skip, onNext: { next(from: i) })
+            OnbTabPage(tab: t, showSkip: i < lastTourIndex, onSkip: skip, onNext: { next(from: i) })
         case .setup:
             OnbSetupPage(home: $home, moreOpen: $moreOpen, name: $name, onNext: { next(from: i) }, onBackup: backup)
         case .start:
@@ -82,6 +87,13 @@ struct OnboardingView: View {
         }
         moreOpen = MoreCurrencyPicker.more.contains(home)
         name = model.data.persons.first(where: { $0.name != "Ich" })?.name ?? ""
+        #if DEBUG
+        // Bildschirmfotos (CI): `-uiOnbPage <n>` öffnet direkt die Seite n (0 = Willkommen)
+        let args = ProcessInfo.processInfo.arguments
+        if let k = args.firstIndex(of: "-uiOnbPage"), k + 1 < args.count, let n = Int(args[k + 1]), pages.indices.contains(n) {
+            index = n
+        }
+        #endif
     }
 
     // MARK: Navigation
