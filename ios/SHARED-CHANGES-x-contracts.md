@@ -6,6 +6,7 @@
 | `Kontivo/Shared/DocumentViewer.swift` (design) | PDF: Zoom 1–4× (`minScaleFactor`/`maxScaleFactor`), Doppeltipp 1× ↔ 2.5×; Bild: max. 4×, Doppeltipp | Web v221 (9e82d69) Dokument-Vorschau mit Zoom. «Text ändern» war schon nur beim Brief. |
 | `Kontivo/Resources/Assets.xcassets/ic.ct.*.imageset` (neu) | SVG-Symbole der Web-App (search, filter, sort, clip, more) mit Präfix `ic.ct.` | 1:1-Symbole, kollisionsfrei zu `ic.<name>` des Bereichs design. Bei der Integration auf gleichnamige `ic.*` des Bereichs design umstellen (`CTIcon.named`) und die `ic.ct.*` löschen. |
 | `KontivoUITests/ContractListUITests.swift`, `ContractFormDetailUITests.swift`, `DeadlineUITests.swift` (1 Zeile) | Suchfeld per Kennung `contracts.search`; Katalogtreffer `form.tplHit`; keine Zeile `form.cancelAddr` mehr; Filter, Dokumente und Kündigungsweg als Auswahlblatt ohne Navigationsleiste (kein `waitNav`, «Schliessen» statt «Fertig») | eigene Suche (Web `.searchrow`), Trefferliste v213, v212 |
+| `KontivoUITests/NativeUITests.swift` | App-Sperre: zweiter Tipp, falls der erste nur das Menü «Tage vorher» schloss | im Schlusslauf f2aee72 einmalig fehlgeschlagen |
 | `Kontivo/App/UITestHooks.swift` | `-uiSheet detail:<Bezeichnung>` öffnet das Detail dieses Vertrags | Bildschirmfoto Sonderkündigung |
 | `.github/workflows/ios.yml` | Zeile `shoot … 10b-detail-sonderkuendigung -uiSeed skr -uiSheet detail:Krankenkasse` | Vergleich Web ↔ Swift |
 
