@@ -137,19 +137,36 @@ struct CTFlowLayout: Layout {
     }
 }
 
+// MARK: - Symbole der Web-App (SVG im Asset-Katalog, `ic.ct.<name>`, Vektor, Template)
+
+/// Eigene Inline-SVGs der Web-App 1:1 (Pfade und Strichstärke aus index.html). Farbe über `.foregroundStyle`.
+enum CTIcon {
+    static func named(_ name: String, _ size: CGFloat) -> some View {
+        Image("ic.ct." + name)
+            .renderingMode(.template)
+            .resizable()
+            .interpolation(.high)
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
+    }
+    static func search(_ s: CGFloat) -> some View { named("search", s) }
+    static func filter(_ s: CGFloat) -> some View { named("filter", s) }
+    static func sort(_ s: CGFloat) -> some View { named("sort", s) }
+}
+
 // MARK: - Kleine Bausteine
 
-/// Graue Etikette auf der Vertragskarte («gekündigt per 30.11.26», «pausiert»)
+/// Graue Etikette auf der Vertragskarte («gekündigt per 30.11.26», «pausiert»), Web `.ptag`: 11/600, Fläche `--sunken`, 1/8
 struct CTTag: View {
     let text: String
-    var tone: Color = KColor.ink2
     var body: some View {
         Text(text)
-            .font(.caption.weight(.semibold))
+            .font(.system(size: 11, weight: .semibold))
             .lineLimit(1)
-            .padding(.horizontal, 7).padding(.vertical, 2)
-            .foregroundStyle(tone)
-            .background(Capsule().fill(tone.opacity(0.12)))
+            .ctLine(15.95)
+            .padding(.horizontal, 8).padding(.vertical, 1)
+            .foregroundStyle(KColor.ink2)
+            .background(Capsule().fill(KColor.sunken))
     }
 }
 

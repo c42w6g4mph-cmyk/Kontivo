@@ -7,19 +7,12 @@ final class ContractListUITests: KontivoUITestCase {
         launch("-uiDemo", "-uiTab", "contracts")
         wait(buttonStarting("Handy"), "Liste mit Beispieldaten")
 
-        // Suche
-        let search = app.searchFields.firstMatch
-        if !search.waitForExistence(timeout: 3) {
-            app.swipeDown(velocity: .slow)
-        }
+        // Suche (eigenes Feld unter der Summe wie Web `.searchrow`)
+        let search = textField("contracts.search")
+        wait(search, "Suchfeld")
         enter(search, "Netflix", "Suchfeld")
         waitUntil("Nur «Streaming»") { self.buttonStarting("Streaming").exists && !self.buttonStarting("Handy").exists }
-        // Suche beenden (iOS 26: «Schließen», früher «Abbrechen»)
-        if let close = firstHittable(app.buttons.matching(NSPredicate(format: "label == 'Schließen' OR label == 'Abbrechen'")), timeout: 4) {
-            close.tap()
-        } else {
-            tap(button("Text löschen"), "Suchtext löschen")
-        }
+        tap(button("Suche löschen"), "Suchtext löschen")
         wait(buttonStarting("Handy"), "Liste nach der Suche")
 
         // Sortierung über das Menü
