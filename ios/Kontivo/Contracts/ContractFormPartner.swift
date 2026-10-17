@@ -9,19 +9,20 @@ struct CTFormPartnerField: View {
     var focus: FocusState<ContractFormField?>.Binding
 
     var body: some View {
-        HStack(spacing: 6) {
-            TextField("Vertragspartner", text: Binding(
+        HStack(spacing: 0) {
+            TextField("", text: Binding(
                 get: { form.partnerName },
                 set: { v in
                     // SwiftUI setzt den Wert beim Schliessen der Tastatur erneut: nur echte Änderungen suchen
                     let changed = v != form.partnerName
                     form.userTypedPartner(v)
                     if changed { CTPartnerSearch.schedule(form) }
-                }))
+                }), prompt: Text("Vertragspartner").foregroundColor(KColor.ink3))
+                .font(.system(size: 16))
                 .focused(focus, equals: .partner)
                 .textInputAutocapitalization(.words)
                 .autocorrectionDisabled()
-                .foregroundStyle(KColor.ink)
+                .foregroundStyle(KColor.ink2)
                 .submitLabel(.done)
                 .onSubmit { form.partnerCommitted(data: model.data) }
                 .accessibilityLabel("Vertragspartner")
@@ -30,16 +31,17 @@ struct CTFormPartnerField: View {
                 focus.wrappedValue = nil
                 form.showCatalog = true
             } label: {
-                Image(systemName: "book")
+                CTIcon.named("book", 20)
                     .foregroundStyle(KColor.teal)
-                    .frame(width: 30, height: 30)
+                    .frame(width: 38, height: 38)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
             .accessibilityLabel("Aus Katalog wählen")
             .accessibilityIdentifier("form.catalog")
         }
-        .padding(.leading, 10).padding(.trailing, 4).padding(.vertical, 4)
+        .padding(.leading, 10)
+        .frame(height: 38)
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.field))
         .id(ContractFormField.partner)
         .onChange(of: focus.wrappedValue == .partner) { was, now in
@@ -158,12 +160,12 @@ struct CTFormPartnerSuggestions: View {
         let showList = form.sugVisible && q.count >= 2 && q != form.pSugSel
         let own = showList ? Partners.matches(q, in: data, today: model.today, limit: 3) : []
         let ownNames = Set(own.map { $0.partner.name.lowercased() })
-        let th = showList ? CTCatalogHits.hits(q, currency: form.currency, more: form.tplMore) : ([], false)
+        let th = showList ? CTCatalogHits.hits(q, currency: form.currency, more: form.tplMore) : (list: [CatalogEntry](), hasMore: false)
         let tDom = Set(th.list.compactMap { $0.web.isEmpty ? nil : Partners.regDom($0.web) })
         let web = showList ? form.webHits.filter { !ownNames.contains($0.name.lowercased()) && !tDom.contains(Partners.regDom($0.dom)) } : []
         let searching = showList && web.isEmpty && form.webLoading && q.count >= 3
         if showList && (!own.isEmpty || !th.list.isEmpty || !web.isEmpty || searching) {
-            Section {
+            CTSection(plain: true) {
                 VStack(alignment: .leading, spacing: 0) {
                     if !own.isEmpty {
                         CTSuggestHeader(title: "Deine Vertragspartner")

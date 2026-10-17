@@ -34,25 +34,12 @@ private struct CTFormHost: View {
 
     var body: some View {
         NavigationStack {
+            // Web `.shbar`: «Abbrechen» | Titel 18/600 echt zentriert (v186) | «Sichern» 16/700 Messing
             CTFormPage(form: form)
-                .navigationTitle(form.title)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Abbrechen") { cancel() }
-                    }
-                    // Titel verkleinert sich statt abgeschnitten zu werden («Neuer Vertragspartner» neben breiten Knöpfen)
-                    ToolbarItem(placement: .principal) {
-                        Text(form.title)
-                            .font(.headline)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                            .accessibilityAddTraits(.isHeader)
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Sichern") { save() }
-                            .fontWeight(.semibold)
-                    }
+                .ctSheetBar(form.title) {
+                    CTBarCancelButton(title: "Abbrechen") { cancel() }
+                } trailing: {
+                    CTBarConfirmButton(title: "Sichern") { save() }
                 }
         }
         .environment(\.locale, Locale(identifier: "de_CH"))
@@ -167,17 +154,20 @@ private struct CTFormPage: View {
     var body: some View {
         GeometryReader { geo in
             ScrollViewReader { proxy in
-                Form {
-                    CTFormHeadSections(form: form, focus: $focus)
-                    CTFormCostSection(form: form, focus: $focus)
-                    CTFormExtrasSection(form: form, focus: $focus)
-                    CTFormTermSection(form: form, focus: $focus)
-                    CTFormAssignSection(form: form, focus: $focus)
-                    CTFormContactSection(form: form, focus: $focus)
-                    CTFormNoteSection(form: form, focus: $focus)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        CTFormHeadSections(form: form, focus: $focus)
+                        CTFormCostSection(form: form, focus: $focus)
+                        CTFormExtrasSection(form: form, focus: $focus)
+                        CTFormTermSection(form: form, focus: $focus)
+                        CTFormAssignSection(form: form, focus: $focus)
+                        CTFormContactSection(form: form, focus: $focus)
+                        CTFormNoteSection(form: form, focus: $focus)
+                    }
+                    .padding(.horizontal, max(CTListMetric.side, (geo.size.width - KMetric.maxContent) / 2))
+                    .padding(.top, 12)
+                    .padding(.bottom, 32)
                 }
-                .listSectionSpacing(.compact)
-                .scrollContentBackground(.hidden)
                 .scrollDismissesKeyboard(.interactively)
                 // Web v214: Trefferliste schliesst bei Tipp ausserhalb von Feld und Liste
                 .simultaneousGesture(SpatialTapGesture(coordinateSpace: .global).onEnded { v in
@@ -185,7 +175,6 @@ private struct CTFormPage: View {
                     if form.sugFrame.contains(v.location) || form.partnerFieldFrame.contains(v.location) { return }
                     CTPartnerSearch.hide(form)
                 })
-                .contentMargins(.horizontal, max(KMetric.gutter, (geo.size.width - KMetric.maxContent) / 2), for: .scrollContent)
                 .onChange(of: form.goTo) { _, f in
                     guard let f else { return }
                     go(f, proxy)
@@ -232,7 +221,7 @@ private struct CTFormHeadSections: View {
 
     var body: some View {
         let data = model.data
-        Section {
+        CTSection(plain: true) {
             CTFormHead(form: form, focus: focus)
                 .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
                 .listRowBackground(Color.clear)
@@ -241,7 +230,7 @@ private struct CTFormHeadSections: View {
         }
         CTFormPartnerSuggestions(form: form, focus: focus)
         if let hint = form.duplicateHint(data, today: model.today) {
-            Section {
+            CTSection(plain: true) {
                 Label {
                     Text(hint)
                 } icon: {
@@ -255,7 +244,7 @@ private struct CTFormHeadSections: View {
             }
         }
         if form.docsOpen {
-            Section {
+            CTSection {
                 CTFormDocsPanel(form: form)
             }
             .listRowBackground(KColor.surface)
@@ -267,7 +256,7 @@ private struct CTFormHeadSections: View {
         let sug = form.suggest
         let hasSug: Bool = { if case .none = sug { return false }; return true }()
         if hasSug || kz != nil {
-            Section {
+            CTSection(plain: true) {
                 if hasSug {
                     CTTemplateRow(form: form)
                         .listRowInsets(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
@@ -294,7 +283,9 @@ private struct CTFormHead: View {
     var body: some View {
         let data = model.data
         let logo = form.effectiveLogo(data)
-        HStack(alignment: .center, spacing: 12) {
+        // Web `.fhead`: Abstand 14, Kachel 76 mit Stift (26, Messing, Rand 2 Fläche), Bezeichnung 21/600 auf `--field` (42 hoch),
+        // Vertragspartner 16 Tinte 2 (38 hoch), Katalog-Knopf 38 mit Buch-Symbol
+        HStack(alignment: .center, spacing: 14) {
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
                     form.logoOpen.toggle()
@@ -304,12 +295,11 @@ private struct CTFormHead: View {
                 MarkView(logoID: logo?.id, logoBg: logo?.bg, colorHex: form.markColor(data),
                          symbol: KIcon.symbol(for: data.category(form.categoryID)), size: 76)
                     .overlay(alignment: .bottomTrailing) {
-                        Image(systemName: "pencil")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(KColor.surface)
-                            .frame(width: 24, height: 24)
-                            .background(Circle().fill(KColor.teal))
-                            .overlay(Circle().strokeBorder(KColor.paper, lineWidth: 2))
+                        CTIcon.named("pen", 13)
+                            .foregroundStyle(Color.white)
+                            .frame(width: 26, height: 26)
+                            .background(Circle().fill(KColor.tealFill))
+                            .overlay(Circle().strokeBorder(KColor.surface, lineWidth: 2))
                             .offset(x: 5, y: 5)
                     }
                     .overlay(
@@ -317,20 +307,21 @@ private struct CTFormHead: View {
                             .strokeBorder(form.logoOpen ? KColor.teal : Color.clear, lineWidth: 2)
                             .padding(-3)
                     )
-                    .padding(.trailing, 4)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Logo und Farbe ändern")
             .accessibilityAddTraits(form.logoOpen ? .isSelected : [])
             .accessibilityIdentifier("form.logo")
-            VStack(alignment: .leading, spacing: 8) {
-                TextField("Bezeichnung", text: $form.label)
-                    .font(.title3.weight(.bold))
+            VStack(alignment: .leading, spacing: 6) {
+                TextField("", text: $form.label, prompt: Text("Bezeichnung").foregroundColor(KColor.ink3))
+                    .font(KFont.title(21))
+                    .tracking(KFont.tracking(-0.012, 21))
                     .foregroundStyle(KColor.ink)
                     .focused(focus, equals: .label)
                     .submitLabel(.next)
                     .onSubmit { focus.wrappedValue = .partner }
-                    .padding(.horizontal, 10).padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .frame(height: 42)
                     .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.field))
                     .ctMiss(form, .label, ring: true)
                     .accessibilityLabel("Bezeichnung")
@@ -357,14 +348,13 @@ private struct CTFormDocsButton: View {
         } label: {
             VStack(spacing: 4) {
                 ZStack {
-                    Circle().fill(n > 0 ? KColor.teal : KColor.teal.opacity(0.13))
-                    Image(systemName: "paperclip")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(n > 0 ? KColor.surface : KColor.teal)
+                    Circle().fill(n > 0 ? KColor.tealFill : KColor.teal.opacity(0.13))
+                    CTIcon.named("clip", 19)
+                        .foregroundStyle(n > 0 ? Color.white : KColor.teal)
                 }
                 .frame(width: 44, height: 44)
                 Text(n > 0 ? Format.count(n, "Datei", "Dateien") : "Anhängen")
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 11.5, weight: .semibold))
                     .foregroundStyle(KColor.teal)
                     .lineLimit(1)
                     .fixedSize()
@@ -388,7 +378,7 @@ private struct CTFormLogoPanel: View {
 
     var body: some View {
         let logo = form.effectiveLogo(model.data)
-        Section {
+        CTSection {
             Button {
                 if form.logoSearchName.isEmpty {
                     model.toast("Zuerst den Firmennamen eintragen")
@@ -522,7 +512,7 @@ private struct CTFormCostSection: View {
     var body: some View {
         let calc = model.calc
         let today = model.today
-        Section {
+        CTSection {
             if let chart = form.priceChart(calc: calc) {
                 CTPriceChart(chart: chart, identifier: "form.priceChart", framed: false)
                     .listRowInsets(EdgeInsets(top: 6, leading: 14, bottom: 4, trailing: 14))
@@ -532,18 +522,20 @@ private struct CTFormCostSection: View {
             if form.priceOpen {
                 priceForm(today: today)
             }
-            Picker(selection: Binding(get: { form.cycle }, set: { v in
-                if let t = form.setCycle(v, today: model.today) { model.toast(t) }
-            })) {
-                ForEach(cycleOptions, id: \.self) { m in
-                    Text(Format.cycleTextOrMonthly(m)).tag(m)
+            CTMenuRow("Zahlungsrhythmus") {
+                Picker(selection: Binding(get: { form.cycle }, set: { v in
+                    if let t = form.setCycle(v, today: model.today) { model.toast(t) }
+                })) {
+                    ForEach(cycleOptions, id: \.self) { m in
+                        Text(Format.cycleTextOrMonthly(m)).tag(m)
+                    }
+                } label: {
+                    CTRowLabel("Zahlungsrhythmus")
                 }
-            } label: {
-                CTRowLabel("Zahlungsrhythmus")
+                .pickerStyle(.menu)
+                .tint(KColor.teal)
+                .accessibilityIdentifier("form.cycle")
             }
-            .pickerStyle(.menu)
-            .tint(KColor.teal)
-            .accessibilityIdentifier("form.cycle")
             dueRow
             if form.dueOpen {
                 CTDueGrid(day: form.due.day, month: form.due.month, cycle: form.cycle,
@@ -763,17 +755,19 @@ private struct CTFormCostSection: View {
     private var payRows: some View {
         let m = form.payMethod
         let options = (m.isEmpty || CTFormCostSection.payMethods.contains(m)) ? CTFormCostSection.payMethods : CTFormCostSection.payMethods + [m]
-        Picker(selection: $form.payMethod) {
-            Text("wählen").tag("")
-            ForEach(options, id: \.self) { o in
-                Text(o).tag(o)
+        CTMenuRow("Zahlung via") {
+            Picker(selection: $form.payMethod) {
+                Text("wählen").tag("")
+                ForEach(options, id: \.self) { o in
+                    Text(o).tag(o)
+                }
+            } label: {
+                CTRowLabel("Zahlung via")
             }
-        } label: {
-            CTRowLabel("Zahlung via")
+            .pickerStyle(.menu)
+            .tint(m.isEmpty ? KColor.ink3 : KColor.teal)
+            .accessibilityIdentifier("form.payMethod")
         }
-        .pickerStyle(.menu)
-        .tint(m.isEmpty ? KColor.ink3 : KColor.teal)
-        .accessibilityIdentifier("form.payMethod")
         if !m.isEmpty || !form.payAccount.ctTrimmed.isEmpty || focus.wrappedValue == .payAccount {
             TextField("über, z.B. Visa …4417", text: $form.payAccount)
                 .autocorrectionDisabled()

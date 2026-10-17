@@ -47,6 +47,121 @@ enum ContractFormGo {
     }
 }
 
+// MARK: - Abschnitt und Karte (Web `.fsec` + `.fcard` + `.fnote`)
+
+/// Abschnitt des Formulars wie in der Web-App: Titel 13/600 Tinte 2 (22 oben, 8 unten, 2 seitlich), Karte (Fläche, Radius 16,
+/// Innenabstand 0 13) mit Zeilen ab 48 pt und Trennlinien, Fussnote 12.5 Tinte 2 (8 oben). `plain`: ohne Karte (Kopf, Hinweise).
+/// Ersetzt `Section` im Formular (eigene Masse statt Inset-Grouped des Systems).
+struct CTSection<Content: View, Header: View, Footer: View>: View {
+    var plain = false
+    let content: Content
+    let header: Header
+    let footer: Footer
+
+    init(plain: Bool = false, @ViewBuilder content: () -> Content, @ViewBuilder header: () -> Header, @ViewBuilder footer: () -> Footer) {
+        self.plain = plain
+        self.content = content()
+        self.header = header()
+        self.footer = footer()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            header
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(KColor.ink2)
+                .textCase(nil)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 2)
+                .padding(.top, 22)
+                .padding(.bottom, 8)
+                .modifier(CTHideIfEmpty(isEmpty: Header.self == EmptyView.self))
+            if plain {
+                VStack(alignment: .leading, spacing: 0) { content }
+            } else {
+                CTCardRows { content }
+                    .padding(.horizontal, 13)
+                    .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(KColor.surface))
+            }
+            footer
+                .font(.system(size: 12.5))
+                .foregroundStyle(KColor.ink2)
+                .lineSpacing(6.9)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 2)
+                .padding(.top, 8)
+                .modifier(CTHideIfEmpty(isEmpty: Footer.self == EmptyView.self))
+        }
+    }
+}
+
+extension CTSection where Footer == EmptyView {
+    init(plain: Bool = false, @ViewBuilder content: () -> Content, @ViewBuilder header: () -> Header) {
+        self.init(plain: plain, content: content, header: header, footer: { EmptyView() })
+    }
+}
+
+extension CTSection where Header == EmptyView, Footer == EmptyView {
+    init(plain: Bool = false, @ViewBuilder content: () -> Content) {
+        self.init(plain: plain, content: content, header: { EmptyView() }, footer: { EmptyView() })
+    }
+}
+
+/// Leerer Kopf/Fuss ohne Abstand
+private struct CTHideIfEmpty: ViewModifier {
+    let isEmpty: Bool
+    func body(content: Content) -> some View {
+        if isEmpty { EmptyView() } else { content }
+    }
+}
+
+/// Zeilen einer Karte untereinander, jede mindestens 48 pt hoch (Web `.frow` 4 0 + Feld 40), Trennlinie 1 pt über der
+/// Kartenbreite (innerhalb des Innenabstands) zwischen den Zeilen
+struct CTCardRows<Content: View>: View {
+    let content: Content
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+
+    var body: some View {
+        _VariadicView.Tree(CTCardRowsLayout()) { content }
+    }
+}
+
+private struct CTCardRowsLayout: _VariadicView_UnaryViewRoot {
+    @ViewBuilder
+    func body(children: _VariadicView.Children) -> some View {
+        let first = children.first?.id
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(children) { child in
+                child
+                    .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                    .overlay(alignment: .top) {
+                        if child.id != first { Rectangle().fill(KColor.line).frame(height: 1) }
+                    }
+            }
+        }
+    }
+}
+
+/// Menü-Auswahl als Zeile (Web `.frow` mit `select`): Beschriftung links, Wert rechts in Messing
+struct CTMenuRow<P: View>: View {
+    let title: String
+    let picker: P
+    init(_ title: String, @ViewBuilder picker: () -> P) {
+        self.title = title
+        self.picker = picker()
+    }
+    var body: some View {
+        HStack(spacing: 12) {
+            CTRowLabel(title)
+            Spacer(minLength: 8)
+            picker
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .fixedSize()
+        }
+    }
+}
+
 // MARK: - Markierung fehlender Angaben (Web v218/v219 `goMiss`, `.frow.miss`)
 
 /// Zeile kurz als abgerundete Fläche (Radius 10, 3 oben/unten, 8 über den Rand, Rot 16 %) markieren; 40 % halten, dann bis 1.8 s
@@ -101,6 +216,7 @@ struct CTRowLabel: View {
     init(_ text: String) { self.text = text }
     var body: some View {
         Text(text)
+            .font(.system(size: 15))
             .foregroundStyle(KColor.ink2)
             .lineLimit(1)
             .minimumScaleFactor(0.85)
@@ -126,6 +242,7 @@ struct CTFormTextRow: View {
             CTRowLabel(title)
                 .layoutPriority(1)
             TextField("", text: $text, prompt: Text(placeholder).foregroundColor(KColor.ink3))
+                .font(.system(size: 16, weight: .medium))
                 .keyboardType(keyboard)
                 .textInputAutocapitalization(capitalization)
                 .autocorrectionDisabled(!autocorrect)
@@ -202,16 +319,17 @@ struct CTFormChip: View {
 
     var body: some View {
         Button(action: action) {
+            // Web v164 `.chips button[aria-pressed=true]`: Fläche Tinte, Schrift Papier, Rand Messing; sonst Rand `--line`, Tinte 2
             Text(title)
-                .font(.subheadline.weight(isOn ? .semibold : .regular))
+                .font(.system(size: 13.5, weight: isOn ? .semibold : .regular))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .padding(.horizontal, 8).padding(.vertical, 8)
+                .ctLine(19.6)
+                .padding(.horizontal, fill ? 4 : 12).padding(.vertical, 8)
                 .frame(maxWidth: fill ? .infinity : nil)
-                // Text in der Flächenfarbe: hell auf dunklem Petrol, im Dunkelmodus dunkel auf hellem Petrol (Kontrast)
-                .foregroundStyle(isOn ? KColor.surface : KColor.ink2)
-                .background(Capsule().fill(isOn ? KColor.teal : Color.clear))
-                .overlay(Capsule().strokeBorder(isOn ? Color.clear : KColor.line, lineWidth: 1))
+                .foregroundStyle(isOn ? KColor.paper : KColor.ink2)
+                .background(Capsule().fill(isOn ? KColor.ink : Color.clear))
+                .overlay(Capsule().strokeBorder(isOn ? KColor.teal : KColor.line, lineWidth: 1))
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -229,19 +347,21 @@ struct CTFormOKButton: View {
     var identifier = ""
     let action: () -> Void
 
+    /// Web `.fok` (v164): Messing `--brassFab`, Schrift `--onBrass` 15/600, 11 Innenabstand, Radius 10
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.body.weight(.semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 11)
-                .foregroundStyle(KColor.surface)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.teal))
+                .foregroundStyle(KColor.onBrass)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.brassFab))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .padding(.top, 4).padding(.bottom, 12)
         .accessibilityIdentifier(identifier)
     }
 }
@@ -253,12 +373,16 @@ struct CTFormAddRow: View {
     let action: () -> Void
 
     var body: some View {
+        // Web `.fadd`: 15/600 Messing, «+» davor, Abstand 8
         Button(action: action) {
-            Label(title, systemImage: "plus")
-                .font(.body.weight(.semibold))
-                .foregroundStyle(KColor.teal)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
+            HStack(spacing: 8) {
+                Image(systemName: "plus").font(.system(size: 14, weight: .semibold))
+                Text(title).font(.system(size: 15, weight: .semibold))
+            }
+            .foregroundStyle(KColor.teal)
+            .padding(.horizontal, 6)
+            .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.borderless)
         .accessibilityIdentifier(identifier)

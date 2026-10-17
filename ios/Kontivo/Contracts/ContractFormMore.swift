@@ -14,7 +14,7 @@ struct CTFormExtrasSection: View {
 
     var body: some View {
         let today = model.today
-        Section {
+        CTSection {
             ForEach(form.extras) { x in
                 extraRow(x, today: today)
             }
@@ -118,7 +118,7 @@ struct CTFormAssignSection: View {
 
     var body: some View {
         let data = model.data
-        Section {
+        CTSection {
             categoryRow
             if data.persons.count >= 2 {
                 VStack(alignment: .leading, spacing: 8) {
@@ -193,7 +193,7 @@ struct CTFormContactSection: View {
     var body: some View {
         // Website und Adresse gehören zum Vertragspartner (Datenmodell mit IDs): ohne Vertragspartner nicht speicherbar
         let noPartner = form.partnerName.ctTrimmed.isEmpty
-        Section {
+        CTSection {
             if form.addressVisible {
                 addressRows(noPartner: noPartner)
             } else {
@@ -281,7 +281,7 @@ struct CTFormNoteSection: View {
     var focus: FocusState<ContractFormField?>.Binding
 
     var body: some View {
-        Section {
+        CTSection {
             TextField("Zugangsweg, Ansprechpartner, Besonderheiten", text: $form.note, axis: .vertical)
                 .lineLimit(3...10)
                 .foregroundStyle(KColor.ink)

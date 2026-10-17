@@ -27,7 +27,7 @@ struct CTFormTermSection: View {
     var body: some View {
         let today = model.today
         let m = form.termMode
-        Section {
+        CTSection {
             modeRow
             if m == .trial {
                 trialRows(today: today)
@@ -42,36 +42,40 @@ struct CTFormTermSection: View {
                               identifier: "form.end") { form.setEnd($0) }
                     .ctMiss(form, .end)
                     .id(ContractFormField.end)
-                Picker(selection: $form.renewMonths) {
-                    Text("nicht automatisch").tag(0)
-                    Text("1 Monat").tag(1)
-                    ForEach([3, 6, 12, 24], id: \.self) { n in
-                        Text("\(n) Monate").tag(n)
+                CTMenuRow("Verlängert sich um") {
+                    Picker(selection: $form.renewMonths) {
+                        Text("nicht automatisch").tag(0)
+                        Text("1 Monat").tag(1)
+                        ForEach([3, 6, 12, 24], id: \.self) { n in
+                            Text("\(n) Monate").tag(n)
+                        }
+                        if ![0, 1, 3, 6, 12, 24].contains(form.renewMonths) {
+                            Text("\(form.renewMonths) Monate").tag(form.renewMonths)
+                        }
+                    } label: {
+                        CTRowLabel("Verlängert sich um")
                     }
-                    if ![0, 1, 3, 6, 12, 24].contains(form.renewMonths) {
-                        Text("\(form.renewMonths) Monate").tag(form.renewMonths)
-                    }
-                } label: {
-                    CTRowLabel("Verlängert sich um")
+                    .pickerStyle(.menu)
+                    .tint(KColor.teal)
+                    .accessibilityIdentifier("form.renew")
                 }
-                .pickerStyle(.menu)
-                .tint(KColor.teal)
-                .accessibilityIdentifier("form.renew")
             }
             if m == .open || m == .fixed {
                 noticeRows
             }
             if m == .open || m == .trial {
-                Picker(selection: $form.cancelTerm) {
-                    ForEach([CancelTerm.anytime, .period, .monthEnd, .quarterEnd, .halfYearEnd, .yearEnd, .contractYear], id: \.self) { t in
-                        Text(CTFormState.termOptionText(t)).tag(t)
+                CTMenuRow("Kündbar per") {
+                    Picker(selection: $form.cancelTerm) {
+                        ForEach([CancelTerm.anytime, .period, .monthEnd, .quarterEnd, .halfYearEnd, .yearEnd, .contractYear], id: \.self) { t in
+                            Text(CTFormState.termOptionText(t)).tag(t)
+                        }
+                    } label: {
+                        CTRowLabel("Kündbar per")
                     }
-                } label: {
-                    CTRowLabel("Kündbar per")
+                    .pickerStyle(.menu)
+                    .tint(KColor.teal)
+                    .accessibilityIdentifier("form.cancelTerm")
                 }
-                .pickerStyle(.menu)
-                .tint(KColor.teal)
-                .accessibilityIdentifier("form.cancelTerm")
             }
             if m != .tax {
                 cancelWayRows
