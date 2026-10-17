@@ -666,32 +666,45 @@ struct DeadlineReviewSheet: View {
         let list = calc.reviewList()
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 0) {
+                    // `.note`: 12.5 px ink2, 10 px darunter
                     Text("Tippe bei jedem Vertrag, ob du ihn noch brauchst. «Weg damit» merkt ihn in «Fristen» zum Kündigen vor.")
-                        .font(.footnote).foregroundStyle(KColor.ink2)
+                        .font(.system(size: 12.5)).foregroundStyle(KColor.ink2)
                         .fixedSize(horizontal: false, vertical: true)
+                        .onbLine(12.5, 19.375)
+                        .padding(.bottom, 10)
                     if list.isEmpty {
-                        Text("Keine laufenden Verträge.").font(.footnote).foregroundStyle(KColor.ink2)
+                        Text("Keine laufenden Verträge.").font(.system(size: 12.5)).foregroundStyle(KColor.ink2)
                     }
-                    ForEach(list) { c in
-                        let v = calc.freshReview(c)
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(spacing: 10) {
-                                MarkView(contract: c, data: model.data, size: 36)
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(model.data.title(of: c)).font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
-                                    Text(verbatim: DeadlineReviewSheet.line(c, calc: calc))
-                                        .font(.caption).foregroundStyle(KColor.ink3).lineLimit(1)
+                    // `.rvlist` (Lücke 8) mit `.rvrow` (field, Radius 12, Abstand 10/12)
+                    VStack(spacing: 8) {
+                        ForEach(list) { c in
+                            let v = calc.freshReview(c)
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 12) {
+                                    MarkView(contract: c, data: model.data, size: 36)
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        Text(model.data.title(of: c)).font(.system(size: 15, weight: .semibold)).foregroundStyle(KColor.ink)
+                                            .lineLimit(1).frame(height: 21.75)
+                                        Text(verbatim: DeadlineReviewSheet.line(c, calc: calc))
+                                            .font(.system(size: 12)).foregroundStyle(KColor.ink2).lineLimit(1).frame(height: 17.4)
+                                    }
+                                    Spacer(minLength: 0)
                                 }
+                                // `.hseg`: Fläche surface, Rand innen 1 px, Abstand 3, Radius 10
+                                HStack(spacing: 0) {
+                                    seg("Brauche ich", on: v == .keep) { set(c.id, .keep) }
+                                    seg(c.mandatory ? "Wechseln" : "Weg damit", on: v == .kill) { set(c.id, .kill) }
+                                }
+                                .padding(3)
+                                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.surface))
+                                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
                             }
-                            HStack(spacing: 6) {
-                                seg("Brauche ich", on: v == .keep) { set(c.id, .keep) }
-                                seg(c.mandatory ? "Wechseln" : "Weg damit", on: v == .kill) { set(c.id, .kill) }
-                            }
+                            .padding(.horizontal, 12).padding(.vertical, 10)
+                            .background(KColor.field, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .accessibilityElement(children: .contain)
+                            .accessibilityIdentifier("review.row")
                         }
-                        .padding(12)
-                        .background(KColor.surface, in: RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous))
-                        .accessibilityIdentifier("review.row")
                     }
                     Button {
                         let t = model.today
@@ -703,15 +716,17 @@ struct DeadlineReviewSheet: View {
                         }
                         dismiss()
                     } label: {
-                        Text("Fertig").font(.body.weight(.semibold)).foregroundStyle(.white)
-                            .frame(maxWidth: .infinity).padding(.vertical, 13)
-                            .background(KColor.tealFill, in: RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous))
+                        // `.lbtn.main`: 13.5 px 600, Abstand 10, Radius 10
+                        Text("Fertig").font(.system(size: 13.5, weight: .semibold)).foregroundStyle(.white)
+                            .onbLine(13.5, 19.575, .semibold)
+                            .frame(maxWidth: .infinity).padding(10)
+                            .background(KColor.tealFill, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
                     .buttonStyle(.plain)
-                    .padding(.top, 6)
+                    .padding(.top, 12)
                     .accessibilityIdentifier("review.done")
                 }
-                .padding(.horizontal, KMetric.gutter).padding(.vertical, 12)
+                .padding(.horizontal, 17).padding(.vertical, 12)
             }
             .kPageBackground()
             .navigationTitle("Quartals-Check")
@@ -740,11 +755,15 @@ struct DeadlineReviewSheet: View {
 
     private func seg(_ title: String, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title).font(.subheadline.weight(.semibold))
-                .foregroundStyle(on ? Color.white : KColor.ink)
+            // `.hseg button`: 13.5 px 500 ink2, Abstand 7/4, Radius 8; gewählt: sunken, ink, 600, Schatten 0 1 2 .08
+            Text(title).font(.system(size: 13.5, weight: on ? .semibold : .medium))
+                .foregroundStyle(on ? KColor.ink : KColor.ink2)
                 .lineLimit(1).minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity).frame(minHeight: 36)
-                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(on ? KColor.tealFill : KColor.sunken))
+                .onbLine(13.5, 19.575, .medium)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 7).padding(.horizontal, 4)
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(on ? KColor.sunken : Color.clear)
+                    .shadow(color: Color.black.opacity(on ? 0.08 : 0), radius: 1, y: 1))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
