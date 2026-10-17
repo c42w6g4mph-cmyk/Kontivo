@@ -169,4 +169,36 @@ final class WebSync224Tests: XCTestCase {
         XCTAssertEqual(Catalog.find("Swisscom")?.termShort, "60 Tage Frist")
         XCTAssertEqual(Catalog.find("CSS", currency: .CHF)?.termShort, "Pflichtvertrag")
     }
+
+    // MARK: v165/v190 Farben, v179/v180 Person merken
+
+    func testCategoryColors() {
+        XCTAssertEqual(Category.standardColors["Versicherung"], "#2F7F7A")
+        XCTAssertEqual(Category.palette[0], "#4A5A66")
+        // gespeicherte alte Standardfarbe (auch altes Türkis) → neue Standardfarbe; eigene Farbe bleibt
+        XCTAssertEqual(Category(name: "Versicherung", colorHex: "#0E5A5E", kind: .insurance).displayColorHex, "#2F7F7A")
+        XCTAssertEqual(Category(name: "Wohnen", colorHex: "#6B4E9E", kind: .housing).displayColorHex, "#6A4FB3")
+        XCTAssertEqual(Category(name: "Meine Wohnung", colorHex: "#6B4E9E", kind: .housing).displayColorHex, "#6A4FB3")
+        XCTAssertEqual(Category(name: "Haustier", colorHex: "#2F86A6").displayColorHex, "#3F6E9A")
+        XCTAssertEqual(Category(name: "Haustier", colorHex: "#123456").displayColorHex, "#123456")
+        XCTAssertEqual(Category(name: "Haustier", colorHex: "rot").displayColorHex, "#6B7280")
+        XCTAssertEqual(IncomeKind.nebeneinkommen.colorHex, "#4A5A66")
+    }
+
+    func testRememberSinglePerson() throws {
+        var d = AppData.initial()
+        let a = d.persons[0].id
+        let b = Person(name: "Lara")
+        d.persons.append(b)
+        d.settings.lastHolderIDs = []
+        let cat = d.categories[0].id
+        let t = Day(2026, 10, 17)
+        _ = try d.saveContract(Contract(label: "Beide", categoryID: cat, amount: 10, holderIDs: [a, b.id]), today: t)
+        XCTAssertEqual(d.settings.lastHolderIDs, [], "«Beide» wird nicht gemerkt (Web v180)")
+        _ = try d.saveContract(Contract(label: "Lara", categoryID: cat, amount: 10, holderIDs: [b.id]), today: t)
+        XCTAssertEqual(d.settings.lastHolderIDs, [b.id])
+        XCTAssertEqual(d.defaultHolderIDs, [b.id])
+        d.settings.lastHolderIDs = [a, b.id]
+        XCTAssertEqual(d.defaultHolderIDs, [a], "zwei gemerkte → erste Person (Web bkHolders)")
+    }
 }

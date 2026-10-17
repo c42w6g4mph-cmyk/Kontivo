@@ -176,7 +176,7 @@ extension Calc {
 
     /// Kategoriefarbe nach Name (`catColor`): Eintrag → Standardfarbe → #5F666E.
     public func kbCategoryColor(_ name: String) -> String {
-        data.category(named: name)?.colorHex ?? Category.standardColors[name] ?? Category.fallbackColor
+        data.category(named: name)?.displayColorHex ?? Category.standardColors[name] ?? Category.displayFallbackColor
     }
 
     public func kbSplit(_ groups: [String: Double], dim: FilterDimension) -> KBSplit {
