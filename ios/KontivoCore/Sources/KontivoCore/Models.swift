@@ -842,6 +842,9 @@ public struct Settings: Codable, Hashable, Sendable {
     /// Vollständigkeit: Vertragspartner bewusst «Ohne Logo» (Web `settings.logoSkip`, Schlüssel = Name klein, ohne Leerzeichen
     /// am Rand). Neu seit Web v120, fehlt in älteren Daten.
     public var logoSkip: [String] = []
+    /// Zeitpunkt des letzten erfolgreichen Kursabrufs (Web `settings.rateCheckedAt`, ms; v162): bis zum Tageskurs alle 3 h
+    /// erneut prüfen (`RatePolicy`). Fehlt in älteren Daten → nil.
+    public var rateCheckedAt: Date? = nil
 
     /// Aktuelle Datenversion der nativen App.
     public static let currentDataVersion = 2
@@ -883,6 +886,7 @@ public struct Settings: Codable, Hashable, Sendable {
         bankIgn = c.lossyArray(.bankIgn)
         bankAlias = c.value(.bankAlias, [String: BankAlias]())
         logoSkip = c.lossyArray(.logoSkip)
+        rateCheckedAt = c.optional(.rateCheckedAt)
     }
 }
 

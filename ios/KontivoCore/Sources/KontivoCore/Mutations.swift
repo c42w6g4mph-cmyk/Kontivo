@@ -825,6 +825,7 @@ extension AppData {
         settings.rates = s.rates
         settings.rateDate = s.rateDate
         settings.rateChecked = s.rateChecked
+        settings.rateCheckedAt = s.rateCheckedAt
         settings.rateSource = s.rateSource
         settings.theme = s.theme
         settings.sort = s.sort
