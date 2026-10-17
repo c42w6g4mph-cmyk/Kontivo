@@ -6,24 +6,27 @@ struct RootView: View {
     /// Intro beim Kaltstart (Bereich onb, Onboarding/SplashView.swift)
     @State private var splash = SplashView.enabled
 
+    /// Tabbar und Fenster-Kopfzeilen wie im Web (Design/Appearance.swift)
+    init() { KAppearance.apply() }
+
     var body: some View {
         @Bindable var model = model
         TabView(selection: $model.tab) {
             NavigationStack { ContractsTab() }
-                .tabItem { Label("Verträge", systemImage: "doc.text") }
+                .tabItem { Label { Text("Verträge") } icon: { Image("ic.tab.list") } }
                 .tag(AppTab.contracts)
             NavigationStack { CostsTab() }
-                .tabItem { Label("Kosten", systemImage: "chart.bar") }
+                .tabItem { Label { Text("Kosten") } icon: { Image("ic.tab.stat") } }
                 .tag(AppTab.costs)
             NavigationStack { BudgetTab() }
-                .tabItem { Label("Budget", systemImage: "wallet.pass") }
+                .tabItem { Label { Text("Budget") } icon: { Image("ic.tab.budget") } }
                 .tag(AppTab.budget)
             NavigationStack { DeadlinesTab() }
-                .tabItem { Label("Fristen", systemImage: "stopwatch") }
+                .tabItem { Label { Text("Fristen") } icon: { Image("ic.tab.term") } }
                 .badge(model.calc.deadlineBadgeCount)
                 .tag(AppTab.deadlines)
             NavigationStack { MoreTab() }
-                .tabItem { Label("Mehr", systemImage: "ellipsis") }
+                .tabItem { Label { Text("Mehr") } icon: { Image("ic.tab.set") } }
                 .tag(AppTab.more)
         }
         .modifier(SheetLevel(level: 0))
@@ -167,21 +170,22 @@ struct PromptModifier: ViewModifier {
     }
 }
 
-/// Kurze Meldung unten (wie der Toast der Web-App)
+/// Kurze Meldung unten (Web `.status`): 14 pt, Schrift `--paper` auf `--ink`, Kapsel, Innenabstand 9/15, 64 pt über dem unteren Rand
 struct ToastView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
         if let t = model.toastText {
             Text(t)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.white)
+                .font(KFont.text(14))
+                .foregroundStyle(KColor.paper)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 16).padding(.vertical, 10)
-                .background(Capsule().fill(Color.black.opacity(0.82)))
+                .kLineHeight(14, 20.3)
+                .padding(.horizontal, 15).padding(.vertical, 9)
+                .background(Capsule().fill(KColor.ink))
                 .padding(.horizontal, 24)
                 .padding(.bottom, 64)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .transition(.opacity)
                 .allowsHitTesting(false)
                 .accessibilityAddTraits(.isStaticText)
         }

@@ -47,8 +47,7 @@ struct MDIconGrid: View {
                 Button { pick(key) } label: {
                     ZStack {
                         RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color(hex: color))
-                        Image(systemName: KIcon.symbol(forKey: key))
-                            .font(.system(size: 18, weight: .medium))
+                        KIcon.view(KIcon.symbol(forKey: key), 17)
                             .foregroundStyle(.white)
                     }
                     .frame(width: 40, height: 40)

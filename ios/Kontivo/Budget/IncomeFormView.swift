@@ -555,7 +555,7 @@ struct KBIncomeForm: View {
             Menu {
                 Picker("Art", selection: $draft.kind) {
                     ForEach(IncomeKind.allCases, id: \.self) { k in
-                        Label(k.displayName, systemImage: KIcon.symbol(forKey: k.icon)).tag(k)
+                        Label { Text(k.displayName) } icon: { KIcon.image(KIcon.symbol(forKey: k.icon)) }.tag(k)
                     }
                 }
                 .pickerStyle(.inline)
@@ -566,8 +566,7 @@ struct KBIncomeForm: View {
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
                         .fill(Color(hex: draft.kind.colorHex))
                         .frame(width: 26, height: 26)
-                        .overlay(Image(systemName: KIcon.symbol(forKey: draft.kind.icon))
-                            .font(.system(size: 12, weight: .medium))
+                        .overlay(KIcon.view(KIcon.symbol(forKey: draft.kind.icon), 15)
                             .foregroundStyle(.white))
                         .accessibilityHidden(true)
                     Text(verbatim: draft.kind.displayName)
