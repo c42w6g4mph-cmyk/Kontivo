@@ -154,18 +154,18 @@ struct CTDetailDocsButton: View {
                 ZStack {
                     Circle()
                         .fill(count > 0 ? KColor.tealFill : KColor.teal.opacity(0.13))
-                    Image(systemName: "paperclip")
-                        .font(.system(size: 18, weight: .semibold))
+                    CTIcon.named("clip", 19)
                         .foregroundStyle(count > 0 ? Color.white : KColor.teal)
                 }
                 .frame(width: 44, height: 44)
                 Text(count > 0 ? Format.count(count, "Datei", "Dateien") : "Anhängen")
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 11.5, weight: .semibold))
                     .foregroundStyle(KColor.teal)
                     .lineLimit(1)
                     .fixedSize()
             }
             .frame(minWidth: 56)
+            .padding(.horizontal, 6).padding(.vertical, 1)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

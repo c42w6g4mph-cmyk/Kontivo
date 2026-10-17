@@ -194,6 +194,15 @@ struct CTImageItem: Identifiable {
     let image: UIImage
 }
 
+// MARK: - Telefon
+
+enum CTPhone {
+    /// Nummer zum Wählen (Web `String(c.tel).replace(/[^\d+]/g, "")`)
+    static func dialDigits(_ s: String) -> String {
+        String(s.filter { ("0"..."9").contains($0) || $0 == "+" })
+    }
+}
+
 // MARK: - Texte
 
 enum CTText {
@@ -231,6 +240,8 @@ enum ContractFormFocus: String, Hashable {
     case mail
     /// Kündigungsadresse E-Mail (Web `fCancMail`, «E-Mail-Adresse fehlt» bei Kündigungsweg E-Mail)
     case cancelMail
+    /// Telefon unter «Kontakt» (Web `fTel`, «Telefonnummer fehlt» bei Kündigungsweg Telefon, v210)
+    case tel
 }
 
 /// Formular mit Sprungziel öffnen (Web `closeSheets(); openForm(c); formGo(…)`): `ContractFormLaunch.edit(model, id, focus: .end)`.
