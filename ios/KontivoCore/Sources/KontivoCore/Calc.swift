@@ -80,6 +80,7 @@ public struct Calc {
             case .online: return .online
             case .email: return .mail
             case .letter: return .post
+            case .phone: return .tel
             }
         }
         if categoryKind(c) == .insurance { return .post }

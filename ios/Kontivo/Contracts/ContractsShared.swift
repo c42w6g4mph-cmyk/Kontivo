@@ -186,6 +186,7 @@ enum CTText {
         case .online: return "Online kündigen"
         case .mail: return "Per E-Mail kündigen"
         case .post: return "Kündigungsschreiben"
+        case .tel: return "Anrufen"
         case .none: return "Kündigen …"
         }
     }
@@ -214,6 +215,8 @@ enum ContractFormFocus: String, Hashable {
     case mail
     /// Kündigungsadresse E-Mail (Web `fCancMail`, «E-Mail-Adresse fehlt» bei Kündigungsweg E-Mail)
     case cancelMail
+    /// Telefon unter «Kontakt» (Web `fTel`, «Telefonnummer fehlt» bei Kündigungsweg Telefon, v210)
+    case tel
 }
 
 /// Formular mit Sprungziel öffnen (Web `closeSheets(); openForm(c); formGo(…)`): `ContractFormLaunch.edit(model, id, focus: .end)`.

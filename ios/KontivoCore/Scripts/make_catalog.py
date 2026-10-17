@@ -4,9 +4,12 @@ Aufruf (im Ordner ios/KontivoCore):  python3 Scripts/make_catalog.py
 Liest die Konstanten H_* und das Array TPL («Anbieterkatalog Schweiz / Deutschland») aus ../../index.html,
 löst die Hinweis-Konstanten als Text auf und schreibt ein JSON-Array mit benannten Feldern:
 name, country ("" = international), category (Name der Vorbelegung), label, web, notice, noticeUnit (m|w|d|k),
-cancelTerm (""|p|m|q|h|y|a), cancelChannel (online|email|letter|null; «Einschreiben» → letter), mandatory, hint, cancelURL (12. Feld, "" = keiner),
+cancelTerm (""|p|m|q|h|y|a), cancelChannel (online|email|letter|phone|null; «Einschreiben» → letter, «Telefon» → phone seit Web v210),
+mandatory, hint, cancelURL (12. Feld, "" = keiner),
 address (13. Feld, mehrzeilig wie c.addr), mail (14.), tel (15.), confirmed (16.: 1 = Kontaktdaten aus offizieller Quelle; fehlt = 1).
 Bereinigung (Inventar 2, F10): die Zahl 0 im Feld «Kündigungsweg» wird zu null.
+Gleiche Namen (z.B. «CSS» Krankenkasse + Zusatzversicherung, Web v210) bleiben getrennte Einträge; unterschieden über label
+(Bezeichnung) und country. Prüft, dass Name + Land + Bezeichnung eindeutig sind (CatalogEntry.id).
 """
 import json, os, re, sys
 
@@ -29,7 +32,7 @@ arr = arr[:arr.rindex("];") + 1]
 # JS-Array-Literal ist (mit den H_*-Namen) gültiges Python
 rows = eval(arr, {"__builtins__": {}}, dict(consts))
 
-CHANNEL = {"Online / Kundenkonto": "online", "E-Mail": "email", "Brief": "letter", "Einschreiben": "letter"}  # v145: Einschreiben = Brief
+CHANNEL = {"Online / Kundenkonto": "online", "E-Mail": "email", "Brief": "letter", "Einschreiben": "letter", "Telefon": "phone"}  # v145: Einschreiben = Brief; v210: Telefon
 out = []
 for r in rows:
     name, cc, cat, lab, web, no, nu, tm, cf, md, hint = r[:11]
@@ -48,6 +51,13 @@ for r in rows:
         "mandatory": bool(md), "hint": hint or "", "cancelURL": url or "",
         "address": addr or "", "mail": mail or "", "tel": tel or "", "confirmed": bool(conf),
     })
+
+seen = {}
+for e in out:
+    k = (e["name"], e["country"], e["label"])
+    if k in seen:
+        sys.exit("Doppelter Katalogeintrag (Name, Land, Bezeichnung): %r" % (k,))
+    seen[k] = 1
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, "w", encoding="utf-8") as f:

@@ -203,6 +203,7 @@ public enum Reminders {
             case .online: way = CancelChannel.online.webText
             case .mail: way = CancelChannel.email.webText
             case .post: way = CancelChannel.letter.webText
+            case .tel: way = CancelChannel.phone.webText
             case .none: way = ""
             }
         }
@@ -216,6 +217,9 @@ public enum Reminders {
             if !m.isEmpty { lines.append("E-Mail: " + m) }
         case .post:
             if let a = partner?.address, !a.isEmpty { lines.append("Adresse: " + a.lines.joined(separator: ", ")) }
+        case .tel:
+            let t = c.tel.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !t.isEmpty { lines.append("Telefon: " + t) }
         case .none:
             break
         }

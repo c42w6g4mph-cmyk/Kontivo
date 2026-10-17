@@ -101,4 +101,72 @@ final class WebSync224Tests: XCTestCase {
         XCTAssertTrue(leasing.isLeasing)
         XCTAssertFalse(ewb.isLeasing)
     }
+
+    // MARK: Katalog v210–v224 (Werte aus der Web-App gemessen, Formularwährung CHF)
+
+    func testCatalogSameNames() {
+        XCTAssertEqual(Catalog.entries.count, 572)
+        XCTAssertEqual(Set(Catalog.entries.map { $0.id }).count, Catalog.entries.count, "id eindeutig")
+        XCTAssertEqual(Catalog.all("CSS", currency: .CHF).map { $0.label }, ["Krankenkasse", "Zusatzversicherung"])
+        XCTAssertEqual(Catalog.all("John Reed", currency: .EUR).map { $0.country + $0.label }, ["DEFitnessabo"])
+        XCTAssertEqual(Catalog.all("John Reed", currency: .CHF).map { $0.country + $0.label }, ["CHFitnessabo"])
+        // Bezeichnung entscheidet, übernommener Eintrag geht vor
+        XCTAssertEqual(Catalog.find("CSS", currency: .CHF)?.label, "Krankenkasse")
+        XCTAssertEqual(Catalog.find("css", currency: .CHF, label: "zusatzversicherung")?.label, "Zusatzversicherung")
+        let zv = Catalog.all("CSS", currency: .CHF)[1]
+        XCTAssertEqual(Catalog.find("CSS", currency: .CHF, label: "Krankenkasse", preferred: zv), zv)
+        XCTAssertEqual(Catalog.find("CSS", currency: .CHF)?.mandatory, true)
+        XCTAssertEqual(zv.mandatory, false)
+    }
+
+    func testCatalogHits() {
+        func row(_ q: String) -> [String] {
+            Catalog.hits(q, currency: .CHF).entries.map { $0.name + "|" + $0.country + "|" + $0.label + "|" + Catalog.hitSubtitle($0, currency: .CHF) }
+        }
+        XCTAssertEqual(row("css"), ["CSS|CH|Krankenkasse|Krankenkasse · Schweiz · Pflichtvertrag",
+                                    "CSS|CH|Zusatzversicherung|Zusatzversicherung · Schweiz · 3 Monate Frist"])
+        XCTAssertEqual(row("sun"), ["Sunrise|CH|Handy / Internet|Handy / Internet · 2 Monate Frist",
+                                    "IKK gesund plus|DE|Krankenkasse|Krankenkasse · Pflichtvertrag",
+                                    "BIG direkt gesund|DE|Krankenkasse|Krankenkasse · Pflichtvertrag"])
+        XCTAssertEqual(row("rundfunk"), ["Rundfunkgebühr|CH|Rundfunkgebühr|Rundfunkgebühr · nicht kündbar"])
+        XCTAssertEqual(row("john reed"), ["John Reed|DE|Fitnessabo|Fitnessabo · 1 Monat Frist", "John Reed|CH|Fitnessabo|Fitnessabo · 2 Wochen Frist"])
+        XCTAssertEqual(row("ab"), ["SBB GA|CH|Generalabonnement|Generalabonnement · 1 Monat Frist",
+                                   "Update Fitness|CH|Fitnessabo|Fitnessabo · 4 Wochen Frist",
+                                   "Activ Fitness|CH|Fitnessabo|Fitnessabo · 2 Monate Frist"])
+        XCTAssertTrue(Catalog.hits("ab", currency: .CHF).hasMore)
+        XCTAssertFalse(Catalog.hits("css", currency: .CHF).hasMore)
+        XCTAssertEqual(Catalog.hits("ab", currency: .CHF, more: true).entries.count, 8)
+        XCTAssertFalse(Catalog.hits("ab", currency: .CHF, more: true).hasMore)
+        XCTAssertTrue(Catalog.hits("s", currency: .CHF).entries.isEmpty)
+        XCTAssertEqual(Catalog.hitDomains(Catalog.hits("css", currency: .CHF).entries), ["css.ch"])
+    }
+
+    func testPhoneChannel() throws {
+        XCTAssertEqual(Array(Catalog.entries.filter { $0.cancelChannel == .phone }.map { $0.name }.prefix(6)),
+                       ["Swisscom", "Sunrise", "Salt", "Wingo", "Yallo", "Coop Mobile"])
+        XCTAssertEqual(CancelChannel(webText: "Telefon"), .phone)
+        XCTAssertEqual(CancelChannel.phone.webText, "Telefon")
+        XCTAssertEqual(CancelVia.tel.jsValue, "tel")
+        // Web-Backup → Vertrag mit Kündigungsweg Telefon, cancVia «tel», kein Absender nötig (vkNeeds v210)
+        let json = #"{"app":"vertraege","settings":{"home":"CHF","holders":["Ich"]},"contracts":{"k":{"partner":"Sunrise","label":"Handy","cat":"Mobilfunk & Internet","amount":40,"cur":"CHF","cycle":1,"cancF":"Telefon","tel":"+41 800 707 707","holders":["Ich"]}},"incomes":{}}"#
+        let r = try WebImport.importBackup(Data(json.utf8), today: Day(2026, 10, 17))
+        let c = r.data.contracts[0]
+        XCTAssertEqual(c.cancelChannel, .phone)
+        let calc = Calc(data: r.data, today: Day(2026, 10, 17))
+        XCTAssertEqual(calc.cancVia(c), .tel)
+        XCTAssertFalse(Completeness.senderNeeded(c, calc: calc))
+        XCTAssertEqual(calc.detailMenu(c).cancel?.subtitle, "Weg wählen")
+        // CSV-Rundlauf
+        XCTAssertEqual(CSV.via("Telefon"), .phone)
+        // natives Format
+        let back = try KontivoJSON.makeDecoder().decode(Contract.self, from: KontivoJSON.makeEncoder().encode(c))
+        XCTAssertEqual(back.cancelChannel, .phone)
+    }
+
+    func testCatalogTermShort() {
+        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.termShort, "nicht kündbar")
+        XCTAssertEqual(Catalog.find("Netflix")?.termShort, "jederzeit kündbar")
+        XCTAssertEqual(Catalog.find("Swisscom")?.termShort, "60 Tage Frist")
+        XCTAssertEqual(Catalog.find("CSS", currency: .CHF)?.termShort, "Pflichtvertrag")
+    }
 }

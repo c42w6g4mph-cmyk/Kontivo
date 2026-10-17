@@ -290,6 +290,9 @@ struct CTFormTermSection: View {
                           contentType: .emailAddress, identifier: "form.cancelMail", field: .cancelMail, focus: focus)
         case .letter:
             addressWayRow
+        case .phone:
+            // Web v210: kein Folgefeld (Nummer steht unter «Kontakt»)
+            EmptyView()
         case nil:
             EmptyView()
         }

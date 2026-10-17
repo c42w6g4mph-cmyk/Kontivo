@@ -596,7 +596,7 @@ final class WebSync160Tests: XCTestCase {
     func testCancelChannelMigration() throws {
         XCTAssertEqual(CancelChannel(webText: "Einschreiben"), .letter)
         XCTAssertEqual(CancelChannel(webText: "Brief"), .letter)
-        XCTAssertEqual(CancelChannel.allCases, [.online, .email, .letter])
+        XCTAssertEqual(CancelChannel.allCases, [.online, .email, .letter, .phone])   // Web v210: Telefon
         let old = try KontivoJSON.makeDecoder().decode([CancelChannel].self, from: Data(#"["registered","letter","online"]"#.utf8))
         XCTAssertEqual(old, [.letter, .letter, .online])
         // Web-Backup mit «Einschreiben»

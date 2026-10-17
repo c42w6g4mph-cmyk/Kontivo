@@ -38,11 +38,12 @@ public enum CancelTerm: String, Codable, CaseIterable, Hashable, Sendable {
     case anytime = "", period = "p", monthEnd = "m", quarterEnd = "q", halfYearEnd = "h", yearEnd = "y", contractYear = "a"
 }
 
-/// Kündigungsweg am Vertrag (Web: Text in `cancF`). Seit Web v145 nur noch Online · E-Mail · Brief: «Einschreiben» ist
+/// Kündigungsweg am Vertrag (Web: Text in `cancF`). Seit Web v145 Online · E-Mail · Brief: «Einschreiben» ist
 /// gleich «Brief» (Tipp «eingeschrieben» steht im Kündigungsschreiben). Alte Daten mit "registered" bzw. «Einschreiben»
-/// werden beim Laden und Importieren zu `.letter` (Web `migVia`).
+/// werden beim Laden und Importieren zu `.letter` (Web `migVia`). Seit Web v210 zusätzlich Telefon («Telefon», z.B. Sunrise,
+/// Salt: Kundendienst anrufen statt Brief).
 public enum CancelChannel: String, Codable, CaseIterable, Hashable, Sendable {
-    case online, email, letter
+    case online, email, letter, phone
 
     /// Text wie in der Web-App («Online / Kundenkonto», «E-Mail», «Brief»).
     public var webText: String {
@@ -50,6 +51,7 @@ public enum CancelChannel: String, Codable, CaseIterable, Hashable, Sendable {
         case .online: return "Online / Kundenkonto"
         case .email: return "E-Mail"
         case .letter: return "Brief"
+        case .phone: return "Telefon"
         }
     }
 
@@ -59,6 +61,7 @@ public enum CancelChannel: String, Codable, CaseIterable, Hashable, Sendable {
         case "Online / Kundenkonto": self = .online
         case "E-Mail": self = .email
         case "Brief", "Einschreiben": self = .letter
+        case "Telefon": self = .phone
         default: return nil
         }
     }
@@ -77,11 +80,11 @@ public enum CancelChannel: String, Codable, CaseIterable, Hashable, Sendable {
     }
 }
 
-/// Ergebnis von `cancVia()`: wie wird gekündigt.
+/// Ergebnis von `cancVia()`: wie wird gekündigt (`tel` seit Web v210: Kundendienst anrufen).
 public enum CancelVia: String, Hashable, Sendable {
-    case online, mail, post, none
+    case online, mail, post, tel, none
 
-    /// Wert wie in der Web-App ("online" | "mail" | "post" | "").
+    /// Wert wie in der Web-App ("online" | "mail" | "post" | "tel" | "").
     public var jsValue: String { self == .none ? "" : rawValue }
 }
 

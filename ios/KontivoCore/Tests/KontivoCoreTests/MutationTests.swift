@@ -371,7 +371,7 @@ final class MutationTests: XCTestCase {
     }
 
     func testCatalog() {
-        XCTAssertEqual(Catalog.entries.count, 176)
+        XCTAssertEqual(Catalog.entries.count, 572)   // Web v224: CH 228, DE 303, international 41
         let css = Catalog.find(" css ")
         XCTAssertEqual(css?.cancelTerm, .yearEnd)
         XCTAssertEqual(css?.cancelChannel, .letter) // Web v145: Einschreiben = Brief
@@ -396,8 +396,8 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(Catalog.standardRule(for: bank, categoryNames: names)?.category, "Finanzen")
         XCTAssertEqual(Catalog.standardRule(for: bank, categoryNames: names)?.cancelTerm, .monthEnd)
         // C-1: Web-Korrekturen vom 03.10. (Konten Monatsende, Rundfunkgebühr Steuern, Zeitungen Abos & Medien)
-        XCTAssertEqual(Catalog.find("PostFinance")?.cancelTerm, .monthEnd)
-        XCTAssertEqual(Catalog.find("N26")?.cancelTerm, .monthEnd)
+        XCTAssertEqual(Catalog.find("PostFinance")?.cancelTerm, .anytime)   // Web v224: jederzeit
+        XCTAssertEqual(Catalog.find("N26")?.cancelTerm, .anytime)
         XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.category, "Steuern & Gebühren")
         XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .EUR)?.categoryKind, .taxes)
         XCTAssertEqual(Catalog.find("NZZ")?.category, "Abos & Medien")

@@ -101,9 +101,10 @@ public enum CompletenessTermOutcome: Equatable, Sendable {
 public enum Completeness {
     // MARK: Regeln
 
-    /// Absender nötig (Web `vkNeeds`, v160): kündbar, nicht «endet von selbst», Kündigung nicht online.
+    /// Absender nötig (Web `vkNeeds`, v160/v210): kündbar, nicht «endet von selbst», Kündigung nicht online und nicht per Telefon.
     public static func senderNeeded(_ c: Contract, calc: Calc) -> Bool {
-        !calc.isFixed(c) && !calc.endsSelf(c) && calc.cancVia(c) != .online
+        let v = calc.cancVia(c)
+        return !calc.isFixed(c) && !calc.endsSelf(c) && v != .online && v != .tel
     }
 
     /// Frist fehlt (Web `vkTermNeed`): nur überwachte, kündbare, nicht gekündigte Verträge; ignorierter Datenqualitäts-Hinweis
