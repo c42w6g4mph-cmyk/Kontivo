@@ -75,8 +75,8 @@ struct MoreCurrencyTile: View {
                     .kLineHeight(big ? 16 : 14, big ? 23.2 : 20.3)
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, big ? 12 : 9)
-            .padding(.vertical, big ? 11 : 9)
+            .padding(.horizontal, big ? 13 : 10)
+            .padding(.vertical, big ? 12 : 10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(shape.fill(isOn ? KColor.surface : KColor.field))
             .overlay(shape.strokeBorder(isOn ? KColor.brass : Color.clear, lineWidth: 1))
@@ -86,7 +86,7 @@ struct MoreCurrencyTile: View {
                         .foregroundStyle(KColor.onBrass)
                         .frame(width: big ? 22 : 17, height: big ? 22 : 17)
                         .background(Circle().fill(KColor.brass))
-                        .padding(.trailing, big ? 12 : 8)
+                        .padding(.trailing, big ? 13 : 9)
                 }
             }
             .contentShape(shape)

@@ -56,7 +56,7 @@ struct MDPartnersPage: View {
         let sub: String = Format.count(g.contractIDs.count, "Vertrag", "Verträge") + cost
         return NavigationLink(value: ManagePage.partner(g.partner.id)) {
             HStack(spacing: 12) {
-                MDPartnerMark(partnerID: g.partner.id, size: 36)
+                MDPartnerMark(partnerID: g.partner.id, size: 40)
                 MDTitleSub(title: g.partner.name, subtitle: sub)
             }
         }
@@ -590,7 +590,7 @@ struct MDPartnerMergePage: View {
                 ForEach(list, id: \.partner.id) { g in
                     Button { to = g.partner.id } label: {
                         HStack(spacing: 12) {
-                            MDPartnerMark(partnerID: g.partner.id, size: 36)
+                            MDPartnerMark(partnerID: g.partner.id, size: 40)
                             MDTitleSub(title: g.partner.name, subtitle: Format.count(g.contractIDs.count, "Vertrag", "Verträge"))
                             Spacer(minLength: 4)
                             MDRadio(on: to == g.partner.id)

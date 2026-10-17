@@ -23,7 +23,10 @@ struct SplashView: View {
     static var enabled: Bool {
         _ = launch
         #if DEBUG
-        if AppModel.isUITestLaunch { return ProcessInfo.processInfo.arguments.contains("-uiSplash") }
+        if AppModel.isUITestLaunch {
+            let args = ProcessInfo.processInfo.arguments
+            return args.contains("-uiSplash") || args.contains("-uiSplashHold")
+        }
         #endif
         return true
     }
@@ -31,15 +34,24 @@ struct SplashView: View {
     /// Ende der Animation (s) – danach wird das Overlay entfernt
     private var total: Double { reduceMotion ? 1.7 : 2.5 }
 
+    /// Bildschirmfoto: «-uiSplashHold» hält das Intro bei 1.7 s an (nur Debug)
+    static var holdTime: Double? {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-uiSplashHold") { return 1.7 }
+        #endif
+        return nil
+    }
+
     var body: some View {
         TimelineView(.animation) { ctx in
-            let t = ctx.date.timeIntervalSince(SplashView.launch)
+            let t = SplashView.holdTime ?? ctx.date.timeIntervalSince(SplashView.launch)
             scene(t)
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .task {
+            if SplashView.holdTime != nil { return }
             let left = max(0, total - Date().timeIntervalSince(SplashView.launch))
             try? await Task.sleep(nanoseconds: UInt64(left * 1_000_000_000))
             onDone()

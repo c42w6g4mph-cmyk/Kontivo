@@ -162,6 +162,13 @@ jobs:
           shoot $PHONE 23-dunkel-vertraege -uiDemo -uiTab contracts
           shoot $PHONE 24-dunkel-kosten -uiDemo -uiTab costs
           shoot $PHONE 25-dunkel-detail -uiDemo -uiSheet detail
+          shoot $PHONE 29-dunkel-mehr -uiDemo -uiTab more
+          shoot $PHONE 30-dunkel-verwalten -uiDemo -uiTab more -uiSheet partners
+          xcrun simctl ui $PHONE appearance light
+          shoot $PHONE 31-splash -uiEmpty -uiSplashHold
+          shoot $PHONE 32-mehr-unten -uiDemo -uiTab more -uiMoreBottom
+          shoot $PHONE 33-vollstaendigkeit -uiDemo -uiTab more -uiSheet completeness
+          shoot $PHONE 34-leer-budget -uiEmpty -uiTab budget
           ls ~/Library/Logs/DiagnosticReports 2>/dev/null | grep -i kontivo >> ci-out/shots.txt || true
           for f in ~/Library/Logs/DiagnosticReports/*Kontivo*; do [ -f "$f" ] && head -120 "$f" >> ci-out/shots.txt; done 2>/dev/null || true
       - name: Protokoll in Branch ci-logs schreiben

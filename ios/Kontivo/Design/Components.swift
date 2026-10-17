@@ -59,7 +59,7 @@ extension MarkView {
     }
 }
 
-/// Rundes Personenbild oder Initiale
+/// Rundes Personenbild oder Initiale (Web `.mdav`)
 struct PersonAvatar: View {
     @Environment(AppModel.self) private var model
     let person: Person?
@@ -70,10 +70,11 @@ struct PersonAvatar: View {
             if let img = model.image(person?.avatarID) {
                 Image(uiImage: img).resizable().scaledToFill()
             } else {
-                Circle().fill(KColor.teal.opacity(0.14))
+                // Web `.mdav`: Kreis `--tealFill`, Initiale weiss Bold (16 pt bei 38 pt)
+                Circle().fill(KColor.tealFill)
                 Text(String((person?.name ?? "?").prefix(1)).uppercased())
-                    .font(.system(size: size * 0.42, weight: .semibold))
-                    .foregroundStyle(KColor.teal)
+                    .font(.system(size: (size * 16 / 38).rounded(), weight: .bold))
+                    .foregroundStyle(KColor.onBrass)
             }
         }
         .frame(width: size, height: size)
@@ -483,3 +484,38 @@ struct CloseButton: View {
         .accessibilityLabel(title)
     }
 }
+
+// MARK: - Fenster-Kopfzeile (Web `.shbar`)
+
+extension View {
+    /// Kopfzeile eines Fensters wie die Web-`.shbar`: Fläche `--surface` mit Linie unten (Titel/Schrift über `KAppearance`)
+    func kSheetBar() -> some View {
+        self.toolbarBackground(KColor.surface, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+    }
+}
+
+extension ToolbarContent {
+    /// Textknopf in der Kopfzeile ohne Glas-Kapsel (iOS 26), wie die Textknöpfe der Web-`.shbar`
+    @ToolbarContentBuilder func kPlain() -> some ToolbarContent {
+        if #available(iOS 26.0, *) {
+            self.sharedBackgroundVisibility(.hidden)
+        } else {
+            self
+        }
+    }
+}
+
+/// Textknopf «Fertig»/«Später» der Kopfzeile (16 pt Bold Messing)
+struct KBarButton: View {
+    let title: String
+    var bold = true
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title).font(KFont.text(16, bold ? .bold : .regular)).foregroundStyle(bold ? KColor.teal : KColor.ink2)
+        }
+        .accessibilityLabel(title)
+    }
+}
+

@@ -11,6 +11,7 @@ struct MoreTab: View {
     private var requests: MoreRequests { MoreRequests.shared }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(spacing: 0) {
                 KTabHeader(title: "Mehr")
@@ -27,10 +28,20 @@ struct MoreTab: View {
                 .padding(.top, 14)
                 .padding(.bottom, 12)
                 MoreBrandFooter()
+                    .id("more.footer")
             }
             .padding(.horizontal, KMetric.gutter)
             .padding(.bottom, 24)
             .kContentWidth()
+        }
+        #if DEBUG
+        .task {
+            // Bildschirmfoto der Fusszeile: «-uiMoreBottom»
+            guard ProcessInfo.processInfo.arguments.contains("-uiMoreBottom") else { return }
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            proxy.scrollTo("more.footer", anchor: .bottom)
+        }
+        #endif
         }
         .kPageBackground()
         .kTabPage(title: "Mehr")

@@ -142,7 +142,7 @@ struct MDCategoriesPage: View {
         let cost: String = cs.isEmpty ? "" : [" · ", Format.money(d.mdPerMonth(cs, today: model.today)), " ", home, "/Mt."].joined()
         let sub: String = Format.count(cs.count, "Vertrag", "Verträge") + cost
         return HStack(spacing: 12) {
-            MarkView(category: c, size: 36)
+            MarkView(category: c, size: 34)
             MDTitleSub(title: c.name, subtitle: sub)
         }
     }

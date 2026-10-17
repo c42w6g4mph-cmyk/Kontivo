@@ -392,14 +392,16 @@ struct CFRing: View {
 
     var body: some View {
         ZStack {
+            // Web `.vkring.big`: conic-gradient Messing/`--line`, innen weisse Fläche 122/150, Zahl 34 pt Serif Bold
             Circle().stroke(KColor.line, lineWidth: size * 0.093)
             Circle()
                 .trim(from: 0, to: CGFloat(Swift.max(0, Swift.min(100, percent))) / 100)
                 .stroke(KColor.teal, style: StrokeStyle(lineWidth: size * 0.093, lineCap: .butt))
                 .rotationEffect(.degrees(-90))
+            Circle().fill(KColor.surface).padding(size * 0.0465)
             Text(verbatim: "\(percent)%")
-                .font(.system(size: size * 0.23, weight: .bold, design: .rounded))
-                .monospacedDigit()
+                .font(KFont.serif(size * 34 / 150, .bold))
+                .tracking(-0.5)
                 .foregroundStyle(KColor.ink)
         }
         .padding(size * 0.0465)
@@ -420,8 +422,8 @@ struct CFButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(secondary ? KColor.ink : Color.white)
+                .font(KFont.text(16, .semibold))
+                .foregroundStyle(secondary ? KColor.ink : KColor.onBrass)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 15)
                 .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(secondary ? KColor.sunken : KColor.tealFill))
@@ -443,14 +445,14 @@ struct CFLink: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.subheadline)
+                .font(KFont.text(14.5))
                 .foregroundStyle(KColor.ink3)
                 .padding(8)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.top, 10)
+        .padding(.top, 14)
     }
 }
 
@@ -581,19 +583,22 @@ struct CFStartPage: View {
                     .padding(.top, 14)
                     .padding(.bottom, 16)
                 Text(Completeness.startHeadline(percent: report.percent))
-                    .font(.title2.weight(.bold))
+                    .font(KFont.text(22, .bold))
                     .foregroundStyle(KColor.ink)
+                    .kLineHeight(22, 31.9)
+                    .padding(.top, 4)
                     .padding(.bottom, 6)
                 Text(attributed(Completeness.startText(questions: report.questionCount)))
-                    .font(.subheadline)
+                    .font(KFont.text(15))
                     .foregroundStyle(KColor.ink2)
+                    .kLineHeight(15, 21.75)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 320)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.bottom, 14)
                 if !flow.auto.isEmpty {
                     Text(Completeness.autoText(flow.auto.count))
-                        .font(.subheadline.weight(.semibold))
+                        .font(KFont.text(14.5, .semibold))
                         .foregroundStyle(KColor.ok)
                         .multilineTextAlignment(.center)
                         .padding(.bottom, 4)
