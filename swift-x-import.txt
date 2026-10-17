@@ -1,238 +1,94 @@
-branch=swift-x-import run=135 sha=ab86beaf66df2e30db816ba1719a6e1ed8b2690a
+branch=swift-x-import run=136 sha=1fec98e1d03dd3bc574eaa88992c12be17ad99f8
 core=failure app=success ui=failure
 
 ===== KERN: Fehler =====
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall alias: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall alltag: 4 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall camt054: 2 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall camtbatch02: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall camtcodes: 7 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall camtrev: 5 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall css_known: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall ddmmyyyy_dash: 4 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall delim: 4 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall dkbpending: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall eom: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall falsematch: 4 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall gepflegt: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall kartenbez: 9 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall merge: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall mt940free: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall mt940multi: 4 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall oldonce: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall otherproduct: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall paypal: 2 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall plus: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall quotednl: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall sollhaben: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall twocontracts: 4 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall us: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_atm_and_retail: 4 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_card_spiegel: 4 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_card_spiegel_web: 6 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_cluster: 6 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_cred_once: 4 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_garten: 4 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_paypal: 5 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_price: 5 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_quarterly_skip: 5 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_varies: 5 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall yearlylate: 9 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall yearlyq: 3 Abweichungen
-Test Case '-[KontivoCoreTests.BankParityTests testEdgeCases]' failed (1.820 seconds).
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_akb.csv: 13 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_bekb.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_bkb.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_camt053_sps2021_v04.xml: 21 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_camt053_sps2022_v08.xml: 21 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_camt054_sps2022_v08.xml: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_cler.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_creditsuisse_legacy.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_lukb.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_migrosbank.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_migrosbank_card.csv: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_neon.csv: 14 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_postfinance.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_postfinance_legacy.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_postfinance_saldo.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_postfinance_visa.csv: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_raiffeisen.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_revolut.csv: 13 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_swisscard.csv: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_swissquote.csv: 13 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_tkb.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_ubs.csv: 17 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_ubs_creditcard.csv: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_ubs_legacy.csv: 15 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_ubs_signed.csv: 17 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_valiant.csv: 19 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_viseca.csv: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_wise.csv: 15 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_yuh.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_zkb.csv: 20 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_zkb_simple.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_1822direkt.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_amex.csv: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_barclays.csv: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_bunq.csv: 12 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_comdirect.csv: 17 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_commerzbank.csv: 19 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_commerzbank_alt.csv: 19 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_consorsbank.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_deutschebank.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_dkb.csv: 17 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_dkb_alt.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_dkb_visa.csv: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_gls.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_hvb.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_ing.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_ing_alt.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_n26.csv: 16 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_n26_alt.csv: 17 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_norisbank.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_postbank.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_psd.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_revolut.csv: 10 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_sparda.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_sparkasse_camt052.xml: 19 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_sparkasse_camt_v2.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_sparkasse_camt_v8.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_sparkasse_kreditkarte.csv: 3 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_sparkasse_mt940.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_targobank.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_tomorrow.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_vivid.csv: 12 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_vr_atruvia.csv: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_vr_fiducia_alt.csv: 19 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_vr_mt940.sta: 18 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/de/de_wise.csv: 17 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_camt053.xml: 65 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_kantonalbank.csv: 67 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_neon.csv: 59 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_postfinance.csv: 68 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_raiffeisen.csv: 67 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_revolut.csv: 57 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_ubs.csv: 67 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_zkb.csv: 67 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/de_camt053.xml: 31 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/de_comdirect.csv: 27 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/de_commerzbank.sta: 31 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/de_deutschebank.csv: 31 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/de_dkb.csv: 30 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/de_ing.csv: 32 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/de_n26.csv: 22 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/de_revolut.csv: 19 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/de_sparkasse.csv: 31 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/de_volksbank.csv: 31 Abweichungen
-Test Case '-[KontivoCoreTests.BankParityTests testFilesEmptyState]' failed (34.737 seconds).
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_akb.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_bekb.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_bkb.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_camt053_sps2021_v04.xml (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_camt053_sps2022_v08.xml (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_camt054_sps2022_v08.xml (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_cler.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_creditsuisse_legacy.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_lukb.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_migrosbank.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_neon.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_postfinance.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_postfinance_legacy.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_postfinance_saldo.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_raiffeisen.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_revolut.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_swissquote.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_tkb.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_ubs.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_ubs_legacy.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_ubs_signed.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_valiant.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_wise.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_yuh.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_zkb.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/ch/ch_zkb_simple.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_1822direkt.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_bunq.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_comdirect.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_commerzbank.csv (mit Verträgen): 2 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_commerzbank_alt.csv (mit Verträgen): 2 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_consorsbank.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_deutschebank.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_dkb.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_dkb_alt.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_gls.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_hvb.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_ing.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_ing_alt.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_n26.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_n26_alt.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_norisbank.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_postbank.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_psd.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_revolut.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_sparda.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_sparkasse_camt052.xml (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_sparkasse_camt_v2.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_sparkasse_camt_v8.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_sparkasse_mt940.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_targobank.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_tomorrow.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_vivid.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_vr_atruvia.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_vr_fiducia_alt.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_vr_mt940.sta (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - real/de/de_wise.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/ch_camt053.xml (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/ch_kantonalbank.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/ch_neon.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/ch_postfinance.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/ch_raiffeisen.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/ch_revolut.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/ch_ubs.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/ch_zkb.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/de_camt053.xml (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/de_comdirect.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/de_commerzbank.sta (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/de_deutschebank.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/de_dkb.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/de_ing.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/de_n26.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/de_revolut.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/de_sparkasse.csv (mit Verträgen): 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:259: error: -[KontivoCoreTests.BankParityTests testFilesWithContracts] : failed - samples/de_volksbank.csv (mit Verträgen): 1 Abweichungen
-Test Case '-[KontivoCoreTests.BankParityTests testFilesWithContracts]' failed (32.372 seconds).
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:219: error: -[KontivoCoreTests.BankParityTests testFixturesPresent] : XCTAssertGreaterThanOrEqual failed: ("84") is less than ("87")
-Test Case '-[KontivoCoreTests.BankParityTests testFixturesPresent]' failed (0.002 seconds).
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:308: error: -[KontivoCoreTests.BankParityTests testMultipleFiles] : failed - Mehrere Dateien samples/ch_postfinance.csv + samples/ch_postfinance.csv: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:308: error: -[KontivoCoreTests.BankParityTests testMultipleFiles] : failed - Mehrere Dateien real/de/de_sparkasse_camt_v2.csv + real/de/de_sparkasse_kreditkarte.csv: 1 Abweichungen
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:308: error: -[KontivoCoreTests.BankParityTests testMultipleFiles] : failed - Mehrere Dateien samples/ch_postfinance.csv + samples/ch_ubs.csv + samples/ch_camt053.xml: 1 Abweichungen
-Test Case '-[KontivoCoreTests.BankParityTests testMultipleFiles]' failed (2.835 seconds).
-Test Suite 'BankParityTests' failed at 2026-10-17 11:09:59.368.
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall alltag: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall camt054: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall ddmmyyyy_dash: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall delim: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall mt940free: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall mt940multi: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall otherproduct: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall plus: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall quotednl: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall us: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_atm_and_retail: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_card_spiegel: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_card_spiegel_web: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_cluster: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_garten: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_lone_extra: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_numbers: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_owner_income: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_paypal: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_price: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_quarterly_skip: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_retail_lsv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall x_varies: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:291: error: -[KontivoCoreTests.BankParityTests testEdgeCases] : failed - Grenzfall yearlylate: 1 Abweichungen
+Test Case '-[KontivoCoreTests.BankParityTests testEdgeCases]' failed (1.606 seconds).
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_akb.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_bekb.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_bkb.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_camt053_sps2021_v04.xml: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_camt053_sps2022_v08.xml: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_camt054_sps2022_v08.xml: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_cler.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_creditsuisse_legacy.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_lukb.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_migrosbank.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_neon.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_postfinance.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_postfinance_legacy.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_postfinance_saldo.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_raiffeisen.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_revolut.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_swissquote.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_tkb.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_ubs.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_ubs_legacy.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_ubs_signed.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_valiant.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_wise.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_yuh.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_zkb.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - real/ch/ch_zkb_simple.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_camt053.xml: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_kantonalbank.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_neon.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_postfinance.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_raiffeisen.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_revolut.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_ubs.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - samples/ch_zkb.csv: 1 Abweichungen
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/BankParityTests.swift:240: error: -[KontivoCoreTests.BankParityTests testFilesEmptyState] : failed - stress/ch_tkb_stress.csv: 1 Abweichungen
+Test Case '-[KontivoCoreTests.BankParityTests testFilesEmptyState]' failed (27.540 seconds).
+Test Suite 'BankParityTests' failed at 2026-10-17 13:02:00.174.
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/CSVTests.swift:90: error: -[KontivoCoreTests.CSVTests testRoundTripKeepsDeliberateValues] : XCTAssertEqual failed: ("anytime") is not equal to ("monthEnd")
-Test Case '-[KontivoCoreTests.CSVTests testRoundTripKeepsDeliberateValues]' failed (0.005 seconds).
-Test Suite 'CSVTests' failed at 2026-10-17 11:09:59.630.
+Test Case '-[KontivoCoreTests.CSVTests testRoundTripKeepsDeliberateValues]' failed (0.013 seconds).
+Test Suite 'CSVTests' failed at 2026-10-17 13:02:00.423.
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/CompletenessTests.swift:133: error: -[KontivoCoreTests.CompletenessTests testTermDraftDefaults] : XCTAssertEqual failed: ("anytime") is not equal to ("monthEnd")
 Test Case '-[KontivoCoreTests.CompletenessTests testTermDraftDefaults]' failed (0.003 seconds).
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/CompletenessTests.swift:92: error: -[KontivoCoreTests.CompletenessTests testTextsAndHints] : XCTAssertEqual failed: ("Optional("Üblich bei Swisscom: 60 Tage")") is not equal to ("Optional("Üblich bei Swisscom: 60 Tage auf Monatsende")")
 Test Case '-[KontivoCoreTests.CompletenessTests testTextsAndHints]' failed (0.001 seconds).
-Test Suite 'CompletenessTests' failed at 2026-10-17 11:09:59.646.
+Test Suite 'CompletenessTests' failed at 2026-10-17 13:02:00.444.
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/MutationTests.swift:374: error: -[KontivoCoreTests.MutationTests testCatalog] : XCTAssertEqual failed: ("572") is not equal to ("176")
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/MutationTests.swift:399: error: -[KontivoCoreTests.MutationTests testCatalog] : XCTAssertEqual failed: ("Optional(KontivoCore.CancelTerm.anytime)") is not equal to ("Optional(KontivoCore.CancelTerm.monthEnd)")
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/MutationTests.swift:400: error: -[KontivoCoreTests.MutationTests testCatalog] : XCTAssertEqual failed: ("Optional(KontivoCore.CancelTerm.anytime)") is not equal to ("Optional(KontivoCore.CancelTerm.monthEnd)")
-Test Case '-[KontivoCoreTests.MutationTests testCatalog]' failed (0.014 seconds).
-Test Suite 'MutationTests' failed at 2026-10-17 11:09:59.701.
+Test Case '-[KontivoCoreTests.MutationTests testCatalog]' failed (0.016 seconds).
+Test Suite 'MutationTests' failed at 2026-10-17 13:02:00.504.
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/WebSync160Tests.swift:579: error: -[KontivoCoreTests.WebSync160Tests testCatalogRundfunk] : XCTAssertEqual failed: ("Optional("serafe.ch")") is not equal to ("Optional("")")
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/WebSync160Tests.swift:587: error: -[KontivoCoreTests.WebSync160Tests testCatalogRundfunk] : XCTAssertFalse failed
 Test Case '-[KontivoCoreTests.WebSync160Tests testCatalogRundfunk]' failed (0.006 seconds).
-Test Suite 'WebSync160Tests' failed at 2026-10-17 11:10:00.242.
-Test Suite 'KontivoCorePackageTests.xctest' failed at 2026-10-17 11:10:00.242.
-Test Suite 'All tests' failed at 2026-10-17 11:10:00.242.
+Test Suite 'WebSync160Tests' failed at 2026-10-17 13:02:01.078.
+Test Suite 'KontivoCorePackageTests.xctest' failed at 2026-10-17 13:02:01.078.
+Test Suite 'All tests' failed at 2026-10-17 13:02:01.078.
 
 ===== KERN: Ende =====
 Test Case '-[KontivoCoreTests.WebSync160Tests testBackupStructureAndEmpty]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testBackupStructureAndEmpty]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testCancelChannelMigration]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testCancelChannelMigration]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.WebSync160Tests testCancelChannelMigration]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testCatalogRundfunk]' started.
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/WebSync160Tests.swift:579: error: -[KontivoCoreTests.WebSync160Tests testCatalogRundfunk] : XCTAssertEqual failed: ("Optional("serafe.ch")") is not equal to ("Optional("")")
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/WebSync160Tests.swift:587: error: -[KontivoCoreTests.WebSync160Tests testCatalogRundfunk] : XCTAssertFalse failed
@@ -252,11 +108,11 @@ Test Case '-[KontivoCoreTests.WebSync160Tests testDetailMandatoryAndKept]' passe
 Test Case '-[KontivoCoreTests.WebSync160Tests testDetailMenuGleichWieDetailInfo]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testDetailMenuGleichWieDetailInfo]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testDueFrom]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testDueFrom]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.WebSync160Tests testDueFrom]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testEndsSelfAndFutureStart]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testEndsSelfAndFutureStart]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testHeroExcludesRunningTrial]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testHeroExcludesRunningTrial]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.WebSync160Tests testHeroExcludesRunningTrial]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testIncomeDetailAndSubline]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testIncomeDetailAndSubline]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testIncomeKinds]' started.
@@ -279,12 +135,12 @@ Test Case '-[KontivoCoreTests.WebSync160Tests testTermMonthsAndNotice]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testTermMonthsAndNotice]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' passed (0.000 seconds).
-Test Suite 'WebSync160Tests' failed at 2026-10-17 11:10:00.242.
-	 Executed 25 tests, with 2 failures (0 unexpected) in 0.022 (0.025) seconds
-Test Suite 'KontivoCorePackageTests.xctest' failed at 2026-10-17 11:10:00.242.
-	 Executed 215 tests, with 208 failures (0 unexpected) in 95.006 (95.039) seconds
-Test Suite 'All tests' failed at 2026-10-17 11:10:00.242.
-	 Executed 215 tests, with 208 failures (0 unexpected) in 95.006 (95.043) seconds
+Test Suite 'WebSync160Tests' failed at 2026-10-17 13:02:01.078.
+	 Executed 25 tests, with 2 failures (0 unexpected) in 0.020 (0.023) seconds
+Test Suite 'KontivoCorePackageTests.xctest' failed at 2026-10-17 13:02:01.078.
+	 Executed 215 tests, with 67 failures (0 unexpected) in 85.326 (85.368) seconds
+Test Suite 'All tests' failed at 2026-10-17 13:02:01.078.
+	 Executed 215 tests, with 67 failures (0 unexpected) in 85.326 (85.371) seconds
 ◇ Test run started.
 ↳ Testing Library Version: 1501
 ↳ Target Platform: arm64e-apple-macos14.0
@@ -307,22 +163,22 @@ CreateUniversalBinary /Users/runner/work/Kontivo/Kontivo/build/Build/Products/De
     cd /Users/runner/work/Kontivo/Kontivo/ios
     /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Binary/Kontivo /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Binary/Kontivo -output /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo
 
-CopySwiftLibs /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app (in target 'Kontivo' from project 'Kontivo')
-    cd /Users/runner/work/Kontivo/Kontivo/ios
-    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo.debug.dylib --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Frameworks --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/PlugIns --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/SystemExtensions --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Extensions --platform iphonesimulator --toolchain /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.2slUEP/Metal.xctoolchain --toolchain /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os --back-deploy-swift-span
-Ignoring --strip-bitcode because --sign was not passed
-
 ExtractAppIntentsMetadata (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.2slUEP/Metal.xctoolchain --module-name Kontivo --sdk-root /Applications/Xcode_26.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk --xcode-version 17C52 --platform-family iOS --deployment-target 17.0 --bundle-identifier ch.kontivo.app --output /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app --target-triple arm64-apple-ios17.0-simulator --target-triple x86_64-apple-ios17.0-simulator --binary-file /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo --dependency-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo_dependency_info.dat --dependency-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo_dependency_info.dat --stringsdata-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --stringsdata-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo.SwiftFileList --source-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo.SwiftFileList --metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo.SwiftConstValuesFileList --swift-const-vals-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
-2026-10-17 11:12:19.137 appintentsmetadataprocessor[6672:22764] Starting appintentsmetadataprocessor export
-2026-10-17 11:12:19.140 appintentsmetadataprocessor[6672:22764] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+    /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.XAxevm/Metal.xctoolchain --module-name Kontivo --sdk-root /Applications/Xcode_26.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk --xcode-version 17C52 --platform-family iOS --deployment-target 17.0 --bundle-identifier ch.kontivo.app --output /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app --target-triple arm64-apple-ios17.0-simulator --target-triple x86_64-apple-ios17.0-simulator --binary-file /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo --dependency-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo_dependency_info.dat --dependency-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo_dependency_info.dat --stringsdata-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --stringsdata-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo.SwiftFileList --source-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo.SwiftFileList --metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo.SwiftConstValuesFileList --swift-const-vals-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-17 13:04:07.879 appintentsmetadataprocessor[5996:20594] Starting appintentsmetadataprocessor export
+2026-10-17 13:04:07.896 appintentsmetadataprocessor[5996:20594] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CopySwiftLibs /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app (in target 'Kontivo' from project 'Kontivo')
+    cd /Users/runner/work/Kontivo/Kontivo/ios
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo.debug.dylib --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Frameworks --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/PlugIns --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/SystemExtensions --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Extensions --platform iphonesimulator --toolchain /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.XAxevm/Metal.xctoolchain --toolchain /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os --back-deploy-swift-span
+Ignoring --strip-bitcode because --sign was not passed
 
 AppIntentsSSUTraining (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
     /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Info.plist --temp-dir-path /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/ssu --bundle-id ch.kontivo.app --product-path /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app --extracted-metadata-path /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Metadata.appintents --metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyMetadataFileList --archive-ssu-assets
-2026-10-17 11:12:19.175 appintentsnltrainingprocessor[6673:22766] Parsing options for appintentsnltrainingprocessor
-2026-10-17 11:12:19.177 appintentsnltrainingprocessor[6673:22766] No AppShortcuts found - Skipping.
+2026-10-17 13:04:07.951 appintentsnltrainingprocessor[6004:20612] Parsing options for appintentsnltrainingprocessor
+2026-10-17 13:04:07.959 appintentsnltrainingprocessor[6004:20612] No AppShortcuts found - Skipping.
 
 RegisterExecutionPolicyException /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
@@ -341,107 +197,111 @@ Touch /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimula
 
 ===== UI-TESTS =====
 ui=failure
-runtime=com.apple.CoreSimulator.SimRuntime.iOS-26-2 udid=E7052E6C-2177-4ACB-B140-28DD8112D95D dest=id=E7052E6C-2177-4ACB-B140-28DD8112D95D
-Test Case '-[KontivoUITests.CompletenessUITests testVollstaendigkeitAblauf]' passed (161.069 seconds).
-	 Executed 1 test, with 0 failures (0 unexpected) in 161.069 (161.071) seconds
-Test Case '-[KontivoUITests.ContractDetailUITests testEndetVonSelbstUndEmailPruefung]' passed (62.331 seconds).
-Test Case '-[KontivoUITests.ContractDetailUITests testProbeaboBehaltenUndSchonGekuendigt]' passed (90.313 seconds).
-	 Executed 2 tests, with 0 failures (0 unexpected) in 152.644 (152.649) seconds
-Test Case '-[KontivoUITests.ContractFlowUITests testFormularVerwerfen]' passed (37.368 seconds).
-Test Case '-[KontivoUITests.ContractFlowUITests testVertragAnlegenBearbeitenDuplizierenPausierenLoeschen]' passed (187.548 seconds).
-	 Executed 2 tests, with 0 failures (0 unexpected) in 224.916 (224.919) seconds
-Test Case '-[KontivoUITests.ContractFormDetailUITests testDetailPreisverlauf]' passed (31.841 seconds).
-Test Case '-[KontivoUITests.ContractFormDetailUITests testDetailReineAnsichtUndDokumente]' passed (38.549 seconds).
-Test Case '-[KontivoUITests.ContractFormDetailUITests testFormularKachelnUndKuendigungsweg]' passed (149.384 seconds).
-Test Case '-[KontivoUITests.ContractFormDetailUITests testKatalogZusammenfassungUndRueckgaengig]' passed (87.704 seconds).
+runtime=com.apple.CoreSimulator.SimRuntime.iOS-26-2 udid=B9D6ACD4-A9F9-463A-BDB7-5EB38F83DB0C dest=id=B9D6ACD4-A9F9-463A-BDB7-5EB38F83DB0C
+Test Case '-[KontivoUITests.CompletenessUITests testVollstaendigkeitAblauf]' passed (249.918 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 249.918 (249.927) seconds
+Test Case '-[KontivoUITests.ContractDetailUITests testEndetVonSelbstUndEmailPruefung]' passed (63.217 seconds).
+Test Case '-[KontivoUITests.ContractDetailUITests testProbeaboBehaltenUndSchonGekuendigt]' passed (81.458 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 144.675 (144.679) seconds
+Test Case '-[KontivoUITests.ContractFlowUITests testFormularVerwerfen]' passed (40.268 seconds).
+Test Case '-[KontivoUITests.ContractFlowUITests testVertragAnlegenBearbeitenDuplizierenPausierenLoeschen]' passed (161.094 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 201.362 (201.366) seconds
+Test Case '-[KontivoUITests.ContractFormDetailUITests testDetailPreisverlauf]' passed (28.960 seconds).
+Test Case '-[KontivoUITests.ContractFormDetailUITests testDetailReineAnsichtUndDokumente]' passed (34.472 seconds).
+Test Case '-[KontivoUITests.ContractFormDetailUITests testFormularKachelnUndKuendigungsweg]' passed (133.445 seconds).
+Test Case '-[KontivoUITests.ContractFormDetailUITests testKatalogZusammenfassungUndRueckgaengig]' passed (72.380 seconds).
 /Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/ContractFormDetailUITests.swift:144: error: -[KontivoUITests.ContractFormDetailUITests testPreisaenderungWarnungen] : XCTAssertTrue failed - Nach «+ Preisänderung» nicht erschienen
 APP-ZUSTAND -[ContractFormDetailUITests testPreisaenderungWarnungen]: 4 (4 = läuft, 1 = beendet/abgestürzt)
-Test Case '-[KontivoUITests.ContractFormDetailUITests testPreisaenderungWarnungen]' failed (136.120 seconds).
-	 Executed 5 tests, with 1 failure (0 unexpected) in 443.597 (443.617) seconds
-Test Case '-[KontivoUITests.ContractFormUITests testAbbrechenFragt]' passed (46.424 seconds).
-Test Case '-[KontivoUITests.ContractFormUITests testFormularBildschirmfotos]' passed (31.918 seconds).
-Test Case '-[KontivoUITests.ContractFormUITests testKuendigungsfristUndMindestlaufzeit]' passed (156.712 seconds).
-Test Case '-[KontivoUITests.ContractFormUITests testSichernOhneVertragsendeBlockiert]' passed (99.270 seconds).
-Test Case '-[KontivoUITests.ContractFormUITests testZahlungAmTagesraster]' passed (90.989 seconds).
-	 Executed 5 tests, with 0 failures (0 unexpected) in 425.313 (425.323) seconds
-Test Case '-[KontivoUITests.ContractListUITests testSucheSortierungFilterArchiv]' passed (84.657 seconds).
-Test Case '-[KontivoUITests.ContractListUITests testWischenUndLangesDruecken]' passed (66.270 seconds).
-	 Executed 2 tests, with 0 failures (0 unexpected) in 150.927 (150.939) seconds
-Test Case '-[KontivoUITests.CostsBudgetUITests testBudgetEinnahmeErfassen]' passed (85.773 seconds).
-Test Case '-[KontivoUITests.CostsBudgetUITests testKostenMonatJahrPerson]' passed (33.584 seconds).
-	 Executed 2 tests, with 0 failures (0 unexpected) in 119.357 (119.360) seconds
-Test Case '-[KontivoUITests.DeadlineUITests testBehaltenUndAlsGekuendigtMarkieren]' passed (20.410 seconds).
-Test Case '-[KontivoUITests.DeadlineUITests testKuendigungsschreibenMitRueckfragen]' passed (48.789 seconds).
-Test Case '-[KontivoUITests.DeadlineUITests testKuendigungsschreibenPDFUndZurueck]' passed (42.920 seconds).
-Test Case '-[KontivoUITests.DeadlineUITests testKuendigungswegWaehlen]' passed (31.907 seconds).
-Test Case '-[KontivoUITests.DeadlineUITests testPflichtvertragWechseln]' passed (32.695 seconds).
-	 Executed 5 tests, with 0 failures (0 unexpected) in 176.722 (176.732) seconds
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/ImportUITests.swift:33: error: -[KontivoUITests.ImportUITests testKontoauszugBeispiel] : XCTAssertTrue failed - Hinweis «Bleibt auf deinem Gerät» fehlt
-APP-ZUSTAND -[ImportUITests testKontoauszugBeispiel]: 4 (4 = läuft, 1 = beendet/abgestürzt)
-Test Case '-[KontivoUITests.ImportUITests testKontoauszugBeispiel]' failed (12.191 seconds).
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/ImportUITests.swift:102: error: -[KontivoUITests.ImportUITests testKontoauszugMitVertraegen] : XCTAssertTrue failed - Nicht gefunden: Schon erfasste ausblenden
-APP-ZUSTAND -[ImportUITests testKontoauszugMitVertraegen]: 4 (4 = läuft, 1 = beendet/abgestürzt)
-Test Case '-[KontivoUITests.ImportUITests testKontoauszugMitVertraegen]' failed (31.286 seconds).
-Test Case '-[KontivoUITests.ImportUITests testPlusMenue]' passed (37.235 seconds).
-	 Executed 3 tests, with 2 failures (0 unexpected) in 80.711 (80.720) seconds
-Test Case '-[KontivoUITests.IncomeUITests testDuplizierenUndLoeschen]' passed (101.729 seconds).
-Test Case '-[KontivoUITests.IncomeUITests testEinnahmeAnsichtBearbeitenZahlungAm]' passed (96.077 seconds).
-Test Case '-[KontivoUITests.IncomeUITests testPlusMenueEinnahmeErfassen]' passed (80.179 seconds).
-Test Case '-[KontivoUITests.IncomeUITests testZahlungAmQuartalMonatsreihe]' passed (75.915 seconds).
-	 Executed 4 tests, with 0 failures (0 unexpected) in 353.900 (353.907) seconds
-Test Case '-[KontivoUITests.MoreUITests testAlleDatenLoeschen]' passed (39.367 seconds).
-Test Case '-[KontivoUITests.MoreUITests testDarstellung]' passed (22.838 seconds).
-Test Case '-[KontivoUITests.MoreUITests testDatenqualitaetInlineWert]' passed (50.003 seconds).
-Test Case '-[KontivoUITests.MoreUITests testKategorieAnlegenUmbenennenLoeschen]' passed (85.394 seconds).
-Test Case '-[KontivoUITests.MoreUITests testPersonAnlegenUndAbsender]' passed (96.473 seconds).
-Test Case '-[KontivoUITests.MoreUITests testVertragspartnerOeffnen]' passed (36.191 seconds).
-Test Case '-[KontivoUITests.MoreUITests testVertragspartnerUmbenennenRueckfrageBeimZurueck]' passed (42.988 seconds).
-	 Executed 7 tests, with 0 failures (0 unexpected) in 373.253 (373.275) seconds
-Test Case '-[KontivoUITests.NativeUITests testErinnerungenSystemabfrage]' passed (22.943 seconds).
-Test Case '-[KontivoUITests.NativeUITests testErinnerungenUndAppSperreSchalter]' passed (46.030 seconds).
-Test Case '-[KontivoUITests.NativeUITests testInKalenderInFristen]' passed (34.708 seconds).
-Test Case '-[KontivoUITests.NativeUITests testKuendigungsschreibenDirektMailUndDrucken]' passed (91.905 seconds).
-	 Executed 4 tests, with 0 failures (0 unexpected) in 195.587 (195.600) seconds
-Test Case '-[KontivoUITests.OnboardingUITests testEinfuehrungBisLeerseite]' passed (68.969 seconds).
-Test Case '-[KontivoUITests.OnboardingUITests testEinfuehrungSeitenBildschirmfotos]' passed (54.288 seconds).
-	 Executed 2 tests, with 0 failures (0 unexpected) in 123.257 (123.274) seconds
-Test Case '-[KontivoUITests.ReviewPackageUITests testAufteilungDetailUndFormular]' passed (61.325 seconds).
-2026-10-17 12:15:34.609 xcodebuild[8181:28400] [MT] IDELaunchReport: be90446e19818100:be90446e19818100: Finished with error: No matching device (E7052E6C-2177-4ACB-B140-28DD8112D95D) in set at /Users/runner/Library/Developer/CoreSimulator/Devices
-Testing failed:
+Test Case '-[KontivoUITests.ContractFormDetailUITests testPreisaenderungWarnungen]' failed (98.483 seconds).
+	 Executed 5 tests, with 1 failure (0 unexpected) in 367.740 (367.753) seconds
+Test Case '-[KontivoUITests.ContractFormUITests testAbbrechenFragt]' passed (33.770 seconds).
+Test Case '-[KontivoUITests.ContractFormUITests testFormularBildschirmfotos]' passed (35.997 seconds).
+Test Case '-[KontivoUITests.ContractFormUITests testKuendigungsfristUndMindestlaufzeit]' passed (147.564 seconds).
+Test Case '-[KontivoUITests.ContractFormUITests testSichernOhneVertragsendeBlockiert]' passed (93.595 seconds).
+Test Case '-[KontivoUITests.ContractFormUITests testZahlungAmTagesraster]' passed (91.594 seconds).
+	 Executed 5 tests, with 0 failures (0 unexpected) in 402.520 (402.530) seconds
+Test Case '-[KontivoUITests.ContractListUITests testSucheSortierungFilterArchiv]' passed (68.100 seconds).
+Test Case '-[KontivoUITests.ContractListUITests testWischenUndLangesDruecken]' passed (53.754 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 121.855 (121.864) seconds
+Test Case '-[KontivoUITests.CostsBudgetUITests testBudgetEinnahmeErfassen]' passed (60.912 seconds).
+Test Case '-[KontivoUITests.CostsBudgetUITests testKostenMonatJahrPerson]' passed (28.542 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 89.455 (89.458) seconds
+Test Case '-[KontivoUITests.DeadlineUITests testBehaltenUndAlsGekuendigtMarkieren]' passed (17.660 seconds).
+Test Case '-[KontivoUITests.DeadlineUITests testKuendigungsschreibenMitRueckfragen]' passed (38.988 seconds).
+Test Case '-[KontivoUITests.DeadlineUITests testKuendigungsschreibenPDFUndZurueck]' passed (39.094 seconds).
+Test Case '-[KontivoUITests.DeadlineUITests testKuendigungswegWaehlen]' passed (24.180 seconds).
+Test Case '-[KontivoUITests.DeadlineUITests testPflichtvertragWechseln]' passed (25.492 seconds).
+	 Executed 5 tests, with 0 failures (0 unexpected) in 145.414 (145.420) seconds
+Test Case '-[KontivoUITests.ImportUITests testKontoauszugBeispiel]' passed (76.351 seconds).
+Test Case '-[KontivoUITests.ImportUITests testKontoauszugMitVertraegen]' passed (28.770 seconds).
+Test Case '-[KontivoUITests.ImportUITests testPlusMenue]' passed (34.295 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 139.416 (139.427) seconds
+Test Case '-[KontivoUITests.IncomeUITests testDuplizierenUndLoeschen]' passed (94.693 seconds).
+Test Case '-[KontivoUITests.IncomeUITests testEinnahmeAnsichtBearbeitenZahlungAm]' passed (85.921 seconds).
+Test Case '-[KontivoUITests.IncomeUITests testPlusMenueEinnahmeErfassen]' passed (70.866 seconds).
+Test Case '-[KontivoUITests.IncomeUITests testZahlungAmQuartalMonatsreihe]' passed (63.615 seconds).
+	 Executed 4 tests, with 0 failures (0 unexpected) in 315.095 (315.105) seconds
+Test Case '-[KontivoUITests.MoreUITests testAlleDatenLoeschen]' passed (38.056 seconds).
+Test Case '-[KontivoUITests.MoreUITests testDarstellung]' passed (19.283 seconds).
+Test Case '-[KontivoUITests.MoreUITests testDatenqualitaetInlineWert]' passed (51.331 seconds).
+Test Case '-[KontivoUITests.MoreUITests testKategorieAnlegenUmbenennenLoeschen]' passed (70.721 seconds).
+Test Case '-[KontivoUITests.MoreUITests testPersonAnlegenUndAbsender]' passed (75.371 seconds).
+Test Case '-[KontivoUITests.MoreUITests testVertragspartnerOeffnen]' passed (32.229 seconds).
+Test Case '-[KontivoUITests.MoreUITests testVertragspartnerUmbenennenRueckfrageBeimZurueck]' passed (47.547 seconds).
+	 Executed 7 tests, with 0 failures (0 unexpected) in 334.536 (334.552) seconds
+Test Case '-[KontivoUITests.NativeUITests testErinnerungenSystemabfrage]' passed (26.654 seconds).
+Test Case '-[KontivoUITests.NativeUITests testErinnerungenUndAppSperreSchalter]' passed (45.793 seconds).
+Test Case '-[KontivoUITests.NativeUITests testInKalenderInFristen]' passed (29.424 seconds).
+Test Case '-[KontivoUITests.NativeUITests testKuendigungsschreibenDirektMailUndDrucken]' passed (75.158 seconds).
+	 Executed 4 tests, with 0 failures (0 unexpected) in 177.029 (177.043) seconds
+Test Case '-[KontivoUITests.OnboardingUITests testEinfuehrungBisLeerseite]' passed (44.126 seconds).
+Test Case '-[KontivoUITests.OnboardingUITests testEinfuehrungSeitenBildschirmfotos]' passed (38.666 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 82.791 (82.799) seconds
+Test Case '-[KontivoUITests.ReviewPackageUITests testAufteilungDetailUndFormular]' passed (47.456 seconds).
+Test Case '-[KontivoUITests.ReviewPackageUITests testBudgetInfoFenster]' passed (25.455 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 72.911 (72.913) seconds
+Test Case '-[KontivoUITests.SyncUITests testICloudLineInBuildWithoutICloud]' passed (23.620 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 23.620 (23.625) seconds
+	 Executed 47 tests, with 1 failure (0 unexpected) in 2868.336 (2868.501) seconds
+	 Executed 47 tests, with 1 failure (0 unexpected) in 2868.336 (2868.506) seconds
 ** TEST FAILED **
 
 --- Absturzberichte ---
 
 ===== BILDSCHIRMFOTOS =====
-runtime=com.apple.CoreSimulator.SimRuntime.iOS-26-2 phone=89C236C1-9533-448C-B78A-E1BD09B49688 padtype=iPad Pro 13-inch (M5) pad=D666AF40-BD23-478D-98CB-B03623AC7EC7
-12:15:11 26-ipad-vertraege
-12:15:46 27-ipad-kosten
-12:16:09 28-ipad-formular
-12:23:09 01-onboarding
-12:23:55 02-leer-vertraege
-12:24:25 03-vertraege
-12:25:15 04-kosten
-12:25:41 05-budget
-12:26:09 06-fristen
-12:26:33 07-mehr
-12:27:18 08-detail
-12:27:46 09-formular
-12:28:18 10-bearbeiten
-12:28:39 11-einnahme
-12:29:05 12-einnahmen
-12:29:28 12b-einnahme-ansicht
-12:29:54 13-brief
-12:30:24 14-kuendigungsweg
-12:30:49 15-verwalten
-12:31:20 16-vertragspartner
-12:31:53 17-inhaber
-12:32:29 18-absender
-12:33:16 19-kategorien
-12:33:41 20-datenqualitaet
-12:34:08 21-leer-kosten
-12:34:35 22-leer-fristen
-12:35:02 30-import-fixkosten
-12:35:25 31-import-einnahmen
-12:35:46 32-import-fristen
-12:36:08 33-import-zuordnen
-12:36:36 23-dunkel-vertraege
+runtime=com.apple.CoreSimulator.SimRuntime.iOS-26-2 phone=12A58066-8F87-4A02-9A43-138D2F638B5D padtype=iPad Pro 13-inch (M5) pad=B1217E20-924A-4A01-9491-3566B4DDFDD8
+14:03:51 26-ipad-vertraege
+14:04:56 27-ipad-kosten
+14:05:28 28-ipad-formular
+14:10:20 01-onboarding
+14:10:57 02-leer-vertraege
+14:11:30 03-vertraege
+14:11:51 04-kosten
+14:12:23 05-budget
+14:12:45 06-fristen
+14:13:06 07-mehr
+14:13:27 08-detail
+14:13:48 09-formular
+14:14:11 10-bearbeiten
+14:14:33 11-einnahme
+14:14:52 12-einnahmen
+14:15:12 12b-einnahme-ansicht
+14:15:32 13-brief
+14:15:59 14-kuendigungsweg
+14:16:21 15-verwalten
+14:16:42 16-vertragspartner
+14:17:09 17-inhaber
+14:17:29 18-absender
+14:17:49 19-kategorien
+14:18:07 20-datenqualitaet
+14:18:29 21-leer-kosten
+14:18:47 22-leer-fristen
+14:19:05 30-import-fixkosten
+14:19:23 31-import-einnahmen
+14:19:41 32-import-fristen
+14:20:00 33-import-zuordnen
+14:20:26 23-dunkel-vertraege
+14:20:49 24-dunkel-kosten
+14:21:06 25-dunkel-detail
+14:21:20 34-dunkel-import
+14:21:38 35-dunkel-import-fristen
