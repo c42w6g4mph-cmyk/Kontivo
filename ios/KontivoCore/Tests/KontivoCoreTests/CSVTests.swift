@@ -87,7 +87,7 @@ final class CSVTests: XCTestCase {
         // Ohne Spalten: Katalogwerte
         let pv2 = CSV.preview(csv: Data("Vertragspartner;Betrag\nSwisscom;30\nCSS;400\n".utf8), data: AppData.initial(), today: today)
         XCTAssertEqual(pv2.items[0].contract.notice, 60)
-        XCTAssertEqual(pv2.items[0].contract.cancelTerm, .monthEnd)
+        XCTAssertEqual(pv2.items[0].contract.cancelTerm, .anytime)   // Katalog v215: Swisscom jederzeit mit 60 Tagen
         XCTAssertTrue(pv2.items[1].contract.mandatory)
     }
 

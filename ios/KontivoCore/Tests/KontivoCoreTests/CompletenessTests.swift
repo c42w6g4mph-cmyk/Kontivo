@@ -130,7 +130,7 @@ final class CompletenessTests: XCTestCase {
         XCTAssertEqual(t.mode, .open)
         XCTAssertEqual(t.notice, "60")
         XCTAssertEqual(t.noticeUnit, .days)
-        XCTAssertEqual(t.cancelTerm, .monthEnd)
+        XCTAssertEqual(t.cancelTerm, .anytime)   // Katalog v215: Swisscom jederzeit mit 60 Tagen
         XCTAssertEqual(t.renew, 12)
     }
 

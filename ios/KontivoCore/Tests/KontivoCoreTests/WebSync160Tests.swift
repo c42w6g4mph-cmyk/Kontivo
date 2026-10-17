@@ -576,7 +576,7 @@ final class WebSync160Tests: XCTestCase {
         XCTAssertNil(Catalog.find("Rundfunkbeitrag"))
         XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.country, "CH")
         XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .EUR)?.country, "DE")
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.web, "")
+        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.web, "serafe.ch")   // Katalog v224
         Format.homeCurrency = .EUR
         XCTAssertEqual(Catalog.find("Rundfunkgebühr")?.country, "DE")
         Format.homeCurrency = .CHF
@@ -584,7 +584,7 @@ final class WebSync160Tests: XCTestCase {
         // Vorschläge: gleicher Name nur einmal
         XCTAssertEqual(Catalog.suggestions("rundfunk", currency: .CHF).map { $0.country }, ["CH"])
         XCTAssertEqual(Catalog.suggestions("rundfunk", currency: .EUR).map { $0.country }, ["DE"])
-        XCTAssertFalse(Catalog.entries.contains { $0.name.contains("Serafe") || $0.label.contains("Serafe") || $0.hint.contains("Serafe") })
+        XCTAssertFalse(Catalog.entries.contains { $0.name.contains("Serafe") || $0.label.contains("Serafe") })   // v224: Hinweis nennt Serafe als Stelle
         XCTAssertEqual(Catalog.find("Swiss Life")?.cancelChannel, .letter)
         XCTAssertEqual(Catalog.find("IWB")?.mandatory, false)
         XCTAssertTrue(ContractFormRules.taxInfo.contains("Rundfunkgebühr"))
