@@ -109,7 +109,7 @@ final class WebSync141Tests: XCTestCase {
         XCTAssertEqual(it.first?.kind, .ended)
         XCTAssertEqual(it.first?.sub, "Endet von selbst")
         XCTAssertEqual(it.first?.chip, "endet 31.12.")
-        XCTAssertEqual(it.first?.chipLevel, .end)
+        XCTAssertEqual(it.first?.chipLevel, Calc.ChipLevel.none)   // Web v163: neutral
         XCTAssertEqual(it.first?.showActions, false)
         // mit Verlängerung: nächste Frist
         d.contracts[0].renewMonths = 12

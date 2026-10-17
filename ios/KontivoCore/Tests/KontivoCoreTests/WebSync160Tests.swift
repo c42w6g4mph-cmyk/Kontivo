@@ -137,7 +137,7 @@ final class WebSync160Tests: XCTestCase {
         XCTAssertEqual(o.items.map { web[$0.contractID] ?? "?" }, ["a", "e", "cp", "b"])
         XCTAssertEqual(o.items.map { $0.sub }, ["Probeabo · gratis bis 19.10.", "Probeabo · gratis bis 19.10.", "Gekündigt", "Endet von selbst"])
         XCTAssertEqual(o.items.map { $0.chip }, ["in 8 Tagen", "in 8 Tagen", "endet 31.12.", "endet 30.06.27"])
-        XCTAssertEqual(o.items.map { $0.chipLevel }, [.warn, .warn, .end, .end])
+        XCTAssertEqual(o.items.map { $0.chipLevel }, [.warn, .warn, .end, Calc.ChipLevel.none])   // Web v163: «Endet von selbst» neutral
         XCTAssertEqual(o.items.map { $0.showActions }, [true, true, false, false])
         XCTAssertEqual(o.items.map { $0.partner }, ["", "Zattoo", "Sunrise", "Leasing AG"])
         XCTAssertEqual(o.items.map { $0.endsBySelf }, [false, false, false, true])

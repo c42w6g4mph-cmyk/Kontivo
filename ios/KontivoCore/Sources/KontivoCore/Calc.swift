@@ -762,7 +762,8 @@ extension Calc {
             var sub = "", chip = Format.inDays(dn), lvl = ChipLevel.none, acts = false
             switch x.k {
             case .ended:
-                sub = c.cancelPer != nil ? "Gekündigt" : "Endet von selbst"; chip = "endet " + Format.ddmm(x.d, currentYear: y); lvl = .end
+                // Web v163: rot («end») nur bei gekündigt, «endet von selbst» neutral
+                sub = c.cancelPer != nil ? "Gekündigt" : "Endet von selbst"; chip = "endet " + Format.ddmm(x.d, currentYear: y); lvl = c.cancelPer != nil ? .end : .none
             case .trial:
                 sub = "Probeabo · gratis bis " + Format.ddmm(x.d, currentYear: y)
                 acts = x.act
