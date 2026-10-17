@@ -1,0 +1,2257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.052.001.08" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:iso:std:iso:20022:tech:xsd:camt.052.001.08 camt.052.001.08.xsd">
+  <BkToCstmrAcctRpt>
+    <GrpHdr>
+      <MsgId>camt52_20261001_000000001</MsgId>
+      <CreDtTm>2026-10-01T06:12:44.0+02:00</CreDtTm>
+    </GrpHdr>
+    <Rpt>
+      <Id>camt052_0001</Id>
+      <ElctrncSeqNb>1</ElctrncSeqNb>
+      <CreDtTm>2026-10-01T06:12:44.0+02:00</CreDtTm>
+      <FrToDt><FrDtTm>2025-10-01T00:00:00.0+02:00</FrDtTm><ToDtTm>2026-09-30T23:59:59.0+02:00</ToDtTm></FrToDt>
+      <Acct>
+        <Id><IBAN>DE00120300000012345678</IBAN></Id>
+        <Ccy>EUR</Ccy>
+        <Ownr><Nm>Max Mustermann</Nm></Ownr>
+        <Svcr><FinInstnId><BICFI>TESTDE61XXX</BICFI><Nm>Sparkasse Musterstadt</Nm></FinInstnId></Svcr>
+      </Acct>
+      <Bal>
+        <Tp><CdOrPrtry><Cd>PRCD</Cd></CdOrPrtry></Tp>
+        <Amt Ccy="EUR">2450.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt><Dt>2025-09-30</Dt></Dt>
+      </Bal>
+      <Bal>
+        <Tp><CdOrPrtry><Cd>CLBD</Cd></CdOrPrtry></Tp>
+        <Amt Ccy="EUR">27940.76</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt><Dt>2026-09-30</Dt></Dt>
+      </Bal>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-01</Dt></BookgDt>
+        <ValDt><Dt>2025-10-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000001</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-03</Dt></BookgDt>
+        <ValDt><Dt>2025-10-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000002</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2025100045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 10/2025</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">70.88</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-06</Dt></BookgDt>
+        <ValDt><Dt>2025-10-04</Dt></ValDt>
+        <AcctSvcrRef>20260000000003</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">70.88</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2025-10-04T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-06</Dt></BookgDt>
+        <ValDt><Dt>2025-10-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000004</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502025108812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502025108812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-08</Dt></BookgDt>
+        <ValDt><Dt>2025-10-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000005</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2025-10-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">27.62</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-13</Dt></BookgDt>
+        <ValDt><Dt>2025-10-11</Dt></ValDt>
+        <AcctSvcrRef>20260000000006</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">27.62</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2025-10-11T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-13</Dt></BookgDt>
+        <ValDt><Dt>2025-10-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000007</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2025-10-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">55.08</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-15</Dt></BookgDt>
+        <ValDt><Dt>2025-10-15</Dt></ValDt>
+        <AcctSvcrRef>20260000000008</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>RB202510123456789</EndToEndId><MndtId>ARD-4711-0815-42</MndtId></Refs>
+          <Amt Ccy="EUR">55.08</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ARD ZDF Deutschlandradio Beitragsservice</Nm><Id><PrvtId><Othr><Id>DE34ZZZ00000077001</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00370000000000123404</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDECCXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Rundfunk 10.2025 - 12.2025 Beitragsnr. 123456789</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">20.54</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-20</Dt></BookgDt>
+        <ValDt><Dt>2025-10-18</Dt></ValDt>
+        <AcctSvcrRef>20260000000009</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">20.54</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2025-10-18T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-22</Dt></BookgDt>
+        <ValDt><Dt>2025-10-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000010</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2025-10-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">79.24</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-27</Dt></BookgDt>
+        <ValDt><Dt>2025-10-25</Dt></ValDt>
+        <AcctSvcrRef>20260000000011</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">79.24</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2025-10-25T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-10-28</Dt></BookgDt>
+        <ValDt><Dt>2025-10-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000012</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 10/2025 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">41.03</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-03</Dt></BookgDt>
+        <ValDt><Dt>2025-11-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000013</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">41.03</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2025-11-01T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-03</Dt></BookgDt>
+        <ValDt><Dt>2025-11-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000014</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-03</Dt></BookgDt>
+        <ValDt><Dt>2025-11-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000015</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2025110045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 11/2025</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-05</Dt></BookgDt>
+        <ValDt><Dt>2025-11-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000016</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502025118812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502025118812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">38.56</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-10</Dt></BookgDt>
+        <ValDt><Dt>2025-11-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000017</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">38.56</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2025-11-08T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-10</Dt></BookgDt>
+        <ValDt><Dt>2025-11-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000018</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2025-11-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-12</Dt></BookgDt>
+        <ValDt><Dt>2025-11-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000019</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2025-11-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">36.78</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-17</Dt></BookgDt>
+        <ValDt><Dt>2025-11-15</Dt></ValDt>
+        <AcctSvcrRef>20260000000020</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">36.78</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2025-11-15T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">29.93</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-24</Dt></BookgDt>
+        <ValDt><Dt>2025-11-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000021</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">29.93</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2025-11-22T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-24</Dt></BookgDt>
+        <ValDt><Dt>2025-11-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000022</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2025-11-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-11-28</Dt></BookgDt>
+        <ValDt><Dt>2025-11-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000023</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 11/2025 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">78.83</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-01</Dt></BookgDt>
+        <ValDt><Dt>2025-11-29</Dt></ValDt>
+        <AcctSvcrRef>20260000000024</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">78.83</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2025-11-29T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-01</Dt></BookgDt>
+        <ValDt><Dt>2025-12-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000025</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-03</Dt></BookgDt>
+        <ValDt><Dt>2025-12-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000026</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2025120045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 12/2025</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-05</Dt></BookgDt>
+        <ValDt><Dt>2025-12-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000027</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502025128812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502025128812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">26.89</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-08</Dt></BookgDt>
+        <ValDt><Dt>2025-12-06</Dt></ValDt>
+        <AcctSvcrRef>20260000000028</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">26.89</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2025-12-06T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-08</Dt></BookgDt>
+        <ValDt><Dt>2025-12-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000029</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2025-12-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-12</Dt></BookgDt>
+        <ValDt><Dt>2025-12-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000030</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2025-12-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">73.93</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-15</Dt></BookgDt>
+        <ValDt><Dt>2025-12-13</Dt></ValDt>
+        <AcctSvcrRef>20260000000031</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">73.93</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2025-12-13T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">79.17</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-22</Dt></BookgDt>
+        <ValDt><Dt>2025-12-20</Dt></ValDt>
+        <AcctSvcrRef>20260000000032</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">79.17</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2025-12-20T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-22</Dt></BookgDt>
+        <ValDt><Dt>2025-12-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000033</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2025-12-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">91.58</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-29</Dt></BookgDt>
+        <ValDt><Dt>2025-12-27</Dt></ValDt>
+        <AcctSvcrRef>20260000000034</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">91.58</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2025-12-27T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2025-12-29</Dt></BookgDt>
+        <ValDt><Dt>2025-12-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000035</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 12/2025 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-01</Dt></BookgDt>
+        <ValDt><Dt>2026-01-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000036</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-05</Dt></BookgDt>
+        <ValDt><Dt>2026-01-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000037</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2026010045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 01/2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">63.17</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-05</Dt></BookgDt>
+        <ValDt><Dt>2026-01-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000038</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">63.17</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-01-03T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-05</Dt></BookgDt>
+        <ValDt><Dt>2026-01-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000039</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502026018812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502026018812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-08</Dt></BookgDt>
+        <ValDt><Dt>2026-01-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000040</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2026-01-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">25.62</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-12</Dt></BookgDt>
+        <ValDt><Dt>2026-01-10</Dt></ValDt>
+        <AcctSvcrRef>20260000000041</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">25.62</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-01-10T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-12</Dt></BookgDt>
+        <ValDt><Dt>2026-01-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000042</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2026-01-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">55.08</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-15</Dt></BookgDt>
+        <ValDt><Dt>2026-01-15</Dt></ValDt>
+        <AcctSvcrRef>20260000000043</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>RB202601123456789</EndToEndId><MndtId>ARD-4711-0815-42</MndtId></Refs>
+          <Amt Ccy="EUR">55.08</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ARD ZDF Deutschlandradio Beitragsservice</Nm><Id><PrvtId><Othr><Id>DE34ZZZ00000077001</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00370000000000123404</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDECCXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Rundfunk 01.2026 - 03.2026 Beitragsnr. 123456789</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">66.87</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-19</Dt></BookgDt>
+        <ValDt><Dt>2026-01-17</Dt></ValDt>
+        <AcctSvcrRef>20260000000044</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">66.87</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-01-17T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-22</Dt></BookgDt>
+        <ValDt><Dt>2026-01-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000045</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2026-01-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">53.06</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-26</Dt></BookgDt>
+        <ValDt><Dt>2026-01-24</Dt></ValDt>
+        <AcctSvcrRef>20260000000046</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">53.06</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-01-24T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-01-28</Dt></BookgDt>
+        <ValDt><Dt>2026-01-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000047</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 01/2026 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">21.10</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-02</Dt></BookgDt>
+        <ValDt><Dt>2026-01-31</Dt></ValDt>
+        <AcctSvcrRef>20260000000048</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">21.10</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-01-31T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-02</Dt></BookgDt>
+        <ValDt><Dt>2026-02-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000049</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-03</Dt></BookgDt>
+        <ValDt><Dt>2026-02-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000050</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2026020045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 02/2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-05</Dt></BookgDt>
+        <ValDt><Dt>2026-02-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000051</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502026028812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502026028812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">20.94</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-09</Dt></BookgDt>
+        <ValDt><Dt>2026-02-07</Dt></ValDt>
+        <AcctSvcrRef>20260000000052</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">20.94</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-02-07T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-09</Dt></BookgDt>
+        <ValDt><Dt>2026-02-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000053</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2026-02-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-12</Dt></BookgDt>
+        <ValDt><Dt>2026-02-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000054</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2026-02-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">26.17</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-16</Dt></BookgDt>
+        <ValDt><Dt>2026-02-14</Dt></ValDt>
+        <AcctSvcrRef>20260000000055</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">26.17</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-02-14T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">36.41</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-23</Dt></BookgDt>
+        <ValDt><Dt>2026-02-21</Dt></ValDt>
+        <AcctSvcrRef>20260000000056</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">36.41</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-02-21T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-23</Dt></BookgDt>
+        <ValDt><Dt>2026-02-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000057</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2026-02-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-02</Dt></BookgDt>
+        <ValDt><Dt>2026-02-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000058</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 02/2026 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">37.55</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-02</Dt></BookgDt>
+        <ValDt><Dt>2026-02-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000059</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">37.55</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-02-28T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">89.40</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-02</Dt></BookgDt>
+        <ValDt><Dt>2026-03-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000060</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>AZ20260301123456789</EndToEndId><MndtId>AZ-VS-123456789</MndtId></Refs>
+          <Amt Ccy="EUR">89.40</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Allianz Versicherungs-AG</Nm><Id><PrvtId><Othr><Id>DE55ZZZ00000033333</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00700000000000123405</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEMMXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Hausrat VS-Nr. 123456789 Beitrag 2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-02</Dt></BookgDt>
+        <ValDt><Dt>2026-03-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000061</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-03</Dt></BookgDt>
+        <ValDt><Dt>2026-03-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000062</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2026030045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 03/2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-05</Dt></BookgDt>
+        <ValDt><Dt>2026-03-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000063</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502026038812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502026038812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">59.89</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-09</Dt></BookgDt>
+        <ValDt><Dt>2026-03-07</Dt></ValDt>
+        <AcctSvcrRef>20260000000064</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">59.89</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-03-07T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-09</Dt></BookgDt>
+        <ValDt><Dt>2026-03-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000065</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2026-03-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-12</Dt></BookgDt>
+        <ValDt><Dt>2026-03-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000066</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2026-03-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">67.81</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-16</Dt></BookgDt>
+        <ValDt><Dt>2026-03-14</Dt></ValDt>
+        <AcctSvcrRef>20260000000067</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">67.81</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-03-14T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">20.67</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-23</Dt></BookgDt>
+        <ValDt><Dt>2026-03-21</Dt></ValDt>
+        <AcctSvcrRef>20260000000068</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">20.67</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-03-21T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-23</Dt></BookgDt>
+        <ValDt><Dt>2026-03-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000069</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2026-03-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-30</Dt></BookgDt>
+        <ValDt><Dt>2026-03-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000070</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 03/2026 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">64.47</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-03-30</Dt></BookgDt>
+        <ValDt><Dt>2026-03-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000071</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">64.47</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-03-28T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-01</Dt></BookgDt>
+        <ValDt><Dt>2026-04-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000072</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-03</Dt></BookgDt>
+        <ValDt><Dt>2026-04-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000073</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2026040045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 04/2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">34.78</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-06</Dt></BookgDt>
+        <ValDt><Dt>2026-04-04</Dt></ValDt>
+        <AcctSvcrRef>20260000000074</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">34.78</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-04-04T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-06</Dt></BookgDt>
+        <ValDt><Dt>2026-04-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000075</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502026048812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502026048812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-08</Dt></BookgDt>
+        <ValDt><Dt>2026-04-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000076</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2026-04-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">77.15</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-13</Dt></BookgDt>
+        <ValDt><Dt>2026-04-11</Dt></ValDt>
+        <AcctSvcrRef>20260000000077</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">77.15</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-04-11T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-13</Dt></BookgDt>
+        <ValDt><Dt>2026-04-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000078</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2026-04-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">55.08</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-15</Dt></BookgDt>
+        <ValDt><Dt>2026-04-15</Dt></ValDt>
+        <AcctSvcrRef>20260000000079</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>RB202604123456789</EndToEndId><MndtId>ARD-4711-0815-42</MndtId></Refs>
+          <Amt Ccy="EUR">55.08</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ARD ZDF Deutschlandradio Beitragsservice</Nm><Id><PrvtId><Othr><Id>DE34ZZZ00000077001</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00370000000000123404</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDECCXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Rundfunk 04.2026 - 06.2026 Beitragsnr. 123456789</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">71.73</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-20</Dt></BookgDt>
+        <ValDt><Dt>2026-04-18</Dt></ValDt>
+        <AcctSvcrRef>20260000000080</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">71.73</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-04-18T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-22</Dt></BookgDt>
+        <ValDt><Dt>2026-04-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000081</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2026-04-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">75.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-27</Dt></BookgDt>
+        <ValDt><Dt>2026-04-25</Dt></ValDt>
+        <AcctSvcrRef>20260000000082</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">75.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-04-25T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-04-28</Dt></BookgDt>
+        <ValDt><Dt>2026-04-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000083</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 04/2026 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-01</Dt></BookgDt>
+        <ValDt><Dt>2026-05-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000084</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">63.14</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-04</Dt></BookgDt>
+        <ValDt><Dt>2026-05-02</Dt></ValDt>
+        <AcctSvcrRef>20260000000085</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">63.14</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-05-02T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-04</Dt></BookgDt>
+        <ValDt><Dt>2026-05-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000086</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2026050045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 05/2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-05</Dt></BookgDt>
+        <ValDt><Dt>2026-05-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000087</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502026058812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502026058812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-08</Dt></BookgDt>
+        <ValDt><Dt>2026-05-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000088</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2026-05-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">52.86</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-11</Dt></BookgDt>
+        <ValDt><Dt>2026-05-09</Dt></ValDt>
+        <AcctSvcrRef>20260000000089</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">52.86</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-05-09T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-12</Dt></BookgDt>
+        <ValDt><Dt>2026-05-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000090</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2026-05-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">36.55</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-18</Dt></BookgDt>
+        <ValDt><Dt>2026-05-16</Dt></ValDt>
+        <AcctSvcrRef>20260000000091</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">36.55</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-05-16T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-22</Dt></BookgDt>
+        <ValDt><Dt>2026-05-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000092</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2026-05-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">55.29</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-25</Dt></BookgDt>
+        <ValDt><Dt>2026-05-23</Dt></ValDt>
+        <AcctSvcrRef>20260000000093</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">55.29</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-05-23T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-05-28</Dt></BookgDt>
+        <ValDt><Dt>2026-05-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000094</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 05/2026 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">66.77</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-01</Dt></BookgDt>
+        <ValDt><Dt>2026-05-30</Dt></ValDt>
+        <AcctSvcrRef>20260000000095</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">66.77</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-05-30T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-01</Dt></BookgDt>
+        <ValDt><Dt>2026-06-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000096</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-03</Dt></BookgDt>
+        <ValDt><Dt>2026-06-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000097</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2026060045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 06/2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-05</Dt></BookgDt>
+        <ValDt><Dt>2026-06-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000098</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502026068812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502026068812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">41.28</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-08</Dt></BookgDt>
+        <ValDt><Dt>2026-06-06</Dt></ValDt>
+        <AcctSvcrRef>20260000000099</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">41.28</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-06-06T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-08</Dt></BookgDt>
+        <ValDt><Dt>2026-06-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000100</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2026-06-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-12</Dt></BookgDt>
+        <ValDt><Dt>2026-06-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000101</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2026-06-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">84.80</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-15</Dt></BookgDt>
+        <ValDt><Dt>2026-06-13</Dt></ValDt>
+        <AcctSvcrRef>20260000000102</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">84.80</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-06-13T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">89.71</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-22</Dt></BookgDt>
+        <ValDt><Dt>2026-06-20</Dt></ValDt>
+        <AcctSvcrRef>20260000000103</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">89.71</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-06-20T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-22</Dt></BookgDt>
+        <ValDt><Dt>2026-06-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000104</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2026-06-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">19.03</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-29</Dt></BookgDt>
+        <ValDt><Dt>2026-06-27</Dt></ValDt>
+        <AcctSvcrRef>20260000000105</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">19.03</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-06-27T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-29</Dt></BookgDt>
+        <ValDt><Dt>2026-06-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000106</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 06/2026 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-01</Dt></BookgDt>
+        <ValDt><Dt>2026-07-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000107</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-03</Dt></BookgDt>
+        <ValDt><Dt>2026-07-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000108</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2026070045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 07/2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">80.66</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-06</Dt></BookgDt>
+        <ValDt><Dt>2026-07-04</Dt></ValDt>
+        <AcctSvcrRef>20260000000109</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">80.66</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-07-04T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-06</Dt></BookgDt>
+        <ValDt><Dt>2026-07-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000110</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502026078812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502026078812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-08</Dt></BookgDt>
+        <ValDt><Dt>2026-07-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000111</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2026-07-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">84.51</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-13</Dt></BookgDt>
+        <ValDt><Dt>2026-07-11</Dt></ValDt>
+        <AcctSvcrRef>20260000000112</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">84.51</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-07-11T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-13</Dt></BookgDt>
+        <ValDt><Dt>2026-07-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000113</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2026-07-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">55.08</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-15</Dt></BookgDt>
+        <ValDt><Dt>2026-07-15</Dt></ValDt>
+        <AcctSvcrRef>20260000000114</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>RB202607123456789</EndToEndId><MndtId>ARD-4711-0815-42</MndtId></Refs>
+          <Amt Ccy="EUR">55.08</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ARD ZDF Deutschlandradio Beitragsservice</Nm><Id><PrvtId><Othr><Id>DE34ZZZ00000077001</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00370000000000123404</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDECCXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Rundfunk 07.2026 - 09.2026 Beitragsnr. 123456789</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">31.57</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-20</Dt></BookgDt>
+        <ValDt><Dt>2026-07-18</Dt></ValDt>
+        <AcctSvcrRef>20260000000115</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">31.57</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-07-18T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-22</Dt></BookgDt>
+        <ValDt><Dt>2026-07-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000116</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2026-07-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">75.69</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-27</Dt></BookgDt>
+        <ValDt><Dt>2026-07-25</Dt></ValDt>
+        <AcctSvcrRef>20260000000117</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">75.69</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-07-25T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-07-28</Dt></BookgDt>
+        <ValDt><Dt>2026-07-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000118</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 07/2026 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">53.12</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-03</Dt></BookgDt>
+        <ValDt><Dt>2026-08-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000119</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">53.12</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-08-01T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-03</Dt></BookgDt>
+        <ValDt><Dt>2026-08-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000120</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-03</Dt></BookgDt>
+        <ValDt><Dt>2026-08-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000121</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2026080045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 08/2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-05</Dt></BookgDt>
+        <ValDt><Dt>2026-08-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000122</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502026088812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502026088812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">46.37</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-10</Dt></BookgDt>
+        <ValDt><Dt>2026-08-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000123</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">46.37</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-08-08T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-10</Dt></BookgDt>
+        <ValDt><Dt>2026-08-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000124</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2026-08-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-12</Dt></BookgDt>
+        <ValDt><Dt>2026-08-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000125</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2026-08-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">41.26</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-17</Dt></BookgDt>
+        <ValDt><Dt>2026-08-15</Dt></ValDt>
+        <AcctSvcrRef>20260000000126</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">41.26</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-08-15T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">31.23</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-24</Dt></BookgDt>
+        <ValDt><Dt>2026-08-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000127</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">31.23</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-08-22T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-24</Dt></BookgDt>
+        <ValDt><Dt>2026-08-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000128</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2026-08-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-28</Dt></BookgDt>
+        <ValDt><Dt>2026-08-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000129</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 08/2026 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">36.13</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-08-31</Dt></BookgDt>
+        <ValDt><Dt>2026-08-29</Dt></ValDt>
+        <AcctSvcrRef>20260000000130</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">36.13</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-08-29T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">1180.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-01</Dt></BookgDt>
+        <ValDt><Dt>2026-09-01</Dt></ValDt>
+        <AcctSvcrRef>20260000000131</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>ICDT</Cd><SubFmlyCd>STDO</SubFmlyCd></Fmly></Domn><Prtry><Cd>NSTO+117+00900</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">1180.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Wohnbau Konstanz GmbH</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00690500010000123401</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEKKXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Miete Whg 3.OG Seestraße 12 inkl. NK</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>DAUERAUFTRAG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">39.95</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-03</Dt></BookgDt>
+        <ValDt><Dt>2026-09-03</Dt></ValDt>
+        <AcctSvcrRef>20260000000132</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>TK2026090045123987</EndToEndId><MndtId>TK-0045123987-01</MndtId></Refs>
+          <Amt Ccy="EUR">39.95</Amt>
+          <RltdPties><Cdtr><Pty><Nm>Telekom Deutschland GmbH</Nm><Id><PrvtId><Othr><Id>DE12ZZZ00000012345</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>DE00300000000000123402</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>TESTDEBBXXX</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Kundenkonto 0045123987 Rechnung 09/2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">11.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-07</Dt></BookgDt>
+        <ValDt><Dt>2026-09-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000133</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>IDDT</Cd><SubFmlyCd>PMDD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NDDT+105+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>104502026098812 PP.5512.PP PAYPAL</EndToEndId><MndtId>5MUSTER2258ABCD</MndtId></Refs>
+          <Amt Ccy="EUR">11.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>PayPal Europe S.a.r.l. et Cie S.C.A</Nm><Id><PrvtId><Othr><Id>LU12ZZZ0000000000000000099</Id><SchmeNm><Prtry>SEPA</Prtry></SchmeNm></Othr></PrvtId></Id></Pty></Cdtr><CdtrAcct><Id><IBAN>LU000000000000000403</IBAN></Id></CdtrAcct></RltdPties>
+          <RltdAgts><CdtrAgt><FinInstnId><BICFI>PPLXLUL2</BICFI></FinInstnId></CdtrAgt></RltdAgts>
+          <RmtInf><Ustrd>104502026098812 PP.5512.PP . Spotify AB, Ihr Einkauf bei Spotify AB</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>FOLGELASTSCHRIFT</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">81.04</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-07</Dt></BookgDt>
+        <ValDt><Dt>2026-09-05</Dt></ValDt>
+        <AcctSvcrRef>20260000000134</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">81.04</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-09-05T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">100.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-08</Dt></BookgDt>
+        <ValDt><Dt>2026-09-08</Dt></ValDt>
+        <AcctSvcrRef>20260000000135</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">100.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Marktstätte 2026-09-08T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">13.99</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-14</Dt></BookgDt>
+        <ValDt><Dt>2026-09-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000136</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">13.99</Amt>
+          <RltdPties><Cdtr><Pty><Nm>NETFLIX.COM</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>NETFLIX.COM Los Gatos//Los Gatos/US 2026-09-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">46.07</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-14</Dt></BookgDt>
+        <ValDt><Dt>2026-09-12</Dt></ValDt>
+        <AcctSvcrRef>20260000000137</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">46.07</Amt>
+          <RltdPties><Cdtr><Pty><Nm>EDEKA Muster Konstanz</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>EDEKA MUSTER KONSTANZ//Konstanz/DE 2026-09-12T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">26.87</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-21</Dt></BookgDt>
+        <ValDt><Dt>2026-09-19</Dt></ValDt>
+        <AcctSvcrRef>20260000000138</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">26.87</Amt>
+          <RltdPties><Cdtr><Pty><Nm>ALDI SUED</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>ALDI SUED SAGT DANKE//Konstanz/DE 2026-09-19T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">200.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-22</Dt></BookgDt>
+        <ValDt><Dt>2026-09-22</Dt></ValDt>
+        <AcctSvcrRef>20260000000139</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>CWDL</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+083+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">200.00</Amt>
+          <RltdPties><Cdtr><Pty><Nm>GA NR00001234 BLZ69050001 0</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>GA 69050001 Konstanz Bahnhof 2026-09-22T10:15:00 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>BARGELDAUSZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">26.09</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-28</Dt></BookgDt>
+        <ValDt><Dt>2026-09-26</Dt></ValDt>
+        <AcctSvcrRef>20260000000140</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">26.09</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-09-26T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3920.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-28</Dt></BookgDt>
+        <ValDt><Dt>2026-09-28</Dt></ValDt>
+        <AcctSvcrRef>20260000000141</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn><Prtry><Cd>NTRF+166+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+          <Amt Ccy="EUR">3920.00</Amt>
+          <RltdPties><Dbtr><Pty><Nm>Muster Pharma GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE00660000000000123406</IBAN></Id></DbtrAcct></RltdPties>
+          <RltdAgts><DbtrAgt><FinInstnId><BICFI>TESTDESSXXX</BICFI></FinInstnId></DbtrAgt></RltdAgts>
+          <RmtInf><Ustrd>Lohn/Gehalt 09/2026 PersNr 4711</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">23.47</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>PDNG</Cd></Sts>
+        <BookgDt><Dt>2026-09-30</Dt></BookgDt>
+        <ValDt><Dt>2026-09-30</Dt></ValDt>
+        <AcctSvcrRef>20260000000142</AcctSvcrRef>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>CCRD</Cd><SubFmlyCd>POSD</SubFmlyCd></Fmly></Domn><Prtry><Cd>NMSC+106+00931</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Amt Ccy="EUR">23.47</Amt>
+          <RltdPties><Cdtr><Pty><Nm>REWE Markt GmbH</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>REWE SAGT DANKE//Konstanz/DE 2026-09-30T12:34:56 KFN 1 VJ 2912</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+    </Rpt>
+  </BkToCstmrAcctRpt>
+</Document>

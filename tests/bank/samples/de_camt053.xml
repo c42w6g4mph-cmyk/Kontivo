@@ -1,0 +1,813 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02">
+<BkToCstmrStmt><GrpHdr><MsgId>M1</MsgId><CreDtTm>2026-10-01T06:00:00</CreDtTm></GrpHdr><Stmt><Id>S1</Id>
+<Acct><Id><IBAN>DE00000000000000000000</IBAN></Id><Ccy>EUR</Ccy></Acct>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-01</Dt></BookgDt><ValDt><Dt>2025-10-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-01</Dt></BookgDt><ValDt><Dt>2025-10-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">47.53</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-02</Dt></BookgDt><ValDt><Dt>2025-10-02</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-03</Dt></BookgDt><ValDt><Dt>2025-10-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-06</Dt></BookgDt><ValDt><Dt>2025-10-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-07</Dt></BookgDt><ValDt><Dt>2025-10-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">43.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-09</Dt></BookgDt><ValDt><Dt>2025-10-09</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">58.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-10</Dt></BookgDt><ValDt><Dt>2025-10-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">95.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-15</Dt></BookgDt><ValDt><Dt>2025-10-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">55.08</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-15</Dt></BookgDt><ValDt><Dt>2025-10-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Rundfunk ARD, ZDF, DRadio</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE13ZZZ00000006114</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Rundfunkbeitrag Beitragsnummer 123 456 789</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">42.10</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-16</Dt></BookgDt><ValDt><Dt>2025-10-16</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">59.75</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-18</Dt></BookgDt><ValDt><Dt>2025-10-18</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">10.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-22</Dt></BookgDt><ValDt><Dt>2025-10-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">62.24</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-23</Dt></BookgDt><ValDt><Dt>2025-10-23</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">38.44</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-27</Dt></BookgDt><ValDt><Dt>2025-10-27</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-28</Dt></BookgDt><ValDt><Dt>2025-10-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">53.74</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-10-30</Dt></BookgDt><ValDt><Dt>2025-10-30</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-01</Dt></BookgDt><ValDt><Dt>2025-11-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-01</Dt></BookgDt><ValDt><Dt>2025-11-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-03</Dt></BookgDt><ValDt><Dt>2025-11-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">37.85</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-03</Dt></BookgDt><ValDt><Dt>2025-11-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">31.03</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-06</Dt></BookgDt><ValDt><Dt>2025-11-06</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-06</Dt></BookgDt><ValDt><Dt>2025-11-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-07</Dt></BookgDt><ValDt><Dt>2025-11-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">58.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-10</Dt></BookgDt><ValDt><Dt>2025-11-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">127.61</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-10</Dt></BookgDt><ValDt><Dt>2025-11-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">98.07</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-13</Dt></BookgDt><ValDt><Dt>2025-11-13</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">95.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-15</Dt></BookgDt><ValDt><Dt>2025-11-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">20.38</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-15</Dt></BookgDt><ValDt><Dt>2025-11-15</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">43.21</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-20</Dt></BookgDt><ValDt><Dt>2025-11-20</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">10.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-22</Dt></BookgDt><ValDt><Dt>2025-11-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">56.65</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-22</Dt></BookgDt><ValDt><Dt>2025-11-22</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">65.18</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-27</Dt></BookgDt><ValDt><Dt>2025-11-27</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-11-28</Dt></BookgDt><ValDt><Dt>2025-11-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-01</Dt></BookgDt><ValDt><Dt>2025-12-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-01</Dt></BookgDt><ValDt><Dt>2025-12-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-03</Dt></BookgDt><ValDt><Dt>2025-12-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">41.18</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-04</Dt></BookgDt><ValDt><Dt>2025-12-04</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">30.41</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-06</Dt></BookgDt><ValDt><Dt>2025-12-06</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-06</Dt></BookgDt><ValDt><Dt>2025-12-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-07</Dt></BookgDt><ValDt><Dt>2025-12-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">58.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-10</Dt></BookgDt><ValDt><Dt>2025-12-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">64.70</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-11</Dt></BookgDt><ValDt><Dt>2025-12-11</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">95.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-15</Dt></BookgDt><ValDt><Dt>2025-12-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">108.65</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-18</Dt></BookgDt><ValDt><Dt>2025-12-18</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">28.94</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-20</Dt></BookgDt><ValDt><Dt>2025-12-20</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">10.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-22</Dt></BookgDt><ValDt><Dt>2025-12-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">98.24</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-25</Dt></BookgDt><ValDt><Dt>2025-12-25</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">17.89</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-27</Dt></BookgDt><ValDt><Dt>2025-12-27</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2025-12-28</Dt></BookgDt><ValDt><Dt>2025-12-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-01</Dt></BookgDt><ValDt><Dt>2026-01-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-01</Dt></BookgDt><ValDt><Dt>2026-01-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">60.86</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-01</Dt></BookgDt><ValDt><Dt>2026-01-01</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-03</Dt></BookgDt><ValDt><Dt>2026-01-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">20.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-03</Dt></BookgDt><ValDt><Dt>2026-01-03</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-06</Dt></BookgDt><ValDt><Dt>2026-01-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-07</Dt></BookgDt><ValDt><Dt>2026-01-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">62.67</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-08</Dt></BookgDt><ValDt><Dt>2026-01-08</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">63.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-10</Dt></BookgDt><ValDt><Dt>2026-01-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">95.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-15</Dt></BookgDt><ValDt><Dt>2026-01-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">55.08</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-15</Dt></BookgDt><ValDt><Dt>2026-01-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Rundfunk ARD, ZDF, DRadio</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE13ZZZ00000006114</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Rundfunkbeitrag Beitragsnummer 123 456 789</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">29.30</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-15</Dt></BookgDt><ValDt><Dt>2026-01-15</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">10.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-22</Dt></BookgDt><ValDt><Dt>2026-01-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">107.36</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-22</Dt></BookgDt><ValDt><Dt>2026-01-22</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-28</Dt></BookgDt><ValDt><Dt>2026-01-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.14</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-01-29</Dt></BookgDt><ValDt><Dt>2026-01-29</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-01</Dt></BookgDt><ValDt><Dt>2026-02-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-01</Dt></BookgDt><ValDt><Dt>2026-02-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">89.40</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-01</Dt></BookgDt><ValDt><Dt>2026-02-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Allianz Versicherungs-AG</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE51ZZZ00000017444</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Privathaftpflicht Vertrag AS-123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">61.54</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-02</Dt></BookgDt><ValDt><Dt>2026-02-02</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-03</Dt></BookgDt><ValDt><Dt>2026-02-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">29.98</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-05</Dt></BookgDt><ValDt><Dt>2026-02-05</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-06</Dt></BookgDt><ValDt><Dt>2026-02-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-07</Dt></BookgDt><ValDt><Dt>2026-02-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">59.24</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-07</Dt></BookgDt><ValDt><Dt>2026-02-07</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">111.71</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-09</Dt></BookgDt><ValDt><Dt>2026-02-09</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">63.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-10</Dt></BookgDt><ValDt><Dt>2026-02-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">63.68</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-12</Dt></BookgDt><ValDt><Dt>2026-02-12</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">95.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-15</Dt></BookgDt><ValDt><Dt>2026-02-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">109.61</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-19</Dt></BookgDt><ValDt><Dt>2026-02-19</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">10.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-22</Dt></BookgDt><ValDt><Dt>2026-02-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">38.16</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-26</Dt></BookgDt><ValDt><Dt>2026-02-26</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-28</Dt></BookgDt><ValDt><Dt>2026-02-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">58.37</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-02-28</Dt></BookgDt><ValDt><Dt>2026-02-28</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-01</Dt></BookgDt><ValDt><Dt>2026-03-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-01</Dt></BookgDt><ValDt><Dt>2026-03-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-03</Dt></BookgDt><ValDt><Dt>2026-03-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">71.09</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-05</Dt></BookgDt><ValDt><Dt>2026-03-05</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-06</Dt></BookgDt><ValDt><Dt>2026-03-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-07</Dt></BookgDt><ValDt><Dt>2026-03-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">85.53</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-09</Dt></BookgDt><ValDt><Dt>2026-03-09</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">63.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-10</Dt></BookgDt><ValDt><Dt>2026-03-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">67.74</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-12</Dt></BookgDt><ValDt><Dt>2026-03-12</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">102.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-15</Dt></BookgDt><ValDt><Dt>2026-03-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">134.86</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-16</Dt></BookgDt><ValDt><Dt>2026-03-16</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">31.81</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-19</Dt></BookgDt><ValDt><Dt>2026-03-19</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">38.94</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-21</Dt></BookgDt><ValDt><Dt>2026-03-21</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">10.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-22</Dt></BookgDt><ValDt><Dt>2026-03-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">44.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-26</Dt></BookgDt><ValDt><Dt>2026-03-26</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-28</Dt></BookgDt><ValDt><Dt>2026-03-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">54.29</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-28</Dt></BookgDt><ValDt><Dt>2026-03-28</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">86.88</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-03-30</Dt></BookgDt><ValDt><Dt>2026-03-30</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-01</Dt></BookgDt><ValDt><Dt>2026-04-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-01</Dt></BookgDt><ValDt><Dt>2026-04-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">77.65</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-02</Dt></BookgDt><ValDt><Dt>2026-04-02</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-03</Dt></BookgDt><ValDt><Dt>2026-04-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-06</Dt></BookgDt><ValDt><Dt>2026-04-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-07</Dt></BookgDt><ValDt><Dt>2026-04-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">69.44</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-09</Dt></BookgDt><ValDt><Dt>2026-04-09</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">63.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-10</Dt></BookgDt><ValDt><Dt>2026-04-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">102.82</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-13</Dt></BookgDt><ValDt><Dt>2026-04-13</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">102.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-15</Dt></BookgDt><ValDt><Dt>2026-04-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">55.08</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-15</Dt></BookgDt><ValDt><Dt>2026-04-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Rundfunk ARD, ZDF, DRadio</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE13ZZZ00000006114</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Rundfunkbeitrag Beitragsnummer 123 456 789</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">45.29</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-16</Dt></BookgDt><ValDt><Dt>2026-04-16</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">42.93</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-18</Dt></BookgDt><ValDt><Dt>2026-04-18</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">50.42</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-20</Dt></BookgDt><ValDt><Dt>2026-04-20</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">10.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-22</Dt></BookgDt><ValDt><Dt>2026-04-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">88.91</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-23</Dt></BookgDt><ValDt><Dt>2026-04-23</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">31.83</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-25</Dt></BookgDt><ValDt><Dt>2026-04-25</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-28</Dt></BookgDt><ValDt><Dt>2026-04-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">109.67</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-04-30</Dt></BookgDt><ValDt><Dt>2026-04-30</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-01</Dt></BookgDt><ValDt><Dt>2026-05-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-01</Dt></BookgDt><ValDt><Dt>2026-05-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">19.08</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-02</Dt></BookgDt><ValDt><Dt>2026-05-02</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-03</Dt></BookgDt><ValDt><Dt>2026-05-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">131.26</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-04</Dt></BookgDt><ValDt><Dt>2026-05-04</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-06</Dt></BookgDt><ValDt><Dt>2026-05-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-07</Dt></BookgDt><ValDt><Dt>2026-05-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">99.87</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-07</Dt></BookgDt><ValDt><Dt>2026-05-07</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">63.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-10</Dt></BookgDt><ValDt><Dt>2026-05-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">38.41</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-14</Dt></BookgDt><ValDt><Dt>2026-05-14</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">102.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-15</Dt></BookgDt><ValDt><Dt>2026-05-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">76.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-21</Dt></BookgDt><ValDt><Dt>2026-05-21</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">10.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-22</Dt></BookgDt><ValDt><Dt>2026-05-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-28</Dt></BookgDt><ValDt><Dt>2026-05-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">25.66</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-05-28</Dt></BookgDt><ValDt><Dt>2026-05-28</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-01</Dt></BookgDt><ValDt><Dt>2026-06-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-01</Dt></BookgDt><ValDt><Dt>2026-06-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">95.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-01</Dt></BookgDt><ValDt><Dt>2026-06-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-03</Dt></BookgDt><ValDt><Dt>2026-06-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">104.81</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-04</Dt></BookgDt><ValDt><Dt>2026-06-04</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">14.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-06</Dt></BookgDt><ValDt><Dt>2026-06-06</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-06</Dt></BookgDt><ValDt><Dt>2026-06-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-07</Dt></BookgDt><ValDt><Dt>2026-06-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">81.47</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-08</Dt></BookgDt><ValDt><Dt>2026-06-08</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">63.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-10</Dt></BookgDt><ValDt><Dt>2026-06-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">48.15</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-11</Dt></BookgDt><ValDt><Dt>2026-06-11</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">102.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-15</Dt></BookgDt><ValDt><Dt>2026-06-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">42.31</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-18</Dt></BookgDt><ValDt><Dt>2026-06-18</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">10.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-22</Dt></BookgDt><ValDt><Dt>2026-06-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">73.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-22</Dt></BookgDt><ValDt><Dt>2026-06-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">101.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-25</Dt></BookgDt><ValDt><Dt>2026-06-25</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-28</Dt></BookgDt><ValDt><Dt>2026-06-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">64.49</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-06-29</Dt></BookgDt><ValDt><Dt>2026-06-29</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-01</Dt></BookgDt><ValDt><Dt>2026-07-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-01</Dt></BookgDt><ValDt><Dt>2026-07-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">48.52</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-02</Dt></BookgDt><ValDt><Dt>2026-07-02</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-03</Dt></BookgDt><ValDt><Dt>2026-07-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">48.10</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-04</Dt></BookgDt><ValDt><Dt>2026-07-04</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-06</Dt></BookgDt><ValDt><Dt>2026-07-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-07</Dt></BookgDt><ValDt><Dt>2026-07-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">47.27</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-09</Dt></BookgDt><ValDt><Dt>2026-07-09</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">63.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-10</Dt></BookgDt><ValDt><Dt>2026-07-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">102.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-15</Dt></BookgDt><ValDt><Dt>2026-07-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">55.08</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-15</Dt></BookgDt><ValDt><Dt>2026-07-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Rundfunk ARD, ZDF, DRadio</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE13ZZZ00000006114</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Rundfunkbeitrag Beitragsnummer 123 456 789</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">61.35</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-16</Dt></BookgDt><ValDt><Dt>2026-07-16</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">11.91</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-18</Dt></BookgDt><ValDt><Dt>2026-07-18</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">11.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-22</Dt></BookgDt><ValDt><Dt>2026-07-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">101.83</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-23</Dt></BookgDt><ValDt><Dt>2026-07-23</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-28</Dt></BookgDt><ValDt><Dt>2026-07-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">74.51</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-07-30</Dt></BookgDt><ValDt><Dt>2026-07-30</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-01</Dt></BookgDt><ValDt><Dt>2026-08-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-01</Dt></BookgDt><ValDt><Dt>2026-08-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">14.63</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-01</Dt></BookgDt><ValDt><Dt>2026-08-01</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-03</Dt></BookgDt><ValDt><Dt>2026-08-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">101.41</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-06</Dt></BookgDt><ValDt><Dt>2026-08-06</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-06</Dt></BookgDt><ValDt><Dt>2026-08-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-07</Dt></BookgDt><ValDt><Dt>2026-08-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">63.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-10</Dt></BookgDt><ValDt><Dt>2026-08-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">101.41</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-13</Dt></BookgDt><ValDt><Dt>2026-08-13</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">102.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-15</Dt></BookgDt><ValDt><Dt>2026-08-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">20.98</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-15</Dt></BookgDt><ValDt><Dt>2026-08-15</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">111.20</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-17</Dt></BookgDt><ValDt><Dt>2026-08-17</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">100.15</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-20</Dt></BookgDt><ValDt><Dt>2026-08-20</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">11.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-22</Dt></BookgDt><ValDt><Dt>2026-08-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">38.14</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-27</Dt></BookgDt><ValDt><Dt>2026-08-27</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-08-28</Dt></BookgDt><ValDt><Dt>2026-08-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">1180.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-01</Dt></BookgDt><ValDt><Dt>2026-09-01</Dt></ValDt>
+<AddtlNtryInf>Dauerauftrag</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Wohnbau Konstanz GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Miete Wohnung Musterweg 5</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">24.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-01</Dt></BookgDt><ValDt><Dt>2026-09-01</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>McFit GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE43ZZZ00000441233</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Mitgliedsbeitrag 123456</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">39.95</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-03</Dt></BookgDt><ValDt><Dt>2026-09-03</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Telekom Deutschland GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE93ZZZ00000078611</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Festnetz Kundenkonto 1234567890 Rechnung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">107.98</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-03</Dt></BookgDt><ValDt><Dt>2026-09-03</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">150.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-06</Dt></BookgDt><ValDt><Dt>2026-09-06</Dt></ValDt>
+<AddtlNtryInf>Bargeldauszahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Sparkasse Bodensee</Nm></Cdtr></RltdPties><RmtInf><Ustrd>GA 1234 Bargeldauszahlung</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">13.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-07</Dt></BookgDt><ValDt><Dt>2026-09-07</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Netflix International B.V.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>NL05ZZZ000000000001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Netflix Monatsabo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">63.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-10</Dt></BookgDt><ValDt><Dt>2026-09-10</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>DB Vertrieb GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE14ZZZ00000077001</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Deutschlandticket Abo</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">27.11</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-10</Dt></BookgDt><ValDt><Dt>2026-09-10</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">102.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-15</Dt></BookgDt><ValDt><Dt>2026-09-15</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Konstanz GmbH</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>DE52ZZZ00000123456</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Abschlag Strom Vertrag 300123</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">104.12</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-17</Dt></BookgDt><ValDt><Dt>2026-09-17</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">11.99</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-22</Dt></BookgDt><ValDt><Dt>2026-09-22</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>Spotify AB</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>SE12ZZZ0000000002</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Spotify Premium</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">93.91</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-24</Dt></BookgDt><ValDt><Dt>2026-09-24</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>REWE Markt GmbH</Nm></Cdtr></RltdPties><RmtInf><Ustrd>REWE SAGT DANKE 4711</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">48.94</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-26</Dt></BookgDt><ValDt><Dt>2026-09-26</Dt></ValDt>
+<AddtlNtryInf>Kartenzahlung</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>EDEKA Baur</Nm></Cdtr></RltdPties><RmtInf><Ustrd>EDEKA BAUR KONSTANZ</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">3920.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-28</Dt></BookgDt><ValDt><Dt>2026-09-28</Dt></ValDt>
+<AddtlNtryInf>Gutschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Dbtr><Nm>Muster Pharma GmbH</Nm></Dbtr></RltdPties><RmtInf><Ustrd>Gehalt</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+<Ntry><Amt Ccy="EUR">123.25</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts><BookgDt><Dt>2026-09-28</Dt></BookgDt><ValDt><Dt>2026-09-28</Dt></ValDt>
+<AddtlNtryInf>Folgelastschrift</AddtlNtryInf><NtryDtls>
+<TxDtls><RltdPties><Cdtr><Nm>AMAZON PAYMENTS EUROPE S.C.A.</Nm></Cdtr><CdtrSchmeId><Id><PrvtId><Othr><Id>LU96ZZZ0000000000000000058</Id></Othr></PrvtId></Id></CdtrSchmeId></RltdPties><RmtInf><Ustrd>Amazon .Mktp DE 303-1234567</Ustrd></RmtInf></TxDtls>
+</NtryDtls></Ntry>
+</Stmt></BkToCstmrStmt></Document>
