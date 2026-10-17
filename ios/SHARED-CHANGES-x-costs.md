@@ -8,6 +8,7 @@
 | `ios/Kontivo/App/RootView.swift` (design) | `AppSheetView`: `case .fixReport` → `FixReportOptionsSheet` | Einstieg Bericht |
 | `ios/Kontivo/More/MoreTab.swift` (design) | eine Zeile `MoreReportGroup()` als erste Gruppe | Web v220: «Mehr» → Gruppe «Bericht» → «Fixkosten-Bericht» (Baustein in `Costs/FixReportSheet.swift`) |
 | `ios/Kontivo/App/UITestHooks.swift` | `-uiSheet report` (Auswahl), `-uiSheet reportPDF` (fertiges PDF in der Dokumentansicht) | Bildschirmfotos/Tests Bericht |
+| `.github/workflows/ios.yml` | Bildschirmfotos `c1`–`c8` (Kosten-Liste, Preistreiber, Budget-Listen, Bericht, Bericht-PDF, Einnahme bearbeiten, dunkel Budget/Preistreiber) | Vergleich Web ↔ Swift |
 
 ## Neue Kern-Dateien (KontivoCore, mit Tests `CostDriversReportTests`)
 

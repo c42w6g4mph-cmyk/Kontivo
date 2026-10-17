@@ -238,6 +238,16 @@ struct KBPage<Content: View>: View {
                 .kContentWidth()
             }
             .coordinateSpace(name: KBPageSpace.name)
+            #if DEBUG
+            .task {
+                // Bildschirmfotos: «-uiScrollTo <id>» scrollt nach dem Start zu einem Bereich (kbList, kbDrivers, kbIncomes)
+                let args = ProcessInfo.processInfo.arguments
+                if let i = args.firstIndex(of: "-uiScrollTo"), i + 1 < args.count {
+                    try? await Task.sleep(nanoseconds: 1_200_000_000)
+                    proxy.scrollTo(args[i + 1], anchor: .top)
+                }
+            }
+            #endif
             .environment(\.kbScroll, KBScrollContext(proxy: proxy, height: viewport))
             .background(GeometryReader { g in
                 Color.clear

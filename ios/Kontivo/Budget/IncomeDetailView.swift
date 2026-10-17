@@ -15,7 +15,8 @@ struct IncomeDetailView: View {
     @State private var closed = false
 
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            topBar
             Group {
                 if let i = model.data.income(incomeID) {
                     content(i)
@@ -26,41 +27,54 @@ struct IncomeDetailView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .background(KColor.paper.ignoresSafeArea())
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Schliessen") { dismiss() }
-                        .accessibilityIdentifier("incomeDetail.close")
-                }
-                ToolbarItem(placement: .principal) {
-                    Text(verbatim: model.data.income(incomeID)?.title ?? "")
-                        .font(.headline)
-                        .lineLimit(1)
-                        .opacity(scrolled ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.15), value: scrolled)
-                        .accessibilityHidden(!scrolled)
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    if model.data.income(incomeID) != nil {
-                        actionsMenu
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Bearbeiten") {
-                        model.present(.incomeForm(incomeID))
-                    }
-                    .disabled(model.data.income(incomeID) == nil)
-                    .accessibilityIdentifier("incomeDetail.edit")
-                }
-            }
         }
+        .background(KColor.paper.ignoresSafeArea())
         .alert("Einnahme löschen?", isPresented: $askDelete) {
             Button("Löschen", role: .destructive) { delete() }
             Button("Abbrechen", role: .cancel) {}
         } message: {
             Text(verbatim: "«" + deleteName + "» wird endgültig gelöscht.")
         }
+    }
+
+    /// Web `.shbar`: «Schliessen» | Titel (erscheint beim Scrollen) | ••• | «Bearbeiten»
+    private var topBar: some View {
+        ZStack {
+            Text(verbatim: model.data.income(incomeID)?.title ?? "")
+                .font(KFont.title(18))
+                .tracking(-0.216)
+                .foregroundStyle(KColor.ink)
+                .lineLimit(1)
+                .padding(.horizontal, 100)
+                .opacity(scrolled ? 1 : 0)
+                .animation(.easeInOut(duration: 0.15), value: scrolled)
+                .accessibilityHidden(!scrolled)
+            HStack(spacing: 10) {
+                Button("Schliessen") { dismiss() }
+                    .font(.system(size: 16))
+                    .foregroundStyle(KColor.ink2)
+                    .padding(.vertical, 6)
+                    .accessibilityIdentifier("incomeDetail.close")
+                Spacer()
+                if model.data.income(incomeID) != nil {
+                    actionsMenu
+                }
+                Button("Bearbeiten") {
+                    model.present(.incomeForm(incomeID))
+                }
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(KColor.teal)
+                .padding(.vertical, 6)
+                .disabled(model.data.income(incomeID) == nil)
+                .accessibilityIdentifier("incomeDetail.edit")
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, KBM.side)
+        .padding(.top, 6 + 14)
+        .padding(.bottom, 10)
+        .background(KColor.surface.ignoresSafeArea(edges: .top))
+        .overlay(alignment: .bottom) { Rectangle().fill(KColor.line).frame(height: 1) }
     }
 
     // MARK: Inhalt
@@ -81,39 +95,42 @@ struct IncomeDetailView: View {
                         Pill(text: p, tone: .neutral)
                         Spacer(minLength: 0)
                     }
-                    .padding(.top, 12)
+                    .padding(.top, 6)
                     .padding(.bottom, 10)
                 } else {
-                    Color.clear.frame(height: 10)
+                    Color.clear.frame(height: 6 + 10)
                 }
                 KBIncomeKeyFigures(income: i, info: info, home: calc.home)
-                SectionHead(title: "Einnahme")
+                    .padding(.bottom, 12)
+                KBDetailSection("Einnahme")
                 if let ch = calc.priceChart(i) {
                     KBIncomeChart(chart: ch)
-                        .padding(.bottom, 8)
+                        .padding(.top, 8)
+                        .padding(.bottom, 10)
                 }
                 if !info.rows.isEmpty {
-                    KCard {
+                    VStack(spacing: 0) {
                         ForEach(Array(info.rows.enumerated()), id: \.offset) { k, r in
-                            if k > 0 { Divider().padding(.leading, 14) }
+                            if k > 0 { KBRowDivider() }
                             KBIncomeDetailRow(row: r)
                         }
                     }
+                    .padding(.horizontal, 13)
+                    .kbSurface()
                     .accessibilityIdentifier("incomeDetail.rows")
                 }
                 if !i.note.isEmpty {
-                    SectionHead(title: "Notiz")
+                    KBDetailSection("Notiz")
                     Text(verbatim: i.note)
-                        .font(.body)
+                        .font(.system(size: 14.5))
                         .foregroundStyle(KColor.ink)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(14)
-                        .background(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).fill(KColor.surface))
+                        .padding(.top, 2)
                 }
             }
-            .padding(.horizontal, KMetric.gutter)
-            .padding(.bottom, 32)
+            .padding(.horizontal, KBM.side)
+            .padding(.bottom, 18)
             .kContentWidth()
         }
         .coordinateSpace(name: "incDetail")
@@ -125,16 +142,17 @@ struct IncomeDetailView: View {
     }
 
     private func header(_ i: Income, info: IncomeDetailInfo) -> some View {
-        HStack(alignment: .center, spacing: 14) {
+        HStack(alignment: .center, spacing: 15) {
             MarkView(income: i, size: 76)
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(verbatim: info.title)
-                    .font(.title2.weight(.bold))
+                    .font(KFont.title(22))
+                    .tracking(-0.264)
                     .foregroundStyle(KColor.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 if !info.subtitle.isEmpty {
                     Text(verbatim: info.subtitle)
-                        .font(.footnote)
+                        .font(.system(size: 13))
                         .foregroundStyle(KColor.ink2)
                 }
             }
@@ -142,7 +160,7 @@ struct IncomeDetailView: View {
             .accessibilityAddTraits(.isHeader)
             Spacer(minLength: 0)
         }
-        .padding(.top, 12)
+        .padding(.top, 14)
     }
 
     // MARK: Menü ••• (Web: Duplizieren, Löschen)
@@ -160,8 +178,13 @@ struct IncomeDetailView: View {
                 Label("Löschen", systemImage: "trash")
             }
         } label: {
-            Image(systemName: "ellipsis.circle")
-                .accessibilityLabel("Aktionen")
+            // Web `.dmbtn`: 34 pt Kreis versenkt, drei Punkte in Akzentfarbe
+            HStack(spacing: 3.6) {
+                ForEach(0..<3, id: \.self) { _ in Circle().fill(KColor.teal).frame(width: 3.6, height: 3.6) }
+            }
+            .frame(width: 34, height: 34)
+            .background(Circle().fill(KColor.sunken))
+            .accessibilityLabel("Aktionen")
         }
         .accessibilityIdentifier("incomeDetail.menu")
     }
@@ -208,12 +231,12 @@ struct KBIncomeDetailRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(verbatim: row.label)
-                .font(.subheadline)
+                .font(.system(size: 12.5))
                 .foregroundStyle(KColor.ink2)
-            Spacer(minLength: 8)
+            Spacer(minLength: 16)
             VStack(alignment: .trailing, spacing: 2) {
                 Text(verbatim: row.value)
-                    .font(.body)
+                    .font(.system(size: 14))
                     .foregroundStyle(KColor.ink)
                     .multilineTextAlignment(.trailing)
                 if !row.sub.isEmpty {
@@ -223,8 +246,23 @@ struct KBIncomeDetailRow: View {
                 }
             }
         }
-        .padding(.horizontal, 14).padding(.vertical, 11)
+        .padding(.vertical, 11 + KBM.pad(20.3, 14))
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// Abschnittstitel der Ansicht (Web `h3.dsec`: 12.5 px Semibold Tinte 2, 20 oben, 2 unten)
+struct KBDetailSection: View {
+    let title: String
+    init(_ title: String) { self.title = title }
+
+    var body: some View {
+        Text(verbatim: title)
+            .font(.system(size: 12.5, weight: .semibold))
+            .foregroundStyle(KColor.ink2)
+            .padding(.top, 20)
+            .padding(.bottom, 2)
+            .accessibilityAddTraits(.isHeader)
     }
 }
 
@@ -243,7 +281,7 @@ struct KBIncomeKeyFigures: View {
         KBRatioRow().callAsFunction {
             VStack(alignment: .leading, spacing: 10) {
                 Text(verbatim: info.mainLabel)
-                    .font(.caption.weight(.medium))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(KColor.ink2)
                 VStack(alignment: .leading, spacing: 3) {
                     bigAmount(info.mainAmount, currency: cu)
@@ -255,25 +293,25 @@ struct KBIncomeKeyFigures: View {
                         GeometryReader { g in
                             ZStack(alignment: .leading) {
                                 Capsule().fill(KColor.line)
-                                Capsule().fill(KColor.ok)
+                                Capsule().fill(KColor.brass)
                                     .frame(width: g.size.width * CGFloat(max(2, min(100, pc))) / 100)
                             }
                         }
                         .frame(height: 6)
-                        .padding(.top, 7)
+                        .padding(.top, 10)
                         .accessibilityHidden(true)
                         Text(verbatim: "\(pc) % deiner Einnahmen")
-                            .font(.caption).foregroundStyle(KColor.ink2)
-                            .padding(.top, 3)
+                            .font(.system(size: 12)).foregroundStyle(KColor.ink2)
+                            .padding(.top, 6 - 3)
                     } else if let n = info.note {
                         Text(verbatim: n)
-                            .font(.caption).foregroundStyle(KColor.ink2)
+                            .font(.system(size: 12)).foregroundStyle(KColor.ink2)
                     }
                 }
             }
             .padding(.horizontal, 14).padding(.vertical, 13)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(KColor.field, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(KColor.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("incomeDetail.kz.month")
             VStack(spacing: 8) {
@@ -292,11 +330,11 @@ struct KBIncomeKeyFigures: View {
     /// «7’600» gross, «.00» klein, Währung klein (Web decAt)
     private func bigAmount(_ v: Double, currency: Currency) -> some View {
         let parts = Format.decimalSplit(Format.money(v, currency))
-        return (Text(verbatim: parts.whole).font(.system(size: 34, weight: .bold))
-            + Text(verbatim: parts.fraction).font(.system(size: 19, weight: .semibold))
-            + Text(verbatim: " " + currency.rawValue).font(.caption.weight(.semibold)).foregroundStyle(KColor.ink2))
+        return (Text(verbatim: parts.whole).font(KFont.serif(34, .medium))
+            + Text(verbatim: parts.fraction).font(KFont.serif(18.7, .semibold))
+            + Text(verbatim: " " + currency.rawValue).font(.system(size: 12, weight: .semibold)).foregroundStyle(KColor.ink2))
+            .tracking(-0.34)
             .foregroundStyle(KColor.ink)
-            .monospacedDigit()
             .lineLimit(1)
             .minimumScaleFactor(0.6)
     }
@@ -304,18 +342,18 @@ struct KBIncomeKeyFigures: View {
     private func tile(_ label: String, value: String, currency: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(verbatim: label)
-                .font(.caption.weight(.medium))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(KColor.ink2)
-            (Text(verbatim: value).font(.system(size: 20, weight: .bold))
-                + Text(verbatim: currency.isEmpty ? "" : " " + currency).font(.caption.weight(.semibold)).foregroundStyle(KColor.ink2))
+            (Text(verbatim: value).font(KFont.serif(20, .medium))
+                + Text(verbatim: currency.isEmpty ? "" : " " + currency).font(.system(size: 12, weight: .semibold)).foregroundStyle(KColor.ink2))
+                .tracking(-0.2)
                 .foregroundStyle(KColor.ink)
-                .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .background(KColor.field, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(KColor.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }

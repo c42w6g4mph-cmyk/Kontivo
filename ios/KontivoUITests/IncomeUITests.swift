@@ -120,7 +120,7 @@ final class IncomeUITests: KontivoUITestCase {
 
         // Kopie wieder löschen: Alle Einnahmen → Ansicht → Bearbeiten → Einnahme löschen
         tap(buttonContaining("Alle Einnahmen (6)"), "Alle Einnahmen")
-        waitNav("Alle Einnahmen")
+        wait(el("incomes.title"), "Fenster «Alle Einnahmen»")
         let copies = app.buttons.matching(pred("label BEGINSWITH %@ AND label CONTAINS %@", "Lohn", "7’600.00"))
         waitUntil("zwei Zeilen «Lohn 7’600.00»") { copies.count >= 2 }
         tap(copies.element(boundBy: 1), "Kopie öffnen")
@@ -130,8 +130,8 @@ final class IncomeUITests: KontivoUITestCase {
         tap(button("income.delete"), "Einnahme löschen")
         tapAlertButton("Löschen")
         waitUntil("Formular und Ansicht geschlossen") { !self.incomeFormOpen("Bearbeiten") && !self.el("incomeDetail.kz.month").exists }
-        waitNav("Alle Einnahmen")
-        tapTop("Fertig")
+        wait(el("incomes.title"), "zurück in «Alle Einnahmen»")
+        tapTop("Schliessen")
         wait(buttonContaining("Alle Einnahmen (5)"), "Kopie gelöscht")
     }
 }

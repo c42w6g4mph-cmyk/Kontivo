@@ -151,6 +151,7 @@ struct KBBudgetContent: View {
                 .padding(.top, 14)
             if person == nil, let rows = calc.fairShare() { KBFairShareView(rows: rows) }
             KBBudgetIncomeList(year: year, month: month, person: person, incomeCount: incomeCount, monthIncome: bm.income)
+                .id("kbIncomes")
             KBBudgetExpenseList(year: year, month: month, person: person, bm: bm, showAll: $showAllExpenses)
         }
     }

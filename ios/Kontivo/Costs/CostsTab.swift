@@ -80,6 +80,7 @@ struct CostsTab: View {
                 }
                 KBCostMonthList(items: cy.months[month - 1].items, month: month,
                                 byAmount: $listByAmount, showPaid: $showPaid)
+                    .id("kbList")
                 KBCostDriversView(year: year, open: $driverOpen)
             }
         }
