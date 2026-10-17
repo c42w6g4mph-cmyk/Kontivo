@@ -68,7 +68,10 @@ struct SplashView: View {
             VStack(spacing: 14) {
                 logo(t)
                     .scaleEffect(reduceMotion ? 1 : 1 + 0.12 * Self.ease(out))
+                // Zeile 36 pt × 1.45 wie im Web (Grundlinie bei 39 pt)
                 wordmark(t)
+                    .padding(.top, 13)
+                    .padding(.bottom, 12)
                 Text(verbatim: "Deine Verträge, ganz entspannt.")
                     .font(.system(size: 14))
                     .foregroundStyle(KColor.ink2)

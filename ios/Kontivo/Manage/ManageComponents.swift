@@ -51,7 +51,7 @@ struct MDTitleSub: View {
                     .foregroundStyle(subtitleColor)
                     .monospacedDigit()
                     .lineLimit(3)
-                    .kLineHeight(12, 17.4)
+                    .kLineHeight(12, 23.2)
             }
         }
     }

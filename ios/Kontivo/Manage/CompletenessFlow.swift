@@ -319,27 +319,28 @@ struct CompletenessFlowView: View {
             .kKeyboardDone()
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
+            .kSheetBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     if flow.backVisible {
+                        // Web `.shx`: «‹ Zurück» 16 pt `--ink2`
                         Button {
                             flow.back(model)
                         } label: {
-                            HStack(spacing: 3) {
-                                Image(systemName: "chevron.left").fontWeight(.semibold)
-                                Text("Zurück")
-                            }
+                            Text("‹ Zurück").font(KFont.text(16)).foregroundStyle(KColor.ink2)
                         }
+                        .accessibilityLabel("Zurück")
                         .disabled(flow.busy)
                         .accessibilityIdentifier("vk.back")
                     }
                 }
+                .kPlain()
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(flow.step == .end ? "Fertig" : Completeness.laterTitle) { close() }
-                        .fontWeight(.semibold)
+                    KBarButton(title: flow.step == .end ? "Fertig" : Completeness.laterTitle) { close() }
                         .disabled(flow.busy)
                         .accessibilityIdentifier("vk.later")
                 }
+                .kPlain()
             }
         }
         .interactiveDismissDisabled(flow.busy)

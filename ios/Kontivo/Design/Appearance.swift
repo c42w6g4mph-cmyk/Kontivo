@@ -35,25 +35,11 @@ enum KAppearance {
         UITabBar.appearance().standardAppearance = tab
         UITabBar.appearance().scrollEdgeAppearance = tab
 
-        // Fenster-Kopfzeile (Web `.shbar`): Fläche `--surface`, Linie unten `--line`, Titel 18 pt Semibold −0.012em `--ink`
-        let nav = UINavigationBarAppearance()
-        nav.configureWithOpaqueBackground()
-        nav.backgroundColor = KColor.ui(0xFFFFFF, 0x36373B)
-        nav.shadowColor = KColor.ui(0xE6E6E3, 0x45464A)
-        nav.titleTextAttributes = [.font: UIFont.systemFont(ofSize: 18, weight: .semibold), .kern: -0.216,
-                                   .foregroundColor: KColor.ui(0x121314, 0xE8E6E2)]
-        nav.largeTitleTextAttributes = [.font: UIFont.systemFont(ofSize: 30, weight: .semibold), .kern: -0.45,
-                                        .foregroundColor: KColor.ui(0x121314, 0xE8E6E2)]
-        let button = UIBarButtonItemAppearance(style: .plain)
-        button.normal.titleTextAttributes = [.font: UIFont.systemFont(ofSize: 16, weight: .regular), .foregroundColor: ink2]
-        nav.buttonAppearance = button
-        let doneButton = UIBarButtonItemAppearance(style: .done)
-        doneButton.normal.titleTextAttributes = [.font: UIFont.systemFont(ofSize: 16, weight: .bold), .foregroundColor: teal]
-        nav.doneButtonAppearance = doneButton
+        // Fenster-Kopfzeile (Web `.shbar`): nur Titel 18 pt Semibold −0.012em `--ink`. Fläche `--surface` setzt jedes Fenster
+        // mit `.kSheetBar()` (eine globale UINavigationBarAppearance würde unter iOS 26 die grossen Titel der Tabs ausblenden).
         let bar = UINavigationBar.appearance()
-        bar.standardAppearance = nav
-        bar.scrollEdgeAppearance = nav
-        bar.compactAppearance = nav
+        bar.titleTextAttributes = [.font: UIFont.systemFont(ofSize: 18, weight: .semibold), .kern: -0.216,
+                                   .foregroundColor: KColor.ui(0x121314, 0xE8E6E2)]
         bar.tintColor = teal
     }
 }
