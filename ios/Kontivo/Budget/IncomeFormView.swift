@@ -244,7 +244,9 @@ struct KBIncomeForm: View {
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) { showLogo.toggle() }
             } label: {
-                MarkView(income: draft, size: 76)
+                // Web: Vorschau ohne Logo neutral grau (Inline-Farbe ohne `--c` → Pastell in #5F666E)
+                MarkView(logoID: draft.logoID, logoBg: draft.logoBg, colorHex: "#5F666E",
+                         symbol: KIcon.symbol(forKey: draft.kind.icon), size: 76)
                     .overlay(alignment: .bottomTrailing) {
                         // Web `.ledit`: 26 pt Kreis Messing mit weissem Rand, Stift
                         KBPencilGlyph()

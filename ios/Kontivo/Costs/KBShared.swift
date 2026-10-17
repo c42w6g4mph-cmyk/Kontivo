@@ -205,14 +205,34 @@ struct KBPageHeader<Trailing: View>: View {
         .padding(.top, 17)
         .frame(height: 57, alignment: .bottom)
         .background(GeometryReader { g in
-            Color.clear.preference(key: KBHeaderBottomKey.self, value: g.frame(in: .named(KBPageSpace.name)).maxY)
+            let b = g.frame(in: .global).maxY
+            Color.clear
+                .onAppear { mini?.headerBottom = b }
+                .onChange(of: b) { _, v in mini?.headerBottom = v }
         })
     }
+
+    @Environment(\.kbMini) private var mini
 }
 
-struct KBHeaderBottomKey: PreferenceKey {
-    static let defaultValue: CGFloat = 100
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+/// Lage des Seitenkopfs für die Minileiste (global, ohne Neuzeichnen der Seite)
+@Observable
+final class KBMiniState {
+    var headerBottom: CGFloat = 1000
+    var viewportTop: CGFloat = 0
+    /// Kopf weggescrollt (Web: Unterkante des Kopfs < 8 px)
+    var show: Bool { headerBottom < viewportTop + 8 }
+}
+
+private struct KBMiniKey: EnvironmentKey {
+    static let defaultValue: KBMiniState? = nil
+}
+
+extension EnvironmentValues {
+    var kbMini: KBMiniState? {
+        get { self[KBMiniKey.self] }
+        set { self[KBMiniKey.self] = newValue }
+    }
 }
 
 /// Scrollseite eines Tabs mit eigenem Kopf und Minileiste «Kosten · 2026», sobald der Kopf weggescrollt ist (Web `#miniBar`).
@@ -223,7 +243,7 @@ enum KBPageSpace {
 struct KBPage<Content: View>: View {
     let miniTitle: String
     @ViewBuilder var content: Content
-    @State private var mini = false
+    @State private var miniState = KBMiniState()
     @State private var viewport: CGFloat = 800
 
     var body: some View {
@@ -249,21 +269,38 @@ struct KBPage<Content: View>: View {
             }
             #endif
             .environment(\.kbScroll, KBScrollContext(proxy: proxy, height: viewport))
+            .environment(\.kbMini, miniState)
             .background(GeometryReader { g in
+                let top = g.frame(in: .global).minY + g.safeAreaInsets.top
                 Color.clear
-                    .onAppear { viewport = g.size.height }
+                    .onAppear { viewport = g.size.height; miniState.viewportTop = top }
                     .onChange(of: g.size.height) { _, h in viewport = h }
+                    .onChange(of: top) { _, t in miniState.viewportTop = t }
             })
-            .onPreferenceChange(KBHeaderBottomKey.self) { b in
-                let on = b < 8
-                if on != mini { withAnimation(.easeOut(duration: 0.18)) { mini = on } }
-            }
             .overlay(alignment: .top) {
+                KBMiniBar(state: miniState, title: miniTitle) {
+                    withAnimation(.easeInOut) { proxy.scrollTo("kbTop", anchor: .top) }
+                }
+            }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+    }
+}
+
+/// Minileiste «Kosten · 2026» (Web `#miniBar`: 16 px Semibold, Papier 84 % mit Unschärfe, Linie unten); Antippen scrollt nach oben
+struct KBMiniBar: View {
+    let state: KBMiniState
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        let mini = state.show
+        Group {
                 if mini {
                     Button {
-                        withAnimation(.easeInOut) { proxy.scrollTo("kbTop", anchor: .top) }
+                        action()
                     } label: {
-                        Text(verbatim: miniTitle)
+                        Text(verbatim: title)
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(KColor.ink)
                             .frame(maxWidth: .infinity)
@@ -278,12 +315,11 @@ struct KBPage<Content: View>: View {
                     }
                     .buttonStyle(.plain)
                     .transition(.opacity)
-                    .accessibilityLabel(Text(verbatim: miniTitle))
+                    .accessibilityLabel(Text(verbatim: title))
                     .accessibilityHint("Nach oben")
                 }
-            }
         }
-        .toolbar(.hidden, for: .navigationBar)
+        .animation(.easeOut(duration: 0.18), value: mini)
     }
 }
 

@@ -8,6 +8,7 @@ import KontivoCore
 struct KBCostDriversView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.kbScroll) private var scroll
+    @Environment(\.kbMini) private var mini
     let year: Int
     @Binding var open: String?
     /// Lage im sichtbaren Bereich (ohne Neuzeichnen beim Scrollen)
@@ -46,7 +47,7 @@ struct KBCostDriversView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .kbSurface(KBM.listRadius)
             .background(GeometryReader { g in
-                let f = g.frame(in: .named(KBPageSpace.name))
+                let f = g.frame(in: .global)
                 Color.clear
                     .onAppear { box.frame = f }
                     .onChange(of: f) { _, n in box.frame = n }
@@ -143,7 +144,7 @@ struct KBCostDriversView: View {
     /// Jahr der ganzen Seite setzen; Bereich bleibt an derselben Bildschirmstelle (Web v192)
     private func pickYear(_ y: Int) {
         guard y != model.selectedYear else { return }
-        let top = box.frame.minY
+        let top = box.frame.minY - (mini?.viewportTop ?? 0)
         let h = box.frame.height
         open = nil
         KBMonthNav.setYear(model, y)

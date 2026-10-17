@@ -23,10 +23,16 @@ struct KBBudgetSubline: View {
     @State private var shown: BudgetShareInfo?
 
     var body: some View {
-        KBChipFlow(spacing: 0, lineSpacing: 0) {
-            Text("verfügbar nach Fixkosten").lineLimit(1)
-            if info != nil {
-                Text(verbatim: " · ")
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 0) {
+                Text("verfügbar nach Fixkosten").lineLimit(1)
+                if info != nil {
+                    Text(verbatim: " · ")
+                    link
+                }
+            }
+            VStack(alignment: .leading, spacing: 0) {
+                Text("verfügbar nach Fixkosten").lineLimit(1)
                 link
             }
         }

@@ -105,7 +105,7 @@ struct FixReportOptionsSheet: View {
             .padding(.bottom, 18)
         }
         .background(KColor.paper.ignoresSafeArea())
-        .presentationDetents([.height(persons.count > 1 ? 420 : 370), .large])
+        .presentationDetents([.height(persons.count > 1 ? 395 : 345), .large])
         .presentationDragIndicator(.visible)
         .onAppear {
             // aus «Kosten»: aktiver Personenfilter; aus «Mehr»: letzte Auswahl

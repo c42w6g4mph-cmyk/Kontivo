@@ -139,8 +139,8 @@ final class IncomeUITests: KontivoUITestCase {
 extension KontivoUITestCase {
     /// Formular der Einnahme (eigene Kopfleiste wie Web `.shbar`, ohne Navigationsleiste): Titel «Neue Einnahme» / «Bearbeiten»
     func incomeFormOpen(_ title: String) -> Bool {
-        let t = el("income.form.title")
-        return t.exists && t.label == title
+        // eine Abfrage (kein späteres Lesen von .label: beim Schliessen kann das Element dazwischen verschwinden)
+        app.descendants(matching: .any).matching(pred("identifier == %@ AND label == %@", "income.form.title", title)).firstMatch.exists
     }
 
     func waitIncomeForm(_ title: String, timeout: TimeInterval = 10, file: StaticString = #filePath, line: UInt = #line) {

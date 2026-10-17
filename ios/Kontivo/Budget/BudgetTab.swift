@@ -597,7 +597,7 @@ struct KBFairShareView: View {
                 ForEach(Array(rows.enumerated()), id: \.element.personID) { idx, r in
                     if idx > 0 { KBRowDivider() }
                     HStack(spacing: 12) {
-                        PersonAvatar(person: model.data.person(r.personID), size: 38)
+                        KBFairAvatar(person: model.data.person(r.personID))
                         VStack(alignment: .leading, spacing: 0) {
                             Text(verbatim: r.name)
                                 .font(.system(size: 15, weight: .semibold))
@@ -641,5 +641,27 @@ struct KBFairShareView: View {
             .kbSurface(KBM.listRadius)
         }
         .accessibilityIdentifier("budget.fair")
+    }
+}
+
+/// Personenbild in «Fair geteilt?» (Web `avHtml`/`.mdav`): 38 pt Kreis Messing mit weisser Initiale 15 px Bold, sonst Foto
+struct KBFairAvatar: View {
+    @Environment(AppModel.self) private var model
+    let person: Person?
+
+    var body: some View {
+        ZStack {
+            if let img = model.image(person?.avatarID) {
+                Image(uiImage: img).resizable().scaledToFill()
+            } else {
+                Circle().fill(KColor.tealFill)
+                Text(verbatim: String((person?.name ?? "?").prefix(1)).uppercased())
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+        }
+        .frame(width: 38, height: 38)
+        .clipShape(Circle())
+        .accessibilityHidden(true)
     }
 }

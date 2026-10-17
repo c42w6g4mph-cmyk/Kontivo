@@ -42,6 +42,42 @@ final class CostsBudgetUITests: KontivoUITestCase {
         waitUntil("Alle gewählt") { self.button("Alle").isSelected }
     }
 
+    /// Web v190–v192: «Entwicklung und Preistreiber» – Säulen mit Jahrestotal, Treiber je Kategorie aufklappen, Säule setzt das Jahr
+    func testKostenEntwicklungPreistreiber() {
+        launch("-uiDemo", "-uiTab", "costs")
+        wait(chart("Zahlungen pro Monat"), "Monatskarte", timeout: 12)
+        let cat = button("costs.drivers.cat.Abos & Medien")
+        reveal(cat, "Treiber «Abos & Medien»")
+        XCTAssertTrue(cat.label.contains("Wechsel: TV → Musik"), "Wechsel heben sich auf: \(cat.label)")
+        XCTAssertTrue(elContaining("Was sich verändert hat · \(currentYear - 1) → \(currentYear)").exists, "Titel der Treiberliste")
+        tap(cat, "Abos & Medien aufklappen")
+        wait(elContaining("beendet im Juni"), "Vertrag mit Grund (TV)")
+        wait(button("Nur Abos & Medien anzeigen ›"), "Filter-Link")
+        keepShot("costs-preistreiber")
+        let next = button("costs.drivers.year.\(currentYear + 1)")
+        reveal(next, "Säule Folgejahr")
+        XCTAssertTrue(next.label.contains("Prognose"), "Säule Folgejahr = Prognose: \(next.label)")
+        tap(next, "Säule Folgejahr")
+        wait(el("Jahr \(currentYear + 1)"), "Seite im Folgejahr")
+        wait(elContaining("Prognose · \(currentYear) → \(currentYear + 1)"), "Treiber als Prognose")
+        XCTAssertTrue(next.isHittable, "Bereich bleibt sichtbar (Säule an derselben Stelle)")
+    }
+
+    /// Web v220: Teilen-Symbol in «Kosten» → Auswahl → «PDF erstellen» → PDF in der Dokumentansicht
+    func testKostenFixkostenBericht() {
+        launch("-uiDemo", "-uiTab", "costs")
+        let rep = button("costs.report")
+        wait(rep, "Teilen-Symbol «Fixkosten-Bericht als PDF»", timeout: 12)
+        tap(rep, "Bericht")
+        wait(elContaining("12-Monats-Vorschau"), "Hinweis im Fenster «Fixkosten-Bericht»")
+        XCTAssertTrue(el("Kunden- und Vertragsnummern").exists || elContaining("Kunden- und Vertragsnummern").exists, "Schalter Nummern")
+        XCTAssertTrue(button("Lara").exists, "Personenwahl")
+        keepShot("costs-bericht-auswahl")
+        tap(button("report.create"), "PDF erstellen")
+        waitNav("Fixkosten-Bericht", timeout: 15)
+        keepShot("costs-bericht-pdf")
+    }
+
     func testBudgetEinnahmeErfassen() {
         launch("-uiDemo", "-uiTab", "budget")
         wait(chart("Verfügbar pro Monat"), "Budget-Karte", timeout: 12)
