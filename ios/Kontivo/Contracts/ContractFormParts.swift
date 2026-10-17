@@ -657,7 +657,7 @@ struct CTFormKeyTiles: View {
                 .foregroundStyle(KColor.ink2)
                 .ctLine(18.1)
             (Text(verbatim: value).font(KFont.serif(22, .medium)).tracking(-0.22)
-             + Text(verbatim: "\u{2004}" + currency).font(KFont.serif(14, .medium)).foregroundColor(KColor.ink2))
+             + Text(verbatim: " " + currency).font(KFont.serif(14, .medium)).foregroundColor(KColor.ink2))
                 .foregroundStyle(KColor.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
