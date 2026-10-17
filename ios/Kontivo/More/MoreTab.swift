@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import KontivoCore
 
-/// Tab «Mehr»: Darstellung, Währung, Verwalten, Daten, Hilfe, Rechtliches (Reihenfolge wie die Web-App seit v119).
+/// Tab «Mehr»: Bericht, Darstellung, Währung, Verwalten, Daten, Hilfe, Rechtliches, Fusszeile (Reihenfolge wie Web v224).
 struct MoreTab: View {
     @Environment(AppModel.self) private var model
     @State private var flow = MoreDataFlow()
@@ -12,7 +12,10 @@ struct MoreTab: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
+            VStack(spacing: 0) {
+                KTabHeader(title: "Mehr")
+                VStack(spacing: 12) {
+                MoreReportGroup()
                 MoreThemeGroup()
                 MoreCurrencyGroup(expanded: $moreCurrencies)
                 MoreManageGroup()
@@ -20,15 +23,17 @@ struct MoreTab: View {
                 NativeMoreGroup() // Bereich native: Erinnerungen und App-Sperre (Native/NativeMoreGroup.swift)
                 MoreHelpGroup()
                 MoreLegalGroup()
+                }
+                .padding(.top, 14)
+                .padding(.bottom, 12)
                 MoreBrandFooter()
             }
             .padding(.horizontal, KMetric.gutter)
-            .padding(.top, 6)
-            .padding(.bottom, 28)
+            .padding(.bottom, 24)
             .kContentWidth()
         }
         .kPageBackground()
-        .navigationTitle("Mehr")
+        .kTabPage(title: "Mehr")
         .fileImporter(isPresented: $flow.showImporter, allowedContentTypes: flow.importTypes) { result in
             flow.handleImport(result, model: model)
         }
@@ -72,7 +77,7 @@ struct MoreTab: View {
 
 // MARK: - Bausteine
 
-/// Gruppe wie `.sgroup` der Web-App: weisse Karte, Titel klein oben in der Karte.
+/// Gruppe wie `.sgroup` der Web-App: weisse Fläche Radius 13, Innenabstand 13/15/15, Titel 12.5 pt Semibold `--ink3`.
 struct MoreGroup<Content: View>: View {
     let title: String
     @ViewBuilder var content: Content
@@ -80,8 +85,9 @@ struct MoreGroup<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
-                .font(.footnote.weight(.semibold))
+                .font(KFont.text(12.5, .semibold))
                 .foregroundStyle(KColor.ink3)
+                .kLineHeight(12.5, 18.125)
                 .padding(.bottom, 10)
                 .accessibilityAddTraits(.isHeader)
             content
@@ -94,14 +100,15 @@ struct MoreGroup<Content: View>: View {
     }
 }
 
-/// Trennlinie zwischen Zeilen einer Gruppe
+/// Trennlinie zwischen Zeilen einer Gruppe (`.srowbtn` border-top 1 px `--line`)
 struct MoreLine: View {
     var body: some View {
         Rectangle().fill(KColor.line).frame(height: 1).accessibilityHidden(true)
     }
 }
 
-/// Zeile mit Titel, Untertitel, rechts Zusammenfassung und Pfeil (wie `.srowbtn`)
+/// Zeile mit Titel, Untertitel und Pfeil (wie `.srowbtn .mdt`): Titel 15.5 pt Semibold, Untertitel 12 pt `--ink3`,
+/// `plain` = Titel 16 pt Regular mit Untertitel 12.5 pt (Zeile «Fixkosten-Bericht»).
 struct MoreRow: View {
     enum Tone { case plain, warn, ok }
 
@@ -111,6 +118,7 @@ struct MoreRow: View {
     var tone: Tone = .plain
     var bold: Bool = false
     var first: Bool = false
+    var plainTitle: Bool = false
     let action: () -> Void
 
     var body: some View {
@@ -118,25 +126,24 @@ struct MoreRow: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title)
-                        .font(.subheadline.weight(.semibold))
+                        .font(plainTitle ? KFont.text(16) : KFont.text(15.5, .semibold))
                         .foregroundStyle(KColor.ink)
+                        .kLineHeight(plainTitle ? 16 : 15.5, plainTitle ? 23.2 : 22.5)
                     Text(subtitle)
-                        .font(.caption)
+                        .font(KFont.text(plainTitle ? 12.5 : 12))
                         .foregroundStyle(KColor.ink3)
+                        .kLineHeight(plainTitle ? 12.5 : 12, plainTitle ? 18.1 : 17.4)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 8)
                 if let t = trailing, !t.isEmpty {
                     Text(t)
-                        .font(.caption.weight(bold ? .semibold : .regular))
+                        .font(KFont.text(12.5, bold ? .semibold : .regular))
                         .foregroundStyle(color)
                         .lineLimit(1)
                         .layoutPriority(1)
                 }
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(KColor.ink3)
-                    .accessibilityHidden(true)
+                Text("›").font(KFont.text(12.5)).foregroundStyle(KColor.ink3).accessibilityHidden(true)
             }
             .padding(.top, first ? 2 : 12)
             .padding(.bottom, 12)
@@ -156,7 +163,7 @@ struct MoreRow: View {
     }
 }
 
-/// Kachel der Gruppe «Daten» (wie `.tile`)
+/// Kachel der Gruppe «Daten» (wie `.tile`): Fläche `--field`, Radius 12, Innenabstand 12, Symbol 22 pt Messing, Titel 13.5 pt Semibold
 struct MoreTile: View {
     let symbol: String
     let title: String
@@ -165,15 +172,15 @@ struct MoreTile: View {
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 8) {
-                Image(systemName: symbol)
-                    .font(.title3)
+                KIcon.view(symbol, 22)
                     .foregroundStyle(KColor.teal)
                     .accessibilityHidden(true)
                 Text(title)
-                    .font(.footnote.weight(.semibold))
+                    .font(KFont.text(13.5, .semibold))
                     .foregroundStyle(KColor.ink)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
+                    .kLineHeight(13.5, 16.2)
                 Spacer(minLength: 0)
             }
             .padding(12)
@@ -186,6 +193,28 @@ struct MoreTile: View {
     }
 }
 
+// MARK: - Bericht
+
+/// Einstieg «Fixkosten-Bericht» (Web v220, Bereich costs). Der Bereich costs setzt `MoreReport.open` (z.B. beim Start);
+/// ohne Eintrag passiert beim Tippen nichts.
+@MainActor
+enum MoreReport {
+    static var open: ((AppModel) -> Void)?
+}
+
+struct MoreReportGroup: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        MoreGroup(title: "Bericht") {
+            MoreRow(title: "Fixkosten-Bericht", subtitle: "PDF zum Teilen, Ablegen oder Drucken", first: true, plainTitle: true) {
+                MoreReport.open?(model)
+            }
+            .accessibilityIdentifier("more.report")
+        }
+    }
+}
+
 // MARK: - Darstellung
 
 struct MoreThemeGroup: View {
@@ -193,14 +222,8 @@ struct MoreThemeGroup: View {
 
     var body: some View {
         MoreGroup(title: "Darstellung") {
-            Picker("Darstellung", selection: themeBinding) {
-                Text("Automatisch").tag(KontivoCore.Theme.auto)
-                Text("Hell").tag(KontivoCore.Theme.light)
-                Text("Dunkel").tag(KontivoCore.Theme.dark)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .accessibilityLabel("Darstellung")
+            KSegmented(options: [(KontivoCore.Theme.auto, "Automatisch"), (.light, "Hell"), (.dark, "Dunkel")],
+                       selection: themeBinding, label: "Darstellung")
         }
     }
 
@@ -222,21 +245,25 @@ struct MoreCurrencyGroup: View {
     var body: some View {
         MoreGroup(title: "Währung") {
             Text("Hauptwährung für alle Summen")
-                .font(.caption)
+                .font(KFont.text(12.5))
                 .foregroundStyle(KColor.ink2)
+                .kLineHeight(12.5, 19.375)
                 .padding(.bottom, 8)
             MoreCurrencyPicker(selection: model.data.settings.homeCurrency, expanded: $expanded) { c in pick(c) }
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
+            HStack(alignment: .center, spacing: 10) {
                 Text(RateService.stampText(model.data.settings))
-                    .font(.caption)
+                    .font(KFont.text(12.5))
                     .foregroundStyle(KColor.ink2)
+                    .kLineHeight(12.5, 19.375)
                     .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 14)
                 Spacer(minLength: 8)
                 Button("Aktualisieren") {
                     Task { await RateService.refreshIfNeeded(model, force: true) }
                 }
-                .font(.subheadline.weight(.medium))
+                .font(KFont.text(12.5, .semibold))
                 .foregroundStyle(KColor.teal)
+                .padding(.vertical, 4)
                 .buttonStyle(.plain)
                 .fixedSize()
             }
@@ -282,30 +309,35 @@ struct MoreManageSummary {
     }
 }
 
-/// Farbiges Symbol links (wie `.mgi` der Web-App)
+/// Symbol links (wie `.mgi`, v164 neutral): 30 pt, Radius 8, Fläche `--sunken`, Symbol 18 pt `--ink`;
+/// Vollständigkeit mit offenen Punkten: Fläche Messing 18 %, Symbol Messing (`.mgi.i4.w`).
 struct MoreManageIcon: View {
     let symbol: String
-    let color: Color
+    var accent: Bool = false
 
     var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(.white)
+        KIcon.view(symbol, 18)
+            .foregroundStyle(accent ? KColor.teal : KColor.ink)
             .frame(width: 30, height: 30)
-            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(color))
+            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(accent ? KColor.brassSoft : KColor.sunken))
             .accessibilityHidden(true)
     }
 }
 
-/// Zeile im iOS-Listenstil: Symbol, Titel, Wert bzw. Plakette, Pfeil (`.mgr`)
+extension MoreManageIcon {
+    /// Frühere Form mit Farbe (iCloud-Abschnitt): heute neutral wie alle Symbole (v164)
+    init(symbol: String, color: Color) { self.init(symbol: symbol, accent: false) }
+}
+
+/// Zeile im iOS-Listenstil (`.srowbtn.mgr`): Symbol, Titel 16 pt Medium, Wert 15 pt `--ink3` bzw. Plakette, Pfeil «›» 18 pt
 struct MoreManageRow: View {
     let symbol: String
-    let color: Color
+    var accent: Bool = false
     let title: String
     var value: String = ""
     var valueColor: Color = KColor.ink3
     var valueBold = false
-    /// Plakette statt Wert (Vollständigkeit): grün bzw. orange
+    /// Plakette statt Wert (Vollständigkeit): Messing (offen) bzw. grün
     var badge: String? = nil
     var badgeWarn = false
     var first = false
@@ -315,34 +347,39 @@ struct MoreManageRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                MoreManageIcon(symbol: symbol, color: color)
+                MoreManageIcon(symbol: symbol, accent: accent)
                 Text(title)
-                    .font(.body)
+                    .font(KFont.text(16, .medium))
                     .foregroundStyle(KColor.ink)
                     .lineLimit(1)
-                Spacer(minLength: 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 if let b = badge, !b.isEmpty {
                     Text(b)
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(badgeWarn ? KColor.warn : KColor.ok)
+                        .font(KFont.text(15, .semibold))
+                        .foregroundStyle(badgeWarn ? KColor.teal : KColor.ok)
+                        .kLineHeight(15, 21.75)
                         .padding(.horizontal, 9)
                         .padding(.vertical, 3)
-                        .background(Capsule().fill((badgeWarn ? KColor.warn : KColor.ok).opacity(0.14)))
+                        .background(Capsule().fill((badgeWarn ? KColor.teal : KColor.ok).opacity(0.14)))
                         .lineLimit(1)
+                        .fixedSize()
                 } else if !value.isEmpty {
                     Text(value)
-                        .font(.body.weight(valueBold ? .semibold : .regular))
+                        .font(KFont.text(15, valueBold ? .semibold : .regular))
                         .foregroundStyle(valueColor)
                         .lineLimit(1)
                         .truncationMode(.tail)
+                        .layoutPriority(1)
                 }
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
+                Text("›")
+                    .font(KFont.text(18))
                     .foregroundStyle(KColor.ink3)
+                    .padding(.leading, -4)
                     .accessibilityHidden(true)
             }
-            .padding(.top, first ? 0 : 9)
-            .padding(.bottom, 9)
+            .frame(minHeight: 31)
+            .padding(.top, first ? 2 : 12)
+            .padding(.bottom, 12)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -350,15 +387,6 @@ struct MoreManageRow: View {
         .accessibilityLabel(accessibility ?? ([title, badge ?? value].filter { !$0.isEmpty }.joined(separator: ", ")))
         .accessibilityAddTraits(.isButton)
     }
-}
-
-/// Farben der Symbole (Web `.mgi.i1`–`.i4`)
-enum MoreManageColors {
-    static let partners = Color(hex: "#0E5A5E")
-    static let persons = Color(hex: "#6B4BA0")
-    static let categories = Color(hex: "#B4612A")
-    static let ready = Color(hex: "#2E6A4E")
-    static let open = Color(hex: "#9A6710")
 }
 
 /// Die vier Zeilen «Vertragspartner», «Personen», «Kategorien», «Vollständigkeit» (Mehr und Übersicht «Verwalten»)
@@ -371,23 +399,23 @@ struct MoreManageRows: View {
         let sum = MoreManageSummary(model: model)
         let vk = sum.completeness
         VStack(spacing: 0) {
-            MoreManageRow(symbol: "building.2.fill", color: MoreManageColors.partners, title: "Vertragspartner", value: sum.partners,
+            MoreManageRow(symbol: "ic.partner", title: "Vertragspartner", value: sum.partners,
                           valueColor: sum.partnerWarn ? KColor.warn : KColor.ink3, valueBold: sum.partnerWarn, first: true) {
                 onOpen(.partners)
             }
             .accessibilityIdentifier("more.partners")
-            MoreLine().padding(.leading, 42)
-            MoreManageRow(symbol: "person.2.fill", color: MoreManageColors.persons, title: "Personen", value: sum.persons) {
+            MoreLine()
+            MoreManageRow(symbol: "ic.persons", title: "Personen", value: sum.persons) {
                 onOpen(.persons)
             }
             .accessibilityIdentifier("more.persons")
-            MoreLine().padding(.leading, 42)
-            MoreManageRow(symbol: "square.grid.2x2.fill", color: MoreManageColors.categories, title: "Kategorien", value: sum.categories) {
+            MoreLine()
+            MoreManageRow(symbol: "ic.categories", title: "Kategorien", value: sum.categories) {
                 onOpen(.categories)
             }
             .accessibilityIdentifier("more.categories")
-            MoreLine().padding(.leading, 42)
-            MoreManageRow(symbol: "checkmark", color: vk.open > 0 ? MoreManageColors.open : MoreManageColors.ready, title: Completeness.title,
+            MoreLine()
+            MoreManageRow(symbol: "ic.check", accent: vk.open > 0, title: Completeness.title,
                           badge: Completeness.badge(vk), badgeWarn: vk.open > 0, accessibility: Completeness.accessibilityLabel(vk)) {
                 onOpen(.completeness(only: nil))
             }
@@ -440,13 +468,13 @@ struct MoreDataGroup: View {
             MoreICloudSection() // iCloud-Sync (Bereich sync: More/MoreICloudSection.swift)
             VStack(spacing: 8) {
                 HStack(spacing: 8) {
-                    MoreTile(symbol: "square.and.arrow.up", title: "Backup erstellen") { flow.exportBackup(model: model) }
-                    MoreTile(symbol: "square.and.arrow.down", title: "Backup laden") { flow.startImport(.backup) }
+                    MoreTile(symbol: "ic.upload", title: "Backup erstellen") { flow.exportBackup(model: model) }
+                    MoreTile(symbol: "ic.download", title: "Backup laden") { flow.startImport(.backup) }
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 HStack(spacing: 8) {
-                    MoreTile(symbol: "tablecells", title: "CSV importieren") { flow.startImport(.csv) }
-                    MoreTile(symbol: "tablecells", title: "CSV exportieren") { flow.exportCSV(model: model) }
+                    MoreTile(symbol: "ic.table", title: "CSV importieren") { flow.startImport(.csv) }
+                    MoreTile(symbol: "ic.table", title: "CSV exportieren") { flow.exportCSV(model: model) }
                 }
                 .fixedSize(horizontal: false, vertical: true)
             }
@@ -460,21 +488,22 @@ struct MoreDataGroup: View {
                 .padding(.top, 8)
             }
             Text("**Backup:** alles inkl. Logos und Dokumente, auch für den Gerätewechsel.\n**CSV:** nur Tabellendaten, z.B. für Excel. Der Import erkennt gängige Spaltennamen.")
-                .font(.caption)
+                .font(KFont.text(12.5))
                 .foregroundStyle(KColor.ink2)
-                .lineSpacing(2)
+                .kLineHeight(12.5, 19.375)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 10)
             Button {
                 flow.askWipe(model: model)
             } label: {
                 Text("Alle Daten löschen")
-                    .font(.subheadline.weight(.semibold))
+                    .font(KFont.text(13, .semibold))
                     .foregroundStyle(KColor.alert)
+                    .kLineHeight(13, 18.85)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.alert.opacity(0.08)))
-                    .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(8)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .padding(.top, 10)
@@ -498,37 +527,37 @@ struct MoreHelpGroup: View {
 
 // MARK: - Rechtliches
 
+/// Rechtstexte der nativen App (Web v195/v196, Stand 15.10.2026): nur Anbieter und Datenschutz, Lizenz über die Apple-Standard-EULA.
+/// Anbieter-Angaben sind Platzhalter [ ] und vor dem App-Store-Start zu ersetzen (keine echte Adresse im Repo).
+/// Logo-Suche wie in der nativen App: Website des Vertragspartners statt Bildaufbereitung über images.weserv.nl (v196).
 enum MoreTexts {
-    static let disclaimer = [
-        "Kontivo ist ein Hilfsmittel zur persönlichen Übersicht. Alle Berechnungen (Kosten, Fristen, Kündigungstermine, Wechselkurse) erfolgen ohne Gewähr auf Basis deiner Eingaben. Massgebend sind allein dein Vertrag und die Angaben deines Vertragspartners.",
-        "Kündigungstexte, Katalogangaben und Hinweise sind unverbindliche Vorlagen und ersetzen keine Rechts- oder Finanzberatung. Prüfe Fristen und Formvorschriften selbst. Für verpasste Fristen, falsche Beträge oder Datenverlust wird keine Haftung übernommen, soweit gesetzlich zulässig.",
+    static let provider = [
+        "[Vorname Nachname]\n[Strasse Nr.]\n[PLZ Ort]\nSchweiz\nE-Mail: [kontakt@beispiel.ch]",
     ]
 
     static let privacy = [
-        "Kontivo hat kein Benutzerkonto, keine Werbung, kein Tracking und keine Analyse. Deine Verträge, Logos und Dokumente werden auf deinem Gerät gespeichert und nicht an Kontivo übermittelt. Mit eingeschaltetem iCloud-Sync liegen sie zusätzlich verschlüsselt in deiner privaten iCloud (Apple), damit sie auf deinen Geräten gleich sind; Kontivo selbst hat darauf keinen Zugriff.",
-        "Für einzelne Funktionen ruft die App externe Dienste auf. Dabei wird technisch bedingt deine IP-Adresse übertragen:",
-        "• Wechselkurse: Frankfurter (Referenzkurse der EZB), ersatzweise open.er-api.com. Es werden keine Vertragsdaten gesendet.\n• Logo-Suche und Vertragspartner-Vorschläge: Nur der eingegebene Firmenname bzw. die Website geht an Apple (iTunes-Suche), Wikidata/Wikimedia, Google (Symbol-Dienst) und unavatar.io; das App-Symbol wird direkt von der Website des Vertragspartners geladen. Ein eingefügter Bild-Link wird direkt von dieser Adresse geladen.\n• Adresssuche für das Kündigungsschreiben: Nur der Firmenname geht an Wikidata und OpenStreetMap (Nominatim).\n• «Logo im Web suchen» öffnet die Google-Bildersuche in deinem Browser.\n• Kontoauszug einlesen: Die Datei wird nur auf dem Gerät gelesen, nicht gespeichert und nicht übertragen.\n• Handschrift-Schriften für Namenszug-Vorschläge sind in der App enthalten (SIL Open Font License), dafür wird nichts geladen.",
-        "Backups und CSV-Dateien erstellst und speicherst du selbst. Ohne Backup gehen deine Daten beim Löschen der App verloren. Mit «Alle Daten löschen» entfernst du alles vom Gerät.",
-    ]
-
-    static let brands = [
-        "Logos, Marken und Firmennamen gehören ihren jeweiligen Inhabern. Sie werden nur zur Wiedererkennung deiner eigenen Verträge angezeigt. Kontivo steht in keiner Verbindung zu den genannten Unternehmen und wird von ihnen weder unterstützt noch gesponsert.",
+        "**Verantwortlich** ist der oben genannte Anbieter. Kontakt: [kontakt@beispiel.ch]",
+        "**Deine Daten bleiben bei dir.** Kontivo hat kein Konto, keine Werbung und kein Tracking. Deine Eingaben liegen auf deinem Gerät und, wenn du den iCloud-Sync einschaltest, in deinem iCloud-Konto bei Apple. Wir erhalten diese Daten nicht und haben keinen Zugriff darauf.",
+        "**Externe Dienste.** Nur wenn du eine dieser Funktionen nutzt, ruft die App einen Dienst auf. Dieser erhält deine IP-Adresse und den Suchbegriff, aber keine Vertragsdaten:\n• Wechselkurse: Frankfurter, ersatzweise ExchangeRate-API\n• Logo-Suche: Apple, Google, Wikimedia, unavatar.io und die Website des Vertragspartners (Firmenname bzw. Website)\n• Adresssuche: Wikidata, OpenStreetMap (Firmenname)",
+        "**Ausland.** Diese Dienste verarbeiten Daten auch ausserhalb der Schweiz und der EU, namentlich in den USA und im Vereinigten Königreich, teils in weiteren Ländern mit möglicherweise tieferem Datenschutz. Die Übermittlung erfolgt, weil du die Funktion nutzt. Ohne diese Funktionen funktioniert die App ebenfalls.",
+        "**Absturzberichte.** Hast du in iOS «Mit App-Entwicklern teilen» eingeschaltet, erhalten wir von Apple anonyme Absturzberichte.",
+        "**Rechtsgrundlage** (DSGVO) ist die Bereitstellung der von dir genutzten Funktion (Art. 6 Abs. 1 lit. b). E-Mails an uns löschen wir nach Erledigung.",
+        "**Deine Rechte.** Du kannst Auskunft, Berichtigung, Löschung und Herausgabe deiner Daten verlangen sowie widersprechen. Da wir keine Daten speichern, löschst oder exportierst du sie direkt in der App, iCloud-Daten auch unter «Mehr» beim iCloud-Sync. Beschwerden kannst du beim EDÖB (Schweiz) oder bei der Datenschutzbehörde deines Wohnsitzes (EU) einreichen.",
+        "Stand: 15. Oktober 2026",
     ]
 }
 
 struct MoreLegalGroup: View {
     var body: some View {
         MoreGroup(title: "Rechtliches") {
-            MoreLegalItem(title: "Haftungsausschluss", paragraphs: MoreTexts.disclaimer, first: true)
+            MoreLegalItem(title: "Anbieter", paragraphs: MoreTexts.provider, first: true)
             MoreLine()
             MoreLegalItem(title: "Datenschutz", paragraphs: MoreTexts.privacy)
-            MoreLine()
-            MoreLegalItem(title: "Marken und Logos", paragraphs: MoreTexts.brands)
         }
     }
 }
 
-/// Aufklappbarer Rechtstext (wie `<details class="legal">`)
+/// Aufklappbarer Rechtstext (wie `<details class="legal">`): «▶»/«▼» und Titel 15 pt, Absätze 12.5 pt `--ink2`, Abstand 8
 struct MoreLegalItem: View {
     let title: String
     let paragraphs: [String]
@@ -536,24 +565,38 @@ struct MoreLegalItem: View {
     @State private var open = false
 
     var body: some View {
-        DisclosureGroup(isExpanded: $open) {
-            VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) { open.toggle() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "triangle.fill")
+                        .font(.system(size: 9))
+                        .rotationEffect(.degrees(open ? 180 : 90))
+                        .foregroundStyle(KColor.ink)
+                        .frame(width: 11)
+                    Text(title)
+                        .font(KFont.text(15))
+                        .foregroundStyle(KColor.ink)
+                        .kLineHeight(15, 21.75)
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityValue(open ? "aufgeklappt" : "zugeklappt")
+            if open {
                 ForEach(paragraphs, id: \.self) { p in
-                    Text(verbatim: p)
-                        .font(.caption)
+                    Text(LocalizedStringKey(p))
+                        .font(KFont.text(12.5))
                         .foregroundStyle(KColor.ink2)
-                        .lineSpacing(2)
+                        .kLineHeight(12.5, 19.375)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 8)
                 }
             }
-            .padding(.top, 8)
-        } label: {
-            Text(title)
-                .font(.subheadline)
-                .foregroundStyle(KColor.ink)
         }
-        .tint(KColor.ink3)
         .padding(.top, first ? 2 : 10)
         .padding(.bottom, 10)
     }
@@ -561,6 +604,8 @@ struct MoreLegalItem: View {
 
 // MARK: - Fuss
 
+/// Fusszeile (Web `.brandfoot`, `.bfeat`, `.bver`, `.foot`): App-Symbol 40 pt, Wortmarke 17 pt (v170/v171), Slogan 14 pt,
+/// drei Merkmale mit Messing-Haken, Version, «Made with ❤️ in 🇨🇭».
 struct MoreBrandFooter: View {
     private var version: String {
         (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "1.0"
@@ -569,53 +614,61 @@ struct MoreBrandFooter: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 11) {
-                Image("Logo")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 40, height: 40)
+                KAppLogo(size: 40)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Kontivo")
-                        .font(.system(.body, design: .rounded).weight(.bold))
-                        .foregroundStyle(KColor.ink)
+                    // Zeile 17 pt × 1.45: Wortmarke mit Grundlinie wie Text
+                    KWordmark(size: 17)
+                        .padding(.top, 5.6)
+                        .frame(height: 24.65, alignment: .top)
                     Text("Deine Verträge, ganz entspannt")
-                        .font(.subheadline)
+                        .font(KFont.text(14))
                         .foregroundStyle(KColor.ink2)
+                        .kLineHeight(14, 18.9)
                 }
             }
             .accessibilityElement(children: .combine)
-            .padding(.top, 16)
+            .padding(.top, 28)
 
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 14) { features }
-                VStack(spacing: 6) { features }
-            }
-            .padding(.top, 14)
+            MoreFeatureFlow(texts: ["Ohne Bankanbindung", "Keine Werbung", "Daten bleiben privat"])
+                .padding(.top, 14)
 
             Text("Version " + version)
-                .font(.caption2)
+                .font(KFont.text(11))
                 .foregroundStyle(KColor.ink3)
+                .kLineHeight(11, 15.95)
                 .padding(.top, 10)
 
-            HStack(spacing: 4) {
-                Text("Made with ❤️ in")
+            HStack(spacing: 0) {
+                Text("Made with ❤️ in ")
                 MoreSwissMark()
                     .frame(width: 13, height: 13)
+                    .padding(.leading, 2)
             }
-            .font(.caption)
+            .font(KFont.text(12.5))
             .foregroundStyle(KColor.ink3)
-            .padding(.top, 30)
+            .kLineHeight(12.5, 18.125)
+            .padding(.top, 34)
+            .padding(.bottom, 4)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Made with ❤️ in der Schweiz")
         }
         .frame(maxWidth: .infinity)
     }
+}
 
-    @ViewBuilder private var features: some View {
-        MoreFeature(text: "Ohne Bankanbindung")
-        MoreFeature(text: "Keine Werbung")
-        MoreFeature(text: "Daten bleiben privat")
+/// Merkmale zentriert mit Umbruch (Web `.bfeat`: Abstand 6 vertikal, 14 horizontal)
+struct MoreFeatureFlow: View {
+    let texts: [String]
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 14) { ForEach(texts, id: \.self) { MoreFeature(text: $0) } }
+            VStack(spacing: 6) {
+                HStack(spacing: 14) { ForEach(texts.prefix(2), id: \.self) { MoreFeature(text: $0) } }
+                HStack(spacing: 14) { ForEach(texts.dropFirst(2), id: \.self) { MoreFeature(text: $0) } }
+            }
+            VStack(spacing: 6) { ForEach(texts, id: \.self) { MoreFeature(text: $0) } }
+        }
     }
 }
 
@@ -624,14 +677,14 @@ struct MoreFeature: View {
 
     var body: some View {
         HStack(spacing: 5) {
-            Image(systemName: "checkmark")
-                .font(.caption2.weight(.bold))
+            KIcon.view("ic.check.small", 14)
                 .foregroundStyle(KColor.teal)
                 .accessibilityHidden(true)
             Text(text)
-                .font(.caption)
+                .font(KFont.text(12.5))
                 .foregroundStyle(KColor.ink2)
                 .lineLimit(1)
         }
+        .kLineHeight(12.5, 18.125)
     }
 }

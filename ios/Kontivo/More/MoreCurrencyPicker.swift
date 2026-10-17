@@ -24,13 +24,12 @@ struct MoreCurrencyPicker: View {
                 HStack {
                     Text("Weitere Währungen")
                     Spacer()
-                    Image(systemName: "chevron.down")
-                        .font(.footnote.weight(.semibold))
-                        .rotationEffect(.degrees(expanded ? 180 : 0))
+                    MoreDisclosureChevron(open: expanded)
                 }
-                .font(.subheadline.weight(.medium))
+                .font(KFont.text(14.5, .medium))
                 .foregroundStyle(KColor.teal)
-                .padding(.horizontal, 2).padding(.vertical, 2)
+                .kLineHeight(14.5, 21)
+                .padding(2)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -41,6 +40,7 @@ struct MoreCurrencyPicker: View {
                         MoreCurrencyTile(currency: c, isOn: c == selection, big: false) { onPick(c) }
                     }
                 }
+                .padding(.top, -2)
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
@@ -49,7 +49,8 @@ struct MoreCurrencyPicker: View {
     }
 }
 
-/// Eine Währungskachel: Fahne, Kürzel fett, gewählt mit Haken.
+/// Eine Währungskachel (Web `.obcur`, v185): Fahne 30×20 (klein 24×16), Kürzel 16 pt Semibold (klein 14 pt),
+/// gewählt: Fläche `--surface`, Rand 1 pt Messing, Haken-Kreis 22 pt (klein 17 pt) rechts senkrecht zentriert.
 struct MoreCurrencyTile: View {
     let currency: Currency
     let isOn: Bool
@@ -57,6 +58,7 @@ struct MoreCurrencyTile: View {
     let action: () -> Void
 
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 13, style: .continuous)
         Button(action: action) {
             HStack(spacing: big ? 10 : 7) {
                 MoreFlagView(currency: currency)
@@ -65,43 +67,49 @@ struct MoreCurrencyTile: View {
                     .overlay(RoundedRectangle(cornerRadius: big ? 4 : 3, style: .continuous)
                         .strokeBorder(Color.black.opacity(0.08), lineWidth: 1))
                 Text(currency.rawValue)
-                    .font(big ? .body.weight(.bold) : .subheadline.weight(.bold))
+                    .font(KFont.text(big ? 16 : 14, .semibold))
+                    .tracking(big ? 0.16 : 0.14)
                     .foregroundStyle(KColor.ink)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
+                    .kLineHeight(big ? 16 : 14, big ? 23.2 : 20.3)
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, big ? 12 : 9)
             .padding(.vertical, big ? 11 : 9)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .fill(isOn ? AnyShapeStyle(KColor.teal.opacity(0.08)) : AnyShapeStyle(KColor.field))
-            )
-            .background(
-                RoundedRectangle(cornerRadius: 13, style: .continuous).fill(isOn ? KColor.surface : Color.clear)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .strokeBorder(isOn ? KColor.teal : Color.clear, lineWidth: 1.5)
-            )
-            .overlay(alignment: .topTrailing) {
+            .background(shape.fill(isOn ? KColor.surface : KColor.field))
+            .overlay(shape.strokeBorder(isOn ? KColor.brass : Color.clear, lineWidth: 1))
+            .overlay(alignment: .trailing) {
                 if isOn {
-                    ZStack {
-                        Circle().fill(KColor.teal)
-                        Image(systemName: "checkmark")
-                            .font(.system(size: big ? 9 : 8, weight: .heavy))
-                            .foregroundStyle(.white)
-                    }
-                    .frame(width: big ? 18 : 15, height: big ? 18 : 15)
-                    .padding(big ? 7 : 5)
+                    KIcon.view("ic.check.bold", big ? 12 : 10)
+                        .foregroundStyle(KColor.onBrass)
+                        .frame(width: big ? 22 : 17, height: big ? 22 : 17)
+                        .background(Circle().fill(KColor.brass))
+                        .padding(.trailing, big ? 12 : 8)
                 }
             }
-            .contentShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+            .contentShape(shape)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(currency.rawValue) (\(currency.displayName))")
         .accessibilityAddTraits(isOn ? .isSelected : [])
+    }
+}
+
+/// Aufklapp-Pfeil (Web `.obmorebtn i`: Quadrat 8 pt mit Rand 1.7 pt rechts/unten, um 45° bzw. −135° gedreht)
+struct MoreDisclosureChevron: View {
+    let open: Bool
+    var body: some View {
+        Path { p in
+            p.move(to: CGPoint(x: 8, y: 0)); p.addLine(to: CGPoint(x: 8, y: 8)); p.addLine(to: CGPoint(x: 0, y: 8))
+        }
+        .stroke(style: StrokeStyle(lineWidth: 1.7))
+        .frame(width: 8, height: 8)
+        .rotationEffect(.degrees(open ? -135 : 45))
+        .offset(y: open ? 3 : -4)
+        .frame(width: 12, height: 12)
+        .accessibilityHidden(true)
     }
 }
 

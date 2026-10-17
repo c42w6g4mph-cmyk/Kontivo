@@ -38,7 +38,7 @@ ICONS = {
     "persons": ('<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c2.4.2 4.2 1.9 5 4.8"/>', 1.6),
     "categories": ('<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>', 1.6),
     "check": ('<path d="m5 12.5 4.2 4.2L19 7"/>', 1.6),
-    "check.bold": ('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 2.6),
+    "check.bold": ('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 3),
     "check.hook": ('<path d="m5 12.5 4.2 4.2L19 7"/>', 2.2),
     "check.done": ('<path d="m6 12.5 4 4 8-9"/>', 2),
     "check.small": ('<path d="M3.5 8.4l2.8 2.8 6.2-6.4"/>', 2, "0 0 16 16"),
