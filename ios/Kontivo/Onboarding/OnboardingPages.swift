@@ -242,7 +242,7 @@ struct OnbPrimaryButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { if enabled { action() } }) {
             Text(verbatim: title)
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(.white)
@@ -255,8 +255,9 @@ struct OnbPrimaryButton: View {
                 .contentShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
         }
         .buttonStyle(.plain)
-        .disabled(!enabled)
+        // wie `.obbtn:disabled{opacity:.4}`: ganzer Knopf mit 40 % (SwiftUI-`disabled` würde die Schrift zusätzlich abblenden)
         .opacity(enabled ? 1 : 0.4)
+        .accessibilityAddTraits(enabled ? [] : .isStaticText)
         .padding(.top, 6)
     }
 }
@@ -679,8 +680,8 @@ struct OnbTabBar: View {
             }
         }
         .padding(4)
+        // Glas 70 %/72 % über dem verblassten Bild (Web zusätzlich blur(18px); auf dem Papierverlauf ohne sichtbaren Unterschied)
         .background(Capsule().fill(KColor.glass))
-        .background(.ultraThinMaterial, in: Capsule())
         .overlay(Capsule().strokeBorder(KColor.glassEdge, lineWidth: 1))
         .shadow(color: KColor.glassShade, radius: 12, y: 8)
     }
@@ -842,7 +843,8 @@ struct OnbAutoCard: View {
                     Text(verbatim: "Kontoauszug wählen, Verträge bestätigen")
                         .font(.system(size: 13.5))
                         .foregroundStyle(KColor.ink2)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                         .onbLine(13.5, 18.225)
                 }
                 Spacer(minLength: 0)
