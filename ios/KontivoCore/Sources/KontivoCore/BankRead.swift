@@ -21,7 +21,7 @@ struct BRawTx {
     var coll = false
 
     var tx: BankTx {
-        BankTx(date: d, amount: a, currency: cur, name: name, text: text, type: type, kind: BankKind(web: kind), cred: cred, mref: mref)
+        BankTx(date: d, amount: a, currency: cur, name: name, text: text, type: type, kind: BankKind(web: kind), cred: cred, mref: mref, sub: sub)
     }
 }
 
@@ -334,6 +334,8 @@ enum BankReader {
         var bank: String
         var head: String
         var ok: Bool
+        /// Kontoinhaber (Web v180), sonst ""
+        var owner: String = ""
     }
 
     /// Letzte Buchung, die selbst kein Einzelposten ist (Web `bankParent`).
@@ -419,6 +421,8 @@ enum BankReader {
             func ds(_ i: Int) -> Int { Set(data.prefix(300).map { g($0, i) }.filter { !$0.isEmpty }).count }
             if ds(col.name2) > ds(col.name) { nmCol = col.name2 }
         }
+        // Vorspann vor der Kopfzeile (Kontoinhaber), Web `preRows`
+        let preRows: [[String]] = hi > 0 ? Array(allRows.prefix(hi)) : []
         var tx: [BRawTx] = []
         var pos = 0, neg = 0
         for row in data {
@@ -495,10 +499,43 @@ enum BankReader {
             }
         }
         if !cur.isEmpty { for i in tx.indices where tx[i].cur.isEmpty { tx[i].cur = cur } }
-        return CsvResult(tx: tx, bank: col.guess ? "" : bankOf(col.head), head: "", ok: true)
+        // Kontoinhaber: Vorspann («Kontoinhaber;Max Muster») oder die konstante zweite Namensspalte (Auftraggeber = du)
+        var owner = ""
+        ownerLoop: for row in preRows {
+            var k = 0
+            while k < row.count - 1 {
+                let lab = BU.trim(row[k])
+                if rxOwnerLabel.test(lab) {
+                    let v = row[(k + 1)...].map { BU.trim($0) }.first { !$0.isEmpty } ?? ""
+                    if !v.isEmpty && !rxFourDigits.test(v) {
+                        owner = v
+                        break ownerLoop
+                    }
+                }
+                if let m = rxOwnerColon.match(lab) {
+                    owner = BU.trim(m.s(1))
+                    break ownerLoop
+                }
+                k += 1
+            }
+        }
+        if owner.isEmpty && col.name2 >= 0 && col.name >= 0 {
+            let oc = nmCol == col.name2 ? col.name : col.name2
+            var ov = BOrdered<Int>()
+            for r in data.prefix(300) {
+                let v = g(r, oc)
+                if !v.isEmpty { ov[v] = (ov[v] ?? 0) + 1 }
+            }
+            let top = BU.sorted(ov.orderedKeys) { a, b in Double((ov[b] ?? 0) - (ov[a] ?? 0)) }.first
+            if let t = top, Double(ov[t] ?? 0) >= Double(data.count) * 0.6 { owner = t }
+        }
+        return CsvResult(tx: tx, bank: col.guess ? "" : bankOf(col.head), head: "", ok: true, owner: owner)
     }
 
     static let rxLetters2 = BRX("[A-Za-z]{2}")
+    static let rxOwnerLabel = BRX("^(konto)?inhaber|kontoinhaber|account ?(holder|owner)|name des kontoinhabers|titulaire|kunde$", i: true)
+    static let rxOwnerColon = BRX("(?:konto)?inhaber\\s*:\\s*(.+)", i: true)
+    static let rxFourDigits = BRX("\\d{4}")
 
     /// Datei ohne Kopfzeile (Targobank u.a.): Spalten über die Werte bestimmen – Datum, Betrag(e), längster Text (Web `bankGuessCols`).
     static func guessCols(_ dls: [String], _ body: String) -> BCol? {
@@ -570,7 +607,7 @@ enum BankReader {
     static let rxCamtVer = BRX("camt\\.05[234]")
     static let rxXMLEnc = BRX("^(\\s*<\\?xml[^>]*?)encoding\\s*=\\s*[\"'][^\"']*[\"']")
 
-    static func camt(_ txt: String) -> (tx: [BRawTx], fmt: String)? {
+    static func camt(_ txt: String) -> (tx: [BRawTx], fmt: String, owner: String)? {
         // Text ist schon dekodiert: Kodierungsangabe im Kopf auf UTF-8 setzen (DOMParser ignoriert sie ebenso)
         let fixed = rxXMLEnc.replaceFirst(txt, "$1encoding=\"UTF-8\"")
         guard let doc = XNode.parse(Data(fixed.utf8)) else { return nil }
@@ -619,7 +656,8 @@ enum BankReader {
                 tx.append(BRawTx(d: d, a: s2 * v, cur: cur, name: BU.trim(nm), text: ttx, cred: BU.trim(cred), mref: mref, kind: k))
             }
         }
-        return (tx, rxCamtVer.match(txt)?.s(0) ?? "camt")
+        let owner = BU.trim(doc.first("Acct")?.first("Ownr")?.first("Nm")?.textContent ?? "")
+        return (tx, rxCamtVer.match(txt)?.s(0) ?? "camt", owner)
     }
 
     // MARK: MT940
@@ -709,10 +747,12 @@ enum BankReader {
         var raw: [BRawTx]
         var fmt = ""
         var bank = ""
+        var owner = ""
         if rxIsCamt.test(txt) && rxCamtVer.test(txt) {
             guard let r = camt(txt) else { throw BankReadError.notRecognized(firstLine: "") }
             raw = r.tx
             fmt = r.fmt
+            owner = r.owner
         } else if rxIsMt1.test(txt) && rxIsMt2.test(txt) {
             raw = mt940(txt)
             fmt = "MT940"
@@ -721,11 +761,12 @@ enum BankReader {
             if !r.ok { throw BankReadError.notRecognized(firstLine: r.head) }
             raw = r.tx
             bank = r.bank
+            owner = r.owner
             fmt = "CSV"
         }
         if raw.isEmpty { throw BankReadError.empty }
         let tx = BU.sorted(raw.map { $0.tx }) { a, b in a.date < b.date ? -1 : (b.date < a.date ? 1 : 0) }
-        return BankFile(bank: bank, tx: tx, from: tx.first?.date, to: tx.last?.date, format: fmt)
+        return BankFile(bank: bank, tx: tx, from: tx.first?.date, to: tx.last?.date, format: fmt, owner: owner)
     }
 
     // MARK: bankMerge
@@ -746,7 +787,10 @@ enum BankReader {
             }
         }
         tx = BU.sorted(tx) { a, b in a.date < b.date ? -1 : (b.date < a.date ? 1 : 0) }
-        return BankFile(bank: "", tx: tx, from: tx.first?.date, to: tx.last?.date, format: rs.map { $0.format }.joined(separator: ", "), files: rs.count)
+        // Kontoinhaber nur, wenn alle Dateien denselben nennen
+        let ow = rs.map { $0.owner }.filter { !$0.isEmpty }
+        let owner = ow.count == rs.count && ow.allSatisfy({ Partners.lnorm($0) == Partners.lnorm(ow[0]) }) ? ow[0] : ""
+        return BankFile(bank: "", tx: tx, from: tx.first?.date, to: tx.last?.date, format: rs.map { $0.format }.joined(separator: ", "), files: rs.count, owner: owner)
     }
 }
 
