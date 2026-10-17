@@ -223,6 +223,7 @@ private struct CTFormHeadSections: View {
         let data = model.data
         CTSection(plain: true) {
             CTFormHead(form: form, focus: focus)
+                .padding(.bottom, 4)
                 .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
@@ -522,7 +523,7 @@ private struct CTFormCostSection: View {
             if form.priceOpen {
                 priceForm(today: today)
             }
-            CTMenuRow("Zahlungsrhythmus") {
+            CTMenuRow("Zahlungsrhythmus", value: Format.cycleTextOrMonthly(form.cycle), identifier: "form.cycle") {
                 Picker(selection: Binding(get: { form.cycle }, set: { v in
                     if let t = form.setCycle(v, today: model.today) { model.toast(t) }
                 })) {
@@ -532,9 +533,6 @@ private struct CTFormCostSection: View {
                 } label: {
                     CTRowLabel("Zahlungsrhythmus")
                 }
-                .pickerStyle(.menu)
-                .tint(KColor.teal)
-                .accessibilityIdentifier("form.cycle")
             }
             dueRow
             if form.dueOpen {
@@ -565,6 +563,7 @@ private struct CTFormCostSection: View {
     private var amountRow: some View {
         VStack(alignment: .trailing, spacing: 0) {
             amountLine
+                .frame(minHeight: 48)
                 .ctMiss(form, .amount)
             // Web v215: «+ Preisänderung» als kleine Plakette rechts unter dem Betrag, erst mit Betrag (oder erfassten Preisen)
             if !form.priceOpen && (!form.amountText.ctTrimmed.isEmpty || !form.prices.isEmpty) {
@@ -583,8 +582,8 @@ private struct CTFormCostSection: View {
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.borderless)
-                .padding(.top, 2)
-                .padding(.bottom, 4)
+                .padding(.top, -4)
+                .padding(.bottom, 10)
                 .accessibilityLabel("Preisänderung")
                 .accessibilityIdentifier("form.priceOpen")
             }
@@ -611,14 +610,7 @@ private struct CTFormCostSection: View {
                     }
                 }
             } label: {
-                HStack(spacing: 3) {
-                    Text(form.currency.rawValue)
-                        .font(.body.weight(.semibold))
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption2.weight(.semibold))
-                }
-                .foregroundStyle(KColor.teal)
-                .fixedSize()
+                CTMenuValue(text: form.currency.rawValue)
             }
             .accessibilityLabel("Währung, " + form.currency.rawValue)
             .accessibilityIdentifier("form.currency")
@@ -755,7 +747,7 @@ private struct CTFormCostSection: View {
     private var payRows: some View {
         let m = form.payMethod
         let options = (m.isEmpty || CTFormCostSection.payMethods.contains(m)) ? CTFormCostSection.payMethods : CTFormCostSection.payMethods + [m]
-        CTMenuRow("Zahlung via") {
+        CTMenuRow("Zahlung via", value: m.isEmpty ? "wählen" : m, muted: m.isEmpty, identifier: "form.payMethod") {
             Picker(selection: $form.payMethod) {
                 Text("wählen").tag("")
                 ForEach(options, id: \.self) { o in
@@ -764,9 +756,6 @@ private struct CTFormCostSection: View {
             } label: {
                 CTRowLabel("Zahlung via")
             }
-            .pickerStyle(.menu)
-            .tint(m.isEmpty ? KColor.ink3 : KColor.teal)
-            .accessibilityIdentifier("form.payMethod")
         }
         if !m.isEmpty || !form.payAccount.ctTrimmed.isEmpty || focus.wrappedValue == .payAccount {
             TextField("über, z.B. Visa …4417", text: $form.payAccount)

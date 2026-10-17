@@ -1,60 +1,47 @@
 import SwiftUI
 import KontivoCore
 
-/// Auswahl «Filter» (openFilterSheet): Kategorie, Vertragspartner, Inhaber – gemeinsam mit «Kosten» (model.costFilter).
+/// Auswahl «Filter» (Web `openFilterSheet` im Auswahlblatt): Kategorie, Vertragspartner, Person – gemeinsam mit «Kosten»
+/// (model.costFilter). Antippen zeigt im selben Blatt die Werte (Web `openPick(dim)`).
 struct CTFilterSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
+    @State private var dim: Calc.FilterDimension?
 
     var body: some View {
         let f = model.costFilter
-        NavigationStack {
-            List {
-                Section {
-                    NavigationLink(value: Calc.FilterDimension.category) {
-                        row("Kategorie", f.category ?? "Alle")
-                    }
-                    NavigationLink(value: Calc.FilterDimension.partner) {
-                        row("Vertragspartner", f.partner ?? "Alle")
-                    }
-                    NavigationLink(value: Calc.FilterDimension.holder) {
-                        row("Person", f.person.flatMap { model.data.person($0)?.name } ?? "Alle")
-                    }
+        Group {
+            if let d = dim {
+                CTPickSheet(title: CTFilterValues.title(d)) {
+                    CTFilterValues(dim: d) { dismiss() }
                 }
-                .listRowBackground(KColor.surface)
-                if f.count > 0 {
-                    Section {
-                        Button("Alle Filter zurücksetzen") {
-                            model.costFilter = Calc.CostFilter()
-                            dismiss()
+            } else {
+                CTPickSheet(title: "Filter") {
+                    VStack(spacing: 6) {
+                        CTPickRow(title: "Kategorie", detail: (f.category ?? "Alle") + " ›") { dim = .category }
+                        CTPickRow(title: "Vertragspartner", detail: (f.partner ?? "Alle") + " ›") { dim = .partner }
+                        CTPickRow(title: "Person", detail: (f.person.flatMap { model.data.person($0)?.name } ?? "Alle") + " ›") { dim = .holder }
+                        if f.count > 0 {
+                            Button {
+                                model.costFilter = Calc.CostFilter()
+                                dismiss()
+                            } label: {
+                                Text("Alle Filter zurücksetzen")
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(KColor.alert)
+                                    .padding(.vertical, 13).padding(.horizontal, 14)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(RoundedRectangle(cornerRadius: 11, style: .continuous).fill(KColor.field))
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .foregroundStyle(KColor.alert)
                     }
-                    .listRowBackground(KColor.surface)
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(KColor.paper)
-            .navigationTitle("Filter")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: Calc.FilterDimension.self) { dim in
-                CTFilterValues(dim: dim) { dismiss() }
-            }
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) { CloseButton() }
-            }
         }
+        .accessibilityIdentifier("filter.sheet")
         .presentationDetents([.medium, .large])
-    }
-
-    private func row(_ title: String, _ value: String) -> some View {
-        HStack {
-            Text(title).foregroundStyle(KColor.ink)
-            Spacer()
-            Text(value)
-                .foregroundStyle(KColor.ink2)
-                .lineLimit(1)
-        }
     }
 }
 
@@ -76,32 +63,12 @@ struct CTFilterValues: View {
     var body: some View {
         let entries = CTFilterValues.entries(dim, data: model.data, calc: model.calc)
         let cur = currentKey
-        List {
-            Section {
-                Button {
-                    select(nil)
-                } label: {
-                    HStack {
-                        Text(allTitle).foregroundStyle(KColor.ink)
-                        Spacer()
-                        if cur == nil { Image(systemName: "checkmark").foregroundStyle(KColor.teal) }
-                    }
-                }
-                ForEach(entries) { e in
-                    Button {
-                        select(e.key)
-                    } label: {
-                        HStack(spacing: 8) {
-                            Text(e.title)
-                                .foregroundStyle(KColor.ink)
-                                .lineLimit(1)
-                            Spacer()
-                            Text(e.active > 0 ? "\(e.active)" + (e.active == 1 ? " aktiver Vertrag" : " aktive Verträge") : "nur beendete")
-                                .font(.subheadline)
-                                .foregroundStyle(KColor.ink2)
-                            if cur == e.key { Image(systemName: "checkmark").foregroundStyle(KColor.teal) }
-                        }
-                    }
+        VStack(alignment: .leading, spacing: 6) {
+            CTPickRow(title: allTitle, selected: cur == nil) { select(nil) }
+            ForEach(entries) { e in
+                CTPickRow(title: e.title,
+                          detail: e.active > 0 ? "\(e.active)" + (e.active == 1 ? " aktiver Vertrag" : " aktive Verträge") : "nur beendete",
+                          selected: cur == e.key) { select(e.key) }
                     .contextMenu {
                         Button {
                             select(e.key)
@@ -112,21 +79,18 @@ struct CTFilterValues: View {
                         CTFilterPopup(dim: dim, entry: e)
                             .environment(model)
                     }
-                }
-            } footer: {
-                if !entries.isEmpty {
-                    Text("Lange drücken zeigt die Beträge")
-                }
             }
-            .listRowBackground(KColor.surface)
+            if !entries.isEmpty {
+                Text("Lange drücken zeigt die Beträge")
+                    .font(.system(size: 12))
+                    .foregroundStyle(KColor.ink3)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 2)
+            }
         }
-        .scrollContentBackground(.hidden)
-        .background(KColor.paper)
-        .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
     }
 
-    private var title: String {
+    static func title(_ dim: Calc.FilterDimension) -> String {
         switch dim {
         case .category: return "Kategorie"
         case .partner: return "Vertragspartner"

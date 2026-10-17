@@ -217,26 +217,16 @@ struct CTSkrLine: View {
 
 struct CTSkrSheet: View {
     let data: CTSkrSheetData
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ScrollView {
+        CTPickSheet(title: data.title) {
             VStack(alignment: .leading, spacing: 0) {
-                Text(data.title)
-                    .font(KFont.title(22))
-                    .tracking(KFont.tracking(-0.012, 22))
-                    .foregroundStyle(KColor.ink)
-                    .lineSpacing(5.6)
-                    .padding(.trailing, 44)
-                    .padding(.top, 24)
-                    .padding(.bottom, 3)
-                    .accessibilityAddTraits(.isHeader)
                 Text(data.intro)
                     .font(.system(size: 15))
                     .foregroundStyle(KColor.ink)
                     .lineSpacing(3.9)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 2)
-                    .padding(.top, 12)
                     .padding(.bottom, 14)
                 VStack(spacing: 0) {
                     ForEach(Array(data.rows.enumerated()), id: \.element.id) { i, r in
@@ -279,6 +269,7 @@ struct CTSkrSheet: View {
                             .font(.system(size: 14))
                             .foregroundStyle(KColor.ink2)
                             .lineSpacing(3.6)
+                            .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 11)
                             .overlay(alignment: .top) {
@@ -292,42 +283,12 @@ struct CTSkrSheet: View {
                     .font(.system(size: 12))
                     .foregroundStyle(KColor.ink3)
                     .lineSpacing(2.5)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 4)
                     .padding(.top, 16)
-                Button {
-                    dismiss()
-                } label: {
-                    Text("Schliessen")
-                        .font(.system(size: 14))
-                        .foregroundStyle(KColor.ink2)
-                        .frame(maxWidth: .infinity)
-                        .padding(13)
-                        .background(RoundedRectangle(cornerRadius: 13, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .padding(.top, 4 + 9)
             }
-            .padding(.horizontal, 17)
-            .padding(.bottom, 18)
         }
-        .overlay(alignment: .topTrailing) {
-            Button {
-                dismiss()
-            } label: {
-                Text("×")
-                    .font(.system(size: 20))
-                    .foregroundStyle(KColor.ink2)
-                    .frame(width: 36, height: 36)
-                    .background(Circle().fill(KColor.sunken))
-            }
-            .buttonStyle(.plain)
-            .padding(.top, 16).padding(.trailing, 12)
-            .accessibilityLabel("Schliessen")
-        }
-        .background(KColor.paper.ignoresSafeArea())
-        .presentationDragIndicator(.visible)
-        .presentationCornerRadius(19)
+        .accessibilityIdentifier("skr.sheet")
     }
 }
 

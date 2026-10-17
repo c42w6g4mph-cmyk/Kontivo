@@ -22,7 +22,7 @@ final class ContractListUITests: KontivoUITestCase {
 
         // Filter Kategorie «Versicherung»
         tap(button("Filter"), "Filter")
-        waitNav("Filter")
+        // Auswahlblatt wie Web `#sheetPick` (ohne Navigationsleiste)
         tap(buttonStarting("Kategorie"), "Kategorie")
         tap(buttonStarting("Versicherung"), "Versicherung")
         waitUntil("Nur Versicherungen") { self.buttonStarting("Krankenkasse").exists && !self.buttonStarting("Handy").exists }

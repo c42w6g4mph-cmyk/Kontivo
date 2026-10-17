@@ -42,7 +42,8 @@ struct CTFormTermSection: View {
                               identifier: "form.end") { form.setEnd($0) }
                     .ctMiss(form, .end)
                     .id(ContractFormField.end)
-                CTMenuRow("Verlängert sich um") {
+                CTMenuRow("Verlängert sich um", value: form.renewMonths == 0 ? "nicht automatisch" : (form.renewMonths == 1 ? "1 Monat" : "\(form.renewMonths) Monate"),
+                          identifier: "form.renew") {
                     Picker(selection: $form.renewMonths) {
                         Text("nicht automatisch").tag(0)
                         Text("1 Monat").tag(1)
@@ -55,16 +56,13 @@ struct CTFormTermSection: View {
                     } label: {
                         CTRowLabel("Verlängert sich um")
                     }
-                    .pickerStyle(.menu)
-                    .tint(KColor.teal)
-                    .accessibilityIdentifier("form.renew")
                 }
             }
             if m == .open || m == .fixed {
                 noticeRows
             }
             if m == .open || m == .trial {
-                CTMenuRow("Kündbar per") {
+                CTMenuRow("Kündbar per", value: CTFormState.termOptionText(form.cancelTerm), identifier: "form.cancelTerm") {
                     Picker(selection: $form.cancelTerm) {
                         ForEach([CancelTerm.anytime, .period, .monthEnd, .quarterEnd, .halfYearEnd, .yearEnd, .contractYear], id: \.self) { t in
                             Text(CTFormState.termOptionText(t)).tag(t)
@@ -72,9 +70,6 @@ struct CTFormTermSection: View {
                     } label: {
                         CTRowLabel("Kündbar per")
                     }
-                    .pickerStyle(.menu)
-                    .tint(KColor.teal)
-                    .accessibilityIdentifier("form.cancelTerm")
                 }
             }
             if m != .tax {

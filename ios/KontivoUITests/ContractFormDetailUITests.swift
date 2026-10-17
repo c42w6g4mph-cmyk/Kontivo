@@ -158,12 +158,11 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         ctShot("Detail – Kopf und Kennzahlen")
 
         tap(docs, "Dokumente")
-        waitNav("Dokumente")
         wait(button("detail.docAttach"), "Datei anhängen")
         wait(elContaining("Noch keine Dokumente"), "Leere Liste")
         XCTAssertFalse(button("Entfernen").exists, "Kein Löschen im Detail")
         ctShot("Detail – Dokumente")
-        tapTop("Fertig")
+        tapTop("Schliessen")
         waitGone(button("detail.docAttach"), "Dokumente geschlossen")
 
         tap(button("detail.menu"), "Menü •••")

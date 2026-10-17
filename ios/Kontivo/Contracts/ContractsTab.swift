@@ -568,6 +568,7 @@ private struct CTListControls: View {
     @Environment(AppModel.self) private var model
     @Binding var showFilter: Bool
     @FocusState private var focused: Bool
+    @State private var showSort = false
 
     var body: some View {
         @Bindable var model = model
@@ -629,30 +630,24 @@ private struct CTListControls: View {
             .accessibilityLabel("Filter" + (n > 0 ? ", \(n) aktiv" : ""))
             .accessibilityIdentifier("contracts.filter")
 
-            Menu {
-                Section("Sortieren nach") {
-                    ForEach(ContractSort.pickerOrder, id: \.self) { s in
-                        Button {
-                            if s != sort { model.update { $0.settings.sort = s } }
-                        } label: {
-                            if s == sort {
-                                Label(s.optionLabel, systemImage: "checkmark")
-                            } else {
-                                Text(s.optionLabel)
-                            }
-                        }
-                    }
-                }
+            // Web: Auswahlblatt «Sortieren nach» (openPick("sort"))
+            Button {
+                showSort = true
             } label: {
                 CTIcon.sort(16)
                     .foregroundStyle(KColor.ink2)
                     .frame(width: 42, height: 38)
                     .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.surface))
             }
+            .buttonStyle(.plain)
             .accessibilityLabel("Sortierung ändern, sortiert nach " + sort.shortLabel)
         }
         .frame(height: 38, alignment: .top)
         .padding(.top, 14)
+        .sheet(isPresented: $showSort) {
+            CTSortSheet()
+                .environment(model)
+        }
     }
 }
 

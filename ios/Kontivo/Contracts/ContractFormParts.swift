@@ -142,23 +142,53 @@ private struct CTCardRowsLayout: _VariadicView_UnaryViewRoot {
     }
 }
 
-/// Menü-Auswahl als Zeile (Web `.frow` mit `select`): Beschriftung links, Wert rechts in Messing
+/// Menü-Auswahl als Zeile (Web `.frow` mit `select`): Beschriftung links, Wert rechts 16/500 in Messing (leer: Tinte 3) mit «⌄»;
+/// die Auswahl selbst ist ein `Picker` im Menü (Haken beim gewählten Wert).
 struct CTMenuRow<P: View>: View {
     let title: String
+    let value: String
+    var muted = false
+    var identifier = ""
     let picker: P
-    init(_ title: String, @ViewBuilder picker: () -> P) {
+    init(_ title: String, value: String, muted: Bool = false, identifier: String = "", @ViewBuilder picker: () -> P) {
         self.title = title
+        self.value = value
+        self.muted = muted
+        self.identifier = identifier
         self.picker = picker()
     }
     var body: some View {
         HStack(spacing: 12) {
             CTRowLabel(title)
             Spacer(minLength: 8)
-            picker
-                .labelsHidden()
-                .pickerStyle(.menu)
-                .fixedSize()
+            Menu {
+                picker
+                    .pickerStyle(.inline)
+            } label: {
+                CTMenuValue(text: value, muted: muted)
+            }
+            .accessibilityLabel(title + ", " + value)
+            .accessibilityIdentifier(identifier)
         }
+    }
+}
+
+/// Wert eines Auswahlfelds wie Web `select`: 16/500 Messing (leer Tinte 3), «⌄» 13 Tinte 2
+struct CTMenuValue: View {
+    let text: String
+    var muted = false
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(text)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(muted ? KColor.ink2 : KColor.teal)
+                .lineLimit(1)
+            Image(systemName: "chevron.down")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(KColor.ink2)
+        }
+        .fixedSize()
+        .contentShape(Rectangle())
     }
 }
 
@@ -605,32 +635,32 @@ struct CTFormKeyTiles: View {
     let year: String
     let currency: String
 
+    /// Web `#fKz`: zwei Kacheln (Abstand 8, 12 oben), Fläche `--field`, Radius 12, 10/12; Titel 12.5 Tinte 2, Wert Serif 22/500
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             tile("pro Monat", month, id: "form.kz.month")
             tile("pro Jahr", year, id: "form.kz.year")
         }
+        .padding(.top, 12)
+        .padding(.bottom, 0)
     }
 
     private func tile(_ title: String, _ value: String, id: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.footnote)
+                .font(.system(size: 12.5))
                 .foregroundStyle(KColor.ink2)
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text(verbatim: value)
-                    .font(.title2.weight(.bold).monospacedDigit())
-                    .foregroundStyle(KColor.ink)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Text(verbatim: currency)
-                    .font(.footnote.weight(.medium))
-                    .foregroundStyle(KColor.ink2)
-            }
+                .ctLine(18.1)
+            (Text(verbatim: value).font(KFont.serif(22, .medium)).tracking(-0.22)
+             + Text(verbatim: "\u{2004}" + currency).font(KFont.serif(14, .medium)).foregroundColor(KColor.ink2))
+                .foregroundStyle(KColor.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .ctLine(22)
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).fill(KColor.surface))
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.field))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(id)
     }

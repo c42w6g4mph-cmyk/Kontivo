@@ -27,34 +27,22 @@ struct CancelChannelPickView: View {
     var body: some View {
         let c = model.data.contract(contractID)
         let title = c.map { model.data.title(of: $0) } ?? "Ohne Namen"
-        NavigationStack {
-            List {
-                Section {
-                    ForEach(options) { o in
-                        Button { pick(o.channel) } label: { row(o, current: c?.cancelChannel) }
-                            .accessibilityLabel(o.title + ", " + o.detail)
-                    }
-                } header: {
-                    Text("Wie kündigst du «\(title)»?")
-                        .font(.headline)
-                        .foregroundStyle(KColor.ink)
-                        .textCase(nil)
-                        .padding(.bottom, 4)
-                } footer: {
-                    Text("Wird beim Vertrag gespeichert. Miete braucht immer einen Brief mit Unterschrift.")
+        // Web `openCancViaPick`: Auswahlblatt mit Titel «Wie kündigst du «…»?», Zeilen `.pick` und Hinweis
+        CTPickSheet(title: "Wie kündigst du «\(title)»?") {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(options) { o in
+                    CTPickRow(title: o.title, detail: o.detail) { pick(o.channel) }
+                        .accessibilityLabel(o.title + ", " + o.detail)
                 }
-                .listRowBackground(KColor.surface)
-            }
-            .scrollContentBackground(.hidden)
-            .background(KColor.paper.ignoresSafeArea())
-            .navigationTitle("Kündigungsweg")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { CancelWindowFlow.dismiss(model, ifTop: .cancelChannelPick(contractID, trial: trial)) }
-                }
+                Text("Wird beim Vertrag gespeichert. Miete braucht immer einen Brief mit Unterschrift.")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(KColor.ink2)
+                    .lineSpacing(4.4)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 4).padding(.horizontal, 2)
             }
         }
+        .presentationDetents([.medium, .large])
     }
 
     private func row(_ o: Option, current: CancelChannel?) -> some View {
