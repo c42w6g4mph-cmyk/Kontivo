@@ -158,10 +158,16 @@ jobs:
           shoot $PHONE 20-datenqualitaet -uiDemo -uiSheet quality
           shoot $PHONE 21-leer-kosten -uiEmpty -uiTab costs
           shoot $PHONE 22-leer-fristen -uiEmpty -uiTab deadlines
+          shoot $PHONE 30-import-fixkosten -uiEmpty -uiBankSample
+          shoot $PHONE 31-import-einnahmen -uiEmpty -uiBankSample -uiBankStep inc
+          shoot $PHONE 32-import-fristen -uiEmpty -uiBankSample -uiBankStep term
+          shoot $PHONE 33-import-zuordnen -uiDemo -uiBankSample
           xcrun simctl ui $PHONE appearance dark
           shoot $PHONE 23-dunkel-vertraege -uiDemo -uiTab contracts
           shoot $PHONE 24-dunkel-kosten -uiDemo -uiTab costs
           shoot $PHONE 25-dunkel-detail -uiDemo -uiSheet detail
+          shoot $PHONE 34-dunkel-import -uiDemo -uiBankSample
+          shoot $PHONE 35-dunkel-import-fristen -uiEmpty -uiBankSample -uiBankStep term
           ls ~/Library/Logs/DiagnosticReports 2>/dev/null | grep -i kontivo >> ci-out/shots.txt || true
           for f in ~/Library/Logs/DiagnosticReports/*Kontivo*; do [ -f "$f" ] && head -120 "$f" >> ci-out/shots.txt; done 2>/dev/null || true
       - name: Protokoll in Branch ci-logs schreiben

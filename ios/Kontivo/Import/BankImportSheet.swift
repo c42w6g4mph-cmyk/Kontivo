@@ -73,7 +73,6 @@ struct BankImportSheet: View {
             case .review:
                 if let r = s.review {
                     BankFooterButton(title: r.footerTitle(model.data), enabled: r.footerEnabled(model.data)) { go(s, r) }
-                        .accessibilityIdentifier("bankApply")
                 }
             }
         }
@@ -117,6 +116,7 @@ struct BankImportSheet: View {
 struct BankFooterButton: View {
     let title: String
     let enabled: Bool
+    var id = "bankApply"
     let action: () -> Void
 
     var body: some View {
@@ -131,6 +131,7 @@ struct BankFooterButton: View {
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
+        .accessibilityIdentifier(id)
         .padding(.horizontal, 17)
         .padding(.top, 10)
         .padding(.bottom, 14)

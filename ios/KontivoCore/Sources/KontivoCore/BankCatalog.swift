@@ -177,7 +177,11 @@ enum BankCatalog {
 
     static func period(_ txt: String) -> Int {
         if let m = rxPeriod.match(txt) {
-            let n = ((Int(m.s(4)) ?? 0) - (Int(m.s(2)) ?? 0)) * 12 + ((Int(m.s(3)) ?? 0) - (Int(m.s(1)) ?? 0)) + 1
+            let m1: Int = Int(m.s(1)) ?? 0
+            let y1: Int = Int(m.s(2)) ?? 0
+            let m2: Int = Int(m.s(3)) ?? 0
+            let y2: Int = Int(m.s(4)) ?? 0
+            let n: Int = (y2 - y1) * 12 + (m2 - m1) + 1
             if [1, 2, 3, 6, 12].contains(n) { return n }
         }
         let l = Partners.lnorm(txt)

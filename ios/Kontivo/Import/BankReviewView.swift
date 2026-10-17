@@ -366,6 +366,7 @@ struct BankReviewView: View {
             HStack(spacing: 10) {
                 if !maybe {
                     BankCheck(on: it.on, label: title + " übernehmen") { review.toggle(it.id) }
+                        .accessibilityIdentifier("bankCheck-" + it.s.name)
                 }
                 Button { open(it) } label: {
                     HStack(spacing: 11) {
@@ -497,8 +498,8 @@ struct BankReviewView: View {
             .padding(.top, 11)
             .padding(.bottom, 6)
             BankFlow(spacing: 6) {
-                ForEach(choices, id: \.0) { c in
-                    BankChip(title: c.1, on: it.term == c.0) { review.setTerm(it.id, c.0) }
+                ForEach(choices.indices, id: \.self) { j in
+                    BankChip(title: choices[j].1, on: it.term == choices[j].0) { review.setTerm(it.id, choices[j].0) }
                 }
             }
             .padding(.leading, 47)
@@ -618,7 +619,8 @@ struct BankSegment: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(options, id: \.0) { o in
+            ForEach(options.indices, id: \.self) { j in
+                let o = options[j]
                 let on = o.0 == selected
                 Button { action(o.0) } label: {
                     Text(o.1)
