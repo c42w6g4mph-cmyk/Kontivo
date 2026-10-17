@@ -54,7 +54,6 @@ struct KBCostDriversView: View {
             })
         }
         .id(KBCostDriversView.anchorID)
-        .accessibilityIdentifier("costs.drivers")
     }
 
     private func label(_ t: String) -> some View {

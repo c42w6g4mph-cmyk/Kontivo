@@ -368,7 +368,6 @@ struct KBIncomeForm: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.surface))
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
-        .accessibilityIdentifier("income.suggestions")
     }
 
     private func sugHead(_ t: String) -> some View {

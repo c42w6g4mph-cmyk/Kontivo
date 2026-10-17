@@ -196,7 +196,6 @@ struct KBBudgetCard: View {
                 }
             }
         }
-        .accessibilityIdentifier("budget.card")
     }
 
     /// Einordnung «x % der Einnahmen»: Wert des Monats (auch negativ), dazu Jahresschnitt (Web state._fq)
@@ -253,7 +252,6 @@ struct KBBudgetCard: View {
             }
         }
         .padding(.top, 22)
-        .accessibilityIdentifier("budget.chart")
     }
 }
 

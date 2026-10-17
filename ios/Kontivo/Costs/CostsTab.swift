@@ -84,7 +84,6 @@ struct CostsTab: View {
                 KBCostDriversView(year: year, open: $driverOpen)
             }
         }
-        .accessibilityIdentifier("costs.page")
     }
 
     /// Web `.empty`: «Keine Zahlungen in 2031» (16 px Semibold) und Text 14 px
@@ -173,7 +172,6 @@ struct KBCostMonthCard: View {
                 }
             }
         }
-        .accessibilityIdentifier("costs.card")
     }
 
     private func paidOpen(_ m: Calc.CostMonth) -> some View {
