@@ -172,9 +172,9 @@ extension Calc {
     /// Farbe «Übrige».
     public static let kbOtherColor = "#9AA0A6"
     /// Farben nach Rang bei Aufteilung nach Vertragspartner.
-    public static let kbPartnerPalette = ["#0E5A5E", "#8A6A1F", "#1F4E8C", "#6B4E9E", "#A93227", "#2E6A4E", "#B0562A", "#3F4A55"]
+    public static let kbPartnerPalette = ["#4A5A66", "#8A6A1F", "#1F4E8C", "#6B4E9E", "#A93227", "#2E6A4E", "#B0562A", "#3F4A55"]
 
-    /// Kategoriefarbe nach Name (`catColor`): Eintrag → Standardfarbe → #5F666E.
+    /// Kategoriefarbe nach Name (`catColor`): Anzeigefarbe des Eintrags → Standardfarbe → #6B7280.
     public func kbCategoryColor(_ name: String) -> String {
         data.category(named: name)?.displayColorHex ?? Category.standardColors[name] ?? Category.displayFallbackColor
     }
