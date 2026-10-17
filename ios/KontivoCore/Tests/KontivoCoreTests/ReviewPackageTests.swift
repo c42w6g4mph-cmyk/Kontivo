@@ -117,7 +117,8 @@ final class ReviewPackageTests: XCTestCase {
         XCTAssertEqual(inc.count, 1)
         XCTAssertEqual(inc[0].step, 2)
         XCTAssertEqual(inc[0].yearly, 24)
-        XCTAssertTrue(calc.specialCancelHint(c))          // 01.09. liegt < 60 Tage zurück
+        XCTAssertFalse(calc.specialCancelHint(c))         // Web v205: ohne Gesetz nur bis 30 Tage nach 01.09.
+        XCTAssertTrue(Calc(data: d, today: Day(2026, 9, 30)).specialCancelHint(c))
         XCTAssertFalse(calc.specialCancelHint(old))
         var fut = c
         fut.prices = [PriceChange(from: Day(2026, 11, 1), amount: 20)]

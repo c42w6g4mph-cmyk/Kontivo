@@ -458,18 +458,13 @@ public struct Calc {
         return sum > 0.005 ? (sum, s0.year) : nil
     }
 
-    /// Preiserhöhung angekündigt oder in den letzten 60 Tagen wirksam: Hinweis auf ein mögliches Sonderkündigungsrecht (Detail).
+    /// Zeile «Sonderkündigung» im Detail sichtbar (Web v205: bis zur berechneten Frist statt 60 Tage). Details, Texte und Blatt:
+    /// `specialCancel(_:)` / `specialCancelSheet(_:)` (SpecialCancel.swift).
     public func specialCancelHint(_ c: Contract) -> Bool {
-        if !isActive(c) || isFixed(c) { return false }
-        var prev = c.amount
-        for p in pricesOf(c) {
-            if p.from > today { return p.amount > curPrice(c) }
-            if p.from.days(to: today) <= 60 && p.amount > prev { return true }
-            prev = p.amount
-        }
-        return false
+        specialCancel(c) != nil
     }
 
+    /// Veraltet seit Web v205 (Kasten ersetzt durch Zeile + Blatt, siehe `SpecialCancelInfo.lineText`).
     public static let specialCancelText = "Preiserhöhung: In Deutschland und der Schweiz besteht oft ein Sonderkündigungsrecht, meist innert 4–6 Wochen nach der Mitteilung. Massgebend ist dein Vertrag."
 
     /// Nächste Abbuchung über alle laufenden, begonnenen Verträge (Hero): frühester Termin, bei gleichem Tag der grössere Betrag.
