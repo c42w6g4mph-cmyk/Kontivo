@@ -115,7 +115,7 @@ public enum IncomeKind: String, Codable, CaseIterable, Hashable, Sendable {
     public var colorHex: String {
         switch self {
         case .lohn: return "#2E6A4E"
-        case .nebeneinkommen: return "#0E5A5E"
+        case .nebeneinkommen: return "#4A5A66"
         case .bonus: return "#8A6A1F"
         case .rente: return "#B0562A"
         case .zulagen: return "#B23A6F"
@@ -123,7 +123,7 @@ public enum IncomeKind: String, Codable, CaseIterable, Hashable, Sendable {
         case .kapitalertraege: return "#1F4E8C"
         case .vermietung: return "#6B4E9E"
         case .rueckerstattung: return "#5F7A2E"
-        case .sonstiges: return "#5F666E"
+        case .sonstiges: return "#6B7280"
         }
     }
 
@@ -369,26 +369,49 @@ public struct Category: Codable, Hashable, Identifiable, Sendable {
         "Freizeit & Sport": .leisure, "Steuern & Gebühren": .taxes, "Finanzen": .finance, "Sonstiges": .other,
     ]
 
-    /// Farben (CAT_COLOR) der Standardkategorien und Einnahmearten.
+    /// Farben (CAT_COLOR, Web v224) der Standardkategorien und Einnahmearten.
     public static let standardColors: [String: String] = [
-        "Wohnen": "#6B4E9E", "Energie & Wasser": "#B0562A", "Versicherung": "#0E5A5E", "Gesundheit": "#B03A5B",
-        "Mobilfunk & Internet": "#1F4E8C", "Abos & Medien": "#A93227", "Mobilität": "#3F4A55", "Familie & Bildung": "#2F86A6",
-        "Freizeit & Sport": "#2E6A4E", "Steuern & Gebühren": "#6E7B3A", "Finanzen": "#8A6A1F", "Sonstiges": "#5F666E",
-        "Lohn": "#2E6A4E", "Nebeneinkommen": "#0E5A5E", "Bonus": "#8A6A1F", "Kapitalerträge": "#1F4E8C", "Vermietung": "#6B4E9E", "Rente": "#B0562A",
+        "Wohnen": "#6A4FB3", "Energie & Wasser": "#D0692B", "Versicherung": "#2F7F7A", "Gesundheit": "#C2416B",
+        "Mobilfunk & Internet": "#2563B8", "Abos & Medien": "#C0392B", "Mobilität": "#8B5A3C", "Familie & Bildung": "#3B8BC9",
+        "Freizeit & Sport": "#2E8B57", "Steuern & Gebühren": "#7E8F25", "Finanzen": "#B08A1E", "Sonstiges": "#6B7280",
+        "Lohn": "#2E6A4E", "Nebeneinkommen": "#4A5A66", "Bonus": "#8A6A1F", "Kapitalerträge": "#1F4E8C", "Vermietung": "#6B4E9E", "Rente": "#B0562A",
         "Zulagen": "#B23A6F", "Unterstützung": "#3D6FA8", "Rückerstattung": "#5F7A2E",
     ]
 
     /// Hash-Farben für Marken ohne Kategorie (COLORS); auch Startfarbe neuer Kategorien.
-    public static let palette: [String] = ["#0E5A5E", "#A93227", "#1F4E8C", "#6B4E9E", "#8A6A1F", "#2E6A4E", "#B0562A", "#3F4A55"]
+    public static let palette: [String] = ["#4A5A66", "#A93227", "#1F4E8C", "#6B4E9E", "#8A6A1F", "#2E6A4E", "#B0562A", "#3F4A55"]
 
     /// Farbauswahl in der Kategorie-Bearbeitung (CE_COL).
-    public static let editColors: [String] = palette + ["#B03A5B", "#2F86A6", "#6E7B3A", "#5F666E"]
+    public static let editColors: [String] = palette + ["#B03A5B", "#3F6E9A", "#6E7B3A", "#5F666E"]
+
+    /// Altes Petrol/Türkis (Web `OLD_COL`, v165): beim Anzeigen ersetzt, gespeicherte Daten bleiben.
+    public static let oldColors: [String: String] = ["#0e5a5e": "#4A5A66", "#2f86a6": "#3F6E9A", "#2b7a7d": "#4A5A66", "#5fb3b5": "#4A5A66"]
+
+    /// Frühere Standardfarben (Web `CAT_OLD`): gespeicherte Standardkategorien mit dieser Farbe zeigen die neue Standardfarbe.
+    public static let oldStandardColors: [String: String] = [
+        "Wohnen": "#6b4e9e", "Energie & Wasser": "#b0562a", "Versicherung": "#4a5a66", "Gesundheit": "#b03a5b",
+        "Mobilfunk & Internet": "#1f4e8c", "Abos & Medien": "#a93227", "Mobilität": "#3f4a55", "Familie & Bildung": "#3f6e9a",
+        "Freizeit & Sport": "#2e6a4e", "Steuern & Gebühren": "#6e7b3a", "Finanzen": "#8a6a1f", "Sonstiges": "#5f666e",
+    ]
+
+    /// Anzeigefarbe (Web `newCol` + `catColor`): altes Türkis ersetzen; alte Standardfarbe einer Standardkategorie → neue Standardfarbe.
+    public static func displayColor(_ hex: String, key: String?) -> String {
+        let h = oldColors[hex.lowercased()] ?? hex
+        if let k = key, let old = oldStandardColors[k], h.lowercased() == old, let n = standardColors[k] { return n }
+        return h
+    }
+
+    /// Anzeigefarbe dieser Kategorie (Fachschlüssel = Standardname der Art, sonst Name)
+    public var displayColorHex: String {
+        let key = kind.flatMap { k in Category.standardKinds.first(where: { $0.value == k })?.key } ?? name
+        return Category.displayColor(colorHex, key: key)
+    }
 
     /// Symbolauswahl (CE_ICONS): die 12 Standardnamen + "tag".
     public static let iconKeys: [String] = standardNames + ["tag"]
 
-    /// Farbe ohne Eintrag (#5F666E).
-    public static let fallbackColor = "#5F666E"
+    /// Farbe ohne Eintrag (Web `catColor` Ersatz #6B7280).
+    public static let fallbackColor = "#6B7280"
 
     /// Alte Kategorienamen (CAT_MIG).
     public static let legacyNames: [String: String] = [
@@ -1031,8 +1054,8 @@ public struct AppData: Codable, Hashable, Sendable {
 
     /// Markenfarbe (`colorFor`): eigene Farbe → Kategorie → Hash über Vertragspartner/Bezeichnung.
     public func color(of c: Contract) -> String {
-        if let col = c.colorHex, !col.isEmpty { return col }
-        if let cat = category(c.categoryID) { return cat.colorHex }
+        if let col = c.colorHex, !col.isEmpty { return Category.oldColors[col.lowercased()] ?? col }
+        if let cat = category(c.categoryID) { return cat.displayColorHex }
         let pn = partner(c.partnerID)?.name ?? ""
         return AppData.hashColor(pn.isEmpty ? c.label : pn)
     }
