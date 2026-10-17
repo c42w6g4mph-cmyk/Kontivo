@@ -19,7 +19,7 @@ final class CostsBudgetUITests: KontivoUITestCase {
         // Januar antippen
         c.coordinate(withNormalizedOffset: CGVector(dx: 0.03, dy: 0.45)).tap()
         waitUntil("Januar gewählt (\(value(c)))") { self.value(c).hasPrefix("Januar") }
-        wait(el("JANUAR \(y)"), "Kopf «JANUAR \(y)»")
+        wait(el("Januar \(y)"), "Kopf «Januar \(y)» (ohne Versalien, v166)")
         wait(elContaining("Fällig im Januar"), "Liste «Fällig im Januar»")
 
         // Dezember antippen
@@ -46,11 +46,11 @@ final class CostsBudgetUITests: KontivoUITestCase {
         launch("-uiDemo", "-uiTab", "budget")
         wait(chart("Verfügbar pro Monat"), "Budget-Karte", timeout: 12)
         tap(button("Einnahme erfassen"), "+ Einnahme")
-        waitNav("Neue Einnahme")
+        waitIncomeForm("Neue Einnahme")
         enter(textField("income.label"), "QA Nebenjob", "Bezeichnung")
         enter(textField("income.amount"), "800", "Betrag")
         tapTop("Sichern")
-        waitUntil("Formular geschlossen") { !self.navExists("Neue Einnahme") }
+        waitUntil("Formular geschlossen") { !self.incomeFormOpen("Neue Einnahme") }
         let row = buttonStarting("QA Nebenjob")
         wait(row, "Einnahme in der Liste")
         XCTAssertTrue(row.label.contains("800.00"), "Betrag der Einnahme: \(row.label)")
@@ -61,10 +61,10 @@ final class CostsBudgetUITests: KontivoUITestCase {
         tap(row, "Einnahme öffnen")
         wait(el("incomeDetail.kz.month"), "Ansicht der Einnahme")
         tapTop("Bearbeiten")
-        waitNav("Bearbeiten")
+        waitIncomeForm("Bearbeiten")
         XCTAssertEqual(textField("income.amount").value as? String, "800.00")
         tapTop("Abbrechen")
-        waitUntil("Formular geschlossen") { !self.navExists("Bearbeiten") }
+        waitUntil("Formular geschlossen") { !self.incomeFormOpen("Bearbeiten") }
         tapTop("Schliessen")
         waitGone(el("incomeDetail.kz.month"), "Ansicht geschlossen")
     }

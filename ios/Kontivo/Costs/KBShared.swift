@@ -205,7 +205,7 @@ struct KBPageHeader<Trailing: View>: View {
         .padding(.top, 17)
         .frame(height: 57, alignment: .bottom)
         .background(GeometryReader { g in
-            Color.clear.preference(key: KBHeaderBottomKey.self, value: g.frame(in: .named(KBPage.space)).maxY)
+            Color.clear.preference(key: KBHeaderBottomKey.self, value: g.frame(in: .named(KBPageSpace.name)).maxY)
         })
     }
 }
@@ -216,8 +216,11 @@ struct KBHeaderBottomKey: PreferenceKey {
 }
 
 /// Scrollseite eines Tabs mit eigenem Kopf und Minileiste «Kosten · 2026», sobald der Kopf weggescrollt ist (Web `#miniBar`).
+enum KBPageSpace {
+    static let name = "kbPage"
+}
+
 struct KBPage<Content: View>: View {
-    static var space: String { "kbPage" }
     let miniTitle: String
     @ViewBuilder var content: Content
     @State private var mini = false
@@ -234,7 +237,7 @@ struct KBPage<Content: View>: View {
                 .padding(.bottom, 28)
                 .kContentWidth()
             }
-            .coordinateSpace(name: KBPage.space)
+            .coordinateSpace(name: KBPageSpace.name)
             .environment(\.kbScroll, KBScrollContext(proxy: proxy, height: viewport))
             .background(GeometryReader { g in
                 Color.clear

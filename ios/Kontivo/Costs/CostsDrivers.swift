@@ -46,7 +46,7 @@ struct KBCostDriversView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .kbSurface(KBM.listRadius)
             .background(GeometryReader { g in
-                let f = g.frame(in: .named(KBPage.space))
+                let f = g.frame(in: .named(KBPageSpace.name))
                 Color.clear
                     .onAppear { box.frame = f }
                     .onChange(of: f) { _, n in box.frame = n }
