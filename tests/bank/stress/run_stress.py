@@ -10,7 +10,7 @@ DE = {"Wohnbau": (1, 1215, "2026-04"), "Telekom": (1, 44.95, "2026-07"), "Netfli
       "Stadtwerke": (1, 104.00, "2026-03"), "McFit": (1, 24.90, None), "congstar": (1, 15.00, None), "Amazon Prime": (12, 89.90, None)}
 DE_OPT = ("Trade Republic", "Vodafone")  # Sparplan / gekündigter Vertrag: Vorschlag erlaubt, aber nicht nötig
 CH = {"Immo Seeblick": (1, 1850, None), "CSS": (1, 412.30, "2026-01"), "Helsana": (1, 48.70, None), "Swisscom": (1, 89.00, "2026-06"),
-      "Netflix": (1, 20.90, "2026-04"), "Spotify": (1, 13.95, None), "Energie Kreuzlingen": (3, 180.50, None), "Serafe": (12, 335.00, None),
+      "Netflix": (1, 20.90, "2026-04"), "Spotify": (1, 13.95, None), "Energie Kreuzlingen": (3, 180.50, None), "Rundfunkgebühr": (12, 335.00, None),
       "Mobiliar": (12, 289.20, None), "Migros": (1, 79.00, None), "Kreuzlingen": (1, 760.00, None)}
 CH_OPT = ("SBB",)
 INC = {"de": ("Muster Pharma",), "ch": ("Muster Pharma",)}

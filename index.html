@@ -8288,7 +8288,9 @@ function bankIsType(p){var w=lnorm(p).split(" ").filter(Boolean);return !w.lengt
 function bankNameClean(n){
   n=String(n||"").replace(/\s+/g," ").trim();
   n=n.split(/\s(?:MITTEILUNGEN?|Mitteilungen?:|REFERENZ|Referenz(?:-Nr\.?)?:?|QR-Referenz|Transaktions(?:-Nr\.?|datum)|Karten?-?Nr\.?|Kartennummer|IBAN|Kto\/IBAN|Kto|BLZ|Konto-Nr\.?|CH\d{2}\s?\d|DE\d{2}\s?\d|\d{4,5}\s+[A-ZÄÖÜa-zäöü]{2}|Ref\.|Buchungstext:|Verwendungszweck)/)[0];
-  var lg=n.match(/^(.*?\b(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\.V\.|e\.\s?V\.|Genossenschaft))(?:\s|$)/i);if(lg)n=lg[1];
+  /* Rechtsform am Anfang («Genossenschaft Migros Ostschweiz») ist Teil des Namens: nur abschneiden, wenn davor schon ein Name steht (17.10.2026) */
+  var lg=n.match(/^(.+?\s(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\.V\.|e\.\s?V\.|Genossenschaft))(?:\s|$)/i);if(lg)n=lg[1];
+  n=n.replace(/^Genossenschaft\s+(?=\S)/i,"");
   return n.split(" ").slice(0,5).join(" ").trim();
 }
 function bankNameFrom(t){
@@ -8403,7 +8405,8 @@ function bankFind(r,ign){
     if(BKVIA.test(lnorm(nm))){var vm=String(t.text||"").match(/(?:einkauf bei|purchase at|payment to|zahlung an|abo bei|bei)\s+([^,;·\/]{3,40})/i);if(vm&&!BKVIA.test(lnorm(vm[1])))nm=vm[1].replace(/\s+\d.*$/,"").trim();}
     var nd=bankDesc(nm);if(nd.length>=2)nm=nd;
     var tp=bankTpl(nm,t.text,t.cur||home),hay=lnorm(nm+" "+t.text+" "+(t.type||""));
-    if(!tp&&BKRETAIL.test(lnorm(nm)))return;
+    /* Detailhändler (Migros, Coop …) nur bei Kartenkäufen ausfiltern – Lastschrift/Dauerauftrag/Abo (z.B. «Migros Fitnesspark») bleibt (17.10.2026) */
+    if(!tp&&BKRETAIL.test(lnorm(nm))&&!(t.kind==="dd"||t.kind==="so"||t.cred||/fitness|mitglied|abo\b|abonnement/.test(hay)))return;
     /* Kartenbezug am Automaten einer Bank («Sparkasse Konstanz», «UBS») = Bargeld */
     if((t.kind==="card"||(!t.kind&&Math.abs(t.a)%10===0))&&!/\b3a\b|vorsorge|saeule|saule|leasing/.test(hay)&&/^(sparkasse|volksbank|raiffeisen|commerzbank|deutsche bank|postbank|hypovereinsbank|targobank|santander|ubs|postfinance|zkb|kantonalbank|migros bank|valiant|atm|geldautomat)\b/.test(lnorm(nm)))return;
     if(BKSKIP.test(hay)||BKSHOP.test(lnorm(nm)))return;
@@ -8480,6 +8483,11 @@ function bankFind(r,ign){
     g.tx.forEach(function(t){var id=t.d+"|"+t.a;if(seen[id])return;seen[id]=1;tx.push(t);});
     var name=g.tpl?g.tpl[0]:bankPretty(Object.keys(g.names).sort(function(a,b){return g.names[b]-g.names[a];})[0]);
     var am=tx.map(function(t){return Math.round(-t.a*100)/100;}),last=am[am.length-1],n=tx.length;
+    /* einmalige Zusatzzahlung mitten im Verlauf (Jahresabrechnung, Servicepauschale) nicht als Preis werten:
+       genau ein Betrag kommt nur einmal vor und liegt nicht am Rand → herausnehmen (17.10.2026) */
+    if(n>=5){var cA={};am.forEach(function(v){var q=v.toFixed(2);cA[q]=(cA[q]||0)+1;});
+      var lone=am.map(function(v,i){return cA[v.toFixed(2)]===1?i:-1;}).filter(function(i){return i>0&&i<n-1;});
+      if(lone.length===1&&Object.keys(cA).length<=3){var li=lone[0];tx=tx.slice(0,li).concat(tx.slice(li+1));am=am.slice(0,li).concat(am.slice(li+1));n=tx.length;last=am[n-1];}}
     var iv=[];for(var i=1;i<n;i++)iv.push(dd(tx[i-1].d,tx[i].d));
     var cyc=0,conf="",varies=false,ch=null;
     if(n>=2){
