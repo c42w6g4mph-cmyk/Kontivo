@@ -98,6 +98,11 @@ with sync_playwright() as p:
             hook = "window.KontivoBank=function(){return {"
             assert hook in html
             html = html.replace(hook, hook + "label:bankLabel,payM:bankPayM,nums:bankNums,who:bkWho,", 1)
+            # Tempo: lnorm/ltok sind reine Funktionen – Zwischenspeicher ändert kein Ergebnis (ltok liefert eine Kopie)
+            ln = 'function lnorm(s){return String(s||"")'
+            assert html.count(ln) == 1 and html.count("function ltok(s){") == 1
+            html = html.replace(ln, 'var __LN=new Map();function lnorm(s){var k=String(s||"");var v=__LN.get(k);if(v===undefined){v=__lnorm0(k);__LN.set(k,v);}return v;}function __lnorm0(s){return String(s||"")', 1)
+            html = html.replace("function ltok(s){", 'var __LT=new Map();function ltok(s){var k=String(s||"");var v=__LT.get(k);if(!v){v=__ltok0(k);__LT.set(k,v);}return v.slice();}function __ltok0(s){', 1)
             return r.fulfill(status=200, content_type="text/html; charset=utf-8", body=html)
         return r.continue_()
     ctx.route("**/*", serve)
