@@ -257,11 +257,18 @@ extension Calc {
 
     // MARK: Filterauswahl mit Betrag (Web v190 `openPick` im Tab «Kosten»)
 
+    /// Wert der Filterauswahl mit rechter Spalte («25’200 CHF · 66 %», «keine Zahlungen 2026» bzw. Zähler bei Personen)
+    public struct KBFilterAmountValue: Hashable, Identifiable, Sendable {
+        public var value: KBFilterValue
+        public var text: String
+        public var id: String { value.id }
+    }
+
     /// Werte einer Filterdimension wie `kbFilterValues`, im Tab «Kosten» (Kategorie/Vertragspartner) mit Jahresbetrag und Anteil,
     /// grösste zuerst. Ist ein Personenfilter gesetzt, zählen nur Verträge, die zu den übrigen Filtern (ausser `dim`) passen.
-    public func kbFilterValuesWithAmounts(_ dim: FilterDimension, year: Int, filter: CostFilter) -> [(value: KBFilterValue, text: String)] {
+    public func kbFilterValuesWithAmounts(_ dim: FilterDimension, year: Int, filter: CostFilter) -> [KBFilterAmountValue] {
         let vals = kbFilterValues(dim)
-        if dim == .holder { return vals.map { ($0, $0.countText) } }
+        if dim == .holder { return vals.map { KBFilterAmountValue(value: $0, text: $0.countText) } }
         var amt: [String: Double] = [:]
         var aTot = 0.0
         for c in data.contracts {
@@ -280,9 +287,9 @@ extension Calc {
         let H = home.rawValue
         return sorted.map { v in
             if let a = amt[v.key], a != 0 {
-                return (v, Format.money0(a) + " " + H + " · \(Int(Format.jsRound(a / aTot * 100))) %")
+                return KBFilterAmountValue(value: v, text: Format.money0(a) + " " + H + " · \(Int(Format.jsRound(a / aTot * 100))) %")
             }
-            return (v, "keine Zahlungen \(year)")
+            return KBFilterAmountValue(value: v, text: "keine Zahlungen \(year)")
         }
     }
 }

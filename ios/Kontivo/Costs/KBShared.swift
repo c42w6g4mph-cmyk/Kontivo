@@ -1,7 +1,60 @@
 import SwiftUI
+import UIKit
 import KontivoCore
 
 // Gemeinsame Bausteine der Tabs «Kosten» und «Budget» (Präfix KB = Kosten/Budget).
+// Masse = berechnete Styles der Web-App v224 (Viewport 402 pt, CSS-px = pt).
+
+// MARK: - Masse und Farben (Web v224)
+
+enum KBM {
+    /// Seitenrand der Web-App (17 px bei 402 px Breite)
+    static let side: CGFloat = 17
+    /// Karten «kcard», «mrows2», «dcard»
+    static let cardRadius: CGFloat = 16
+    /// Listen «ilist», «fgcard», «xsum», «ptcard» (Web `--r`)
+    static let listRadius: CGFloat = 13
+
+    /// Zusätzlicher Abstand oben/unten, damit eine Textzeile die CSS-Zeilenhöhe `lh` erreicht (SF ≈ 1.193 × Schriftgrösse).
+    static func pad(_ lh: CGFloat, _ size: CGFloat) -> CGFloat { max(0, (lh - size * 1.193) / 2) }
+}
+
+enum KBColor {
+    /// CSS `color-mix(in srgb, a p%, b)` – je Erscheinungsbild aufgelöst
+    static func mix(_ a: Color, _ p: CGFloat, _ b: Color) -> Color {
+        Color(UIColor { tc in
+            let x = UIColor(a).resolvedColor(with: tc), y = UIColor(b).resolvedColor(with: tc)
+            var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
+            var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
+            x.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+            y.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+            return UIColor(red: r1 * p + r2 * (1 - p), green: g1 * p + g2 * (1 - p), blue: b1 * p + b2 * (1 - p), alpha: a1 * p + a2 * (1 - p))
+        })
+    }
+
+    static func dyn(_ light: Color, _ dark: Color) -> Color {
+        Color(UIColor { tc in UIColor(tc.userInterfaceStyle == .dark ? dark : light) })
+    }
+
+    /// Balken vergangener Monat (Kosten `.col .pd`): hell Messing 22 %, dunkel Tinte 14 %
+    static let barPast = dyn(mix(KColor.brass, 0.22, KColor.surface), mix(KColor.ink, 0.14, KColor.surface))
+    /// Balken vergangener Monat im Budget (`.bcol .bp`): hell Messing 18 %, dunkel Tinte 14 %
+    static let budgetPast = dyn(mix(KColor.brass, 0.18, KColor.surface), mix(KColor.ink, 0.14, KColor.surface))
+    /// Balken künftiger Monat (`.kcard .col i.op`): Tinte 12 %
+    static let barFuture = mix(KColor.ink, 0.12, KColor.surface)
+    /// Gewählter künftiger Monat im Budget (`.bcol.on i.bo`): Tinte 72 %
+    static let budgetFutureOn = mix(KColor.ink, 0.72, KColor.surface)
+    /// Defizit (Budget): Warnfarbe 22 % / 62 % / 45 % (Legende)
+    static let negFuture = mix(KColor.alert, 0.22, KColor.surface)
+    static let negFutureOn = mix(KColor.alert, 0.62, KColor.surface)
+    static let negLegend = mix(KColor.alert, 0.45, KColor.surface)
+    /// Punkt «Offen» (`.kcard .pdot.op`): Tinte 38 %
+    static let openDot = mix(KColor.ink, 0.38, KColor.surface)
+    /// Säulen «Entwicklung»: Vergangenheit Messing 22 %, Zukunft Tinte 12 %
+    static let ptPast = mix(KColor.brass, 0.22, KColor.surface)
+    /// Rand des Bericht-Knopfs (`.ynrep`): Akzent 35 % mit Linie
+    static let reportEdge = mix(KColor.teal, 0.35, KColor.line)
+}
 
 // MARK: - Monat und Jahr wechseln
 
@@ -25,9 +78,13 @@ enum KBMonthNav {
     static func changeYear(_ model: AppModel, by delta: Int) {
         let now = model.today
         if delta > 0 && model.selectedYear >= now.year + 5 { return }
-        let ny = model.selectedYear + delta
+        setYear(model, model.selectedYear + delta)
+    }
+
+    /// Jahr setzen (Säule in «Entwicklung» antippen): im aktuellen Jahr der aktuelle Monat, sonst Januar
+    static func setYear(_ model: AppModel, _ ny: Int) {
         model.selectedYear = ny
-        model.selectedMonth = ny == now.year ? now.month : 1
+        model.selectedMonth = ny == model.today.year ? model.today.month : 1
     }
 
     /// Monat im gewählten Jahr setzen; true, wenn er sich geändert hat
@@ -40,32 +97,206 @@ enum KBMonthNav {
     }
 }
 
-/// «‹ 2026 ›» in der Navigationsleiste
+// MARK: - Seitenkopf (Web `.top`: Titel 30 px, Jahr ‹ 2026 ›, Bericht) und Minileiste beim Scrollen
+
+/// Runder Knopf 36 × 36 mit Linie (Web `.yearnav.ynt button`)
+struct KBRoundButton<Label: View>: View {
+    var tint: Color = KColor.ink2
+    var edge: Color = KColor.line
+    var fill: Color = .clear
+    let action: () -> Void
+    @ViewBuilder var label: Label
+
+    var body: some View {
+        Button(action: action) {
+            label
+                .foregroundStyle(tint)
+                .frame(width: 36, height: 36)
+                .background(Circle().fill(fill))
+                .overlay(Circle().strokeBorder(edge, lineWidth: 1))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// Symbol «Teilen» der Web-App (Pfeil aus der Schale, 17 px, Strich 1.9)
+struct KBShareGlyph: Shape {
+    func path(in r: CGRect) -> Path {
+        let s = r.width / 24
+        var p = Path()
+        p.move(to: CGPoint(x: 12 * s, y: 15 * s)); p.addLine(to: CGPoint(x: 12 * s, y: 4 * s))
+        p.move(to: CGPoint(x: 7.5 * s, y: 8.5 * s)); p.addLine(to: CGPoint(x: 12 * s, y: 4 * s)); p.addLine(to: CGPoint(x: 16.5 * s, y: 8.5 * s))
+        p.move(to: CGPoint(x: 6 * s, y: 11 * s)); p.addLine(to: CGPoint(x: 6 * s, y: 19 * s)); p.addLine(to: CGPoint(x: 18 * s, y: 19 * s))
+        p.addLine(to: CGPoint(x: 18 * s, y: 11 * s))
+        return p.offsetBy(dx: r.minX, dy: r.minY)
+    }
+}
+
+/// Symbol «Weitere Filter» der Web-App (drei kürzer werdende Striche)
+struct KBFilterGlyph: Shape {
+    func path(in r: CGRect) -> Path {
+        let s = r.width / 24
+        var p = Path()
+        p.move(to: CGPoint(x: 4 * s, y: 6 * s)); p.addLine(to: CGPoint(x: 20 * s, y: 6 * s))
+        p.move(to: CGPoint(x: 7 * s, y: 12 * s)); p.addLine(to: CGPoint(x: 17 * s, y: 12 * s))
+        p.move(to: CGPoint(x: 10 * s, y: 18 * s)); p.addLine(to: CGPoint(x: 14 * s, y: 18 * s))
+        return p.offsetBy(dx: r.minX, dy: r.minY)
+    }
+}
+
+/// «‹ 2026 ›» mit optionalem Bericht-Knopf (Web `setTopYear`)
 struct KBYearNav: View {
     @Environment(AppModel.self) private var model
+    var report: (() -> Void)? = nil
 
     var body: some View {
         let y = model.selectedYear
         let maxed = y >= model.today.year + 5
-        HStack(spacing: 6) {
-            Button {
-                withAnimation(.snappy) { KBMonthNav.changeYear(model, by: -1) }
-            } label: {
-                Image(systemName: "chevron.left").fontWeight(.semibold)
+        HStack(spacing: 4) {
+            KBRoundButton(action: { withAnimation(.snappy) { KBMonthNav.changeYear(model, by: -1) } }) {
+                Text(verbatim: "‹").font(.system(size: 16))
             }
             .accessibilityLabel("Vorjahr")
             Text(verbatim: String(y))
-                .font(.headline.monospacedDigit())
+                .font(.system(size: 18, weight: .semibold))
+                .tracking(-0.216)
+                .monospacedDigit()
                 .foregroundStyle(KColor.ink)
+                .frame(minWidth: 50)
                 .accessibilityLabel(Text(verbatim: "Jahr " + String(y)))
-            Button {
-                withAnimation(.snappy) { KBMonthNav.changeYear(model, by: 1) }
-            } label: {
-                Image(systemName: "chevron.right").fontWeight(.semibold)
+            KBRoundButton(action: { withAnimation(.snappy) { KBMonthNav.changeYear(model, by: 1) } }) {
+                Text(verbatim: "›").font(.system(size: 16))
             }
             .disabled(maxed)
+            .opacity(maxed ? 0.3 : 1)
             .accessibilityLabel("Folgejahr")
+            if let report {
+                KBRoundButton(tint: KColor.teal, edge: KBColor.reportEdge, action: report) {
+                    KBShareGlyph()
+                        .stroke(style: StrokeStyle(lineWidth: 1.9, lineCap: .round, lineJoin: .round))
+                        .frame(width: 17, height: 17)
+                }
+                .padding(.leading, 6)
+                .accessibilityLabel("Fixkosten-Bericht als PDF")
+                .accessibilityIdentifier("costs.report")
+            }
         }
+    }
+}
+
+/// Kopf einer Tab-Seite: Titel links (30 px Semibold), rechts optional Jahresnavigation. Höhe 57 pt (Web v184).
+struct KBPageHeader<Trailing: View>: View {
+    let title: String
+    @ViewBuilder var trailing: Trailing
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Text(verbatim: title)
+                .font(KFont.title(30))
+                .tracking(-0.45)
+                .foregroundStyle(KColor.ink)
+                .lineLimit(1)
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 8)
+            trailing
+        }
+        .frame(height: 40)
+        .padding(.top, 17)
+        .frame(height: 57, alignment: .bottom)
+        .background(GeometryReader { g in
+            Color.clear.preference(key: KBHeaderBottomKey.self, value: g.frame(in: .named(KBPage.space)).maxY)
+        })
+    }
+}
+
+struct KBHeaderBottomKey: PreferenceKey {
+    static let defaultValue: CGFloat = 100
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+/// Scrollseite eines Tabs mit eigenem Kopf und Minileiste «Kosten · 2026», sobald der Kopf weggescrollt ist (Web `#miniBar`).
+struct KBPage<Content: View>: View {
+    static var space: String { "kbPage" }
+    let miniTitle: String
+    @ViewBuilder var content: Content
+    @State private var mini = false
+    @State private var viewport: CGFloat = 800
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    Color.clear.frame(height: 0).id("kbTop")
+                    content
+                }
+                .padding(.horizontal, KBM.side)
+                .padding(.bottom, 28)
+                .kContentWidth()
+            }
+            .coordinateSpace(name: KBPage.space)
+            .environment(\.kbScroll, KBScrollContext(proxy: proxy, height: viewport))
+            .background(GeometryReader { g in
+                Color.clear
+                    .onAppear { viewport = g.size.height }
+                    .onChange(of: g.size.height) { _, h in viewport = h }
+            })
+            .onPreferenceChange(KBHeaderBottomKey.self) { b in
+                let on = b < 8
+                if on != mini { withAnimation(.easeOut(duration: 0.18)) { mini = on } }
+            }
+            .overlay(alignment: .top) {
+                if mini {
+                    Button {
+                        withAnimation(.easeInOut) { proxy.scrollTo("kbTop", anchor: .top) }
+                    } label: {
+                        Text(verbatim: miniTitle)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(KColor.ink)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 10)
+                            .padding(.bottom, 10)
+                            .background {
+                                KColor.paper.opacity(0.84)
+                                    .background(.ultraThinMaterial)
+                                    .ignoresSafeArea(edges: .top)
+                            }
+                            .overlay(alignment: .bottom) { Rectangle().fill(KColor.line).frame(height: 1) }
+                    }
+                    .buttonStyle(.plain)
+                    .transition(.opacity)
+                    .accessibilityLabel(Text(verbatim: miniTitle))
+                    .accessibilityHint("Nach oben")
+                }
+            }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+    }
+}
+
+/// Scrollsteuerung der Seite (für «Bereich bleibt an derselben Bildschirmstelle»)
+struct KBScrollContext {
+    var proxy: ScrollViewProxy?
+    var height: CGFloat
+
+    /// Ansicht `id`, deren Oberkante vorher bei `top` (im sichtbaren Bereich) lag, wieder dorthin scrollen.
+    func keep(_ id: String, top: CGFloat, viewHeight: CGFloat) {
+        guard let proxy else { return }
+        let free = height - viewHeight
+        guard free > 1 else { return }
+        let k = min(1, max(0, top / free))
+        proxy.scrollTo(id, anchor: UnitPoint(x: 0.5, y: k))
+    }
+}
+
+private struct KBScrollKey: EnvironmentKey {
+    static let defaultValue = KBScrollContext(proxy: nil, height: 800)
+}
+
+extension EnvironmentValues {
+    var kbScroll: KBScrollContext {
+        get { self[KBScrollKey.self] }
+        set { self[KBScrollKey.self] = newValue }
     }
 }
 
@@ -107,12 +338,17 @@ extension View {
                 }
             }
     }
+
+    /// Weisse Fläche mit Rundung (Web `.kcard`, `.mrows2`: 16 pt, ohne Rand)
+    func kbSurface(_ radius: CGFloat = KBM.cardRadius) -> some View {
+        background(RoundedRectangle(cornerRadius: radius, style: .continuous).fill(KColor.surface))
+    }
 }
 
 private enum KBDragLock { case none, vertical, scrub, page }
 
-/// Weisse Karte des Monats. Finger auf den Balken: Monat folgt dem Finger. Sonst zieht die Karte mit,
-/// beim Loslassen wechselt sie in den Nachbarmonat (auch über den Jahreswechsel).
+/// Weisse Karte des Monats (Web `.kcard`, Innenabstand 14/16). Finger auf den Balken: Monat folgt dem Finger. Sonst zieht die
+/// Karte mit, beim Loslassen wechselt sie in den Nachbarmonat (auch über den Jahreswechsel).
 struct KBPagingCard<Content: View>: View {
     @Environment(AppModel.self) private var model
     private let content: Content
@@ -133,7 +369,11 @@ struct KBPagingCard<Content: View>: View {
     }
 
     var body: some View {
-        KCard(padding: 18) { content }
+        VStack(alignment: .leading, spacing: 0) { content }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .kbSurface()
             .coordinateSpace(KBCardSpace.space)
             .onPreferenceChange(KBScrubFrameKey.self) { f in scrubFrame = f }
             .background(
@@ -249,7 +489,7 @@ struct KBPagingCard<Content: View>: View {
 
 // MARK: - Teile der Monatskarte
 
-/// Kopf der Monatskarte: «OKTOBER 2026» | Filter
+/// Kopf der Monatskarte: «Oktober 2026» (11 px Semibold, ohne Versalien seit v166) | Filter (12 px)
 struct KBCardHeader: View {
     let year: Int
     let month: Int
@@ -257,50 +497,56 @@ struct KBCardHeader: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Text(verbatim: (Format.monthNames[month - 1] + " " + String(year)).uppercased())
-                .font(.caption2.weight(.bold))
-                .tracking(1)
-                .foregroundStyle(KColor.ink3)
+            Text(verbatim: Format.monthNames[month - 1] + " " + String(year))
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(KColor.ink2)
                 .lineLimit(1)
-            Spacer(minLength: 8)
+            Spacer(minLength: 0)
             if !trailing.isEmpty {
                 Text(verbatim: trailing)
-                    .font(.caption)
+                    .font(.system(size: 12))
                     .foregroundStyle(KColor.ink3)
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
         }
+        .padding(.vertical, KBM.pad(15.95, 11))
     }
 }
 
-/// Grosse Zahl mit kleinen Nachkommastellen und Währung («1’284.50 CHF»)
+/// Grosse Zahl in Serif mit kleinen Nachkommastellen und Währung («2’759.07 CHF», Web `.kbig`)
 struct KBBigAmount: View {
     let value: Double
     let currency: String
     /// rot (negativ verfügbar im Budget)
     var alert: Bool = false
-    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 40
+    /// Minuszeichen vor dem Betrag (Budget)
+    var signed: Bool = false
 
     var body: some View {
-        let s = Format.money(value, Currency(rawValue: currency))
+        let s = Format.money(signed ? abs(value) : value, Currency(rawValue: currency))
         let parts = KBBigAmount.split(s)
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            (Text(verbatim: parts.0)
-                .font(.system(size: size, weight: .semibold, design: .rounded).monospacedDigit())
+        let sign = signed && value < 0 ? Format.minus : ""
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
+            (Text(verbatim: sign + parts.0)
+                .font(KFont.serif(40, .medium))
                 .foregroundStyle(alert ? KColor.alert : KColor.ink)
              + Text(verbatim: parts.1)
-                .font(.system(size: size * 0.55, weight: .semibold, design: .rounded).monospacedDigit())
-                .foregroundStyle(KColor.ink2))
+                .font(KFont.serif(22, .semibold))
+                .foregroundStyle(alert ? KColor.alert : KColor.ink2))
+                .tracking(-0.4)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
             Text(verbatim: currency)
-                .font(.footnote.weight(.semibold))
+                .font(.system(size: 13, weight: .semibold))
+                .tracking(0.26)
                 .foregroundStyle(KColor.ink3)
+                .padding(.leading, 8)
         }
+        .frame(height: 40)
         .padding(.top, 10)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: s + " " + currency))
+        .accessibilityLabel(Text(verbatim: sign + s + " " + currency))
     }
 
     static func split(_ s: String) -> (String, String) {
@@ -309,108 +555,148 @@ struct KBBigAmount: View {
     }
 }
 
-/// Vergleich mit dem Vorjahresmonat; ohne Pfeil bei «gleich wie»
+/// Vergleich mit dem Vorjahresmonat (Web `.kvs`): Text immer Tinte 2, Pfeil Messing auf Grün/Warn 16 %
 struct KBCompareLine: View {
     let text: String
     let arrow: String?
-    let color: Color
+    /// Kreisfläche: grün (weniger Kosten / mehr verfügbar), warn, sonst versenkt
+    let tone: Calc.Trend
 
     var body: some View {
         HStack(spacing: 7) {
             if let a = arrow {
                 Text(verbatim: a)
-                    .font(.caption2.weight(.heavy))
+                    .font(.system(size: 11, weight: .heavy))
+                    .foregroundStyle(KColor.brass)
                     .frame(width: 18, height: 18)
-                    .background(Circle().fill(color.opacity(0.16)))
+                    .background(Circle().fill(fill))
                     .accessibilityHidden(true)
             }
             Text(verbatim: text)
-                .font(.footnote.weight(.medium))
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(KColor.ink2)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .foregroundStyle(color)
         .padding(.top, 11)
+    }
+
+    private var fill: Color {
+        switch tone {
+        case .down: return KColor.ok.opacity(0.16)
+        case .up: return KColor.warn.opacity(0.16)
+        case .same: return KColor.sunken
+        }
     }
 }
 
-/// Zelle «Bezeichnung / Betrag» (Bezahlt, Offen, Ø pro Monat …)
+/// Zelle «Bezeichnung / Betrag» (Web `.kc`): 11.5 px Tinte 3, Betrag Serif 17
 struct KBStatCell: View {
     let label: String
     let value: String
     var trailing: Bool = false
     var dot: Color? = nil
     var check: Bool = false
-    /// blass (Wert < 0.005)
+    /// blass (Wert < 0.005, Web `.kc.nil`)
     var muted: Bool = false
     var valueColor: Color? = nil
 
     var body: some View {
         VStack(alignment: trailing ? .trailing : .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                if let d = dot { Circle().fill(d).frame(width: 8, height: 8) }
+            HStack(spacing: 0) {
+                if let d = dot { Circle().fill(d).frame(width: 8, height: 8).padding(.trailing, 6) }
                 Text(verbatim: label)
                 if check {
-                    Text(verbatim: "✓").fontWeight(.heavy).foregroundStyle(KColor.ok)
+                    Text(verbatim: "✓").fontWeight(.heavy).foregroundStyle(KColor.ok).padding(.leading, 5)
                 }
             }
-            .font(.caption)
+            .font(.system(size: 11.5))
             .foregroundStyle(KColor.ink3)
             .lineLimit(1)
+            .padding(.vertical, KBM.pad(16.675, 11.5))
             Text(verbatim: value)
-                .font(Font.headline.weight(muted ? .medium : .semibold).monospacedDigit())
+                .font(KFont.serif(17, .medium))
+                .tracking(-0.17)
                 .foregroundStyle(muted ? KColor.ink3 : (valueColor ?? KColor.ink))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .padding(.vertical, KBM.pad(24.65, 17))
         }
         .frame(maxWidth: .infinity, alignment: trailing ? .trailing : .leading)
         .accessibilityElement(children: .combine)
     }
 }
 
-/// Zeile mit Trennlinie oben (krow der Web-App)
+/// Zeile mit Trennlinie oben (Web `.krow`: margin 18, padding 14, 2 Spalten mit 12 pt Abstand)
 struct KBCardRow<Content: View>: View {
     var top: CGFloat = 18
     @ViewBuilder var content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Rectangle().fill(KColor.line).frame(height: 0.5)
+            Rectangle().fill(KColor.line).frame(height: 1)
             content.padding(.top, 14)
         }
         .padding(.top, top)
     }
 }
 
-/// Monatsnamen unter dem Diagramm; gewählter fett, aktueller Monat mit Punkt
+/// Monatsnamen unter dem Diagramm (Web `.mlabels`): gewählter in Akzentfarbe 800, aktueller Monat mit Punkt
 struct KBMonthLabels: View {
     let year: Int
     let selected: Int
     let today: Day
 
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(alignment: .top, spacing: 3) {
             ForEach(0..<12, id: \.self) { i in
+                let on = i + 1 == selected
                 VStack(spacing: 3) {
                     Text(verbatim: Format.monthShort[i])
-                        .font(.caption2.weight(i + 1 == selected ? .bold : .regular))
-                        .foregroundStyle(i + 1 == selected ? KColor.ink : KColor.ink3)
+                        .font(.system(size: 11, weight: on ? .heavy : .regular))
+                        .foregroundStyle(on ? KColor.teal : KColor.ink3)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
+                        .frame(height: 15.95)
                     Circle()
                         .fill(KColor.teal)
                         .frame(width: 4, height: 4)
                         .opacity(year == today.year && i + 1 == today.month ? 1 : 0)
                 }
                 .frame(maxWidth: .infinity)
+                .frame(height: 26.9, alignment: .top)
             }
         }
         .padding(.top, 7)
     }
 }
 
+/// «Ø» gestrichelte Linie mit Beschriftung rechts (Web `.kcard .avg`)
+struct KBAverageLine: View {
+    /// 0…1 von unten
+    let fraction: CGFloat
+
+    var body: some View {
+        GeometryReader { g in
+            let y = g.size.height * (1 - fraction)
+            Path { p in
+                p.move(to: CGPoint(x: 0, y: y))
+                p.addLine(to: CGPoint(x: g.size.width, y: y))
+            }
+            .stroke(KColor.ink2, style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+            .opacity(0.8)
+            Text(verbatim: "Ø")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(KColor.ink3)
+                .fixedSize()
+                .position(x: g.size.width + 8 + 3.9, y: y)
+        }
+        .allowsHitTesting(false)
+    }
+}
+
 // MARK: - Listen und Kopfzeilen
 
-/// Gruppenkopf (grphead): links Titel, rechts optional Summe
+/// Gruppenkopf (Web `.grp` 20 pt oben + `.grphead` 12 px): links Titel Semibold Tinte, rechts Tinte 2
 struct KBGroupHeader<Trailing: View>: View {
     let title: String
     @ViewBuilder var trailing: Trailing
@@ -418,14 +704,14 @@ struct KBGroupHeader<Trailing: View>: View {
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
             Text(verbatim: title)
-                .font(.footnote)
-                .foregroundStyle(KColor.ink2)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(KColor.ink)
                 .accessibilityAddTraits(.isHeader)
             Spacer(minLength: 8)
             trailing
         }
-        .padding(.horizontal, 4)
-        .padding(.top, 22)
+        .padding(.vertical, KBM.pad(17.4, 12))
+        .padding(.top, 20)
         .padding(.bottom, 6)
     }
 }
@@ -433,32 +719,50 @@ struct KBGroupHeader<Trailing: View>: View {
 extension KBGroupHeader where Trailing == Text {
     init(title: String, amount: String) {
         self.title = title
-        self.trailing = Text(verbatim: amount).font(.footnote.monospacedDigit()).foregroundStyle(KColor.ink2)
+        self.trailing = Text(verbatim: amount).font(.system(size: 12).monospacedDigit()).foregroundStyle(KColor.ink2)
     }
 }
 
-/// Weisser Listenblock mit Rundung (mrows2)
+/// Weisser Listenblock (Web `.mrows2`: 16 pt Rundung, 14 pt Innenrand; `.ilist`: 13 pt, ohne Innenrand)
 struct KBListBlock<Content: View>: View {
     var horizontal: CGFloat = 14
+    var radius: CGFloat = KBM.cardRadius
     @ViewBuilder var content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) { content }
             .padding(.horizontal, horizontal)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).fill(KColor.surface))
-            .overlay(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).strokeBorder(KColor.line, lineWidth: 0.5))
+            .kbSurface(radius)
     }
 }
 
-/// Trennlinie zwischen Zeilen
+/// Trennlinie zwischen Zeilen (1 px Linie)
 struct KBRowDivider: View {
     var body: some View {
-        Rectangle().fill(KColor.line).frame(height: 0.5)
+        Rectangle().fill(KColor.line).frame(height: 1)
     }
 }
 
-/// Auf-/Zuklappen («Bereits bezahlt (3)», «Alle 9 anzeigen»)
+/// Winkel der Web-App (Rahmen rechts/unten um 45° gedreht, `.tfold i`)
+struct KBChevronDown: View {
+    var expanded: Bool
+    var color: Color = KColor.ink3
+
+    var body: some View {
+        Path { p in
+            p.move(to: CGPoint(x: 0, y: 0))
+            p.addLine(to: CGPoint(x: 5.66, y: 5.66))
+            p.addLine(to: CGPoint(x: 11.31, y: 0))
+        }
+        .stroke(color, style: StrokeStyle(lineWidth: 1.6, lineCap: .butt, lineJoin: .miter))
+        .frame(width: 11.31, height: 5.66)
+        .rotationEffect(.degrees(expanded ? 180 : 0))
+        .padding(.trailing, 6)
+    }
+}
+
+/// Auf-/Zuklappen («Bereits bezahlt (3)», «Alle 9 anzeigen», Web `.tfold.pfold`)
 struct KBFoldButton: View {
     let title: String
     let expanded: Bool
@@ -467,14 +771,11 @@ struct KBFoldButton: View {
     var body: some View {
         Button(action: action) {
             HStack {
-                Text(verbatim: title).font(.subheadline).foregroundStyle(KColor.ink2)
+                Text(verbatim: title).font(.system(size: 14)).foregroundStyle(KColor.ink2)
                 Spacer()
-                Image(systemName: "chevron.down")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(KColor.ink3)
-                    .rotationEffect(.degrees(expanded ? 180 : 0))
+                KBChevronDown(expanded: expanded)
             }
-            .padding(.vertical, 12)
+            .padding(.vertical, 12 + KBM.pad(20.3, 14))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -482,9 +783,41 @@ struct KBFoldButton: View {
     }
 }
 
+/// Umschalter «Datum | Betrag» (Web `.pseg.msort`)
+struct KBSegment: View {
+    let options: [String]
+    @Binding var selected: Int
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(options.enumerated()), id: \.offset) { i, t in
+                let on = i == selected
+                Button {
+                    selected = i
+                } label: {
+                    Text(verbatim: t)
+                        .font(.system(size: 11, weight: on ? .semibold : .medium))
+                        .foregroundStyle(on ? KColor.ink : KColor.ink2)
+                        .lineLimit(1)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6 + KBM.pad(15.95, 11))
+                        .background(Capsule().fill(on ? KColor.surface : .clear)
+                            .shadow(color: .black.opacity(on ? 0.1 : 0), radius: 1, y: 1))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(on ? .isSelected : [])
+            }
+        }
+        .padding(2)
+        .background(Capsule().fill(KColor.sunken))
+        .fixedSize()
+    }
+}
+
 // MARK: - Filter-Bedienelemente
 
-/// Auswahlknopf (fsel): Wert oder Platzhalter, gewählt in Teal
+/// Auswahlknopf (Web `.fsel`): 36 pt hoch, Rundung 10, 12.5 px; gewählt Messing mit weisser Schrift
 struct KBSelectButton: View {
     let title: String
     let isOn: Bool
@@ -508,44 +841,44 @@ struct KBSelectLabel: View {
     var body: some View {
         HStack(spacing: 5) {
             Text(verbatim: title)
-                .font(.subheadline.weight(isOn ? .semibold : .regular))
+                .font(.system(size: 12.5, weight: isOn ? .semibold : .regular))
                 .lineLimit(1)
                 .truncationMode(.tail)
             if chevron {
-                Image(systemName: "chevron.down")
-                    .font(.caption2.weight(.semibold))
-                    .opacity(0.7)
+                // Web `.fsel::after`: Winkel 6 × 6, Strich 1.5
+                Path { p in
+                    p.move(to: CGPoint(x: 0, y: 0)); p.addLine(to: CGPoint(x: 4.24, y: 4.24)); p.addLine(to: CGPoint(x: 8.49, y: 0))
+                }
+                .stroke(style: StrokeStyle(lineWidth: 1.5))
+                .frame(width: 8.49, height: 4.24)
+                .padding(.top, -1)
             }
         }
-        .padding(.horizontal, 11)
-        .padding(.vertical, 8)
+        .padding(.leading, 11)
+        .padding(.trailing, 9)
         .frame(maxWidth: .infinity)
-        .foregroundStyle(isOn ? Color.white : KColor.ink)
-        .background(Capsule().fill(isOn ? KColor.tealFill : KColor.surface))
-        .overlay(Capsule().strokeBorder(isOn ? KColor.teal : KColor.line, lineWidth: 1))
-        .contentShape(Capsule())
+        .frame(height: 36.125)
+        .foregroundStyle(isOn ? Color.white : KColor.ink2)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(isOn ? KColor.tealFill : KColor.surface))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(isOn ? KColor.teal : KColor.line, lineWidth: 1))
+        .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 
-/// Runder «×»-Knopf zum Zurücksetzen
+/// Runder «×»-Knopf zum Zurücksetzen (Web `.fclr`)
 struct KBClearButton: View {
     let label: String
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: "xmark")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(KColor.ink2)
-                .frame(width: 34, height: 34)
-                .background(Circle().fill(KColor.sunken))
+        KBRoundButton(fill: KColor.surface, action: action) {
+            Text(verbatim: "×").font(.system(size: 19)).padding(.bottom, 2)
         }
-        .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: label))
     }
 }
 
-/// Personen-Chip mit gleicher Breite (fsel fh)
+/// Personen-Chip mit gleicher Breite (Web `.fsel.fh`)
 struct KBPersonChip: View {
     let title: String
     let isOn: Bool

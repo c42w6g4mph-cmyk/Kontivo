@@ -28,6 +28,8 @@ enum AppSheet: Identifiable, Hashable {
     case bankImport(UUID)
     /// Vollständigkeit (Web `openVk(only)`): nil = alle Verträge, sonst nur dieser (Bereich core)
     case completeness(only: UUID?)
+    /// Fixkosten-Bericht: Auswahl Person/Nummern vor dem PDF (Web v220 `openRepOpts`, Bereich costs); aus «Kosten» mit dessen Personenfilter, aus «Mehr» mit der letzten Auswahl
+    case fixReport(person: UUID?, fromCosts: Bool)
 
     var id: String {
         switch self {
@@ -43,6 +45,7 @@ enum AppSheet: Identifiable, Hashable {
         case .manage(let r): return "manage-\(r.idPart)"
         case .bankImport(let u): return "bank-\(u)"
         case .completeness(let u): return "vk-\(u?.uuidString ?? "")"
+        case .fixReport: return "fixreport"
         }
     }
 
@@ -61,12 +64,14 @@ enum AppSheet: Identifiable, Hashable {
         case .manage: return .manage
         case .bankImport: return .bankImport
         case .completeness: return .completeness
+        case .fixReport: return .fixReport
         }
     }
 }
 
 enum AppSheetKind: Hashable {
     case contractDetail, contractForm, incomeForm, incomeDetail, incomesAll, letter, cancelChannelPick, mail, document, manage, bankImport, completeness
+    case fixReport
 
     /// Darf nicht zweimal direkt übereinander liegen (Doppeltippen öffnet sonst z.B. zwei Mail-Fenster).
     /// Vertragsdetail und Verwalten dürfen übereinander liegen (z.B. Vertragspartner → anderer Vertrag).

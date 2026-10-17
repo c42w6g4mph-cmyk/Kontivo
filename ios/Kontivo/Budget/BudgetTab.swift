@@ -1,5 +1,4 @@
 import SwiftUI
-import Charts
 import KontivoCore
 
 /// Tab «Budget»: Einnahmen − Fixkosten = verfügbar, pro Monat und Person.
@@ -14,58 +13,51 @@ struct BudgetTab: View {
         let bh: UUID? = model.budgetPerson.flatMap { id in persons.contains(where: { $0.id == id }) ? id : nil }
         let incomes = calc.kbBudgetIncomes(person: bh)
         let hasIncomes = !incomes.isEmpty
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                KBBudgetPersonBar(persons: persons, selected: bh)
-                if !hasIncomes, let p = model.data.person(bh) {
-                    noIncomeForPerson(p)
-                } else if !hasIncomes {
-                    emptyPage(calc)
-                } else {
-                    KBBudgetContent(person: bh, incomeCount: incomes.count, showAllExpenses: $showAllExpenses)
-                }
+        KBPage(miniTitle: hasIncomes ? "Budget · " + String(model.selectedYear) : "Budget") {
+            KBPageHeader(title: "Budget") {
+                if hasIncomes { KBYearNav() }
             }
-            .padding(.horizontal, KMetric.gutter)
-            .padding(.bottom, 28)
-            .kContentWidth()
+            KBBudgetPersonBar(persons: persons, selected: bh)
+            if !hasIncomes, let p = model.data.person(bh) {
+                noIncomeForPerson(p)
+            } else if !hasIncomes {
+                emptyPage(calc)
+            } else {
+                KBBudgetContent(person: bh, incomeCount: incomes.count, showAllExpenses: $showAllExpenses)
+            }
         }
         .kPageBackground()
         .navigationTitle("Budget")
-        .toolbar {
-            if hasIncomes {
-                ToolbarItem(placement: .topBarTrailing) { KBYearNav() }
-            }
-        }
     }
 
-    /// Filter aktiv, aber diese Person hat keine Einnahmen
+    /// Filter aktiv, aber diese Person hat keine Einnahmen (Web `.empty` + «+ Einnahme erfassen»)
     private func noIncomeForPerson(_ p: Person) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 5) {
                 Text(verbatim: "Keine Einnahmen für " + p.name)
-                    .font(.headline)
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(KColor.ink)
-                    .multilineTextAlignment(.center)
                 Text("Weise einer Einnahme diese Person als Empfänger zu, dann erscheint hier ihr Budget.")
-                    .font(.subheadline)
+                    .font(.system(size: 14))
+                    .lineSpacing(14 * 0.4)
                     .foregroundStyle(KColor.ink2)
-                    .multilineTextAlignment(.center)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 32)
-            KBListBlock {
-                Button {
-                    model.present(.incomeForm(nil))
-                } label: {
-                    Text("+ Einnahme erfassen")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(KColor.teal)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 46)
+            .padding(.horizontal, 6)
+            Button {
+                model.present(.incomeForm(nil))
+            } label: {
+                Text("+ Einnahme erfassen")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(KColor.teal)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .kbSurface(KBM.listRadius)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .padding(.top, 20)
         }
     }
 
@@ -86,7 +78,7 @@ struct BudgetTab: View {
 
 // MARK: - Personenfilter
 
-/// Chips «Alle | Name …» (2–4 Personen, passende Namen); sonst Auswahlknopf «Inhaber» mit «×»; bei einer Person nichts.
+/// Chips «Alle | Name …» (2–4 Personen, passende Namen, gleich breit); sonst Auswahlknopf «Person» mit «×»; bei einer Person nichts.
 struct KBBudgetPersonBar: View {
     @Environment(AppModel.self) private var model
     let persons: [Person]
@@ -96,9 +88,13 @@ struct KBBudgetPersonBar: View {
         let namer = KBHolderNamer(names: persons.map { $0.name }, width: 361)
         Group {
             if namer.ok {
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 6) { chips(namer) }
-                    selectRow(namer)
+                KBFlexRow(equal: true) {
+                    KBPersonChip(title: "Alle", isOn: selected == nil) { model.budgetPerson = nil }
+                        .kbFlexGrow(1)
+                    ForEach(persons) { p in
+                        KBPersonChip(title: namer.display(p.name), isOn: selected == p.id) { model.budgetPerson = p.id }
+                            .kbFlexGrow(1)
+                    }
                 }
                 .padding(.top, 12)
             } else if persons.count > 1 {
@@ -108,18 +104,10 @@ struct KBBudgetPersonBar: View {
         }
     }
 
-    @ViewBuilder
-    private func chips(_ namer: KBHolderNamer) -> some View {
-        KBPersonChip(title: "Alle", isOn: selected == nil) { model.budgetPerson = nil }
-        ForEach(persons) { p in
-            KBPersonChip(title: namer.display(p.name), isOn: selected == p.id) { model.budgetPerson = p.id }
-        }
-    }
-
     private func selectRow(_ namer: KBHolderNamer) -> some View {
         let name = selected.flatMap { id in persons.first(where: { $0.id == id })?.name } ?? ""
         let binding = Binding<UUID?>(get: { model.budgetPerson }, set: { model.budgetPerson = $0 })
-        return HStack(spacing: 6) {
+        return KBFlexRow {
             Menu {
                 Picker("Person", selection: binding) {
                     Text("Alle Personen").tag(UUID?.none)
@@ -134,6 +122,7 @@ struct KBBudgetPersonBar: View {
             } label: {
                 KBSelectLabel(title: name.isEmpty ? "Person" : namer.display(name), isOn: selected != nil)
             }
+            .kbFlexGrow(1)
             .accessibilityLabel("Person")
             .accessibilityValue(Text(verbatim: name.isEmpty ? "Alle Personen" : name))
             if selected != nil {
@@ -184,20 +173,21 @@ struct KBBudgetCard: View {
         let pname = model.data.person(person)?.name ?? ""
         KBPagingCard {
             KBCardHeader(year: by.year, month: month, trailing: pname.isEmpty ? "" : namer.display(pname))
-            KBBigAmount(value: bm.free, currency: home, alert: bm.free < 0)
+            KBBigAmount(value: bm.free, currency: home, alert: bm.free < 0, signed: true)
             KBBudgetSubline(bm: bm, info: shareInfo(bm, pname: pname))
             if let c = cmp {
-                KBCompareLine(text: c.text, arrow: c.trend.kbArrow, color: KBBudgetCard.color(c.trend))
+                // mehr verfügbar = grüne Fläche (Web-Klasse «down»), weniger = Warnfarbe
+                KBCompareLine(text: c.text, arrow: c.trend.kbArrow, tone: c.trend == .up ? .down : (c.trend == .down ? .up : .same))
             }
             KBCardRow {
-                HStack(alignment: .top) {
+                HStack(alignment: .top, spacing: 12) {
                     KBStatCell(label: "Einnahmen", value: Format.money(bm.income), muted: bm.income < 0.005)
                     KBStatCell(label: "Fixkosten", value: Format.money(bm.fixed), trailing: true, muted: bm.fixed < 0.005)
                 }
             }
             chartArea(home: home)
             KBCardRow(top: 16) {
-                HStack(alignment: .top) {
+                HStack(alignment: .top, spacing: 12) {
                     KBStatCell(label: "Ø pro Monat", value: KBBudgetCard.signed0(by.average),
                                valueColor: by.average < 0 ? KColor.warn : nil)
                     KBStatCell(label: "Verfügbar " + String(by.year), value: KBBudgetCard.signed0(by.totalFree), trailing: true,
@@ -205,6 +195,7 @@ struct KBBudgetCard: View {
                 }
             }
         }
+        .accessibilityIdentifier("budget.card")
     }
 
     /// Einordnung «x % der Einnahmen»: Wert des Monats (auch negativ), dazu Jahresschnitt (Web state._fq)
@@ -231,15 +222,6 @@ struct KBBudgetCard: View {
         (v < 0 ? Format.minus : "") + Format.money0(abs(v))
     }
 
-    /// Farbe invers: mehr verfügbar = Grün, weniger = Warnfarbe
-    static func color(_ t: Calc.Trend) -> Color {
-        switch t {
-        case .up: return KColor.ok
-        case .down: return KColor.warn
-        case .same: return KColor.ink2
-        }
-    }
-
     private func chartArea(home: String) -> some View {
         let frees = by.months.map { $0.free }
         let hasNeg = frees.contains { $0 < 0 }
@@ -247,7 +229,7 @@ struct KBBudgetCard: View {
         return VStack(alignment: .leading, spacing: 0) {
             VStack(spacing: 0) {
                 KBBudgetChart(months: by.months, selected: month, year: by.year, today: model.today, average: by.average)
-                    .frame(height: 140)
+                    .frame(height: 170)
                 KBMonthLabels(year: by.year, selected: month, today: model.today)
             }
             .contentShape(Rectangle())
@@ -255,23 +237,27 @@ struct KBBudgetCard: View {
             .kbMonthAdjustable(model, label: "Verfügbar pro Monat", value: value)
             .padding(.trailing, 16)
             if hasNeg {
+                // Web `.clegend`: rechtsbündig, 11 px Tinte 3, Quadrat 10 × 10
                 HStack(spacing: 6) {
+                    Spacer(minLength: 0)
                     RoundedRectangle(cornerRadius: 2, style: .continuous)
-                        .fill(KColor.alert.opacity(0.45))
+                        .fill(KBColor.negLegend)
                         .frame(width: 10, height: 10)
                     Text("Defizit")
-                        .font(.caption2)
+                        .font(.system(size: 11))
                         .foregroundStyle(KColor.ink3)
                 }
                 .padding(.top, 8)
                 .accessibilityElement(children: .combine)
             }
         }
-        .padding(.top, 34)
+        .padding(.top, 22)
+        .accessibilityIdentifier("budget.chart")
     }
 }
 
-/// «Verfügbar pro Monat»: Balken ab der Nulllinie, negative hängen darunter; vergangene Monate kräftig.
+/// «Verfügbar pro Monat» (Web `.bchart`, 170 pt): Balken ab der Nulllinie, negative hängen darunter; vergangene Monate
+/// (bis heute) blass Messing, künftige grau; gewählter Monat Messing (künftig Tinte 72 %).
 struct KBBudgetChart: View {
     let months: [Calc.BudgetMonth]
     let selected: Int
@@ -283,69 +269,54 @@ struct KBBudgetChart: View {
         let frees = months.map { $0.free }
         let hi = max(0, frees.max() ?? 0)
         let lo = min(0, frees.min() ?? 0)
-        let range = (hi - lo) == 0 ? 1 : (hi - lo)
-        Chart {
-            ForEach(0..<12, id: \.self) { i in
-                bar(i, range: range)
-            }
-            RuleMark(y: .value("Null", 0.0))
-                .foregroundStyle(KColor.line)
-                .lineStyle(StrokeStyle(lineWidth: 1))
-            if abs(average) > 0.005 {
-                RuleMark(y: .value("Ø", average))
-                    .foregroundStyle(KColor.ink2.opacity(0.8))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
-            }
-        }
-        .chartXScale(domain: Format.monthShort)
-        .chartYScale(domain: lo...(hi > lo ? hi : lo + 1))
-        .chartXAxis(.hidden)
-        .chartYAxis(.hidden)
-        .chartLegend(.hidden)
-        .chartOverlay { proxy in
-            GeometryReader { geo in
-                averageLabel(proxy: proxy, geo: geo)
+        let rg = (hi - lo) == 0 ? 1 : (hi - lo)
+        let zp = CGFloat(-lo / rg)
+        GeometryReader { g in
+            let H = g.size.height
+            ZStack(alignment: .topLeading) {
+                HStack(alignment: .bottom, spacing: 3) {
+                    ForEach(0..<12, id: \.self) { i in
+                        bar(i, rg: rg, zp: zp, H: H)
+                    }
+                }
+                Rectangle().fill(KColor.line).frame(height: 1)
+                    .offset(y: H * (1 - zp) - 1)
+                if abs(average) > 0.005 {
+                    KBAverageLine(fraction: zp + CGFloat(average / rg))
+                }
             }
         }
         .accessibilityHidden(true)
     }
 
-    @ChartContentBuilder
-    private func bar(_ i: Int, range: Double) -> some ChartContent {
+    private func bar(_ i: Int, rg: Double, zp: CGFloat, H: CGFloat) -> some View {
         let f = months[i].free
-        let h = max(abs(f), range * 0.008)
+        let neg = f < 0
+        let h = f == 0 ? 0 : max(CGFloat(abs(f) / rg), 0.008) * H
         let past = year < today.year || (year == today.year && i + 1 <= today.month)
         let on = i + 1 == selected
-        if f != 0 {
-            BarMark(x: .value("Monat", Format.monthShort[i]), yStart: .value("Null", 0.0),
-                    yEnd: .value("Verfügbar", f < 0 ? -h : h), width: .ratio(0.8))
-                .foregroundStyle(KBBudgetChart.color(past: past, on: on, negative: f < 0))
-                .cornerRadius(4, style: .continuous)
+        let bottom = neg ? zp * H - h : zp * H
+        return ZStack(alignment: .bottom) {
+            Color.clear
+            UnevenRoundedRectangle(topLeadingRadius: neg ? 0 : 4, bottomLeadingRadius: neg ? 4 : 0,
+                                   bottomTrailingRadius: neg ? 4 : 0, topTrailingRadius: neg ? 0 : 4, style: .circular)
+                .fill(KBBudgetChart.color(past: past, on: on, negative: neg))
+                .frame(height: h)
+                .padding(.bottom, bottom)
         }
+        .frame(maxWidth: .infinity)
+        .frame(height: H)
     }
 
+    /// Web: `.bcol .bp` (auch negativ) blass Messing, gewählt Messing; `.bo` grau, gewählt Tinte 72 %; `.bo.neg` Warnfarbe 22 %/62 %
     static func color(past: Bool, on: Bool, negative: Bool) -> Color {
-        if negative {
-            if past { return on ? KColor.alert : KColor.alert.opacity(0.45) }
-            return KColor.alert.opacity(on ? 0.62 : 0.22)
-        }
-        if past { return on ? KColor.teal : KColor.teal.opacity(0.30) }
-        return KColor.ink.opacity(on ? 0.72 : 0.12)
-    }
-
-    @ViewBuilder
-    private func averageLabel(proxy: ChartProxy, geo: GeometryProxy) -> some View {
-        if abs(average) > 0.005, let pf = proxy.plotFrame, let y = proxy.position(forY: average) {
-            let r = geo[pf]
-            Text(verbatim: "Ø")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(KColor.ink3)
-                .position(x: r.maxX + 9, y: r.minY + y)
-        }
+        if past { return on ? KColor.brass : KBColor.budgetPast }
+        if negative { return on ? KBColor.negFutureOn : KBColor.negFuture }
+        return on ? KBColor.budgetFutureOn : KBColor.barFuture
     }
 }
 
-// MARK: - «Einnahmen {Monat}»
+// MARK: - «Einnahmen {Monat}» (Web `.ilist`)
 
 struct KBBudgetIncomeList: View {
     @Environment(AppModel.self) private var model
@@ -362,12 +333,12 @@ struct KBBudgetIncomeList: View {
         VStack(alignment: .leading, spacing: 0) {
             KBGroupHeader(title: "Einnahmen " + Format.monthNames[month - 1],
                           amount: Format.money(monthIncome) + " " + home.rawValue)
-            KBListBlock(horizontal: 13) {
+            KBListBlock(horizontal: 0, radius: KBM.listRadius) {
                 if rows.isEmpty {
                     Text(verbatim: "Keine Einnahmen im " + Format.monthNames[month - 1])
-                        .font(.subheadline)
+                        .font(.system(size: 14))
                         .foregroundStyle(KColor.ink3)
-                        .padding(.vertical, 13)
+                        .padding(13)
                 } else {
                     ForEach(Array(rows.enumerated()), id: \.element.id) { idx, r in
                         if idx > 0 { KBRowDivider() }
@@ -380,24 +351,28 @@ struct KBBudgetIncomeList: View {
                         model.present(.incomeForm(nil))
                     } label: {
                         Text("+ Einnahme")
-                            .font(.subheadline.weight(.semibold))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(KColor.teal)
-                            .padding(.vertical, 11)
+                            .padding(.horizontal, 13)
+                            .padding(.vertical, 11 + KBM.pad(20.3, 14))
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Einnahme erfassen")
+                    .accessibilityIdentifier("budget.addIncome")
                     Spacer(minLength: 8)
                     Button {
                         model.present(.incomesAll)
                     } label: {
                         Text(verbatim: "Alle Einnahmen (" + String(incomeCount) + ") ›")
-                            .font(.subheadline.weight(.medium))
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(KColor.ink2)
-                            .padding(.vertical, 11)
+                            .padding(.horizontal, 13)
+                            .padding(.vertical, 11 + KBM.pad(20.3, 14))
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("budget.allIncomes")
                 }
             }
         }
@@ -411,38 +386,58 @@ struct KBBudgetIncomeList: View {
             Button {
                 model.present(.incomeDetail(i.id))
             } label: {
-                HStack(spacing: 11) {
-                    MarkView(income: i, size: 32)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(verbatim: i.title)
-                            .font(.body.weight(.medium))
-                            .foregroundStyle(KColor.ink)
-                            .lineLimit(1)
-                        if !sub.isEmpty {
-                            Text(verbatim: sub)
-                                .font(.caption)
-                                .foregroundStyle(KColor.ink3)
-                                .lineLimit(1)
-                        }
-                    }
-                    Spacer(minLength: 8)
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(verbatim: Format.money(r.amount, i.currency))
-                            .font(.body.weight(.semibold).monospacedDigit())
-                            .foregroundStyle(KColor.ink)
-                        if i.currency != home {
-                            Text(verbatim: i.currency.rawValue)
-                                .font(.caption2.weight(.medium))
-                                .foregroundStyle(KColor.ink3)
-                        }
-                    }
-                }
-                .padding(.vertical, 10)
-                .contentShape(Rectangle())
+                KBIncomeRowLabel(income: i, title: i.title, sub: sub, amount: Format.money(r.amount, i.currency),
+                                 currency: i.currency != home ? i.currency.rawValue : nil)
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
         }
+    }
+}
+
+/// Zeile einer Einnahme (Web `.irow`): Kachel 32, Name 15 Medium, Zweitzeile 12 Tinte 2, Betrag 15 Semibold
+struct KBIncomeRowLabel: View {
+    let income: Income
+    let title: String
+    let sub: String
+    let amount: String
+    let currency: String?
+    /// Zweitzeile in Tinte 3 (Web `.it em` in «Alle Einnahmen»)
+    var subMuted = false
+
+    var body: some View {
+        HStack(spacing: 11) {
+            MarkView(income: income, size: 32)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(verbatim: title)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(KColor.ink)
+                    .lineLimit(1)
+                    .frame(height: 21.75)
+                if !sub.isEmpty {
+                    Text(verbatim: sub)
+                        .font(.system(size: 12))
+                        .foregroundStyle(subMuted ? KColor.ink3 : KColor.ink2)
+                        .lineLimit(1)
+                        .frame(height: 17.4)
+                }
+            }
+            Spacer(minLength: 8)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(verbatim: amount)
+                    .font(.system(size: 15, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(KColor.ink)
+                if let c = currency {
+                    Text(verbatim: c)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(KColor.ink3)
+                }
+            }
+        }
+        .padding(.horizontal, 13)
+        .padding(.vertical, 10)
+        .frame(minHeight: 59.1)
+        .contentShape(Rectangle())
     }
 }
 
@@ -472,7 +467,7 @@ struct KBBudgetExpenseList: View {
             KBListBlock {
                 if rows.isEmpty {
                     Text(verbatim: "Keine Ausgaben im " + Format.monthNames[month - 1])
-                        .font(.subheadline)
+                        .font(.system(size: 14))
                         .foregroundStyle(KColor.ink2)
                         .padding(.vertical, 14)
                 } else {
@@ -493,35 +488,42 @@ struct KBBudgetExpenseList: View {
         }
     }
 
-    /// «Einnahmen» / «− Ausgaben» / «= Verfügbar»
+    /// «Einnahmen» / «− Ausgaben» / «= Verfügbar» (Web `.xsum`, 14 px)
     private func sumBlock(home: String) -> some View {
-        VStack(spacing: 6) {
-            sumLine("Einnahmen", Format.money(bm.income))
-            sumLine(Format.minus + " Ausgaben", Format.money(bm.fixed))
-            Rectangle().fill(KColor.line).frame(height: 0.5)
-            sumLine("= Verfügbar", Format.money(bm.free) + " " + home, bold: true)
+        VStack(spacing: 0) {
+            sumLine("Einnahmen", KBBudgetExpenseList.moneyS(bm.income))
+            sumLine(Format.minus + " Ausgaben", KBBudgetExpenseList.moneyS(bm.fixed))
+            VStack(spacing: 0) {
+                Rectangle().fill(KColor.line).frame(height: 1)
+                sumLine("= Verfügbar", KBBudgetExpenseList.moneyS(bm.free) + " " + home, total: true)
+                    .padding(.top, 4)
+            }
+            .padding(.top, 4)
         }
         .padding(.horizontal, 13)
         .padding(.vertical, 10)
-        .background(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).fill(KColor.surface))
-        .overlay(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).strokeBorder(KColor.line, lineWidth: 0.5))
+        .kbSurface(KBM.listRadius)
         .accessibilityElement(children: .combine)
     }
 
-    private func sumLine(_ label: String, _ value: String, bold: Bool = false) -> some View {
+    /// Web `moneyS`: typografisches Minus
+    static func moneyS(_ v: Double) -> String { (v < -0.004 ? Format.minus : "") + Format.money(abs(v)) }
+
+    private func sumLine(_ label: String, _ value: String, total: Bool = false) -> some View {
         HStack {
             Text(verbatim: label)
-                .foregroundStyle(bold ? KColor.ink : KColor.ink2)
+                .font(.system(size: 14, weight: total ? .semibold : .regular))
+                .foregroundStyle(total ? KColor.ink : KColor.ink2)
             Spacer(minLength: 8)
             Text(verbatim: value)
-                .monospacedDigit()
+                .font(.system(size: 14, weight: total ? .bold : .medium).monospacedDigit())
                 .foregroundStyle(KColor.ink)
         }
-        .font(.subheadline.weight(bold ? .semibold : .regular))
+        .padding(.vertical, 3 + KBM.pad(20.3, 14))
     }
 }
 
-/// Zeile in «Ausgaben»: Betrag in Hauptwährung, darunter die Kategorie
+/// Zeile in «Ausgaben»: Betrag in Hauptwährung, darunter die Kategorie (Web `.mrows2 .mrow`)
 struct KBExpenseRowView: View {
     @Environment(AppModel.self) private var model
     let row: Calc.KBExpenseRow
@@ -535,28 +537,32 @@ struct KBExpenseRowView: View {
                 model.present(.contractDetail(c.id))
             } label: {
                 HStack(spacing: 12) {
-                    MarkView(contract: c, data: model.data, size: 40)
-                    VStack(alignment: .leading, spacing: 2) {
+                    MarkView(contract: c, data: model.data, size: 34)
+                    VStack(alignment: .leading, spacing: 0) {
                         Text(verbatim: model.data.title(of: c))
-                            .font(.system(.body, design: .rounded).weight(.semibold))
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
                             .foregroundStyle(KColor.ink)
                             .lineLimit(1)
+                            .frame(height: 20)
                         if !sub.isEmpty {
                             Text(verbatim: sub)
-                                .font(.footnote)
+                                .font(.system(size: 12.5))
                                 .foregroundStyle(KColor.ink2)
                                 .lineLimit(1)
+                                .frame(height: 18.1)
                         }
                     }
                     Spacer(minLength: 8)
-                    VStack(alignment: .trailing, spacing: 2) {
+                    VStack(alignment: .trailing, spacing: 0) {
                         Text(verbatim: amount)
-                            .font(.body.weight(.semibold).monospacedDigit())
+                            .font(.system(size: 16, weight: .semibold).monospacedDigit())
                             .foregroundStyle(KColor.ink)
-                        Text(verbatim: calc.statKey(c, .category))
-                            .font(.caption)
+                            .frame(height: 23.2)
+                        Text(verbatim: c.categoryNameOrDefault(model.data))
+                            .font(.system(size: 12.5))
                             .foregroundStyle(KColor.ink3)
                             .lineLimit(1)
+                            .frame(height: 18.1)
                     }
                     .layoutPriority(1)
                 }
@@ -569,6 +575,13 @@ struct KBExpenseRowView: View {
     }
 }
 
+extension Contract {
+    /// Kategoriename wie Web `c.cat || "Sonstiges"`
+    func categoryNameOrDefault(_ data: AppData) -> String {
+        let n = data.category(categoryID)?.name ?? ""
+        return n.isEmpty ? "Sonstiges" : n
+    }
+}
 
 // MARK: - «Fair geteilt?» (Web .fgcard): Balken = Anteil an den Fixkosten, Strich = Anteil an den Einnahmen
 
@@ -579,32 +592,52 @@ struct KBFairShareView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             KBGroupHeader(title: Calc.fairTitle, amount: Calc.fairSubtitle)
-            KBListBlock {
+            VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(rows.enumerated()), id: \.element.personID) { idx, r in
                     if idx > 0 { KBRowDivider() }
                     HStack(spacing: 12) {
-                        if let p = model.data.person(r.personID) { PersonAvatar(person: p, size: 36) }
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(verbatim: r.name).font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink).lineLimit(1)
-                            Text(verbatim: r.subline).font(.caption.monospacedDigit()).foregroundStyle(KColor.ink3).lineLimit(1)
+                        PersonAvatar(person: model.data.person(r.personID), size: 38)
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(verbatim: r.name)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(KColor.ink)
+                                .lineLimit(1)
+                                .frame(height: 21.75)
+                            Text(verbatim: r.subline)
+                                .font(.system(size: 12.5).monospacedDigit())
+                                .foregroundStyle(KColor.ink3)
+                                .lineLimit(1)
+                                .frame(height: 18.1)
                             GeometryReader { g in
                                 let w = g.size.width
                                 ZStack(alignment: .leading) {
                                     Capsule().fill(KColor.line).frame(height: 8)
-                                    Capsule().fill(KColor.teal.opacity(0.55)).frame(width: w * CGFloat(r.fixedPercent) / 100, height: 8)
-                                    Rectangle().fill(KColor.ink).frame(width: 2, height: 14).offset(x: w * CGFloat(r.incomePercent) / 100 - 1)
+                                    Capsule().fill(KColor.teal.opacity(0.45)).frame(width: w * CGFloat(r.fixedPercent) / 100, height: 8)
+                                    RoundedRectangle(cornerRadius: 2).fill(KColor.ink).frame(width: 3, height: 16)
+                                        .offset(x: w * CGFloat(r.incomePercent) / 100 - 1.5)
                                 }
-                                .frame(height: 14)
+                                .frame(height: 16)
                             }
-                            .frame(height: 14)
+                            .frame(height: 16)
+                            .padding(.top, 2)
                             .accessibilityHidden(true)
                         }
                     }
                     .padding(.vertical, 10)
                     .accessibilityElement(children: .combine)
                 }
-                Text(verbatim: Calc.fairHint).font(.caption).foregroundStyle(KColor.ink3).padding(.vertical, 8)
+                Text(verbatim: Calc.fairHint)
+                    .font(.system(size: 12.5))
+                    .lineSpacing(12.5 * 0.25)
+                    .foregroundStyle(KColor.ink3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 8)
+                    .padding(.bottom, 4)
             }
+            .padding(.horizontal, 14)
+            .padding(.top, 6)
+            .padding(.bottom, 8)
+            .kbSurface(KBM.listRadius)
         }
         .accessibilityIdentifier("budget.fair")
     }

@@ -9,7 +9,7 @@ import KontivoCore
 ///   -uiOnboarding      Einführung (Erststart)
 ///   -uiTab <name>      contracts | costs | budget | deadlines | more
 ///   -uiSheet <name>    detail | form | income | incomes | incomeDetail | incomeEdit | letter | manage | partners | persons | sender
-///                      | categories | quality | cancelpick | completeness
+///                      | categories | quality | cancelpick | completeness | report | reportPDF
 ///                      (incomeDetail/incomeEdit: Einnahme mit Änderungen, Beispiel «Lohn» mit Verlauf)
 ///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich onb)
 ///   -uiSplash          Intro beim Start auch im UI-Test zeigen
@@ -82,6 +82,13 @@ extension AppModel {
         case "sender": if let p = data.persons.first { present(.manage(.sender(p.id))) }
         case "categories": present(.manage(.categories))
         case "quality": present(.manage(.quality))
+        // Bereich costs: Fixkosten-Bericht (Auswahl bzw. fertiges PDF in der Dokumentansicht)
+        case "report": present(.fixReport(person: nil, fromCosts: true))
+        case "reportPDF":
+            let r = calc.fixReport(person: nil, showIDs: true)
+            let d = data
+            let pdf = FixReportPDF.render(r, calc: calc) { d.categoryDisplayColor(named: $0) }
+            present(.document(DocumentRef(fileID: nil, data: pdf, type: "application/pdf", title: "Fixkosten-Bericht", fileName: r.fileName)))
         default: break
         }
     }

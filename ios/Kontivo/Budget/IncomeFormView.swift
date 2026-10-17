@@ -898,39 +898,51 @@ struct KBDueGrid: View {
 
 // MARK: - Chips mit Zeilenumbruch
 
-/// Einfache Fliess-Anordnung für Chips (Empfänger)
+/// Einfache Fliess-Anordnung (Empfänger-Chips, Budget-Zeile «verfügbar nach Fixkosten · …»); Zeilen senkrecht zentriert.
 struct KBChipFlow: Layout {
     var spacing: CGFloat = 8
+    /// Abstand zwischen Zeilen (nil = `spacing`)
+    var lineSpacing: CGFloat? = nil
+
+    private func rows(_ maxW: CGFloat, _ subviews: Subviews) -> [[(Int, CGSize)]] {
+        var out: [[(Int, CGSize)]] = [[]]
+        var x: CGFloat = 0
+        for (i, s) in subviews.enumerated() {
+            let sz = s.sizeThatFits(.unspecified)
+            if x > 0 && x + sz.width > maxW {
+                out.append([])
+                x = 0
+            }
+            out[out.count - 1].append((i, sz))
+            x += sz.width + spacing
+        }
+        return out
+    }
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let maxW = proposal.width ?? .infinity
-        var x: CGFloat = 0, y: CGFloat = 0, rowH: CGFloat = 0, w: CGFloat = 0
-        for s in subviews {
-            let sz = s.sizeThatFits(.unspecified)
-            if x > 0 && x + sz.width > maxW {
-                y += rowH + spacing
-                x = 0
-                rowH = 0
-            }
-            x += sz.width + spacing
-            rowH = max(rowH, sz.height)
-            w = max(w, x - spacing)
+        let rs = rows(maxW, subviews)
+        let ls = lineSpacing ?? spacing
+        var h: CGFloat = 0, w: CGFloat = 0
+        for (k, r) in rs.enumerated() {
+            h += (r.map { $0.1.height }.max() ?? 0) + (k > 0 ? ls : 0)
+            w = max(w, r.reduce(0) { $0 + $1.1.width } + spacing * CGFloat(max(0, r.count - 1)))
         }
-        return CGSize(width: proposal.width ?? w, height: y + rowH)
+        return CGSize(width: proposal.width ?? w, height: h)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var x = bounds.minX, y = bounds.minY, rowH: CGFloat = 0
-        for s in subviews {
-            let sz = s.sizeThatFits(.unspecified)
-            if x > bounds.minX && x + sz.width > bounds.maxX {
-                y += rowH + spacing
-                x = bounds.minX
-                rowH = 0
+        let rs = rows(bounds.width, subviews)
+        let ls = lineSpacing ?? spacing
+        var y = bounds.minY
+        for r in rs {
+            let rh = r.map { $0.1.height }.max() ?? 0
+            var x = bounds.minX
+            for (i, sz) in r {
+                subviews[i].place(at: CGPoint(x: x, y: y + (rh - sz.height) / 2), anchor: .topLeading, proposal: ProposedViewSize(sz))
+                x += sz.width + spacing
             }
-            s.place(at: CGPoint(x: x, y: y), anchor: .topLeading, proposal: ProposedViewSize(sz))
-            x += sz.width + spacing
-            rowH = max(rowH, sz.height)
+            y += rh + ls
         }
     }
 }

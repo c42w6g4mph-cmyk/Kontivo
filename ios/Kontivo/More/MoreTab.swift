@@ -13,6 +13,7 @@ struct MoreTab: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 12) {
+                MoreReportGroup() // Bereich costs: Fixkosten-Bericht (Costs/FixReportSheet.swift)
                 MoreThemeGroup()
                 MoreCurrencyGroup(expanded: $moreCurrencies)
                 MoreManageGroup()

@@ -66,6 +66,14 @@ final class CostDriversReportTests: XCTestCase {
         XCTAssertTrue(l.groups.isEmpty)
     }
 
+    func testCategoryDisplayColors() throws {
+        let calc = try demo()
+        XCTAssertEqual(calc.data.categoryDisplayColor(named: "Versicherung"), "#2F7F7A")
+        XCTAssertEqual(calc.data.categoryDisplayColor(named: "Wohnen"), "#6A4FB3")
+        XCTAssertEqual(calc.data.categoryDisplayColor(named: "Familie & Bildung"), "#3B8BC9")
+        XCTAssertEqual(CategoryPalette.display("#123456", key: "Wohnen"), "#123456")
+    }
+
     func testPickAmounts() throws {
         let calc = try demo()
         let v = calc.kbFilterValuesWithAmounts(.category, year: 2026, filter: Calc.CostFilter())
