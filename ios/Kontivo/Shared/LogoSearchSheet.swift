@@ -656,7 +656,12 @@ enum LogoTile {
         let E = [P(cx, fy0 + bh * 0.1), P(cx, fy1 - bh * 0.1), P(fx0 + bw * 0.1, cy), P(fx1 - bw * 0.1, cy)]
         if E.contains(where: bg) { return full }
         for a in 1..<4 where dist(E[0], E[a]) > 60 { return full }
-        let T = (0..<3).map { k in jr(CGFloat(E[0][k] + E[1][k] + E[2][k] + E[3][k]) / 4) } + [255]
+        var T: [Int] = []
+        for k in 0..<3 {
+            let sum: Int = E[0][k] + E[1][k] + E[2][k] + E[3][k]
+            T.append(jr(CGFloat(sum) / 4))
+        }
+        T.append(255)
         func near(_ p: [Int]) -> Bool { dist(p, T) < 54 }
         let corners: [(CGFloat, CGFloat)] = [(0.14, 0.14), (0.86, 0.14), (0.14, 0.86), (0.86, 0.86)]
         for f in corners where !near(P(fx0 + bw * f.0, fy0 + bh * f.1)) { return full }

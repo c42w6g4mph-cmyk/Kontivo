@@ -236,9 +236,8 @@ struct BankReviewView: View {
                 .padding(.bottom, 8)
         }
         if !known.isEmpty {
-            showButton(review.showKnown ? "Schon erfasste ausblenden"
-                       : "\(known.count)" + (known.count == 1 ? " Vertrag ist schon in Kontivo" : " Verträge sind schon in Kontivo") + " ›",
-                       top: 18, id: "bankKnownToggle") {
+            let knownText: String = known.count == 1 ? "1 Vertrag ist schon in Kontivo ›" : "\(known.count) Verträge sind schon in Kontivo ›"
+            showButton(review.showKnown ? "Schon erfasste ausblenden" : knownText, top: 18, id: "bankKnownToggle") {
                 withAnimation(.easeInOut(duration: 0.2)) { review.showKnown.toggle() }
             }
             if review.showKnown {
@@ -251,8 +250,8 @@ struct BankReviewView: View {
             }
         }
         if nIgn > 0 {
-            showButton(review.showIgnored ? "Ausgeblendete verbergen"
-                       : "\(nIgn)" + (nIgn == 1 ? " ausgeblendeter Vorschlag" : " ausgeblendete Vorschläge") + " ›", id: "bankIgnToggle") {
+            let ignText: String = nIgn == 1 ? "1 ausgeblendeter Vorschlag ›" : "\(nIgn) ausgeblendete Vorschläge ›"
+            showButton(review.showIgnored ? "Ausgeblendete verbergen" : ignText, id: "bankIgnToggle") {
                 withAnimation(.easeInOut(duration: 0.2)) { review.showIgnored.toggle() }
             }
         }
