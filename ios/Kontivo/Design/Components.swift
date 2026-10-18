@@ -381,6 +381,10 @@ struct KMiniBar: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("kMiniBar")
+            .accessibilityHint("Nach oben")
+            // nur sichtbar auch für VoiceOver/Tests (Web `aria-hidden` solange aus)
+            .accessibilityHidden(!visible)
             .ignoresSafeArea(edges: .top)
             .opacity(visible ? 1 : 0)
             .offset(y: visible ? 0 : -6)
@@ -388,7 +392,6 @@ struct KMiniBar: View {
             .allowsHitTesting(visible)
         }
         .frame(height: 0, alignment: .top)
-        .accessibilityHidden(true)
     }
 }
 

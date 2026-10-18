@@ -146,6 +146,20 @@ class KontivoUITestCase: XCTestCase {
                 n += 1
             }
         }
+        uncoverFromMiniBar(e)
+    }
+
+    /// Mini-Kopfzeile der Tab-Seiten (`KMiniBar`, Kennung `kMiniBar`) liegt oben über dem Inhalt wie im Web; ein Tipp darauf
+    /// scrollt nach oben. Liegt das Element darunter, die Seite ein Stück zurückziehen.
+    func uncoverFromMiniBar(_ e: XCUIElement) {
+        let bar = app.buttons["kMiniBar"].firstMatch
+        guard bar.exists, e.exists else { return }
+        let limit = bar.frame.maxY + 8
+        guard e.frame.minY < limit else { return }
+        let dy = min(400, limit - e.frame.minY + 120)
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
+        start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: dy)))
+        usleep(600_000)
     }
 
     /// Wartet auf das Element (siehe reveal) und tippt es an.
