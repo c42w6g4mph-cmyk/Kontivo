@@ -1,17 +1,17 @@
 import XCTest
 
-/// a) Einführung: durchwischen und «Weiter», Einrichten (CHF, Name), «Erst mal umschauen» → Verträge, Leerseite
+/// a) Einführung (Web v224): durchwischen und «Weiter», Einrichten (CHF, Name), «Erst mal umschauen» → Verträge, Leerseite
 final class OnboardingUITests: KontivoUITestCase {
 
     func testEinfuehrungBisLeerseite() {
         launch("-uiOnboarding")
 
         tap(buttonStarting("Los geht"), "Los geht’s")
-        wait(el("Alle Verträge im Blick"), "Seite Verträge")
+        wait(elContaining("Alle Verträge von Hand erfassen"), "Seite Automatisch erfassen")
 
         // eine Seite per Wischen
         app.swipeLeft()
-        waitUntil("Seite Kosten nach Wischen") { el("Jeden Monat im Voraus geplant").exists && el("Jeden Monat im Voraus geplant").isHittable }
+        waitUntil("Seite Verträge nach Wischen") { el("Endlich alles im Blick").exists && el("Endlich alles im Blick").isHittable }
 
         // weiter mit «Weiter» bis zur Seite «Noch zwei Angaben»
         let setupTitle = el("Noch zwei Angaben")
@@ -26,7 +26,7 @@ final class OnboardingUITests: KontivoUITestCase {
             usleep(700_000)
         }
         XCTAssertTrue(setupTitle.isHittable, "Seite «Noch zwei Angaben» nicht erreicht")
-        XCTAssertEqual(taps, 4, "Erwartet: 4× «Weiter» von Kosten bis Einrichten")
+        XCTAssertEqual(taps, 4, "Erwartet: 4× «Weiter» von Verträge bis Einrichten")
 
         // Hauptwährung CHF und Name
         let chf = buttonStarting("CHF")
@@ -60,23 +60,37 @@ final class OnboardingUITests: KontivoUITestCase {
         XCTAssertTrue(holders.label.contains("Sinan"), "Name nicht übernommen: \(holders.label)")
     }
 
-    /// b) Alle Seiten des Erststarts mit Bildschirmfotos und den Texten von Web v141
-    ///    (Kontoauszug, Kündigen per Tipp, Tipps, letzter Schritt «Automatisch finden» + «Mit Vorlage starten»)
+    /// b) Alle Seiten des Erststarts mit Bildschirmfotos und den Texten von Web v224
+    ///    (Willkommen, Automatisch erfassen, 4 Tabs, Einrichten, letzter Schritt «Automatisch erfassen» + «Selbst erfassen»)
     func testEinfuehrungSeitenBildschirmfotos() {
         launch("-uiOnboarding")
 
         // 1 Willkommen
         wait(buttonStarting("Los geht"), "Los geht’s")
-        XCTAssertTrue(elContaining("Kontoauszug rein – Fixkosten erkannt").exists, "Versprechen Kontoauszug fehlt")
+        XCTAssertTrue(elContaining("Nie mehr zu viel bezahlen").exists, "Versprechen «Nie mehr zu viel bezahlen» fehlt")
+        XCTAssertTrue(button("Ich habe schon ein Backup").exists, "Knopf «Ich habe schon ein Backup» fehlt")
         keepShot("onb-1-willkommen")
         tap(buttonStarting("Los geht"), "Los geht’s")
 
-        // 2–5 Tabs
+        // 2 Automatisch erfassen (drei Wege, Hinweis «Bleibt auf deinem Gerät»)
+        let autoTitle = elContaining("Alle Verträge von Hand erfassen")
+        waitUntil("Seite «Automatisch erfassen»") { autoTitle.exists && autoTitle.isHittable }
+        for w in ["Kontoauszug laden", "PDF hochladen", "Foto machen"] {
+            XCTAssertTrue(elContaining(w).exists, "Weg «\(w)» fehlt")
+        }
+        XCTAssertFalse(elContaining("PDF hochladen").label.lowercased().contains("bald"), "PDF gibt es nativ schon – kein «bald»")
+        XCTAssertTrue(elContaining("Bleibt auf deinem Gerät").exists, "Hinweis «Bleibt auf deinem Gerät» fehlt")
+        XCTAssertTrue(button("Überspringen").exists, "«Überspringen» fehlt")
+        keepShot("onb-2-automatisch")
+        guard let w0 = firstHittable(buttons("Weiter")) else { return XCTFail("Kein «Weiter» auf «Automatisch erfassen»") }
+        w0.tap()
+
+        // 3–6 Tabs
         let pages: [(title: String, bullet: String?, shot: String)] = [
-            ("Alle Verträge im Blick", "Per Kontoauszug in Minuten erfasst", "onb-2-vertraege"),
-            ("Jeden Monat im Voraus geplant", nil, "onb-3-kosten"),
-            ("Weisst du, was dir bleibt?", nil, "onb-4-budget"),
-            ("Keine ungewollten Vertragsverlängerungen", "Kündigen mit einem Tipp – Schreiben fertig", "onb-5-fristen"),
+            ("Endlich alles im Blick", "CHF und EUR automatisch umgerechnet", "onb-3-vertraege"),
+            ("Nie mehr überrascht", "Du siehst, was teurer geworden ist", "onb-4-kosten"),
+            ("Wissen, was dir bleibt", nil, "onb-5-budget"),
+            ("Nie mehr zu spät kündigen", "Kündigungsschreiben mit einem Tipp", "onb-6-fristen"),
         ]
         for p in pages {
             waitUntil("Seite «\(p.title)»") { self.el(p.title).exists && self.el(p.title).isHittable }
@@ -85,17 +99,6 @@ final class OnboardingUITests: KontivoUITestCase {
             guard let weiter = firstHittable(buttons("Weiter")) else { return XCTFail("Kein «Weiter» auf \(p.title)") }
             weiter.tap()
         }
-
-        // 6 Gut zu wissen
-        waitUntil("Seite «Clever bis ins Detail»") { self.el("Clever bis ins Detail").exists && self.el("Clever bis ins Detail").isHittable }
-        let einlesen = elContaining("Kontoauszug einlesen")
-        XCTAssertTrue(einlesen.exists, "Tipp «Kontoauszug einlesen» fehlt")
-        let pdf = elContaining("Kontoauszug als PDF oder Foto")
-        XCTAssertTrue(pdf.exists, "Tipp «Kontoauszug als PDF oder Foto» fehlt")
-        XCTAssertFalse(pdf.label.contains("Bald"), "PDF/Foto gibt es nativ schon – kein «Bald»: \(pdf.label)")
-        keepShot("onb-6-tipps")
-        guard let weiter = firstHittable(buttons("Weiter")) else { return XCTFail("Kein «Weiter» auf «Gut zu wissen»") }
-        weiter.tap()
 
         // 7 Einrichten
         waitUntil("Seite «Noch zwei Angaben»") { self.el("Noch zwei Angaben").exists && self.el("Noch zwei Angaben").isHittable }
@@ -106,13 +109,14 @@ final class OnboardingUITests: KontivoUITestCase {
         // 8 Womit fangen wir an?
         waitUntil("Seite «Womit fangen wir an?»") { self.el("Womit fangen wir an?").exists && self.el("Womit fangen wir an?").isHittable }
         let auto = el("onbAutoFind")
-        XCTAssertTrue(auto.exists, "Karte «Automatisch finden» fehlt")
-        XCTAssertTrue(auto.label.contains("Automatisch finden"), "Karte: \(auto.label)")
-        XCTAssertTrue(elContaining("Mit Vorlage starten").exists, "Abschnitt «Mit Vorlage starten» fehlt")
-        XCTAssertTrue(buttonStarting("Miete").exists, "Vorlage «Miete» fehlt")
+        XCTAssertTrue(auto.exists, "Karte «Automatisch erfassen» fehlt")
+        XCTAssertTrue(auto.label.contains("Automatisch erfassen"), "Karte: \(auto.label)")
+        XCTAssertTrue(elContaining("Selbst erfassen").exists, "Abschnitt «Selbst erfassen – tipp an, was du hast» fehlt")
+        XCTAssertTrue(el("oder").exists, "Trenner «oder» fehlt")
+        XCTAssertTrue(buttonStarting("Versicherung").exists, "Vorlage «Versicherung» fehlt")
         keepShot("onb-8-start")
 
-        // «Automatisch finden» bietet die Quellen an
+        // «Automatisch erfassen» bietet die Quellen an
         auto.tap()
         let datei = app.buttons.matching(pred("label BEGINSWITH %@", "Datei wählen")).firstMatch
         XCTAssertTrue(datei.waitForExistence(timeout: 5), "Auswahl «Datei wählen» fehlt")

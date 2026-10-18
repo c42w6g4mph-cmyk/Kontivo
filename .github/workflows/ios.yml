@@ -158,7 +158,14 @@ jobs:
           shoot $PHONE 20-datenqualitaet -uiDemo -uiSheet quality
           shoot $PHONE 21-leer-kosten -uiEmpty -uiTab costs
           shoot $PHONE 22-leer-fristen -uiEmpty -uiTab deadlines
+          for P in 1 2 3 4 5 6 7; do shoot $PHONE 40-onb-$P -uiOnboarding -uiOnbPage $P; done
+          shoot $PHONE 41-fristen-vorgemerkt -uiDemo -uiTab deadlines -uiDeadlines marked -uiSeed endsself
+          shoot $PHONE 42-fristen-offen -uiDemo -uiTab deadlines -uiDeadlines review,folds,end
           xcrun simctl ui $PHONE appearance dark
+          for P in 0 1 2 3 4 5 6 7; do shoot $PHONE 43-dunkel-onb-$P -uiOnboarding -uiOnbPage $P; done
+          shoot $PHONE 44-dunkel-fristen -uiDemo -uiTab deadlines
+          shoot $PHONE 45-dunkel-fristen-offen -uiDemo -uiTab deadlines -uiDeadlines review,folds,end
+          shoot $PHONE 46-dunkel-leer-fristen -uiEmpty -uiTab deadlines
           shoot $PHONE 23-dunkel-vertraege -uiDemo -uiTab contracts
           shoot $PHONE 24-dunkel-kosten -uiDemo -uiTab costs
           shoot $PHONE 25-dunkel-detail -uiDemo -uiSheet detail
