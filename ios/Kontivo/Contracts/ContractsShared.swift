@@ -137,19 +137,36 @@ struct CTFlowLayout: Layout {
     }
 }
 
+// MARK: - Symbole der Web-App (SVG im Asset-Katalog, `ic.ct.<name>`, Vektor, Template)
+
+/// Eigene Inline-SVGs der Web-App 1:1 (Pfade und Strichstärke aus index.html). Farbe über `.foregroundStyle`.
+enum CTIcon {
+    static func named(_ name: String, _ size: CGFloat) -> some View {
+        Image("ic.ct." + name)
+            .renderingMode(.template)
+            .resizable()
+            .interpolation(.high)
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
+    }
+    static func search(_ s: CGFloat) -> some View { named("search", s) }
+    static func filter(_ s: CGFloat) -> some View { named("filter", s) }
+    static func sort(_ s: CGFloat) -> some View { named("sort", s) }
+}
+
 // MARK: - Kleine Bausteine
 
-/// Graue Etikette auf der Vertragskarte («gekündigt per 30.11.26», «pausiert»)
+/// Graue Etikette auf der Vertragskarte («gekündigt per 30.11.26», «pausiert»), Web `.ptag`: 11/600, Fläche `--sunken`, 1/8
 struct CTTag: View {
     let text: String
-    var tone: Color = KColor.ink2
     var body: some View {
         Text(text)
-            .font(.caption.weight(.semibold))
+            .font(.system(size: 11, weight: .semibold))
             .lineLimit(1)
-            .padding(.horizontal, 7).padding(.vertical, 2)
-            .foregroundStyle(tone)
-            .background(Capsule().fill(tone.opacity(0.12)))
+            .ctLine(15.95)
+            .padding(.horizontal, 8).padding(.vertical, 1)
+            .foregroundStyle(KColor.ink2)
+            .background(Capsule().fill(KColor.sunken))
     }
 }
 
@@ -175,6 +192,33 @@ struct CTIDItem: Identifiable, Hashable {
 struct CTImageItem: Identifiable {
     let id = UUID()
     let image: UIImage
+}
+
+// MARK: - Formulartexte (Web v202/v210)
+
+// TODO core-API: Texte gehören in `ContractFormRules` (Bereich core: mandatoryTitle/-Subtitle/-Info). Bei der Integration ersetzen.
+enum CTFormText {
+    static let mandatoryTitle = "Pflichtvertrag"
+    static let mandatorySubtitle = "Kündigen nur mit neuem Anbieter"
+    static let mandatoryInfo = "Pflichtverträge sind Verträge, die du haben musst. Du kannst sie nicht ersatzlos kündigen, sondern nur zu einem anderen Anbieter wechseln.\n\nBeispiele: Krankenkasse, Autohaftpflicht."
+}
+
+/// Infoknopf «i» (Web `.catinfo`: 19 pt Kreis, Rand 1.4 Tinte 3, «i» kursiv Georgia 11.5/600 Tinte 2)
+struct CTInfoButton: View {
+    let label: String
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text("i")
+                .font(.custom("Georgia", size: 11.5).weight(.semibold).italic())
+                .foregroundStyle(KColor.ink2)
+                .frame(width: 19, height: 19)
+                .overlay(Circle().strokeBorder(KColor.ink3, lineWidth: 1.4))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(label)
+    }
 }
 
 // MARK: - Texte
@@ -253,6 +297,7 @@ extension AppModel {
 /// UI-Tests: Startargument «-uiSeed a,b» passt Beispieldaten für Fälle an, die DemoData nicht hat (nichts wird gespeichert):
 /// - `mailcheck`: Swisscom «Handy» mit Kündigungsweg E-Mail und Adresse, ohne Kundennummer («Kundennummer fehlt»)
 /// - `endsself`: «Fitnessabo» ohne Verlängerung («Endet von selbst», Web v160)
+/// - `skr`: «Krankenkasse» (CSS) mit neuer Prämie ab 1.1.2027 (Sonderkündigung KVG, Web v205)
 @MainActor
 enum CTUITestSeed {
     private static var done = false
@@ -273,6 +318,9 @@ enum CTUITestSeed {
             }
             if seeds.contains("endsself"), let id = contract(label: "Fitnessabo"), let k = d.contractIndex(id) {
                 d.contracts[k].renewMonths = 0
+            }
+            if seeds.contains("skr"), let id = contract(label: "Krankenkasse"), let k = d.contractIndex(id) {
+                d.contracts[k].prices = [PriceChange(from: Day(2027, 1, 1), amount: 430)]
             }
         }
     }

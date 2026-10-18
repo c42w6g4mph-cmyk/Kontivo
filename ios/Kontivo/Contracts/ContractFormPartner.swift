@@ -9,19 +9,20 @@ struct CTFormPartnerField: View {
     var focus: FocusState<ContractFormField?>.Binding
 
     var body: some View {
-        HStack(spacing: 6) {
-            TextField("Vertragspartner", text: Binding(
+        HStack(spacing: 0) {
+            TextField("", text: Binding(
                 get: { form.partnerName },
                 set: { v in
                     // SwiftUI setzt den Wert beim Schliessen der Tastatur erneut: nur echte Änderungen suchen
                     let changed = v != form.partnerName
                     form.userTypedPartner(v)
                     if changed { CTPartnerSearch.schedule(form) }
-                }))
+                }), prompt: Text("Vertragspartner").foregroundColor(KColor.ink3))
+                .font(.system(size: 16))
                 .focused(focus, equals: .partner)
                 .textInputAutocapitalization(.words)
                 .autocorrectionDisabled()
-                .foregroundStyle(KColor.ink)
+                .foregroundStyle(KColor.ink2)
                 .submitLabel(.done)
                 .onSubmit { form.partnerCommitted(data: model.data) }
                 .accessibilityLabel("Vertragspartner")
@@ -30,16 +31,17 @@ struct CTFormPartnerField: View {
                 focus.wrappedValue = nil
                 form.showCatalog = true
             } label: {
-                Image(systemName: "book")
+                CTIcon.named("book", 20)
                     .foregroundStyle(KColor.teal)
-                    .frame(width: 30, height: 30)
+                    .frame(width: 38, height: 38)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
             .accessibilityLabel("Aus Katalog wählen")
             .accessibilityIdentifier("form.catalog")
         }
-        .padding(.leading, 10).padding(.trailing, 4).padding(.vertical, 4)
+        .padding(.leading, 10)
+        .frame(height: 38)
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.field))
         .id(ContractFormField.partner)
         .onChange(of: focus.wrappedValue == .partner) { was, now in
@@ -48,13 +50,15 @@ struct CTFormPartnerField: View {
             } else if was {
                 // Web «change» beim Verlassen des Felds
                 form.partnerCommitted(data: model.data)
-                let f = form
-                Task { @MainActor in
-                    try? await Task.sleep(nanoseconds: 250_000_000)
-                    if focus.wrappedValue != .partner { f.sugVisible = false }
-                }
+                // Web v214: Liste bleibt beim Schliessen der Tastatur offen; Wechsel in ein anderes Feld = Tipp ausserhalb
+                if focus.wrappedValue != nil { CTPartnerSearch.hide(form) }
             }
         }
+        .background(GeometryReader { g in
+            Color.clear
+                .onAppear { form.partnerFieldFrame = g.frame(in: .global) }
+                .onChange(of: g.frame(in: .global)) { _, r in form.partnerFieldFrame = r }
+        })
     }
 }
 
@@ -92,7 +96,59 @@ enum CTPartnerSearch {
     }
 }
 
-/// Vorschlagsliste unter dem Kopf (Web #pSug): «Deine Vertragspartner», «Aus dem Internet»
+/// Katalogtreffer für die gemeinsame Trefferliste (Web v213 `tplHits`, `tplAll`, `tplTerm`).
+// TODO core-API: `Catalog.hits(_:currency:more:)` / `Catalog.all(named:currency:)` / `CatalogEntry.termShort` (Bereich core); hier lokal 1:1.
+enum CTCatalogHits {
+    /// Web `tplAll(n, cur)`: alle Einträge mit diesem Namen; mehrere → die des Landes (EUR → DE, sonst CH) plus internationale
+    static func all(_ name: String, currency: Currency) -> [CatalogEntry] {
+        let n = name.ctTrimmed.lowercased()
+        var L = Catalog.entries.filter { $0.name.lowercased() == n }
+        if L.count > 1 {
+            let cc = currency == .EUR ? "DE" : "CH"
+            let m = L.filter { $0.country == cc }
+            if !m.isEmpty { L = m + L.filter { $0.country.isEmpty } }
+        }
+        return L
+    }
+
+    /// Web `tplHits(q)`: exakte Namen, sonst «Name Bezeichnung» enthält den Text (nur Länder-Variante passend zur Währung);
+    /// höchstens 3 (mit «Weitere» 8). `more` = es gibt mehr als 3.
+    static func hits(_ q: String, currency: Currency, more: Bool) -> (list: [CatalogEntry], hasMore: Bool) {
+        let n = q.ctTrimmed.lowercased()
+        if n.count < 2 { return ([], false) }
+        let ex = Catalog.entries.filter { $0.name.lowercased() == n }
+        let L = !ex.isEmpty ? ex : Catalog.entries.filter { t in
+            (t.name + " " + t.label).lowercased().contains(n) && all(t.name, currency: currency).contains(t)
+        }
+        return (Array(L.prefix(more ? 8 : 3)), L.count > 3 && !more)
+    }
+
+    /// Web `tplTerm(t)`: «nicht kündbar», «Pflichtvertrag», «jederzeit kündbar» oder «3 Monate Frist»
+    static func term(_ t: CatalogEntry) -> String {
+        if t.category == "Steuern & Gebühren" { return "nicht kündbar" }
+        if t.mandatory { return "Pflichtvertrag" }
+        let n = t.notice
+        if n == 0 { return "jederzeit kündbar" }
+        let u: (String, String)
+        switch t.noticeUnit {
+        case .days: u = ("Tag", "Tage")
+        case .weeks: u = ("Woche", "Wochen")
+        default: u = ("Monat", "Monate")
+        }
+        return "\(n) " + (n == 1 ? u.0 : u.1) + " Frist"
+    }
+
+    /// Unterzeile: Bezeichnung (sonst Kategorie) · Land bei mehreren Einträgen gleichen Namens · Kündigung
+    static func subtitle(_ t: CatalogEntry, currency: Currency) -> String {
+        let multi = all(t.name, currency: currency).count > 1
+        let land = multi && !t.country.isEmpty ? (t.country == "CH" ? "Schweiz" : t.country == "DE" ? "Deutschland" : t.country) : ""
+        return [t.label.isEmpty ? t.category : t.label, land, term(t)].filter { !$0.isEmpty }.joined(separator: " · ")
+    }
+}
+
+/// Gemeinsame Trefferliste unter dem Vertragspartner (Web v213 `#pSug`): «Deine Vertragspartner» · «Katalog» · «Aus dem Internet»,
+/// gleiche Website nur einmal (Katalog gewinnt). Bleibt beim Schliessen der Tastatur offen; schliesst bei Tipp ausserhalb oder
+/// nach einer Auswahl (v214). Fläche wie Web `.psug`: Rand, Radius 12, Innenabstand 2 10 4.
 struct CTFormPartnerSuggestions: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
@@ -104,86 +160,148 @@ struct CTFormPartnerSuggestions: View {
         let showList = form.sugVisible && q.count >= 2 && q != form.pSugSel
         let own = showList ? Partners.matches(q, in: data, today: model.today, limit: 3) : []
         let ownNames = Set(own.map { $0.partner.name.lowercased() })
-        let web = showList ? form.webHits.filter { !ownNames.contains($0.name.lowercased()) } : []
+        let th = showList ? CTCatalogHits.hits(q, currency: form.currency, more: form.tplMore) : (list: [CatalogEntry](), hasMore: false)
+        let tDom = Set(th.list.compactMap { $0.web.isEmpty ? nil : Partners.regDom($0.web) })
+        let web = showList ? form.webHits.filter { !ownNames.contains($0.name.lowercased()) && !tDom.contains(Partners.regDom($0.dom)) } : []
         let searching = showList && web.isEmpty && form.webLoading && q.count >= 3
-        if showList && (!own.isEmpty || !web.isEmpty || searching) {
-            Section {
-                if !own.isEmpty {
-                    CTSuggestHeader(title: "Deine Vertragspartner")
-                    ForEach(own, id: \.partner.id) { g in
-                        ownRow(g, data: data)
+        if showList && (!own.isEmpty || !th.list.isEmpty || !web.isEmpty || searching) {
+            CTSection(plain: true) {
+                VStack(alignment: .leading, spacing: 0) {
+                    if !own.isEmpty {
+                        CTSuggestHeader(title: "Deine Vertragspartner")
+                        ForEach(Array(own.enumerated()), id: \.element.partner.id) { i, g in
+                            ownRow(g, data: data, first: i == 0)
+                        }
+                    }
+                    if !th.list.isEmpty {
+                        CTSuggestHeader(title: "Katalog")
+                        ForEach(Array(th.list.enumerated()), id: \.offset) { i, t in
+                            tplRow(t, first: own.isEmpty && i == 0)
+                        }
+                        if th.hasMore {
+                            Button {
+                                form.tplMore = true
+                            } label: {
+                                Text("Weitere Katalogtreffer")
+                                    .font(.system(size: 13.5, weight: .semibold))
+                                    .foregroundStyle(KColor.teal)
+                                    .padding(.vertical, 8)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("form.tplMore")
+                        }
+                    }
+                    if !web.isEmpty {
+                        CTSuggestHeader(title: "Aus dem Internet")
+                        ForEach(Array(web.enumerated()), id: \.element) { i, w in
+                            webRow(w, first: own.isEmpty && th.list.isEmpty && i == 0)
+                        }
+                    } else if searching {
+                        Text("Suche …")
+                            .font(.system(size: 12.5))
+                            .foregroundStyle(KColor.ink3)
+                            .padding(.vertical, 8)
                     }
                 }
-                if !web.isEmpty {
-                    CTSuggestHeader(title: "Aus dem Internet")
-                    ForEach(web, id: \.self) { w in
-                        webRow(w)
-                    }
-                } else if searching {
-                    HStack(spacing: 8) {
-                        ProgressView()
-                        Text("Suche …").font(.subheadline).foregroundStyle(KColor.ink2)
-                    }
-                }
+                .padding(.top, 2).padding(.bottom, 4).padding(.horizontal, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.surface))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
+                .background(GeometryReader { g in
+                    Color.clear
+                        .onAppear { form.sugFrame = g.frame(in: .global) }
+                        .onChange(of: g.frame(in: .global)) { _, r in form.sugFrame = r }
+                        .onDisappear { form.sugFrame = .zero }
+                })
+                .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 2, trailing: 0))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("form.partnerHits")
             }
-            .listRowBackground(KColor.surface)
         }
     }
 
-    private func ownRow(_ g: Partners.Group, data: AppData) -> some View {
-        let first = data.contract(g.contractIDs.first)
+    /// Zeile der Liste (Web `.psug .mdrow`: 7 oben/unten, Kachel 34/9, Titel 14.5/600, Zeile 12 px; Trennlinie ausser oben)
+    private func hitRow<M: View>(first: Bool, title: String, sub: String, @ViewBuilder mark: () -> M) -> some View {
+        HStack(spacing: 12) {
+            mark()
+            VStack(alignment: .leading, spacing: 0) {
+                Text(title).font(.system(size: 14.5, weight: .semibold)).foregroundStyle(KColor.ink).lineLimit(1)
+                    .ctLine(21)
+                Text(sub).font(.system(size: 12)).foregroundStyle(KColor.ink2).lineLimit(1)
+                    .ctLine(17.4)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, 7)
+        .overlay(alignment: .top) {
+            if !first { Rectangle().fill(KColor.line).frame(height: 1) }
+        }
+        .contentShape(Rectangle())
+    }
+
+    private func ownRow(_ g: Partners.Group, data: AppData, first: Bool) -> some View {
+        let c0 = data.contract(g.contractIDs.first)
         let dom = Format.domain(of: g.partner.web)
         return Button {
             form.pickOwn(g, data: model.data)
             hide()
         } label: {
-            HStack(spacing: 12) {
-                if let c = first {
+            hitRow(first: first, title: g.partner.name, sub: CTText.contracts(g.contractIDs.count) + (dom.isEmpty ? "" : " · " + dom)) {
+                if let c = c0 {
                     MarkView(contract: c, data: data, size: 34)
                 } else {
                     MarkView(logoID: g.partner.logoID, logoBg: g.partner.logoBg, colorHex: AppData.hashColor(g.partner.name),
                              symbol: KIcon.symbol(for: nil), size: 34)
                 }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(g.partner.name).font(.body.weight(.semibold)).foregroundStyle(KColor.ink)
-                    Text(CTText.contracts(g.contractIDs.count) + (dom.isEmpty ? "" : " · " + dom))
-                        .font(.footnote)
-                        .foregroundStyle(KColor.ink2)
-                }
-                Spacer(minLength: 0)
             }
-            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 
-    private func webRow(_ w: WebPartnerHit) -> some View {
+    /// Katalogtreffer: Kategorie-Symbol, Name, Kurzinfo; Antippen übernimmt die Vorlage (Web `data-pt` → applyTpl, tplLogo)
+    private func tplRow(_ t: CatalogEntry, first: Bool) -> some View {
+        let data = model.data
+        let cat = CTFormState.categoryID(for: t.category.isEmpty ? "Sonstiges" : t.category, data: data).flatMap { data.category($0) }
+        return Button {
+            hide()
+            CTTplLogo.apply(t, form: form, model: model)
+            form.pSugSel = t.name
+        } label: {
+            hitRow(first: first, title: t.name, sub: CTCatalogHits.subtitle(t, currency: form.currency)) {
+                if let c = cat {
+                    MarkView(category: c, size: 34)
+                } else {
+                    MarkView(logoID: nil, logoBg: nil, colorHex: KCategory.fallbackColor, symbol: KIcon.symbol(forKey: t.category), size: 34)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("form.tplHit")
+    }
+
+    private func webRow(_ w: WebPartnerHit, first: Bool) -> some View {
         Button {
             pickWeb(w)
         } label: {
-            HStack(spacing: 12) {
+            hitRow(first: first, title: w.name, sub: w.dom + (w.desc.isEmpty ? "" : " · " + w.desc)) {
                 AsyncImage(url: CTWebPartners.thumbURL(w)) { phase in
                     if let img = phase.image {
-                        img.resizable().scaledToFit().padding(3)
+                        img.resizable().scaledToFit()
                     } else {
                         Color.clear
                     }
                 }
                 .frame(width: 34, height: 34)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white))
-                .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(KColor.line, lineWidth: 0.5))
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Color.white))
+                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
                 .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(w.name).font(.body.weight(.semibold)).foregroundStyle(KColor.ink)
-                    Text(w.dom + (w.desc.isEmpty ? "" : " · " + w.desc))
-                        .font(.footnote)
-                        .foregroundStyle(KColor.ink2)
-                        .lineLimit(2)
-                }
-                Spacer(minLength: 0)
             }
-            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 
     private func hide() {
@@ -223,14 +341,15 @@ struct CTFormPartnerSuggestions: View {
     }
 }
 
+/// Zwischentitel der Trefferliste (Web `.psug .ph`: 11.5/600 Tinte 3, 8 oben, 2 unten)
 private struct CTSuggestHeader: View {
     let title: String
     var body: some View {
         Text(title)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(KColor.ink2)
-            .textCase(.uppercase)
-            .padding(.top, 2)
+            .font(.system(size: 11.5, weight: .semibold))
+            .foregroundStyle(KColor.ink3)
+            .ctLine(16.7)
+            .padding(.top, 8).padding(.bottom, 2)
     }
 }
 

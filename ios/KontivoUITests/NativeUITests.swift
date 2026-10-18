@@ -59,6 +59,11 @@ final class NativeUITests: KontivoUITestCase {
         reveal(lock, "Schalter App-Sperre")
         XCTAssertEqual(switchValue(lock), "0")
         flip(lock, "App-Sperre einschalten")
+        // erster Tipp kann ein noch offenes Menü («Tage vorher») schliessen: dann nochmals
+        if !NSPredicate(format: "value == '1'").evaluate(with: lock) {
+            usleep(1_500_000)
+            if switchValue(lock) != "1" { flip(lock, "App-Sperre einschalten (2. Versuch)") }
+        }
         waitUntil("App-Sperre an") { self.switchValue(lock) == "1" }
         flip(lock, "App-Sperre ausschalten")
         waitUntil("App-Sperre aus") { self.switchValue(lock) == "0" }

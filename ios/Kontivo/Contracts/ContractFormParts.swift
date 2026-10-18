@@ -13,11 +13,14 @@ enum ContractFormField: String, Hashable {
     case label, partner, amount, prices, payAccount, extras
     case start, end, termMonths, notice, trial, cancelWay, cancelURL, cancelMail, cancelOn, cancelPer
     case category, customerNo, contractNo, address, web, tel, mail, note
+    /// Unterbereiche (Web v218 `goMiss`: pAmt, xDate, xAmt)
+    case priceAmount, extraDate, extraAmount
 
     /// Textfeld (bekommt den Fokus), sonst nur scrollen
     var isText: Bool {
         switch self {
-        case .label, .partner, .amount, .payAccount, .cancelURL, .cancelMail, .customerNo, .contractNo, .address, .web, .tel, .mail, .note:
+        case .label, .partner, .amount, .payAccount, .cancelURL, .cancelMail, .customerNo, .contractNo, .address, .web, .tel, .mail, .note,
+             .priceAmount, .extraAmount:
             return true
         default:
             return false
@@ -44,6 +47,197 @@ enum ContractFormGo {
     }
 }
 
+// MARK: - Abschnitt und Karte (Web `.fsec` + `.fcard` + `.fnote`)
+
+/// Abschnitt des Formulars wie in der Web-App: Titel 13/600 Tinte 2 (22 oben, 8 unten, 2 seitlich), Karte (Fläche, Radius 16,
+/// Innenabstand 0 13) mit Zeilen ab 48 pt und Trennlinien, Fussnote 12.5 Tinte 2 (8 oben). `plain`: ohne Karte (Kopf, Hinweise).
+/// Ersetzt `Section` im Formular (eigene Masse statt Inset-Grouped des Systems).
+struct CTSection<Content: View, Header: View, Footer: View>: View {
+    var plain = false
+    let content: Content
+    let header: Header
+    let footer: Footer
+
+    init(plain: Bool = false, @ViewBuilder content: () -> Content, @ViewBuilder header: () -> Header, @ViewBuilder footer: () -> Footer) {
+        self.plain = plain
+        self.content = content()
+        self.header = header()
+        self.footer = footer()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            header
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(KColor.ink2)
+                .textCase(nil)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 2)
+                .padding(.top, 22)
+                .padding(.bottom, 8)
+                .modifier(CTHideIfEmpty(isEmpty: Header.self == EmptyView.self))
+            if plain {
+                VStack(alignment: .leading, spacing: 0) { content }
+            } else {
+                CTCardRows { content }
+                    .padding(.horizontal, 13)
+                    .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(KColor.surface))
+            }
+            footer
+                .font(.system(size: 12.5))
+                .foregroundStyle(KColor.ink2)
+                .lineSpacing(6.9)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 2)
+                .padding(.top, 8)
+                .modifier(CTHideIfEmpty(isEmpty: Footer.self == EmptyView.self))
+        }
+    }
+}
+
+extension CTSection where Footer == EmptyView {
+    init(plain: Bool = false, @ViewBuilder content: () -> Content, @ViewBuilder header: () -> Header) {
+        self.init(plain: plain, content: content, header: header, footer: { EmptyView() })
+    }
+}
+
+extension CTSection where Header == EmptyView, Footer == EmptyView {
+    init(plain: Bool = false, @ViewBuilder content: () -> Content) {
+        self.init(plain: plain, content: content, header: { EmptyView() }, footer: { EmptyView() })
+    }
+}
+
+/// Leerer Kopf/Fuss ohne Abstand
+private struct CTHideIfEmpty: ViewModifier {
+    let isEmpty: Bool
+    func body(content: Content) -> some View {
+        if isEmpty { EmptyView() } else { content }
+    }
+}
+
+/// Zeilen einer Karte untereinander, jede mindestens 48 pt hoch (Web `.frow` 4 0 + Feld 40), Trennlinie 1 pt über der
+/// Kartenbreite (innerhalb des Innenabstands) zwischen den Zeilen
+struct CTCardRows<Content: View>: View {
+    let content: Content
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+
+    var body: some View {
+        _VariadicView.Tree(CTCardRowsLayout()) { content }
+    }
+}
+
+private struct CTCardRowsLayout: _VariadicView_UnaryViewRoot {
+    @ViewBuilder
+    func body(children: _VariadicView.Children) -> some View {
+        let first = children.first?.id
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(children) { child in
+                child
+                    .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                    .overlay(alignment: .top) {
+                        if child.id != first { Rectangle().fill(KColor.line).frame(height: 1) }
+                    }
+            }
+        }
+    }
+}
+
+/// Menü-Auswahl als Zeile (Web `.frow` mit `select`): Beschriftung links, Wert rechts 16/500 in Messing (leer: Tinte 3) mit «⌄»;
+/// die Auswahl selbst ist ein `Picker` im Menü (Haken beim gewählten Wert).
+struct CTMenuRow<P: View>: View {
+    let title: String
+    let value: String
+    var muted = false
+    var identifier = ""
+    let picker: P
+    init(_ title: String, value: String, muted: Bool = false, identifier: String = "", @ViewBuilder picker: () -> P) {
+        self.title = title
+        self.value = value
+        self.muted = muted
+        self.identifier = identifier
+        self.picker = picker()
+    }
+    var body: some View {
+        HStack(spacing: 12) {
+            CTRowLabel(title)
+            Spacer(minLength: 8)
+            Menu {
+                picker
+                    .pickerStyle(.inline)
+            } label: {
+                CTMenuValue(text: value, muted: muted)
+            }
+            .accessibilityLabel(title + ", " + value)
+            .accessibilityIdentifier(identifier)
+        }
+    }
+}
+
+/// Wert eines Auswahlfelds wie Web `select`: 16/500 Messing (leer Tinte 3), «⌄» 13 Tinte 2
+struct CTMenuValue: View {
+    let text: String
+    var muted = false
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(text)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(muted ? KColor.ink2 : KColor.teal)
+                .lineLimit(1)
+            Image(systemName: "chevron.down")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(KColor.ink2)
+        }
+        .fixedSize()
+        .contentShape(Rectangle())
+    }
+}
+
+// MARK: - Markierung fehlender Angaben (Web v218/v219 `goMiss`, `.frow.miss`)
+
+/// Zeile kurz als abgerundete Fläche (Radius 10, 3 oben/unten, 8 über den Rand, Rot 16 %) markieren; 40 % halten, dann bis 1.8 s
+/// ausblenden. Kopffelder (`ring`) mit rotem Rahmen 2 pt.
+struct CTMissMark: ViewModifier {
+    let form: CTFormState
+    let field: ContractFormField
+    var ring = false
+    var radius: CGFloat = 10
+    @State private var on = 0.0
+
+    func body(content: Content) -> some View {
+        content
+            .background {
+                if !ring {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .fill(KColor.alert.opacity(0.16))
+                        .padding(.vertical, 3)
+                        .padding(.horizontal, -8)
+                        .opacity(on)
+                        .allowsHitTesting(false)
+                }
+            }
+            .overlay {
+                if ring {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .strokeBorder(KColor.alert, lineWidth: 2)
+                        .padding(-2)
+                        .opacity(on)
+                        .allowsHitTesting(false)
+                }
+            }
+            .onChange(of: form.missToken) { _, _ in
+                guard form.missField == field else { return }
+                on = 1
+                withAnimation(.easeOut(duration: 1.08).delay(0.72)) { on = 0 }
+            }
+    }
+}
+
+extension View {
+    func ctMiss(_ form: CTFormState, _ field: ContractFormField, ring: Bool = false, radius: CGFloat = 10) -> some View {
+        modifier(CTMissMark(form: form, field: field, ring: ring, radius: radius))
+    }
+}
+
 // MARK: - Zeilen
 
 /// Beschriftung links in einer Formularzeile (Web .frow label: grau)
@@ -52,6 +246,7 @@ struct CTRowLabel: View {
     init(_ text: String) { self.text = text }
     var body: some View {
         Text(text)
+            .font(.system(size: 15))
             .foregroundStyle(KColor.ink2)
             .lineLimit(1)
             .minimumScaleFactor(0.85)
@@ -76,7 +271,8 @@ struct CTFormTextRow: View {
         HStack(spacing: 12) {
             CTRowLabel(title)
                 .layoutPriority(1)
-            TextField(placeholder, text: $text)
+            TextField("", text: $text, prompt: Text(placeholder).foregroundColor(KColor.ink3))
+                .font(.system(size: 16, weight: .medium))
                 .keyboardType(keyboard)
                 .textInputAutocapitalization(capitalization)
                 .autocorrectionDisabled(!autocorrect)
@@ -124,13 +320,15 @@ struct CTFormDateRow: View {
                     .accessibilityLabel(title + " entfernen")
                 }
             } else {
+                // Web v217: leeres Datum zeigt «hinzufügen» wie die übrigen Felder
                 Button {
                     set(fallback)
                 } label: {
-                    Text("wählen")
-                        .foregroundStyle(KColor.teal)
-                        .padding(.horizontal, 14).padding(.vertical, 6)
-                        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(KColor.teal.opacity(0.12)))
+                    Text("hinzufügen")
+                        .font(.system(size: 16))
+                        .foregroundStyle(KColor.ink3)
+                        .padding(.vertical, 6)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel(title + " wählen")
@@ -151,16 +349,17 @@ struct CTFormChip: View {
 
     var body: some View {
         Button(action: action) {
+            // Web v164 `.chips button[aria-pressed=true]`: Fläche Tinte, Schrift Papier, Rand Messing; sonst Rand `--line`, Tinte 2
             Text(title)
-                .font(.subheadline.weight(isOn ? .semibold : .regular))
+                .font(.system(size: 13.5, weight: isOn ? .semibold : .regular))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .padding(.horizontal, 8).padding(.vertical, 8)
+                .ctLine(19.6)
+                .padding(.horizontal, fill ? 4 : 12).padding(.vertical, 8)
                 .frame(maxWidth: fill ? .infinity : nil)
-                // Text in der Flächenfarbe: hell auf dunklem Petrol, im Dunkelmodus dunkel auf hellem Petrol (Kontrast)
-                .foregroundStyle(isOn ? KColor.surface : KColor.ink2)
-                .background(Capsule().fill(isOn ? KColor.teal : Color.clear))
-                .overlay(Capsule().strokeBorder(isOn ? Color.clear : KColor.line, lineWidth: 1))
+                .foregroundStyle(isOn ? KColor.paper : KColor.ink2)
+                .background(Capsule().fill(isOn ? KColor.ink : Color.clear))
+                .overlay(Capsule().strokeBorder(isOn ? KColor.teal : KColor.line, lineWidth: 1))
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -178,19 +377,21 @@ struct CTFormOKButton: View {
     var identifier = ""
     let action: () -> Void
 
+    /// Web `.fok` (v164): Messing `--brassFab`, Schrift `--onBrass` 15/600, 11 Innenabstand, Radius 10
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.body.weight(.semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 11)
-                .foregroundStyle(KColor.surface)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.teal))
+                .foregroundStyle(KColor.onBrass)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.brassFab))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .padding(.top, 4).padding(.bottom, 12)
         .accessibilityIdentifier(identifier)
     }
 }
@@ -202,12 +403,16 @@ struct CTFormAddRow: View {
     let action: () -> Void
 
     var body: some View {
+        // Web `.fadd`: 15/600 Messing, «+» davor, Abstand 8
         Button(action: action) {
-            Label(title, systemImage: "plus")
-                .font(.body.weight(.semibold))
-                .foregroundStyle(KColor.teal)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
+            HStack(spacing: 8) {
+                Image(systemName: "plus").font(.system(size: 14, weight: .semibold))
+                Text(title).font(.system(size: 15, weight: .semibold))
+            }
+            .foregroundStyle(KColor.teal)
+            .padding(.horizontal, 6)
+            .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.borderless)
         .accessibilityIdentifier(identifier)
@@ -245,8 +450,12 @@ struct CTCancelWaySegment: View {
         var id: CancelChannel { value }
     }
 
-    private static let items: [Item] = [Item(value: .online, title: "Online"), Item(value: .email, title: "E-Mail"), Item(value: .letter, title: "Brief"),
-                                        Item(value: .phone, title: "Telefon")]
+    /// Aus `CancelChannel.allCases` (Web v210: Online · E-Mail · Brief · Telefon). Kommt der Weg «Telefon» im Kern dazu
+    /// (`webText` «Telefon»), erscheint die vierte Kachel ohne weitere Änderung.
+    private static let items: [Item] = CancelChannel.allCases.map { ch in
+        let t: [String: String] = ["Online / Kundenkonto": "Online", "E-Mail": "E-Mail", "Brief": "Brief", "Telefon": "Telefon"]
+        return Item(value: ch, title: t[ch.webText] ?? ch.webText)
+    }
 
     var body: some View {
         HStack(spacing: 2) {
@@ -431,32 +640,32 @@ struct CTFormKeyTiles: View {
     let year: String
     let currency: String
 
+    /// Web `#fKz`: zwei Kacheln (Abstand 8, 12 oben), Fläche `--field`, Radius 12, 10/12; Titel 12.5 Tinte 2, Wert Serif 22/500
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             tile("pro Monat", month, id: "form.kz.month")
             tile("pro Jahr", year, id: "form.kz.year")
         }
+        .padding(.top, 12)
+        .padding(.bottom, 0)
     }
 
     private func tile(_ title: String, _ value: String, id: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.footnote)
+                .font(.system(size: 12.5))
                 .foregroundStyle(KColor.ink2)
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text(verbatim: value)
-                    .font(.title2.weight(.bold).monospacedDigit())
-                    .foregroundStyle(KColor.ink)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Text(verbatim: currency)
-                    .font(.footnote.weight(.medium))
-                    .foregroundStyle(KColor.ink2)
-            }
+                .ctLine(18.1)
+            (Text(verbatim: value).font(KFont.serif(22, .medium)).tracking(-0.22)
+             + Text(verbatim: " " + currency).font(KFont.serif(14, .medium)).foregroundColor(KColor.ink2))
+                .foregroundStyle(KColor.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .ctLine(22)
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).fill(KColor.surface))
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.field))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(id)
     }

@@ -17,55 +17,59 @@ struct ContractCardRow: View {
         let data = model.data
         let paused = calc.isPaused(contract)
         let right = rightColumn(calc: calc, data: data)
-        HStack(alignment: .center, spacing: 12) {
-            MarkView(contract: contract, data: data, size: 40)
+        // Web `.card`: padding 9 8 9 6, Abstand 10, Kachel 50 (Radius 12); pausiert: Kachel, Titel, Betrag 50 %
+        HStack(alignment: .center, spacing: 10) {
+            MarkView(contract: contract, data: data, size: 50)
                 .opacity(paused ? 0.5 : 1)
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Titel 14.5/600 gerundet, lange Titel bis 13 px verkleinern, dann «…» (Web `fitQ`)
                 Text(data.title(of: contract))
-                    .font(.body.weight(.semibold))
+                    .font(.system(size: 14.5, weight: .semibold, design: .rounded))
                     .foregroundStyle(KColor.ink)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.75)
+                    .minimumScaleFactor(13 / 14.5)
+                    .ctLine(18.125)
+                    .padding(.bottom, 1)
+                    .opacity(paused ? 0.5 : 1)
                 let meta = data.meta(of: contract)
                 if !meta.isEmpty {
                     Text(meta)
-                        .font(.subheadline)
+                        .font(.system(size: 12))
                         .foregroundStyle(KColor.ink2)
                         .lineLimit(1)
+                        .ctLine(17.4)
                 }
-                let tags = tagTexts(calc: calc)
-                if !tags.isEmpty {
-                    CTFlowLayout(spacing: 4, lineSpacing: 4) {
-                        ForEach(tags, id: \.self) { t in CTTag(text: t) }
-                    }
-                    .padding(.top, 1)
+                ForEach(tagTexts(calc: calc), id: \.self) { t in
+                    CTTag(text: t).padding(.top, 3)
                 }
             }
-            .opacity(paused ? 0.5 : 1)
-            Spacer(minLength: 6)
-            VStack(alignment: .trailing, spacing: 2) {
-                HStack(alignment: .firstTextBaseline, spacing: 3) {
+            .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .trailing, spacing: 0) {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(right.amount)
-                        .font(.body.weight(.semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .monospacedDigit()
                         .foregroundStyle(KColor.ink)
                     Text(right.unit)
-                        .font(.caption.weight(.medium))
+                        .font(.system(size: 10.5, weight: .medium))
                         .foregroundStyle(KColor.ink2)
                 }
                 .lineLimit(1)
+                .ctLine(21.75)
                 if let s = right.sub {
                     Text(s)
-                        .font(right.subWarn ? Font.caption.weight(.semibold) : Font.caption)
-                        .foregroundStyle(right.subWarn ? KColor.warn : KColor.ink2)
+                        .font(.system(size: 10.5, weight: right.subWarn ? .semibold : .regular))
+                        .foregroundStyle(right.subWarn ? KColor.warn : (right.subMuted ? KColor.ink3 : KColor.ink2))
                         .lineLimit(1)
                         .monospacedDigit()
+                        .ctLine(15.225)
                 }
             }
             .opacity(paused ? 0.5 : 1)
-            .layoutPriority(1)
+            .fixedSize()
         }
-        .padding(.vertical, 2)
+        .padding(.top, 9).padding(.bottom, 9).padding(.leading, 6).padding(.trailing, 8)
+        .frame(minHeight: 68)
         .opacity(contract.status == .cancelled ? 0.6 : 1)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
@@ -91,6 +95,8 @@ struct ContractCardRow: View {
         var unit: String
         var sub: String?
         var subWarn = false
+        /// Web `.due` (Fälligkeit, Tinte 3)
+        var subMuted = false
     }
 
     private func rightColumn(calc: Calc, data: AppData) -> Right {
@@ -101,6 +107,7 @@ struct ContractCardRow: View {
             let pd = calc.nextDue(c)
             let t = calc.today
             var r = Right(amount: Format.money(calc.priceAt(c, pd ?? t), c.currency), unit: c.currency.rawValue, sub: nil)
+            r.subMuted = true
             if let d = pd {
                 let dn = t.days(to: d)
                 if dn < 0 {

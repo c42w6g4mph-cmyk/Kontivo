@@ -4,13 +4,14 @@ import KontivoCore
 // Karte «Laufzeit & Kündigung» des Vertragsformulars (Web v145–v160, #fsTerm):
 // Vertragsart als 2×2-Knöpfe, Probeabo-Dauer, Vertragsbeginn, Mindestlaufzeit (Knöpfe + Drehrad «Andere …»), Vertragsende,
 // Verlängerung, Kündigungsfrist (Knöpfe + Drehrad mit «keine» und Einheit), Kündbar per, Kündigungsweg mit genau einem
-// Folgefeld, «An Frist erinnern», «Nur Anbieter wechseln», bei gekündigten Verträgen «Gekündigt am»/«Läuft bis».
+// Folgefeld (v212: Brief ohne Adresszeile), «An Frist erinnern», «Pflichtvertrag» (v202), bei gekündigten Verträgen «Gekündigt am»/«Läuft bis».
 // Darunter der Laufzeit-Hinweis aus dem Kern (`ContractFormRules.termHint`).
 
 struct CTFormTermSection: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
     var focus: FocusState<ContractFormField?>.Binding
+    @State private var showMandInfo = false
 
     private struct TrialChip: Identifiable {
         let key: String
@@ -26,7 +27,7 @@ struct CTFormTermSection: View {
     var body: some View {
         let today = model.today
         let m = form.termMode
-        Section {
+        CTSection {
             modeRow
             if m == .trial {
                 trialRows(today: today)
@@ -39,37 +40,37 @@ struct CTFormTermSection: View {
                 termMonthsRows
                 CTFormDateRow(title: "Vertragsende", day: form.end, fallback: (form.start ?? today).addingMonths(12).addingDays(-1),
                               identifier: "form.end") { form.setEnd($0) }
+                    .ctMiss(form, .end)
                     .id(ContractFormField.end)
-                Picker(selection: $form.renewMonths) {
-                    Text("nicht automatisch").tag(0)
-                    Text("1 Monat").tag(1)
-                    ForEach([3, 6, 12, 24], id: \.self) { n in
-                        Text("\(n) Monate").tag(n)
+                CTMenuRow("Verlängert sich um", value: form.renewMonths == 0 ? "nicht automatisch" : (form.renewMonths == 1 ? "1 Monat" : "\(form.renewMonths) Monate"),
+                          identifier: "form.renew") {
+                    Picker(selection: $form.renewMonths) {
+                        Text("nicht automatisch").tag(0)
+                        Text("1 Monat").tag(1)
+                        ForEach([3, 6, 12, 24], id: \.self) { n in
+                            Text("\(n) Monate").tag(n)
+                        }
+                        if ![0, 1, 3, 6, 12, 24].contains(form.renewMonths) {
+                            Text("\(form.renewMonths) Monate").tag(form.renewMonths)
+                        }
+                    } label: {
+                        CTRowLabel("Verlängert sich um")
                     }
-                    if ![0, 1, 3, 6, 12, 24].contains(form.renewMonths) {
-                        Text("\(form.renewMonths) Monate").tag(form.renewMonths)
-                    }
-                } label: {
-                    CTRowLabel("Verlängert sich um")
                 }
-                .pickerStyle(.menu)
-                .tint(KColor.teal)
-                .accessibilityIdentifier("form.renew")
             }
             if m == .open || m == .fixed {
                 noticeRows
             }
             if m == .open || m == .trial {
-                Picker(selection: $form.cancelTerm) {
-                    ForEach([CancelTerm.anytime, .period, .monthEnd, .quarterEnd, .halfYearEnd, .yearEnd, .contractYear], id: \.self) { t in
-                        Text(CTFormState.termOptionText(t)).tag(t)
+                CTMenuRow("Kündbar per", value: CTFormState.termOptionText(form.cancelTerm), identifier: "form.cancelTerm") {
+                    Picker(selection: $form.cancelTerm) {
+                        ForEach([CancelTerm.anytime, .period, .monthEnd, .quarterEnd, .halfYearEnd, .yearEnd, .contractYear], id: \.self) { t in
+                            Text(CTFormState.termOptionText(t)).tag(t)
+                        }
+                    } label: {
+                        CTRowLabel("Kündbar per")
                     }
-                } label: {
-                    CTRowLabel("Kündbar per")
                 }
-                .pickerStyle(.menu)
-                .tint(KColor.teal)
-                .accessibilityIdentifier("form.cancelTerm")
             }
             if m != .tax {
                 cancelWayRows
@@ -80,8 +81,15 @@ struct CTFormTermSection: View {
                     .tint(KColor.teal)
                     .accessibilityIdentifier("form.remind")
                 }
+                // Web v202: «Pflichtvertrag» mit Infoknopf, Unterzeile «Kündigen nur mit neuem Anbieter»
                 Toggle(isOn: $form.mandatory) {
-                    switchLabel(ContractFormRules.mandatoryTitle, ContractFormRules.mandatorySubtitle)
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) {
+                            Text(CTFormText.mandatoryTitle).foregroundStyle(KColor.ink)
+                            CTInfoButton(label: "Info: Pflichtvertrag") { showMandInfo = true }
+                        }
+                        Text(CTFormText.mandatorySubtitle).font(.footnote).foregroundStyle(KColor.ink2)
+                    }
                 }
                 .tint(KColor.teal)
                 .accessibilityIdentifier("form.mandatory")
@@ -107,6 +115,11 @@ struct CTFormTermSection: View {
             }
         }
         .listRowBackground(KColor.surface)
+        .alert(CTFormText.mandatoryTitle, isPresented: $showMandInfo) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(CTFormText.mandatoryInfo)
+        }
     }
 
     private func switchLabel(_ title: String, _ sub: String) -> some View {
@@ -163,6 +176,7 @@ struct CTFormTermSection: View {
             .accessibilityLabel("Dauer des Probeabos")
         }
         .padding(.vertical, 4)
+        .ctMiss(form, .trial)
         .id(ContractFormField.trial)
         if form.trialChoice == "date" {
             CTFormDateRow(title: "Probeabo endet am", day: form.trial, fallback: (form.start ?? today).addingMonths(1),
@@ -241,6 +255,7 @@ struct CTFormTermSection: View {
             .accessibilityLabel("Kündigungsfrist")
         }
         .padding(.vertical, 4)
+        .ctMiss(form, .notice)
         .id(ContractFormField.notice)
         if open {
             VStack(spacing: 10) {
@@ -286,43 +301,11 @@ struct CTFormTermSection: View {
             CTFormTextRow(title: "Kündigungslink", text: $form.cancelURL, placeholder: "sonst Website", keyboard: .URL,
                           contentType: .URL, identifier: "form.cancelURL", field: .cancelURL, focus: focus)
         case .email:
-            CTFormTextRow(title: "E-Mail für Kündigung", text: $form.mail, placeholder: "kuendigung@anbieter.ch", keyboard: .emailAddress,
+            CTFormTextRow(title: "E-Mail für Kündigung", text: $form.mail, placeholder: "hinzufügen", keyboard: .emailAddress,
                           contentType: .emailAddress, identifier: "form.cancelMail", field: .cancelMail, focus: focus)
-        case .letter:
-            addressWayRow
-        case .phone:
-            // Web v210: kein Folgefeld (Nummer steht unter «Kontakt»)
-            EmptyView()
-        case nil:
+        default:
+            // Web v212: Adresse nur noch bei den Kontaktdaten
             EmptyView()
         }
-    }
-
-    /// Brief: Zeile «Adresse des Vertragspartners» mit «Erfassen»/«Ändern» → Adresse unter «Kontakt»
-    private var addressWayRow: some View {
-        let line = form.addressLine
-        return HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Adresse des Vertragspartners")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(KColor.ink)
-                Text(line.isEmpty ? "Noch keine Adresse – wird für den Brief gebraucht" : line)
-                    .font(.footnote)
-                    .foregroundStyle(KColor.ink2)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-            }
-            Spacer(minLength: 8)
-            Button(line.isEmpty ? "Erfassen" : "Ändern") {
-                withAnimation(.easeInOut(duration: 0.2)) { form.showAddress() }
-            }
-            .buttonStyle(.borderless)
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(KColor.teal)
-            .accessibilityIdentifier("form.cancelAddr")
-        }
-        .padding(.vertical, 2)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("form.cancelAddrRow")
     }
 }

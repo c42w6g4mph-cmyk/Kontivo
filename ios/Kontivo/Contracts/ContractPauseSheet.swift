@@ -18,44 +18,38 @@ struct CTPauseSheet: View {
     var body: some View {
         let today = model.today
         let options = AppData.pauseOptions(today: today)
-        NavigationStack {
-            List {
-                Section {
-                    ForEach(options.indices, id: \.self) { i in
-                        let o = options[i]
-                        Button {
-                            apply(o.until)
-                        } label: {
-                            HStack {
-                                Text(o.title).foregroundStyle(KColor.ink)
-                                Spacer()
-                                Text(o.detail)
-                                    .font(.subheadline)
-                                    .foregroundStyle(KColor.ink2)
-                            }
-                        }
-                    }
+        // Web `openPausePick`: Auswahlblatt mit Zeilen `.pick`, «Oder bis zu einem Datum» (Datum + Knopf), Hinweis
+        CTPickSheet(title: "Pausieren für") {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(options.indices, id: \.self) { i in
+                    let o = options[i]
+                    CTPickRow(title: o.title, detail: o.detail) { apply(o.until) }
                 }
-                .listRowBackground(KColor.surface)
-                Section {
+                Text("Oder bis zu einem Datum")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(KColor.ink2)
+                    .padding(.top, 6)
+                HStack(spacing: 8) {
                     DatePicker("Bis", selection: $until.ctDate, in: today.addingDays(1).date()..., displayedComponents: .date)
-                    Button("Pausieren") { apply(until) }
-                        .fontWeight(.semibold)
-                } header: {
-                    Text("Oder bis zu einem Datum")
-                } footer: {
-                    Text("Danach läuft der Vertrag automatisch weiter. Zahlungen während der Pause zählen nicht in die Summen.")
+                        .labelsHidden()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Button {
+                        apply(until)
+                    } label: {
+                        Text("Pausieren")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Color.white)
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.tealFill))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .listRowBackground(KColor.surface)
-            }
-            .scrollContentBackground(.hidden)
-            .background(KColor.paper)
-            .navigationTitle("Pausieren für")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { dismiss() }
-                }
+                Text("Danach läuft der Vertrag automatisch weiter. Zahlungen während der Pause zählen nicht in die Summen.")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(KColor.ink2)
+                    .lineSpacing(4.4)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 4)
             }
         }
         .presentationDetents([.medium, .large])

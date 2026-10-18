@@ -27,9 +27,13 @@ struct CTRatioRow: Layout {
                           proposal: ProposedViewSize(width: b, height: bounds.height))
     }
 
+    /// Web `flex: 1.3` / `flex: 1` mit Grundbreite 0: der Innenabstand der grossen Kachel (2 × 14) kommt zur Breite dazu
+    var leadingPadding: CGFloat = 28
+
     private func widths(_ w: CGFloat) -> (CGFloat, CGFloat) {
         let avail = max(0, w - spacing)
-        let a = (avail * ratio / (ratio + 1)).rounded(.down)
+        let free = max(0, avail - leadingPadding)
+        let a = free * ratio / (ratio + 1) + leadingPadding
         return (a, avail - a)
     }
 }
@@ -56,38 +60,44 @@ struct CTDetailKeyFigures: View {
         let nd = calc.nextDue(c)
         let barText: String? = month.sharePercent.map { "\($0) % deiner Fixkosten" } ?? month.status
         CTRatioRow().callAsFunction {
+            // Web `.kzm`: Fläche, Radius 16, 13/14, Abstand 10 (Inhalt oben/unten verteilt)
             VStack(alignment: .leading, spacing: 10) {
                 Text("pro Monat")
-                    .font(.caption.weight(.medium))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(KColor.ink2)
-                VStack(alignment: .leading, spacing: 3) {
+                    .ctLine(17.4)
+                Spacer(minLength: 0)
+                VStack(alignment: .leading, spacing: 0) {
                     bigAmount(mon, currency: cu)
                     if fx {
                         Text(verbatim: "≈ " + Format.money0(calc.conv(mon, cu)) + " " + home.rawValue)
-                            .font(.caption).foregroundStyle(KColor.ink2)
+                            .font(.system(size: 12)).foregroundStyle(KColor.ink2)
+                            .ctLine(17.4)
+                            .padding(.top, 3)
                     }
                     if let t = barText {
                         GeometryReader { g in
                             ZStack(alignment: .leading) {
                                 Capsule().fill(KColor.line)
                                 if let pc = month.sharePercent {
-                                    Capsule().fill(KColor.teal)
+                                    Capsule().fill(KColor.brass)
                                         .frame(width: g.size.width * CGFloat(max(2, min(100, pc))) / 100)
                                 }
                             }
                         }
                         .frame(height: 6)
-                        .padding(.top, 7)
+                        .padding(.top, 10)
+                        .padding(.bottom, 6)
                         .accessibilityHidden(true)
                         Text(verbatim: t)
-                            .font(.caption).foregroundStyle(KColor.ink2)
-                            .padding(.top, 3)
+                            .font(.system(size: 12)).foregroundStyle(KColor.ink2)
+                            .ctLine(17.4)
                     }
                 }
             }
             .padding(.horizontal, 14).padding(.vertical, 13)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(KColor.field, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(KColor.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("detail.kz.month")
             VStack(spacing: 8) {
@@ -113,40 +123,41 @@ struct CTDetailKeyFigures: View {
         return sum > 0.005 ? sum : nil
     }
 
-    /// «59» gross, «.90» bzw. «,90» klein, Währung klein (Web decAt)
+    /// «59» gross, «.90» bzw. «,90» klein (0.55 em, 600), Währung 12/600 System (Web v164 `.kzm b` in Serif 34/500)
     private func bigAmount(_ v: Double, currency: Currency) -> some View {
         let parts = Format.decimalSplit(Format.money(v, currency))
-        let intPart = parts.whole
-        let decPart = parts.fraction
-        return (Text(verbatim: intPart).font(.system(size: 34, weight: .bold))
-            + Text(verbatim: decPart).font(.system(size: 19, weight: .semibold))
-            + Text(verbatim: " " + currency.rawValue).font(.caption.weight(.semibold)).foregroundStyle(KColor.ink2))
+        return (Text(verbatim: parts.whole).font(KFont.serif(34, .medium)).tracking(-0.34)
+            + Text(verbatim: parts.fraction).font(KFont.serif(18.7, .semibold))
+            + Text(verbatim: " " + currency.rawValue).font(.system(size: 12, weight: .semibold)).foregroundColor(KColor.ink2))
             .foregroundStyle(KColor.ink)
-            .monospacedDigit()
             .lineLimit(1)
             .minimumScaleFactor(0.6)
+            .ctLine(37.4)
     }
 
+    /// Web `.kzt`: Fläche, Radius 16 (v164), 10/12, senkrecht mittig; Wert Serif 20/500, 3 darüber
     private func tile(_ label: String, value: String, currency: String, extra: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 0) {
             Text(label)
-                .font(.caption.weight(.medium))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(KColor.ink2)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
-            (Text(verbatim: value).font(.system(size: 20, weight: .bold))
-                + Text(verbatim: currency.isEmpty ? "" : " " + currency).font(.caption.weight(.semibold)).foregroundStyle(KColor.ink2))
+                .ctLine(17.4)
+            (Text(verbatim: value).font(KFont.serif(20, .medium)).tracking(-0.2)
+                + Text(verbatim: currency.isEmpty ? "" : " " + currency).font(.system(size: 12, weight: .semibold)).foregroundColor(KColor.ink2))
                 .foregroundStyle(KColor.ink)
-                .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
+                .ctLine(22)
+                .padding(.top, 3)
             if !extra.isEmpty {
-                Text(verbatim: extra).font(.caption2).foregroundStyle(KColor.ink2)
+                Text(verbatim: extra).font(.system(size: 11)).foregroundStyle(KColor.ink2).padding(.top, 2)
             }
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .background(KColor.field, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(KColor.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }
@@ -173,10 +184,10 @@ struct CTDetailCompletenessHint: View {
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(h.title)
-                            .font(.subheadline.weight(.semibold))
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(KColor.teal)
                         Text(h.detail)
-                            .font(.footnote)
+                            .font(.system(size: 13))
                             .foregroundStyle(KColor.ink2)
                             .multilineTextAlignment(.leading)
                             .fixedSize(horizontal: false, vertical: true)
@@ -189,7 +200,8 @@ struct CTDetailCompletenessHint: View {
                 }
                 .padding(.horizontal, 13).padding(.vertical, 12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(KColor.teal.opacity(0.09), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(KColor.surface)
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(KColor.teal.opacity(0.09))))
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -214,17 +226,17 @@ struct CTDetailDeadlineBox: View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: box.title)
-                    .font(.body.weight(.semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(tone)
                 Text(verbatim: box.subtitle)
-                    .font(.footnote)
+                    .font(.system(size: 12.5))
                     .foregroundStyle(KColor.ink2)
             }
             .accessibilityElement(children: .combine)
             HStack(spacing: 8) {
                 Button(action: onCancel) {
                     Text(box.cancelTitle)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity).padding(.vertical, 10)
                         .background(KColor.tealFill, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
@@ -233,10 +245,10 @@ struct CTDetailDeadlineBox: View {
                 .accessibilityIdentifier("detail.deadline.cancel")
                 Button(action: onKeep) {
                     Text(box.keepTitle)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(KColor.ink)
                         .frame(maxWidth: .infinity).padding(.vertical, 10)
-                        .background(KColor.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .background(KColor.ink.opacity(0.07), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("detail.deadline.keep")
@@ -244,7 +256,9 @@ struct CTDetailDeadlineBox: View {
         }
         .padding(.horizontal, 13).padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(tone.opacity(alert ? 0.09 : 0.11), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        // Web: color-mix(Ton 11 % bzw. 9 %, --surface)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(KColor.surface)
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(tone.opacity(alert ? 0.09 : 0.11))))
         .padding(.top, 2).padding(.bottom, 8)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("detail.deadline")

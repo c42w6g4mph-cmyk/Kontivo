@@ -45,17 +45,14 @@ struct LetterView: View {
                         .kPageBackground()
                 }
             }
-            .navigationTitle("Kündigung")
-            .navigationBarTitleDisplayMode(.inline)
+            // Web `.shbar`: «Schliessen» | «Kündigung» | «PDF»
+            .ctSheetBar("Kündigung") {
+                CTBarCancelButton(title: "Schliessen") { dismiss() }
+            } trailing: {
+                CTBarConfirmButton(title: "PDF") { createPDF() }
+                    .accessibilityLabel("PDF erstellen")
+            }
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Schliessen") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("PDF") { createPDF() }
-                        .fontWeight(.semibold)
-                        .accessibilityLabel("PDF erstellen")
-                }
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Fertig") { focus = nil }
@@ -77,7 +74,7 @@ struct LetterView: View {
         Binding(get: { ask != nil }, set: { if !$0 { ask = nil } })
     }
 
-    // MARK: Formular
+    // MARK: Formular (Web `#sheetLetter`: Beschriftung 12.5 Tinte 2, Felder auf `--field`, Radius 10, 11/12, 16 px, 12 Abstand)
 
     @ViewBuilder private func form(_ c: Contract) -> some View {
         let calc = model.calc
@@ -86,209 +83,195 @@ struct LetterView: View {
         whoSection(parts)
         recipientSection(c)
         if Letter.showsKvgHint(c, data: model.data) {
-            Section {
-                Text(Letter.kvgHint)
-                    .font(.footnote)
-                    .foregroundStyle(KColor.ink2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("letter.kvg")
-            }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 4))
+            Text(Letter.kvgHint)
+                .font(.system(size: 13))
+                .foregroundStyle(KColor.ink2)
+                .lineSpacing(2.7)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.bottom, 12)
+                .accessibilityIdentifier("letter.kvg")
         }
         if showMissing { missingSection(c) }
-        Section {
-            TextField("Betreff", text: $subject)
+        LetterLabeled(label: "Betreff") {
+            TextField("", text: $subject)
+                .font(.system(size: 16))
                 .focused($focus, equals: .subject)
-        } header: {
-            Text("Betreff").textCase(nil)
+                .letterBox()
+                .accessibilityLabel("Betreff")
         }
-        .listRowBackground(KColor.surface)
-        Section {
+        LetterLabeled(label: "Text") {
             TextEditor(text: $bodyText)
-                .font(.callout)
-                .lineSpacing(3)
-                .frame(minHeight: 260)
+                .font(.system(size: 16))
+                .lineSpacing(4.6)
+                .frame(minHeight: 238)
                 .scrollContentBackground(.hidden)
                 .focused($focus, equals: .body)
+                .padding(.horizontal, -5).padding(.vertical, -8)
+                .letterBox()
                 .accessibilityLabel("Text")
-        } header: {
-            Text("Text").textCase(nil)
         }
-        .listRowBackground(KColor.surface)
         signatureSection(rent: rent)
-        Section {
-            Text(Letter.hints(c, parts: parts, calc: calc).joined(separator: " "))
-                .font(.footnote)
-                .foregroundStyle(KColor.ink2)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 4))
-        Section {
-            Button {
-                createPDF()
-            } label: {
-                Label("PDF erstellen", systemImage: "doc.richtext")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
-            }
-            .buttonStyle(.borderedProminent)
-            // Direkt verschicken bzw. drucken (PDF wird erstellt, ohne Vorschau)
-            HStack(spacing: 10) {
-                Button {
-                    createPDF(.mail)
-                } label: {
-                    Label("Per Mail senden", systemImage: "envelope")
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
-                }
+        Text(Letter.hints(c, parts: parts, calc: calc).joined(separator: " "))
+            .font(.system(size: 12.5))
+            .foregroundStyle(KColor.ink2)
+            .lineSpacing(4.4)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, 12)
+        // Nativ zusätzlich (README «Bewusst anders»): direkt verschicken bzw. drucken (PDF ohne Vorschau)
+        HStack(spacing: 8) {
+            LetterSmallButton(title: "Per Mail senden") { createPDF(.mail) }
                 .accessibilityIdentifier("letter.mail")
-                Button {
-                    createPDF(.print)
-                } label: {
-                    Label("Drucken", systemImage: "printer")
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
-                }
+            LetterSmallButton(title: "Drucken") { createPDF(.print) }
                 .accessibilityIdentifier("letter.print")
-            }
-            .buttonStyle(.bordered)
-            .padding(.top, 10)
         }
-        .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets())
+        .padding(.top, 14)
     }
 
     // «Wer kündigt?» und Absenderzeile
     @ViewBuilder private func whoSection(_ parts: LetterParts) -> some View {
         let persons = model.data.persons
-        Section {
-            if persons.count >= 2 {
-                LetterChipFlow(spacing: 8).callAsFunction {
+        if persons.count >= 2 {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Wer kündigt?")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(KColor.ink2)
+                LetterChipFlow(spacing: 6).callAsFunction {
                     if persons.count == 2 {
                         ForEach(persons) { p in
-                            Chip(title: p.name, isOn: signers.count == 1 && signers.first == p.id) { setSigners([p.id]) }
+                            LetterChip(title: p.name, isOn: signers.count == 1 && signers.first == p.id) { setSigners([p.id]) }
                         }
-                        Chip(title: "Beide", isOn: signers.count == 2) { setSigners(persons.map { $0.id }) }
+                        LetterChip(title: "Beide", isOn: signers.count == 2) { setSigners(persons.map { $0.id }) }
                     } else {
                         ForEach(persons) { p in
-                            Chip(title: p.name, isOn: signers.contains(p.id)) { toggleSigner(p.id, persons: persons) }
+                            LetterChip(title: p.name, isOn: signers.contains(p.id)) { toggleSigner(p.id, persons: persons) }
                         }
                     }
                 }
-                .padding(.vertical, 4)
-                .id(LetterAnchor.who)
             }
-            LetterSenderLine(parts: parts, missing: Letter.signersMissingAddress(signers, data: model.data)) { pid in
-                model.present(.manage(.sender(pid)))
-            }
-            .id(persons.count >= 2 ? LetterAnchor.sender : LetterAnchor.who)
-        } header: {
-            if persons.count >= 2 { Text("Wer kündigt?").textCase(nil) }
+            .padding(.bottom, 6)
+            .id(LetterAnchor.who)
         }
-        .listRowBackground(KColor.surface)
+        LetterSenderLine(parts: parts, missing: Letter.signersMissingAddress(signers, data: model.data)) { pid in
+            model.present(.manage(.sender(pid)))
+        }
+        .padding(.top, 4)
+        .padding(.bottom, 12)
+        .id(persons.count >= 2 ? LetterAnchor.sender : LetterAnchor.who)
     }
 
     @ViewBuilder private func recipientSection(_ c: Contract) -> some View {
-        Section {
+        LetterLabeled(label: "Empfänger") {
             ZStack(alignment: .topLeading) {
                 if toText.isEmpty {
                     Text("Firma AG\nStrasse Nr.\nPLZ Ort")
+                        .font(.system(size: 16))
                         .foregroundStyle(KColor.ink3)
-                        .padding(.top, 8)
-                        .padding(.leading, 5)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
                 }
                 TextEditor(text: $toText)
-                    .frame(minHeight: 92)
+                    .font(.system(size: 16))
+                    .frame(minHeight: 70)
                     .scrollContentBackground(.hidden)
                     .textInputAutocapitalization(.words)
                     .focused($focus, equals: .to)
+                    .padding(.horizontal, -5).padding(.vertical, -8)
                     .accessibilityLabel("Empfänger")
             }
+            .letterBox()
             HStack(spacing: 10) {
                 Button {
                     searchAddress(c)
                 } label: {
-                    Label("Adresse suchen", systemImage: "magnifyingglass")
-                        .font(.subheadline.weight(.semibold))
+                    Text("Adresse suchen")
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundStyle(KColor.teal)
+                        .padding(.vertical, 7)
+                        .contentShape(Rectangle())
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
+                .buttonStyle(.plain)
                 .disabled(searching)
                 if searching { ProgressView().controlSize(.small) }
                 if !addrStatus.isEmpty {
                     Text(addrStatus)
-                        .font(.footnote)
+                        .font(.system(size: 12.5))
                         .foregroundStyle(KColor.ink2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-        } header: {
-            Text("Empfänger").textCase(nil)
+            .padding(.top, 4)
         }
-        .listRowBackground(KColor.surface)
     }
 
     /// Nummern direkt nachtragen (beide fehlen); Vertragsnummer beschriftet wie im Formular («Policennummer», «Rufnummer» …)
     private func missingSection(_ c: Contract) -> some View {
-        Section {
-            if c.customerNo.isEmpty {
-                TextField("Kundennummer", text: $custNo)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .focused($focus, equals: .customer)
-                    .accessibilityIdentifier("letter.custNo")
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Fehlt noch — wird beim Vertrag gespeichert")
+                .font(.system(size: 12.5))
+                .foregroundStyle(KColor.ink2)
+            HStack(alignment: .top, spacing: 11) {
+                if c.customerNo.isEmpty {
+                    LetterLabeled(label: "Kundennummer") {
+                        TextField("", text: $custNo)
+                            .font(.system(size: 16))
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .focused($focus, equals: .customer)
+                            .letterBox()
+                            .accessibilityLabel("Kundennummer")
+                            .accessibilityIdentifier("letter.custNo")
+                    }
+                }
+                if c.contractNo.isEmpty {
+                    let l = Letter.contractNumberLabel(c, data: model.data)
+                    LetterLabeled(label: l) {
+                        TextField("", text: $contrNo)
+                            .font(.system(size: 16))
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .focused($focus, equals: .contract)
+                            .letterBox()
+                            .accessibilityLabel(l)
+                            .accessibilityIdentifier("letter.contrNo")
+                    }
+                }
             }
-            if c.contractNo.isEmpty {
-                TextField(Letter.contractNumberLabel(c, data: model.data), text: $contrNo)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .focused($focus, equals: .contract)
-                    .accessibilityIdentifier("letter.contrNo")
-            }
-        } header: {
-            Text("Fehlt noch — wird beim Vertrag gespeichert").textCase(nil)
         }
-        .listRowBackground(KColor.surface)
     }
 
     @ViewBuilder private func signatureSection(rent: Bool) -> some View {
-        Section {
-            if rent {
-                Text(Letter.rentSignatureNote(signerCount: signers.count))
-                    .font(.footnote)
-                    .foregroundStyle(KColor.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.vertical, 4)
-                    .listRowBackground(KColor.warn.opacity(0.12))
-            } else if signers.isEmpty {
-                Text("Zuerst oben wählen, wer kündigt.")
-                    .font(.footnote)
-                    .foregroundStyle(KColor.ink2)
-                    .listRowBackground(KColor.surface)
-            } else {
-                ForEach(signers, id: \.self) { pid in
-                    LetterSignatureRow(name: model.data.senderName(pid),
-                                       signature: model.data.person(pid)?.signatureJPEG.flatMap { UIImage(data: $0) },
-                                       onDraw: { sheet = .pad(pid) },
-                                       onSuggest: { openSuggestions(pid) },
-                                       onRemove: {
-                                           model.update { $0.setSignature(pid, nil) }
-                                           model.toast("Unterschrift entfernt")
-                                       })
-                    .listRowBackground(KColor.surface)
-                }
+        Text("Unterschrift")
+            .font(.system(size: 12.5))
+            .foregroundStyle(KColor.ink2)
+            .padding(.bottom, 6)
+        if rent {
+            Text(Letter.rentSignatureNote(signerCount: signers.count))
+                .font(.system(size: 13))
+                .foregroundStyle(KColor.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.warn.opacity(0.12)))
+        } else if signers.isEmpty {
+            Text("Zuerst oben wählen, wer kündigt.")
+                .font(.system(size: 12.5))
+                .foregroundStyle(KColor.ink2)
+        } else {
+            ForEach(signers, id: \.self) { pid in
+                LetterSignatureRow(name: model.data.senderName(pid),
+                                   signature: model.data.person(pid)?.signatureJPEG.flatMap { UIImage(data: $0) },
+                                   onDraw: { sheet = .pad(pid) },
+                                   onSuggest: { openSuggestions(pid) },
+                                   onRemove: {
+                                       model.update { $0.setSignature(pid, nil) }
+                                       model.toast("Unterschrift entfernt")
+                                   })
+                    .padding(.bottom, 12)
             }
-        } header: {
-            Text("Unterschrift").textCase(nil)
-        } footer: {
-            if !rent && !signers.isEmpty { Text("Jede Person unterschreibt selbst.") }
+            Text("Jede Person unterschreibt selbst.")
+                .font(.system(size: 12.5))
+                .foregroundStyle(KColor.ink2)
+                .padding(.top, -6)
         }
     }
 
@@ -596,8 +579,14 @@ private struct LetterFormHost<Content: View>: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            Form { content }
-                .scrollContentBackground(.hidden)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) { content }
+                    .padding(.horizontal, 17)
+                    .padding(.top, 12)
+                    .padding(.bottom, 24)
+                    .frame(maxWidth: KMetric.maxContent + 34)
+                    .frame(maxWidth: .infinity)
+            }
                 .background(KColor.paper.ignoresSafeArea())
                 .scrollDismissesKeyboard(.interactively)
                 .onChange(of: scrollToWho) { _, _ in
@@ -618,9 +607,10 @@ private struct LetterSenderLine: View {
     var body: some View {
         let line = Letter.senderLine(parts)
         VStack(alignment: .leading, spacing: 6) {
-            Text("\(Text(line.bold).fontWeight(.semibold).foregroundStyle(KColor.ink))\(line.text)")
-                .font(.footnote)
+            Text("\(Text(line.bold).fontWeight(.bold))\(line.text)")
+                .font(.system(size: 12.5))
                 .foregroundStyle(KColor.ink2)
+                .lineSpacing(4.4)
                 .fixedSize(horizontal: false, vertical: true)
             if !parts.signers.isEmpty && !missing.isEmpty {
                 LetterChipFlow(spacing: 6).callAsFunction {
@@ -641,7 +631,6 @@ private struct LetterSenderLine: View {
                 }
             }
         }
-        .padding(.vertical, 2)
     }
 }
 
@@ -653,11 +642,14 @@ private struct LetterSignatureRow: View {
     let onSuggest: () -> Void
     let onRemove: () -> Void
 
+    /// Web: Name 13/600 Tinte 2 (2 Rand, 5 darunter), Fläche weiss 72 hoch, Radius 12, Rand 1 `--line`; Knöpfe nebeneinander
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 0) {
             Text(name)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(KColor.ink)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(KColor.ink2)
+                .padding(.horizontal, 2)
+                .padding(.bottom, 5)
             GeometryReader { geo in
                 ZStack {
                     RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white)
@@ -669,7 +661,7 @@ private struct LetterSignatureRow: View {
                             .accessibilityLabel("Unterschrift " + name)
                     } else {
                         Text("Keine Unterschrift · Linie bleibt frei")
-                            .font(.footnote)
+                            .font(.system(size: 13))
                             .foregroundStyle(Color(white: 0.45))
                     }
                 }
@@ -677,16 +669,83 @@ private struct LetterSignatureRow: View {
             }
             .frame(height: 72)
             HStack(spacing: 8) {
-                Button("Zeichnen", action: onDraw)
-                Button("Vorschläge", action: onSuggest)
+                LetterSmallButton(title: "Zeichnen", action: onDraw)
+                LetterSmallButton(title: "Vorschläge", action: onSuggest)
                 if signature != nil {
-                    Button("Entfernen", role: .destructive, action: onRemove)
+                    LetterSmallButton(title: "Entfernen", destructive: true, action: onRemove)
                 }
             }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
+            .padding(.top, 6)
         }
-        .padding(.vertical, 6)
+    }
+}
+
+/// Feld mit Beschriftung darüber (Web `.field`: label 12.5 Tinte 2, Abstand 5, 12 darunter)
+private struct LetterLabeled<Content: View>: View {
+    let label: String
+    @ViewBuilder var content: Content
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(label)
+                .font(.system(size: 12.5))
+                .foregroundStyle(KColor.ink2)
+                .lineLimit(1)
+            content
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.bottom, 12)
+    }
+}
+
+private extension View {
+    /// Eingabefläche (Web `.field input/textarea`: `--field`, Radius 10, 11/12)
+    func letterBox() -> some View {
+        padding(.vertical, 11).padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.field))
+    }
+}
+
+/// Chip «Wer kündigt?» (Web `.chips button`: 14 px, 7/12, gewählt Tinte/Papier, sonst Rand `--line`)
+private struct LetterChip: View {
+    let title: String
+    let isOn: Bool
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 14, weight: isOn ? .semibold : .regular))
+                .lineLimit(1)
+                .padding(.horizontal, 13).padding(.vertical, 8)
+                .foregroundStyle(isOn ? KColor.paper : KColor.ink2)
+                .background(Capsule().fill(isOn ? KColor.ink : Color.clear))
+                .overlay(Capsule().strokeBorder(isOn ? KColor.ink : KColor.line, lineWidth: 1))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isOn ? .isSelected : [])
+    }
+}
+
+/// Kleiner Knopf (Web `#ltSigs button`: Fläche, Rand 1 `--line`, Radius 10, 13/600, 8/4)
+private struct LetterSmallButton: View {
+    let title: String
+    var destructive = false
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(destructive ? KColor.alert : KColor.ink)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8).padding(.horizontal, 4)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.surface))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
     }
 }
 

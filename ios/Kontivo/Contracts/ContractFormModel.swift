@@ -44,6 +44,10 @@ final class CTFormState {
     var termMode: TermMode
     /// Kachel «Nicht kündbar» durch die Kategorie «Steuern & Gebühren» erzwungen (Web `draft.taxForced`)
     var taxForced = false
+    /// Vertragsart von Hand gewählt (Web v210 `draft.tmTouched`)
+    var tmTouched = false
+    /// «Nicht kündbar» als Vorschlag für Strom in der Schweiz gesetzt (Web v210 `draft.chPower`)
+    var chPower = false
     var start: Day?
     var end: Day?
     /// Mindestlaufzeit in Monaten (Web #fTermM); gespeichert wird nur das Vertragsende
@@ -110,6 +114,9 @@ final class CTFormState {
     var extraOpen = false
     /// Sprung zu einem Feld (Web `formGo`), wird von der Seite ausgeführt und zurückgesetzt
     var goTo: ContractFormField?
+    /// Fehlende Angabe beim Sichern (Web v218 `goMiss`): Feld kurz markieren; `missToken` startet die Markierung neu
+    var missField: ContractFormField?
+    var missToken = 0
 
     // Vorlagen und Vorschläge
     /// Name der übernommenen Katalog-Vorlage
@@ -127,8 +134,13 @@ final class CTFormState {
     /// Vorschläge unter dem Kopf erst nach einer Eingabe (Web: `openForm` leert #fSugg, `paintSugg` erst bei «input»)
     var sugActive = false
 
-    // Vorschläge unter dem Vertragspartner (Web #pSug): eigene Vertragspartner und Internet
+    // Vorschläge unter dem Vertragspartner (Web #pSug): eigene Vertragspartner, Katalog und Internet (v213)
     var sugVisible = false
+    /// «Weitere Katalogtreffer» (Web `draft.tplMore`)
+    var tplMore = false
+    /// Rahmen von Feld und Trefferliste (global): Tipp ausserhalb schliesst die Liste (Web v214)
+    @ObservationIgnored var partnerFieldFrame: CGRect = .zero
+    @ObservationIgnored var sugFrame: CGRect = .zero
     var webHits: [WebPartnerHit] = []
     var webLoading = false
     @ObservationIgnored var searchToken = 0
@@ -284,6 +296,7 @@ final class CTFormState {
         if !pSugSel.isEmpty && v.ctTrimmed != pSugSel { pSugSel = "" }
         tplHint = ""
         stdTpl = nil
+        tplMore = false
     }
 
     /// Vertragspartner fertig eingegeben (Web `fPartner` «change», v156): neuer Vertrag ohne Betrag übernimmt die Währung
@@ -402,7 +415,13 @@ final class CTFormState {
             mandatory = t.mandatory && !tFix
             if t.mandatory || tFix { noWatch = false }
         }
+        // Leasing: feste Laufzeit ohne Verlängerung (Web v214); Laufzeit/Ende kennt nur der Vertrag
+        if !onlyEmpty && t.label.range(of: "leasing", options: .caseInsensitive) != nil {
+            setTermMode(.fixed)
+            renewMonths = 0
+        }
         if amountText.ctTrimmed.isEmpty, let cur = t.suggestedCurrency { currency = cur }
+        chPowerDefault(data)
         tplHint = t.name
         if !onlyEmpty {
             let after = tplSnapshot()
@@ -560,11 +579,9 @@ final class CTFormState {
         }
         let cur = Catalog.find(pn, currency: currency)
         if let c = cur, tplHint == c.name, showsTplSummary { return .summary(c, items: tplSum ?? []) }
-        if let c = cur { return tplHint == c.name ? .hint(c.hintFull, standardChip: false) : .exact(c) }
-        let q = (pn.isEmpty ? label : pn).ctTrimmed.lowercased()
-        if q.count < 2 { return .none }
-        let hits = Catalog.suggestions(q, currency: currency)
-        return hits.isEmpty ? .none : .chips(hits)
+        if let c = cur, tplHint == c.name { return .hint(c.hintFull, standardChip: false) }
+        // Web v213: Katalogtreffer stehen in der gemeinsamen Trefferliste unter dem Vertragspartner (keine Chips mehr)
+        return .none
     }
 
     /// «Übliche Frist übernehmen»: wie Web nur leere Felder füllen (bewusst gewählte Werte bleiben)
@@ -745,6 +762,7 @@ final class CTFormState {
     /// Knopf der Vertragsart angetippt (Web `termSeg` click): beim Wechsel auf «Mindestlaufzeit» die leere Verlängerung mit
     /// 1 Monat vorbelegen (v156, sonst endete der Vertrag still).
     func pickTermMode(_ m: TermMode) {
+        tmTouched = true
         if m == .fixed && termMode != .fixed && renewMonths == 0 { renewMonths = ContractFormRules.defaultRenewOnFixed }
         setTermMode(m)
     }
@@ -763,6 +781,32 @@ final class CTFormState {
             setTermMode(.tax)
         } else if !tx && taxForced {
             taxForced = false
+            if termMode == .tax { setTermMode(.open) }
+        }
+        chPowerDefault(data)
+    }
+
+    /// Strom in der Schweiz (Web v210 `isChPowerD`): CHF, Kategorie «Energie & Wasser», Bezeichnung/Vertragspartner ohne Wasser,
+    /// Gas, Fernwärme, Heizung, Öl, Pellets, Holz, Solar, Abwasser, Kehricht.
+    func isChPower(_ data: AppData) -> Bool {
+        let t = [label, partnerName].joined(separator: " ")
+        return currency == .CHF && data.category(categoryID)?.kind == .energy
+            && t.range(of: "wasser|gas|fernw|wärme|waerme|heiz|öl|oel|pellet|holz|solar|abwasser|kehricht",
+                       options: [.regularExpression, .caseInsensitive]) == nil
+    }
+
+    /// Haushalte in der Schweiz können den Stromanbieter nicht wählen (Grundversorgung) → bei neuen Verträgen standardmässig
+    /// «Nicht kündbar», kein Pflichtvertrag; nur solange die Art nicht von Hand gewählt wurde (Web v210 `chPowerDefault`).
+    func chPowerDefault(_ data: AppData) {
+        if isExisting || tmTouched || categoryID == nil { return }
+        if isChPower(data) {
+            if termMode != .tax {
+                chPower = true
+                setTermMode(.tax)
+            }
+            mandatory = false
+        } else if chPower {
+            chPower = false
             if termMode == .tax { setTermMode(.open) }
         }
     }
@@ -1058,9 +1102,12 @@ final class CTFormState {
 
     /// Preisänderung vormerken (Web pAdd). `force`: Rückfrage «Preis bleibt gleich» wurde bestätigt.
     func addPrice(force: Bool = false) -> PriceAddResult {
-        guard let f = priceFrom else { return .toast("Datum für die Preisänderung fehlt", long: false, added: false) }
-        if let s0 = start, f <= s0 { return .toast("Datum muss nach dem Vertragsbeginn liegen", long: false, added: false) }
-        guard let a = CTNumber.parse(priceAmountText), a >= 0 else { return .toast("Neuen Betrag prüfen", long: false, added: false) }
+        guard let f = priceFrom else { miss(.prices); return .toast("Datum für die Preisänderung fehlt", long: false, added: false) }
+        if let s0 = start, f <= s0 { miss(.prices); return .toast("Datum muss nach dem Vertragsbeginn liegen", long: false, added: false) }
+        guard let a = CTNumber.parse(priceAmountText), a >= 0 else {
+            miss(.priceAmount)
+            return .toast(priceAmountText.ctTrimmed.isEmpty ? "Neuer Betrag fehlt" : "Neuen Betrag prüfen", long: false, added: false)
+        }
         // Falle: «Betrag» oben schon auf den neuen Preis gesetzt → Änderung ohne Wirkung
         var pv = CTNumber.parse(amountText) ?? 0
         for p in sortedPrices where p.from < f { pv = p.amount }
@@ -1091,9 +1138,24 @@ final class CTFormState {
     }
 
     /// Sonderzahlung vormerken (Web xAdd); Rückgabe = Toast
+    /// Fehlende Angabe: Unterbereich öffnen, hinspringen (Fokus bei Textfeldern) und kurz markieren (Web v218 `goMiss`)
+    func miss(_ f: ContractFormField) {
+        switch f {
+        case .prices, .priceAmount: priceOpen = true
+        case .extraDate, .extraAmount: extraOpen = true
+        default: break
+        }
+        missField = f
+        goTo = f
+        missToken += 1
+    }
+
     func addExtra() -> String {
-        guard let d = extraDate else { return "Datum der Sonderzahlung fehlt" }
-        guard let a0 = CTNumber.parse(extraAmountText), a0 > 0 else { return "Betrag prüfen" }
+        guard let d = extraDate else { miss(.extraDate); return "Datum der Sonderzahlung fehlt" }
+        guard let a0 = CTNumber.parse(extraAmountText), a0 > 0 else {
+            miss(.extraAmount)
+            return extraAmountText.ctTrimmed.isEmpty ? "Betrag fehlt" : "Betrag prüfen"
+        }
         let a = Format.round2(abs(a0))
         let credit = extraCredit
         extras.append(ExtraPayment(date: d, amount: credit ? -a : a, note: String(extraNote.ctTrimmed.prefix(60))))
@@ -1175,7 +1237,6 @@ final class CTFormState {
                 model.toast(t, seconds: long ? 4 : 2.4)
                 if !added {
                     priceOpen = true
-                    goTo = .prices
                     return false
                 }
             case .confirmSame(let title, let message):
@@ -1193,7 +1254,6 @@ final class CTFormState {
             model.toast(t)
             if extraDate != nil || !extraAmountText.ctTrimmed.isEmpty {
                 extraOpen = true
-                goTo = .extras
                 return false
             }
         }
@@ -1207,7 +1267,7 @@ final class CTFormState {
         let pname = Format.collapseSpaces(partnerName)
         if pname.isEmpty && label.ctTrimmed.isEmpty {
             model.toast("Bezeichnung fehlt")
-            goTo = .label
+            miss(.label)
             return false
         }
         guard let cid = categoryID, data.category(cid) != nil else {
@@ -1217,23 +1277,24 @@ final class CTFormState {
             return false
         }
         guard let amt = CTNumber.parse(amountText), amt >= 0 else {
-            model.toast("Betrag prüfen")
-            goTo = .amount
+            // Web v218: «Betrag fehlt» bei leerem Feld, sonst «Betrag prüfen»
+            model.toast(amountText.ctTrimmed.isEmpty ? "Betrag fehlt" : "Betrag prüfen")
+            miss(.amount)
             return false
         }
         guard let notice = CTNumber.noticeValue(noticeText, unit: noticeUnit) else {
             model.toast("Kündigungsfrist prüfen")
-            goTo = .notice
+            miss(.notice)
             return false
         }
         if termMode == .fixed && end == nil {
-            model.toast(ContractFormRules.missingEndText)
-            goTo = .end
+            model.toast("Vertragsende fehlt")
+            miss(.end)
             return false
         }
         if termMode == .trial && trial == nil {
             model.toast(ContractFormRules.missingTrialText)
-            goTo = .trial
+            miss(.trial)
             return false
         }
         if showsCancelDates, let err = ContractFormRules.checkCancellation(per: cancelPer, on: cancelledOn) {

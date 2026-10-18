@@ -242,22 +242,51 @@ private struct DocPDFView: UIViewRepresentable {
         v.pageBreakMargins = UIEdgeInsets(top: 7, left: 14, bottom: 7, right: 14)
         v.backgroundColor = docSunkenUIColor
         v.document = document
+        // Web v221: Zoom 1–4× (Pinch) und Doppeltipp 1× ↔ 2.5×
+        let dt = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.doubleTap(_:)))
+        dt.numberOfTapsRequired = 2
+        v.addGestureRecognizer(dt)
+        context.coordinator.view = v
+        DispatchQueue.main.async { DocPDFView.limits(v) }
         return v
     }
 
     func updateUIView(_ uiView: PDFView, context: Context) {
         if uiView.document !== document { uiView.document = document }
+        DocPDFView.limits(uiView)
+    }
+
+    static func limits(_ v: PDFView) {
+        let fit = v.scaleFactorForSizeToFit
+        guard fit > 0 else { return }
+        v.minScaleFactor = fit
+        v.maxScaleFactor = fit * 4
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    final class Coordinator: NSObject {
+        weak var view: PDFView?
+
+        @objc func doubleTap(_ g: UITapGestureRecognizer) {
+            guard let v = view else { return }
+            DocPDFView.limits(v)
+            let fit = v.scaleFactorForSizeToFit
+            guard fit > 0 else { return }
+            v.autoScales = false
+            v.scaleFactor = v.scaleFactor > fit * 1.01 ? fit : fit * 2.5
+        }
     }
 }
 
-/// Bild mit Zoom (zwei Finger, Doppeltipp nicht nötig)
+/// Bild mit Zoom (Web v221: zwei Finger 1–4×, Doppeltipp 1× ↔ 2.5×)
 private struct DocZoomImage: UIViewRepresentable {
     let image: UIImage
 
     func makeUIView(context: Context) -> UIScrollView {
         let sv = UIScrollView()
         sv.minimumZoomScale = 1
-        sv.maximumZoomScale = 5
+        sv.maximumZoomScale = 4
         sv.backgroundColor = .clear
         sv.showsVerticalScrollIndicator = false
         sv.showsHorizontalScrollIndicator = false
@@ -275,6 +304,9 @@ private struct DocZoomImage: UIViewRepresentable {
             iv.heightAnchor.constraint(equalTo: sv.frameLayoutGuide.heightAnchor),
         ])
         context.coordinator.imageView = iv
+        let dt = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.doubleTap(_:)))
+        dt.numberOfTapsRequired = 2
+        sv.addGestureRecognizer(dt)
         return sv
     }
 
@@ -288,6 +320,18 @@ private struct DocZoomImage: UIViewRepresentable {
         weak var imageView: UIImageView?
 
         func viewForZooming(in scrollView: UIScrollView) -> UIView? { imageView }
+
+        @objc func doubleTap(_ g: UITapGestureRecognizer) {
+            guard let sv = g.view as? UIScrollView, let iv = imageView else { return }
+            if sv.zoomScale > 1.01 {
+                sv.setZoomScale(1, animated: true)
+            } else {
+                let p = g.location(in: iv)
+                let z: CGFloat = 2.5
+                let w = sv.bounds.width / z, h = sv.bounds.height / z
+                sv.zoom(to: CGRect(x: p.x - w / 2, y: p.y - h / 2, width: w, height: h), animated: true)
+            }
+        }
     }
 }
 

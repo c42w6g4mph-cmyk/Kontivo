@@ -56,29 +56,18 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         wait(textField("form.cancelMail"), "Feld «E-Mail für Kündigung»")
         XCTAssertFalse(textField("form.cancelURL").exists)
 
+        // Brief: kein Folgefeld mehr (Web v212: Adresse nur bei den Kontaktdaten)
         tap(button("cancelWay.letter"), "Kündigungsweg Brief")
-        let addr = button("form.cancelAddr")
-        wait(addr, "Zeile «Adresse des Vertragspartners»")
-        XCTAssertEqual(addr.label, "Erfassen")
-        wait(elContaining("Noch keine Adresse"), "Hinweis ohne Adresse")
         waitGone(textField("form.cancelMail"), "E-Mail-Feld beim Brief")
+        XCTAssertFalse(button("form.cancelAddr").exists, "Keine Zeile «Adresse des Vertragspartners» (v212)")
         ctShot("Formular – Kündigungsweg Brief")
 
         // Nochmals tippen hebt die Wahl auf
         tap(button("cancelWay.letter"), "Kündigungsweg Brief abwählen")
-        waitGone(button("form.cancelAddr"), "Adresszeile nach dem Abwählen")
-        XCTAssertFalse(button("cancelWay.letter").isSelected)
+        waitUntil("Brief abgewählt") { !self.button("cancelWay.letter").isSelected }
 
         tap(button("cancelWay.online"), "Kündigungsweg Online")
         wait(textField("form.cancelURL"), "Feld Kündigungslink")
-
-        // «Erfassen» klappt die Adresse unter «Kontakt» auf (Web v145: eine Seite, keine «Weitere Angaben»)
-        tap(button("cancelWay.letter"), "Kündigungsweg Brief")
-        tap(button("form.cancelAddr"), "Adresse erfassen")
-        wait(textField("Strasse und Nr."), "Adressfelder unter «Kontakt»", timeout: 6)
-        XCTAssertFalse(navExists("Weitere Angaben"), "Keine Unterseite mehr")
-        reveal(elContaining("zuerst den Vertragspartner eintragen"), "Hinweis ohne Vertragspartner")
-        ctShot("Formular – Adresse unter Kontakt")
     }
 
     /// Katalog-Treffer: Karte «Aus dem Katalog übernommen» mit Liste; «Rückgängig» setzt die Felder zurück
@@ -86,7 +75,11 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         launch("-uiEmpty")
         openNewForm()
         enter(textField("form.partner"), "CSS", "Vertragspartner")
-        tap(buttonStarting("CSS übernehmen"), "Vorlage «CSS übernehmen»")
+        // Gemeinsame Trefferliste (Web v213): Abschnitt «Katalog» unter dem Feld
+        let hit = app.buttons.matching(pred("identifier == %@ AND label CONTAINS %@", "form.tplHit", "Pflichtvertrag")).firstMatch
+        wait(hit, "Katalogtreffer CSS (Pflichtvertrag)")
+        ctShot("Formular – Trefferliste")
+        hit.tap()
         wait(elContaining("Aus dem Katalog übernommen"), "Karte Katalog")
         wait(elContaining("Pflichtvertrag"), "Liste nennt Pflichtvertrag")
         wait(elContaining("Bitte kurz prüfen"), "Prüfhinweis")
@@ -106,11 +99,9 @@ final class ContractFormDetailUITests: KontivoUITestCase {
             card.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.12)).tap()
         }
         waitGone(elContaining("Aus dem Katalog übernommen"), "Karte nach Rückgängig")
-        wait(buttonStarting("CSS übernehmen"), "Vorlage wieder angeboten")
         reveal(button("cancelWay.letter"), "Kachel Brief nach Rückgängig")
         ctShot("Formular – nach Rückgängig, Kündigungsweg")
-        // Folgefeld «Adresse des Vertragspartners» verschwindet, wenn kein Kündigungsweg mehr gewählt ist
-        waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.letter").isSelected || !self.button("form.cancelAddr").exists }
+        waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.letter").isSelected }
         ctShot("Formular – Katalog rückgängig")
     }
 
@@ -140,6 +131,9 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         // Vertragsbeginn heute → Preisänderung heute liegt nicht danach
         tap(button("Vertragsbeginn wählen"), "Vertragsbeginn setzen")
         revealUp(button("form.priceOpen"), "+ Preisänderung")
+        // Plakette nicht direkt unter der Fensterleiste antippen
+        app.swipeDown(velocity: .slow)
+        usleep(500_000)
         // Tipp kann während des Nachscrollens verloren gehen: dann ein zweiter Versuch
         tapOpen(button("form.priceOpen"), "+ Preisänderung", expect: button("Gültig ab wählen"))
         revealNear(button("Gültig ab wählen"), "Datum der Preisänderung")
@@ -167,12 +161,11 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         ctShot("Detail – Kopf und Kennzahlen")
 
         tap(docs, "Dokumente")
-        waitNav("Dokumente")
         wait(button("detail.docAttach"), "Datei anhängen")
         wait(elContaining("Noch keine Dokumente"), "Leere Liste")
         XCTAssertFalse(button("Entfernen").exists, "Kein Löschen im Detail")
         ctShot("Detail – Dokumente")
-        tapTop("Fertig")
+        tapTop("Schliessen")
         waitGone(button("detail.docAttach"), "Dokumente geschlossen")
 
         tap(button("detail.menu"), "Menü •••")

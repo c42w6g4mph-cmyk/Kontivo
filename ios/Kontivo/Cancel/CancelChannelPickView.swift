@@ -18,44 +18,38 @@ struct CancelChannelPickView: View {
         var id: String { channel.rawValue }
     }
 
-    private let options: [Option] = [
-        Option(channel: .online, title: "Online", detail: "Kundenkonto, Kündigungsbutton"),
-        Option(channel: .email, title: "Per E-Mail", detail: "Mail mit fertigem Text"),
-        Option(channel: .letter, title: "Per Brief", detail: "PDF mit Unterschrift"),
-        Option(channel: .phone, title: "Per Telefon", detail: "Kundendienst anrufen"),
-    ]
+    /// Web `openCancViaPick`: Online · Per E-Mail · Per Brief · Per Telefon (v210). Aus `CancelChannel.allCases`, damit «Telefon»
+    /// erscheint, sobald der Kern den Weg kennt (TODO core-API).
+    private let options: [Option] = CancelChannel.allCases.compactMap { ch in
+        let t: [String: (String, String)] = [
+            "Online / Kundenkonto": ("Online", "Kundenkonto, Kündigungsbutton"),
+            "E-Mail": ("Per E-Mail", "Mail mit fertigem Text"),
+            "Brief": ("Per Brief", "PDF mit Unterschrift"),
+            "Telefon": ("Per Telefon", "Kundendienst anrufen"),
+        ]
+        guard let v = t[ch.webText] else { return nil }
+        return Option(channel: ch, title: v.0, detail: v.1)
+    }
 
     var body: some View {
         let c = model.data.contract(contractID)
         let title = c.map { model.data.title(of: $0) } ?? "Ohne Namen"
-        NavigationStack {
-            List {
-                Section {
-                    ForEach(options) { o in
-                        Button { pick(o.channel) } label: { row(o, current: c?.cancelChannel) }
-                            .accessibilityLabel(o.title + ", " + o.detail)
-                    }
-                } header: {
-                    Text("Wie kündigst du «\(title)»?")
-                        .font(.headline)
-                        .foregroundStyle(KColor.ink)
-                        .textCase(nil)
-                        .padding(.bottom, 4)
-                } footer: {
-                    Text("Wird beim Vertrag gespeichert. Miete braucht immer einen Brief mit Unterschrift.")
+        // Web `openCancViaPick`: Auswahlblatt mit Titel «Wie kündigst du «…»?», Zeilen `.pick` und Hinweis
+        CTPickSheet(title: "Wie kündigst du «\(title)»?") {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(options) { o in
+                    CTPickRow(title: o.title, detail: o.detail) { pick(o.channel) }
+                        .accessibilityLabel(o.title + ", " + o.detail)
                 }
-                .listRowBackground(KColor.surface)
-            }
-            .scrollContentBackground(.hidden)
-            .background(KColor.paper.ignoresSafeArea())
-            .navigationTitle("Kündigungsweg")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { CancelWindowFlow.dismiss(model, ifTop: .cancelChannelPick(contractID, trial: trial)) }
-                }
+                Text("Wird beim Vertrag gespeichert. Miete braucht immer einen Brief mit Unterschrift.")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(KColor.ink2)
+                    .lineSpacing(4.4)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 4).padding(.horizontal, 2)
             }
         }
+        .presentationDetents([.medium, .large])
     }
 
     private func row(_ o: Option, current: CancelChannel?) -> some View {

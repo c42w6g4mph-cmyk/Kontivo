@@ -154,18 +154,18 @@ struct CTDetailDocsButton: View {
                 ZStack {
                     Circle()
                         .fill(count > 0 ? KColor.tealFill : KColor.teal.opacity(0.13))
-                    Image(systemName: "paperclip")
-                        .font(.system(size: 18, weight: .semibold))
+                    CTIcon.named("clip", 19)
                         .foregroundStyle(count > 0 ? Color.white : KColor.teal)
                 }
                 .frame(width: 44, height: 44)
                 Text(count > 0 ? Format.count(count, "Datei", "Dateien") : "Anhängen")
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 11.5, weight: .semibold))
                     .foregroundStyle(KColor.teal)
                     .lineLimit(1)
                     .fixedSize()
             }
             .frame(minWidth: 56)
+            .padding(.horizontal, 6).padding(.vertical, 1)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -187,54 +187,46 @@ struct CTDetailDocsSheet: View {
 
     var body: some View {
         let docs = model.data.contract(contractID)?.documents ?? []
-        NavigationStack {
-            List {
-                Section {
-                    if docs.isEmpty {
-                        Text("Noch keine Dokumente, zum Beispiel Vertrag, Police oder Rechnung.")
-                            .font(.subheadline)
-                            .foregroundStyle(KColor.ink2)
-                    }
-                    ForEach(docs) { d in
-                        Button {
-                            openDoc = DocumentRef(fileID: d.id, type: d.type, title: d.name, fileName: d.name)
-                        } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: CTText.isPDF(d) ? "doc.richtext" : "photo")
-                                    .foregroundStyle(KColor.teal)
-                                Text(d.name).foregroundStyle(KColor.ink).lineLimit(1)
-                                Spacer(minLength: 8)
-                                Text("Öffnen ›").font(.subheadline).foregroundStyle(KColor.teal)
-                            }
-                            .contentShape(Rectangle())
-                        }
-                    }
-                } footer: {
-                    Text("Dateien bleiben auf diesem Gerät." + (docs.isEmpty ? "" : " Löschen unter «Bearbeiten»."))
+        // Web `openDocsPick`: Auswahlblatt «Dokumente», Zeilen `.pick` «📄 Name | Öffnen ›», Knopf «Datei anhängen», Hinweis
+        CTPickSheet(title: "Dokumente") {
+            VStack(alignment: .leading, spacing: 6) {
+                if docs.isEmpty {
+                    Text("Noch keine Dokumente, zum Beispiel Vertrag, Police oder Rechnung.")
+                        .font(.system(size: 12.5))
+                        .foregroundStyle(KColor.ink2)
+                        .padding(.horizontal, 2).padding(.bottom, 6)
                 }
-                .listRowBackground(KColor.surface)
-                Section {
-                    Button {
-                        showImporter = true
-                    } label: {
-                        Label("Datei anhängen · PDF oder Bild", systemImage: "paperclip")
-                            .fontWeight(.semibold)
-                    }
-                    .accessibilityIdentifier("detail.docAttach")
-                    PhotosPicker(selection: $photo, matching: .images) {
-                        Label("Foto anhängen", systemImage: "photo.on.rectangle")
+                ForEach(docs) { d in
+                    CTPickRow(title: (CTText.isPDF(d) ? "📄 " : "🖼 ") + d.name, detail: "Öffnen ›") {
+                        openDoc = DocumentRef(fileID: d.id, type: d.type, title: d.name, fileName: d.name)
                     }
                 }
-                .listRowBackground(KColor.surface)
-            }
-            .scrollContentBackground(.hidden)
-            .background(KColor.paper)
-            .navigationTitle("Dokumente")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") { dismiss() }
+                Button {
+                    showImporter = true
+                } label: {
+                    Text("Datei anhängen · PDF oder Bild")
+                        .font(.system(size: 13.5, weight: .semibold))
+                        .foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(10)
+                        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.tealFill))
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .padding(.top, 6)
+                .accessibilityIdentifier("detail.docAttach")
+                // Nativ zusätzlich: Foto aus der Mediathek
+                PhotosPicker(selection: $photo, matching: .images) {
+                    Text("Foto anhängen")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(KColor.teal)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 9)
+                }
+                Text("Dateien bleiben auf diesem Gerät." + (docs.isEmpty ? "" : " Löschen unter «Bearbeiten»."))
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(KColor.ink2)
+                    .padding(.top, 4).padding(.horizontal, 2)
             }
         }
         .sheet(item: $openDoc) { ref in

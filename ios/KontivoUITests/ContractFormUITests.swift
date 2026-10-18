@@ -142,7 +142,7 @@ final class ContractFormUITests: KontivoUITestCase {
         revealUp(button("term.fixed"), "Knopf Mindestlaufzeit")
         tapVisible(button("term.fixed"), "Knopf Mindestlaufzeit")
         tapTop("Sichern")
-        wait(elContaining("Vertragsende fehlt"), "Meldung ohne Vertragsende")   // Web v218 (Text aus ContractFormRules.missingEndText)
+        wait(elContaining("Vertragsende fehlt"), "Meldung ohne Vertragsende")
         XCTAssertTrue(navExists("Neuer Vertrag"), "Formular bleibt offen")
         ctShot("Formular – Sichern ohne Vertragsende")
         tapVisible(button("Vertragsende wählen"), "Vertragsende setzen")
