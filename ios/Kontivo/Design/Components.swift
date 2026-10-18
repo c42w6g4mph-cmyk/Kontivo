@@ -383,6 +383,7 @@ struct KMiniBar: View {
             .buttonStyle(.plain)
             .accessibilityIdentifier("kMiniBar")
             .accessibilityHint("Nach oben")
+            .accessibilityValue(visible ? "sichtbar" : "aus")
             // nur sichtbar auch für VoiceOver/Tests (Web `aria-hidden` solange aus)
             .accessibilityHidden(!visible)
             .ignoresSafeArea(edges: .top)
