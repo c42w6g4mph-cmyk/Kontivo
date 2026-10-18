@@ -106,12 +106,16 @@ final class MoreUITests: KontivoUITestCase {
         wait(app.alerts.firstMatch, "Rückfrage 2", timeout: 6)
         tapAlertButton("Endgültig löschen")
         wait(button("Ersten Vertrag erfassen"), "Leerseite Verträge", timeout: 10)
+        waitPageTitle("Verträge")
         tapTab("Kosten")
         wait(elContaining("im Voraus geplant"), "Leerseite Kosten")
+        waitPageTitle("Kosten")
         tapTab("Budget")
         wait(button("Einnahme erfassen"), "Leerseite Budget")
+        waitPageTitle("Budget")
         tapTab("Fristen")
         wait(elContaining("Frist verpassen"), "Leerseite Fristen")
+        waitPageTitle("Fristen")
     }
 
     func testVertragspartnerOeffnen() {

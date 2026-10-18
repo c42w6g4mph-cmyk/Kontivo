@@ -344,6 +344,12 @@ class KontivoUITestCase: XCTestCase {
         waitUntil("Fenstertitel «\(title)»", timeout: timeout, file: file, line: line) { bar.exists || text.exists }
     }
 
+    /// Titelzeile einer Tab-Seite (Web `.top`, `KTabHeader`, Kennung `kPageTitle`): Tabs haben keine Navigationsleiste mehr
+    func waitPageTitle(_ title: String, timeout: TimeInterval = 10, file: StaticString = #filePath, line: UInt = #line) {
+        let t = app.staticTexts.matching(pred("identifier == %@ AND label == %@", "kPageTitle", title)).firstMatch
+        waitUntil("Seitentitel «\(title)»", timeout: timeout, file: file, line: line) { t.exists }
+    }
+
     /// Fenstertitel sichtbar?
     func navExists(_ title: String) -> Bool {
         app.navigationBars.matching(pred("identifier == %@", title)).firstMatch.exists
