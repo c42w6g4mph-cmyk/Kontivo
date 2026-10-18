@@ -64,6 +64,7 @@ final class BankParityTests: XCTestCase {
         D.eq(f.tx.count, (e["n"] as? Int) ?? -1, "Anzahl Buchungen")
         D.eq(BankParityTests.dayStr(f.from), BankParityTests.str(e["from"]), "from")
         D.eq(BankParityTests.dayStr(f.to), BankParityTests.str(e["to"]), "to")
+        D.eq(f.owner, BankParityTests.str(e["owner"]), "Kontoinhaber")
         guard tx, let et = e["tx"] as? [[Any]] else { return }
         for (i, t) in f.tx.enumerated() where i < et.count {
             let x = et[i]
@@ -78,6 +79,41 @@ final class BankParityTests: XCTestCase {
             D.eq(t.cred, BankParityTests.str(x[7]), p + "Gläubiger-ID")
             D.eq(t.mref, BankParityTests.str(x[8]), p + "Mandat")
         }
+    }
+
+    /// Einnahmen (Web v177 `bankFindInc`)
+    func compareIncome(_ r: BankIncomeResult, _ e: J?, _ data: AppData, _ D: Diff) {
+        guard let e = e else { return }
+        let es = e["sugg"] as? [J] ?? []
+        D.eq(r.items.map { $0.key }, es.map { BankParityTests.str($0["key"]) }, "Einnahmen (Schlüssel, Reihenfolge)")
+        for (i, s) in r.items.enumerated() where i < es.count {
+            let x = es[i]
+            let p = "Einnahme «\(s.key)» "
+            if s.key != BankParityTests.str(x["key"]) { continue }
+            D.eq(s.name, BankParityTests.str(x["name"]), p + "Name")
+            D.eq(s.label, BankParityTests.str(x["label"]), p + "Bezeichnung")
+            D.eq(s.category, BankParityTests.str(x["cat"]), p + "Art")
+            D.eq(s.currency, BankParityTests.str(x["cur"]), p + "Währung")
+            D.num(s.amount, x["amount"], p + "Betrag")
+            D.eq(s.cycle, (x["cycle"] as? Int) ?? -1, p + "Rhythmus")
+            D.eq(s.due.iso, BankParityTests.str(x["due"]), p + "nächster Eingang")
+            D.eq(s.count, (x["n"] as? Int) ?? -1, p + "Anzahl")
+            D.eq(s.first.iso, BankParityTests.str(x["first"]), p + "erste")
+            D.eq(s.last.iso, BankParityTests.str(x["last"]), p + "letzte")
+            D.eq(s.dates.map { $0.iso }, (x["dates"] as? [String]) ?? [], p + "Daten")
+            let ea = (x["amounts"] as? [Double]) ?? []
+            D.eq(s.amounts.count, ea.count, p + "Beträge (Anzahl)")
+            for (j, v) in s.amounts.enumerated() where j < ea.count { D.num(v, ea[j], p + "Betrag[\(j)]") }
+            D.num(s.lo, x["lo"], p + "tiefster")
+            D.num(s.hi, x["hi"], p + "höchster")
+            D.eq(s.varies, (x["varies"] as? Bool) ?? false, p + "schwankt")
+            D.eq(s.skipped, (x["skipped"] as? Int) ?? -1, p + "nicht mitgerechnet")
+            D.eq(s.raw, BankParityTests.str(x["raw"]), p + "raw")
+            D.eq(s.text, BankParityTests.str(x["text"]), p + "Text")
+            D.eq(s.confidence.rawValue, BankParityTests.str(x["conf"]), p + "Sicherheit")
+        }
+        let ek = e["known"] as? [J] ?? []
+        D.eq(r.known.map { $0.suggestion.key }, ek.map { BankParityTests.str($0["key"]) }, "Einnahmen bereits erfasst (Schlüssel)")
     }
 
     func compareFind(_ r: BankFindResult, _ e: J, _ data: AppData, _ D: Diff, contracts: Bool) {
@@ -165,6 +201,10 @@ final class BankParityTests: XCTestCase {
             D.eq(c.noCancel, (x["noCancel"] as? Bool) ?? false, p + "nicht kündbar")
             D.eq(d2.holderNames(of: c), (x["holders"] as? [String]) ?? [], p + "Personen")
             D.eq(d2.partner(c.partnerID)?.web ?? "", BankParityTests.str(x["web"]), p + "Website")
+            D.eq(c.payMethod, BankParityTests.str(x["payM"]), p + "Zahlungsart")
+            D.eq(c.customerNo, BankParityTests.str(x["custNo"]), p + "Kundennummer")
+            D.eq(c.contractNo, BankParityTests.str(x["contrNo"]), p + "Vertragsnummer")
+            D.eq(BankImport.label(s), BankParityTests.str(x["bkLabel"]), p + "Bezeichnung im Import (bankLabel)")
             let ep = (x["prices"] as? [J]) ?? []
             D.eq(c.prices.map { $0.from.iso }, ep.map { BankParityTests.str($0["from"]) }, p + "Preisverlauf ab")
             for (j, pc) in c.prices.enumerated() where j < ep.count { D.num(pc.amount, ep[j]["amount"], p + "Preisverlauf[\(j)]") }
@@ -176,7 +216,7 @@ final class BankParityTests: XCTestCase {
     func testFixturesPresent() throws {
         XCTAssertNotNil(BankParityTests.fixtures, "BankFixtures fehlt im Test-Bundle")
         XCTAssertEqual(BankParityTests.str(BankParityTests.expected["today"]), "2026-10-08")
-        XCTAssertGreaterThanOrEqual((BankParityTests.expected["files"] as? J)?.count ?? 0, 80)
+        XCTAssertGreaterThanOrEqual((BankParityTests.expected["files"] as? J)?.count ?? 0, 87)
     }
 
     /// Alle Muster- und nachgebauten Bankdateien: lesen, Vorschläge, Vorschlag → Vertrag (ohne erfasste Verträge).
@@ -193,6 +233,7 @@ final class BankParityTests: XCTestCase {
                 let f = try BankImport.read(fileData(name))
                 compareRead(f, e, D, tx: true)
                 compareFind(BankImport.find(f, data: data, today: BankParityTests.today), e["find"] as? J ?? [:], data, D, contracts: true)
+                compareIncome(BankImport.findIncome(f, data: data, today: BankParityTests.today), (e["find"] as? J)?["inc"] as? J, data, D)
             } catch {
                 D.errs.append("nicht gelesen: \(error)")
             }
@@ -211,6 +252,7 @@ final class BankParityTests: XCTestCase {
             do {
                 let f = try BankImport.read(fileData(name))
                 compareFind(BankImport.find(f, data: data, today: BankParityTests.today), e["find"] as? J ?? [:], data, D, contracts: false)
+                compareIncome(BankImport.findIncome(f, data: data, today: BankParityTests.today), (e["find"] as? J)?["inc"] as? J, data, D)
             } catch {
                 D.errs.append("nicht gelesen: \(error)")
             }
@@ -242,6 +284,7 @@ final class BankParityTests: XCTestCase {
                 let f = try BankImport.read(Data(txt.utf8))
                 compareRead(f, e, D, tx: false)
                 compareFind(BankImport.find(f, data: data, today: BankParityTests.today), e["find"] as? J ?? [:], data, D, contracts: true)
+                compareIncome(BankImport.findIncome(f, data: data, today: BankParityTests.today), (e["find"] as? J)?["inc"] as? J, data, D)
             } catch {
                 D.errs.append("nicht gelesen: \(error)")
             }
@@ -261,6 +304,7 @@ final class BankParityTests: XCTestCase {
             let f = BankImport.merge(files)
             compareRead(f, e, D, tx: false)
             compareFind(BankImport.find(f, data: data, today: BankParityTests.today), e["find"] as? J ?? [:], data, D, contracts: false)
+            compareIncome(BankImport.findIncome(f, data: data, today: BankParityTests.today), (e["find"] as? J)?["inc"] as? J, data, D)
             D.report()
         }
         // gleiche Datei doppelt = einmal

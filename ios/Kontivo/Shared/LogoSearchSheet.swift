@@ -466,12 +466,29 @@ enum LogoFinder {
                 }
             }
         }
-        if manual && !wr.social.isEmpty {
-            all += await socialCands(wr.social)
+        // Profilbild (X/Instagram) ist meist am saubersten → bevorzugt, auch bei der automatischen Suche (Web v186/v187)
+        if !wr.social.isEmpty {
+            for var c in await socialCands(wr.social) {
+                c.score = 6.5
+                all.append(c)
+            }
         }
         var seen = Set<String>()
         all = all.filter { seen.insert($0.url).inserted }
         return (stableSorted(all, by: candLess), d2)
+    }
+
+    /// Automatisch übernehmen (autoLogo): Vertragspartner, sonst Bezeichnung; die ersten bis zu drei guten Treffer (≥ 3 Punkte)
+    /// der Reihe nach übernehmen. Liefert das erste brauchbare Bild samt Kandidat (für den Zwischenspeicher).
+    static func autoLogo(name: String, currency: Currency, alt: String?, web: String) async -> (LogoCandidate, LogoImage)? {
+        let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let primary = n.isEmpty ? (alt ?? "") : n
+        if primary.isEmpty || !Partners.lusable(primary) { return nil }
+        let cs = await allCandidates(name: primary, currency: currency, alt: nil, web: web, manual: false).cands
+        for c in cs.filter({ $0.score >= 3 }).prefix(3) {
+            if case .success(let img) = await take(c) { return (c, img) }
+        }
+        return nil
     }
 
     /// Vorschläge wie «Logo automatisch finden» (runCands): ohne Website-Symbol kommt das Google-Favicon dazu
@@ -533,7 +550,8 @@ enum LogoFinder {
         return (sqrt(Swift.max(0, sq / n - mean * mean)), op / n)
     }
 
-    /// App-Store-Bilder und Favicons (logoBlob): Mindestkante, Seitenverhältnis 0.8–1.25, nicht leer, 512×512 auf weiss
+    /// App-Store-Bilder und Favicons (logoBlob): Mindestkante, Seitenverhältnis 0.8–1.25, nicht leer, 512×512;
+    /// Kachel mit Rand/Glas-Saum (Web v181/v184/v185 `tileFix`/`tileDraw`): Rand und Ecken in Kachelfarbe übermalt, kein Zoom
     static func logoBlob(_ url: String, minSide: CGFloat) async -> Result<LogoImage, LogoError> {
         let big = url.replacingOccurrences(of: "/\\d+x\\d+bb\\.(jpg|jpeg|png|webp)$", with: "/512x512bb.png",
                                            options: [.regularExpression, .caseInsensitive])
@@ -544,8 +562,10 @@ enum LogoFinder {
             if w < minSide || h < minSide || w / h < 0.8 || w / h > 1.25 { return .failure(.small) }
             guard let st = lumaStats(im, side: 32) else { continue }
             if st.sd < 6 || st.opaque < 0.6 { return .failure(.empty) }
-            let out = render512(.white) { r in im.draw(in: r) }
-            if let png = out.pngData() { return .success(LogoImage(png: png, background: "#FFFFFF")) }
+            let tf = LogoTile.fix(im)
+            if let out = LogoTile.draw(im, tf), let png = out.pngData() {
+                return .success(LogoImage(png: png, background: tf.bg.isEmpty ? "#FFFFFF" : tf.bg))
+            }
         }
         return .failure(.load)
     }
@@ -557,6 +577,11 @@ enum LogoFinder {
         let (w, h) = pixelSize(im)
         if w <= 0 || h <= 0 { return .failure(.load) }
         if Swift.max(w, h) < minPx { return .failure(.small) }
+        // Kachel (App-Symbol, Website-Symbol mit Saum): wie gespeichert zeichnen (Web v185)
+        let tf0 = LogoTile.fix(im)
+        if tf0.tile && tf0.sw >= 120, let out = LogoTile.draw(im, tf0), let png = out.pngData() {
+            return .success(LogoImage(png: png, background: tf0.bg))
+        }
         for hex in ["#FFFFFF", "#1C1C1E"] {
             let bg = hex == "#FFFFFF" ? UIColor.white : UIColor(red: 0x1C / 255.0, green: 0x1C / 255.0, blue: 0x1E / 255.0, alpha: 1)
             let k = full ? Swift.max(512 / w, 512 / h) : Swift.min(420 / w, 420 / h)
@@ -575,6 +600,141 @@ enum LogoFinder {
             if less(y.element, x.element) { return false }
             return x.offset < y.offset
         }.map { $0.element }
+    }
+}
+
+// MARK: - Kachel aufbereiten (Web tileFix/tileDraw, 1:1)
+
+/// App-Symbole und Kacheln mit Rand (weisse Ecken, Rahmen, feiner Saum): Kachelfarbe aus den Seitenmitten, Ausschnitt auf die
+/// Kachel begrenzen (kein Zoom); Saum und Ecken übermalt `draw` in Kachelfarbe.
+enum LogoTile {
+    struct Fix {
+        var sx: CGFloat, sy: CGFloat, sw: CGFloat, sh: CGFloat
+        /// Kachelfarbe «#RRGGBB», "" = keine Kachel
+        var bg: String = ""
+        var tile = false
+        var rgb: [Int] = [255, 255, 255]
+        var rad: CGFloat = 0
+        var band: CGFloat = 0.045
+    }
+
+    /// JS `Math.round`
+    private static func jr(_ v: CGFloat) -> Int { Int((v + 0.5).rounded(.down)) }
+
+    static func fix(_ im: UIImage) -> Fix {
+        let w = im.size.width * im.scale, h = im.size.height * im.scale
+        let full = Fix(sx: 0, sy: 0, sw: w, sh: h)
+        let N = 160
+        guard let d = LogoPixels.rgba(im, width: N, height: N) else { return full }
+        func P(_ x0: CGFloat, _ y0: CGFloat) -> [Int] {
+            let x = Swift.max(0, Swift.min(N - 1, jr(x0))), y = Swift.max(0, Swift.min(N - 1, jr(y0)))
+            let i = (y * N + x) * 4
+            return [Int(d[i]), Int(d[i + 1]), Int(d[i + 2]), Int(d[i + 3])]
+        }
+        func dist(_ a: [Int], _ b: [Int]) -> Int {
+            if a[3] < 40 && b[3] < 40 { return 0 }
+            if (a[3] < 40) != (b[3] < 40) { return 999 }
+            return Swift.abs(a[0] - b[0]) + Swift.abs(a[1] - b[1]) + Swift.abs(a[2] - b[2])
+        }
+        let C = P(1, 1)
+        func bg(_ p: [Int]) -> Bool { p[3] < 40 || dist(p, C) < 36 }
+        var x0 = N, y0 = N, x1 = -1, y1 = -1
+        for y in 0..<N {
+            for x in 0..<N where !bg(P(CGFloat(x), CGFloat(y))) {
+                if x < x0 { x0 = x }
+                if x > x1 { x1 = x }
+                if y < y0 { y0 = y }
+                if y > y1 { y1 = y }
+            }
+        }
+        if x1 < 0 { return full }
+        let bw = CGFloat(x1 - x0 + 1), bh = CGFloat(y1 - y0 + 1)
+        if bw / bh < 0.85 || bw / bh > 1.18 { return full }
+        // Kachelfarbe 10 % innerhalb der Seitenmitten; Kachel nur, wenn alle vier gleich und auch die Ecken (14 % diagonal) Kachel sind
+        let cx = CGFloat(x0 + x1) / 2, cy = CGFloat(y0 + y1) / 2
+        let fx0 = CGFloat(x0), fy0 = CGFloat(y0), fx1 = CGFloat(x1), fy1 = CGFloat(y1)
+        let E = [P(cx, fy0 + bh * 0.1), P(cx, fy1 - bh * 0.1), P(fx0 + bw * 0.1, cy), P(fx1 - bw * 0.1, cy)]
+        if E.contains(where: bg) { return full }
+        for a in 1..<4 where dist(E[0], E[a]) > 60 { return full }
+        var T: [Int] = []
+        for k in 0..<3 {
+            let sum: Int = E[0][k] + E[1][k] + E[2][k] + E[3][k]
+            T.append(jr(CGFloat(sum) / 4))
+        }
+        T.append(255)
+        func near(_ p: [Int]) -> Bool { dist(p, T) < 54 }
+        let corners: [(CGFloat, CGFloat)] = [(0.14, 0.14), (0.86, 0.14), (0.14, 0.86), (0.86, 0.86)]
+        for f in corners where !near(P(fx0 + bw * f.0, fy0 + bh * f.1)) { return full }
+        // Saum: von jeder Seitenmitte nach innen bis zur Kachelfarbe
+        var rim = 0
+        let lim = jr(bw * 0.08)
+        for v in [(0, 1), (0, -1), (1, 0), (-1, 0)] {
+            let sx0: CGFloat = v.0 != 0 ? (v.0 > 0 ? fx0 : fx1) : cx
+            let sy0: CGFloat = v.1 != 0 ? (v.1 > 0 ? fy0 : fy1) : cy
+            var k = 0
+            while k < lim && !near(P(sx0 + CGFloat(v.0 * k), sy0 + CGFloat(v.1 * k))) { k += 1 }
+            rim = Swift.max(rim, k)
+        }
+        // Eckenradius: entlang der Diagonale bis zur Kachelfarbe (Abstand ≈ 0,29 × Radius)
+        var dg = 0
+        while CGFloat(dg) < bw * 0.2 && !near(P(fx0 + CGFloat(dg), fy0 + CGFloat(dg))) { dg += 1 }
+        let rad = Swift.min(bw * 0.3, Swift.max(0, CGFloat(dg - rim) / 0.29))
+        let hex = "#" + T.prefix(3).map { String(format: "%02X", $0) }.joined()
+        let fx = w / CGFloat(N), fy = h / CGFloat(N)
+        return Fix(sx: fx0 * fx, sy: fy0 * fy, sw: bw * fx, sh: bh * fy, bg: hex, tile: true, rgb: Array(T.prefix(3)),
+                   rad: Swift.max(0.2237, rad / bw), band: Swift.min(0.08, Swift.max(0.045, (CGFloat(rim) + 1.5) / bw)))
+    }
+
+    /// Kachel 512×512 zeichnen; Saum (`band`) und alles ausserhalb der runden Kachel in Kachelfarbe übermalen
+    static func draw(_ im: UIImage, _ tf: Fix) -> UIImage? {
+        let S = 512
+        var buf = [UInt8](repeating: 0, count: S * S * 4)
+        let w = im.size.width * im.scale, h = im.size.height * im.scale
+        guard tf.sw > 0, tf.sh > 0, w > 0, h > 0 else { return nil }
+        let cg: CGImage? = buf.withUnsafeMutableBytes { raw -> CGImage? in
+            guard let base = raw.baseAddress,
+                  let ctx = CGContext(data: base, width: S, height: S, bitsPerComponent: 8, bytesPerRow: S * 4,
+                                      space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+            ctx.translateBy(x: 0, y: CGFloat(S))
+            ctx.scaleBy(x: 1, y: -1)
+            UIGraphicsPushContext(ctx)
+            UIColor(Color(hex: tf.bg.isEmpty ? "#FFFFFF" : tf.bg)).setFill()
+            ctx.fill(CGRect(x: 0, y: 0, width: S, height: S))
+            ctx.interpolationQuality = .high
+            // Ausschnitt (sx, sy, sw, sh) auf 512×512 abbilden
+            let kx = CGFloat(S) / tf.sw, ky = CGFloat(S) / tf.sh
+            im.draw(in: CGRect(x: -tf.sx * kx, y: -tf.sy * ky, width: w * kx, height: h * ky))
+            UIGraphicsPopContext()
+            if tf.tile {
+                let b = jr(tf.band * CGFloat(S))
+                let R = Swift.max(0, tf.rad * CGFloat(S) - CGFloat(b))
+                let lo = b, hi = S - 1 - b
+                let px = base.assumingMemoryBound(to: UInt8.self)
+                for y in 0..<S {
+                    for x in 0..<S {
+                        var out = x < lo || x > hi || y < lo || y > hi
+                        if !out && R > 0 {
+                            let fx = CGFloat(x), fy = CGFloat(y), flo = CGFloat(lo), fhi = CGFloat(hi)
+                            let cx = fx < flo + R ? flo + R : (fx > fhi - R ? fhi - R : fx)
+                            let cy = fy < flo + R ? flo + R : (fy > fhi - R ? fhi - R : fy)
+                            if cx != fx && cy != fy {
+                                let dx = fx - cx, dy = fy - cy
+                                out = dx * dx + dy * dy > R * R
+                            }
+                        }
+                        if out {
+                            let i = (y * S + x) * 4
+                            px[i] = UInt8(tf.rgb[0])
+                            px[i + 1] = UInt8(tf.rgb[1])
+                            px[i + 2] = UInt8(tf.rgb[2])
+                            px[i + 3] = 255
+                        }
+                    }
+                }
+            }
+            return ctx.makeImage()
+        }
+        return cg.map { UIImage(cgImage: $0) }
     }
 }
 
@@ -612,10 +772,45 @@ enum LogoPixels {
     }
 }
 
+// MARK: - Zwischenspeicher (Web LC_CACHE, LOGO_TAKEN)
+
+/// Letzte Suchen (gleicher Name/Währung/Website, 20 Minuten) und übernommene Bilder je Adresse: erneutes Öffnen zeigt sofort
+/// dieselbe Auswahl samt Markierung, erneutes Antippen lädt nicht neu (Web v184).
+@MainActor
+final class LogoCache {
+    static let shared = LogoCache()
+    private var lists: [String: (t: Date, cs: [LogoCandidate])] = [:]
+    private var selected: [String: String] = [:]
+    private var images: [String: LogoImage] = [:]
+    /// Übernommen und gespeichert (Import): Adresse → Datei-ID und Hintergrund
+    private var stored: [String: (id: String, bg: String)] = [:]
+
+    static func key(_ name: String, _ cur: Currency, _ web: String) -> String {
+        Partners.lnorm(name) + "|" + cur.rawValue + "|" + Format.domain(of: web)
+    }
+
+    func list(_ key: String) -> [LogoCandidate]? {
+        guard let h = lists[key], Date().timeIntervalSince(h.t) < 20 * 60 else { return nil }
+        return h.cs
+    }
+
+    func setList(_ key: String, _ cs: [LogoCandidate]) { if !cs.isEmpty { lists[key] = (Date(), cs) } }
+    func selection(_ key: String) -> String? { selected[key] }
+    func select(_ key: String, _ url: String) { selected[key] = url }
+    func image(_ url: String) -> LogoImage? { images[url] }
+    func setImage(_ url: String, _ img: LogoImage) { images[url] = img }
+    func storedLogo(_ url: String, model: AppModel) -> (id: String, bg: String)? {
+        guard let h = stored[url], model.files.has(h.id) else { return nil }
+        return h
+    }
+    func setStored(_ url: String, _ v: (id: String, bg: String)) { stored[url] = v }
+}
+
 // MARK: - Ansicht
 
-/// Logo-Suche mit Vorschlägen (Wikidata/Commons, App Store, Website-Symbol). Übernahme nur nach Antippen.
-/// onPick liefert PNG-Daten (512×512) und die Hintergrundfarbe (Hex); danach schliesst sich das Fenster.
+/// Logo-Suche mit Vorschlägen (Wikidata/Commons, App Store, Website-Symbol, Profilbild). Übernahme nur nach Antippen.
+/// onPick liefert PNG-Daten (512×512) und die Hintergrundfarbe (Hex); danach schliesst sich das Fenster. Die Auswahl bleibt
+/// 20 Minuten gespeichert (erneutes Öffnen zeigt sie sofort, das gewählte Logo markiert, Web v184).
 /// Den Toast nach der Übernahme («Logo übernommen» bzw. «Logo gespeichert») zeigt der Aufrufer.
 struct LogoSearchSheet: View {
     let name: String
@@ -624,21 +819,17 @@ struct LogoSearchSheet: View {
     let onPick: (Data, String) -> Void
 
     @Environment(\.dismiss) private var dismiss
-    @State private var phase: Phase = .idle
-    @State private var cands: [LogoCandidate] = []
-    @State private var busyID: String?
-    @State private var notice: String?
-    @State private var noticeTask: Task<Void, Never>?
-
-    private enum Phase { case idle, searching, done, noName, offline }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                content
-                    .padding(KMetric.gutter)
-                    .frame(maxWidth: KMetric.maxContent)
-                    .frame(maxWidth: .infinity)
+                LogoCandidatesView(name: name, currency: currency, web: web) { png, bg in
+                    onPick(png, bg)
+                    dismiss()
+                }
+                .padding(KMetric.gutter)
+                .frame(maxWidth: KMetric.maxContent)
+                .frame(maxWidth: .infinity)
             }
             .background(KColor.paper.ignoresSafeArea())
             .navigationTitle("Logo suchen")
@@ -648,20 +839,46 @@ struct LogoSearchSheet: View {
                     Button("Abbrechen") { dismiss() }
                 }
             }
-            .overlay(alignment: .bottom) { noticeView }
         }
-        .task { await search() }
+    }
+}
+
+/// Vorschlagsliste wie im Web (`.lcands`, `paintCands`): Hinweis, Kacheln nebeneinander (64 pt breit, Bild 52 pt), Quelle darunter.
+/// Für Formulare auch direkt einbettbar (Web zeigt die Liste unter dem Logo).
+struct LogoCandidatesView: View {
+    let name: String
+    let currency: Currency
+    let web: String
+    var alt: String = ""
+    let onPick: (Data, String) -> Void
+
+    @State private var phase: Phase = .idle
+    @State private var cands: [LogoCandidate] = []
+    @State private var busyID: String?
+    @State private var selected: String?
+    @State private var notice: String?
+    @State private var noticeTask: Task<Void, Never>?
+
+    private enum Phase { case idle, searching, done, noName, offline }
+
+    private var primary: String {
+        let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return n.isEmpty ? alt.trimmingCharacters(in: .whitespacesAndNewlines) : n
+    }
+
+    private var cacheKey: String { LogoCache.key(primary, currency, web) }
+
+    var body: some View {
+        content
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(alignment: .bottom) { noticeView }
+            .task { await search() }
     }
 
     @ViewBuilder private var content: some View {
         switch phase {
         case .idle, .searching:
-            HStack(spacing: 10) {
-                ProgressView()
-                Text("Suche Logos…").font(.subheadline).foregroundStyle(KColor.ink2)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 8)
+            message("Suche Logos…")
         case .noName:
             message("Zuerst den Namen eintragen")
         case .offline:
@@ -675,69 +892,28 @@ struct LogoSearchSheet: View {
         }
     }
 
+    /// `.lcmsg`: 12.5 pt, ink3, volle Breite
     private func message(_ t: String) -> some View {
         Text(t)
-            .font(.subheadline)
-            .foregroundStyle(KColor.ink2)
+            .font(.system(size: 12.5))
+            .foregroundStyle(KColor.ink3)
             .frame(maxWidth: .infinity, alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
     }
 
     private var results: some View {
         let list = Array(cands.prefix(10))
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 10) {
             message((list.first?.score ?? 0) >= 3 ? "Tippe auf das passende Logo:" : "Keine eindeutige Übereinstimmung – passt eines davon?")
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 10) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 64, maximum: 64), spacing: 10, alignment: .top)], alignment: .leading, spacing: 10) {
                 ForEach(list) { c in
-                    tile(c)
+                    LogoCandidateTile(c: c, busy: busyID == c.id, selected: selected == c.url) {
+                        Task { await pick(c) }
+                    }
+                    .disabled(busyID != nil)
                 }
             }
         }
-    }
-
-    private func tile(_ c: LogoCandidate) -> some View {
-        let busy = busyID == c.id
-        return Button {
-            Task { await pick(c) }
-        } label: {
-            VStack(spacing: 6) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white)
-                    AsyncImage(url: URL(string: c.thumb)) { ph in
-                        if let img = ph.image {
-                            img.resizable().interpolation(.high).scaledToFit()
-                        } else if ph.error != nil {
-                            Image(systemName: "photo").foregroundStyle(Color.gray.opacity(0.5))
-                        } else {
-                            ProgressView()
-                        }
-                    }
-                    .padding(6)
-                    if busy {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.black.opacity(0.35))
-                        ProgressView().tint(.white)
-                    }
-                }
-                .frame(height: 72)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                Text(c.title.isEmpty ? " " : c.title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(KColor.ink)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                Text(c.src.label)
-                    .font(.caption2)
-                    .foregroundStyle(KColor.ink2)
-            }
-            .padding(8)
-            .frame(maxWidth: .infinity)
-            .background(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).fill(KColor.surface))
-            .overlay(RoundedRectangle(cornerRadius: KMetric.radius, style: .continuous).strokeBorder(KColor.line, lineWidth: 0.5))
-            .opacity(c.score >= 3 ? 1 : 0.55)
-        }
-        .buttonStyle(.plain)
-        .disabled(busyID != nil)
-        .accessibilityLabel(c.title + ", " + c.src.label)
     }
 
     @ViewBuilder private var noticeView: some View {
@@ -749,7 +925,6 @@ struct LogoSearchSheet: View {
                 .padding(.horizontal, 16).padding(.vertical, 10)
                 .background(Capsule().fill(Color.black.opacity(0.82)))
                 .padding(.horizontal, 24)
-                .padding(.bottom, 24)
                 .transition(.opacity)
                 .allowsHitTesting(false)
         }
@@ -767,9 +942,15 @@ struct LogoSearchSheet: View {
 
     private func search() async {
         guard phase == .idle else { return }
-        let primary = name.trimmingCharacters(in: .whitespacesAndNewlines)
         if primary.isEmpty && Format.domain(of: web).isEmpty {
             phase = .noName
+            return
+        }
+        // letzte Suche (20 min) sofort zeigen
+        if let hit = LogoCache.shared.list(cacheKey) {
+            cands = hit
+            selected = LogoCache.shared.selection(cacheKey)
+            phase = .done
             return
         }
         phase = .searching
@@ -777,13 +958,20 @@ struct LogoSearchSheet: View {
             phase = .offline
             return
         }
-        let cs = await LogoFinder.manualCandidates(name: primary, currency: currency, web: web)
-        cands = cs
+        let cs = primary.isEmpty ? [] : await LogoFinder.manualCandidates(name: primary, currency: currency, web: web)
+        var all = cs
+        if cs.isEmpty, let fc = LogoFinder.faviconCand(Format.domain(of: web)) { all = [fc] }
+        LogoCache.shared.setList(cacheKey, all)
+        cands = all
         phase = .done
     }
 
     private func pick(_ c: LogoCandidate) async {
         guard busyID == nil else { return }
+        if let img = LogoCache.shared.image(c.url) {
+            choose(c, img)
+            return
+        }
         busyID = c.id
         show("Übernehme Logo…", seconds: 30)
         let r = await LogoFinder.take(c)
@@ -792,10 +980,90 @@ struct LogoSearchSheet: View {
         case .success(let img):
             noticeTask?.cancel()
             notice = nil
-            onPick(img.png, img.background)
-            dismiss()
+            LogoCache.shared.setImage(c.url, img)
+            choose(c, img)
         case .failure(let e):
             show(e.message)
         }
+    }
+
+    private func choose(_ c: LogoCandidate, _ img: LogoImage) {
+        selected = c.url
+        LogoCache.shared.select(cacheKey, c.url)
+        onPick(img.png, img.background)
+    }
+}
+
+/// Eine Kachel (`.lcand`): Bild 52 pt (weiss, Ring), Titel 10.5 pt, Quelle 9.5 pt; schwach = Bild halb durchsichtig,
+/// Wikipedia-Schriftzug eingepasst mit Rand; App-Symbole in der Vorschau schon wie gespeichert (Saum übermalt, Web v186).
+struct LogoCandidateTile: View {
+    let c: LogoCandidate
+    let busy: Bool
+    let selected: Bool
+    let action: () -> Void
+    @State private var preview: UIImage?
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                ZStack {
+                    Color.white
+                    if let p = preview {
+                        Image(uiImage: p).resizable().interpolation(.high).scaledToFill()
+                    } else {
+                        AsyncImage(url: URL(string: c.thumb)) { ph in
+                            if let img = ph.image {
+                                if c.src == .wiki {
+                                    img.resizable().interpolation(.high).scaledToFit().padding(6)
+                                } else {
+                                    img.resizable().interpolation(.high).scaledToFill()
+                                }
+                            } else if ph.error != nil {
+                                Image(systemName: "photo").foregroundStyle(Color.gray.opacity(0.5))
+                            } else {
+                                ProgressView()
+                            }
+                        }
+                    }
+                    if busy {
+                        Color.black.opacity(0.35)
+                        ProgressView().tint(.white)
+                    }
+                }
+                .frame(width: 52, height: 52)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .opacity(c.score >= 3 ? 1 : 0.55)
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(selected ? KColor.brass : KColor.line, lineWidth: selected ? 2 : 1))
+                Text(c.title)
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(KColor.ink2)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 64)
+                Text(c.src.label)
+                    .font(.system(size: 9.5))
+                    .foregroundStyle(KColor.ink3)
+                    .padding(.top, -2)
+            }
+            .frame(width: 64)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(c.title + ", " + c.src.label)
+        .accessibilityAddTraits(selected ? [.isSelected] : [])
+        .task(id: c.url) { await makePreview() }
+    }
+
+    /// Vorschau wie beim Speichern (nicht für Profilbild/Website-Symbol)
+    private func makePreview() async {
+        if c.src == .social || c.src == .site { return }
+        let big = c.url.replacingOccurrences(of: "/\\d+x\\d+bb\\.(jpg|jpeg|png|webp)$", with: "/512x512bb.png",
+                                             options: [.regularExpression, .caseInsensitive])
+        var im = await LogoFinder.loadImage(big)
+        if im == nil { im = await LogoFinder.loadImage(c.thumb) }
+        guard let img = im else { return }
+        let tf = LogoTile.fix(img)
+        guard tf.tile, let out = LogoTile.draw(img, tf) else { return }
+        preview = out
     }
 }

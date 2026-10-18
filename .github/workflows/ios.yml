@@ -168,6 +168,10 @@ jobs:
           shoot $PHONE c4-bericht -uiDemo -uiTab costs -uiSheet report
           shoot $PHONE c5-bericht-pdf -uiDemo -uiTab costs -uiSheet reportPDF
           shoot $PHONE c6-einnahme-bearbeiten -uiDemo -uiTab budget -uiSheet incomeEdit
+          shoot $PHONE i30-import-fixkosten -uiEmpty -uiBankSample
+          shoot $PHONE i31-import-einnahmen -uiEmpty -uiBankSample -uiBankStep inc
+          shoot $PHONE i32-import-fristen -uiEmpty -uiBankSample -uiBankStep term
+          shoot $PHONE i33-import-zuordnen -uiDemo -uiBankSample
           xcrun simctl ui $PHONE appearance dark
           for P in 0 1 2 3 4 5 6 7; do shoot $PHONE 43-dunkel-onb-$P -uiOnboarding -uiOnbPage $P; done
           shoot $PHONE 44-dunkel-fristen -uiDemo -uiTab deadlines
@@ -178,6 +182,8 @@ jobs:
           shoot $PHONE 25-dunkel-detail -uiDemo -uiSheet detail
           shoot $PHONE c7-dunkel-budget -uiDemo -uiTab budget
           shoot $PHONE c8-dunkel-preistreiber -uiDemo -uiTab costs -uiScrollTo kbDrivers
+          shoot $PHONE i34-dunkel-import -uiDemo -uiBankSample
+          shoot $PHONE i35-dunkel-import-fristen -uiEmpty -uiBankSample -uiBankStep term
           shoot $PHONE 29-dunkel-mehr -uiDemo -uiTab more
           shoot $PHONE 30-dunkel-verwalten -uiDemo -uiTab more -uiSheet partners
           xcrun simctl ui $PHONE appearance light

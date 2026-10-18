@@ -11,7 +11,8 @@ import KontivoCore
 ///   -uiSheet <name>    detail | form | income | incomes | incomeDetail | incomeEdit | letter | manage | partners | persons | sender
 ///                      | categories | quality | cancelpick | completeness | report | reportPDF
 ///                      (incomeDetail/incomeEdit: Einnahme mit Änderungen, Beispiel «Lohn» mit Verlauf)
-///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich onb)
+///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich import)
+///   -uiBankStep <s>    mit -uiBankSample: nach dem Laden direkt zum Schritt inc | term (Bildschirmfotos)
 ///   -uiSplash          Intro beim Start auch im UI-Test zeigen
 extension AppModel {
     /// Start mit UI-Test-/Bildschirmfoto-Argumenten (dann eigener Dateiordner, nichts Echtes wird gelesen oder geschrieben)
@@ -45,10 +46,11 @@ extension AppModel {
         onboarding = onb ? .firstRun : nil
         if let t = value("-uiTab"), let tab = AppTab(rawValue: t) { self.tab = tab }
         if args.contains("-uiBankSample") {
+            let bankStep = value("-uiBankStep")
             Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 800_000_000)
                 guard let self else { return }
-                BankImportCenter.shared.start(.data(BankSample.csv, name: "postfinance.csv"), model: self)
+                BankImportCenter.shared.start(.data(BankSample.csv, name: "postfinance.csv"), model: self, step: bankStep)
             }
         }
         if let s = value("-uiSheet") {

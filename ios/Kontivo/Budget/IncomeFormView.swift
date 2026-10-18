@@ -9,8 +9,13 @@ struct IncomeFormView: View {
     let incomeID: UUID?
 
     var body: some View {
-        let existing = model.data.income(incomeID)
-        KBIncomeForm(initial: existing ?? KBIncomeForm.newDraft(model), isNew: existing == nil)
+        if let sug = BankFormBridge.shared.income(incomeID) {
+            // Bereich import: Vorschlag aus dem Kontoauszug (Web `openIncome` mit `fBank`)
+            KBIncomeForm(initial: sug, isNew: true, bankSuggestion: true)
+        } else {
+            let existing = model.data.income(incomeID)
+            KBIncomeForm(initial: existing ?? KBIncomeForm.newDraft(model), isNew: existing == nil)
+        }
     }
 }
 
@@ -76,8 +81,12 @@ struct KBIncomeForm: View {
     /// Zahlungsrhythmus wie in der Web-App (einmalig zuletzt)
     static let cycleOrder = [1, 2, 3, 6, 12, 24, 0]
 
-    init(initial: Income, isNew: Bool) {
-        let at = isNew ? "" : Format.amountInput(initial.amount, initial.currency)
+    /// Bereich import: Vorschlag aus dem Kontoauszug – Titel «Vorschlag», «Sichern» geht zurück in die Vorschlagsliste
+    private let bankSuggestion: Bool
+
+    init(initial: Income, isNew: Bool, bankSuggestion: Bool = false) {
+        self.bankSuggestion = bankSuggestion
+        let at = isNew && !bankSuggestion ? "" : Format.amountInput(initial.amount, initial.currency)
         _draft = State(initialValue: initial)
         _original = State(initialValue: initial)
         _amountText = State(initialValue: at)
@@ -204,7 +213,7 @@ struct KBIncomeForm: View {
     }
 
     /// Web v154: «Neue Einnahme» bzw. «Bearbeiten»
-    private var formTitle: String { isNew ? "Neue Einnahme" : "Bearbeiten" }
+    private var formTitle: String { bankSuggestion ? "Vorschlag" : (isNew ? "Neue Einnahme" : "Bearbeiten") }
 
     /// Web `.shbar`: weisse Leiste mit Linie unten; «Abbrechen» 16 px Tinte 2, Titel 18 px Semibold, «Sichern» 16 px Bold Akzent
     private var headerBar: some View {
@@ -987,6 +996,11 @@ struct KBIncomeForm: View {
         }
         var d = draft
         d.amount = a
+        if bankSuggestion {
+            BankFormBridge.shared.incomeDone(d)
+            close()
+            return
+        }
         let today = model.today
         let wasNew = isNew
         let ok = model.update { data in

@@ -37,9 +37,12 @@ public struct BankTx: Equatable, Hashable, Sendable {
     public var cred: String
     /// Mandatsreferenz (SEPA)
     public var mref: String
+    /// Einzelposten einer Sammelbuchung (Web `t.sub`; Einnahmen-Suche überspringt sie)
+    public var sub: Bool
 
     public init(date: Day, amount: Double, currency: String = "", name: String = "", text: String = "", type: String = "",
-                kind: BankKind = .unknown, cred: String = "", mref: String = "") {
+                kind: BankKind = .unknown, cred: String = "", mref: String = "", sub: Bool = false) {
+        self.sub = sub
         self.date = date
         self.amount = amount
         self.currency = currency
@@ -64,14 +67,17 @@ public struct BankFile: Equatable, Sendable {
     public var format: String
     /// Anzahl zusammengeführter Dateien (1 = eine Datei)
     public var files: Int
+    /// Kontoinhaber laut Datei (Web v180 `r.owner`: CSV-Vorspann «Kontoinhaber;…», konstante zweite Namensspalte, camt `Acct/Ownr/Nm`), sonst ""
+    public var owner: String
 
-    public init(bank: String = "", tx: [BankTx], from: Day? = nil, to: Day? = nil, format: String = "", files: Int = 1) {
+    public init(bank: String = "", tx: [BankTx], from: Day? = nil, to: Day? = nil, format: String = "", files: Int = 1, owner: String = "") {
         self.bank = bank
         self.tx = tx
         self.from = from ?? tx.first?.date
         self.to = to ?? tx.last?.date
         self.format = format
         self.files = files
+        self.owner = owner
     }
 }
 
@@ -156,8 +162,9 @@ public struct BankSuggestion: Identifiable, Equatable, Hashable, Sendable {
     /// Betrag schwankt (Rechnung), `amount` ist dann der Median
     public var varies: Bool
     public var change: BankPriceChange?
-    /// Name des Katalogeintrags, falls Treffer
-    public var catalogName: String?
+    /// Katalogeintrag, falls Treffer (seit Web v210 gibt es gleiche Namen mit verschiedener Bezeichnung, z.B. CSS
+    /// Krankenkasse/Zusatzversicherung – daher der Eintrag selbst statt nur des Namens)
+    public var catalog: CatalogEntry?
     /// Kategorie (Name)
     public var category: String
     public var kind: BankKind
@@ -169,8 +176,63 @@ public struct BankSuggestion: Identifiable, Equatable, Hashable, Sendable {
     /// Vom Benutzer ausgeblendet («Nie mehr vorschlagen»)
     public var ignored: Bool
 
+    /// Name des Katalogeintrags, falls Treffer (Web `s.tpl[0]`)
+    public var catalogName: String? { catalog?.name }
     /// Katalogeintrag (für Kündigungsfrist und Kontaktdaten beim Anlegen).
-    public var catalogEntry: CatalogEntry? { catalogName.flatMap { BankCatalog.entry(named: $0, currency: currency) } }
+    public var catalogEntry: CatalogEntry? { catalog }
+}
+
+/// Vorschlag aus wiederkehrenden Gutschriften (Web v177 `bankFindInc` → `s`): Lohn, Rente, Zulagen …
+public struct BankIncomeSuggestion: Identifiable, Equatable, Hashable, Sendable {
+    public var id: String { key }
+    /// Gruppenschlüssel («cred:…|CHF», «muster ag|CHF»)
+    public var key: String
+    /// Quelle (häufigster Name, aufbereitet)
+    public var name: String
+    /// Bezeichnung: Art («Lohn», «Rente» …), bei «Sonstiges» leer
+    public var label: String
+    /// Art (Web `cat`): «Lohn», «Rente», «Zulagen», «Vermietung» oder «Sonstiges»
+    public var category: String
+    public var currency: String
+    /// Typischer Betrag (Median der letzten drei Eingänge ohne Ausreisser nach oben)
+    public var amount: Double
+    public var cycle: Int
+    public var due: Day
+    public var count: Int
+    public var first: Day
+    public var last: Day
+    public var dates: [Day]
+    public var amounts: [Double]
+    public var lo: Double
+    public var hi: Double
+    public var varies: Bool
+    /// Nicht mitgerechnete höhere Eingänge (13. Monatslohn, Bonus)
+    public var skipped: Int
+    public var raw: String
+    public var text: String
+    public var confidence: BankConfidence
+
+    /// Art als `IncomeKind` (Web-Namen der Einnahmearten)
+    public var kind: IncomeKind {
+        IncomeKind.allCases.first { $0.displayName == category } ?? .sonstiges
+    }
+}
+
+/// Bereits erfasste Einnahme, die im Auszug gefunden wurde (Web `inc.known`).
+public struct BankIncomeKnown: Equatable, Sendable {
+    public var incomeID: UUID
+    public var suggestion: BankIncomeSuggestion
+}
+
+/// Ergebnis von `BankImport.findIncome` (Web `bankFindInc` → `{sugg, known}`).
+public struct BankIncomeResult: Sendable {
+    public var items: [BankIncomeSuggestion]
+    public var known: [BankIncomeKnown]
+
+    public init(items: [BankIncomeSuggestion] = [], known: [BankIncomeKnown] = []) {
+        self.items = items
+        self.known = known
+    }
 }
 
 /// Bereits erfasster Vertrag, der im Auszug gefunden wurde (Web `known`).

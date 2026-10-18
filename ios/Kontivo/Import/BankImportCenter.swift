@@ -38,9 +38,11 @@ final class BankImportCenter {
         }
     }
 
-    /// Einlesen starten: Fenster sofort öffnen (Ladeanzeige), dann lesen, suchen, abgleichen
-    func start(_ input: BankInput, model: AppModel) {
+    /// Einlesen starten: Fenster sofort öffnen (Ladeanzeige), dann lesen, suchen, abgleichen, Logos suchen
+    /// `step`: nur Bildschirmfotos/UI-Tests – nach dem Laden direkt zu diesem Schritt («inc», «term»)
+    func start(_ input: BankInput, model: AppModel, step: String? = nil) {
         let s = BankImportSession(input: input)
+        s.jumpTo = step
         sessions[s.id] = s
         model.present(.bankImport(s.id))
         s.run(model: model)
@@ -49,7 +51,8 @@ final class BankImportCenter {
     func session(_ id: UUID) -> BankImportSession? { sessions[id] }
 
     /// Fenster geschlossen: Ablauf abbrechen und vergessen (Web: `bkRun++`)
-    func end(_ id: UUID) {
+    func end(_ id: UUID, model: AppModel) {
+        if let s = sessions[id], !s.finished { s.review?.cancel(model: model) }
         sessions[id]?.cancel()
         // erst nach der Schliessen-Animation vergessen (sonst blitzt ein leeres Fenster auf)
         Task { @MainActor [weak self] in
@@ -66,11 +69,19 @@ enum BankInput {
     /// Testdaten (UI-Tests): Inhalt und Dateiname
     case data(Data, name: String)
 
-    /// Datenschutz-Hinweis unter den Vorschlägen
+    /// Datenschutz-Hinweis im letzten Schritt (Web `.bkpriv`)
     var privacyNote: String {
         switch self {
         case .images: return "Die Fotos wurden nur auf diesem Gerät gelesen und nicht gespeichert."
         default: return "Die Datei wurde nur auf diesem Gerät gelesen und nicht gespeichert."
+        }
+    }
+
+    /// Grüne Box in der Ladeanzeige (Web v201 `BK_SAFE`)
+    var safeNote: String {
+        switch self {
+        case .images: return "Die Fotos werden nur hier gelesen – nie hochgeladen, nie gespeichert."
+        default: return "Die Datei wird nur hier gelesen – nie hochgeladen, nie gespeichert."
         }
     }
 }
@@ -80,7 +91,7 @@ enum BankInput {
 @Observable
 final class BankImportSession: Identifiable {
     enum Phase: Equatable {
-        /// Ladeanzeige: Schritt 0 = lesen, 1 = suchen, 2 = abgleichen; nTx = gelesene Buchungen
+        /// Ladeanzeige: Schritt 0 = lesen, 1 = suchen, 2 = abgleichen, 3 = Logos suchen; nTx = gelesene Buchungen
         case loading(step: Int, nTx: Int?)
         /// Nichts lesbar: Titel und Erklärung (statt Web-Rückfrage), Fenster bleibt mit «OK»
         case failed(title: String, text: String)
@@ -91,13 +102,22 @@ final class BankImportSession: Identifiable {
     let input: BankInput
     var phase: Phase = .loading(step: 0, nTx: nil)
     var review: BankReview?
+    /// Übernommen (Logos nicht wieder löschen)
+    var finished = false
+    @ObservationIgnored var jumpTo: String?
     @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private var logoTask: Task<Void, Never>?
+    @ObservationIgnored private var alive = true
+    @ObservationIgnored private var logosFinished = false
 
     init(input: BankInput) { self.input = input }
 
     func cancel() {
+        alive = false
         task?.cancel()
         task = nil
+        logoTask?.cancel()
+        logoTask = nil
     }
 
     /// Ergebnis einer Datei
@@ -139,12 +159,34 @@ final class BankImportSession: Identifiable {
             withAnimation(.easeInOut(duration: 0.2)) { self.phase = .loading(step: 2, nTx: merged.tx.count) }
             await Self.waitUntil(t0, 0.9)
             guard !Task.isCancelled else { return }
-            let label = ok.count > 1 ? "\(ok.count) Dateien" : (!merged.bank.isEmpty ? merged.bank : ok[0].name)
-            self.review = BankReview(file: merged, result: res, label: label, privacy: input.privacyNote, data: model.data)
+            let inc = await Task.detached(priority: .userInitiated) { BankImport.findIncome(merged, data: data, today: today) }.value
+            guard !Task.isCancelled else { return }
+            let label = ok.count > 1 ? "\(ok.count) Dateien" : merged.bank
+            let r = BankReview(file: merged, result: res, income: inc, label: label, data: model.data)
+            self.review = r
+            // Logos schon jetzt suchen; höchstens ~8 s warten, der Rest kommt in der Liste nach
+            withAnimation(.easeInOut(duration: 0.2)) { self.phase = .loading(step: 3, nTx: merged.tx.count) }
+            self.logoTask = Task { @MainActor [weak self] in
+                await BankLogos.run(r, model: model) { [weak self] in self?.alive == true }
+                self?.logosFinished = true
+            }
+            await self.waitLogos(seconds: 8)
+            guard !Task.isCancelled else { return }
+            #if DEBUG
+            if let j = self.jumpTo, let st = BankReview.Step(rawValue: j) { r.step = st }
+            #endif
             withAnimation(.easeInOut(duration: 0.25)) { self.phase = .review }
             if !bad.isEmpty {
                 model.toast(bad.count == 1 ? "«\(bad[0].name)» nicht erkannt – übersprungen" : "\(bad.count) Dateien nicht erkannt – übersprungen", seconds: 3.2)
             }
+        }
+    }
+
+    /// Auf die Logosuche warten, höchstens `seconds` (Web `Promise.race([lp, bkWait(8000)])`)
+    private func waitLogos(seconds: Double) async {
+        let end = Date().addingTimeInterval(seconds)
+        while !logosFinished && Date() < end && !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: 100_000_000)
         }
     }
 

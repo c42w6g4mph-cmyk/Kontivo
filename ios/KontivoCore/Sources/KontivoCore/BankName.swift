@@ -25,7 +25,9 @@ enum BankName {
 
     static let rxSpaces = BRX("\\s+")
     static let rxCleanCut = BRX("\\s(?:MITTEILUNGEN?|Mitteilungen?:|REFERENZ|Referenz(?:-Nr\\.?)?:?|QR-Referenz|Transaktions(?:-Nr\\.?|datum)|Karten?-?Nr\\.?|Kartennummer|IBAN|Kto/IBAN|Kto|BLZ|Konto-Nr\\.?|CH\\d{2}\\s?\\d|DE\\d{2}\\s?\\d|\\d{4,5}\\s+[A-ZÄÖÜa-zäöü]{2}|Ref\\.|Buchungstext:|Verwendungszweck)")
-    static let rxLegal = BRX("^(.*?\\b(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\\.V\\.|e\\.\\s?V\\.|Genossenschaft))(?:\\s|$)", i: true)
+    /// Rechtsform am Anfang («Genossenschaft Migros Ostschweiz») ist Teil des Namens: nur abschneiden, wenn davor schon ein Name steht (Web v223)
+    static let rxLegal = BRX("^(.+?\\s(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\\.V\\.|e\\.\\s?V\\.|Genossenschaft))(?:\\s|$)", i: true)
+    static let rxCoopStart = BRX("^Genossenschaft\\s+(?=\\S)", i: true)
 
     /// Leerzeichen zusammenfassen (JS `.replace(/\s+/g," ").trim()`).
     static func squash(_ s: String) -> String { BU.trim(rxSpaces.replaceAll(s, " ")) }
@@ -35,6 +37,7 @@ enum BankName {
         var n = squash(raw)
         if let m = rxCleanCut.match(n) { n = BU.slice(n, 0, m.index) }
         if let lg = rxLegal.match(n) { n = lg.s(1) }
+        n = rxCoopStart.replaceFirst(n, "")
         return BU.trim(n.split(separator: " ", omittingEmptySubsequences: false).prefix(5).joined(separator: " "))
     }
 

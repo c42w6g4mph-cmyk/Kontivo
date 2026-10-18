@@ -20,6 +20,11 @@ public enum BankImport {
         s.key.components(separatedBy: "|")[0]
     }
 
+    /// Schlüssel ohne «·Bezeichnung» (seit Web v212: alte Einträge «tpl:CSS» gelten weiter)
+    static func ignoreKeyBase(_ s: BankSuggestion) -> String {
+        ignoreKey(s).components(separatedBy: "·")[0]
+    }
+
     /// Zahlungsrhythmus aus einem Abstand in Tagen (Web `bankCycle`), 0 = keiner.
     static func cycle(_ days: Int) -> Int {
         let C = [(1, 25, 36), (2, 55, 66), (3, 84, 98), (6, 170, 195), (12, 350, 380)]
@@ -69,6 +74,8 @@ public enum BankImport {
     static let rxNameCut = BRX(";|\\s·\\s")
     static let rxVia = BRX("(?:einkauf bei|purchase at|payment to|zahlung an|abo bei|bei)\\s+([^,;·/]{3,40})", i: true)
     static let rxViaTail = BRX("\\s+\\d.*$")
+    static let rxATMKeep = BRX("\\b3a\\b|vorsorge|saeule|saule|leasing")
+    static let rxRetailKeep = BRX("fitness|mitglied|abo\\b|abonnement")
     static let rxBankATM = BRX("^(sparkasse|volksbank|raiffeisen|commerzbank|deutsche bank|postbank|hypovereinsbank|targobank|santander|ubs|postfinance|zkb|kantonalbank|migros bank|valiant|atm|geldautomat)\\b")
     static let rxCardWords = BRX("\\bkarten?\\b|\\bcard\\b|kartenzahlung|kauf dienstleistung|\\bpos\\b|maestro|\\bvisa\\b|mastercard")
 
@@ -92,6 +99,10 @@ public enum BankImport {
             if t.amount >= 0 { continue }
             var nm = !t.name.isEmpty && !BankName.isType(t.name) ? BankName.clean(BankName.rxComma.split(t.name)[0]) : BankName.from(t.text)
             nm = BU.trim(rxNameCut.split(nm)[0])
+            // Kontoführung ohne Empfänger («ENTGELTABSCHLUSS · Entgeltabrechnung siehe Anlage») → Vertragspartner = die Bank
+            if !(!t.name.isEmpty && !BankName.isType(t.name)) && BankCatalog.BKFEE.test(Partners.lnorm(t.type + " " + t.text)) {
+                nm = !r.bank.isEmpty ? r.bank : "Bank"
+            }
             // PayPal, Klarna & Co.: eigentlicher Händler steht im Text («Ihr Einkauf bei Muster Cloud»)
             if BankCatalog.BKVIA.test(Partners.lnorm(nm)), let vm = rxVia.match(t.text), !BankCatalog.BKVIA.test(Partners.lnorm(vm.s(1))) {
                 nm = BU.trim(rxViaTail.replaceFirst(vm.s(1), ""))
@@ -102,14 +113,16 @@ public enum BankImport {
             let tp = BankCatalog.tpl(nm, t.text, cur)
             let hay = Partners.lnorm(nm + " " + t.text + " " + t.type)
             let ln = Partners.lnorm(nm)
-            if tp == nil && BankCatalog.BKRETAIL.test(ln) { continue }
+            // Detailhändler (Migros, Coop …) nur bei Kartenkäufen ausfiltern – Lastschrift/Dauerauftrag/Abo (z.B. «Migros Fitnesspark») bleibt
+            if tp == nil && BankCatalog.BKRETAIL.test(ln) && !(t.kind == .dd || t.kind == .so || !t.cred.isEmpty || rxRetailKeep.test(hay)) { continue }
             // Kartenbezug am Automaten einer Bank («Sparkasse Konstanz», «UBS») = Bargeld
-            if (t.kind == .card || (t.kind == .unknown && Swift.abs(t.amount).truncatingRemainder(dividingBy: 10) == 0)) && rxBankATM.test(ln) { continue }
+            if (t.kind == .card || (t.kind == .unknown && Swift.abs(t.amount).truncatingRemainder(dividingBy: 10) == 0)) && !rxATMKeep.test(hay) && rxBankATM.test(ln) { continue }
             if BankCatalog.BKSKIP.test(hay) || BankCatalog.BKSHOP.test(ln) { continue }
             let tk = BankName.tok(nm)
             var key: String
             if let tp = tp {
-                key = "tpl:" + tp.name
+                // gleicher Name mehrfach im Katalog (CSS Krankenkasse/Zusatzversicherung): eigene Gruppe je Bezeichnung
+                key = "tpl:" + tp.name + (BankCatalog.duplicateNames.contains(tp.name) ? "·" + tp.label : "")
             } else if !t.cred.isEmpty {
                 key = "cred:" + t.cred
             } else {
@@ -219,7 +232,7 @@ public enum BankImport {
         let span = from.days(to: to)
 
         func applyAlias(_ s: inout BankSuggestion) {
-            if let a = alias[ignoreKey(s)], !a.n.isEmpty {
+            if let a = alias[ignoreKey(s)] ?? alias[ignoreKeyBase(s)], !a.n.isEmpty {
                 s.alias = a
                 s.name = a.n
             }
@@ -276,7 +289,7 @@ public enum BankImport {
                     continue
                 }
                 if let m = m { used.insert(m.id) }
-                if ign.contains(ignoreKey(s)) { s.ignored = true }
+                if ign.contains(ignoreKey(s)) || ign.contains(ignoreKeyBase(s)) { s.ignored = true }
                 out.append((s, m))
             } else if var s = loose(k, g) {
                 // erkannte Gruppe, die als Vertrag bereits existiert, aber die strengen Regeln nicht erfüllt (schwankende Rechnung, nur 1 Zahlung)
@@ -321,7 +334,7 @@ public enum BankImport {
         let am = tx.map { BU.r2(-$0.amount) }
         return BankSuggestion(id: k, key: k, name: groupName(g), raw: lt.name, text: lt.text, currency: g.cur, amount: am[am.count - 1],
                               cycle: 1, due: lt.date, first: ft.date, last: lt.date, count: tx.count, dates: tx.map { $0.date }, amounts: am,
-                              confidence: .low, varies: false, change: nil, catalogName: g.tpl?.name, category: "", kind: .unknown,
+                              confidence: .low, varies: false, change: nil, catalog: g.tpl, category: "", kind: .unknown,
                               cred: "", mref: "", alias: nil, ignored: false)
     }
 
@@ -342,6 +355,20 @@ public enum BankImport {
         var am = tx.map { BU.r2(-$0.amount) }
         var last = am[am.count - 1]
         var n = tx.count
+        // einmalige Zusatzzahlung mitten im Verlauf (Jahresabrechnung, Servicepauschale) nicht als Preis werten:
+        // genau ein Betrag kommt nur einmal vor und liegt nicht am Rand → herausnehmen (Web v223)
+        if n >= 5 {
+            var cA: [String: Int] = [:]
+            for v in am { cA[String(format: "%.2f", v), default: 0] += 1 }
+            let lone = am.indices.filter { cA[String(format: "%.2f", am[$0])] == 1 && $0 > 0 && $0 < n - 1 }
+            if lone.count == 1 && cA.count <= 3 {
+                let li = lone[0]
+                tx.remove(at: li)
+                am.remove(at: li)
+                n = tx.count
+                last = am[n - 1]
+            }
+        }
         var iv: [Int] = []
         for i in 1..<Swift.max(n, 1) { iv.append(tx[i - 1].date.days(to: tx[i].date)) }
         var cyc = 0
@@ -409,9 +436,11 @@ public enum BankImport {
             let t0 = tx[0]
             if g.tpl == nil && ((t0.cred.isEmpty && kind != "dd") || BankCatalog.BKVIA.test(Partners.lnorm(name))) { return nil }
             // kurzer Auszug und Zahlung ganz am Ende: eher monatlich; bei langem Auszug (> 10 Monate) wäre eine Monatszahlung mehrfach drin
-            cyc = (t0.date.days(to: ref) < 40 && span > 40 && span <= 300) ? 1 : 12
+            // Zeitraum im Zahlungsgrund setzt den Rhythmus («Rundfunk 07.2026 - 09.2026», «Jahresgebühr»), Web v181
+            let per = BankCatalog.period(t0.text)
+            cyc = per != 0 ? per : ((t0.date.days(to: ref) < 40 && span > 40 && span <= 300) ? 1 : 12)
             // internationale Monatsabos (Netflix…) mit nur einer Zahlung: eher Einkauf
-            if let t = g.tpl, t.country.isEmpty, cyc == 12, t0.date.days(to: ref) > 45 { return nil }
+            if per == 0, let t = g.tpl, t.country.isEmpty, cyc == 12, t0.date.days(to: ref) > 45 { return nil }
             conf = .low
         }
         // nächste Zahlung: ab letzter Buchung im Rhythmus weiter bis heute
@@ -425,7 +454,7 @@ public enum BankImport {
         let lt = tx[n - 1]
         return BankSuggestion(id: k, key: k, name: name, raw: !lt.name.isEmpty ? lt.name : BankName.from(lt.text), text: lt.text, currency: g.cur,
                               amount: BU.r2(last), cycle: cyc, due: due, first: tx[0].date, last: lt.date, count: n, dates: tx.map { $0.date },
-                              amounts: am, confidence: conf, varies: varies, change: ch, catalogName: g.tpl?.name, category: "",
+                              amounts: am, confidence: conf, varies: varies, change: ch, catalog: g.tpl, category: "",
                               kind: BankKind(web: kind), cred: lt.cred, mref: lt.mref, alias: nil, ignored: false)
     }
 
@@ -462,6 +491,11 @@ public enum BankImport {
             c.mandatory = false
             c.cancelTerm = .anytime
         }
+        // Zahlungsart, Kunden- und Vertragsnummer aus dem Buchungstext (Web v180)
+        c.payMethod = payMethod(s)
+        let nr = numbers(s)
+        c.customerNo = nr.customer
+        c.contractNo = nr.contract
         return c
     }
 

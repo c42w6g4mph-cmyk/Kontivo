@@ -2,8 +2,8 @@ import SwiftUI
 import KontivoCore
 
 /// Plus oben rechts in «Verträge» (Web 17862f0/fe70531, v143, v156): Menü
-/// «Vertrag erfassen» (Einzeln, mit Vorlagen-Katalog) | «Aus Kontoauszug» (Fixkosten in Bank-Dateien finden –
-/// Konto und Kreditkarte auf einmal) mit der Wahl der Quelle: Datei, Foto aufnehmen, Fotos | «Einnahme erfassen»
+/// «Vertrag erfassen» (Einzeln, mit Vorlagen-Katalog) | «Aus Kontoauszug» (Web v201: Fixkosten automatisch finden –
+/// die Datei bleibt auf deinem Gerät) mit der Wahl der Quelle: Datei, Foto aufnehmen, Fotos | «Einnahme erfassen»
 /// (Lohn, Rente, Stipendium …).
 struct AddMenuButton: View {
     @Environment(AppModel.self) private var model
@@ -37,7 +37,7 @@ struct AddMenuButton: View {
             } label: {
                 Label {
                     Text("Aus Kontoauszug")
-                    Text("Fixkosten in Bank-Dateien finden – Konto und Kreditkarte auf einmal")
+                    Text("Fixkosten automatisch finden – die Datei bleibt auf deinem Gerät")
                 } icon: {
                     Image(systemName: "building.columns")
                 }
