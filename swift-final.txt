@@ -1,4 +1,4 @@
-branch=swift-final run=150 sha=9b09f8ab71b0054d7689b4a4610cd263e7bcebf4
+branch=swift-final run=151 sha=55c9390195acaa4fb63eb252049e1685ffc5a062
 core=success app=success ui=failure
 
 ===== KERN: Fehler =====
@@ -8,7 +8,7 @@ core=success app=success ui=failure
 ===== KERN: Ende =====
 Test Case '-[KontivoCoreTests.WebSync160Tests testEndsSelfAndFutureStart]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testHeroExcludesRunningTrial]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testHeroExcludesRunningTrial]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.WebSync160Tests testHeroExcludesRunningTrial]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testIncomeDetailAndSubline]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testIncomeDetailAndSubline]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testIncomeKinds]' started.
@@ -30,12 +30,12 @@ Test Case '-[KontivoCoreTests.WebSync160Tests testTermHint]' passed (0.000 secon
 Test Case '-[KontivoCoreTests.WebSync160Tests testTermMonthsAndNotice]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testTermMonthsAndNotice]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' passed (0.001 seconds).
-Test Suite 'WebSync160Tests' passed at 2026-10-18 20:34:36.698.
-	 Executed 25 tests, with 0 failures (0 unexpected) in 0.021 (0.025) seconds
-Test Suite 'WebSync224Tests' started at 2026-10-18 20:34:36.698.
+Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' passed (0.000 seconds).
+Test Suite 'WebSync160Tests' passed at 2026-10-18 21:51:59.794.
+	 Executed 25 tests, with 0 failures (0 unexpected) in 0.024 (0.028) seconds
+Test Suite 'WebSync224Tests' started at 2026-10-18 21:51:59.794.
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogHits]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogHits]' passed (0.043 seconds).
+Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogHits]' passed (0.048 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogSameNames]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogSameNames]' passed (0.002 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogTermShort]' started.
@@ -56,12 +56,12 @@ Test Case '-[KontivoCoreTests.WebSync224Tests testRememberSinglePerson]' started
 Test Case '-[KontivoCoreTests.WebSync224Tests testRememberSinglePerson]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testSwissPowerAndLeasing]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testSwissPowerAndLeasing]' passed (0.000 seconds).
-Test Suite 'WebSync224Tests' passed at 2026-10-18 20:34:36.748.
-	 Executed 11 tests, with 0 failures (0 unexpected) in 0.048 (0.050) seconds
-Test Suite 'KontivoCorePackageTests.xctest' passed at 2026-10-18 20:34:36.748.
-	 Executed 236 tests, with 0 failures (0 unexpected) in 94.637 (94.672) seconds
-Test Suite 'All tests' passed at 2026-10-18 20:34:36.748.
-	 Executed 236 tests, with 0 failures (0 unexpected) in 94.637 (94.674) seconds
+Test Suite 'WebSync224Tests' passed at 2026-10-18 21:51:59.849.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.053 (0.055) seconds
+Test Suite 'KontivoCorePackageTests.xctest' passed at 2026-10-18 21:51:59.849.
+	 Executed 236 tests, with 0 failures (0 unexpected) in 114.521 (114.561) seconds
+Test Suite 'All tests' passed at 2026-10-18 21:51:59.849.
+	 Executed 236 tests, with 0 failures (0 unexpected) in 114.521 (114.563) seconds
 ◇ Test run started.
 ↳ Testing Library Version: 1501
 ↳ Target Platform: arm64e-apple-macos14.0
@@ -86,20 +86,20 @@ CreateUniversalBinary /Users/runner/work/Kontivo/Kontivo/build/Build/Products/De
 
 ExtractAppIntentsMetadata (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.8yRNKf/Metal.xctoolchain --module-name Kontivo --sdk-root /Applications/Xcode_26.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk --xcode-version 17C52 --platform-family iOS --deployment-target 17.0 --bundle-identifier ch.kontivo.app --output /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app --target-triple arm64-apple-ios17.0-simulator --target-triple x86_64-apple-ios17.0-simulator --binary-file /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo --dependency-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo_dependency_info.dat --dependency-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo_dependency_info.dat --stringsdata-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --stringsdata-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo.SwiftFileList --source-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo.SwiftFileList --metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo.SwiftConstValuesFileList --swift-const-vals-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
-2026-10-18 20:36:38.163 appintentsmetadataprocessor[6955:22925] Starting appintentsmetadataprocessor export
-2026-10-18 20:36:38.166 appintentsmetadataprocessor[6955:22925] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+    /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.aeaPGq/Metal.xctoolchain --module-name Kontivo --sdk-root /Applications/Xcode_26.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk --xcode-version 17C52 --platform-family iOS --deployment-target 17.0 --bundle-identifier ch.kontivo.app --output /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app --target-triple arm64-apple-ios17.0-simulator --target-triple x86_64-apple-ios17.0-simulator --binary-file /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo --dependency-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo_dependency_info.dat --dependency-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo_dependency_info.dat --stringsdata-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --stringsdata-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo.SwiftFileList --source-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo.SwiftFileList --metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo.SwiftConstValuesFileList --swift-const-vals-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-18 21:54:35.453 appintentsmetadataprocessor[11521:36945] Starting appintentsmetadataprocessor export
+2026-10-18 21:54:35.458 appintentsmetadataprocessor[11521:36945] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
 
 CopySwiftLibs /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo.debug.dylib --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Frameworks --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/PlugIns --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/SystemExtensions --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Extensions --platform iphonesimulator --toolchain /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.8yRNKf/Metal.xctoolchain --toolchain /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os --back-deploy-swift-span
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo.debug.dylib --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Frameworks --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/PlugIns --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/SystemExtensions --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Extensions --platform iphonesimulator --toolchain /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.aeaPGq/Metal.xctoolchain --toolchain /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os --back-deploy-swift-span
 Ignoring --strip-bitcode because --sign was not passed
 
 AppIntentsSSUTraining (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
     /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Info.plist --temp-dir-path /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/ssu --bundle-id ch.kontivo.app --product-path /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app --extracted-metadata-path /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Metadata.appintents --metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyMetadataFileList --archive-ssu-assets
-2026-10-18 20:36:38.211 appintentsnltrainingprocessor[6959:22931] Parsing options for appintentsnltrainingprocessor
-2026-10-18 20:36:38.212 appintentsnltrainingprocessor[6959:22931] No AppShortcuts found - Skipping.
+2026-10-18 21:54:35.514 appintentsnltrainingprocessor[11530:36963] Parsing options for appintentsnltrainingprocessor
+2026-10-18 21:54:35.518 appintentsnltrainingprocessor[11530:36963] No AppShortcuts found - Skipping.
 
 RegisterExecutionPolicyException /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
@@ -118,143 +118,170 @@ Touch /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimula
 
 ===== UI-TESTS =====
 ui=failure
-runtime=com.apple.CoreSimulator.SimRuntime.iOS-26-2 udid=BA4267A1-C7A0-4059-B472-B83BB4ABE894 dest=id=BA4267A1-C7A0-4059-B472-B83BB4ABE894
-Test Case '-[KontivoUITests.CompletenessUITests testVollstaendigkeitAblauf]' passed (138.222 seconds).
-	 Executed 1 test, with 0 failures (0 unexpected) in 138.222 (138.224) seconds
-Test Case '-[KontivoUITests.ContractDetailUITests testEndetVonSelbstUndEmailPruefung]' passed (45.863 seconds).
-Test Case '-[KontivoUITests.ContractDetailUITests testProbeaboBehaltenUndSchonGekuendigt]' passed (63.461 seconds).
-	 Executed 2 tests, with 0 failures (0 unexpected) in 109.324 (109.326) seconds
-Test Case '-[KontivoUITests.ContractFlowUITests testFormularVerwerfen]' passed (32.799 seconds).
-Test Case '-[KontivoUITests.ContractFlowUITests testVertragAnlegenBearbeitenDuplizierenPausierenLoeschen]' passed (123.512 seconds).
-	 Executed 2 tests, with 0 failures (0 unexpected) in 156.310 (156.313) seconds
-Test Case '-[KontivoUITests.ContractFormDetailUITests testDetailPreisverlauf]' passed (24.692 seconds).
-Test Case '-[KontivoUITests.ContractFormDetailUITests testDetailReineAnsichtUndDokumente]' passed (36.390 seconds).
-Test Case '-[KontivoUITests.ContractFormDetailUITests testFormularKachelnUndKuendigungsweg]' passed (72.712 seconds).
-Test Case '-[KontivoUITests.ContractFormDetailUITests testKatalogZusammenfassungUndRueckgaengig]' passed (51.125 seconds).
-Test Case '-[KontivoUITests.ContractFormDetailUITests testPreisaenderungWarnungen]' passed (78.522 seconds).
-	 Executed 5 tests, with 0 failures (0 unexpected) in 263.441 (263.449) seconds
-Test Case '-[KontivoUITests.ContractFormUITests testAbbrechenFragt]' passed (35.345 seconds).
-Test Case '-[KontivoUITests.ContractFormUITests testFormularBildschirmfotos]' passed (26.199 seconds).
-Test Case '-[KontivoUITests.ContractFormUITests testKuendigungsfristUndMindestlaufzeit]' passed (114.844 seconds).
-Test Case '-[KontivoUITests.ContractFormUITests testSichernOhneVertragsendeBlockiert]' passed (63.638 seconds).
-Test Case '-[KontivoUITests.ContractFormUITests testZahlungAmTagesraster]' passed (62.287 seconds).
-	 Executed 5 tests, with 0 failures (0 unexpected) in 302.314 (302.323) seconds
-Test Case '-[KontivoUITests.ContractListUITests testSucheSortierungFilterArchiv]' passed (61.353 seconds).
-Test Case '-[KontivoUITests.ContractListUITests testWischenUndLangesDruecken]' passed (50.595 seconds).
-	 Executed 2 tests, with 0 failures (0 unexpected) in 111.948 (111.950) seconds
-Test Case '-[KontivoUITests.CostsBudgetUITests testBudgetEinnahmeErfassen]' passed (50.371 seconds).
-Test Case '-[KontivoUITests.CostsBudgetUITests testKostenEntwicklungPreistreiber]' passed (43.062 seconds).
-Test Case '-[KontivoUITests.CostsBudgetUITests testKostenFixkostenBericht]' passed (18.024 seconds).
-Test Case '-[KontivoUITests.CostsBudgetUITests testKostenMonatJahrPerson]' passed (24.597 seconds).
-	 Executed 4 tests, with 0 failures (0 unexpected) in 136.054 (136.059) seconds
-Test Case '-[KontivoUITests.DeadlineUITests testBehaltenUndAlsGekuendigtMarkieren]' passed (19.592 seconds).
-Test Case '-[KontivoUITests.DeadlineUITests testKuendigungsschreibenMitRueckfragen]' passed (35.064 seconds).
-Test Case '-[KontivoUITests.DeadlineUITests testKuendigungsschreibenPDFUndZurueck]' passed (30.814 seconds).
-Test Case '-[KontivoUITests.DeadlineUITests testKuendigungswegWaehlen]' passed (21.449 seconds).
-Test Case '-[KontivoUITests.DeadlineUITests testPflichtvertragWechseln]' passed (23.290 seconds).
-	 Executed 5 tests, with 0 failures (0 unexpected) in 130.209 (130.220) seconds
-Test Case '-[KontivoUITests.ImportUITests testKontoauszugBeispiel]' passed (57.179 seconds).
-Test Case '-[KontivoUITests.ImportUITests testKontoauszugMitVertraegen]' passed (23.473 seconds).
-Test Case '-[KontivoUITests.ImportUITests testPlusMenue]' passed (35.728 seconds).
-	 Executed 3 tests, with 0 failures (0 unexpected) in 116.380 (116.386) seconds
-Test Case '-[KontivoUITests.IncomeUITests testDuplizierenUndLoeschen]' passed (55.380 seconds).
-Test Case '-[KontivoUITests.IncomeUITests testEinnahmeAnsichtBearbeitenZahlungAm]' passed (53.700 seconds).
-Test Case '-[KontivoUITests.IncomeUITests testPlusMenueEinnahmeErfassen]' passed (50.251 seconds).
-Test Case '-[KontivoUITests.IncomeUITests testZahlungAmQuartalMonatsreihe]' passed (37.056 seconds).
-	 Executed 4 tests, with 0 failures (0 unexpected) in 196.388 (196.393) seconds
-Test Case '-[KontivoUITests.MoreUITests testAlleDatenLoeschen]' passed (31.029 seconds).
-Test Case '-[KontivoUITests.MoreUITests testDarstellung]' passed (11.999 seconds).
-Test Case '-[KontivoUITests.MoreUITests testDatenqualitaetInlineWert]' passed (38.615 seconds).
-Test Case '-[KontivoUITests.MoreUITests testKategorieAnlegenUmbenennenLoeschen]' passed (46.235 seconds).
-Test Case '-[KontivoUITests.MoreUITests testPersonAnlegenUndAbsender]' passed (57.730 seconds).
-Test Case '-[KontivoUITests.MoreUITests testVertragspartnerOeffnen]' passed (19.614 seconds).
-Test Case '-[KontivoUITests.MoreUITests testVertragspartnerUmbenennenRueckfrageBeimZurueck]' passed (38.161 seconds).
-	 Executed 7 tests, with 0 failures (0 unexpected) in 243.382 (243.392) seconds
-Test Case '-[KontivoUITests.NativeUITests testErinnerungenSystemabfrage]' passed (22.644 seconds).
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/NativeUITests.swift:49: error: -[KontivoUITests.NativeUITests testErinnerungenUndAppSperreSchalter] : XCTAssertTrue failed - Bedingung nicht erfüllt: Erinnerungen an
-APP-ZUSTAND -[NativeUITests testErinnerungenUndAppSperreSchalter]: 4 (4 = läuft, 1 = beendet/abgestürzt)
-Test Case '-[KontivoUITests.NativeUITests testErinnerungenUndAppSperreSchalter]' failed (28.722 seconds).
-Test Case '-[KontivoUITests.NativeUITests testInKalenderInFristen]' passed (22.611 seconds).
-Test Case '-[KontivoUITests.NativeUITests testKuendigungsschreibenDirektMailUndDrucken]' passed (40.103 seconds).
-	 Executed 4 tests, with 1 failure (0 unexpected) in 114.080 (114.088) seconds
-Test Case '-[KontivoUITests.OnboardingUITests testEinfuehrungBisLeerseite]' passed (42.682 seconds).
-Test Case '-[KontivoUITests.OnboardingUITests testEinfuehrungSeitenBildschirmfotos]' passed (26.393 seconds).
-	 Executed 2 tests, with 0 failures (0 unexpected) in 69.075 (69.078) seconds
-Test Case '-[KontivoUITests.ReviewPackageUITests testAufteilungDetailUndFormular]' passed (22.739 seconds).
-Test Case '-[KontivoUITests.ReviewPackageUITests testBudgetInfoFenster]' passed (19.232 seconds).
-	 Executed 2 tests, with 0 failures (0 unexpected) in 41.971 (41.973) seconds
-Test Case '-[KontivoUITests.SyncUITests testICloudLineInBuildWithoutICloud]' passed (19.498 seconds).
-	 Executed 1 test, with 0 failures (0 unexpected) in 19.498 (19.500) seconds
-	 Executed 49 tests, with 1 failure (0 unexpected) in 2148.594 (2148.695) seconds
-	 Executed 49 tests, with 1 failure (0 unexpected) in 2148.594 (2148.697) seconds
+runtime=com.apple.CoreSimulator.SimRuntime.iOS-26-2 udid=1196C020-E35D-40C2-84AD-AD28056D1428 dest=id=1196C020-E35D-40C2-84AD-AD28056D1428
+Test Case '-[KontivoUITests.CompletenessUITests testVollstaendigkeitAblauf]' passed (169.149 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 169.149 (169.152) seconds
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.ContractDetailUITests testEndetVonSelbstUndEmailPruefung] : Failed to tap "Kündigen" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label BEGINSWITH "Kündigen"'`, given input App element pid: 37357
+APP-ZUSTAND -[ContractDetailUITests testEndetVonSelbstUndEmailPruefung]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ContractDetailUITests testEndetVonSelbstUndEmailPruefung]' failed (55.663 seconds).
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/ContractDetailUITests.swift:30: error: -[KontivoUITests.ContractDetailUITests testProbeaboBehaltenUndSchonGekuendigt] : XCTAssertEqual failed: ("XCTWaiterResult(rawValue: 2)") is not equal to ("XCTWaiterResult(rawValue: 1)") - Sollte verschwinden: Detail Musik geschlossen
+APP-ZUSTAND -[ContractDetailUITests testProbeaboBehaltenUndSchonGekuendigt]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ContractDetailUITests testProbeaboBehaltenUndSchonGekuendigt]' failed (68.951 seconds).
+	 Executed 2 tests, with 2 failures (0 unexpected) in 124.613 (124.618) seconds
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.ContractFlowUITests testFormularVerwerfen] : Failed to tap "Vertrag erfassen" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label BEGINSWITH "Vertrag erfassen"'`, given input App element pid: 42205
+APP-ZUSTAND -[ContractFlowUITests testFormularVerwerfen]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ContractFlowUITests testFormularVerwerfen]' failed (30.215 seconds).
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.ContractFlowUITests testVertragAnlegenBearbeitenDuplizierenPausierenLoeschen] : Failed to tap "Vertrag erfassen" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label BEGINSWITH "Vertrag erfassen"'`, given input App element pid: 43693
+APP-ZUSTAND -[ContractFlowUITests testVertragAnlegenBearbeitenDuplizierenPausierenLoeschen]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ContractFlowUITests testVertragAnlegenBearbeitenDuplizierenPausierenLoeschen]' failed (19.313 seconds).
+	 Executed 2 tests, with 2 failures (0 unexpected) in 49.528 (49.530) seconds
+Test Case '-[KontivoUITests.ContractFormDetailUITests testDetailPreisverlauf]' passed (28.518 seconds).
+Test Case '-[KontivoUITests.ContractFormDetailUITests testDetailReineAnsichtUndDokumente]' passed (37.182 seconds).
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.ContractFormDetailUITests testFormularKachelnUndKuendigungsweg] : Failed to tap "Vertrag erfassen" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label BEGINSWITH "Vertrag erfassen"'`, given input App element pid: 47649
+APP-ZUSTAND -[ContractFormDetailUITests testFormularKachelnUndKuendigungsweg]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ContractFormDetailUITests testFormularKachelnUndKuendigungsweg]' failed (21.070 seconds).
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.ContractFormDetailUITests testKatalogZusammenfassungUndRueckgaengig] : Failed to tap "Vertrag erfassen" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label BEGINSWITH "Vertrag erfassen"'`, given input App element pid: 48693
+APP-ZUSTAND -[ContractFormDetailUITests testKatalogZusammenfassungUndRueckgaengig]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ContractFormDetailUITests testKatalogZusammenfassungUndRueckgaengig]' failed (21.254 seconds).
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.ContractFormDetailUITests testPreisaenderungWarnungen] : Failed to tap "Vertrag erfassen" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label BEGINSWITH "Vertrag erfassen"'`, given input App element pid: 49894
+APP-ZUSTAND -[ContractFormDetailUITests testPreisaenderungWarnungen]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ContractFormDetailUITests testPreisaenderungWarnungen]' failed (19.844 seconds).
+	 Executed 5 tests, with 3 failures (0 unexpected) in 127.869 (127.872) seconds
+Test Case '-[KontivoUITests.ContractFormUITests testAbbrechenFragt]' passed (34.909 seconds).
+Test Case '-[KontivoUITests.ContractFormUITests testFormularBildschirmfotos]' passed (28.075 seconds).
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.ContractFormUITests testKuendigungsfristUndMindestlaufzeit] : Failed to tap "Vertrag erfassen" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label BEGINSWITH "Vertrag erfassen"'`, given input App element pid: 54061
+APP-ZUSTAND -[ContractFormUITests testKuendigungsfristUndMindestlaufzeit]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ContractFormUITests testKuendigungsfristUndMindestlaufzeit]' failed (22.045 seconds).
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.ContractFormUITests testSichernOhneVertragsendeBlockiert] : Failed to tap "Vertrag erfassen" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label BEGINSWITH "Vertrag erfassen"'`, given input App element pid: 55043
+APP-ZUSTAND -[ContractFormUITests testSichernOhneVertragsendeBlockiert]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ContractFormUITests testSichernOhneVertragsendeBlockiert]' failed (20.311 seconds).
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.ContractFormUITests testZahlungAmTagesraster] : Failed to tap "Vertrag erfassen" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label BEGINSWITH "Vertrag erfassen"'`, given input App element pid: 56093
+APP-ZUSTAND -[ContractFormUITests testZahlungAmTagesraster]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ContractFormUITests testZahlungAmTagesraster]' failed (23.657 seconds).
+	 Executed 5 tests, with 3 failures (0 unexpected) in 128.997 (129.003) seconds
+Test Case '-[KontivoUITests.ContractListUITests testSucheSortierungFilterArchiv]' passed (63.996 seconds).
+Test Case '-[KontivoUITests.ContractListUITests testWischenUndLangesDruecken]' passed (50.403 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 114.399 (114.401) seconds
+Test Case '-[KontivoUITests.CostsBudgetUITests testBudgetEinnahmeErfassen]' passed (49.559 seconds).
+Test Case '-[KontivoUITests.CostsBudgetUITests testKostenEntwicklungPreistreiber]' passed (40.882 seconds).
+Test Case '-[KontivoUITests.CostsBudgetUITests testKostenFixkostenBericht]' passed (22.633 seconds).
+Test Case '-[KontivoUITests.CostsBudgetUITests testKostenMonatJahrPerson]' passed (30.351 seconds).
+	 Executed 4 tests, with 0 failures (0 unexpected) in 143.425 (143.430) seconds
+Test Case '-[KontivoUITests.DeadlineUITests testBehaltenUndAlsGekuendigtMarkieren]' passed (20.098 seconds).
+Test Case '-[KontivoUITests.DeadlineUITests testKuendigungsschreibenMitRueckfragen]' passed (40.848 seconds).
+Test Case '-[KontivoUITests.DeadlineUITests testKuendigungsschreibenPDFUndZurueck]' passed (37.590 seconds).
+Test Case '-[KontivoUITests.DeadlineUITests testKuendigungswegWaehlen]' passed (22.846 seconds).
+Test Case '-[KontivoUITests.DeadlineUITests testPflichtvertragWechseln]' passed (21.139 seconds).
+	 Executed 5 tests, with 0 failures (0 unexpected) in 142.521 (142.524) seconds
+Test Case '-[KontivoUITests.ImportUITests testKontoauszugBeispiel]' passed (60.862 seconds).
+Test Case '-[KontivoUITests.ImportUITests testKontoauszugMitVertraegen]' passed (23.390 seconds).
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.ImportUITests testPlusMenue] : Failed to tap "Vertrag erfassen" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label BEGINSWITH "Vertrag erfassen"'`, given input App element pid: 81904
+APP-ZUSTAND -[ImportUITests testPlusMenue]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.ImportUITests testPlusMenue]' failed (37.499 seconds).
+	 Executed 3 tests, with 1 failure (0 unexpected) in 121.750 (121.755) seconds
+/Users/runner/work/Kontivo/Kontivo/ios/KontivoUITests/KontivoUITestCase.swift:168: error: -[KontivoUITests.IncomeUITests testDuplizierenUndLoeschen] : Failed to tap "Duplizieren" Button: No matches found for first query match sequence: `Descendants matching type Button` -> `Elements matching predicate 'label == "Duplizieren" OR identifier == "Duplizieren"'`, given input App element pid: 84565
+APP-ZUSTAND -[IncomeUITests testDuplizierenUndLoeschen]: 4 (4 = läuft, 1 = beendet/abgestürzt)
+Test Case '-[KontivoUITests.IncomeUITests testDuplizierenUndLoeschen]' failed (21.388 seconds).
+Test Case '-[KontivoUITests.IncomeUITests testEinnahmeAnsichtBearbeitenZahlungAm]' passed (52.103 seconds).
+Test Case '-[KontivoUITests.IncomeUITests testPlusMenueEinnahmeErfassen]' passed (55.044 seconds).
+Test Case '-[KontivoUITests.IncomeUITests testZahlungAmQuartalMonatsreihe]' passed (46.244 seconds).
+	 Executed 4 tests, with 1 failure (0 unexpected) in 174.778 (174.782) seconds
+Test Case '-[KontivoUITests.MoreUITests testAlleDatenLoeschen]' passed (30.913 seconds).
+Test Case '-[KontivoUITests.MoreUITests testDarstellung]' passed (13.205 seconds).
+Test Case '-[KontivoUITests.MoreUITests testDatenqualitaetInlineWert]' passed (39.963 seconds).
+Test Case '-[KontivoUITests.MoreUITests testKategorieAnlegenUmbenennenLoeschen]' passed (63.888 seconds).
+Test Case '-[KontivoUITests.MoreUITests testPersonAnlegenUndAbsender]' passed (70.787 seconds).
+Test Case '-[KontivoUITests.MoreUITests testVertragspartnerOeffnen]' passed (23.759 seconds).
+Test Case '-[KontivoUITests.MoreUITests testVertragspartnerUmbenennenRueckfrageBeimZurueck]' passed (28.711 seconds).
+	 Executed 7 tests, with 0 failures (0 unexpected) in 271.225 (271.233) seconds
+Test Case '-[KontivoUITests.NativeUITests testErinnerungenSystemabfrage]' passed (23.279 seconds).
+Test Case '-[KontivoUITests.NativeUITests testErinnerungenUndAppSperreSchalter]' passed (39.101 seconds).
+Test Case '-[KontivoUITests.NativeUITests testInKalenderInFristen]' passed (21.104 seconds).
+Test Case '-[KontivoUITests.NativeUITests testKuendigungsschreibenDirektMailUndDrucken]' passed (45.196 seconds).
+	 Executed 4 tests, with 0 failures (0 unexpected) in 128.681 (128.685) seconds
+Test Case '-[KontivoUITests.OnboardingUITests testEinfuehrungBisLeerseite]' passed (41.496 seconds).
+Test Case '-[KontivoUITests.OnboardingUITests testEinfuehrungSeitenBildschirmfotos]' passed (26.632 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 68.128 (68.131) seconds
+Test Case '-[KontivoUITests.ReviewPackageUITests testAufteilungDetailUndFormular]' passed (32.014 seconds).
+Test Case '-[KontivoUITests.ReviewPackageUITests testBudgetInfoFenster]' passed (22.674 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 54.689 (54.690) seconds
+Test Case '-[KontivoUITests.SyncUITests testICloudLineInBuildWithoutICloud]' passed (20.124 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 20.124 (20.126) seconds
+	 Executed 49 tests, with 12 failures (0 unexpected) in 1839.876 (1839.946) seconds
+	 Executed 49 tests, with 12 failures (0 unexpected) in 1839.876 (1839.962) seconds
 ** TEST FAILED **
 
 --- Absturzberichte ---
 
 ===== BILDSCHIRMFOTOS =====
-runtime=com.apple.CoreSimulator.SimRuntime.iOS-26-2 phone=E2427DCA-5846-4E4E-BD4B-3DF3946C2142 padtype=iPad Pro 13-inch (M5) pad=36D23DA2-80AB-4FF7-9C7C-F82C00A2FD31
-21:20:34 26-ipad-vertraege
-21:23:55 27-ipad-kosten
-21:24:20 28-ipad-formular
-21:27:11 01-onboarding
-21:28:55 02-leer-vertraege
-21:29:14 03-vertraege
-21:29:38 04-kosten
-21:30:00 05-budget
-21:30:21 06-fristen
-21:30:41 07-mehr
-21:31:02 08-detail
-21:31:21 09-formular
-21:31:39 10-bearbeiten
-21:31:59 10b-detail-sonderkuendigung
-21:32:16 11-einnahme
-21:32:40 12-einnahmen
-21:32:55 12b-einnahme-ansicht
-21:33:11 13-brief
-21:33:31 14-kuendigungsweg
-21:33:45 15-verwalten
-21:34:02 16-vertragspartner
-21:34:23 17-inhaber
-21:34:44 18-absender
-21:35:02 19-kategorien
-21:35:20 20-datenqualitaet
-21:35:37 21-leer-kosten
-21:35:52 22-leer-fristen
-21:36:07 40-onb-1
-21:36:24 40-onb-2
-21:36:41 40-onb-3
-21:37:10 40-onb-4
-21:37:32 40-onb-5
-21:37:49 40-onb-6
-21:38:02 40-onb-7
-21:38:14 41-fristen-vorgemerkt
-21:38:27 42-fristen-offen
-21:38:44 c1-kosten-liste
-21:39:06 c2-kosten-preistreiber
-21:39:24 c3-budget-listen
-21:39:41 c4-bericht
-21:39:56 c5-bericht-pdf
-21:40:18 c6-einnahme-bearbeiten
-21:40:33 i30-import-fixkosten
-21:40:47 i31-import-einnahmen
-21:41:02 i32-import-fristen
-21:41:17 i33-import-zuordnen
-21:41:33 43-dunkel-onb-0
-21:41:51 43-dunkel-onb-1
-21:42:08 43-dunkel-onb-2
-21:42:25 43-dunkel-onb-3
-21:42:44 43-dunkel-onb-4
-21:43:07 43-dunkel-onb-5
-21:43:23 43-dunkel-onb-6
-21:43:38 43-dunkel-onb-7
-21:43:53 44-dunkel-fristen
-21:44:10 45-dunkel-fristen-offen
-21:44:29 46-dunkel-leer-fristen
-21:44:47 23-dunkel-vertraege
-21:45:05 24-dunkel-kosten
-21:45:23 25-dunkel-detail
-21:45:42 c7-dunkel-budget
-21:46:00 c8-dunkel-preistreiber
-21:46:18 i34-dunkel-import
-21:46:34 i35-dunkel-import-fristen
-21:46:52 29-dunkel-mehr
+runtime=com.apple.CoreSimulator.SimRuntime.iOS-26-2 phone=F9E98280-2EDA-41B2-9507-952215219CBB padtype=iPad Pro 13-inch (M5) pad=EB709370-A975-4E29-918C-50969F987AEF
+22:36:10 26-ipad-vertraege
+22:37:25 27-ipad-kosten
+22:37:44 28-ipad-formular
+22:41:16 01-onboarding
+22:41:43 02-leer-vertraege
+22:42:11 03-vertraege
+22:42:32 04-kosten
+22:42:52 05-budget
+22:43:14 06-fristen
+22:43:33 07-mehr
+22:43:50 08-detail
+22:44:10 09-formular
+22:44:24 10-bearbeiten
+22:44:39 10b-detail-sonderkuendigung
+22:44:55 11-einnahme
+22:45:14 12-einnahmen
+22:45:33 12b-einnahme-ansicht
+22:45:49 13-brief
+22:46:03 14-kuendigungsweg
+22:46:20 15-verwalten
+22:46:36 16-vertragspartner
+22:46:53 17-inhaber
+22:47:10 18-absender
+22:47:22 19-kategorien
+22:47:33 20-datenqualitaet
+22:47:46 21-leer-kosten
+22:47:58 22-leer-fristen
+22:48:10 40-onb-1
+22:48:21 40-onb-2
+22:48:36 40-onb-3
+22:48:50 40-onb-4
+22:49:04 40-onb-5
+22:49:17 40-onb-6
+22:49:33 40-onb-7
+22:49:46 41-fristen-vorgemerkt
+22:49:58 42-fristen-offen
+22:50:10 c1-kosten-liste
+22:50:24 c2-kosten-preistreiber
+22:50:44 c3-budget-listen
+22:51:01 c4-bericht
+22:51:15 c5-bericht-pdf
+22:51:36 c6-einnahme-bearbeiten
+22:51:50 i30-import-fixkosten
+22:52:07 i31-import-einnahmen
+22:52:21 i32-import-fristen
+22:52:34 i33-import-zuordnen
+22:52:46 43-dunkel-onb-0
+22:52:59 43-dunkel-onb-1
+22:53:10 43-dunkel-onb-2
+22:53:22 43-dunkel-onb-3
+22:53:33 43-dunkel-onb-4
+22:53:45 43-dunkel-onb-5
+22:53:59 43-dunkel-onb-6
+22:54:11 43-dunkel-onb-7
+22:54:22 44-dunkel-fristen
+22:54:34 45-dunkel-fristen-offen
+22:54:46 46-dunkel-leer-fristen
+22:55:00 23-dunkel-vertraege
+22:55:14 24-dunkel-kosten
+22:55:27 25-dunkel-detail
+22:55:40 c7-dunkel-budget
+22:55:52 c8-dunkel-preistreiber
+22:56:03 i34-dunkel-import
+22:56:15 i35-dunkel-import-fristen
+22:56:27 29-dunkel-mehr
+22:56:39 30-dunkel-verwalten
+22:56:53 31-splash
+22:57:09 32-mehr-unten
+22:57:21 33-vollstaendigkeit
+22:57:32 34-leer-budget
