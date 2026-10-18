@@ -141,13 +141,22 @@ struct CTFlowLayout: Layout {
 
 /// Eigene Inline-SVGs der Web-App 1:1 (Pfade und Strichstärke aus index.html). Farbe über `.foregroundStyle`.
 enum CTIcon {
-    static func named(_ name: String, _ size: CGFloat) -> some View {
-        Image("ic.ct." + name)
-            .renderingMode(.template)
-            .resizable()
-            .interpolation(.high)
-            .frame(width: size, height: size)
-            .accessibilityHidden(true)
+    /// Symbole mit eigener Strichstärke im Web-Kontext (clip 2, pen 2.2, book 1.7) bleiben als `ic.ct.*`; alle anderen
+    /// kommen aus den gemeinsamen Web-Symbolen `ic.*` (Bereich design, `KIcon.view`).
+    private static let own: Set<String> = ["clip", "pen", "book"]
+
+    @ViewBuilder static func named(_ name: String, _ size: CGFloat) -> some View {
+        if own.contains(name) {
+            Image("ic.ct." + name)
+                .renderingMode(.template)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: size, height: size)
+                .accessibilityHidden(true)
+        } else {
+            KIcon.view("ic." + name, size)
+                .accessibilityHidden(true)
+        }
     }
     static func search(_ s: CGFloat) -> some View { named("search", s) }
     static func filter(_ s: CGFloat) -> some View { named("filter", s) }
@@ -196,11 +205,11 @@ struct CTImageItem: Identifiable {
 
 // MARK: - Formulartexte (Web v202/v210)
 
-// TODO core-API: Texte gehören in `ContractFormRules` (Bereich core: mandatoryTitle/-Subtitle/-Info). Bei der Integration ersetzen.
+/// Texte aus dem Kern (`ContractFormRules`, Web v202/v210)
 enum CTFormText {
-    static let mandatoryTitle = "Pflichtvertrag"
-    static let mandatorySubtitle = "Kündigen nur mit neuem Anbieter"
-    static let mandatoryInfo = "Pflichtverträge sind Verträge, die du haben musst. Du kannst sie nicht ersatzlos kündigen, sondern nur zu einem anderen Anbieter wechseln.\n\nBeispiele: Krankenkasse, Autohaftpflicht."
+    static let mandatoryTitle = ContractFormRules.mandatoryTitle
+    static let mandatorySubtitle = ContractFormRules.mandatorySubtitle
+    static let mandatoryInfo = ContractFormRules.mandatoryInfo
 }
 
 /// Infoknopf «i» (Web `.catinfo`: 19 pt Kreis, Rand 1.4 Tinte 3, «i» kursiv Georgia 11.5/600 Tinte 2)

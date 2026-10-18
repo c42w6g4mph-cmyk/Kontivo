@@ -327,62 +327,7 @@ struct OnbHint: View {
 
 // MARK: - Wortmarke
 
-/// Das «K» aus dem Logo (nachgezeichnet aus dem SVG der Web-App): Balken mit ausgesparter Spitze plus Winkel.
-/// Wird auch vom Intro (SplashView, Bereich design) genutzt.
-struct OnbKGlyph: View {
-    var body: some View {
-        Canvas { ctx, size in
-            let vb = CGRect(x: 339.5, y: 292, width: 357.5, height: 440)
-            let s = min(size.width / vb.width, size.height / vb.height)
-            ctx.translateBy(x: (size.width - vb.width * s) / 2, y: (size.height - vb.height * s) / 2)
-            ctx.scaleBy(x: s, y: s)
-            ctx.translateBy(x: -vb.minX, y: -vb.minY)
-
-            var bar = Path()
-            bar.move(to: CGPoint(x: 339.78, y: 292))
-            bar.addLine(to: CGPoint(x: 393.78, y: 292))
-            bar.addLine(to: CGPoint(x: 439.78, y: 349.5))
-            bar.addLine(to: CGPoint(x: 439.78, y: 732))
-            bar.addLine(to: CGPoint(x: 339.78, y: 732))
-            bar.closeSubpath()
-
-            var chevron = Path()
-            chevron.move(to: CGPoint(x: 693, y: 792))
-            chevron.addLine(to: CGPoint(x: 469, y: 512))
-            chevron.addLine(to: CGPoint(x: 693, y: 232))
-
-            ctx.drawLayer { layer in
-                layer.fill(bar, with: .foreground)
-                layer.blendMode = .destinationOut
-                layer.stroke(chevron, with: .color(.black), style: StrokeStyle(lineWidth: 144, miterLimit: 4))
-            }
-            var clipped = ctx
-            clipped.clip(to: Path(CGRect(x: 300, y: 292, width: 500, height: 440)))
-            clipped.stroke(chevron, with: .foreground, style: StrokeStyle(lineWidth: 80, miterLimit: 4))
-        }
-        .accessibilityHidden(true)
-    }
-}
-
-/// «Kontivo» als Wortmarke (Platzhalter des Bereichs onb: K aus dem Logo + «ontivo» in SF Pro Bold).
-/// TODO design-API: durch die Wortmarke des Bereichs design ersetzen (Web v171: Inter Display Bold, O als Zeitring mit Messing-Segment).
-struct OnbWordmark: View {
-    var size: CGFloat = 36
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: -size * 0.055) {
-            OnbKGlyph()
-                .frame(width: size * 0.72 * 357.5 / 440, height: size * 0.72)
-                .alignmentGuide(.firstTextBaseline) { d in d[.bottom] }
-            Text(verbatim: "ontivo")
-                .font(.system(size: size, weight: .bold))
-                .tracking(-size * 0.01)
-        }
-        .foregroundStyle(KColor.ink)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Kontivo")
-    }
-}
+// Wortmarke und Logo: `KWordmark` / `KAppLogo` (Design/Brand.swift, Web v171/v174).
 
 // MARK: - Seite 1: Willkommen (`.obwel`)
 
@@ -399,11 +344,7 @@ struct OnbWelcomePage: View {
         let logo: CGFloat = m.veryShort ? 68 : 84
         VStack(spacing: 0) {
             // Logo 84 px, Radius 19, Schatten 0 12 30 rgba(0,0,0,.28)
-            Image("Logo")
-                .resizable()
-                .scaledToFill()
-                .frame(width: logo, height: logo)
-                .clipShape(RoundedRectangle(cornerRadius: m.veryShort ? 16 : 19, style: .continuous))
+            KAppLogo(size: logo)
                 .shadow(color: Color.black.opacity(0.28), radius: 15, y: 12)
                 .accessibilityHidden(true)
             // gap 9 + margin 8
@@ -421,7 +362,7 @@ struct OnbWelcomePage: View {
                     .foregroundStyle(KColor.ink2)
                     .onbLine(span, span * 1.1, .semibold)
                 let wm = OnbCSS.clamp(30, 9 * m.vw, 36)
-                OnbWordmark(size: wm)
+                KWordmark(size: wm)
                     .frame(height: wm * 1.1)
             }
             .padding(.top, 9 + max(22, 4.5 * vh))

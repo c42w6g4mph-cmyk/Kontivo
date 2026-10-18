@@ -102,10 +102,10 @@
   "mandatory": false,
   "hint": "Mindestdauer 1 Jahr; Kündigung muss bis zum letzten Arbeitstag im September, 17 Uhr, bei SWICA eingetroffen sein. Erst nach Zusage der neuen Kasse kündigen.",
   "cancelURL": "",
-  "address": "SWICA Versicherungen AG\nRömerstrasse 37\n8401 Winterthur",
+  "address": "SWICA Versicherungen AG\nRömerstrasse 37\n8400 Winterthur",
   "mail": "",
-  "tel": "+41 800 80 90 80",
-  "confirmed": false
+  "tel": "+41 58 800 99 33",
+  "confirmed": true
  },
  {
   "name": "Sanitas",
@@ -1000,7 +1000,7 @@
   "cancelTerm": "",
   "cancelChannel": "letter",
   "mandatory": false,
-  "hint": "Keine Kündigungsfrist, Bezug per Formular «Antrag Auszahlung Vorsorgekonto 3a», Übertrag per Übertragungsauftrag; Bezug nur frühestens 5 Jahre vor AHV-Referenzalter oder vorzeitig für Wohneigentum, Selbständigkeit, definitive Auswanderung, Invalidität bzw. PK-Einkauf (Art. 3 BVV 3).",
+  "hint": "Keine Kündigungsfrist, Bezug per Formular «Antrag Auszahlung Vorsorgekonto 3a», Übertrag per Übertragungsauftrag; Bezug frühestens 5 Jahre vor dem AHV-Referenzalter, vorher nur in den Fällen nach Art. 3 BVV 3 (z.B. Wohneigentum, Auswanderung).",
   "cancelURL": "postfinance.ch/en/support/accounts/pillar-3a-forms.html",
   "address": "PostFinance AG\nScan Center\n3002 Bern",
   "mail": "",
@@ -1036,7 +1036,7 @@
   "cancelTerm": "",
   "cancelChannel": "letter",
   "mandatory": false,
-  "hint": "Bezug mit Formular «Auszahlung Säule 3a / UBS Fisca», Übertrag mit Antrag der neuen Stiftung; Bezug nur frühestens 5 Jahre vor AHV-Referenzalter oder vorzeitig für Wohneigentum, Selbständigkeit, definitive Auswanderung, Invalidität bzw. PK-Einkauf (Art. 3 BVV 3).",
+  "hint": "Bezug mit Formular «Auszahlung Säule 3a / UBS Fisca», Übertrag mit Antrag der neuen Stiftung; Bezug frühestens 5 Jahre vor dem AHV-Referenzalter, vorher nur in den Fällen nach Art. 3 BVV 3 (z.B. Wohneigentum, Auswanderung).",
   "cancelURL": "ubs.com/ch/de/help/pension/payout-pillar3a.html",
   "address": "Fisca Vorsorgestiftung der UBS AG\nPostfach\n4002 Basel",
   "mail": "",
@@ -1051,12 +1051,12 @@
   "web": "raiffeisen.ch",
   "notice": 0,
   "noticeUnit": "m",
-  "cancelTerm": "m",
-  "cancelChannel": null,
+  "cancelTerm": "",
+  "cancelChannel": "letter",
   "mandatory": false,
-  "hint": "Konto jederzeit kündbar. Guthaben vorher übertragen.",
+  "hint": "Raiffeisenbanken sind eigenständige Genossenschaften: Konto jederzeit bei der eigenen Raiffeisenbank kündigen, Guthaben vorher übertragen.",
   "cancelURL": "",
-  "address": "Raiffeisen Schweiz Genossenschaft\nRaiffeisenplatz\n9001 St. Gallen",
+  "address": "",
   "mail": "",
   "tel": "",
   "confirmed": true
@@ -1088,7 +1088,7 @@
   "notice": 0,
   "noticeUnit": "m",
   "cancelTerm": "",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Geschäftsbeziehung und Konten laut Basisdokumenten jederzeit mit sofortiger Wirkung kündbar; Guthaben vorher übertragen.",
   "cancelURL": "",
@@ -1178,14 +1178,14 @@
   "notice": 5,
   "noticeUnit": "d",
   "cancelTerm": "p",
-  "cancelChannel": "phone",
+  "cancelChannel": "online",
   "mandatory": false,
   "hint": "Jederzeit auf Ende der bezahlten Laufzeit kündbar, Eingang spätestens 5 Tage vorher; Digital-Abos online im Benutzerkonto, Print-Abos telefonisch beim Leserservice, keine vorzeitige Auflösung.",
-  "cancelURL": "",
+  "cancelURL": "abo.nzz.ch/benutzerkonto",
   "address": "Neue Zürcher Zeitung AG\nNZZ Service\nPostfach\n8021 Zürich",
   "mail": "service@nzz.ch",
   "tel": "+41 44 258 10 00",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Tages-Anzeiger",
@@ -1196,7 +1196,7 @@
   "notice": 0,
   "noticeUnit": "m",
   "cancelTerm": "a",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Frist im Vertrag prüfen.",
   "cancelURL": "",
@@ -1257,7 +1257,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Spotify",
@@ -1275,7 +1275,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Disney+",
@@ -1293,7 +1293,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Apple One",
@@ -1311,7 +1311,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Apple Music",
@@ -1329,7 +1329,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Apple TV",
@@ -1347,7 +1347,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "iCloud+",
@@ -1365,7 +1365,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "YouTube Premium",
@@ -1383,7 +1383,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Google One",
@@ -1401,7 +1401,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Microsoft 365",
@@ -1419,7 +1419,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Adobe",
@@ -1437,7 +1437,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Amazon Prime",
@@ -1455,7 +1455,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "DAZN",
@@ -1473,7 +1473,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Audible",
@@ -1491,7 +1491,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Revolut",
@@ -1504,12 +1504,12 @@
   "cancelTerm": "",
   "cancelChannel": "online",
   "mandatory": false,
-  "hint": "Konto in der App über Profil > «Konto schliessen» auflösen; vorher alle Guthaben auf null bringen und das Abo auf Standard herabstufen.",
+  "hint": "Konto in der App unter Profil > Einstellungen > «Konto schliessen» auflösen, vorher Guthaben auf null bringen; ohne App-Zugriff per E-Mail von der hinterlegten Adresse (Betreff «account closure request»).",
   "cancelURL": "",
   "address": "",
   "mail": "support@revolut.com",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Telekom",
@@ -1542,10 +1542,10 @@
   "mandatory": false,
   "hint": "Nach der Mindestlaufzeit monatlich mit 1 Monat Frist kündbar (TKG).",
   "cancelURL": "vodafone.de/einfache-kuendigung.html",
-  "address": "Vodafone GmbH\nKundenservice\n40875 Ratingen",
+  "address": "Vodafone GmbH\nKundenbetreuung\n40875 Ratingen",
   "mail": "",
-  "tel": "+49 800 5054741",
-  "confirmed": false
+  "tel": "+49 800 1721212",
+  "confirmed": true
  },
  {
   "name": "O2",
@@ -1671,7 +1671,7 @@
   "address": "DAK-Gesundheit\nNagelsweg 27-31\n20097 Hamburg",
   "mail": "",
   "tel": "+49 40 325 325 555",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "HUK-COBURG",
@@ -1761,7 +1761,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "BahnCard",
@@ -1774,12 +1774,12 @@
   "cancelTerm": "a",
   "cancelChannel": "online",
   "mandatory": false,
-  "hint": "Bis 4 Wochen vor Laufzeitende in Textform kündbar, am einfachsten im DB Kundenkonto über «BahnCard kündigen».",
-  "cancelURL": "",
-  "address": "DB Fernverkehr AG\nBahnCard-Service\n60643 Frankfurt am Main",
+  "hint": "Bis 4 Wochen vor Laufzeitende in Textform kündbar, am einfachsten im DB Kundenkonto über «BahnCard kündigen» oder mit dem Online-Formular.",
+  "cancelURL": "bahn.de/kontakt/bahncard-kuendigen",
+  "address": "",
   "mail": "",
   "tel": "+49 30 2970",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Rundfunkgebühr",
@@ -1880,14 +1880,14 @@
   "notice": 0,
   "noticeUnit": "m",
   "cancelTerm": "",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Girokonto jederzeit ohne Frist kündbar. Kündigung an die eigene Sparkasse, Guthaben vorher übertragen.",
   "cancelURL": "",
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "DKB",
@@ -1955,11 +1955,11 @@
   "cancelChannel": "online",
   "mandatory": false,
   "hint": "Kündigung im Online Banking unter «Konto verwalten > Kontoauflösung» oder per unterschriebenem Formular «Löschung von Konten und Depots» im Original per Post; Sparguthaben mit 3 Monaten Frist.",
-  "cancelURL": "",
-  "address": "Commerzbank AG\n60261 Frankfurt am Main",
+  "cancelURL": "commerzbank.de/service/wie-kuendige-loesche-ich-mein-konto",
+  "address": "Commerzbank AG\nKaiserstrasse 16\n60281 Frankfurt am Main",
   "mail": "",
-  "tel": "+49 69 5800 08000",
-  "confirmed": false
+  "tel": "+49 69 58000 8000",
+  "confirmed": true
  },
  {
   "name": "McFit",
@@ -1995,7 +1995,7 @@
   "address": "Urban Sports GmbH\nNovalisstrasse 10\n10115 Berlin",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Südkurier",
@@ -2006,7 +2006,7 @@
   "notice": 0,
   "noticeUnit": "m",
   "cancelTerm": "a",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Frist im Vertrag prüfen.",
   "cancelURL": "",
@@ -2424,10 +2424,10 @@
   "mandatory": false,
   "hint": "Kündigung schriftlich beim Studio, in dem der Vertrag abgeschlossen wurde, 2 Monate vor Laufzeitende.",
   "cancelURL": "",
-  "address": "Kieser Training AG\nHardstrasse 223\n8005 Zürich",
-  "mail": "info@kieser.com",
-  "tel": "+41 44 296 17 17",
-  "confirmed": false
+  "address": "",
+  "mail": "",
+  "tel": "",
+  "confirmed": true
  },
  {
   "name": "Thurgauer Zeitung",
@@ -2445,7 +2445,7 @@
   "address": "CH Regionalmedien AG\nAboservice\nFürstenlandstrasse 35\n9001 St. Gallen",
   "mail": "aboservice@chmedia.ch",
   "tel": "+41 58 200 55 55",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Republik",
@@ -2495,11 +2495,11 @@
   "cancelChannel": "online",
   "mandatory": false,
   "hint": "Kündigung online über das Kündigungsformular; massgebend ist der Eingang beim Vertragspartner.",
-  "cancelURL": "freenet.de/kuendigung",
+  "cancelURL": "freenet.de/services/vertrag/kuendigung",
   "address": "freenet DLS GmbH\nHollerstrasse 126\n24782 Büdelsdorf",
-  "mail": "info@freenet-mobilfunk.de",
+  "mail": "",
   "tel": "+49 40 555541540",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Aldi Talk",
@@ -2589,7 +2589,7 @@
   "address": "Drillisch Online GmbH\nLindleystrasse 10\n60314 Frankfurt am Main",
   "mail": "kontakt@winsim.de",
   "tel": "+49 6181 7074094",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "klarmobil",
@@ -3358,12 +3358,12 @@
   "cancelTerm": "p",
   "cancelChannel": "letter",
   "mandatory": false,
-  "hint": "Studios meist Franchise: Kündigung an das eigene Studio richten, nicht an die Zentrale.",
+  "hint": "Studios sind Filialen oder Franchisebetriebe: Kündigung an das eigene Studio richten (Adresse im Mitgliedsvertrag), nicht an die Zentrale.",
   "cancelURL": "",
-  "address": "clever fit GmbH\nAugsburger Str. 52\n86899 Landsberg am Lech",
-  "mail": "info@clever-fit.com",
-  "tel": "+49 8191 30526 00",
-  "confirmed": false
+  "address": "",
+  "mail": "",
+  "tel": "",
+  "confirmed": true
  },
  {
   "name": "Fitness First",
@@ -3431,11 +3431,11 @@
   "cancelChannel": "online",
   "mandatory": false,
   "hint": "Monatlich zum Ende des Abrechnungszeitraums im WOW-Konto kündbar; Anliegen nicht per Post senden.",
-  "cancelURL": "",
+  "cancelURL": "wowtv.de/hilfe/schnell-kuendigung",
   "address": "Sky Deutschland Fernsehen GmbH & Co. KG\nMedienallee 26\n85774 Unterföhring",
   "mail": "",
-  "tel": "+49 89 54 19 27 32",
-  "confirmed": false
+  "tel": "",
+  "confirmed": true
  },
  {
   "name": "BKK firmus",
@@ -3792,10 +3792,10 @@
   "mandatory": false,
   "hint": "3 Monate vor Ablauf des Versicherungsjahres kündbar, Sonderkündigung nach Schadenfall möglich; Kündigung an die in der Police genannte Provinzial-Gesellschaft.",
   "cancelURL": "",
-  "address": "Provinzial\nProvinzial-Allee 1\n48159 Münster",
-  "mail": "service@provinzial.de",
-  "tel": "+49 251 219 0",
-  "confirmed": false
+  "address": "Provinzial Versicherung AG\nProvinzial-Allee 1\n48159 Münster",
+  "mail": "",
+  "tel": "+49 251 219-9922",
+  "confirmed": true
  },
  {
   "name": "Provinzial",
@@ -3810,10 +3810,10 @@
   "mandatory": false,
   "hint": "1 Monat vor Ablauf des Versicherungsjahres kündbar; Kündigung an die in der Police genannte Provinzial-Gesellschaft.",
   "cancelURL": "",
-  "address": "Provinzial\nProvinzial-Allee 1\n48159 Münster",
-  "mail": "service@provinzial.de",
-  "tel": "+49 251 219 0",
-  "confirmed": false
+  "address": "Provinzial Versicherung AG\nProvinzial-Allee 1\n48159 Münster",
+  "mail": "",
+  "tel": "+49 251 219-9921",
+  "confirmed": true
  },
  {
   "name": "SV SparkassenVersicherung",
@@ -3847,9 +3847,9 @@
   "hint": "1 Monat vor Ablauf des Versicherungsjahres kündbar (meist 31.12., dann Eingang bis 30.11.); Police prüfen.",
   "cancelURL": "",
   "address": "NÜRNBERGER Versicherung\nOstendstrasse 100\n90334 Nürnberg",
-  "mail": "info@nuernberger.de",
+  "mail": "",
   "tel": "+49 911 531 333600",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Continentale",
@@ -4189,9 +4189,9 @@
   "hint": "Zu jedem Monatsende mit 2 Wochen Frist in Textform kündbar, online in «my cambio» unter Vertrag > Vertragsdaten; Vertragspartner ist die cambio-Gesellschaft der eigenen Stadt.",
   "cancelURL": "",
   "address": "cambio Mobilitätsservice GmbH & Co. KG\nHumboldtstrasse 131-137\n28203 Bremen",
-  "mail": "info@cambio-CarSharing.com",
+  "mail": "info@cambio-carsharing.com",
   "tel": "+49 421 9896943000",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "C24 Bank",
@@ -4584,10 +4584,10 @@
   "mandatory": false,
   "hint": "Täglich kündbar in der App unter Schutz entfernen, Schutz endet am Folgetag.",
   "cancelURL": "",
-  "address": "",
+  "address": "Getsafe GmbH\nWaldhofer Strasse 102\n69123 Heidelberg",
   "mail": "",
-  "tel": "+49 6221 3579991",
-  "confirmed": false
+  "tel": "+49 6221 3579990",
+  "confirmed": true
  },
  {
   "name": "Alte Leipziger",
@@ -4999,7 +4999,7 @@
   "hint": "Kündigung im Garmin-Konto mind. 1 Tag vor Laufzeitende; per E-Mail erst 2 oder mehr Werktage nach Versand wirksam.",
   "cancelURL": "",
   "address": "Garmin (Europe) Ltd.\nc/o Garmin Services, Inc.\n2 DeLorme Drive\nYarmouth\nME 04096\nUSA",
-  "mail": "GarminServicesBilling@garmin.com",
+  "mail": "garminservicesbilling@garmin.com",
   "tel": "",
   "confirmed": true
  },
@@ -5217,7 +5217,7 @@
   "address": "Stadtwerke Düsseldorf AG\nHöherweg 100\n40233 Düsseldorf",
   "mail": "",
   "tel": "+49 800 8218210",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "SachsenEnergie",
@@ -5539,9 +5539,9 @@
   "hint": "Tarife monatlich kündbar oder mit 12/24 Monaten Laufzeit, danach jederzeit mit 1 Monat Frist.",
   "cancelURL": "e-wie-einfach.de/service/kuendigung",
   "address": "E WIE EINFACH GmbH\nPostfach 900121\n39133 Magdeburg",
-  "mail": "kundenbetreuung@e-wie-einfach.de",
+  "mail": "",
   "tel": "+49 221 78965800",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Stadtwerke Augsburg",
@@ -5718,10 +5718,10 @@
   "mandatory": false,
   "hint": "Tarife mit 1 Monat Mindestlaufzeit, Kündigung über das Formular von Blau (Telefónica).",
   "cancelURL": "information.blau.de/kuendigung",
-  "address": "Telefónica Germany GmbH & Co. OHG\nGeorg-Brauchle-Ring 50\n80992 München",
+  "address": "Telefónica Germany GmbH & Co. OHG\nsimyo Kundenservice\nPorschestrasse 7\n44809 Bochum",
   "mail": "kundenservice@shop.simyo.de",
   "tel": "+49 234 9571963997",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "PremiumSIM",
@@ -5739,7 +5739,7 @@
   "address": "Drillisch Online GmbH\nLindleystrasse 10\n60314 Frankfurt am Main",
   "mail": "kontakt@premiumsim.de",
   "tel": "+49 6181 7074074",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "sim.de",
@@ -5773,9 +5773,9 @@
   "hint": "Mindestlaufzeit je nach Tarif, Online-Vormerkung muss innert 7 Tagen telefonisch bestätigt werden.",
   "cancelURL": "smartmobil.de/kuendigung",
   "address": "Drillisch Online GmbH\nLindleystrasse 10\n60314 Frankfurt am Main",
-  "mail": "",
+  "mail": "kontakt@smartmobil.de",
   "tel": "+49 6181 7074030",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "yourfone",
@@ -6272,7 +6272,7 @@
   "notice": 0,
   "noticeUnit": "d",
   "cancelTerm": "a",
-  "cancelChannel": "email",
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Jahresvertrag; Kündigung per E-Mail oder Post bis zum letzten Werktag vor Ablauf des Versicherungsjahres möglich.",
   "cancelURL": "",
@@ -6310,12 +6310,12 @@
   "cancelTerm": "m",
   "cancelChannel": "email",
   "mandatory": false,
-  "hint": "Hunde- und Katzenversicherung (Risikoträger Simpego); Kündigung wird auf Ende des laufenden Monats wirksam.",
+  "hint": "Hunde- und Katzenversicherung; Kündigung wird auf Ende des laufenden Monats wirksam.",
   "cancelURL": "",
   "address": "Calingo Insurance AG\nReinhardstrasse 19\n8008 Zürich",
   "mail": "service@calingo.ch",
   "tel": "+41 43 588 39 20",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "GoMo",
@@ -6639,7 +6639,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Babbel",
@@ -6652,12 +6652,12 @@
   "cancelTerm": "p",
   "cancelChannel": "online",
   "mandatory": false,
-  "hint": "Automatische Verlängerung im Konto bis spätestens am Tag vor dem Verlängerungsdatum abschalten, Zugang bleibt bis Laufzeitende; bei App-Store- oder Google-Play-Abo dort kündigen.",
-  "cancelURL": "my.babbel.com/user-profile/account-information/account-information",
+  "hint": "Im Web unter Profil und Einstellungen > Kontoinformationen die automatische Verlängerung bis spätestens am Tag vor der Verlängerung abschalten; App-Store- oder Google-Play-Abos dort kündigen.",
+  "cancelURL": "",
   "address": "Babbel GmbH\nAndreasstrasse 72\n10243 Berlin",
   "mail": "support@babbel.com",
-  "tel": "+49 30 568 37 38 36",
-  "confirmed": false
+  "tel": "",
+  "confirmed": true
  },
  {
   "name": "Nintendo Switch Online",
@@ -6665,17 +6665,17 @@
   "category": "Abos & Medien",
   "label": "Gaming-Abo",
   "web": "nintendo.com",
-  "notice": 0,
+  "notice": 2,
   "noticeUnit": "d",
   "cancelTerm": "p",
   "cancelChannel": "online",
   "mandatory": false,
-  "hint": "Automatische Verlängerung im Nintendo-Konto beenden, Mitgliedschaft läuft bis Ablaufdatum.",
-  "cancelURL": "accounts.nintendo.com/portal",
+  "hint": "Automatische Verlängerung mindestens 48 Stunden vor Ablauf deaktivieren; die Mitgliedschaft läuft bis zum Ablaufdatum, keine anteilige Erstattung.",
+  "cancelURL": "nintendo.com/de-de/Support/Fehlersuche/Anpassen-oder-Deaktivieren-der-automatischen-Verlangerung-von-Nintendo-Switch-Online-1434298.html",
   "address": "Nintendo of Europe SE\nGoldsteinstrasse 235\n60528 Frankfurt am Main",
-  "mail": "",
+  "mail": "support@nintendo.eu",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "PlayStation Plus",
@@ -6688,12 +6688,12 @@
   "cancelTerm": "p",
   "cancelChannel": "online",
   "mandatory": false,
-  "hint": "Auf der Konsole oder in der Kontoverwaltung kündigen; «ablaufen lassen» gilt bis Periodenende, bei 3- oder 12-Monats-Plänen ist auch ein sofortiges Ende mit anteiliger Erstattung möglich.",
+  "hint": "Automatische Verlängerung auf der Konsole oder in der Kontoverwaltung deaktivieren; wer vor Ende des Abrechnungszeitraums kündigt, wird nicht verlängert.",
   "cancelURL": "",
-  "address": "Sony Interactive Entertainment Europe Limited\n10 Great Marlborough Street\nLondon W1F 7LP\nGrossbritannien",
+  "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Xbox Game Pass",
@@ -6711,7 +6711,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Kindle Unlimited",
@@ -6729,7 +6729,7 @@
   "address": "",
   "mail": "",
   "tel": "",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Amazon Music Unlimited",
@@ -7838,14 +7838,14 @@
   "notice": 3,
   "noticeUnit": "m",
   "cancelTerm": "a",
-  "cancelChannel": "online",
+  "cancelChannel": "letter",
   "mandatory": false,
-  "hint": "Verträge nach AVB 2022: 3 Monate auf Ende Laufzeit; nach AVB 2026 nur 1 Monat – Police prüfen.",
-  "cancelURL": "epona.ch/de/hilfe/mein-vertrag/vertragskundigung-beantragen/form",
+  "hint": "Schriftlich oder in Textform; nach AVB 2026 1 Monat vor Ende des Versicherungsjahres, ältere Verträge (AVB 2022) 3 Monate – Police prüfen.",
+  "cancelURL": "",
   "address": "Vaudoise Allgemeine Versicherungs-Gesellschaft AG\nAvenue de Cour 41\n1007 Lausanne",
-  "mail": "agent.de@epona.ch",
+  "mail": "",
   "tel": "+41 58 900 78 78",
-  "confirmed": false
+  "confirmed": true
  },
  {
   "name": "Animalia",
@@ -8056,7 +8056,7 @@
   "cancelTerm": "",
   "cancelChannel": "online",
   "mandatory": false,
-  "hint": "Einzahlungen freiwillig, Auflösung/Übertrag in der App unter Einstellungen auslösen (Frist laut FAQ grundsätzlich 31 Tage); Bezug nur frühestens 5 Jahre vor AHV-Referenzalter oder vorzeitig für Wohneigentum, Selbständigkeit, definitive Auswanderung, Invalidität bzw. PK-Einkauf (Art. 3 BVV 3).",
+  "hint": "Einzahlungen freiwillig, Auflösung/Übertrag in der App unter Einstellungen auslösen (Frist laut FAQ grundsätzlich 31 Tage); Bezug frühestens 5 Jahre vor dem AHV-Referenzalter, vorher nur in den Fällen nach Art. 3 BVV 3 (z.B. Wohneigentum, Auswanderung).",
   "cancelURL": "",
   "address": "Terzo Vorsorgestiftung der WIR Bank\nAuberg 1\n4002 Basel",
   "mail": "support@viac.ch",
@@ -8074,7 +8074,7 @@
   "cancelTerm": "",
   "cancelChannel": "letter",
   "mandatory": false,
-  "hint": "Ohne Frist und Mindestlaufzeit auflösbar: Formular in der App erstellen und unterschrieben per Post senden; Bezug nur frühestens 5 Jahre vor AHV-Referenzalter oder vorzeitig für Wohneigentum, Selbständigkeit, definitive Auswanderung, Invalidität bzw. PK-Einkauf (Art. 3 BVV 3).",
+  "hint": "Ohne Frist und Mindestlaufzeit auflösbar: Formular in der App erstellen und unterschrieben per Post senden; Bezug frühestens 5 Jahre vor dem AHV-Referenzalter, vorher nur in den Fällen nach Art. 3 BVV 3 (z.B. Wohneigentum, Auswanderung).",
   "cancelURL": "",
   "address": "Sparen 3 Vorsorgestiftung der Zürcher Kantonalbank\nPostfach\n8010 Zürich",
   "mail": "support.frankly@zkb.ch",
@@ -8092,7 +8092,7 @@
   "cancelTerm": "",
   "cancelChannel": "letter",
   "mandatory": false,
-  "hint": "Übertrag jederzeit: Formular in der App anfordern und unterschrieben per Post senden, Abwicklung 2–4 Wochen; Bezug nur frühestens 5 Jahre vor AHV-Referenzalter oder vorzeitig für Wohneigentum, Selbständigkeit, definitive Auswanderung, Invalidität bzw. PK-Einkauf (Art. 3 BVV 3).",
+  "hint": "Übertrag jederzeit: Formular in der App anfordern und unterschrieben per Post senden, Abwicklung 2–4 Wochen; Bezug frühestens 5 Jahre vor dem AHV-Referenzalter, vorher nur in den Fällen nach Art. 3 BVV 3 (z.B. Wohneigentum, Auswanderung).",
   "cancelURL": "",
   "address": "finpension AG\nInseliquai 12B\n6005 Luzern",
   "mail": "",
@@ -8110,7 +8110,7 @@
   "cancelTerm": "",
   "cancelChannel": "letter",
   "mandatory": false,
-  "hint": "Keine Mindestlaufzeit, Übertrag auf andere Stiftung ohne Kündigungsfrist (Überweisungsauftrag der neuen Stiftung); Bezug nur frühestens 5 Jahre vor AHV-Referenzalter oder vorzeitig für Wohneigentum, Selbständigkeit, definitive Auswanderung, Invalidität bzw. PK-Einkauf (Art. 3 BVV 3).",
+  "hint": "Keine Mindestlaufzeit, Übertrag auf andere Stiftung ohne Kündigungsfrist (Überweisungsauftrag der neuen Stiftung); Bezug frühestens 5 Jahre vor dem AHV-Referenzalter, vorher nur in den Fällen nach Art. 3 BVV 3 (z.B. Wohneigentum, Auswanderung).",
   "cancelURL": "",
   "address": "Descartes Finance AG\nStockerstrasse 54\n8002 Zürich",
   "mail": "info@descartes.swiss",
@@ -8522,7 +8522,7 @@
   "notice": 3,
   "noticeUnit": "m",
   "cancelTerm": "y",
-  "cancelChannel": "email",
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Mindestmitgliedschaft 24 Monate; Kündigung in Textform mit Vierteljahresfrist zum Ende des 24. Monats, danach zum Jahresende.",
   "cancelURL": "",
@@ -9174,7 +9174,7 @@
   "mandatory": false,
   "hint": "Jederzeit kündbar, der nicht genutzte Beitrag wird erstattet; Kündigung direkt in der Lemonade-App.",
   "cancelURL": "",
-  "address": "Lemonade Insurance N.V.\nSpuistraat 112A\n1012 VA Amsterdam",
+  "address": "Lemonade Insurance N.V.\nSpuistraat 112A\n1012 VA Amsterdam\nNiederlande",
   "mail": "hilfe@lemonade.com",
   "tel": "+49 800 0008292",
   "confirmed": true
@@ -9660,7 +9660,7 @@
   "mandatory": false,
   "hint": "Kündigung bis 48 Std. vor Ende der Mindestlaufzeit, danach jederzeit zum Ende des Vertragsmonats; im Nutzerkonto oder per E-Mail an legal@zattoo.com. App-Store-Abos dort kündigen.",
   "cancelURL": "",
-  "address": "Zattoo AG\nBaslerstrasse 60\n8048 Zürich",
+  "address": "Zattoo AG\nBaslerstrasse 60\n8048 Zürich\nSchweiz",
   "mail": "legal@zattoo.com",
   "tel": "",
   "confirmed": true
@@ -9710,11 +9710,11 @@
   "notice": 0,
   "noticeUnit": "m",
   "cancelTerm": "p",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Kündigung beim eigenen Studio; Frist und Mindestlaufzeit (meist 12 oder 24 Monate) laut Mitgliedsvertrag, danach mit vertraglicher Frist kündbar.",
   "cancelURL": "",
-  "address": "Kieser Training AG\nHardstrasse 223\n8005 Zürich",
+  "address": "",
   "mail": "",
   "tel": "",
   "confirmed": true
@@ -9800,11 +9800,11 @@
   "notice": 1,
   "noticeUnit": "m",
   "cancelTerm": "m",
-  "cancelChannel": "email",
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Clubs sind eigenständige Franchise-Betriebe: Kündigung in Textform an den eigenen Club; monatlich mit 1 Monat Frist zum Monatsende, in den ersten 4 Wochen jederzeit.",
   "cancelURL": "",
-  "address": "Mrs.Sporty GmbH\nHelmholtzstrasse 2–9\n10587 Berlin",
+  "address": "",
   "mail": "",
   "tel": "",
   "confirmed": true
@@ -10052,7 +10052,7 @@
   "notice": 1,
   "noticeUnit": "m",
   "cancelTerm": "",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Grundversorgung jederzeit mit 2 Wochen Frist; Sondertarife nach der Erstlaufzeit monatlich mit 1 Monat Frist; online im Kundenkonto oder per Brief.",
   "cancelURL": "",
@@ -10070,7 +10070,7 @@
   "notice": 1,
   "noticeUnit": "m",
   "cancelTerm": "",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Grundversorgung jederzeit mit 2 Wochen Frist; Sondertarife nach der Erstlaufzeit monatlich mit 1 Monat Frist; online im Kundenkonto, per Brief oder E-Mail.",
   "cancelURL": "",
@@ -10088,7 +10088,7 @@
   "notice": 1,
   "noticeUnit": "m",
   "cancelTerm": "",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Grundversorgung jederzeit mit 2 Wochen Frist; Sondertarife nach der Erstlaufzeit monatlich mit 1 Monat Frist; online im Kundenkonto, per Brief oder E-Mail.",
   "cancelURL": "",
@@ -10124,7 +10124,7 @@
   "notice": 1,
   "noticeUnit": "m",
   "cancelTerm": "",
-  "cancelChannel": null,
+  "cancelChannel": "online",
   "mandatory": false,
   "hint": "Grundversorgung jederzeit mit 2 Wochen Frist; Sondertarife nach der Erstlaufzeit monatlich mit 1 Monat Frist; online im ESWE-Kundenportal oder per Brief.",
   "cancelURL": "kundenportal.eswe.com",
@@ -10160,7 +10160,7 @@
   "notice": 1,
   "noticeUnit": "m",
   "cancelTerm": "",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Grundversorgung jederzeit mit 2 Wochen Frist; Sondertarife nach der Erstlaufzeit monatlich mit 1 Monat Frist; online im Kundenkonto oder per Brief.",
   "cancelURL": "",
@@ -10232,7 +10232,7 @@
   "notice": 1,
   "noticeUnit": "m",
   "cancelTerm": "",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Grundversorgung jederzeit mit 2 Wochen Frist; Sondertarife nach der Erstlaufzeit monatlich mit 1 Monat Frist; online im Kundenkonto oder per Brief.",
   "cancelURL": "",
@@ -10250,7 +10250,7 @@
   "notice": 1,
   "noticeUnit": "m",
   "cancelTerm": "",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Grundversorgung jederzeit mit 2 Wochen Frist; Sondertarife nach der Erstlaufzeit monatlich mit 1 Monat Frist; online im Kundenkonto oder per Brief.",
   "cancelURL": "",
@@ -10268,7 +10268,7 @@
   "notice": 1,
   "noticeUnit": "m",
   "cancelTerm": "",
-  "cancelChannel": null,
+  "cancelChannel": "letter",
   "mandatory": false,
   "hint": "Grundversorgung jederzeit mit 2 Wochen Frist; Sondertarife nach der Erstlaufzeit monatlich mit 1 Monat Frist; online im Kundenkonto oder per Brief.",
   "cancelURL": "",

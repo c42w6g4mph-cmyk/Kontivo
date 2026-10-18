@@ -83,7 +83,7 @@ struct ContractDetailView: View {
     private func content(_ c: Contract) -> some View {
         let calc = model.calc
         let info = calc.detailInfo(c)
-        let skr = CTSpecialCancel.info(calc, data: model.data, c)
+        let skr = calc.specialCancel(c)
         return ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 CTDetailHeader(contract: c) { showDocs = true }
@@ -101,7 +101,7 @@ struct ContractDetailView: View {
                 // Preiserhöhung: kurze Zeile mit ⓘ, Erklärung im Blatt (Web v205 `skrInfo`/`openSkr`)
                 if let x = skr {
                     CTSkrLine(info: x) {
-                        skrSheet = CTSkrSheetItem(data: CTSpecialCancel.sheet(x, contract: c, calc: calc, data: model.data))
+                        if let sh = calc.specialCancelSheet(c) { skrSheet = CTSkrSheetItem(data: sh) }
                     }
                 }
                 CTDetailSections(contract: c, info: info)

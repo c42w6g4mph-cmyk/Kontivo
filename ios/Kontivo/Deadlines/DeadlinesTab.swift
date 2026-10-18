@@ -18,20 +18,25 @@ struct DeadlinesTab: View {
         GeometryReader { geo in
             ScrollViewReader { proxy in
             ScrollView {
-                if ov.isEmpty && !review {
-                    DeadlinesEmptyView(showPreview: geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom > 700) {
-                        model.present(.contractForm(.new(prefill: nil)))
-                    }
-                    .padding(.horizontal, KMetric.gutter)
-                    .padding(.bottom, 28)
-                    .kContentWidth()
-                } else {
-                    content(ov, review: review)
+                VStack(spacing: 0) {
+                    KTabHeader(title: "Fristen")
+                        .padding(.horizontal, KMetric.gutter)
+                        .kContentWidth()
+                    if ov.isEmpty && !review {
+                        DeadlinesEmptyView(showPreview: geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom > 700) {
+                            model.present(.contractForm(.new(prefill: nil)))
+                        }
                         .padding(.horizontal, KMetric.gutter)
                         .padding(.bottom, 28)
                         .kContentWidth()
-                }
+                    } else {
+                        content(ov, review: review)
+                            .padding(.horizontal, KMetric.gutter)
+                            .padding(.bottom, 28)
+                            .kContentWidth()
+                    }
                 Color.clear.frame(height: 1).id("deadlines.end")
+                }
             }
             #if DEBUG
             .onAppear {
@@ -50,7 +55,7 @@ struct DeadlinesTab: View {
             }
         }
         .kPageBackground()
-        .navigationTitle("Fristen")
+        .kTabPage(title: "Fristen")
         .deadlineKillSheet($killTarget)
         .deadlineCalendar($calendarTarget)
         .sheet(isPresented: $showReview) {
@@ -443,12 +448,8 @@ private struct DeadlineItemRow: View {
     let onKill: () -> Void
     let onCalendar: () -> Void
 
-    /// Web v163: «endet von selbst» neutral, rot nur bei gekündigt.
-    /// TODO core-API: entfällt, sobald `Calc.deadlineOverview()` (Bereich core) `chipLevel` so liefert.
-    private var level: Calc.ChipLevel {
-        if item.kind == .ended && contract.cancelPer == nil { return .none }
-        return item.chipLevel
-    }
+    /// Web v163: «endet von selbst» neutral, rot nur bei gekündigt (liefert `Calc.deadlineOverview()`)
+    private var level: Calc.ChipLevel { item.chipLevel }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

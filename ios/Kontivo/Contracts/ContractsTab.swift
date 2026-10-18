@@ -18,9 +18,8 @@ struct ContractsTab: View {
                 CTContractsList(showFilter: $showFilter, pauseTarget: $pauseTarget, cancelledTarget: $cancelledTarget)
             }
         }
-        // Titelzeile gehört zur Seite (scrollt mit, Web `.top`), keine Navigationsleiste
-        .toolbar(.hidden, for: .navigationBar)
-        .navigationTitle("Verträge")
+        // Titelzeile gehört zur Seite (scrollt mit, Web `.top`), keine Navigationsleiste, Mini-Kopfzeile beim Scrollen
+        .kTabPage(title: "Verträge")
         .sheet(isPresented: $showFilter) {
             CTFilterSheet()
                 .environment(model)
@@ -39,12 +38,12 @@ struct ContractsTab: View {
 // MARK: - Masse (Web, berechnet)
 
 enum CTListMetric {
-    /// Seitenrand (Web `body` padding 17)
-    static let side: CGFloat = 17
+    /// Seitenrand (Web `.wrap` padding 17 = `KMetric.gutter`)
+    static let side: CGFloat = KMetric.gutter
     /// Rand bei breiten Fenstern (iPad): Inhalt mittig mit max. Breite
     static func side(for width: CGFloat) -> CGFloat { max(side, (width - KMetric.maxContent) / 2) }
     /// Radius der Gruppenfläche (Design v164: 16)
-    static let groupRadius: CGFloat = 16
+    static let groupRadius: CGFloat = KMetric.groupRadius
 }
 
 extension View {
@@ -63,19 +62,12 @@ extension View {
 
 // MARK: - Titelzeile (Web `.top`: min-height 57, padding-top 17, h1 30/600 −0.015em, Plus 40 Messing)
 
-/// Seitentitel mit Plus-Knopf. Integration: durch den gemeinsamen Seitenkopf des Bereichs design ersetzen, falls vorhanden.
+/// Seitentitel mit Plus-Knopf: gemeinsame Titelzeile `KTabHeader` (Bereich design) mit dem Plus-Menü im `KAddButton`-Look.
 struct CTPageHeader: View {
     let title: String
 
     var body: some View {
-        HStack(alignment: .center, spacing: 8) {
-            Text(title)
-                .font(KFont.title(30))
-                .tracking(KFont.tracking(-0.015, 30))
-                .foregroundStyle(KColor.ink)
-                .lineLimit(1)
-                .accessibilityAddTraits(.isHeader)
-            Spacer(minLength: 8)
+        KTabHeader(title: title) {
             // Plus-Menü: Vertrag erfassen | Aus Kontoauszug | Einnahme (Bereich import, Import/AddMenu.swift)
             AddMenuButton()
                 .font(.system(size: 19, weight: .semibold))
@@ -85,8 +77,6 @@ struct CTPageHeader: View {
                 .background(Circle().fill(KColor.brassFab))
                 .contentShape(Circle())
         }
-        .frame(height: 40)
-        .padding(.top, 17)
     }
 }
 
@@ -283,14 +273,11 @@ struct CTListContent {
     /// Filtertext «Kategorie · Vertragspartner · Person»
     var filterLabel = ""
 
-    /// Hero-Filter nur, solange sein Zähler > 0 ist (Web renderHero)
+    /// Hero-Filter nur, solange sein Zähler > 0 ist (Web renderHero, Kern `Calc.effectiveHeroStatus`)
     static func effectiveHero(_ hero: HeroFilter?, _ h: Calc.Hero) -> HeroFilter? {
-        switch hero {
-        case .active: return (!h.showsChips || h.activeCount == 0) ? nil : hero
-        case .paused: return h.pausedCount == 0 ? nil : hero
-        case .future: return h.futureCount == 0 ? nil : hero
-        case nil: return nil
-        }
+        let s = Calc.effectiveHeroStatus(hero.flatMap { Calc.HeroStatus(rawValue: $0.rawValue) },
+                                         active: h.activeCount, paused: h.pausedCount, future: h.futureCount)
+        return s.flatMap { HeroFilter(rawValue: $0.rawValue) }
     }
 
     static func heroLabel(_ h: HeroFilter) -> String {
@@ -455,40 +442,6 @@ struct CTListContent {
 
 // MARK: - Summe oben (Web v189 `renderHero`)
 
-/// Summe, Beschriftung und Unterzeile je Status-Filter (Web v189): aktiv (Standard), pausiert oder noch nicht aktiv.
-// TODO core-API: Calc.hero(filter:status:) mit `label`/`statusSum`/`statusSubtitle` (Bereich core, Web v189) – hier lokal 1:1 nach `renderHero`.
-struct CTHeroText: Equatable {
-    var label: String
-    var sum: Double
-    var subtitle: String
-
-    static func make(calc: Calc, data: AppData, filter f: Calc.CostFilter, hero: HeroFilter?) -> CTHeroText {
-        let lf = f.count > 0
-        let fm: (Contract) -> Bool = { !lf || calc.matches($0, f) }
-        let run = calc.running.filter(fm)
-        let a = run.filter { !calc.notStarted($0) }
-        let list: [Contract]
-        switch hero {
-        case .paused: list = calc.active.filter(fm).filter { calc.isPaused($0) }
-        case .future: list = run.filter { calc.notStarted($0) }
-        default: list = a
-        }
-        // laufendes Probeabo kostet (noch) nichts: erst ab Probe-Ende in der Summe
-        let sum = list.reduce(0.0) { $0 + (calc.trialOn($1) ? 0 : calc.monthlyCost($1) * calc.holderShare($1, person: f.person)) }
-        let home = data.settings.homeCurrency.rawValue
-        let fl = [f.category, f.partner, f.person.flatMap { data.person($0)?.name }].compactMap { $0 }.joined(separator: " · ")
-        switch hero {
-        case .paused:
-            return CTHeroText(label: "Pausiert, pro Monat", sum: sum, subtitle: "Zählt nicht zu deinen Fixkosten, solange pausiert")
-        case .future:
-            return CTHeroText(label: "Noch nicht aktiv, pro Monat", sum: sum, subtitle: "Zählt ab Vertragsbeginn zu deinen Fixkosten")
-        default:
-            return CTHeroText(label: "Fixkosten pro Monat", sum: sum,
-                              subtitle: Format.money0(sum * 12) + " " + home + " im Jahr" + (lf ? " – " + fl : ""))
-        }
-    }
-}
-
 private struct CTHeroView: View {
     @Environment(AppModel.self) private var model
     /// Inhaltsbreite (Web `.big`: clamp(42px, 12.5vw, 50px))
@@ -498,7 +451,8 @@ private struct CTHeroView: View {
         let calc = model.calc
         let h = calc.hero(filter: model.costFilter)
         let hf = CTListContent.effectiveHero(model.heroFilter, h)
-        let t = CTHeroText.make(calc: calc, data: model.data, filter: model.costFilter, hero: hf)
+        // Summe, Beschriftung und Unterzeile je Status-Filter (Web v189, Kern `Calc.hero(filter:status:)`)
+        let t = calc.hero(filter: model.costFilter, status: hf.flatMap { Calc.HeroStatus(rawValue: $0.rawValue) })
         let big = min(50, max(42, (width + 2 * CTListMetric.side) * 0.125))
         VStack(alignment: .leading, spacing: 0) {
             Text(t.label)
@@ -507,7 +461,7 @@ private struct CTHeroView: View {
                 .ctLine(18.85)
                 .padding(.bottom, 8)
             HStack(alignment: .firstTextBaseline, spacing: 9) {
-                Text(Format.money(t.sum))
+                Text(Format.money(t.monthlyTotal))
                     .font(KFont.serif(big, .medium))
                     .tracking(-0.01 * big)
                     .foregroundStyle(KColor.ink)

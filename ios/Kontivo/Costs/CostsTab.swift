@@ -25,7 +25,6 @@ struct CostsTab: View {
             }
         }
         .kPageBackground()
-        .navigationTitle("Kosten")
         .sheet(item: $pick) { p in
             KBFilterPickSheet(dim: p.dim)
                 .environment(model)
@@ -67,8 +66,8 @@ struct CostsTab: View {
         let year = model.selectedYear
         let month = KBMonthNav.month(model)
         let cy = KBYearCache.costYear(calc, year: year, filter: model.costFilter, split: .category)
-        return KBPage(miniTitle: "Kosten · " + String(year)) {
-            KBPageHeader(title: "Kosten") { KBYearNav(report: { openReport() }) }
+        return KBPage(title: "Kosten", miniTitle: "Kosten · " + String(year)) {
+            KTabHeader(title: "Kosten") { KBYearNav(report: { openReport() }) }
             KBCostFilterBar(moreFilters: $moreFilters, pick: $pick)
             if cy.paymentCount == 0 {
                 noPayments(year: year, hint: cy.noStartHint)
@@ -116,18 +115,24 @@ struct CostsTab: View {
     /// Leerseite emptyStat (ohne Jahresleiste)
     private var emptyPage: some View {
         ScrollView {
-            EmptyHero(symbol: "chart.bar",
-                      title: "Dein Monat,\nim Voraus geplant",
-                      text: "Sobald Verträge da sind, siehst du hier, was wann abgebucht wird.",
-                      hooks: ["Was geht nächsten Monat wirklich weg?",
-                              "Jahresrechnungen, bevor sie dich treffen",
-                              "Teurer als letztes Jahr? Sofort sichtbar"],
-                      buttonTitle: "Ersten Vertrag erfassen",
-                      action: { model.present(.contractForm(.new(prefill: nil))) })
-                .padding(.top, 36)
-                .padding(.bottom, 24)
-                .kContentWidth()
+            VStack(spacing: 0) {
+                KTabHeader(title: "Kosten")
+                    .padding(.horizontal, KBM.side)
+                    .kContentWidth()
+                EmptyHero(symbol: "chart.bar",
+                          title: "Dein Monat,\nim Voraus geplant",
+                          text: "Sobald Verträge da sind, siehst du hier, was wann abgebucht wird.",
+                          hooks: ["Was geht nächsten Monat wirklich weg?",
+                                  "Jahresrechnungen, bevor sie dich treffen",
+                                  "Teurer als letztes Jahr? Sofort sichtbar"],
+                          buttonTitle: "Ersten Vertrag erfassen",
+                          action: { model.present(.contractForm(.new(prefill: nil))) })
+                    .padding(.top, 36)
+                    .padding(.bottom, 24)
+                    .kContentWidth()
+            }
         }
+        .kTabPage(title: "Kosten")
     }
 
     /// Nach einem Filterwechsel: hat der gewählte Monat nichts, den nächsten Monat mit Zahlungen wählen.

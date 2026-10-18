@@ -13,8 +13,8 @@ struct BudgetTab: View {
         let bh: UUID? = model.budgetPerson.flatMap { id in persons.contains(where: { $0.id == id }) ? id : nil }
         let incomes = calc.kbBudgetIncomes(person: bh)
         let hasIncomes = !incomes.isEmpty
-        KBPage(miniTitle: hasIncomes ? "Budget · " + String(model.selectedYear) : "Budget") {
-            KBPageHeader(title: "Budget") {
+        KBPage(title: "Budget", miniTitle: hasIncomes ? "Budget · " + String(model.selectedYear) : "Budget") {
+            KTabHeader(title: "Budget") {
                 if hasIncomes { KBYearNav() }
             }
             KBBudgetPersonBar(persons: persons, selected: bh)
@@ -27,7 +27,6 @@ struct BudgetTab: View {
             }
         }
         .kPageBackground()
-        .navigationTitle("Budget")
     }
 
     /// Filter aktiv, aber diese Person hat keine Einnahmen (Web `.empty` + «+ Einnahme erfassen»)

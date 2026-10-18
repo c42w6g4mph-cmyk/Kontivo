@@ -121,6 +121,8 @@ final class CTFormState {
     // Vorlagen und Vorschläge
     /// Name der übernommenen Katalog-Vorlage
     var tplHint = ""
+    /// Zuletzt übernommener Katalogeintrag (Web `draft.tplIdx`): gleiche Namen (CSS Krankenkasse/Zusatz), Strom CH
+    var tplEntry: CatalogEntry?
     /// Vorschlag «übliche Frist» aus dem Internet-Treffer
     var stdTpl: CatalogEntry?
     var stdDone = false
@@ -306,6 +308,7 @@ final class CTFormState {
         sugActive = true
         if !pSugSel.isEmpty && v.ctTrimmed != pSugSel { pSugSel = "" }
         tplHint = ""
+        tplEntry = nil
         stdTpl = nil
         tplMore = false
     }
@@ -340,6 +343,7 @@ final class CTFormState {
         partnerName = w.name
         pSugSel = w.name
         tplHint = ""
+        tplEntry = nil
         sugActive = true
         var got: [String] = []
         if !w.dom.isEmpty && web.ctTrimmed.isEmpty { web = w.dom; got.append("Website") }
@@ -426,14 +430,22 @@ final class CTFormState {
             mandatory = t.mandatory && !tFix
             if t.mandatory || tFix { noWatch = false }
         }
-        // Leasing: feste Laufzeit ohne Verlängerung (Web v214); Laufzeit/Ende kennt nur der Vertrag
-        if !onlyEmpty && t.label.range(of: "leasing", options: .caseInsensitive) != nil {
+        // Leasing: feste Laufzeit ohne Verlängerung (Web v214, `CatalogEntry.isLeasing`); Laufzeit/Ende kennt nur der Vertrag
+        if !onlyEmpty && t.isLeasing {
             setTermMode(.fixed)
             renewMonths = 0
+        }
+        // Strom CH aus dem Katalog (Web v215): Grundversorgung → «Nicht kündbar», auch bei «Energie Wasser Bern»
+        if !onlyEmpty && t.isSwissPower && !isExisting {
+            tplEntry = t
+            chPower = true
+            if termMode != .tax { setTermMode(.tax) }
+            mandatory = false
         }
         if amountText.ctTrimmed.isEmpty, let cur = t.suggestedCurrency { currency = cur }
         chPowerDefault(data)
         tplHint = t.name
+        tplEntry = t
         if !onlyEmpty {
             let after = tplSnapshot()
             tplUndo = snap
@@ -542,6 +554,7 @@ final class CTFormState {
         tplAfter = nil
         tplSum = nil
         tplHint = ""
+        tplEntry = nil
         noticeOpen = false
         // Reihenfolge wie Web: zuerst Kategorie (paintCats), dann die Art des Vertrags
         categoryChanged(data)
@@ -588,7 +601,7 @@ final class CTFormState {
         if let st = stdTpl, st.name == pn {
             return .hint(st.hintFull, standardChip: !stdDone && (st.notice > 0 || st.cancelTerm != .anytime || st.mandatory))
         }
-        let cur = Catalog.find(pn, currency: currency)
+        let cur = Catalog.find(pn, currency: currency, label: label, preferred: tplEntry)
         if let c = cur, tplHint == c.name, showsTplSummary { return .summary(c, items: tplSum ?? []) }
         if let c = cur, tplHint == c.name { return .hint(c.hintFull, standardChip: false) }
         // Web v213: Katalogtreffer stehen in der gemeinsamen Trefferliste unter dem Vertragspartner (keine Chips mehr)
@@ -707,8 +720,8 @@ final class CTFormState {
 
     /// Farbe der Kachel ohne Logo: gewählte Farbe → Kategorie → Hash über Vertragspartner/Bezeichnung
     func markColor(_ data: AppData) -> String {
-        if let c = colorHex, !c.isEmpty { return c }
-        if let cat = data.category(categoryID) { return cat.colorHex }
+        if let c = colorHex, !c.isEmpty { return KCategory.migratedColor(c) }
+        if let cat = data.category(categoryID) { return cat.displayColorHex }
         let pn = partnerName.ctTrimmed
         return AppData.hashColor(pn.isEmpty ? label : pn)
     }
@@ -797,28 +810,29 @@ final class CTFormState {
         chPowerDefault(data)
     }
 
-    /// Strom in der Schweiz (Web v210 `isChPowerD`): CHF, Kategorie «Energie & Wasser», Bezeichnung/Vertragspartner ohne Wasser,
-    /// Gas, Fernwärme, Heizung, Öl, Pellets, Holz, Solar, Abwasser, Kehricht.
+    /// Strom in der Schweiz (Web v210/v215 `isChPowerD`, Kern `ContractFormRules.isSwissPower`)
     func isChPower(_ data: AppData) -> Bool {
-        let t = [label, partnerName].joined(separator: " ")
-        return currency == .CHF && data.category(categoryID)?.kind == .energy
-            && t.range(of: "wasser|gas|fernw|wärme|waerme|heiz|öl|oel|pellet|holz|solar|abwasser|kehricht",
-                       options: [.regularExpression, .caseInsensitive]) == nil
+        ContractFormRules.isSwissPower(currency: currency, categoryKind: data.category(categoryID)?.kind, label: label,
+                                       partner: partnerName, catalogEntry: tplEntry)
     }
 
     /// Haushalte in der Schweiz können den Stromanbieter nicht wählen (Grundversorgung) → bei neuen Verträgen standardmässig
-    /// «Nicht kündbar», kein Pflichtvertrag; nur solange die Art nicht von Hand gewählt wurde (Web v210 `chPowerDefault`).
+    /// «Nicht kündbar», kein Pflichtvertrag; nur solange die Art nicht von Hand gewählt wurde (Web v210 `chPowerDefault`,
+    /// Kern `ContractFormRules.swissPowerStep`).
     func chPowerDefault(_ data: AppData) {
-        if isExisting || tmTouched || categoryID == nil { return }
-        if isChPower(data) {
+        switch ContractFormRules.swissPowerStep(isNew: !isExisting, kindTouched: tmTouched, hasCategory: categoryID != nil,
+                                                isSwissPower: isChPower(data), appliedBefore: chPower) {
+        case .setNotCancellable:
             if termMode != .tax {
                 chPower = true
                 setTermMode(.tax)
             }
             mandatory = false
-        } else if chPower {
+        case .revert:
             chPower = false
             if termMode == .tax { setTermMode(.open) }
+        case .keep:
+            break
         }
     }
 
@@ -1113,11 +1127,14 @@ final class CTFormState {
 
     /// Preisänderung vormerken (Web pAdd). `force`: Rückfrage «Preis bleibt gleich» wurde bestätigt.
     func addPrice(force: Bool = false) -> PriceAddResult {
-        guard let f = priceFrom else { miss(.prices); return .toast("Datum für die Preisänderung fehlt", long: false, added: false) }
-        if let s0 = start, f <= s0 { miss(.prices); return .toast("Datum muss nach dem Vertragsbeginn liegen", long: false, added: false) }
-        guard let a = CTNumber.parse(priceAmountText), a >= 0 else {
+        // Prüfung im Kern (Web `pAdd`, v218): Datum, nach dem Vertragsbeginn, neuer Betrag
+        if let m = ContractFormRules.checkPriceChange(from: priceFrom, start: start, amountText: priceAmountText) {
+            missRule(m.field)
+            return .toast(m.message, long: false, added: false)
+        }
+        guard let f = priceFrom, let a = CTNumber.parse(priceAmountText), a >= 0 else {
             miss(.priceAmount)
-            return .toast(priceAmountText.ctTrimmed.isEmpty ? "Neuer Betrag fehlt" : "Neuen Betrag prüfen", long: false, added: false)
+            return .toast("Neuen Betrag prüfen", long: false, added: false)
         }
         // Falle: «Betrag» oben schon auf den neuen Preis gesetzt → Änderung ohne Wirkung
         var pv = CTNumber.parse(amountText) ?? 0
@@ -1136,7 +1153,7 @@ final class CTFormState {
         priceOpen = false
         var prevA = CTNumber.parse(amountText) ?? 0
         for p in sortedPrices where p.from < f { prevA = p.amount }
-        if a > prevA && prevA > 0 { return .toast("Preiserhöhung vorgemerkt. Tipp: oft gilt ein Sonderkündigungsrecht.", long: true, added: true) }
+        if a > prevA && prevA > 0 { return .toast(Calc.priceIncreaseToast, long: true, added: true) }
         return .toast("Preisänderung ab " + Format.fmtD(f) + " vorgemerkt", long: false, added: true)
     }
 
@@ -1161,11 +1178,34 @@ final class CTFormState {
         missToken += 1
     }
 
+    /// Zielfeld einer Kern-Prüfung (`ContractFormRules.Missing.field`) anspringen und markieren
+    func missRule(_ f: ContractFormRules.FormField) {
+        switch f {
+        case .label: miss(.label)
+        case .category:
+            goTo = .category
+            showCategoryPicker = true
+        case .amount: miss(.amount)
+        case .notice: miss(.notice)
+        case .end: miss(.end)
+        case .trial: miss(.trial)
+        case .priceFrom: miss(.prices)
+        case .priceAmount: miss(.priceAmount)
+        case .extraDate: miss(.extraDate)
+        case .extraAmount: miss(.extraAmount)
+        case .incomeLabel, .incomeAmount, .incomePriceFrom, .incomePriceAmount: break
+        }
+    }
+
     func addExtra() -> String {
-        guard let d = extraDate else { miss(.extraDate); return "Datum der Sonderzahlung fehlt" }
-        guard let a0 = CTNumber.parse(extraAmountText), a0 > 0 else {
+        // Prüfung im Kern (Web `xAdd`, v218): Datum, Betrag > 0
+        if let m = ContractFormRules.checkExtra(date: extraDate, amountText: extraAmountText) {
+            missRule(m.field)
+            return m.message
+        }
+        guard let d = extraDate, let a0 = CTNumber.parse(extraAmountText), a0 > 0 else {
             miss(.extraAmount)
-            return extraAmountText.ctTrimmed.isEmpty ? "Betrag fehlt" : "Betrag prüfen"
+            return ContractFormRules.amountMessage(extraAmountText)
         }
         let a = Format.round2(abs(a0))
         let credit = extraCredit
@@ -1276,38 +1316,15 @@ final class CTFormState {
         let data = model.data
         if !commitPendingInputs(model: model) { return false }
         let pname = Format.collapseSpaces(partnerName)
-        if pname.isEmpty && label.ctTrimmed.isEmpty {
-            model.toast("Bezeichnung fehlt")
-            miss(.label)
+        let noticeVal = CTNumber.noticeValue(noticeText, unit: noticeUnit)
+        // Prüfung im Kern (Web `saveForm`/`goMiss`, v218): Bezeichnung, Kategorie, Betrag, Frist, Vertragsende, Probeabo
+        if let m = ContractFormRules.checkContract(partner: pname, label: label, hasCategory: categoryValid(data), amountText: amountText,
+                                                   noticeValid: noticeVal != nil, mode: termMode, end: end, trial: trial) {
+            model.toast(m.message)
+            missRule(m.field)
             return false
         }
-        guard let cid = categoryID, data.category(cid) != nil else {
-            model.toast("Bitte eine Kategorie wählen")
-            goTo = .category
-            showCategoryPicker = true
-            return false
-        }
-        guard let amt = CTNumber.parse(amountText), amt >= 0 else {
-            // Web v218: «Betrag fehlt» bei leerem Feld, sonst «Betrag prüfen»
-            model.toast(amountText.ctTrimmed.isEmpty ? "Betrag fehlt" : "Betrag prüfen")
-            miss(.amount)
-            return false
-        }
-        guard let notice = CTNumber.noticeValue(noticeText, unit: noticeUnit) else {
-            model.toast("Kündigungsfrist prüfen")
-            miss(.notice)
-            return false
-        }
-        if termMode == .fixed && end == nil {
-            model.toast("Vertragsende fehlt")
-            miss(.end)
-            return false
-        }
-        if termMode == .trial && trial == nil {
-            model.toast(ContractFormRules.missingTrialText)
-            miss(.trial)
-            return false
-        }
+        guard let cid = categoryID, let amt = CTNumber.parse(amountText), amt >= 0, let notice = noticeVal else { return false }
         if showsCancelDates, let err = ContractFormRules.checkCancellation(per: cancelPer, on: cancelledOn) {
             model.toast(err)
             goTo = cancelPer == nil ? .cancelPer : .cancelOn

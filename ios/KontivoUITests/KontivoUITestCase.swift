@@ -282,6 +282,11 @@ class KontivoUITestCase: XCTestCase {
     func enter(_ field: XCUIElement, _ text: String, _ what: String, file: StaticString = #filePath, line: UInt = #line) {
         tap(field, what, file: file, line: line)
         usleep(300_000)
+        // Tipp ging verloren (z.B. während der Fokuswechsel nach «Return» noch läuft): einmal nachtippen
+        if !hasFocus(field) {
+            usleep(400_000)
+            if !hasFocus(field) { field.tap(); usleep(400_000) }
+        }
         field.typeText(text)
     }
 

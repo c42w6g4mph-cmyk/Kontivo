@@ -273,6 +273,7 @@ struct KTabHeader<Trailing: View>: View {
         }
         .padding(.top, 17)
         .frame(minHeight: KMetric.titleBarHeight, alignment: .bottom)
+        .id(KTabHeaderID.top)
         .onGeometryChange(for: CGFloat.self) { proxy in
             proxy.frame(in: .global).maxY
         } action: { maxY in
@@ -281,6 +282,11 @@ struct KTabHeader<Trailing: View>: View {
             if mini.visible != hidden { mini.visible = hidden }
         }
     }
+}
+
+/// Sprungziel «nach oben» der Mini-Kopfzeile (Web: Tipp auf `#miniBar` → `scrollTo(top:0)`)
+enum KTabHeaderID {
+    static let top = "kTabTop"
 }
 
 extension KTabHeader where Trailing == EmptyView {
@@ -325,58 +331,72 @@ extension EnvironmentValues {
 /// Mini-Kopfzeile (Web `.minibar`: 16 pt Semibold zentriert, Papier 84 % mit Unschärfe, Linie unten), sobald der Titel weg ist.
 struct KTabPageModifier: ViewModifier {
     let title: String
+    /// Text der Mini-Kopfzeile (Web `updMini`: Titel, mit Jahresleiste «Kosten · 2026»); nil = Titel
+    var miniTitle: String?
     @State private var mini = KMiniBarState()
 
     func body(content: Content) -> some View {
-        content
-            .environment(\.kMiniBarState, mini)
-            .navigationTitle(title)
-            .toolbar(.hidden, for: .navigationBar)
-            .overlay(alignment: .top) {
-                KMiniBar(title: title, visible: mini.visible)
-            }
-            .background {
-                GeometryReader { g in
-                    Color.clear
-                        .onAppear { mini.topInset = g.frame(in: .global).minY }
-                        .onChange(of: g.frame(in: .global).minY) { _, v in mini.topInset = v }
+        ScrollViewReader { proxy in
+            content
+                .environment(\.kMiniBarState, mini)
+                .navigationTitle(title)
+                .toolbar(.hidden, for: .navigationBar)
+                .overlay(alignment: .top) {
+                    KMiniBar(title: miniTitle ?? title, visible: mini.visible) {
+                        withAnimation(.easeInOut) { proxy.scrollTo(KTabHeaderID.top, anchor: .top) }
+                    }
                 }
-            }
+                .background {
+                    GeometryReader { g in
+                        Color.clear
+                            .onAppear { mini.topInset = g.frame(in: .global).minY }
+                            .onChange(of: g.frame(in: .global).minY) { _, v in mini.topInset = v }
+                    }
+                }
+        }
     }
 }
 
 struct KMiniBar: View {
     let title: String
     let visible: Bool
+    /// Antippen scrollt nach oben (Web `#miniBar` click)
+    var action: () -> Void = {}
     var body: some View {
         GeometryReader { g in
-            VStack(spacing: 0) {
-                Text(title)
-                    .font(KFont.text(16, .semibold))
-                    .foregroundStyle(KColor.ink)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, g.safeAreaInsets.top + 10)
-                    .padding(.bottom, 10)
-                    .padding(.horizontal, 16)
-                    .background(.ultraThinMaterial)
-                    .background(KColor.paper.opacity(0.84))
-                KDivider()
+            Button(action: action) {
+                VStack(spacing: 0) {
+                    Text(verbatim: title)
+                        .font(KFont.text(16, .semibold))
+                        .foregroundStyle(KColor.ink)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, g.safeAreaInsets.top + 10)
+                        .padding(.bottom, 10)
+                        .padding(.horizontal, 16)
+                        .background(.ultraThinMaterial)
+                        .background(KColor.paper.opacity(0.84))
+                    KDivider()
+                }
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
             .ignoresSafeArea(edges: .top)
             .opacity(visible ? 1 : 0)
             .offset(y: visible ? 0 : -6)
             .animation(.easeOut(duration: 0.18), value: visible)
+            .allowsHitTesting(visible)
         }
         .frame(height: 0, alignment: .top)
-        .allowsHitTesting(false)
         .accessibilityHidden(true)
     }
 }
 
 extension View {
-    /// Tab-Seite mit Web-Titelzeile (siehe `KTabHeader`)
-    func kTabPage(title: String) -> some View { modifier(KTabPageModifier(title: title)) }
+    /// Tab-Seite mit Web-Titelzeile (siehe `KTabHeader`); `miniTitle` für die Mini-Kopfzeile, z.B. «Kosten · 2026»
+    func kTabPage(title: String, miniTitle: String? = nil) -> some View {
+        modifier(KTabPageModifier(title: title, miniTitle: miniTitle))
+    }
 }
 
 // MARK: - Leere Seiten (emptyHero der Web-App)

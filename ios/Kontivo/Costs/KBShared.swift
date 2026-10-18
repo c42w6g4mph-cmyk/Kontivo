@@ -185,43 +185,10 @@ struct KBYearNav: View {
     }
 }
 
-/// Kopf einer Tab-Seite: Titel links (30 px Semibold), rechts optional Jahresnavigation. Höhe 57 pt (Web v184).
-struct KBPageHeader<Trailing: View>: View {
-    let title: String
-    @ViewBuilder var trailing: Trailing
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 8) {
-            Text(verbatim: title)
-                .font(KFont.title(30))
-                .tracking(-0.45)
-                .foregroundStyle(KColor.ink)
-                .lineLimit(1)
-                .accessibilityAddTraits(.isHeader)
-            Spacer(minLength: 8)
-            trailing
-        }
-        .frame(height: 40)
-        .padding(.top, 17)
-        .frame(height: 57, alignment: .bottom)
-        .background(GeometryReader { g in
-            let b = g.frame(in: .global).maxY
-            Color.clear
-                .onAppear { mini?.headerBottom = b }
-                .onChange(of: b) { _, v in mini?.headerBottom = v }
-        })
-    }
-
-    @Environment(\.kbMini) private var mini
-}
-
-/// Lage des Seitenkopfs für die Minileiste (global, ohne Neuzeichnen der Seite)
+/// Oberkante des sichtbaren Bereichs (global, ohne Neuzeichnen der Seite) – für «Bereich bleibt an derselben Bildschirmstelle»
 @Observable
 final class KBMiniState {
-    var headerBottom: CGFloat = 1000
     var viewportTop: CGFloat = 0
-    /// Kopf weggescrollt (Web: Unterkante des Kopfs < 8 px)
-    var show: Bool { headerBottom < viewportTop + 8 }
 }
 
 private struct KBMiniKey: EnvironmentKey {
@@ -235,12 +202,13 @@ extension EnvironmentValues {
     }
 }
 
-/// Scrollseite eines Tabs mit eigenem Kopf und Minileiste «Kosten · 2026», sobald der Kopf weggescrollt ist (Web `#miniBar`).
+/// Scrollseite eines Tabs (Kosten, Budget): Titelzeile `KTabHeader` im Inhalt, Mini-Kopfzeile «Kosten · 2026» über `.kTabPage`.
 enum KBPageSpace {
     static let name = "kbPage"
 }
 
 struct KBPage<Content: View>: View {
+    let title: String
     let miniTitle: String
     @ViewBuilder var content: Content
     @State private var miniState = KBMiniState()
@@ -277,49 +245,8 @@ struct KBPage<Content: View>: View {
                     .onChange(of: g.size.height) { _, h in viewport = h }
                     .onChange(of: top) { _, t in miniState.viewportTop = t }
             })
-            .overlay(alignment: .top) {
-                KBMiniBar(state: miniState, title: miniTitle) {
-                    withAnimation(.easeInOut) { proxy.scrollTo("kbTop", anchor: .top) }
-                }
-            }
         }
-        .toolbar(.hidden, for: .navigationBar)
-    }
-}
-
-/// Minileiste «Kosten · 2026» (Web `#miniBar`: 16 px Semibold, Papier 84 % mit Unschärfe, Linie unten); Antippen scrollt nach oben
-struct KBMiniBar: View {
-    let state: KBMiniState
-    let title: String
-    let action: () -> Void
-
-    var body: some View {
-        let mini = state.show
-        Group {
-                if mini {
-                    Button {
-                        action()
-                    } label: {
-                        Text(verbatim: title)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(KColor.ink)
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 10)
-                            .padding(.bottom, 10)
-                            .background {
-                                KColor.paper.opacity(0.84)
-                                    .background(.ultraThinMaterial)
-                                    .ignoresSafeArea(edges: .top)
-                            }
-                            .overlay(alignment: .bottom) { Rectangle().fill(KColor.line).frame(height: 1) }
-                    }
-                    .buttonStyle(.plain)
-                    .transition(.opacity)
-                    .accessibilityLabel(Text(verbatim: title))
-                    .accessibilityHint("Nach oben")
-                }
-        }
-        .animation(.easeOut(duration: 0.18), value: mini)
+        .kTabPage(title: title, miniTitle: miniTitle)
     }
 }
 

@@ -225,7 +225,7 @@ struct MDCategoryPage: View {
                 Text("Farbe")
             }
             Section {
-                MDIconGrid(color: c.colorHex, selected: c.icon) { key in
+                MDIconGrid(color: c.displayColorHex, selected: c.icon) { key in
                     model.update { $0.updateCategory(categoryID, icon: key) }
                 }
                 .mdRow()

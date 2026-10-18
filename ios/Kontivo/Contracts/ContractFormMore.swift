@@ -31,7 +31,7 @@ struct CTFormExtrasSection: View {
                     .id(ContractFormField.extraDate)
                 HStack(spacing: 12) {
                     CTRowLabel("Betrag")
-                    TextField("", text: $form.extraAmountText, prompt: Text("hinzufügen").foregroundColor(KColor.ink3))
+                    TextField("", text: $form.extraAmountText, prompt: Text(ContractFormRules.placeholder).foregroundColor(KColor.ink3))
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .monospacedDigit()
@@ -44,7 +44,7 @@ struct CTFormExtrasSection: View {
                 .id(ContractFormField.extraAmount)
                 HStack(spacing: 12) {
                     CTRowLabel("Bezeichnung")
-                    TextField("", text: $form.extraNote, prompt: Text("hinzufügen").foregroundColor(KColor.ink3))
+                    TextField("", text: $form.extraNote, prompt: Text(ContractFormRules.placeholder).foregroundColor(KColor.ink3))
                         .multilineTextAlignment(.trailing)
                         .foregroundStyle(KColor.teal)
                         .accessibilityLabel("Bezeichnung der Sonderzahlung")
@@ -203,7 +203,7 @@ struct CTFormContactSection: View {
                     HStack {
                         CTRowLabel("Adresse")
                         Spacer(minLength: 8)
-                        Text("hinzufügen").foregroundStyle(KColor.ink3)
+                        Text(ContractFormRules.placeholder).foregroundStyle(KColor.ink3)
                     }
                     .contentShape(Rectangle())
                 }

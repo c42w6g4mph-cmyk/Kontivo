@@ -168,7 +168,7 @@ struct CTCatalogSheet: View {
     }
 
     private func row(_ t: CatalogEntry) -> some View {
-        let color = model.data.category(named: t.category)?.colorHex ?? KCategory.standardColors[t.category] ?? KCategory.fallbackColor
+        let color = model.data.category(named: t.category)?.displayColorHex ?? KCategory.standardColors[t.category] ?? KCategory.displayFallbackColor
         return HStack(spacing: 12) {
             MarkView(logoID: nil, logoBg: nil, colorHex: color, symbol: KIcon.symbol(forKey: t.category.isEmpty ? "Sonstiges" : t.category), size: 32)
             VStack(alignment: .leading, spacing: 2) {

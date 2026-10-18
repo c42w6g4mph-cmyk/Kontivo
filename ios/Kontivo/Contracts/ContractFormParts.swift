@@ -257,7 +257,7 @@ struct CTRowLabel: View {
 struct CTFormTextRow: View {
     let title: String
     @Binding var text: String
-    var placeholder = "hinzufügen"
+    var placeholder = ContractFormRules.placeholder
     var keyboard: UIKeyboardType = .default
     var capitalization: TextInputAutocapitalization = .never
     var autocorrect = false
@@ -324,7 +324,7 @@ struct CTFormDateRow: View {
                 Button {
                     set(fallback)
                 } label: {
-                    Text("hinzufügen")
+                    Text(ContractFormRules.placeholder)
                         .font(.system(size: 16))
                         .foregroundStyle(KColor.ink3)
                         .padding(.vertical, 6)

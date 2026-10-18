@@ -96,56 +96,6 @@ enum CTPartnerSearch {
     }
 }
 
-/// Katalogtreffer für die gemeinsame Trefferliste (Web v213 `tplHits`, `tplAll`, `tplTerm`).
-// TODO core-API: `Catalog.hits(_:currency:more:)` / `Catalog.all(named:currency:)` / `CatalogEntry.termShort` (Bereich core); hier lokal 1:1.
-enum CTCatalogHits {
-    /// Web `tplAll(n, cur)`: alle Einträge mit diesem Namen; mehrere → die des Landes (EUR → DE, sonst CH) plus internationale
-    static func all(_ name: String, currency: Currency) -> [CatalogEntry] {
-        let n = name.ctTrimmed.lowercased()
-        var L = Catalog.entries.filter { $0.name.lowercased() == n }
-        if L.count > 1 {
-            let cc = currency == .EUR ? "DE" : "CH"
-            let m = L.filter { $0.country == cc }
-            if !m.isEmpty { L = m + L.filter { $0.country.isEmpty } }
-        }
-        return L
-    }
-
-    /// Web `tplHits(q)`: exakte Namen, sonst «Name Bezeichnung» enthält den Text (nur Länder-Variante passend zur Währung);
-    /// höchstens 3 (mit «Weitere» 8). `more` = es gibt mehr als 3.
-    static func hits(_ q: String, currency: Currency, more: Bool) -> (list: [CatalogEntry], hasMore: Bool) {
-        let n = q.ctTrimmed.lowercased()
-        if n.count < 2 { return ([], false) }
-        let ex = Catalog.entries.filter { $0.name.lowercased() == n }
-        let L = !ex.isEmpty ? ex : Catalog.entries.filter { t in
-            (t.name + " " + t.label).lowercased().contains(n) && all(t.name, currency: currency).contains(t)
-        }
-        return (Array(L.prefix(more ? 8 : 3)), L.count > 3 && !more)
-    }
-
-    /// Web `tplTerm(t)`: «nicht kündbar», «Pflichtvertrag», «jederzeit kündbar» oder «3 Monate Frist»
-    static func term(_ t: CatalogEntry) -> String {
-        if t.category == "Steuern & Gebühren" { return "nicht kündbar" }
-        if t.mandatory { return "Pflichtvertrag" }
-        let n = t.notice
-        if n == 0 { return "jederzeit kündbar" }
-        let u: (String, String)
-        switch t.noticeUnit {
-        case .days: u = ("Tag", "Tage")
-        case .weeks: u = ("Woche", "Wochen")
-        default: u = ("Monat", "Monate")
-        }
-        return "\(n) " + (n == 1 ? u.0 : u.1) + " Frist"
-    }
-
-    /// Unterzeile: Bezeichnung (sonst Kategorie) · Land bei mehreren Einträgen gleichen Namens · Kündigung
-    static func subtitle(_ t: CatalogEntry, currency: Currency) -> String {
-        let multi = all(t.name, currency: currency).count > 1
-        let land = multi && !t.country.isEmpty ? (t.country == "CH" ? "Schweiz" : t.country == "DE" ? "Deutschland" : t.country) : ""
-        return [t.label.isEmpty ? t.category : t.label, land, term(t)].filter { !$0.isEmpty }.joined(separator: " · ")
-    }
-}
-
 /// Gemeinsame Trefferliste unter dem Vertragspartner (Web v213 `#pSug`): «Deine Vertragspartner» · «Katalog» · «Aus dem Internet»,
 /// gleiche Website nur einmal (Katalog gewinnt). Bleibt beim Schliessen der Tastatur offen; schliesst bei Tipp ausserhalb oder
 /// nach einer Auswahl (v214). Fläche wie Web `.psug`: Rand, Radius 12, Innenabstand 2 10 4.
@@ -160,11 +110,12 @@ struct CTFormPartnerSuggestions: View {
         let showList = form.sugVisible && q.count >= 2 && q != form.pSugSel
         let own = showList ? Partners.matches(q, in: data, today: model.today, limit: 3) : []
         let ownNames = Set(own.map { $0.partner.name.lowercased() })
-        let th = showList ? CTCatalogHits.hits(q, currency: form.currency, more: form.tplMore) : (list: [CatalogEntry](), hasMore: false)
-        let tDom = Set(th.list.compactMap { $0.web.isEmpty ? nil : Partners.regDom($0.web) })
+        // Katalogtreffer (Web v213 `tplHits`, Kern `Catalog.hits`); gleiche Website nur einmal (Katalog gewinnt)
+        let th = showList ? Catalog.hits(q, currency: form.currency, more: form.tplMore) : (entries: [CatalogEntry](), hasMore: false)
+        let tDom = Catalog.hitDomains(th.entries)
         let web = showList ? form.webHits.filter { !ownNames.contains($0.name.lowercased()) && !tDom.contains(Partners.regDom($0.dom)) } : []
         let searching = showList && web.isEmpty && form.webLoading && q.count >= 3
-        if showList && (!own.isEmpty || !th.list.isEmpty || !web.isEmpty || searching) {
+        if showList && (!own.isEmpty || !th.entries.isEmpty || !web.isEmpty || searching) {
             CTSection(plain: true) {
                 VStack(alignment: .leading, spacing: 0) {
                     if !own.isEmpty {
@@ -173,9 +124,9 @@ struct CTFormPartnerSuggestions: View {
                             ownRow(g, data: data, first: i == 0)
                         }
                     }
-                    if !th.list.isEmpty {
+                    if !th.entries.isEmpty {
                         CTSuggestHeader(title: "Katalog")
-                        ForEach(Array(th.list.enumerated()), id: \.offset) { i, t in
+                        ForEach(Array(th.entries.enumerated()), id: \.offset) { i, t in
                             tplRow(t, first: own.isEmpty && i == 0)
                         }
                         if th.hasMore {
@@ -196,7 +147,7 @@ struct CTFormPartnerSuggestions: View {
                     if !web.isEmpty {
                         CTSuggestHeader(title: "Aus dem Internet")
                         ForEach(Array(web.enumerated()), id: \.element) { i, w in
-                            webRow(w, first: own.isEmpty && th.list.isEmpty && i == 0)
+                            webRow(w, first: own.isEmpty && th.entries.isEmpty && i == 0)
                         }
                     } else if searching {
                         Text("Suche …")
@@ -271,11 +222,11 @@ struct CTFormPartnerSuggestions: View {
             CTTplLogo.apply(t, form: form, model: model)
             form.pSugSel = t.name
         } label: {
-            hitRow(first: first, title: t.name, sub: CTCatalogHits.subtitle(t, currency: form.currency)) {
+            hitRow(first: first, title: t.name, sub: Catalog.hitSubtitle(t, currency: form.currency)) {
                 if let c = cat {
                     MarkView(category: c, size: 34)
                 } else {
-                    MarkView(logoID: nil, logoBg: nil, colorHex: KCategory.fallbackColor, symbol: KIcon.symbol(forKey: t.category), size: 34)
+                    MarkView(logoID: nil, logoBg: nil, colorHex: KCategory.standardColors[t.category] ?? KCategory.displayFallbackColor, symbol: KIcon.symbol(forKey: t.category), size: 34)
                 }
             }
         }

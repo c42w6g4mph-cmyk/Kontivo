@@ -434,7 +434,7 @@ private struct CTFormLogoPanel: View {
 
     private var swatches: some View {
         let data = model.data
-        let catColor = data.category(form.categoryID)?.colorHex ?? KCategory.fallbackColor
+        let catColor = data.category(form.categoryID)?.displayColorHex ?? KCategory.displayFallbackColor
         return VStack(alignment: .leading, spacing: 10) {
             Text("Farbe, wenn kein Bild")
                 .font(.footnote)
@@ -600,7 +600,7 @@ private struct CTFormCostSection: View {
         HStack(spacing: 8) {
             CTRowLabel(form.prices.isEmpty ? "Betrag" : "Anfangspreis")
                 .layoutPriority(1)
-            TextField("", text: $form.amountText, prompt: Text("hinzufügen").foregroundColor(KColor.ink3))
+            TextField("", text: $form.amountText, prompt: Text(ContractFormRules.placeholder).foregroundColor(KColor.ink3))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .monospacedDigit()
@@ -682,7 +682,7 @@ private struct CTFormCostSection: View {
             .id(ContractFormField.prices)
         HStack(spacing: 12) {
             CTRowLabel("Neuer Betrag")
-            TextField("", text: $form.priceAmountText, prompt: Text("hinzufügen").foregroundColor(KColor.ink3))
+            TextField("", text: $form.priceAmountText, prompt: Text(ContractFormRules.placeholder).foregroundColor(KColor.ink3))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .monospacedDigit()

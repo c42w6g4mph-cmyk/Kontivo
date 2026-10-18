@@ -86,7 +86,7 @@ struct CTFormTermSection: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Text(CTFormText.mandatoryTitle).foregroundStyle(KColor.ink)
-                            CTInfoButton(label: "Info: Pflichtvertrag") { showMandInfo = true }
+                            CTInfoButton(label: ContractFormRules.mandatoryInfoAccessibility) { showMandInfo = true }
                         }
                         Text(CTFormText.mandatorySubtitle).font(.footnote).foregroundStyle(KColor.ink2)
                     }
@@ -301,7 +301,7 @@ struct CTFormTermSection: View {
             CTFormTextRow(title: "Kündigungslink", text: $form.cancelURL, placeholder: "sonst Website", keyboard: .URL,
                           contentType: .URL, identifier: "form.cancelURL", field: .cancelURL, focus: focus)
         case .email:
-            CTFormTextRow(title: "E-Mail für Kündigung", text: $form.mail, placeholder: "hinzufügen", keyboard: .emailAddress,
+            CTFormTextRow(title: "E-Mail für Kündigung", text: $form.mail, placeholder: ContractFormRules.placeholder, keyboard: .emailAddress,
                           contentType: .emailAddress, identifier: "form.cancelMail", field: .cancelMail, focus: focus)
         default:
             // Web v212: Adresse nur noch bei den Kontaktdaten

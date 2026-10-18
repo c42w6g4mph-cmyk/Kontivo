@@ -168,46 +168,10 @@ extension Calc {
                          year: year, income: inc, diff: tot - prev, showIDs: showIDs)
     }
 
-    /// Neueste noch anfechtbare Preiserhöhung (Web `skrInfo`, nur Datum und Prozent für den Bericht).
-    /// Frist: KVG per 1.1. bis letzter Arbeitstag im November, DE Energie (ohne Wasser) bis Vortag, DE Mobilfunk 1 Monat,
-    /// sonst 30 Tage ab der Erhöhung.
+    /// Neueste noch anfechtbare Preiserhöhung (Web `skrInfo`, nur Datum und Prozent für den Bericht) – aus
+    /// `specialCancelInfo(c)` (SpecialCancel.swift: Regeln KVG, DE Energie/Telekom/Miete/Versicherung, sonst 30 Tage).
     public func reportPriceIncrease(_ c: Contract) -> (from: Day, pct: Int)? {
-        var prev = c.amount
-        var L: [(f: Day, up: Bool, pct: Int)] = []
-        for p in pricesOf(c) {
-            let a = p.amount
-            L.append((p.from, prev > 0 && a > prev, prev > 0 ? Int(Format.jsRound((a / prev - 1) * 100)) : 0))
-            prev = a
-        }
-        for x in L.reversed() where x.up {
-            let end = specialCancelUntil(c, x.f) ?? x.f.addingDays(30)
-            if end < today { continue }
-            return (x.f, x.pct)
-        }
-        return nil
-    }
-
-    /// Frist für eine Sonderkündigung (Web `skrRule(c, f).until`), nil = keine feste Frist.
-    func specialCancelUntil(_ c: Contract, _ f: Day) -> Day? {
-        let catName = data.category(c.categoryID)?.name ?? ""
-        let kind = categoryKind(c)
-        let de = c.currency == .EUR
-        let dayB = f.addingDays(-1)
-        let p = partnerName(c)
-        let t = [c.label, p, catName].joined(separator: " ").lowercased()
-        let kvg = c.currency == .CHF && t.range(of: "krankenkass|krankenversich|grundversich|kvg", options: .regularExpression) != nil
-            && t.range(of: "zusatz|spital|vvg", options: .regularExpression) == nil
-        if kvg && f.month == 1 && f.day == 1 {
-            var ku = Day(f.year, f.month - 1, 0)
-            while true {
-                let wd = Day.calendar.component(.weekday, from: ku.date())
-                if wd == 1 || wd == 7 { ku = ku.addingDays(-1) } else { break }
-            }
-            return ku
-        }
-        if de && kind == .energy && [c.label, p].joined(separator: " ").lowercased().range(of: "wasser") == nil { return dayB }
-        if de && kind == .telecom { return f.addingMonths(1).addingDays(-1) }
-        return nil
+        specialCancelInfo(c).map { ($0.from, $0.percent) }
     }
 
     // MARK: Texte der Vertragsblätter

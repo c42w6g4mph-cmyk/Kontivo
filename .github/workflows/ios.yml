@@ -63,6 +63,14 @@ jobs:
           fi
           echo "runtime=$RT udid=$UDID dest=$DEST" > ci-out/ui-info.txt
           echo "QA_UDID=$UDID" >> "$GITHUB_ENV"
+          # Simulator aufwärmen: App einmal installieren und starten (erster Start im frischen Simulator brach mit
+          # «Failed to get background assertion» ab)
+          if [ -n "$UDID" ] && [ -d build/Build/Products/Debug-iphonesimulator/Kontivo.app ]; then
+            xcrun simctl install "$UDID" build/Build/Products/Debug-iphonesimulator/Kontivo.app >/dev/null 2>&1 || true
+            xcrun simctl launch "$UDID" ch.kontivo.app -uiDemo >/dev/null 2>&1 || true
+            sleep 20
+            xcrun simctl terminate "$UDID" ch.kontivo.app >/dev/null 2>&1 || true
+          fi
           set -o pipefail
           xcodebuild test -project ios/Kontivo.xcodeproj -scheme Kontivo -destination "$DEST" \
             -derivedDataPath build -resultBundlePath ci-out/ui.xcresult \
@@ -203,6 +211,8 @@ jobs:
             echo "core=${{ steps.core.outcome }} app=${{ steps.app.outcome }} ui=${{ steps.ui.outcome }}"
             echo; echo "===== KERN: Fehler ====="
             grep -E "error:|failed|FAIL|Test Case .* failed|XCTAssert|Issue recorded|✘" ci-out/core.txt | head -300 || true
+            echo; echo "===== KERN: Abweichungen (Details) ====="
+            grep -E "≠ Web|nicht gelesen|nicht angelegt" ci-out/core.txt | head -80 || true
             echo; echo "===== KERN: Ende ====="
             tail -60 ci-out/core.txt || true
             echo; echo "===== APP: Fehler ====="

@@ -188,6 +188,7 @@ enum KMetric {
         case ..<35: return 9
         case ..<37: return 10
         case ..<39: return 9
+        case 70..<80: return 17   // Formular-Kopf 76 (Web `.mark.lg`)
         default: return (size * 0.24).rounded()
         }
     }

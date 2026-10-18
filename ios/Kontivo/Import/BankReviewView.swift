@@ -294,7 +294,7 @@ struct BankReviewView: View {
 
     private func mark(_ it: BankReview.Item, _ d: AppData, size: CGFloat = 36) -> some View {
         let cat = d.category(it.ed.categoryID) ?? d.otherCategory
-        return MarkView(logoID: it.logo?.id, logoBg: it.logo?.bg, colorHex: cat?.colorHex ?? KCategory.fallbackColor,
+        return MarkView(logoID: it.logo?.id, logoBg: it.logo?.bg, colorHex: cat?.displayColorHex ?? KCategory.displayFallbackColor,
                         symbol: KIcon.symbol(for: cat), size: size)
     }
 
