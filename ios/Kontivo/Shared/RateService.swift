@@ -1,7 +1,8 @@
 import SwiftUI
 import KontivoCore
 
-/// Wechselkurse automatisch (Frankfurter/EZB, Rückfall open.er-api), höchstens einmal pro Tag.
+/// Wechselkurse automatisch (Frankfurter/EZB, Rückfall open.er-api). Bis zum Tageskurs alle 3 h erneut prüfen, bei offener App
+/// stündlich (Web v162, Regel in `RatePolicy`).
 /// Wie `autoRate`/`fetchRate` der Web-App: Quellen der Reihe nach, je 8 s Zeitlimit, Plausibilität EUR zwischen 0.5 und 2 CHF.
 /// Gespeichert wird `settings.rates` = CHF pro Einheit (Kehrwert der Quelle), dazu `rateDate`, `rateChecked` und `rateSource` («ezb»/«er»).
 enum RateService {
@@ -19,7 +20,7 @@ enum RateService {
         if model.uiTestMode && !force { return }
         let today = model.today
         let s = model.data.settings
-        if !force, s.rateChecked == today, (s.rates["USD"] ?? 0) > 0 { return }
+        if !force, !RatePolicy.needsFetch(s, today: today) { return }
 
         busy = true
         if force { model.toast("Lade Kurse…") }
@@ -41,10 +42,28 @@ enum RateService {
                 }
                 d.settings.rates = rates
                 d.settings.rateDate = r.date ?? day
-                d.settings.rateChecked = day
+                RatePolicy.markChecked(&d.settings, today: day)
                 d.settings.rateSource = r.source
             }
             if force { model.toast("Kurse aktualisiert") }
+        }
+    }
+
+    /// Stündlich prüfen, solange die App offen ist (Web v162 `setInterval(…, 3600e3)` bei sichtbarem Fenster).
+    /// Mehrfacher Aufruf startet keinen zweiten Takt.
+    @MainActor private static var hourly: Task<Void, Never>?
+
+    @MainActor static func startHourly(_ model: AppModel) {
+        if hourly != nil { return }
+        hourly = Task { @MainActor [weak model] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: UInt64(RatePolicy.foregroundInterval * 1_000_000_000))
+                guard let m = model else { break }
+                if UIApplication.shared.applicationState == .active {
+                    await refreshIfNeeded(m, force: false)
+                }
+            }
+            hourly = nil
         }
     }
 

@@ -245,7 +245,8 @@ struct CTCancelWaySegment: View {
         var id: CancelChannel { value }
     }
 
-    private static let items: [Item] = [Item(value: .online, title: "Online"), Item(value: .email, title: "E-Mail"), Item(value: .letter, title: "Brief")]
+    private static let items: [Item] = [Item(value: .online, title: "Online"), Item(value: .email, title: "E-Mail"), Item(value: .letter, title: "Brief"),
+                                        Item(value: .phone, title: "Telefon")]
 
     var body: some View {
         HStack(spacing: 2) {

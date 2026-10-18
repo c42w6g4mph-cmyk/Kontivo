@@ -370,6 +370,8 @@ public enum WebImport {
         st.rates = rates
         st.rateDate = Day(iso: JS.str(s["rateDate"]))
         st.rateChecked = Day(iso: JS.str(s["rateChecked"]))
+        let rca = JS.num(s["rateCheckedAt"])
+        st.rateCheckedAt = rca.isFinite && rca > 0 ? Date(timeIntervalSince1970: rca / 1000) : nil
         st.rateSource = JS.str(s["rateSrc"])
         let th = JS.str(s["theme"])
         st.theme = th == "light" ? .light : (th == "dark" ? .dark : .auto)

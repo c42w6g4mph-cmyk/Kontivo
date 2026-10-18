@@ -392,7 +392,8 @@ extension Calc {
             case .online: return "online"
             case .mail: return "per E-Mail"
             case .post: return "per Brief"
-            case .none: return "Weg wählen"
+            // Web v210: Telefon steht nicht in der Liste → «Weg wählen»
+            case .tel, .none: return "Weg wählen"
             }
         }()
         var menu = DetailMenu(cancel: kok ? (title: c.mandatory ? "Wechseln" : "Kündigen", subtitle: via) : nil,
@@ -437,7 +438,8 @@ extension Calc {
         case .online: start = "Online kündigen"
         case .mail: start = "Per E-Mail kündigen"
         case .post: start = "Kündigungsschreiben erstellen"
-        case .none: start = "Kündigen: Weg wählen …"
+        // Web v210 `killOptions`: Telefon ohne eigenen Text
+        case .tel, .none: start = "Kündigen: Weg wählen …"
         }
         var note = ""
         if let T = T {

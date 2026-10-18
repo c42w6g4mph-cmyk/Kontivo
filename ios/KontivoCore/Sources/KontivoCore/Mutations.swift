@@ -334,7 +334,8 @@ extension AppData {
             d.trialKept = nil
             d.pauses = []
             contracts.append(d)
-            if persons.count > 1 && !d.holderIDs.isEmpty && d.holderIDs != settings.lastHolderIDs {
+            // Web v180: merkt sich nur eine einzelne Person (nicht «Beide»)
+            if persons.count > 1 && d.holderIDs.count == 1 && d.holderIDs != settings.lastHolderIDs {
                 settings.lastHolderIDs = d.holderIDs
             }
         }
@@ -384,11 +385,12 @@ extension AppData {
         contracts[i].review = nil
     }
 
-    /// Inhaber-Vorbelegung für einen neuen Vertrag: zuletzt gewählte (sofern vorhanden), sonst erste Person.
+    /// Inhaber-Vorbelegung für einen neuen Vertrag (Web v179/v180 `bkHolders`): zuletzt gewählte Person, wenn es genau eine
+    /// ist, sonst die erste Person.
     public var defaultHolderIDs: [UUID] {
         let ids = Set(persons.map { $0.id })
         let last = settings.lastHolderIDs.filter { ids.contains($0) }
-        if !last.isEmpty { return last }
+        if last.count == 1 { return last }
         return persons.first.map { [$0.id] } ?? []
     }
 
@@ -825,6 +827,7 @@ extension AppData {
         settings.rates = s.rates
         settings.rateDate = s.rateDate
         settings.rateChecked = s.rateChecked
+        settings.rateCheckedAt = s.rateCheckedAt
         settings.rateSource = s.rateSource
         settings.theme = s.theme
         settings.sort = s.sort

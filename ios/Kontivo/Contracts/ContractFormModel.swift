@@ -439,7 +439,7 @@ final class CTFormState {
         }
         if a.cancelTerm != b.cancelTerm && b.cancelTerm != .anytime { items.append("per " + CTFormState.termOptionText(b.cancelTerm)) }
         if a.cancelChannel != b.cancelChannel, let ch = b.cancelChannel {
-            let w: [CancelChannel: String] = [.online: "online", .email: "per E-Mail", .letter: "per Brief"]
+            let w: [CancelChannel: String] = [.online: "online", .email: "per E-Mail", .letter: "per Brief", .phone: "per Telefon"]
             items.append("Kündigung " + (w[ch] ?? ch.webText))
         }
         var k: [String] = []

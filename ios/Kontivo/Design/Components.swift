@@ -51,7 +51,7 @@ extension MarkView {
 
     /// Kachel für eine Kategorie
     init(category: KCategory, size: CGFloat = 40) {
-        self.init(logoID: nil, logoBg: nil, colorHex: category.colorHex, symbol: KIcon.symbol(for: category), size: size)
+        self.init(logoID: nil, logoBg: nil, colorHex: category.displayColorHex, symbol: KIcon.symbol(for: category), size: size)
     }
 }
 

@@ -109,7 +109,7 @@ final class WebSync141Tests: XCTestCase {
         XCTAssertEqual(it.first?.kind, .ended)
         XCTAssertEqual(it.first?.sub, "Endet von selbst")
         XCTAssertEqual(it.first?.chip, "endet 31.12.")
-        XCTAssertEqual(it.first?.chipLevel, .end)
+        XCTAssertEqual(it.first?.chipLevel, Calc.ChipLevel.none)   // Web v163: neutral
         XCTAssertEqual(it.first?.showActions, false)
         // mit Verlängerung: nächste Frist
         d.contracts[0].renewMonths = 12
@@ -258,10 +258,11 @@ final class WebSync141Tests: XCTestCase {
         XCTAssertEqual(CSV.via("E-Mail"), .email)
         XCTAssertEqual(CSV.via("Kundenportal"), .online)
         XCTAssertEqual(CSV.via("Online / Kundenkonto"), .online)
-        XCTAssertNil(CSV.via("Telefon"))
+        XCTAssertEqual(CSV.via("Telefon"), .phone)   // Web v210: «Telefon» ist ein Kündigungsweg
+        XCTAssertNil(CSV.via("Fax"))
         XCTAssertNil(CSV.via(""))
         // unbekannter Text: kein Rückfall auf den Katalog
-        let rows = [["Vertragspartner", "Betrag", "KuendigungPer"], ["Netflix", "18.90", "Telefon"], ["Netflix", "12.90", ""]]
+        let rows = [["Vertragspartner", "Betrag", "KuendigungPer"], ["Netflix", "18.90", "Fax"], ["Netflix", "12.90", ""]]
         let pv = CSV.preview(rows: rows, data: AppData.initial(), today: Day(2026, 10, 3))
         XCTAssertNil(pv.items[0].contract.cancelChannel)
         XCTAssertEqual(pv.items[1].contract.cancelChannel, .online)

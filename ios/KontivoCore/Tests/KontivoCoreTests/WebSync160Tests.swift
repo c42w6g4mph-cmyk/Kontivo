@@ -112,7 +112,7 @@ final class WebSync160Tests: XCTestCase {
                        Contract(label: "Leasing", amount: 300, due: Day(2026, 10, 20), end: Day(2027, 6, 30), notice: 3)]
         let h2 = Calc(data: d, today: today).hero()
         XCTAssertEqual(h2.monthlyTotal, 300, accuracy: 1e-9)
-        XCTAssertEqual(h2.subtitle, "3’600 CHF pro Jahr · 2 aktive Verträge")
+        XCTAssertEqual(h2.subtitle, "3’600 CHF im Jahr")   // Web v164
         // Budget-Leerseite und Pop-up ohne laufendes Probeabo
         XCTAssertEqual(Calc(data: d, today: today).kbBudgetEmptyText(),
                        "Deine Fixkosten sind schon da: 300.00 CHF im Monat. Es fehlen nur deine Einnahmen.")
@@ -137,7 +137,7 @@ final class WebSync160Tests: XCTestCase {
         XCTAssertEqual(o.items.map { web[$0.contractID] ?? "?" }, ["a", "e", "cp", "b"])
         XCTAssertEqual(o.items.map { $0.sub }, ["Probeabo · gratis bis 19.10.", "Probeabo · gratis bis 19.10.", "Gekündigt", "Endet von selbst"])
         XCTAssertEqual(o.items.map { $0.chip }, ["in 8 Tagen", "in 8 Tagen", "endet 31.12.", "endet 30.06.27"])
-        XCTAssertEqual(o.items.map { $0.chipLevel }, [.warn, .warn, .end, .end])
+        XCTAssertEqual(o.items.map { $0.chipLevel }, [.warn, .warn, .end, Calc.ChipLevel.none])   // Web v163: «Endet von selbst» neutral
         XCTAssertEqual(o.items.map { $0.showActions }, [true, true, false, false])
         XCTAssertEqual(o.items.map { $0.partner }, ["", "Zattoo", "Sunrise", "Leasing AG"])
         XCTAssertEqual(o.items.map { $0.endsBySelf }, [false, false, false, true])
@@ -576,7 +576,7 @@ final class WebSync160Tests: XCTestCase {
         XCTAssertNil(Catalog.find("Rundfunkbeitrag"))
         XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.country, "CH")
         XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .EUR)?.country, "DE")
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.web, "")
+        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.web, "serafe.ch")   // Katalog v224
         Format.homeCurrency = .EUR
         XCTAssertEqual(Catalog.find("Rundfunkgebühr")?.country, "DE")
         Format.homeCurrency = .CHF
@@ -584,7 +584,7 @@ final class WebSync160Tests: XCTestCase {
         // Vorschläge: gleicher Name nur einmal
         XCTAssertEqual(Catalog.suggestions("rundfunk", currency: .CHF).map { $0.country }, ["CH"])
         XCTAssertEqual(Catalog.suggestions("rundfunk", currency: .EUR).map { $0.country }, ["DE"])
-        XCTAssertFalse(Catalog.entries.contains { $0.name.contains("Serafe") || $0.label.contains("Serafe") || $0.hint.contains("Serafe") })
+        XCTAssertFalse(Catalog.entries.contains { $0.name.contains("Serafe") || $0.label.contains("Serafe") })   // v224: Hinweis nennt Serafe als Stelle
         XCTAssertEqual(Catalog.find("Swiss Life")?.cancelChannel, .letter)
         XCTAssertEqual(Catalog.find("IWB")?.mandatory, false)
         XCTAssertTrue(ContractFormRules.taxInfo.contains("Rundfunkgebühr"))
@@ -596,7 +596,7 @@ final class WebSync160Tests: XCTestCase {
     func testCancelChannelMigration() throws {
         XCTAssertEqual(CancelChannel(webText: "Einschreiben"), .letter)
         XCTAssertEqual(CancelChannel(webText: "Brief"), .letter)
-        XCTAssertEqual(CancelChannel.allCases, [.online, .email, .letter])
+        XCTAssertEqual(CancelChannel.allCases, [.online, .email, .letter, .phone])   // Web v210: Telefon
         let old = try KontivoJSON.makeDecoder().decode([CancelChannel].self, from: Data(#"["registered","letter","online"]"#.utf8))
         XCTAssertEqual(old, [.letter, .letter, .online])
         // Web-Backup mit «Einschreiben»

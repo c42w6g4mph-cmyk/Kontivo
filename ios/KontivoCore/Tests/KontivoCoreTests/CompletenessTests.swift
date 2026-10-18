@@ -89,7 +89,7 @@ final class CompletenessTests: XCTestCase {
         XCTAssertEqual(Completeness.termWho(c2, calc: calc), "Abo · 89.00 CHF monatlich")
         XCTAssertEqual(Completeness.termWho(c6, calc: calc), "Box · 20.00 EUR monatlich") // Web v144: Format nach Hauptwährung
         XCTAssertEqual(Completeness.termText(catalog: nil), "Damit Kontivo dich rechtzeitig vor der Frist erinnert.")
-        XCTAssertEqual(Completeness.catalogHint(Catalog.find("Swisscom")), "Üblich bei Swisscom: 60 Tage auf Monatsende")
+        XCTAssertEqual(Completeness.catalogHint(Catalog.find("Swisscom")), "Üblich bei Swisscom: 60 Tage")   // Web v215: jederzeit mit 60 Tagen
         XCTAssertEqual(Completeness.questionLabel(2, of: 4), "Frage 2 von 4")
         XCTAssertEqual(Completeness.senderQuestion(name: "Lara", personCount: 2), "Adresse von Lara")
         XCTAssertEqual(Completeness.senderQuestion(name: "Ich", personCount: 1), "Deine Adresse")
@@ -130,7 +130,7 @@ final class CompletenessTests: XCTestCase {
         XCTAssertEqual(t.mode, .open)
         XCTAssertEqual(t.notice, "60")
         XCTAssertEqual(t.noticeUnit, .days)
-        XCTAssertEqual(t.cancelTerm, .monthEnd)
+        XCTAssertEqual(t.cancelTerm, .anytime)   // Katalog v215: Swisscom jederzeit mit 60 Tagen
         XCTAssertEqual(t.renew, 12)
     }
 

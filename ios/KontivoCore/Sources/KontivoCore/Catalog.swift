@@ -29,7 +29,8 @@ public struct CatalogEntry: Codable, Hashable, Sendable, Identifiable {
     /// Kontaktdaten aus offizieller Quelle (TPL[15]); false → Prüfhinweis
     public var confirmed: Bool
 
-    public var id: String { name }
+    /// Eindeutig über Name, Land und Bezeichnung (gleiche Namen wie «CSS» Krankenkasse/Zusatzversicherung, Web v210).
+    public var id: String { name + "|" + country + "|" + label }
 
     public init(name: String, country: String, category: String, label: String, web: String, notice: Int, noticeUnit: NoticeUnit,
                 cancelTerm: CancelTerm, cancelChannel: CancelChannel?, mandatory: Bool, hint: String, cancelURL: String = "",
@@ -81,8 +82,35 @@ public struct CatalogEntry: Codable, Hashable, Sendable, Identifiable {
     /// Land für die Anzeige (`tplFlag`): «CH», «DE» oder «CH · DE».
     public var flag: String { country.isEmpty ? "CH · DE" : country }
 
+    /// Land ausgeschrieben für Trefferlisten bei gleichen Namen: «Schweiz», «Deutschland», sonst das Kürzel ("" = international).
+    public var countryName: String { country == "CH" ? "Schweiz" : country == "DE" ? "Deutschland" : country }
+
+    /// Kurzinfo zur Kündigung (Web `tplTerm`, v211): «nicht kündbar» (Steuern & Gebühren), «Pflichtvertrag», «jederzeit kündbar»,
+    /// sonst «1 Monat Frist», «60 Tage Frist», «2 Wochen Frist» («bis zum n.» zählt als Monate wie im Web).
+    public var termShort: String {
+        if category == "Steuern & Gebühren" { return "nicht kündbar" }
+        if mandatory { return "Pflichtvertrag" }
+        let n = notice
+        if n == 0 { return "jederzeit kündbar" }
+        let u: (String, String)
+        switch noticeUnit {
+        case .days: u = ("Tag", "Tage")
+        case .weeks: u = ("Woche", "Wochen")
+        default: u = ("Monat", "Monate")
+        }
+        return "\(n) " + (n == 1 ? u.0 : u.1) + " Frist"
+    }
+
     /// Art der vorbelegten Kategorie.
     public var categoryKind: CategoryKind? { Category.defaultKind(forName: category) }
+
+    /// Leasing (Bezeichnung enthält «Leasing», Web v214): beim Übernehmen feste Laufzeit ohne Verlängerung
+    /// (Art «Mindestlaufzeit», Verlängerung leer); Laufzeit/Ende kennt nur der Vertrag.
+    public var isLeasing: Bool { label.range(of: "leasing", options: .caseInsensitive) != nil }
+
+    /// Strom Schweiz (Land CH, Bezeichnung «Strom», Web v215): beim Übernehmen in einem neuen Vertrag «Nicht kündbar»,
+    /// kein Pflichtvertrag (Grundversorgung, keine Anbieterwahl) – auch bei Namen mit «Wasser» (Energie Wasser Bern).
+    public var isSwissPower: Bool { country == "CH" && label == "Strom" }
 
     /// Währung beim Übernehmen (nur wenn noch kein Betrag eingetragen ist): DE → EUR, CH → CHF.
     public var suggestedCurrency: Currency? {
@@ -126,18 +154,29 @@ public enum Catalog {
         return list
     }
 
-    /// Eintrag mit genau diesem Namen (ohne Gross/Klein, getrimmt) (Web `tplFind(n, cur)`, v158). Gibt es den Namen in CH und
-    /// DE (Rundfunkgebühr), entscheidet die Währung: EUR → DE, sonst CH. `currency`: Währung im Formular, sonst die
-    /// Hauptwährung (`Format.homeCurrency`).
-    public static func find(_ name: String, currency: Currency? = nil) -> CatalogEntry? {
+    /// Alle Einträge mit genau diesem Namen (ohne Gross/Klein, getrimmt) (Web `tplAll`, v210). Gibt es mehrere, zuerst die des
+    /// Landes zur Währung (EUR → DE, sonst CH), danach internationale; Einträge des anderen Landes fallen dann weg.
+    /// `currency`: Währung im Formular, sonst die Hauptwährung (`Format.homeCurrency`).
+    public static func all(_ name: String, currency: Currency? = nil) -> [CatalogEntry] {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if n.isEmpty { return nil }
-        let list = entries.filter { $0.name.lowercased() == n }
+        var list = entries.filter { $0.name.lowercased() == n }
         if list.count > 1 {
             let cc = (currency ?? Format.homeCurrency) == .EUR ? "DE" : "CH"
-            if let m = list.first(where: { $0.country == cc }) { return m }
+            let m = list.filter { $0.country == cc }
+            if !m.isEmpty { list = m + list.filter { $0.country.isEmpty } }
         }
-        return list.first
+        return list
+    }
+
+    /// Eintrag zu einem Namen (Web `tplFind(n, cur, lab)`, v210): aus `all(name, currency:)` der zuletzt übernommene Eintrag
+    /// (`preferred`, Web `draft.tplIdx`), sonst der mit dieser Bezeichnung (ohne Gross/Klein), sonst der erste.
+    public static func find(_ name: String, currency: Currency? = nil, label: String = "", preferred: CatalogEntry? = nil) -> CatalogEntry? {
+        let list = all(name, currency: currency)
+        if list.isEmpty { return nil }
+        if let p = preferred, list.contains(p) { return p }
+        let lab = label.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if !lab.isEmpty, let m = list.first(where: { $0.label.lowercased() == lab }) { return m }
+        return list[0]
     }
 
     /// Katalog-Eintrag zu einem bestehenden Vertrag (Web `tplMatch`): exakter Name (Vertragspartner, sonst Bezeichnung);
@@ -165,12 +204,36 @@ public enum Catalog {
         }.stableSorted { $0.name.compare($1.name, options: [], range: nil, locale: Locale(identifier: "de")) == .orderedAscending }
     }
 
-    /// Vorlage-Chips unter dem Vertragspartner (höchstens 5): «Name Bezeichnung» enthält den Text. Gleicher Name in CH und DE
-    /// erscheint nur einmal, passend zur Währung (Web v158: `tplFind(t[0]) === t`).
+    /// Vorlagen zu einem Text (höchstens 5, Web v210 `paintSugg`-Treffer): «Name Bezeichnung» enthält den Text; bei gleichen Namen
+    /// nur die Einträge aus `all(name, currency:)` (Land zur Währung). Seit Web v213 zeigt die App stattdessen `hits`.
     public static func suggestions(_ query: String, currency: Currency? = nil, limit: Int = 5) -> [CatalogEntry] {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if q.count < 2 { return [] }
-        return Array(entries.filter { ($0.name + " " + $0.label).lowercased().contains(q) && find($0.name, currency: currency) == $0 }.prefix(limit))
+        return Array(entries.filter { ($0.name + " " + $0.label).lowercased().contains(q) && all($0.name, currency: currency).contains($0) }.prefix(limit))
+    }
+
+    /// Katalogtreffer in der gemeinsamen Trefferliste unter dem Vertragspartner (Web v213 `tplHits`): exakter Name → alle
+    /// Einträge mit diesem Namen; sonst «Name Bezeichnung» enthält den Text (Land zur Währung wie `all`). Höchstens 3, mit
+    /// `more` («Weitere Katalogtreffer» angetippt) höchstens 8; `hasMore` = Knopf «Weitere Katalogtreffer» zeigen.
+    public static func hits(_ query: String, currency: Currency? = nil, more: Bool = false) -> (entries: [CatalogEntry], hasMore: Bool) {
+        let n = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if n.count < 2 { return ([], false) }
+        let ex = entries.filter { $0.name.lowercased() == n }
+        let list = !ex.isEmpty ? ex : entries.filter { ($0.name + " " + $0.label).lowercased().contains(n) && all($0.name, currency: currency).contains($0) }
+        return (Array(list.prefix(more ? 8 : 3)), list.count > 3 && !more)
+    }
+
+    /// Zweite Zeile eines Katalogtreffers (Web v213 `paintPSug`): «Bezeichnung (sonst Kategorie) · Land (nur bei gleichen Namen)
+    /// · Kurzinfo», z.B. «Krankenkasse · Schweiz · Pflichtvertrag».
+    public static func hitSubtitle(_ t: CatalogEntry, currency: Currency? = nil) -> String {
+        let multi = all(t.name, currency: currency).count > 1
+        return [t.label.isEmpty ? t.category : t.label, multi && !t.country.isEmpty ? t.countryName : "", t.termShort]
+            .filter { !$0.isEmpty }.joined(separator: " · ")
+    }
+
+    /// Registrierbare Domains der Katalogtreffer: Internet-Treffer mit gleicher Website erscheinen nicht nochmals (Web v213).
+    public static func hitDomains(_ list: [CatalogEntry]) -> Set<String> {
+        Set(list.compactMap { $0.web.isEmpty ? nil : Partners.regDom($0.web) })
     }
 
     /// Erster Eintrag mit derselben registrierbaren Domain.

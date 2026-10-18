@@ -156,7 +156,7 @@ final class RemindersTests: XCTestCase {
         XCTAssertEqual(item?.sub, "Endet von selbst")
         XCTAssertEqual(item?.chip, "endet 31.12.")
         XCTAssertEqual(item?.date, Day(2026, 12, 31))
-        XCTAssertEqual(item?.chipLevel, .end)
+        XCTAssertEqual(item?.chipLevel, Calc.ChipLevel.none)   // Web v163: neutral, rot nur bei gekündigt
         XCTAssertEqual(item?.endsBySelf, true)
         XCTAssertNil(c2.reminderDeadline(for: once))
     }

@@ -414,6 +414,8 @@ final class AppModel {
         }
         cancelReturnCheck()
         Task { await RateService.refreshIfNeeded(self, force: false) }
+        // Web v162: bei offener App stündlich prüfen (Bereich core)
+        RateService.startHourly(self)
         flushDeferredWrite()
         sync.sceneBecameActive()
     }

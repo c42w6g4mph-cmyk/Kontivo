@@ -18,6 +18,8 @@ extension AppModel {
             cancelFlowMail(c, trial: trial)
         case .post:
             present(.letter(contractID, trial: trial))
+        case .tel:
+            cancelFlowPhone(c, trial: trial)
         case .none:
             present(.cancelChannelPick(contractID, trial: trial))
         }
@@ -118,6 +120,28 @@ extension AppModel {
         toast("Nach der Kündigung hier bestätigen")
         let id = c.id
         // kurz warten, damit der Toast noch sichtbar ist, bevor Safari öffnet
+        CancelWindowFlow.afterDismiss(self, wait: 350, keepStack: false,
+                                      still: { [weak self] in self?.pendingCancel?.contractID == id }) { [weak self] in
+            self?.cancelFlowOpenExternal(url, pending: PendingCancel(contractID: id, trial: trial))
+        }
+    }
+
+    /// Kündigung per Telefon (Web v210 `ktel`, z.B. Sunrise, Salt): ohne Nummer «Telefonnummer fehlt» → Formular «Telefon»;
+    /// sonst Kundendienst anrufen, danach beim Zurückkehren «Gekündigt?» bestätigen.
+    private func cancelFlowPhone(_ c: Contract, trial: Bool) {
+        let tn = String(c.tel.unicodeScalars.filter { CharacterSet.decimalDigits.contains($0) || $0 == "+" })
+        let id = c.id
+        guard !tn.isEmpty, let url = URL(string: "tel:" + tn) else {
+            CancelWindowFlow.ask(self, title: "Telefonnummer fehlt",
+                                 message: "Trag die Nummer des Kundendiensts beim Vertrag unter «Kontakt» ein.",
+                                 ok: "Eintragen") { [weak self] in
+                guard let self else { return }
+                ContractFormLaunch.edit(self, id, focus: .tel)
+            }
+            return
+        }
+        pendingCancel = PendingCancel(contractID: id, trial: trial)
+        toast("Nach dem Anruf hier bestätigen")
         CancelWindowFlow.afterDismiss(self, wait: 350, keepStack: false,
                                       still: { [weak self] in self?.pendingCancel?.contractID == id }) { [weak self] in
             self?.cancelFlowOpenExternal(url, pending: PendingCancel(contractID: id, trial: trial))

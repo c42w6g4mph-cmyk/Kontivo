@@ -22,6 +22,7 @@ struct CancelChannelPickView: View {
         Option(channel: .online, title: "Online", detail: "Kundenkonto, Kündigungsbutton"),
         Option(channel: .email, title: "Per E-Mail", detail: "Mail mit fertigem Text"),
         Option(channel: .letter, title: "Per Brief", detail: "PDF mit Unterschrift"),
+        Option(channel: .phone, title: "Per Telefon", detail: "Kundendienst anrufen"),
     ]
 
     var body: some View {
