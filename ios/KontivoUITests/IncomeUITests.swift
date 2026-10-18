@@ -25,7 +25,7 @@ final class IncomeUITests: KontivoUITestCase {
 
         // Bearbeiten: Formular im Vertragsstil, Änderungsliste mit % und «aktuell»
         tapTop("Bearbeiten")
-        waitNav("Bearbeiten")
+        waitIncomeForm("Bearbeiten")
         XCTAssertEqual(textField("income.amount").value as? String, "7200.00")
         let current = button("income.price.2026-01-01")
         reveal(current, "Änderung ab 01.01.26")
@@ -45,7 +45,7 @@ final class IncomeUITests: KontivoUITestCase {
         waitUntil("Zahlung am 12. (\((due.value as? String) ?? ""))") { (due.value as? String) == "12. im Monat" }
 
         tapTop("Sichern")
-        waitUntil("Formular geschlossen") { !self.navExists("Bearbeiten") }
+        waitUntil("Formular geschlossen") { !self.incomeFormOpen("Bearbeiten") }
         waitUntil("Nächste Zahlung 12.10.26") { self.el("incomeDetail.kz.next").label.contains("12.10.26") }
         tapTop("Schliessen")
         waitGone(month, "Ansicht geschlossen")
@@ -60,7 +60,7 @@ final class IncomeUITests: KontivoUITestCase {
         tap(row, "Unterstützung öffnen")
         wait(el("incomeDetail.kz.month"), "Ansicht")
         tapTop("Bearbeiten")
-        waitNav("Bearbeiten")
+        waitIncomeForm("Bearbeiten")
         let due = button("income.due")
         reveal(due, "Zahlung am")
         XCTAssertEqual(due.value as? String, "15. Jan, Apr, Jul, Okt")
@@ -75,7 +75,7 @@ final class IncomeUITests: KontivoUITestCase {
         tap(button("income.due.day.3"), "Tag 3")
         waitUntil("3. Feb, Mai, Aug, Nov") { (due.value as? String) == "3. Feb, Mai, Aug, Nov" }
         tapTop("Sichern")
-        waitUntil("Formular geschlossen") { !self.navExists("Bearbeiten") }
+        waitUntil("Formular geschlossen") { !self.incomeFormOpen("Bearbeiten") }
         waitUntil("Nächste Zahlung 03.11.26") { self.el("incomeDetail.kz.next").label.contains("03.11.26") }
     }
 
@@ -89,7 +89,7 @@ final class IncomeUITests: KontivoUITestCase {
         print("Menüpunkte: \(buttonStarting("Vertrag erfassen").label) | \(entry.label)")
         keepShot("inc-5-plusmenue")
         tap(entry, "Einnahme erfassen")
-        waitNav("Neue Einnahme")
+        waitIncomeForm("Neue Einnahme")
         enter(textField("income.label"), "QA Rente", "Bezeichnung")
         enter(textField("income.amount"), "1500", "Betrag")
         closeKeyboard()
@@ -101,7 +101,7 @@ final class IncomeUITests: KontivoUITestCase {
         tap(buttonStarting("Rente"), "Art Rente")
         waitUntil("Art Rente") { (self.button("income.kind").value as? String) == "Rente" }
         tapTop("Sichern")
-        waitUntil("Formular geschlossen") { !self.navExists("Neue Einnahme") }
+        waitUntil("Formular geschlossen") { !self.incomeFormOpen("Neue Einnahme") }
         tapTab("Budget")
         wait(buttonStarting("QA Rente"), "Neue Einnahme im Budget")
     }
@@ -112,26 +112,38 @@ final class IncomeUITests: KontivoUITestCase {
         wait(el("incomeDetail.kz.month"), "Ansicht Lohn", timeout: 12)
         tap(button("incomeDetail.menu"), "Menü •••")
         tap(button("Duplizieren"), "Duplizieren")
-        waitNav("Bearbeiten")
+        waitIncomeForm("Bearbeiten")
         XCTAssertEqual(textField("income.label").value as? String, "Lohn")
         tapTop("Abbrechen")
-        waitUntil("Formular geschlossen") { !self.navExists("Bearbeiten") }
+        waitUntil("Formular geschlossen") { !self.incomeFormOpen("Bearbeiten") }
         wait(buttonContaining("Alle Einnahmen (6)"), "Kopie zählt mit")
 
         // Kopie wieder löschen: Alle Einnahmen → Ansicht → Bearbeiten → Einnahme löschen
         tap(buttonContaining("Alle Einnahmen (6)"), "Alle Einnahmen")
-        waitNav("Alle Einnahmen")
+        wait(el("incomes.title"), "Fenster «Alle Einnahmen»")
         let copies = app.buttons.matching(pred("label BEGINSWITH %@ AND label CONTAINS %@", "Lohn", "7’600.00"))
         waitUntil("zwei Zeilen «Lohn 7’600.00»") { copies.count >= 2 }
         tap(copies.element(boundBy: 1), "Kopie öffnen")
         wait(el("incomeDetail.kz.month"), "Ansicht Kopie")
         tapTop("Bearbeiten")
-        waitNav("Bearbeiten")
+        waitIncomeForm("Bearbeiten")
         tap(button("income.delete"), "Einnahme löschen")
         tapAlertButton("Löschen")
-        waitUntil("Formular und Ansicht geschlossen") { !self.navExists("Bearbeiten") && !self.el("incomeDetail.kz.month").exists }
-        waitNav("Alle Einnahmen")
-        tapTop("Fertig")
+        waitUntil("Formular und Ansicht geschlossen") { !self.incomeFormOpen("Bearbeiten") && !self.el("incomeDetail.kz.month").exists }
+        wait(el("incomes.title"), "zurück in «Alle Einnahmen»")
+        tapTop("Schliessen")
         wait(buttonContaining("Alle Einnahmen (5)"), "Kopie gelöscht")
+    }
+}
+
+extension KontivoUITestCase {
+    /// Formular der Einnahme (eigene Kopfleiste wie Web `.shbar`, ohne Navigationsleiste): Titel «Neue Einnahme» / «Bearbeiten»
+    func incomeFormOpen(_ title: String) -> Bool {
+        // eine Abfrage (kein späteres Lesen von .label: beim Schliessen kann das Element dazwischen verschwinden)
+        app.descendants(matching: .any).matching(pred("identifier == %@ AND label == %@", "income.form.title", title)).firstMatch.exists
+    }
+
+    func waitIncomeForm(_ title: String, timeout: TimeInterval = 10, file: StaticString = #filePath, line: UInt = #line) {
+        waitUntil("Formular «\(title)»", timeout: timeout, file: file, line: line) { self.incomeFormOpen(title) }
     }
 }

@@ -1,26 +1,19 @@
 import SwiftUI
-import Charts
 import KontivoCore
 
-/// Tab «Kosten»: Zahlungen pro Monat (Diagramm), Filter, Liste des Monats, Aufteilung.
+/// Tab «Kosten»: Kopf mit Jahr und Bericht, Filter, Monatskarte (Diagramm), Liste des Monats, «Entwicklung und Preistreiber».
 struct CostsTab: View {
     @Environment(AppModel.self) private var model
     /// Liste «Fällig im»: nach Betrag statt Datum
     @State private var listByAmount = false
     /// «Bereits bezahlt» aufgeklappt
     @State private var showPaid = false
-    /// Aufteilung nach Kategorie oder Vertragspartner
-    @State private var splitDim: Calc.FilterDimension = .category
-    /// Aufteilung für den Monat statt das Jahr
-    @State private var splitMonth = false
-    /// Gewähltes Segment im Ring
-    @State private var ringSel: String?
-    /// «Übrige» aufgeklappt
-    @State private var showRest = false
     /// Zweite Filterzeile (Kategorie/Vertragspartner) offen
     @State private var moreFilters = false
     /// Offene Werteliste eines Filters
     @State private var pick: KBPickDim?
+    /// Aufgeklappte Kategorie in «Entwicklung und Preistreiber» (Web `state.ptOpen`)
+    @State private var driverOpen: String?
 
     var body: some View {
         let hasContracts = !model.data.contracts.isEmpty
@@ -33,11 +26,6 @@ struct CostsTab: View {
         }
         .kPageBackground()
         .navigationTitle("Kosten")
-        .toolbar {
-            if hasContracts {
-                ToolbarItem(placement: .topBarTrailing) { KBYearNav() }
-            }
-        }
         .sheet(item: $pick) { p in
             KBFilterPickSheet(dim: p.dim)
                 .environment(model)
@@ -63,58 +51,66 @@ struct CostsTab: View {
         }
     }
 
+    /// Teilen-Symbol: Bericht nur mit aktiven Verträgen (Web `openRepOpts`)
+    private func openReport() {
+        if !model.calc.reportAvailable {
+            model.toast(Calc.reportUnavailableText)
+            return
+        }
+        model.present(.fixReport(person: model.costFilter.person, fromCosts: true))
+    }
+
     // MARK: Inhalt
 
     private var content: some View {
         let calc = model.calc
         let year = model.selectedYear
         let month = KBMonthNav.month(model)
-        let cy = KBYearCache.costYear(calc, year: year, filter: model.costFilter, split: splitDim)
-        return ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                KBCostFilterBar(moreFilters: $moreFilters, pick: $pick)
-                if cy.paymentCount == 0 {
-                    noPayments(year: year, hint: cy.noStartHint)
-                } else {
-                    KBCostMonthCard(cy: cy, month: month)
-                        .padding(.top, 14)
-                    if let h = cy.noStartHint {
-                        hintText(h)
-                    }
-                    KBCostMonthList(items: cy.months[month - 1].items, month: month,
-                                    byAmount: $listByAmount, showPaid: $showPaid)
-                    KBCostSplitView(cy: cy, month: month, splitDim: $splitDim, splitMonth: $splitMonth,
-                                    ringSel: $ringSel, showRest: $showRest)
+        let cy = KBYearCache.costYear(calc, year: year, filter: model.costFilter, split: .category)
+        return KBPage(miniTitle: "Kosten · " + String(year)) {
+            KBPageHeader(title: "Kosten") { KBYearNav(report: { openReport() }) }
+            KBCostFilterBar(moreFilters: $moreFilters, pick: $pick)
+            if cy.paymentCount == 0 {
+                noPayments(year: year, hint: cy.noStartHint)
+            } else {
+                KBCostMonthCard(cy: cy, month: month)
+                    .padding(.top, 14)
+                if let h = cy.noStartHint {
+                    hintText(h)
                 }
+                KBCostMonthList(items: cy.months[month - 1].items, month: month,
+                                byAmount: $listByAmount, showPaid: $showPaid)
+                    .id("kbList")
+                KBCostDriversView(year: year, open: $driverOpen)
             }
-            .padding(.horizontal, KMetric.gutter)
-            .padding(.bottom, 28)
-            .kContentWidth()
         }
     }
 
+    /// Web `.empty`: «Keine Zahlungen in 2031» (16 px Semibold) und Text 14 px
     private func noPayments(year: Int, hint: String?) -> some View {
-        VStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 5) {
             Text(verbatim: "Keine Zahlungen in " + String(year))
-                .font(.headline)
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(KColor.ink)
             Text("Für dieses Jahr sind keine Zahlungen erfasst oder berechenbar.")
-                .font(.subheadline)
+                .font(.system(size: 14))
+                .lineSpacing(14 * 0.4)
                 .foregroundStyle(KColor.ink2)
-                .multilineTextAlignment(.center)
             if let h = hint { hintText(h) }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 46)
+        .padding(.horizontal, 6)
     }
 
+    /// Web `.note` (12.5 px, Zeilenhöhe 1.55)
     private func hintText(_ h: String) -> some View {
         Text(verbatim: h)
-            .font(.footnote)
-            .foregroundStyle(KColor.ink3)
+            .font(.system(size: 12.5))
+            .lineSpacing(12.5 * 0.35)
+            .foregroundStyle(KColor.ink2)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 8)
-            .padding(.horizontal, 4)
     }
 
     /// Leerseite emptyStat (ohne Jahresleiste)
@@ -137,7 +133,7 @@ struct CostsTab: View {
     /// Nach einem Filterwechsel: hat der gewählte Monat nichts, den nächsten Monat mit Zahlungen wählen.
     private func autoSelectMonth() {
         let calc = model.calc
-        let cy = KBYearCache.costYear(calc, year: model.selectedYear, filter: model.costFilter, split: splitDim)
+        let cy = KBYearCache.costYear(calc, year: model.selectedYear, filter: model.costFilter, split: .category)
         let m = calc.kbAutoMonth(cy, current: model.selectedMonth)
         if m != model.selectedMonth { model.selectedMonth = m }
     }
@@ -162,15 +158,15 @@ struct KBCostMonthCard: View {
         let m = cy.months[month - 1]
         let cmp = KBYearCache.monthComparison(calc, year: cy.year, month: month, filter: model.costFilter, monthSum: m.sum, items: m.items)
         KBPagingCard {
-            KBCardHeader(year: cy.year, month: month, trailing: calc.kbFilterLabel(model.costFilter))
+            KBCardHeader(year: cy.year, month: month, trailing: model.costFilter.count > 0 ? calc.kbFilterLabel(model.costFilter) : "")
             KBBigAmount(value: m.sum, currency: home)
             if let c = cmp {
-                KBCompareLine(text: c.text, arrow: c.trend.kbArrow, color: KBCostMonthCard.color(c.trend))
+                KBCompareLine(text: c.text, arrow: c.trend.kbArrow, tone: c.trend)
             }
             paidOpen(m)
             chartArea(home: home)
             KBCardRow(top: 16) {
-                HStack(alignment: .top) {
+                HStack(alignment: .top, spacing: 12) {
                     KBStatCell(label: "Ø pro Monat", value: Format.money0(cy.average))
                     KBStatCell(label: "Total " + String(cy.year), value: Format.money0(cy.total), trailing: true)
                 }
@@ -178,27 +174,26 @@ struct KBCostMonthCard: View {
         }
     }
 
-    /// Mehr Kosten = Warnfarbe, weniger = Grün
-    static func color(_ t: Calc.Trend) -> Color {
-        switch t {
-        case .up: return KColor.warn
-        case .down: return KColor.ok
-        case .same: return KColor.ink2
-        }
-    }
-
     private func paidOpen(_ m: Calc.CostMonth) -> some View {
-        KBCardRow {
+        Group {
             if m.items.isEmpty {
-                Text("In diesem Monat ist nichts fällig.")
-                    .font(.footnote)
-                    .foregroundStyle(KColor.ink3)
+                // Web `.krow.kempty`
+                VStack(alignment: .leading, spacing: 0) {
+                    Rectangle().fill(KColor.line).frame(height: 1)
+                    Text("In diesem Monat ist nichts fällig.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(KColor.ink3)
+                        .padding(.top, 14)
+                }
+                .padding(.top, 18)
             } else {
-                HStack(alignment: .top) {
-                    KBStatCell(label: "Bezahlt", value: Format.money(m.paid), dot: KColor.teal,
-                               check: m.open < 0.005, muted: m.paid < 0.005)
-                    KBStatCell(label: "Offen", value: Format.money(m.open), trailing: true,
-                               dot: KColor.ink.opacity(0.38), muted: m.open < 0.005)
+                KBCardRow {
+                    HStack(alignment: .top, spacing: 12) {
+                        KBStatCell(label: "Bezahlt", value: Format.money(m.paid), dot: KColor.teal,
+                                   check: m.open < 0.005, muted: m.paid < 0.005)
+                        KBStatCell(label: "Offen", value: Format.money(m.open), trailing: true,
+                                   dot: KBColor.openDot, muted: m.open < 0.005)
+                    }
                 }
             }
         }
@@ -210,18 +205,20 @@ struct KBCostMonthCard: View {
         let value = Format.monthNames[month - 1] + " " + String(cy.year) + ": " + Format.money(m.sum) + " " + home
         return VStack(spacing: 0) {
             KBCostChart(months: cy.months, selected: month, average: cy.average, total: cy.total, maxMonth: cy.maxMonth)
-                .frame(height: 140)
+                .frame(height: 170)
             KBMonthLabels(year: cy.year, selected: month, today: model.today)
         }
         .contentShape(Rectangle())
         .kbScrubArea()
         .kbMonthAdjustable(model, label: label, value: value)
         .padding(.trailing, 16)
-        .padding(.top, 30)
+        .padding(.top, 22)
+        .accessibilityIdentifier("costs.chart")
     }
 }
 
-/// Balken je Monat: unten bezahlt (Teal), oben offen (Tinte); gewählter Monat kräftig, übrige blass.
+/// Balken je Monat (Web `.chart`, 170 pt mit Grundlinie): unten bezahlt, oben offen; gewählter Monat Messing,
+/// vergangene blass Messing, künftige grau.
 struct KBCostChart: View {
     let months: [Calc.CostMonth]
     let selected: Int
@@ -230,59 +227,43 @@ struct KBCostChart: View {
     let maxMonth: Double
 
     var body: some View {
-        Chart {
-            ForEach(0..<12, id: \.self) { i in
-                bars(i)
-            }
-            if total != 0 {
-                RuleMark(y: .value("Ø", average))
-                    .foregroundStyle(KColor.ink2.opacity(0.8))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
-            }
-        }
-        .chartXScale(domain: Format.monthShort)
-        .chartYScale(domain: 0...(maxMonth > 0 ? maxMonth : 1))
-        .chartXAxis(.hidden)
-        .chartYAxis(.hidden)
-        .chartLegend(.hidden)
-        .chartOverlay { proxy in
-            GeometryReader { geo in
-                averageLabel(proxy: proxy, geo: geo)
+        let mx = maxMonth > 0 ? maxMonth : 1
+        GeometryReader { g in
+            let h = g.size.height - 1
+            ZStack(alignment: .bottom) {
+                HStack(alignment: .bottom, spacing: 3) {
+                    ForEach(0..<12, id: \.self) { i in
+                        column(months[i], on: i + 1 == selected, h: h, mx: mx)
+                    }
+                }
+                .frame(height: h)
+                .frame(maxHeight: .infinity, alignment: .top)
+                Rectangle().fill(KColor.line).frame(height: 1)
+                if total != 0 {
+                    KBAverageLine(fraction: CGFloat(average / mx))
+                        .frame(height: h)
+                        .frame(maxHeight: .infinity, alignment: .top)
+                }
             }
         }
         .accessibilityHidden(true)
     }
 
-    @ChartContentBuilder
-    private func bars(_ i: Int) -> some ChartContent {
-        let paid = max(0, months[i].paid)
-        let open = max(0, months[i].open)
-        let top = paid + open
-        let on = i + 1 == selected
-        let x = Format.monthShort[i]
-        if top > 0 {
-            BarMark(x: .value("Monat", x), yStart: .value("Von", 0.0), yEnd: .value("Bis", top), width: .ratio(0.8))
-                .foregroundStyle(open > 0 ? KBCostChart.openColor(on) : KBCostChart.paidColor(on))
-                .cornerRadius(4, style: .continuous)
+    private func column(_ m: Calc.CostMonth, on: Bool, h: CGFloat, mx: Double) -> some View {
+        let zero = m.sum == 0
+        let op = zero ? 0 : CGFloat(max(0, m.open) / mx) * h
+        let pd = zero ? 0 : CGFloat(max(0, m.paid) / mx) * h
+        let capOpen = m.open > 0
+        return VStack(spacing: 0) {
+            Spacer(minLength: 0)
+            UnevenRoundedRectangle(topLeadingRadius: capOpen ? 4 : 0, topTrailingRadius: capOpen ? 4 : 0, style: .circular)
+                .fill(on ? KColor.brass : KBColor.barFuture)
+                .frame(height: op)
+            UnevenRoundedRectangle(topLeadingRadius: capOpen ? 0 : 4, topTrailingRadius: capOpen ? 0 : 4, style: .circular)
+                .fill(on ? KColor.brass : KBColor.barPast)
+                .frame(height: pd)
         }
-        if open > 0 && paid > 0 {
-            BarMark(x: .value("Monat", x), yStart: .value("Von", 0.0), yEnd: .value("Bis", paid), width: .ratio(0.8))
-                .foregroundStyle(KBCostChart.paidColor(on))
-        }
-    }
-
-    static func paidColor(_ on: Bool) -> Color { on ? KColor.teal : KColor.teal.opacity(0.34) }
-    static func openColor(_ on: Bool) -> Color { KColor.ink.opacity(on ? 0.72 : 0.12) }
-
-    @ViewBuilder
-    private func averageLabel(proxy: ChartProxy, geo: GeometryProxy) -> some View {
-        if total != 0, let pf = proxy.plotFrame, let y = proxy.position(forY: average) {
-            let r = geo[pf]
-            Text(verbatim: "Ø")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(KColor.ink3)
-                .position(x: r.maxX + 9, y: r.minY + y)
-        }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -298,21 +279,25 @@ struct KBCostMonthList: View {
     var body: some View {
         let parts = model.calc.kbOpenPaid(items, byAmount: byAmount)
         VStack(alignment: .leading, spacing: 0) {
-            KBGroupHeader(title: "Fällig im " + Format.monthNames[month - 1]) {
+            HStack(alignment: .center, spacing: 8) {
+                Text(verbatim: "Fällig im " + Format.monthNames[month - 1])
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(KColor.ink)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: 8)
                 if items.count > 1 {
-                    Picker("Sortierung", selection: $byAmount) {
-                        Text("Datum").tag(false)
-                        Text("Betrag").tag(true)
-                    }
-                    .pickerStyle(.segmented)
-                    .fixedSize()
-                    .controlSize(.small)
+                    KBSegment(options: ["Datum", "Betrag"], selected: Binding(get: { byAmount ? 1 : 0 }, set: { byAmount = $0 == 1 }))
+                        .accessibilityElement(children: .contain)
+                        .accessibilityLabel("Sortierung")
                 }
             }
+            .frame(minHeight: 31.9)
+            .padding(.top, 20)
+            .padding(.bottom, 6)
             KBListBlock {
                 if items.isEmpty {
                     Text("In diesem Monat ist nichts fällig.")
-                        .font(.subheadline)
+                        .font(.system(size: 14))
                         .foregroundStyle(KColor.ink2)
                         .padding(.vertical, 14)
                 } else {
@@ -339,7 +324,7 @@ struct KBCostMonthList: View {
     }
 }
 
-/// Zeile einer Zahlung (mrow)
+/// Zeile einer Zahlung (Web `.mrows2 .mrow`): Kachel 34, Name rund 16 Semibold, Zweitzeile 12.5, Betrag 16 Semibold
 struct KBCostRow: View {
     @Environment(AppModel.self) private var model
     let item: Calc.CostItem
@@ -355,33 +340,37 @@ struct KBCostRow: View {
                 model.present(.contractDetail(c.id))
             } label: {
                 HStack(spacing: 12) {
-                    MarkView(contract: c, data: model.data, size: 40)
+                    MarkView(contract: c, data: model.data, size: 34)
                         .opacity(past ? 0.7 : 1)
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 0) {
                         Text(verbatim: model.data.title(of: c))
-                            .font(.system(.body, design: .rounded).weight(.semibold))
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
                             .foregroundStyle(past ? KColor.ink2 : KColor.ink)
                             .lineLimit(1)
+                            .frame(height: 20)
                         if !sub.isEmpty {
                             Text(verbatim: sub)
-                                .font(.footnote)
+                                .font(.system(size: 12.5))
                                 .foregroundStyle(KColor.ink2)
                                 .lineLimit(1)
+                                .frame(height: 18.1)
                         }
                     }
                     Spacer(minLength: 8)
-                    VStack(alignment: .trailing, spacing: 2) {
-                        HStack(alignment: .firstTextBaseline, spacing: 3) {
+                    VStack(alignment: .trailing, spacing: 0) {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text(verbatim: amount)
-                                .font(.body.weight(.semibold).monospacedDigit())
+                                .font(.system(size: 16, weight: .semibold).monospacedDigit())
                                 .foregroundStyle(past ? KColor.ink2 : KColor.ink)
                             Text(verbatim: c.currency.rawValue)
-                                .font(.caption2)
+                                .font(.system(size: 11))
                                 .foregroundStyle(KColor.ink2)
                         }
+                        .frame(height: 23.2)
                         Text(verbatim: status.text)
-                            .font(.caption.weight(status.warn ? .semibold : .regular))
+                            .font(.system(size: 12.5, weight: status.warn ? .semibold : .regular))
                             .foregroundStyle(status.warn ? KColor.warn : KColor.ink3)
+                            .frame(height: 18.1)
                     }
                     .layoutPriority(1)
                 }

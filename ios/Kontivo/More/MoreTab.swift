@@ -206,11 +206,10 @@ struct MoreTile: View {
 
 // MARK: - Bericht
 
-/// Einstieg «Fixkosten-Bericht» (Web v220, Bereich costs). Der Bereich costs setzt `MoreReport.open` (z.B. beim Start);
-/// ohne Eintrag passiert beim Tippen nichts.
+/// Einstieg «Fixkosten-Bericht» (Web v220). Standard: Auswahl des Berichts (Bereich costs, `MoreReport.openFixReport`).
 @MainActor
 enum MoreReport {
-    static var open: ((AppModel) -> Void)?
+    static var open: (@MainActor (AppModel) -> Void)? = { MoreReport.openFixReport($0) }
 }
 
 struct MoreReportGroup: View {

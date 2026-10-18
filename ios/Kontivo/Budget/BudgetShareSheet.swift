@@ -15,7 +15,8 @@ struct BudgetShareInfo: Identifiable, Hashable {
     var id: String { "\(year)-\(monthLabel)-\(person?.uuidString ?? "")" }
 }
 
-/// «x % der Einnahmen ⓘ» hinter «verfügbar nach Fixkosten»; öffnet die Einordnung. Web: .kfq / openFq
+/// «verfügbar nach Fixkosten · x % der Einnahmen ⓘ» in einer Zeile (Web v175 `.kh .ksub`, 12.5 px Tinte 3); öffnet die Einordnung.
+/// Web: .kfq / openFq. Passt die Zeile nicht, bricht der Teil «x % der Einnahmen ⓘ» als Ganzes um (white-space: nowrap).
 struct KBBudgetSubline: View {
     let bm: Calc.BudgetMonth
     let info: BudgetShareInfo?
@@ -23,25 +24,39 @@ struct KBBudgetSubline: View {
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: 0) { base; if info != nil { Text(" · "); link } }
-            VStack(alignment: .leading, spacing: 2) { base; if info != nil { link } }
+            HStack(spacing: 0) {
+                Text("verfügbar nach Fixkosten").lineLimit(1)
+                if info != nil {
+                    Text(verbatim: " · ")
+                    link
+                }
+            }
+            VStack(alignment: .leading, spacing: 0) {
+                Text("verfügbar nach Fixkosten").lineLimit(1)
+                link
+            }
         }
-        .font(.footnote)
+        .font(.system(size: 12.5))
         .foregroundStyle(KColor.ink3)
+        .padding(.vertical, KBM.pad(18.125, 12.5))
         .padding(.top, 6)
         .sheet(item: $shown) { BudgetShareSheet(info: $0) }
     }
-
-    private var base: some View { Text("verfügbar nach Fixkosten").lineLimit(1) }
 
     @ViewBuilder private var link: some View {
         if let i = info {
             Button { shown = i } label: {
                 HStack(spacing: 4) {
                     Text(verbatim: BudgetShare.percentText(i.percent) + " der Einnahmen")
-                    Image(systemName: "info.circle")
+                    // Web `.kfq i`: Kreis 15 pt, Rand 1.2, kursives «i» (Georgia 600 10 px), Deckkraft 0.85
+                    Text(verbatim: "i")
+                        .font(.custom("Georgia-Italic", size: 10).weight(.semibold))
+                        .frame(width: 15, height: 15)
+                        .overlay(Circle().strokeBorder(KColor.ink3, lineWidth: 1.2))
+                        .opacity(0.85)
                 }
                 .lineLimit(1)
+                .fixedSize()
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text(verbatim: BudgetShare.percentText(i.percent) + " der Einnahmen, Einordnung anzeigen"))

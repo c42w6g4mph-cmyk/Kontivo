@@ -51,6 +51,13 @@ enum KBYearCache {
         var free: Double
     }
 
+    private struct DriverKey: Equatable {
+        var today: Day
+        var year: Int
+        var filter: Calc.CostFilter
+    }
+
+    private static let driverMemo = KBMemo<DriverKey, Calc.CostDrivers>()
     private static let costYears = KBMemo<CostKey, Calc.CostYear>()
     private static let costCompares = KBMemo<CostCompareKey, (text: String, trend: Calc.Trend)?>()
     private static let budgetYears = KBMemo<BudgetKey, Calc.BudgetYear>()
@@ -68,6 +75,13 @@ enum KBYearCache {
                                 monthSum: Double, items: [Calc.CostItem]) -> (text: String, trend: Calc.Trend)? {
         costCompares.get(calc.data, CostCompareKey(today: calc.today, year: year, month: month, filter: filter)) {
             calc.monthComparison(year: year, month: month, filter: filter, monthSum: monthSum, items: items)
+        }
+    }
+
+    /// «Entwicklung und Preistreiber» (`Calc.costDrivers`) zwischengespeichert
+    static func drivers(_ calc: Calc, year: Int, filter: Calc.CostFilter) -> Calc.CostDrivers {
+        driverMemo.get(calc.data, DriverKey(today: calc.today, year: year, filter: filter)) {
+            calc.costDrivers(year: year, filter: filter)
         }
     }
 

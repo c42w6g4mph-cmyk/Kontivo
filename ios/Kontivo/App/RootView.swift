@@ -114,6 +114,9 @@ struct AppSheetView: View {
         case .completeness(let only):
             // Vollständigkeit (Bereich core) im Verwalten-Fenster
             ManageView(start: .completeness(only: only))
+        case .fixReport(let person, let fromCosts):
+            // Fixkosten-Bericht (Bereich costs)
+            FixReportOptionsSheet(initialPerson: person, fromCosts: fromCosts)
         }
     }
 }
