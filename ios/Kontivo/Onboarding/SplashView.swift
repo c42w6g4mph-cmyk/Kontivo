@@ -1,9 +1,10 @@
 import SwiftUI
 import KontivoCore
 
-/// Intro beim Öffnen der App (wie `#splash` der Web-App, 83141ec/d11e068/5347844):
-/// Papierhintergrund, Logo (96 pt) federt mit leichter Drehung ein, zwei Ringe pulsieren nach aussen,
-/// «Kontivo» erscheint Buchstabe für Buchstabe, der Slogan nach ~1 s; ab 2.0 s blendet alles aus (Logo zoomt leicht).
+/// Intro beim Öffnen der App (wie `#splash` der Web-App v172–v174): Papierhintergrund, App-Symbol als Vektor (96 pt)
+/// federt mit leichter Drehung ein, das Messing-Segment dreht 1.5 Umdrehungen um das K (splSpin), «Kontivo» (Wortmarke mit
+/// O als Kreisdiagramm, v171) erscheint Teil für Teil, das Messing-Drittel des O zeichnet sich ab 1 s, der Slogan nach ~1 s;
+/// ab 2.0 s blendet alles aus (Logo zoomt leicht). Keine pulsierenden Ringe mehr (v173).
 /// Reduzierte Bewegung: alles sofort sichtbar, kürzer (Ausblenden ab 1.2 s).
 ///
 /// Blockiert keine Tipps (`allowsHitTesting(false)`) und ist für VoiceOver unsichtbar.
@@ -22,7 +23,10 @@ struct SplashView: View {
     static var enabled: Bool {
         _ = launch
         #if DEBUG
-        if AppModel.isUITestLaunch { return ProcessInfo.processInfo.arguments.contains("-uiSplash") }
+        if AppModel.isUITestLaunch {
+            let args = ProcessInfo.processInfo.arguments
+            return args.contains("-uiSplash") || args.contains("-uiSplashHold")
+        }
         #endif
         return true
     }
@@ -30,15 +34,24 @@ struct SplashView: View {
     /// Ende der Animation (s) – danach wird das Overlay entfernt
     private var total: Double { reduceMotion ? 1.7 : 2.5 }
 
+    /// Bildschirmfoto: «-uiSplashHold» hält das Intro bei 1.7 s an (nur Debug)
+    static var holdTime: Double? {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-uiSplashHold") { return 1.7 }
+        #endif
+        return nil
+    }
+
     var body: some View {
         TimelineView(.animation) { ctx in
-            let t = ctx.date.timeIntervalSince(SplashView.launch)
+            let t = SplashView.holdTime ?? ctx.date.timeIntervalSince(SplashView.launch)
             scene(t)
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .task {
+            if SplashView.holdTime != nil { return }
             let left = max(0, total - Date().timeIntervalSince(SplashView.launch))
             try? await Task.sleep(nanoseconds: UInt64(left * 1_000_000_000))
             onDone()
@@ -55,7 +68,10 @@ struct SplashView: View {
             VStack(spacing: 14) {
                 logo(t)
                     .scaleEffect(reduceMotion ? 1 : 1 + 0.12 * Self.ease(out))
+                // Zeile 36 pt × 1.45 wie im Web (Grundlinie bei 39 pt)
                 wordmark(t)
+                    .padding(.top, 13)
+                    .padding(.bottom, 12)
                 Text(verbatim: "Deine Verträge, ganz entspannt.")
                     .font(.system(size: 14))
                     .foregroundStyle(KColor.ink2)
@@ -77,57 +93,22 @@ struct SplashView: View {
             let q = Self.ease((pop - 0.6) / 0.4)
             return (1.07 - 0.07 * q, 2 - 2 * q, 1)
         }()
-        return ZStack {
-            if !reduceMotion {
-                ring(Self.clamp((t - 0.35) / 1.1))
-                ring(Self.clamp((t - 0.6) / 1.1))
-            }
-            Image("Logo")
-                .resizable()
-                .scaledToFill()
-                .frame(width: 96, height: 96)
-                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                .shadow(color: Color(red: 14 / 255, green: 90 / 255, blue: 94 / 255).opacity(0.3), radius: 17, y: 14)
-                .scaleEffect(scale)
-                .rotationEffect(.degrees(rot))
-                .opacity(alpha)
-        }
-        .frame(width: 96, height: 96)
+        // splSpin: Segment von −540° auf 0° in 1.5 s ab 0.3 s, cubic-bezier(.25,.6,.15,1)
+        let spin = reduceMotion ? 1.0 : Self.bezier(Self.clamp((t - 0.3) / 1.5), 0.25, 0.6, 0.15, 1)
+        return KAppLogo(size: 96, segmentAngle: .degrees(-540 * (1 - spin)))
+            .shadow(color: Color.black.opacity(0.28), radius: 17, y: 14)
+            .scaleEffect(scale)
+            .rotationEffect(.degrees(rot))
+            .opacity(alpha)
+            .frame(width: 96, height: 96)
     }
 
-    /// Pulsierender Ring (splRing: Deckkraft .55 → 0, Grösse .9 → 1.9, ease-out)
-    @ViewBuilder private func ring(_ p: Double) -> some View {
-        if p > 0 && p < 1 {
-            let q = Self.easeOut(p)
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .strokeBorder(KColor.teal, lineWidth: 2)
-                .frame(width: 96, height: 96)
-                .scaleEffect(0.9 + 1.0 * q)
-                .opacity(0.55 * (1 - q))
-        }
-    }
-
-    /// «Kontivo»: K aus dem Logo + Buchstaben, die nacheinander von unten erscheinen (Abstand 0.06 s)
+    /// «Kontivo» (36 pt): K, O und die Buchstaben erscheinen nacheinander von unten (Abstand 0.06 s, ab 0.39 s für das K);
+    /// das Messing-Drittel des O zeichnet sich ab 1.0 s in 0.6 s (wlDraw).
     private func wordmark(_ t: Double) -> some View {
-        let size: CGFloat = 36
-        let letters = Array("ontivo")
-        func p(_ i: Int) -> Double {
-            reduceMotion ? 1 : Self.easeOutBack(Self.clamp((t - (0.45 + Double(i) * 0.06)) / 0.45))
-        }
-        return HStack(alignment: .firstTextBaseline, spacing: 0) {
-            OnbKGlyph()
-                .frame(width: size * 0.72 * 357.5 / 440, height: size * 0.72)
-                .alignmentGuide(.firstTextBaseline) { d in d[.bottom] }
-                .padding(.trailing, -size * 0.055)
-                .modifier(SplashUp(p: p(-1)))
-            ForEach(letters.indices, id: \.self) { i in
-                Text(verbatim: String(letters[i]))
-                    .font(.system(size: size, weight: .bold))
-                    .modifier(SplashUp(p: p(i)))
-            }
-        }
-        .tracking(-size * 0.01)
-        .foregroundStyle(KColor.ink)
+        KWordmark(size: 36, progress: { i in
+            reduceMotion ? 1 : Self.easeOutBack(Self.clamp((t - (0.45 + Double(i - 1) * 0.06)) / 0.45))
+        }, brass: reduceMotion ? 1 : Self.bezier(Self.clamp((t - 1.0) / 0.6), 0.3, 0.7, 0.3, 1))
     }
 
     // MARK: Zeitkurven
@@ -136,6 +117,19 @@ struct SplashView: View {
     /// ease (CSS «ease», angenähert)
     static func ease(_ x: Double) -> Double { let c = clamp(x); return c * c * (3 - 2 * c) }
     static func easeOut(_ x: Double) -> Double { let c = clamp(x); return 1 - pow(1 - c, 3) }
+    /// CSS cubic-bezier(x1,y1,x2,y2) für Fortschritt x (Newton-Verfahren)
+    static func bezier(_ x: Double, _ x1: Double, _ y1: Double, _ x2: Double, _ y2: Double) -> Double {
+        let c = clamp(x)
+        func bx(_ u: Double) -> Double { 3 * (1 - u) * (1 - u) * u * x1 + 3 * (1 - u) * u * u * x2 + u * u * u }
+        func by(_ u: Double) -> Double { 3 * (1 - u) * (1 - u) * u * y1 + 3 * (1 - u) * u * u * y2 + u * u * u }
+        var u = c
+        for _ in 0..<8 {
+            let d = (bx(u + 1e-4) - bx(u - 1e-4)) / 2e-4
+            if abs(d) < 1e-6 { break }
+            u = min(1, max(0, u - (bx(u) - c) / d))
+        }
+        return by(u)
+    }
     /// Leichtes Überschwingen wie cubic-bezier(.2,1.2,.4,1)
     static func easeOutBack(_ x: Double) -> Double {
         let c = clamp(x), k = 1.2

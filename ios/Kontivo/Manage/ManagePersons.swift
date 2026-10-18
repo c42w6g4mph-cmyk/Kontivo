@@ -96,7 +96,7 @@ struct MDPersonsPage: View {
                 ForEach(stats, id: \.person.id) { s in
                     NavigationLink(value: ManagePage.person(s.person.id)) {
                         HStack(spacing: 12) {
-                            PersonAvatar(person: s.person, size: 36)
+                            PersonAvatar(person: s.person, size: 38)
                             MDTitleSub(title: s.person.name, subtitle: mdCountText(s))
                         }
                     }
@@ -400,7 +400,7 @@ struct MDPersonPage: View {
                 .filter { !$0.isEmpty }.joined(separator: " · ")
             Button { model.present(.contractDetail(c.id)) } label: {
                 HStack(spacing: 12) {
-                    MarkView(contract: c, data: d, size: 36)
+                    MarkView(contract: c, data: d, size: 40)
                     MDTitleSub(title: d.title(of: c), subtitle: sub)
                     Spacer(minLength: 4)
                     MoneyText(amount: model.calc.curPrice(c), currency: c.currency.rawValue, font: .subheadline.weight(.semibold))
@@ -412,7 +412,7 @@ struct MDPersonPage: View {
         case .income(let i):
             Button { model.present(.incomeForm(i.id)) } label: {
                 HStack(spacing: 12) {
-                    MarkView(income: i, size: 36)
+                    MarkView(income: i, size: 40)
                     MDTitleSub(title: i.title, subtitle: "Einnahme")
                     Spacer(minLength: 4)
                     MoneyText(amount: i.amount, currency: i.currency.rawValue, font: .subheadline.weight(.semibold))
@@ -912,12 +912,12 @@ private struct MDAssignRow: View {
         switch item {
         case .contract(let c):
             HStack(spacing: 12) {
-                MarkView(contract: c, data: d, size: 36)
+                MarkView(contract: c, data: d, size: 40)
                 MDTitleSub(title: d.title(of: c), subtitle: mdContractSub(c, d))
             }
         case .income(let i):
             HStack(spacing: 12) {
-                MarkView(income: i, size: 36)
+                MarkView(income: i, size: 40)
                 MDTitleSub(title: i.title, subtitle: "Einnahme")
             }
         }
@@ -1031,7 +1031,7 @@ struct MDTransferPage: View {
     private func pick(_ s: PersonStat, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                PersonAvatar(person: s.person, size: 36)
+                PersonAvatar(person: s.person, size: 38)
                 MDTitleSub(title: s.person.name, subtitle: mdCountText(s))
                 Spacer(minLength: 4)
                 MDRadio(on: on)

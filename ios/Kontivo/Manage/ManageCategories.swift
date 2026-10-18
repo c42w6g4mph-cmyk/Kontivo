@@ -47,8 +47,7 @@ struct MDIconGrid: View {
                 Button { pick(key) } label: {
                     ZStack {
                         RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color(hex: color))
-                        Image(systemName: KIcon.symbol(forKey: key))
-                            .font(.system(size: 18, weight: .medium))
+                        KIcon.view(KIcon.symbol(forKey: key), 17)
                             .foregroundStyle(.white)
                     }
                     .frame(width: 40, height: 40)
@@ -143,7 +142,7 @@ struct MDCategoriesPage: View {
         let cost: String = cs.isEmpty ? "" : [" · ", Format.money(d.mdPerMonth(cs, today: model.today)), " ", home, "/Mt."].joined()
         let sub: String = Format.count(cs.count, "Vertrag", "Verträge") + cost
         return HStack(spacing: 12) {
-            MarkView(category: c, size: 36)
+            MarkView(category: c, size: 34)
             MDTitleSub(title: c.name, subtitle: sub)
         }
     }

@@ -224,11 +224,12 @@ struct ManagePageView: View {
     var body: some View {
         content
             .navigationBarTitleDisplayMode(.inline)
+            .kSheetBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Fertig") { nav.requestClose() }
-                        .fontWeight(.semibold)
+                    KBarButton(title: "Fertig") { nav.requestClose() }
                 }
+                .kPlain()
             }
     }
 

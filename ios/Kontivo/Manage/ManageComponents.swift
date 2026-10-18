@@ -16,9 +16,12 @@ extension View {
             .background(KColor.paper.ignoresSafeArea())
     }
 
-    /// Zeilenhintergrund (Karte)
+    /// Zeilenhintergrund (Web `.mdgrp`: Fläche `--field`, Zeilen 10 pt hoch gepolstert, Innenabstand 12, Trennlinie `--line`)
     func mdRow() -> some View {
-        listRowBackground(KColor.surface)
+        self.alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
+            .listRowBackground(KColor.field)
+            .listRowSeparatorTint(KColor.line)
+            .listRowInsets(EdgeInsets(top: 10, leading: 12, bottom: 10, trailing: 12))
     }
 
     /// Zeile ohne Karte (Hinweise, Kopfzeilen)
@@ -29,24 +32,26 @@ extension View {
     }
 }
 
-/// Titel fett, darunter klein (Zeilen der Web-App: <b> + <small>)
+/// Titel fett, darunter klein (Web `.mdrow .t`: <b> 15 pt Semibold, <small> 12 pt `--ink2`)
 struct MDTitleSub: View {
     let title: String
     var subtitle: String = ""
     var subtitleColor: Color = KColor.ink2
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 0) {
             Text(title)
-                .font(.body.weight(.semibold))
+                .font(KFont.text(15, .semibold))
                 .foregroundStyle(KColor.ink)
                 .lineLimit(2)
+                .kLineHeight(15, 21.75)
             if !subtitle.isEmpty {
                 Text(subtitle)
-                    .font(.footnote)
+                    .font(KFont.text(12))
                     .foregroundStyle(subtitleColor)
                     .monospacedDigit()
                     .lineLimit(3)
+                    .kLineHeight(12, 23.2)
             }
         }
     }
@@ -58,8 +63,9 @@ struct MDHint: View {
     init(_ text: String) { self.text = text }
     var body: some View {
         Text(text)
-            .font(.footnote)
-            .foregroundStyle(KColor.ink2)
+            .font(KFont.text(12.5))
+            .foregroundStyle(KColor.ink3)
+            .kLineHeight(12.5, 18.125)
             .fixedSize(horizontal: false, vertical: true)
     }
 }
@@ -72,11 +78,14 @@ struct MDSectionHeader<Trailing: View>: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(title)
+                .font(KFont.text(12.5, .semibold))
+                .foregroundStyle(KColor.ink3)
             Spacer(minLength: 8)
             trailing
-                .font(.subheadline.weight(.semibold))
-                .textCase(nil)
+                .font(KFont.text(13.5, .semibold))
+                .foregroundStyle(KColor.teal)
         }
+        .textCase(nil)
     }
 }
 
@@ -90,9 +99,9 @@ extension MDSectionHeader where Trailing == EmptyView {
 /// Pfeil rechts in Zeilen, die etwas öffnen
 struct MDChevron: View {
     var body: some View {
-        Image(systemName: "chevron.right")
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(KColor.ink3.opacity(0.7))
+        Text("›")
+            .font(KFont.text(18))
+            .foregroundStyle(KColor.ink3)
             .accessibilityHidden(true)
     }
 }
@@ -101,9 +110,10 @@ struct MDChevron: View {
 struct MDRadio: View {
     let on: Bool
     var body: some View {
-        Image(systemName: on ? "checkmark.circle.fill" : "circle")
-            .font(.title3)
-            .foregroundStyle(on ? KColor.teal : KColor.ink3.opacity(0.6))
+        // Web `.mdpick .rad`: Kreis 20 pt, Rand 1.6 `--ink3`; gewählt Rand 6 pt Messing
+        Circle()
+            .strokeBorder(on ? KColor.teal : KColor.ink3, lineWidth: on ? 6 : 1.6)
+            .frame(width: 20, height: 20)
             .accessibilityHidden(true)
     }
 }
@@ -129,27 +139,33 @@ struct MDSegment<T: Hashable>: View {
     let action: (T) -> Void
 
     var body: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 0) {
             ForEach(Array(options.enumerated()), id: \.offset) { _, o in
                 segButton(o.title, o.value)
             }
         }
-        .padding(2)
-        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.field))
+        .padding(3)
+        .background(RoundedRectangle(cornerRadius: KMetric.controlRadius, style: .continuous).fill(KColor.sunken))
     }
 
     private func segButton(_ title: String, _ value: T) -> some View {
         let on = selected.contains(value)
         return Button { action(value) } label: {
+            // Web `.hseg button`: 13.5 pt, gewählt weiss mit leichtem Schatten
             Text(title)
-                .font(.subheadline.weight(on ? .semibold : .regular))
+                .font(KFont.text(13.5, on ? .semibold : .medium))
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 7)
                 .padding(.horizontal, 4)
-                .foregroundStyle(on ? Color.white : KColor.ink)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(on ? KColor.tealFill : Color.clear))
+                .foregroundStyle(on ? KColor.ink : KColor.ink2)
+                .background {
+                    if on {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous).fill(KColor.surface)
+                            .shadow(color: .black.opacity(0.08), radius: 1, y: 1)
+                    }
+                }
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -185,7 +201,7 @@ struct MDContractRow: View {
             model.present(.contractDetail(contract.id))
         } label: {
             HStack(spacing: 12) {
-                MarkView(contract: contract, data: d, size: 36)
+                MarkView(contract: contract, data: d, size: 40)
                 MDTitleSub(title: d.title(of: contract), subtitle: sub)
                 Spacer(minLength: 4)
                 MDChevron()

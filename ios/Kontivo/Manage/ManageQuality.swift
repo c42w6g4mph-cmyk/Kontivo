@@ -242,9 +242,9 @@ private struct MDQualityRow: View {
         let d = model.data
         switch issue.subject {
         case .contract(let id):
-            if let c = d.contract(id) { MarkView(contract: c, data: d, size: 36) }
+            if let c = d.contract(id) { MarkView(contract: c, data: d, size: 40) }
         case .income(let id):
-            if let i = d.income(id) { MarkView(income: i, size: 36) }
+            if let i = d.income(id) { MarkView(income: i, size: 40) }
         case .partner(let id):
             MDPartnerMark(partnerID: id, size: 36)
         case .person(let id):
