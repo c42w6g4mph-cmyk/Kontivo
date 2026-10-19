@@ -14,3 +14,6 @@ Für A (swift-x-va) und B (swift-x-vb): diese Punkte sind zentral erledigt, bitt
 | App/RootView.swift | `KPageSheetSizing` (neu): Vertrags- und Einnahmen-Formular auf dem iPad als hohes Blatt, 580 breit (`.page.fitted(horizontal:)` + idealWidth, iOS 18+) | 28-ipad-formular: Web zeigt das Formular als hohes Blatt; iPhone unverändert. |
 | Manage/ManageComponents.swift | Neue Bausteine `mdScrollPage()`, `mdScrollStyle()`, `MDGroup`, `MDSec`, `MDRowBox`, `MDAddRowLabel`, `MDGroupHint`, `MDLightButton`, `KColor.mdMultiFill` | Verwalten-Seiten als Karten wie Web (`.mdgrp/.mdsec/.mdrow/.mdhint/.lbtn`). |
 | ios/project.yml, ios/Kontivo.xcodeproj | `MARKETING_VERSION` 0.1.0 → 1.0 | Versionsanzeige wie Web. Dateiliste unverändert. |
+| Design/Components.swift `Chip` | Zeilenhöhe 20.3 (`frame(minHeight:)`), Innenabstand 8/13 (7/12 + Rand 1) → 36.3 hoch | Wunsch A (Web `.chips .chip`). A kann `CTFormChip(fill: false, fontSize: 14)` im Formular wieder durch `Chip` ersetzen. |
+
+Wunsch A «Grosstitel 2–4 pt höher»: mit der `KTabHeader`-Änderung oben erledigt (Grundlinie jetzt 109.9 pt = Safari/SF-Rechnung 109.7; Chromium-Foto zeigt wegen Inter-Metrik ≈1 pt höher).

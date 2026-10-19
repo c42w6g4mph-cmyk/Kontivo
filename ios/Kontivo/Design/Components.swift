@@ -148,7 +148,8 @@ struct KChevron: View {
     }
 }
 
-/// Auswahl-Chip (Web `.chip`): Rand 1 px `--line`, 14 px `--ink2`; gewählt: Fläche `--ink`, Schrift `--paper` Semibold
+/// Auswahl-Chip (Web `.chips .chip`): Rand 1 px `--line`, 14 px `--ink2`, Zeile 20.3, Innenabstand 7/12 + Rand 1 → 36.3 hoch;
+/// gewählt: Fläche `--ink`, Schrift `--paper` Semibold
 struct Chip: View {
     let title: String
     var isOn: Bool
@@ -158,7 +159,8 @@ struct Chip: View {
             Text(title)
                 .font(KFont.text(14, isOn ? .semibold : .regular))
                 .lineLimit(1)
-                .padding(.horizontal, 12).padding(.vertical, 7)
+                .frame(minHeight: 20.3)
+                .padding(.horizontal, 13).padding(.vertical, 8)
                 .foregroundStyle(isOn ? KColor.paper : KColor.ink2)
                 .background(Capsule().fill(isOn ? KColor.ink : Color.clear))
                 .overlay(Capsule().strokeBorder(isOn ? KColor.ink : KColor.line, lineWidth: 1))
