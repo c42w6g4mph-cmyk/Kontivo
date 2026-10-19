@@ -157,7 +157,7 @@ struct KBIncomeForm: View {
                     .padding(.horizontal, KBM.side)
                     .padding(.top, 8)
                     .padding(.bottom, 18)
-                    .frame(maxWidth: KMetric.maxContent)
+                    .frame(maxWidth: KBM.wrapWidth)
                     .frame(maxWidth: .infinity)
                 }
                 .scrollDismissesKeyboard(.interactively)

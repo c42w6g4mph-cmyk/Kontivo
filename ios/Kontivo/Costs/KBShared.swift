@@ -14,6 +14,8 @@ enum KBM {
     static let cardRadius: CGFloat = 16
     /// Listen «ilist», «fgcard», «xsum», «ptcard» (Web `--r`)
     static let listRadius: CGFloat = 13
+    /// Web `.wrap{max-width:580px; padding:0 17px}` (Breite inkl. Seitenrand → Inhalt 546 pt auf dem iPad)
+    static let wrapWidth: CGFloat = 580
 
     /// Zusätzlicher Abstand oben/unten, damit eine Textzeile die CSS-Zeilenhöhe `lh` erreicht (SF ≈ 1.193 × Schriftgrösse).
     static func pad(_ lh: CGFloat, _ size: CGFloat) -> CGFloat { max(0, (lh - size * 1.193) / 2) }
@@ -225,7 +227,7 @@ struct KBPage<Content: View>: View {
                 // Web `.wrap` padding-bottom 104 + Sicherheitsabstand (138 pt ab Bildschirmunterkante); die Tableiste
                 // (83 pt) rechnet SwiftUI schon ein
                 .padding(.bottom, 55)
-                .kContentWidth()
+                .kbWrapWidth()
             }
             .coordinateSpace(name: KBPageSpace.name)
             #if DEBUG
@@ -315,6 +317,11 @@ extension View {
                 @unknown default: break
                 }
             }
+    }
+
+    /// Breite wie Web `.wrap` (580 inkl. Seitenrand), mittig
+    func kbWrapWidth() -> some View {
+        frame(maxWidth: KBM.wrapWidth).frame(maxWidth: .infinity)
     }
 
     /// Weisse Fläche mit Rundung (Web `.kcard`, `.mrows2`: 16 pt, ohne Rand)
