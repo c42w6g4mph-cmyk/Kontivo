@@ -80,8 +80,9 @@ struct BankReviewView: View {
             .padding(.bottom, 12)
     }
 
-    /// `.sheet h4.bkh2`: 13 pt halbfett ink2, Anzahl rechts
-    private func head(_ t: String, _ n: Int) -> some View {
+    /// `.sheet h4.bkh2`: 13 pt halbfett ink2, Anzahl rechts. Rand oben 16 fällt im Web mit dem unteren Rand des
+    /// Vorgängers zusammen (Liste 6, «Zuordnen an»/Einleitung 12) → `after` = dieser Rand
+    private func head(_ t: String, _ n: Int, after: CGFloat = 6) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Text(t)
             Spacer(minLength: 0)
@@ -89,8 +90,9 @@ struct BankReviewView: View {
         }
         .font(.system(size: 13, weight: .semibold))
         .foregroundStyle(KColor.ink2)
+        .kLineHeight(13, 18.85)
         .padding(.horizontal, 4)
-        .padding(.top, 16)
+        .padding(.top, 16 - after)
         .padding(.bottom, 6)
     }
 
@@ -169,6 +171,7 @@ struct BankReviewView: View {
                 Text(review.whoReason(d))
                     .font(.system(size: 12))
                     .foregroundStyle(KColor.ink2)
+                    .kLineHeight(12, 17.4)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.vertical, 10)
@@ -195,7 +198,7 @@ struct BankReviewView: View {
         logoLine
         whoBar(d)
         if !review.prices.isEmpty {
-            head("Neuer Preis bei erfassten Verträgen", review.prices.count)
+            head("Neuer Preis bei erfassten Verträgen", review.prices.count, after: 12)
             list {
                 ForEach(Array(review.prices.enumerated()), id: \.element.id) { k, p in
                     separator(k == 0)
@@ -213,7 +216,7 @@ struct BankReviewView: View {
             }
         }
         if !maybe.isEmpty {
-            head("Nur einmal im Auszug – gehört das dazu?", maybe.count)
+            head("Nur einmal im Auszug – gehört das dazu?", maybe.count, after: sure.isEmpty && review.prices.isEmpty ? 12 : 6)
             list {
                 ForEach(Array(maybe.enumerated()), id: \.element) { k, i in
                     separator(k == 0)
@@ -634,6 +637,7 @@ struct BankSegment: View {
                     Text(o.1)
                         .font(.system(size: 13.5, weight: on ? .semibold : .medium))
                         .foregroundStyle(on ? KColor.paper : KColor.ink2)
+                        .kLineHeight(13.5, 19.575)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(maxWidth: .infinity)
