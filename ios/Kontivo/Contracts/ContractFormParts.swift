@@ -71,6 +71,7 @@ struct CTSection<Content: View, Header: View, Footer: View>: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(KColor.ink2)
                 .textCase(nil)
+                .ctLine(18.85)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 2)
                 .padding(.top, 22)
@@ -86,7 +87,7 @@ struct CTSection<Content: View, Header: View, Footer: View>: View {
             footer
                 .font(.system(size: 12.5))
                 .foregroundStyle(KColor.ink2)
-                .lineSpacing(6.9)
+                .ctLines(12.5, 19.375)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 2)
                 .padding(.top, 8)
@@ -115,8 +116,20 @@ private struct CTHideIfEmpty: ViewModifier {
     }
 }
 
-/// Zeilen einer Karte untereinander, jede mindestens 48 pt hoch (Web `.frow` 4 0 + Feld 40), Trennlinie 1 pt über der
-/// Kartenbreite (innerhalb des Innenabstands) zwischen den Zeilen
+/// Mindesthöhe einer Kartenzeile abweichend von 48 (Web `.fadd` 46)
+struct CTRowMinHeightTrait: _ViewTraitKey {
+    static let defaultValue: CGFloat? = nil
+}
+
+extension View {
+    /// Mindesthöhe dieser Zeile in `CTCardRows` (inkl. Trennlinie darüber, wie Web `min-height` mit `box-sizing: border-box`)
+    func ctRowMinHeight(_ h: CGFloat) -> some View {
+        _trait(CTRowMinHeightTrait.self, h)
+    }
+}
+
+/// Zeilen einer Karte untereinander, jede mindestens 48 pt hoch (Web `.frow` min-height 48, 4 0 + Feld 39.2), Trennlinie 1 pt
+/// (Web `border-top`, zählt zur Zeilenhöhe) über der Kartenbreite (innerhalb des Innenabstands) zwischen den Zeilen
 struct CTCardRows<Content: View>: View {
     let content: Content
     init(@ViewBuilder content: () -> Content) { self.content = content() }
@@ -132,11 +145,11 @@ private struct CTCardRowsLayout: _VariadicView_UnaryViewRoot {
         let first = children.first?.id
         VStack(alignment: .leading, spacing: 0) {
             ForEach(children) { child in
+                let isFirst = child.id == first
+                let minH = child[CTRowMinHeightTrait.self] ?? 48
+                if !isFirst { Rectangle().fill(KColor.line).frame(height: 1) }
                 child
-                    .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-                    .overlay(alignment: .top) {
-                        if child.id != first { Rectangle().fill(KColor.line).frame(height: 1) }
-                    }
+                    .frame(maxWidth: .infinity, minHeight: max(0, minH - (isFirst ? 0 : 1)), alignment: .leading)
             }
         }
     }
@@ -250,6 +263,7 @@ struct CTRowLabel: View {
             .foregroundStyle(KColor.ink2)
             .lineLimit(1)
             .minimumScaleFactor(0.85)
+            .ctLine(21.75)
     }
 }
 
@@ -335,6 +349,9 @@ struct CTFormDateRow: View {
                 .accessibilityIdentifier(identifier.isEmpty ? "" : identifier + ".pick")
             }
         }
+        // Web `input[type=date]` 41.2 hoch (8 2 Innenabstand, 16 px) + `.frow` 4 0 → Zeile 50.2 inkl. Trennlinie
+        .frame(minHeight: 41.2)
+        .padding(.vertical, 4)
     }
 }
 
@@ -345,16 +362,18 @@ struct CTFormChip: View {
     var fill = true
     var enabled = true
     var identifier = ""
+    /// Web `.fchq .chip` 13.5 px (Zeile 19.575); freie Chips (`.chips .chip`, z.B. Personen) 14 px (Zeile 20.3)
+    var fontSize: CGFloat = 13.5
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             // Web v164 `.chips button[aria-pressed=true]`: Fläche Tinte, Schrift Papier, Rand Messing; sonst Rand `--line`, Tinte 2
             Text(title)
-                .font(.system(size: 13.5, weight: isOn ? .semibold : .regular))
+                .font(.system(size: fontSize, weight: isOn ? .semibold : .regular))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .ctLine(19.6)
+                .ctLine(fontSize * 1.45)
                 .padding(.horizontal, fill ? 4 : 12).padding(.vertical, 8)
                 .frame(maxWidth: fill ? .infinity : nil)
                 .foregroundStyle(isOn ? KColor.paper : KColor.ink2)
@@ -415,6 +434,7 @@ struct CTFormAddRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.borderless)
+        .ctRowMinHeight(46)
         .accessibilityIdentifier(identifier)
     }
 }
@@ -464,11 +484,13 @@ struct CTCancelWaySegment: View {
                 Button {
                     onTap(it.value)
                 } label: {
+                    // Web `.seg2 button`: 14/500 (gewählt 600), Zeile 20.3, Innenabstand 7
                     Text(it.title)
-                        .font(.subheadline.weight(on ? .semibold : .medium))
+                        .font(.system(size: 14, weight: on ? .semibold : .medium))
                         .lineLimit(1)
+                        .ctLine(20.3)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 7)
                         .foregroundStyle(on ? KColor.ink : KColor.ink2)
                         .background(
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -484,7 +506,8 @@ struct CTCancelWaySegment: View {
             }
         }
         .padding(3)
-        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.field))
+        // Web `.seg2`: Tinte 8 %
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.ink.opacity(0.08)))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Kündigungsweg")
     }
@@ -651,17 +674,18 @@ struct CTFormKeyTiles: View {
     }
 
     private func tile(_ title: String, _ value: String, id: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        // Web: `small` 12.5 (Zeile 18.125), Wert als Zeile 31.9 (22 × 1.45), Währung Serif 13 mit 3 Abstand → Kachel 70
+        VStack(alignment: .leading, spacing: 0) {
             Text(title)
                 .font(.system(size: 12.5))
                 .foregroundStyle(KColor.ink2)
-                .ctLine(18.1)
+                .ctLine(18.125)
             (Text(verbatim: value).font(KFont.serif(22, .medium)).tracking(-0.22)
-             + Text(verbatim: " " + currency).font(KFont.serif(14, .medium)).foregroundColor(KColor.ink2))
+             + Text(verbatim: " " + currency).font(KFont.serif(13, .medium)).foregroundColor(KColor.ink2))
                 .foregroundStyle(KColor.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-                .ctLine(22)
+                .ctLineExact(31.9)
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)

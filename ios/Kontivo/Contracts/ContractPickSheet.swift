@@ -15,9 +15,10 @@ struct CTPickSheet<Content: View>: View {
                     .font(KFont.title(22))
                     .tracking(KFont.tracking(-0.012, 22))
                     .foregroundStyle(KColor.ink)
-                    .lineSpacing(5.6)
+                    .ctLines(22, 31.9)
                     .padding(.trailing, 44)
-                    .padding(.top, 24)
+                    // Web: 8 Innenabstand + Greifer (6 + 4 + 14) über dem Titel (Zeile 31.9)
+                    .padding(.top, 32)
                     .padding(.bottom, 3)
                     .accessibilityAddTraits(.isHeader)
                 content
@@ -26,11 +27,13 @@ struct CTPickSheet<Content: View>: View {
                 Button {
                     dismiss()
                 } label: {
+                    // Web `.ghost`: 14 px (Zeile 20.3), 13 Innenabstand + 1 Rand → 48.3
                     Text("Schliessen")
                         .font(.system(size: 14))
                         .foregroundStyle(KColor.ink2)
+                        .ctLine(20.3)
                         .frame(maxWidth: .infinity)
-                        .padding(13)
+                        .padding(14)
                         .background(RoundedRectangle(cornerRadius: 13, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
                         .contentShape(Rectangle())
                 }
@@ -75,6 +78,7 @@ struct CTPickRow: View {
                     .font(.system(size: 16, weight: selected ? .semibold : .regular))
                     .foregroundStyle(selected ? Color.white : KColor.ink)
                     .multilineTextAlignment(.leading)
+                    .ctLine(23.2)
                 Spacer(minLength: 0)
                 if !detail.isEmpty {
                     Text(detail)
