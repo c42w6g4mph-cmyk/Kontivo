@@ -15,7 +15,7 @@ env:
 jobs:
   build:
     runs-on: macos-15
-    timeout-minutes: 110
+    timeout-minutes: 130
     steps:
       - uses: actions/checkout@v4
       - name: Kern testen (swift test)
@@ -49,7 +49,8 @@ jobs:
         id: ui
         if: steps.app.outcome == 'success' && !contains(github.event.head_commit.message, '[noui]')
         continue-on-error: true
-        timeout-minutes: 55
+        # 49 UI-Tests brauchen ~47 min plus Aufwärmlauf; 55 min reichten knapp nicht (Ergebnis erst nach dem Abbruch fertig)
+        timeout-minutes: 72
         run: |
           mkdir -p ci-out
           RT=$(xcrun simctl list runtimes | grep -o 'com.apple.CoreSimulator.SimRuntime.iOS-26-[0-9]*' | tail -1)
