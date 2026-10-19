@@ -102,9 +102,11 @@ struct MoreDisclosureChevron: View {
     let open: Bool
     var body: some View {
         Path { p in
-            p.move(to: CGPoint(x: 8, y: 0)); p.addLine(to: CGPoint(x: 8, y: 8)); p.addLine(to: CGPoint(x: 0, y: 8))
+            // CSS-Rahmen 1.7 liegt innerhalb der 8×8-Box (border-box): Strichmitte bei 8 − 0.85
+            let e: CGFloat = 8 - 0.85
+            p.move(to: CGPoint(x: e, y: 0)); p.addLine(to: CGPoint(x: e, y: e)); p.addLine(to: CGPoint(x: 0, y: e))
         }
-        .stroke(style: StrokeStyle(lineWidth: 1.7))
+        .stroke(style: StrokeStyle(lineWidth: 1.7, lineCap: .butt, lineJoin: .miter))
         .frame(width: 8, height: 8)
         .rotationEffect(.degrees(open ? -135 : 45))
         .offset(y: open ? 3 : -4)

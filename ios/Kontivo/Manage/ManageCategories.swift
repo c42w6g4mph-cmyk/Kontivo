@@ -115,9 +115,10 @@ struct MDCategoriesPage: View {
                     .buttonStyle(.plain)
                     .font(KFont.text(13.5, .semibold))
                     .foregroundStyle(KColor.teal)
-                    .padding(.vertical, 6)
+                    // Web `.mdlink`: Knopf 35.6 hoch (bestimmt die Höhe des Kopfs)
+                    .padding(.vertical, 8.5)
                 }
-                .padding(.top, 12)
+                .padding(.top, 9.5)
                 MDGroup {
                     ForEach(Array(cats.enumerated()), id: \.element.id) { i, c in
                         Button { nav.push(.category(c.id)) } label: {

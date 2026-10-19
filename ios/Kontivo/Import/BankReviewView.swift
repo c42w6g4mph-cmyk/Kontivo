@@ -502,12 +502,14 @@ struct BankReviewView: View {
             }
             .padding(.top, 11)
             .padding(.bottom, 6)
+            // `.bkr` ist ein umbrechender Flex-Container mit gap 10: die Chips-Zeile steht 10 pt unter dem Kopf
             BankFlow(spacing: 6) {
                 ForEach(choices.indices, id: \.self) { j in
                     BankChip(title: choices[j].1, on: it.term == choices[j].0) { review.setTerm(it.id, choices[j].0) }
                 }
             }
             .padding(.leading, 47)
+            .padding(.top, 10)
             .padding(.bottom, 12)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Kündigungsfrist " + t)

@@ -129,7 +129,8 @@ struct MDQualityPage: View {
                     Text(row.title).foregroundStyle(KColor.ink)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text("\(m) offen").fontWeight(.semibold).foregroundStyle(KColor.warn)
-                    Text("›").font(KFont.text(17)).foregroundStyle(KColor.ink3)
+                    // Web `i` mit line-height 1 → 17 hoch
+                    Text("›").font(KFont.text(17)).foregroundStyle(KColor.ink3).frame(height: 17)
                 }
                 .font(KFont.text(13.5))
                 .kLineHeight(13.5, 19.575)

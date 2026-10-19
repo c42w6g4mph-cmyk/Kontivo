@@ -180,8 +180,8 @@ enum KMetric {
     /// Max. Seitenbreite auf dem iPad inkl. Seitenrand 17 (Web `.wrap` max-width 580 → Inhalt 546)
     static let maxContent: CGFloat = 580
     /// Unterer Inhaltsabstand einer Tab-Seite: Web `.wrap` padding-bottom 138 ab Bildschirmrand, abzüglich des
-    /// Sicherheitsabstands der Tabbar (iPhone 17 Pro ≈ 83) → Abstand am Ende des ScrollView-Inhalts
-    static let tabPageBottom: CGFloat = 80
+    /// Sicherheitsabstands der Tabbar (iPhone 17 Pro) → Abstand am Ende des ScrollView-Inhalts (gemessen am Simulatorfoto)
+    static let tabPageBottom: CGFloat = 56
 
     /// Eckenradius einer Marke je Grösse (Web `.mark` je Ort: 50→12, 44→11, 40→10, 38→9, 36→10, 34→9, 32→8, 30→8, 28→7)
     static func markRadius(_ size: CGFloat) -> CGFloat {

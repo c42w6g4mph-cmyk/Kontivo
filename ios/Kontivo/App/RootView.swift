@@ -201,7 +201,10 @@ struct ToastView: View {
 struct KPageSheetSizing: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 18.0, *) {
-            content.presentationSizing(.page)
+            // Breite wie Web-Blatt (580 = `.wrap` max-width), Höhe der Seite
+            content
+                .frame(idealWidth: KMetric.maxContent)
+                .presentationSizing(.page.fitted(horizontal: true, vertical: false))
         } else {
             content
         }
