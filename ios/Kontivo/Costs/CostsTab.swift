@@ -127,7 +127,8 @@ struct CostsTab: View {
                                   "Teurer als letztes Jahr? Sofort sichtbar"],
                           buttonTitle: "Ersten Vertrag erfassen",
                           action: { model.present(.contractForm(.new(prefill: nil))) })
-                    .padding(.top, 36)
+                    // Web `.esv.eh` (padding-top 36 steckt schon in EmptyHero), Seitenrand `.wrap` 17
+                    .padding(.horizontal, KBM.side)
                     .padding(.bottom, 24)
                     .kContentWidth()
             }
@@ -319,6 +320,8 @@ struct KBCostMonthList: View {
                 }
             }
         }
+        // Web `.grp` padding-bottom 2
+        .padding(.bottom, 2)
     }
 
     private func rows(_ list: [Calc.CostItem], dividerFirst: Bool) -> some View {

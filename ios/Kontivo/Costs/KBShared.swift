@@ -222,7 +222,9 @@ struct KBPage<Content: View>: View {
                     content
                 }
                 .padding(.horizontal, KBM.side)
-                .padding(.bottom, 28)
+                // Web `.wrap` padding-bottom 104 + Sicherheitsabstand (138 pt ab Bildschirmunterkante); die Tableiste
+                // (83 pt) rechnet SwiftUI schon ein
+                .padding(.bottom, 55)
                 .kContentWidth()
             }
             .coordinateSpace(name: KBPageSpace.name)
@@ -553,6 +555,8 @@ struct KBCompareLine: View {
                 .foregroundStyle(KColor.ink2)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        // Web `.kvs`: 13/18.85, margin-top 11
+        .frame(minHeight: 18.85)
         .padding(.top, 11)
     }
 
@@ -589,13 +593,14 @@ struct KBStatCell: View {
             .foregroundStyle(KColor.ink3)
             .lineLimit(1)
             .padding(.vertical, KBM.pad(16.675, 11.5))
+            // Zeilenhöhe 24.65 fest (Serif hat andere Masse als SF, KBM.pad passt nur für SF)
             Text(verbatim: value)
                 .font(KFont.serif(17, .medium))
                 .tracking(-0.17)
                 .foregroundStyle(muted ? KColor.ink3 : (valueColor ?? KColor.ink))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .padding(.vertical, KBM.pad(24.65, 17))
+                .frame(height: 24.65)
         }
         .frame(maxWidth: .infinity, alignment: trailing ? .trailing : .leading)
         .accessibilityElement(children: .combine)

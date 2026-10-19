@@ -5,29 +5,24 @@ import KontivoCore
 /// absteigend (beendete/künftige blass), «Einnahme erfassen», «Schliessen». Tippen öffnet die Einnahme-Ansicht (Web v155).
 struct IncomesAllView: View {
     @Environment(AppModel.self) private var model
+    /// Höhe des Inhalts (für die Blatthöhe wie im Web)
+    @State private var contentHeight: CGFloat = 0
 
     var body: some View {
         let calc = model.calc
         let list = calc.kbAllIncomes()
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .top) {
-                    Text("Alle Einnahmen")
-                        .font(KFont.title(22))
-                        .tracking(-0.264)
-                        .foregroundStyle(KColor.ink)
-                        .padding(.top, 2)
-                        .accessibilityAddTraits(.isHeader)
-                        .accessibilityIdentifier("incomes.title")
-                    Spacer(minLength: 12)
-                    KBRoundButton(edge: .clear, fill: KColor.sunken, action: { model.dismissTop() }) {
-                        Text(verbatim: "×").font(.system(size: 20))
-                    }
-                    .accessibilityLabel("Schliessen")
-                    .padding(.top, -16)
-                    .padding(.trailing, -12)
-                }
-                .padding(.bottom, 3)
+                // Web `h2#pickTitle`: 22 px Semibold, Zeilenhöhe 31.9, rechts 44 frei für «×»
+                Text("Alle Einnahmen")
+                    .font(KFont.title(22))
+                    .tracking(-0.264)
+                    .foregroundStyle(KColor.ink)
+                    .lineLimit(1)
+                    .frame(height: 31.9)
+                    .padding(.trailing, 44)
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier("incomes.title")
                 if !list.isEmpty {
                     VStack(spacing: 0) {
                         ForEach(Array(list.enumerated()), id: \.element.id) { k, i in
@@ -38,6 +33,7 @@ struct IncomesAllView: View {
                     .background(RoundedRectangle(cornerRadius: KBM.listRadius, style: .continuous).fill(KColor.field))
                     .clipShape(RoundedRectangle(cornerRadius: KBM.listRadius, style: .continuous))
                     .padding(.top, 12)
+                    .padding(.bottom, 6)
                 }
                 Button {
                     model.present(.incomeForm(nil))
@@ -60,19 +56,30 @@ struct IncomesAllView: View {
                         .font(.system(size: 14))
                         .foregroundStyle(KColor.ink2)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13 + KBM.pad(20.3, 14))
+                        .padding(.vertical, 14 + KBM.pad(20.3, 14))
                         .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .padding(.top, 9)
+                .padding(.top, 13)
             }
             .padding(.horizontal, KBM.side)
-            .padding(.top, 30)
+            .padding(.top, 32)
             .padding(.bottom, 18)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
+        }
+        .overlay(alignment: .topTrailing) {
+            // Web `.pickx`: 36 pt Kreis versenkt, 16 pt unter der Blattkante, 12 pt vom Rand
+            KBRoundButton(edge: .clear, fill: KColor.sunken, action: { model.dismissTop() }) {
+                Text(verbatim: "×").font(.system(size: 20))
+            }
+            .accessibilityLabel("Schliessen")
+            .padding(.top, 16)
+            .padding(.trailing, 12)
         }
         .background(KColor.paper.ignoresSafeArea())
-        .presentationDetents([.medium, .large])
+        // Web: Blatt so hoch wie der Inhalt (+ unterer Sicherheitsabstand), höchstens ganz offen
+        .presentationDetents([.height(contentHeight > 0 ? contentHeight + 34 : 545), .large])
         .presentationDragIndicator(.visible)
     }
 

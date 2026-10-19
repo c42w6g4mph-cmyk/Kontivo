@@ -115,7 +115,7 @@ struct KBIncomeForm: View {
                         amountCard
                         Text("Netto eintragen, also was auf dem Konto ankommt. Einen 13. Monatslohn oder Bonus am besten als eigene jährliche Einnahme erfassen.")
                             .font(.system(size: 12.5))
-                            .lineSpacing(12.5 * 0.35)
+                            .kLineHeight(12.5, 19.375)
                             .foregroundStyle(KColor.ink2)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, 2)
@@ -295,7 +295,8 @@ struct KBIncomeForm: View {
                     .accessibilityIdentifier("income.name")
             }
         }
-        .padding(.top, 8)
+        // Web `.fhead` margin 8 0 4 (die 8 oben fallen mit dem Abstand unter der Kopfzeile zusammen)
+        .padding(.bottom, 4)
     }
 
     // MARK: Trefferliste «Quelle» (Web v222)
@@ -560,7 +561,8 @@ struct KBIncomeForm: View {
             }
             if chart != nil { KBRowDivider() }
             KBFormRow(label: amountLabel, miss: miss == "amount") {
-                HStack(spacing: 4) {
+                // Web: Feld (Innenabstand 2) + 4 + Auswahl (Innenabstand 2) → 8 zwischen Betrag und Währung
+                HStack(spacing: 8) {
                     TextField("", text: $amountText, prompt: Text("hinzufügen").foregroundColor(KColor.ink3))
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
@@ -841,7 +843,7 @@ struct KBIncomeForm: View {
                     }
                 }
                 .padding(.vertical, 4)
-                .frame(minHeight: 50)
+                .frame(minHeight: 49.2)
                 .background(KBMissFlash(on: miss == key))
                 .contentShape(Rectangle())
             }
@@ -916,6 +918,7 @@ struct KBIncomeForm: View {
                     Text("Empfänger – genau eine Person")
                         .font(.system(size: 15))
                         .foregroundStyle(KColor.ink2)
+                        .frame(minHeight: 21.75)
                     KBChipFlow(spacing: 6) {
                         ForEach(model.data.persons) { p in
                             KBInkChip(title: p.name, isOn: draft.holderID == p.id) { draft.holderID = p.id }
@@ -1173,6 +1176,7 @@ struct KBFormSection: View {
         Text(verbatim: title)
             .font(.system(size: 13, weight: .semibold))
             .foregroundStyle(KColor.ink2)
+            .frame(minHeight: 18.85)
             .padding(.horizontal, 2)
             .padding(.top, 22)
             .padding(.bottom, 8)
@@ -1208,8 +1212,9 @@ struct KBFormRow<Value: View>: View {
             Spacer(minLength: 8)
             value
         }
+        // Web `.frow`: 4 + Feld 39.2 + 4 (mit Linie 48.2)
         .padding(.vertical, 4)
-        .frame(minHeight: 48)
+        .frame(minHeight: 47.2)
         .background(KBMissFlash(on: miss))
     }
 }
@@ -1284,8 +1289,9 @@ struct KBInkChip: View {
                 .font(.system(size: 14, weight: isOn ? .semibold : .regular))
                 .foregroundStyle(isOn ? KColor.paper : KColor.ink2)
                 .lineLimit(1)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7 + KBM.pad(20.3, 14))
+                .padding(.horizontal, 13)
+                // Web: Rand 1 + Innenabstand 7/12 + Zeile 20.3 (Höhe 36.3)
+                .padding(.vertical, 8 + KBM.pad(20.3, 14))
                 .background(Capsule().fill(isOn ? KColor.ink : .clear))
                 .overlay(Capsule().strokeBorder(isOn ? KColor.ink : KColor.line, lineWidth: 1))
                 .contentShape(Capsule())
