@@ -7,103 +7,160 @@ import KontivoCore
 struct MDQualityPage: View {
     @Environment(AppModel.self) private var model
 
+    /// Web `paintMdQual`: Kopfkarte `.qtop`, Checkliste `.qcrit` mit Gruppen `.qgrp` (Karten statt Systemliste, 1:1 Web)
     var body: some View {
         let r = model.mdQualityReport
-        return List {
-            if let h = Quality.headline(r) {
-                Section { statusCard(h) }
-                Section {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text(Quality.checklistTitle).font(.headline).foregroundStyle(KColor.ink)
-                        Text(Quality.checklistSubtitle(r)).font(.footnote).foregroundStyle(KColor.ink2)
-                    }
-                    .mdPlainRow()
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                if let h = Quality.headline(r) {
+                    statusCard(h)
+                        .padding(.bottom, 14)
+                    checklist(r)
+                } else {
+                    // Web `.qok`
+                    Text(Quality.emptyText)
+                        .font(KFont.text(14))
+                        .foregroundStyle(KColor.ink2)
+                        .kLineHeight(14, 20.3)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.vertical, 6)
                 }
-                ForEach(Quality.checklist, id: \.group) { g in
-                    groupSection(g, r)
-                }
-                Section { MDHint(Quality.footnote).mdPlainRow() }
-            } else {
-                Section { MDHint(Quality.emptyText).mdPlainRow() }
-            }
-            if let ig = Quality.ignoredText(r) {
-                Section {
+                if let ig = Quality.ignoredText(r) {
+                    // Web `.note` margin 14px 4px 0
                     HStack(spacing: 4) {
-                        Text(ig + " ·").font(.footnote).foregroundStyle(KColor.ink2)
+                        Text(ig + " ·").foregroundStyle(KColor.ink2)
                         Button("Zurücksetzen") {
                             model.update { $0.resetQualityIgnored() }
                         }
-                        .buttonStyle(.borderless)
-                        .font(.footnote.weight(.medium))
+                        .buttonStyle(.plain)
+                        .fontWeight(.medium)
+                        .foregroundStyle(KColor.teal)
                     }
-                    .mdPlainRow()
+                    .font(KFont.text(12.5))
+                    .padding(.top, 14).padding(.horizontal, 4)
                 }
             }
+            .mdScrollPage()
         }
-        .mdListStyle()
+        .mdScrollStyle()
         .navigationTitle("Datenqualität")
     }
 
+    /// Web `.qtop`: Radius 14, Innenabstand 14, Fläche Warnfarbe 10 % über `--field` (sauber: `.qtop.ok` mit grünem Haken)
     private func statusCard(_ h: (title: String, text: String, clean: Bool)) -> some View {
-        let tone = h.clean ? KColor.ok : KColor.warn
-        return HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             if h.clean {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(KColor.ok)
+                KIcon.view("ic.check.hook", 22)
+                    .foregroundStyle(Color.white)
+                    .frame(width: 40, height: 40)
+                    .background(Circle().fill(KColor.ok))
                     .accessibilityHidden(true)
             }
             VStack(alignment: .leading, spacing: 3) {
-                Text(h.title).font(.headline).foregroundStyle(tone)
-                Text(h.text).font(.subheadline).foregroundStyle(KColor.ink2)
+                Text(h.title).font(KFont.text(16, .bold)).foregroundStyle(KColor.ink)
+                    .kLineHeight(16, 23.2)
+                Text(h.text).font(KFont.text(13.5)).foregroundStyle(KColor.ink2)
+                    .kLineHeight(13.5, 19.575)
             }
+            .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
         }
-        .padding(.vertical, 6)
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(h.clean ? KColor.qualOkFill : KColor.qualWarnFill))
         .accessibilityElement(children: .combine)
-        .listRowBackground(tone.opacity(0.12))
     }
 
-    private func groupSection(_ g: QualityChecklistGroup, _ r: QualityReport) -> some View {
-        let rows = g.rows.filter { $0.field != "inc" || r.incomeCount > 0 }
-        return Section {
-            ForEach(rows, id: \.field) { row in
-                checkRow(g.group, row, r.select(g.group, field: row.field).count)
+    /// Web `.qcrit`: Fläche `--field`, Radius 14, Innenabstand 14/14/12; Kopf «Was geprüft wird» 15 pt Bold
+    private func checklist(_ r: QualityReport) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text(Quality.checklistTitle).font(KFont.text(15, .bold)).foregroundStyle(KColor.ink)
+                Spacer(minLength: 0)
+                Text(Quality.checklistSubtitle(r)).font(KFont.text(12, .medium)).foregroundStyle(KColor.ink3)
             }
-        } header: {
-            HStack(spacing: 8) {
-                Text(g.title)
+            .kLineHeight(15, 21.75)
+            .padding(.bottom, 4)
+            ForEach(Quality.checklist, id: \.group) { g in
+                group(g, r).padding(.top, 10)
+            }
+            MDHint(Quality.footnote)
+                .padding(.top, 10)
+        }
+        .padding(.horizontal, 14).padding(.top, 14).padding(.bottom, 12)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(KColor.field))
+    }
+
+    /// Web `.qgrp`: weiss, Radius 11, Innenabstand 4/12/2; Kopf `.qgh` 14 pt Bold mit Pille «vollständig»
+    private func group(_ g: QualityChecklistGroup, _ r: QualityReport) -> some View {
+        let rows = g.rows.filter { $0.field != "inc" || r.incomeCount > 0 }
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center) {
+                Text(g.title).font(KFont.text(14, .bold)).foregroundStyle(KColor.ink)
+                    .kLineHeight(14, 20.3)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: 8)
                 if r.issues(g.group).isEmpty {
                     Text(Quality.completeBadge)
-                        .textCase(nil)
-                        .font(.caption.weight(.semibold))
+                        .font(KFont.text(12, .semibold))
                         .foregroundStyle(KColor.ok)
-                        .padding(.horizontal, 8).padding(.vertical, 2)
+                        .kLineHeight(12, 17.4)
+                        .padding(.horizontal, 9).padding(.vertical, 3)
                         .background(Capsule().fill(KColor.ok.opacity(0.12)))
                 }
             }
+            .padding(.top, 8).padding(.bottom, 6)
+            ForEach(rows, id: \.field) { row in
+                KDivider()
+                checkRow(g.group, row, r.select(g.group, field: row.field).count)
+            }
         }
+        .padding(.horizontal, 12).padding(.top, 4).padding(.bottom, 2)
+        .background(
+            RoundedRectangle(cornerRadius: 11, style: .continuous).fill(KColor.surface)
+                .shadow(color: .black.opacity(0.04), radius: 1, y: 1)
+        )
     }
 
+    /// Web `.qcrit li` (6 pt oben/unten, 13.5 pt `--ink2`, ✓ grün) bzw. `li.w button` (8 pt, `--ink`, «n offen» Messing, ›)
     @ViewBuilder private func checkRow(_ g: QualityGroup, _ row: QualityChecklistRow, _ m: Int) -> some View {
         if m > 0 {
             NavigationLink(value: ManagePage.qualityList(g, row.field, row.title)) {
-                HStack {
+                HStack(spacing: 6) {
                     Text(row.title).foregroundStyle(KColor.ink)
-                    Spacer(minLength: 8)
-                    Text("\(m) offen").font(.subheadline.weight(.semibold)).foregroundStyle(KColor.warn)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text("\(m) offen").fontWeight(.semibold).foregroundStyle(KColor.warn)
+                    // Web `i` mit line-height 1 → 17 hoch
+                    Text("›").font(KFont.text(17)).foregroundStyle(KColor.ink3).frame(height: 17)
                 }
+                .font(KFont.text(13.5))
+                .kLineHeight(13.5, 19.575)
+                .padding(.vertical, 8)
+                .contentShape(Rectangle())
             }
-            .mdRow()
+            .buttonStyle(.plain)
         } else {
             HStack {
-                Text(row.title).foregroundStyle(KColor.ink)
+                Text(row.title).foregroundStyle(KColor.ink2)
                 Spacer(minLength: 8)
-                Text("✓").font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ok)
+                Text("✓").fontWeight(.semibold).foregroundStyle(KColor.ok)
             }
+            .font(KFont.text(13.5))
+            .kLineHeight(13.5, 19.575)
+            .padding(.vertical, 6)
             .accessibilityElement(children: .combine)
-            .mdRow()
         }
     }
+}
+
+extension KColor {
+    /// Web `.qtop`: `color-mix(--warn 10%, --field)`
+    static let qualWarnFill = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(rgb: KColor.mix(0xC6AB78, 0x414246, 0.10)) : UIColor(rgb: KColor.mix(0x86671F, 0xF1F1EF, 0.10))
+    })
+    /// Web `.qtop.ok`: `color-mix(--ok 11%, --field)`
+    static let qualOkFill = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(rgb: KColor.mix(0x7DBF98, 0x414246, 0.11)) : UIColor(rgb: KColor.mix(0x2E6A4E, 0xF1F1EF, 0.11))
+    })
 }
 
 // MARK: - Liste je Kriterium

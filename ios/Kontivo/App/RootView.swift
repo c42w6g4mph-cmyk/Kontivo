@@ -89,9 +89,11 @@ struct AppSheetView: View {
         case .contractForm(let ctx):
             ContractFormView(context: ctx)
                 .interactiveDismissDisabled(true)
+                .modifier(KPageSheetSizing())
         case .incomeForm(let id):
             IncomeFormView(incomeID: id)
                 .interactiveDismissDisabled(true)
+                .modifier(KPageSheetSizing())
         case .incomeDetail(let id):
             IncomeDetailView(incomeID: id)
         case .incomesAll:
@@ -191,6 +193,20 @@ struct ToastView: View {
                 .transition(.opacity)
                 .allowsHitTesting(false)
                 .accessibilityAddTraits(.isStaticText)
+        }
+    }
+}
+
+/// Formulare auf dem iPad als hohes Blatt (Web: Bottom-Sheet über die ganze Höhe statt kleinem Form-Sheet); iPhone unverändert
+struct KPageSheetSizing: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            // Breite wie Web-Blatt (580 = `.wrap` max-width), Höhe der Seite
+            content
+                .frame(idealWidth: KMetric.maxContent)
+                .presentationSizing(.page.fitted(horizontal: true, vertical: false))
+        } else {
+            content
         }
     }
 }

@@ -75,52 +75,50 @@ struct MDPersonsPage: View {
         let d = model.data
         let stats = d.personStats()
         let nAll = d.contracts.count + d.incomes.count
-        return List {
-            if stats.count > 1 && nAll > 0 {
-                Section {
-                    NavigationLink(value: ManagePage.assign(.all)) {
-                        HStack(spacing: 12) {
-                            ZStack {
-                                Circle().fill(KColor.teal.opacity(0.14))
-                                Image(systemName: "person.2.fill").font(.system(size: 15)).foregroundStyle(KColor.teal)
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                if stats.count > 1 && nAll > 0 {
+                    MDGroup {
+                        NavigationLink(value: ManagePage.assign(.all)) {
+                            MDRowBox(first: true) {
+                                // Web `.mdav.multi`: Kreis 38 Messing 14 % über `--surface`, Symbol 20 pt
+                                KIcon.view("ic.persons", 20)
+                                    .foregroundStyle(KColor.teal)
+                                    .frame(width: 38, height: 38)
+                                    .background(Circle().fill(KColor.mdMultiFill))
+                                    .accessibilityHidden(true)
+                                MDTitleSub(title: "Verträge zuordnen", subtitle: "Wer zahlt was: pro Vertrag mit einem Tipp wechseln")
                             }
-                            .frame(width: 36, height: 36)
-                            .accessibilityHidden(true)
-                            MDTitleSub(title: "Verträge zuordnen", subtitle: "Wer zahlt was: pro Vertrag mit einem Tipp wechseln")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.bottom, 16)
+                }
+                MDSec("Personen")
+                MDGroup {
+                    ForEach(Array(stats.enumerated()), id: \.element.person.id) { i, s in
+                        NavigationLink(value: ManagePage.person(s.person.id)) {
+                            MDRowBox(first: i == 0) {
+                                PersonAvatar(person: s.person, size: 38)
+                                MDTitleSub(title: s.person.name, subtitle: mdCountText(s))
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    NavigationLink(value: ManagePage.personNew) {
+                        MDRowBox(first: stats.isEmpty, chevron: false) {
+                            MDAddRowLabel(title: "Person hinzufügen")
                         }
                     }
-                    .mdRow()
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Person hinzufügen")
                 }
+                MDGroupHint("Hier verwaltest du die Personen in deinem Haushalt. Tippe auf eine Person für Absender, Unterschrift und Verträge."
+                            + (stats.count < 2 ? " Mit zwei oder mehr Personen kannst du Verträge gemeinsam oder getrennt zuordnen." : ""))
             }
-            Section {
-                ForEach(stats, id: \.person.id) { s in
-                    NavigationLink(value: ManagePage.person(s.person.id)) {
-                        HStack(spacing: 12) {
-                            PersonAvatar(person: s.person, size: 38)
-                            MDTitleSub(title: s.person.name, subtitle: mdCountText(s))
-                        }
-                    }
-                    .mdRow()
-                }
-                NavigationLink(value: ManagePage.personNew) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 28))
-                            .foregroundStyle(KColor.teal)
-                            .frame(width: 36, height: 36)
-                            .accessibilityHidden(true)
-                        Text("Person hinzufügen").font(.body.weight(.semibold)).foregroundStyle(KColor.teal)
-                    }
-                }
-                .mdRow()
-            } header: {
-                Text("Personen")
-            } footer: {
-                Text("Hier verwaltest du die Personen in deinem Haushalt. Tippe auf eine Person für Absender, Unterschrift und Verträge."
-                     + (stats.count < 2 ? " Mit zwei oder mehr Personen kannst du Verträge gemeinsam oder getrennt zuordnen." : ""))
-            }
+            .mdScrollPage()
         }
-        .mdListStyle()
+        .mdScrollStyle()
         .navigationTitle("Personen")
     }
 }
@@ -606,56 +604,70 @@ struct MDSenderPage: View {
     private func content(_ p: Person) -> some View {
         let candidates = model.data.sameAddressCandidates(for: personID)
         let sameID: UUID? = p.sameAddressAs.flatMap { sid in candidates.contains { $0.id == sid } ? sid : nil }
-        return List {
-            Section {
-                MDHint("Steht oben im Kündigungsschreiben, wenn \(p.name) kündigt.").mdPlainRow()
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                // Web `.mdnote` (14 pt `--ink2`, Zeilenhöhe 1.45, Rand 0 4 12)
+                Text("Steht oben im Kündigungsschreiben, wenn \(p.name) kündigt.")
+                    .font(KFont.text(14))
+                    .foregroundStyle(KColor.ink2)
+                    .kLineHeight(14, 20.3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 4)
+                    .padding(.bottom, 12)
+                fieldsGroup(own: sameID == nil)
+                if !candidates.isEmpty {
+                    sameSection(candidates, sameID: sameID)
+                        .padding(.top, 10)
+                }
+                signatureSection(p)
             }
-            fieldsSection(own: sameID == nil)
-            if !candidates.isEmpty {
-                sameSection(candidates, sameID: sameID)
-            }
-            signatureSection(p)
+            .mdScrollPage()
         }
-        .mdListStyle()
+        .mdScrollStyle()
     }
 
-    private func fieldsSection(own: Bool) -> some View {
+    /// Web `.ig` (Fläche `--field`, Radius 12) mit Zeilen `.igr` (Felder 16 pt, Innenabstand 11/14, Linien `--line`)
+    private func fieldsGroup(own: Bool) -> some View {
         let lastNext: MDSenderField? = own ? .street : nil
-        return Section {
-            HStack(spacing: 10) {
+        return VStack(spacing: 0) {
+            HStack(spacing: 0) {
                 field("Vorname", $draft.first, .first, next: .last, content: .givenName)
-                Divider()
+                Rectangle().fill(KColor.line).frame(width: 1)
                 field("Nachname", $draft.last, .last, next: lastNext, content: .familyName)
             }
-            .mdRow()
+            .frame(height: 45)
             if own {
+                KDivider()
                 field("Strasse und Nr.", $draft.street, .street, next: .zip, content: .streetAddressLine1)
-                    .mdRow()
-                HStack(spacing: 10) {
-                    field("PLZ", $draft.zip, .zip, next: .city, content: .postalCode, keyboard: .numbersAndPunctuation)
-                        .frame(maxWidth: 100)
-                    Divider()
-                    field("Ort", $draft.city, .city, next: .country, content: .addressCity)
+                KDivider()
+                GeometryReader { g in
+                    HStack(spacing: 0) {
+                        field("PLZ", $draft.zip, .zip, next: .city, content: .postalCode, keyboard: .numbersAndPunctuation)
+                            .frame(width: (g.size.width * 0.32).rounded())
+                        Rectangle().fill(KColor.line).frame(width: 1)
+                        field("Ort", $draft.city, .city, next: .country, content: .addressCity)
+                    }
                 }
-                .mdRow()
+                .frame(height: 45)
+                KDivider()
                 field("Land (optional)", $draft.country, .country, next: nil, content: .countryName)
-                    .mdRow()
             }
         }
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.field))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private func sameSection(_ candidates: [Person], sameID: UUID?) -> some View {
-        Section {
+        VStack(alignment: .leading, spacing: 8) {
             MDChipRow {
                 Chip(title: "Eigene Adresse", isOn: sameID == nil) { setSame(nil) }
                 ForEach(candidates) { o in
                     Chip(title: "Gleich wie " + o.name, isOn: sameID == o.id) { setSame(o.id) }
                 }
             }
-            .mdPlainRow()
             if sameID != nil {
                 MDHint(model.data.resolvedSender(personID).addressLines.joined(separator: ", "))
-                    .mdPlainRow()
+                    .padding(.horizontal, 4)
             }
         }
     }
@@ -693,7 +705,12 @@ struct MDSenderPage: View {
 
     private func field(_ ph: String, _ text: Binding<String>, _ f: MDSenderField, next: MDSenderField?,
                        content: UITextContentType, keyboard: UIKeyboardType = .default) -> some View {
-        TextField(ph, text: text)
+        TextField("", text: text, prompt: Text(ph).foregroundStyle(KColor.ink3))
+            .font(KFont.text(16))
+            .foregroundStyle(KColor.ink)
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity, minHeight: 45, alignment: .leading)
+            .background(focus == f ? KColor.teal.opacity(0.06) : Color.clear)
             .textContentType(content)
             .keyboardType(keyboard)
             .textInputAutocapitalization(.words)
@@ -712,40 +729,39 @@ struct MDSenderPage: View {
     }
 
     private func signatureSection(_ p: Person) -> some View {
-        Section {
+        VStack(alignment: .leading, spacing: 0) {
+            MDSec("Unterschrift")
+                .padding(.top, 16)
+            // Web `.sigbox`: 96 pt, Radius 12, weiss mit Linie innen, Text 13 pt `--ink3`
             Group {
                 if let d = p.signatureJPEG, let img = UIImage(data: d) {
                     Image(uiImage: img)
                         .resizable()
                         .scaledToFit()
-                        .frame(maxWidth: .infinity, maxHeight: 90)
+                        .frame(maxHeight: 84)
+                        .padding(.horizontal, 18)
                         .accessibilityLabel("Unterschrift")
                 } else {
                     Text("Noch keine Unterschrift")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.gray)
-                        .frame(maxWidth: .infinity, minHeight: 60)
+                        .font(KFont.text(13))
+                        .foregroundStyle(KColor.ink3)
                 }
             }
-            .padding(10)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white))
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(KColor.line, lineWidth: 0.5))
-            .mdPlainRow()
+            .frame(maxWidth: .infinity)
+            .frame(height: 96)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
+            // Web `.lbtns2 .lbtn`: weiss, Ring 1 pt `--line`, Radius 10, 13 pt Semibold, Innenabstand 8
             HStack(spacing: 8) {
-                Button { save(); showPad = true } label: { Text("Zeichnen").frame(maxWidth: .infinity) }
-                    .buttonStyle(.bordered)
-                Button { openSuggestions(p) } label: { Text("Vorschläge").frame(maxWidth: .infinity) }
-                    .buttonStyle(.bordered)
+                MDLightButton(title: "Zeichnen") { save(); showPad = true }
+                MDLightButton(title: "Vorschläge") { openSuggestions(p) }
                 if p.signatureJPEG != nil {
-                    Button { setSignature(nil, toast: "Unterschrift entfernt") } label: { Text("Entfernen").frame(maxWidth: .infinity) }
-                        .buttonStyle(.bordered)
+                    MDLightButton(title: "Entfernen") { setSignature(nil, toast: "Unterschrift entfernt") }
                 }
             }
-            .mdPlainRow()
-        } header: {
-            Text("Unterschrift")
-        } footer: {
-            Text("Nur \(p.name) selbst sollte die Unterschrift zeichnen oder wählen. Sie bleibt auf diesem Gerät. Ohne Unterschrift bleibt im Brief eine Linie zum Unterschreiben von Hand.")
+            .padding(.top, 8)
+            MDHint("Nur \(p.name) selbst sollte die Unterschrift zeichnen oder wählen. Sie bleibt auf diesem Gerät. Ohne Unterschrift bleibt im Brief eine Linie zum Unterschreiben von Hand.")
+                .padding(.top, 10).padding(.horizontal, 4)
         }
     }
 

@@ -169,7 +169,7 @@ private struct CTFormPage: View {
                             BankFormIgnoreButton(draftID: b.id)
                         }
                     }
-                    .padding(.horizontal, max(CTListMetric.side, (geo.size.width - KMetric.maxContent) / 2))
+                    .padding(.horizontal, CTListMetric.side(for: geo.size.width))
                     .padding(.top, 9)
                     .padding(.bottom, 32)
                 }

@@ -255,7 +255,8 @@ struct OnbPrimaryButton: View {
                 .contentShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
         }
         .buttonStyle(.plain)
-        // wie `.obbtn:disabled{opacity:.4}`: ganzer Knopf mit 40 % (SwiftUI-`disabled` würde die Schrift zusätzlich abblenden)
+        // wie `.obbtn:disabled{opacity:.4}`: ganzer Knopf als eine Ebene mit 40 % (Schrift nicht doppelt abgeblendet)
+        .compositingGroup()
         .opacity(enabled ? 1 : 0.4)
         .accessibilityAddTraits(enabled ? [] : .isStaticText)
         .padding(.top, 6)
@@ -829,8 +830,9 @@ struct OnbQuickChip: View {
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            // Innenabstand 8/10 plus unsichtbarer Rand 1 px (`border:1px solid transparent`) → 50.8 hoch wie Web
+            .padding(.horizontal, 11)
+            .padding(.vertical, 9)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: 15, style: .continuous).fill(KColor.surface))
             .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)

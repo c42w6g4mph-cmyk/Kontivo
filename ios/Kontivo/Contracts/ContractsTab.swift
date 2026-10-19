@@ -41,7 +41,7 @@ enum CTListMetric {
     /// Seitenrand (Web `.wrap` padding 17 = `KMetric.gutter`)
     static let side: CGFloat = KMetric.gutter
     /// Rand bei breiten Fenstern (iPad): Inhalt mittig mit max. Breite
-    static func side(for width: CGFloat) -> CGFloat { max(side, (width - KMetric.maxContent) / 2) }
+    static func side(for width: CGFloat) -> CGFloat { max(side, (width - KMetric.maxContent) / 2 + side) }
     /// Radius der Gruppenfläche (Design v164: 16)
     static let groupRadius: CGFloat = KMetric.groupRadius
 }
@@ -728,7 +728,7 @@ private struct CTEmptyContracts: View {
                         action: { model.present(.contractForm(.new(prefill: nil))) },
                         footer: AnyView(footer)
                     )
-                    .padding(.vertical, 32)
+                    .padding(.bottom, 32)
                     .kContentWidth()
                 }
             }
@@ -736,21 +736,30 @@ private struct CTEmptyContracts: View {
         .kPageBackground()
     }
 
+    /// Web `.espriv` (12.5 pt `--ink2`, Schild 16 pt grün, Abstand 7, max. 36ch, 12 über) und `.eslink` (15 pt Medium Messing)
     private var footer: some View {
-        VStack(spacing: 10) {
-            Label {
+        VStack(spacing: 0) {
+            HStack(spacing: 7) {
+                KIcon.view("ic.shield", 16)
+                    .foregroundStyle(KColor.ok)
+                    .accessibilityHidden(true)
                 Text("Ohne Bankanbindung. Deine Daten bleiben auf deinem Gerät.")
-            } icon: {
-                Image(systemName: "checkmark.shield")
+                    .font(KFont.text(12.5))
+                    .foregroundStyle(KColor.ink2)
+                    .multilineTextAlignment(.leading)
+                    .kLineHeight(12.5, 16.875)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .font(.footnote)
-            .foregroundStyle(KColor.ink2)
-            .multilineTextAlignment(.leading)
+            .frame(maxWidth: 284)
+            .padding(.top, 12)
             Button("Ich habe ein Backup") {
                 MoreRequests.openBackupImport(model)
             }
-            .font(.subheadline.weight(.semibold))
+            .buttonStyle(.plain)
+            .font(KFont.text(15, .medium))
+            .foregroundStyle(KColor.teal)
+            .padding(.vertical, 4).padding(.horizontal, 8)
+            .padding(.top, 12)
         }
-        .padding(.top, 8)
     }
 }

@@ -32,7 +32,7 @@ struct BankReviewView: View {
                 .padding(.horizontal, 17)
                 .padding(.top, 2)
                 .padding(.bottom, 10)
-                .frame(maxWidth: KMetric.maxContent + 34)
+                .frame(maxWidth: KMetric.maxContent)
                 .frame(maxWidth: .infinity)
             }
             .onChange(of: review.step) { _, _ in proxy.scrollTo("bkTop", anchor: .top) }
@@ -80,8 +80,9 @@ struct BankReviewView: View {
             .padding(.bottom, 12)
     }
 
-    /// `.sheet h4.bkh2`: 13 pt halbfett ink2, Anzahl rechts
-    private func head(_ t: String, _ n: Int) -> some View {
+    /// `.sheet h4.bkh2`: 13 pt halbfett ink2, Anzahl rechts. Rand oben 16 fällt im Web mit dem unteren Rand des
+    /// Vorgängers zusammen (Liste 6, «Zuordnen an»/Einleitung 12) → `after` = dieser Rand
+    private func head(_ t: String, _ n: Int, after: CGFloat = 6) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Text(t)
             Spacer(minLength: 0)
@@ -89,8 +90,9 @@ struct BankReviewView: View {
         }
         .font(.system(size: 13, weight: .semibold))
         .foregroundStyle(KColor.ink2)
+        .kLineHeight(13, 18.85)
         .padding(.horizontal, 4)
-        .padding(.top, 16)
+        .padding(.top, 16 - after)
         .padding(.bottom, 6)
     }
 
@@ -169,6 +171,7 @@ struct BankReviewView: View {
                 Text(review.whoReason(d))
                     .font(.system(size: 12))
                     .foregroundStyle(KColor.ink2)
+                    .kLineHeight(12, 17.4)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.vertical, 10)
@@ -195,7 +198,7 @@ struct BankReviewView: View {
         logoLine
         whoBar(d)
         if !review.prices.isEmpty {
-            head("Neuer Preis bei erfassten Verträgen", review.prices.count)
+            head("Neuer Preis bei erfassten Verträgen", review.prices.count, after: 12)
             list {
                 ForEach(Array(review.prices.enumerated()), id: \.element.id) { k, p in
                     separator(k == 0)
@@ -213,7 +216,7 @@ struct BankReviewView: View {
             }
         }
         if !maybe.isEmpty {
-            head("Nur einmal im Auszug – gehört das dazu?", maybe.count)
+            head("Nur einmal im Auszug – gehört das dazu?", maybe.count, after: sure.isEmpty && review.prices.isEmpty ? 12 : 6)
             list {
                 ForEach(Array(maybe.enumerated()), id: \.element) { k, i in
                     separator(k == 0)
@@ -308,11 +311,13 @@ struct BankReviewView: View {
             Text(title)
                 .font(.system(size: 15.5, weight: .semibold))
                 .lineSpacing(BankType.extra(15.5, 19.375))
+                .padding(.vertical, BankType.halfLeading(15.5, 19.375))
                 .foregroundStyle(off ? KColor.ink3 : KColor.ink)
                 .fixedSize(horizontal: false, vertical: true)
             subText(sub)
                 .font(.system(size: 12.5))
                 .lineSpacing(BankType.extra(12.5, 16.25))
+                .padding(.vertical, BankType.halfLeading(12.5, 16.25))
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 1)
             if !tags.isEmpty {
@@ -337,9 +342,11 @@ struct BankReviewView: View {
             Text(Format.money(v, Currency(rawValue: cur)))
                 .font(.system(size: 15.5, weight: .semibold).monospacedDigit())
                 .foregroundStyle(dim ? KColor.ink3 : KColor.ink)
+                .kLineHeight(15.5, 22.475)
             Text(cur + " " + BankReview.per(cycle) + (maybe ? "?" : ""))
                 .font(.system(size: 11))
                 .foregroundStyle(KColor.ink2)
+                .kLineHeight(11, 15.95)
         }
         .lineLimit(1)
         .fixedSize()
@@ -486,22 +493,26 @@ struct BankReviewView: View {
                     Text(t)
                         .font(.system(size: 15.5, weight: .semibold))
                         .foregroundStyle(KColor.ink)
+                        .kLineHeight(15.5, 19.375)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(it.ed.name != t ? it.ed.name : review.categoryName(it, d))
                         .font(.system(size: 12.5))
                         .foregroundStyle(KColor.ink2)
+                        .kLineHeight(12.5, 16.25)
                         .padding(.top, 1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.top, 11)
             .padding(.bottom, 6)
+            // `.bkr` ist ein umbrechender Flex-Container mit gap 10: die Chips-Zeile steht 10 pt unter dem Kopf
             BankFlow(spacing: 6) {
                 ForEach(choices.indices, id: \.self) { j in
                     BankChip(title: choices[j].1, on: it.term == choices[j].0) { review.setTerm(it.id, choices[j].0) }
                 }
             }
             .padding(.leading, 47)
+            .padding(.top, 10)
             .padding(.bottom, 12)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Kündigungsfrist " + t)
@@ -594,7 +605,8 @@ struct BankTag: Identifiable {
         Text(text)
             .font(.system(size: 11))
             .foregroundStyle(kind == .miss ? KColor.teal : KColor.ink2)
-            .padding(.vertical, 4)
+            // Web line-height 11 + 4/4 Innenabstand = 19 hoch (SwiftUI-Text wäre 13 hoch)
+            .frame(height: 19)
             .padding(.horizontal, 7)
             .background(
                 ZStack {
@@ -625,6 +637,7 @@ struct BankSegment: View {
                     Text(o.1)
                         .font(.system(size: 13.5, weight: on ? .semibold : .medium))
                         .foregroundStyle(on ? KColor.paper : KColor.ink2)
+                        .kLineHeight(13.5, 19.575)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(maxWidth: .infinity)
@@ -680,8 +693,10 @@ struct BankChip: View {
             Text(title)
                 .font(.system(size: 13.5))
                 .foregroundStyle(on ? KColor.onBrass : KColor.ink)
-                .padding(.vertical, 7)
-                .padding(.horizontal, 12)
+                .kLineHeight(13.5, 19.575)
+                // Innenabstand 7/12 plus Rand 1 → 35.6 hoch wie Web
+                .padding(.vertical, 8)
+                .padding(.horizontal, 13)
                 .background(Capsule().fill(on ? KColor.brassFab : KColor.surface))
                 .overlay(Capsule().strokeBorder(on ? KColor.brassFab : KColor.line, lineWidth: 1))
                 .contentShape(Capsule())

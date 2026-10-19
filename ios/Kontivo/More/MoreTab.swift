@@ -29,9 +29,10 @@ struct MoreTab: View {
                 .padding(.bottom, 12)
                 MoreBrandFooter()
                     .id("more.footer")
+                // Web `.wrap` padding-bottom 138 (über dem unteren Bildschirmrand, Tabbar inklusive)
+                Color.clear.frame(height: KMetric.tabPageBottom).id("more.end")
             }
             .padding(.horizontal, KMetric.gutter)
-            .padding(.bottom, 24)
             .kContentWidth()
         }
         #if DEBUG
@@ -39,7 +40,7 @@ struct MoreTab: View {
             // Bildschirmfoto der Fusszeile: «-uiMoreBottom»
             guard ProcessInfo.processInfo.arguments.contains("-uiMoreBottom") else { return }
             try? await Task.sleep(nanoseconds: 600_000_000)
-            proxy.scrollTo("more.footer", anchor: .bottom)
+            proxy.scrollTo("more.end", anchor: .bottom)
         }
         #endif
         }
