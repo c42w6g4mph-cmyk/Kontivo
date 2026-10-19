@@ -92,47 +92,76 @@ struct MDCategoriesPage: View {
     var body: some View {
         let cats = model.data.categories
         let editing = editMode.isEditing
-        return List {
+        return Group {
+            if editing {
+                editList(cats)
+            } else {
+                cardPage(cats)
+            }
+        }
+        .environment(\.editMode, $editMode)
+        .navigationTitle("Kategorien")
+        .modifier(MDCategoryDeleteAlert(ask: $deleteAsk, onDelete: deleteEmpty))
+    }
+
+    /// Normalansicht wie Web (`.mdsec` mit «Bearbeiten», Gruppe `#catRows` ohne Pfeile, Hinweis darunter)
+    private func cardPage(_ cats: [KCategory]) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                MDSec(title: Format.count(cats.count, "Kategorie", "Kategorien")) {
+                    Button("Bearbeiten") {
+                        withAnimation { editMode = .active }
+                    }
+                    .buttonStyle(.plain)
+                    .font(KFont.text(13.5, .semibold))
+                    .foregroundStyle(KColor.teal)
+                    .padding(.vertical, 6)
+                }
+                .padding(.top, 12)
+                MDGroup {
+                    ForEach(Array(cats.enumerated()), id: \.element.id) { i, c in
+                        Button { nav.push(.category(c.id)) } label: {
+                            MDRowBox(first: i == 0, chevron: false) { row(c) }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    Button { nav.push(.categoryNew) } label: {
+                        MDRowBox(first: cats.isEmpty, chevron: false) { MDAddRowLabel(title: "Kategorie hinzufügen") }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Kategorie hinzufügen")
+                }
+                MDGroupHint("Kategorien gruppieren deine Verträge in der Liste und in den Kosten. Tippe auf eine Kategorie, um Name, Farbe und Symbol zu ändern.")
+            }
+            .mdScrollPage()
+        }
+        .mdScrollStyle()
+    }
+
+    /// Bearbeiten: Systemliste mit Löschen/Verschieben (nativ)
+    private func editList(_ cats: [KCategory]) -> some View {
+        List {
             Section {
                 ForEach(cats) { c in
-                    NavigationLink(value: ManagePage.category(c.id)) {
-                        row(c)
-                    }
-                    .deleteDisabled(c.kind == .other)
-                    .mdRow()
+                    row(c)
+                        .deleteDisabled(c.kind == .other)
+                        .mdRow()
                 }
                 .onMove { src, dst in
                     model.update { $0.moveCategories(fromOffsets: src, toOffset: dst) }
                 }
                 .onDelete { idx in requestDelete(idx) }
-                if !editing {
-                    NavigationLink(value: ManagePage.categoryNew) {
-                        HStack(spacing: 12) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 28))
-                                .foregroundStyle(KColor.teal)
-                                .frame(width: 36, height: 36)
-                                .accessibilityHidden(true)
-                            Text("Kategorie hinzufügen").font(.body.weight(.semibold)).foregroundStyle(KColor.teal)
-                        }
-                    }
-                    .mdRow()
-                }
             } header: {
                 MDSectionHeader(title: Format.count(cats.count, "Kategorie", "Kategorien")) {
-                    Button(editing ? "Fertig" : "Bearbeiten") {
-                        withAnimation { editMode = editing ? .inactive : .active }
+                    Button("Fertig") {
+                        withAnimation { editMode = .inactive }
                     }
                 }
             } footer: {
-                Text(editing ? "Mit ⊖ löschen, mit ≡ ziehen, um die Reihenfolge zu ändern. «Sonstiges» bleibt immer."
-                     : "Kategorien gruppieren deine Verträge in der Liste und in den Kosten. Tippe auf eine Kategorie, um Name, Farbe und Symbol zu ändern.")
+                Text("Mit ⊖ löschen, mit ≡ ziehen, um die Reihenfolge zu ändern. «Sonstiges» bleibt immer.")
             }
         }
         .mdListStyle()
-        .environment(\.editMode, $editMode)
-        .navigationTitle("Kategorien")
-        .modifier(MDCategoryDeleteAlert(ask: $deleteAsk, onDelete: deleteEmpty))
     }
 
     private func row(_ c: KCategory) -> some View {

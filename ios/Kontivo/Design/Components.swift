@@ -237,11 +237,13 @@ struct KPrimaryButton: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
+            // Web `.esbtn`: width 100 %, max-width 320 inkl. Innenabstand 14, Zeilenhöhe 24.65 → 52.6 hoch
             Text(title)
                 .font(KFont.text(17, .semibold))
                 .foregroundStyle(KColor.onBrass)
-                .frame(maxWidth: maxWidth)
+                .kLineHeight(17, 24.65)
                 .padding(14)
+                .frame(maxWidth: maxWidth)
                 .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(KColor.tealFill))
                 .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
@@ -251,8 +253,8 @@ struct KPrimaryButton: View {
 
 // MARK: - Titelzeile der Tabs (Web `.top` + `.minibar`)
 
-/// Titelzeile oben auf jeder Tab-Seite (Web `.top`, v184): 57 pt hoch, Titel 30 pt SF Pro Semibold, Laufweite −0.015em,
-/// rechts optional ein Knopf (Plus, Jahr). Steht als erstes Element im ScrollView-Inhalt; zusammen mit `.kTabPage(title:)`.
+/// Titelzeile oben auf jeder Tab-Seite (Web `.top`, v184): 57 pt hoch (17 oben + 40 Zeile), Titel 30 pt SF Pro Semibold
+/// (Zeilenhöhe 33, in der 40-pt-Zeile senkrecht mittig wie `align-items:center`), Laufweite −0.015em, rechts optional ein Knopf (Plus, Jahr). Steht als erstes Element im ScrollView-Inhalt; zusammen mit `.kTabPage(title:)`.
 /// Beim Wegscrollen erscheint oben die Mini-Kopfzeile mit demselben Titel.
 struct KTabHeader<Trailing: View>: View {
     @Environment(\.kMiniBarState) private var mini
@@ -271,8 +273,8 @@ struct KTabHeader<Trailing: View>: View {
             Spacer(minLength: 8)
             trailing
         }
+        .frame(minHeight: KMetric.titleBarHeight - 17, alignment: .center)
         .padding(.top, 17)
-        .frame(minHeight: KMetric.titleBarHeight, alignment: .bottom)
         .id(KTabHeaderID.top)
         .onGeometryChange(for: CGFloat.self) { proxy in
             proxy.frame(in: .global).maxY

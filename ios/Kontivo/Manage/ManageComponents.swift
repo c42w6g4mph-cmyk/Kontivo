@@ -16,6 +16,21 @@ extension View {
             .background(KColor.paper.ignoresSafeArea())
     }
 
+    /// Inhalt einer Seite als freie Karten-Seite (Web `#mdBody`: Rand 17, 4 pt unter der Kopfzeile, unten 52), auf dem iPad mittig
+    func mdScrollPage() -> some View {
+        self.padding(.horizontal, KMetric.gutter)
+            .padding(.top, 4)
+            .padding(.bottom, 52)
+            .frame(maxWidth: KMetric.maxContent)
+            .frame(maxWidth: .infinity)
+    }
+
+    /// ScrollView einer Karten-Seite: Papier-Hintergrund, Tastatur beim Ziehen ausblenden
+    func mdScrollStyle() -> some View {
+        self.scrollDismissesKeyboard(.interactively)
+            .background(KColor.paper.ignoresSafeArea())
+    }
+
     /// Zeilenhintergrund (Web `.mdgrp`: Fläche `--field`, Zeilen 10 pt hoch gepolstert, Innenabstand 12, Trennlinie `--line`)
     func mdRow() -> some View {
         self.alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
@@ -509,5 +524,120 @@ struct MDActionRow: View {
         }
         .buttonStyle(.plain)
         .mdRow()
+    }
+}
+
+// MARK: - Karten-Seiten (Web `.mdgrp`, `.mdsec`, `.mdrow`, `.mdhint`)
+
+/// Gruppe (Web `.mdgrp`): Fläche `--field`, Radius 12, Innenabstand links/rechts 12. Abstände setzt die Seite.
+struct MDGroup<Content: View>: View {
+    @ViewBuilder var content: Content
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) { content }
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.field))
+    }
+}
+
+/// Abschnittskopf (Web `.mdsec`): 12.5 pt Semibold `--ink3`, Rand links/rechts 4, unten 6 (oben 16 setzt die Seite)
+struct MDSec<Trailing: View>: View {
+    let title: String
+    @ViewBuilder var trailing: Trailing
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Text(title)
+                .font(KFont.text(12.5, .semibold))
+                .foregroundStyle(KColor.ink3)
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 0)
+            trailing
+        }
+        .kLineHeight(12.5, 18.125)
+        .padding(.horizontal, 4)
+        .padding(.bottom, 6)
+    }
+}
+
+extension MDSec where Trailing == EmptyView {
+    init(_ title: String) { self.init(title: title) { EmptyView() } }
+}
+
+/// Zeile einer Gruppe (Web `.mdrow`): 10 pt oben/unten, Abstand 12, Trennlinie oben ausser bei der ersten Zeile
+struct MDRowBox<Content: View>: View {
+    var first = false
+    var chevron = true
+    @ViewBuilder var content: Content
+    var body: some View {
+        VStack(spacing: 0) {
+            if !first { KDivider() }
+            HStack(spacing: 12) {
+                content
+                Spacer(minLength: 4)
+                if chevron { MDChevron() }
+            }
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
+        }
+    }
+}
+
+/// Zeile «+ … hinzufügen» (Web `.mdadd`): Kreis 38 pt Messing 14 %, «+» 22 pt Medium, Titel 15 pt Semibold Messing
+struct MDAddRowLabel: View {
+    let title: String
+    var body: some View {
+        HStack(spacing: 12) {
+            Text("+")
+                .font(KFont.text(22, .medium))
+                .foregroundStyle(KColor.teal)
+                .frame(width: 38, height: 38)
+                .background(Circle().fill(KColor.tealTint))
+                .accessibilityHidden(true)
+            Text(title)
+                .font(KFont.text(15, .semibold))
+                .foregroundStyle(KColor.teal)
+                .kLineHeight(15, 21.75)
+        }
+    }
+}
+
+/// Hinweis unter einer Gruppe (Web `.mdhint` margin −6 4 12 nach einer Gruppe mit 14 Abstand)
+struct MDGroupHint: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View {
+        MDHint(text)
+            .padding(.top, 8)
+            .padding(.horizontal, 4)
+            .padding(.bottom, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+extension KColor {
+    /// Web `.mdav.multi`: `color-mix(--teal 14%, --surface)`
+    static let mdMultiFill = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(rgb: KColor.mix(0xC6AB78, 0x36373B, 0.14)) : UIColor(rgb: KColor.mix(0x86671F, 0xFFFFFF, 0.14))
+    })
+}
+
+/// Heller Knopf (Web `.lbtns2 .lbtn`): weiss, Ring 1 pt `--line`, Radius 10, 13 pt Semibold `--ink`, Innenabstand 8/4
+struct MDLightButton: View {
+    let title: String
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(KFont.text(13, .semibold))
+                .foregroundStyle(KColor.ink)
+                .lineLimit(1)
+                .kLineHeight(13, 18.85)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8).padding(.horizontal, 4)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.surface))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
+                .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 }

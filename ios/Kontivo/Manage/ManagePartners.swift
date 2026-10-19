@@ -25,48 +25,60 @@ struct MDPartnersPage: View {
         let q = nav.partnerQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let all = Partners.groups(model.data, today: model.today)
         let list = q.isEmpty ? all : all.filter { $0.partner.name.lowercased().contains(q) }
-        List {
-            if q.isEmpty {
-                ForEach(Array(Partners.duplicateSets(model.data, today: model.today).enumerated()), id: \.offset) { _, set in
-                    dupCard(set)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                // Web `.mdsearch`: 42 pt, Radius 11, Rand 1 pt `--line`, Fläche `--field`, 16 pt, Abstand 4/8
+                TextField("Vertragspartner suchen", text: $nav.partnerQuery)
+                    .font(KFont.text(16))
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .submitLabel(.search)
+                    .padding(.horizontal, 12)
+                    .frame(height: 42)
+                    .background(RoundedRectangle(cornerRadius: 11, style: .continuous).fill(KColor.field))
+                    .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
+                    .padding(.top, 4).padding(.bottom, 8)
+                    .accessibilityLabel("Vertragspartner suchen")
+                if q.isEmpty {
+                    ForEach(Array(Partners.duplicateSets(model.data, today: model.today).enumerated()), id: \.offset) { _, set in
+                        dupCard(set).padding(.bottom, 14)
+                    }
                 }
-            }
-            if list.isEmpty {
-                Section {
+                if list.isEmpty {
                     MDHint(q.isEmpty ? "Noch keine Verträge mit Vertragspartner." : "Kein Vertragspartner gefunden.")
-                        .mdPlainRow()
-                }
-            } else {
-                Section {
-                    ForEach(list, id: \.partner.id) { g in
-                        row(g)
+                        .padding(.horizontal, 4).padding(.top, 4)
+                } else {
+                    MDGroup {
+                        ForEach(Array(list.enumerated()), id: \.element.partner.id) { i, g in
+                            row(g, first: i == 0)
+                        }
                     }
                 }
             }
+            .mdScrollPage()
         }
-        .mdListStyle()
-        .searchable(text: $nav.partnerQuery, placement: .navigationBarDrawer(displayMode: .always), prompt: "Vertragspartner suchen")
+        .mdScrollStyle()
         .navigationTitle("Vertragspartner")
         .modifier(MDDupMergeAlert(ask: $mergeAsk, onMerge: merge))
     }
 
-    private func row(_ g: Partners.Group) -> some View {
+    private func row(_ g: Partners.Group, first: Bool) -> some View {
         let home = model.data.settings.homeCurrency.rawValue
         let cost: String = g.monthlyCost != 0 ? [" · ", Format.money(g.monthlyCost), " ", home, "/Mt."].joined() : ""
         let sub: String = Format.count(g.contractIDs.count, "Vertrag", "Verträge") + cost
         return NavigationLink(value: ManagePage.partner(g.partner.id)) {
-            HStack(spacing: 12) {
+            MDRowBox(first: first) {
                 MDPartnerMark(partnerID: g.partner.id, size: 40)
                 MDTitleSub(title: g.partner.name, subtitle: sub)
             }
         }
-        .mdRow()
+        .buttonStyle(.plain)
     }
 
     private func dupCard(_ set: [Partners.Group]) -> some View {
         let target = Partners.mergeTarget(set)
         let names = set.map { "«" + $0.partner.name + "»" }.joined(separator: " und ")
-        return Section {
+        return VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Gleicher Vertragspartner?").font(.subheadline.weight(.semibold)).foregroundStyle(KColor.ink)
                 Text(names + " sehen gleich aus.").font(.subheadline).foregroundStyle(KColor.ink2)
@@ -77,8 +89,9 @@ struct MDPartnersPage: View {
                         .padding(.top, 2)
                 }
             }
-            .padding(.vertical, 4)
-            .listRowBackground(KColor.warn.opacity(0.10))
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.qualWarnFill))
         }
     }
 
