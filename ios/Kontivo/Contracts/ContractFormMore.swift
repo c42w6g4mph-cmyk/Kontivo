@@ -121,17 +121,18 @@ struct CTFormAssignSection: View {
         CTSection {
             categoryRow
             if data.persons.count >= 2 {
+                // Web `.frow.fcol` 12 0, Abstand 8; `.chips` Abstand 6
                 VStack(alignment: .leading, spacing: 8) {
                     CTRowLabel("Personen")
-                    CTFlowLayout(spacing: 8, lineSpacing: 8) {
+                    CTFlowLayout(spacing: 6, lineSpacing: 6) {
                         ForEach(data.persons) { p in
-                            Chip(title: p.name, isOn: form.holderIDs.contains(p.id)) {
+                            CTFormChip(title: p.name, isOn: form.holderIDs.contains(p.id), fill: false, fontSize: 14) {
                                 form.toggleHolder(p.id, persons: model.data.persons)
                             }
                         }
                     }
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, 12)
                 if form.holderIDs.count >= 2 { CTFormSplitRows(form: form) }
             }
             CTFormTextRow(title: "Kundennummer", text: $form.customerNo, identifier: "form.customerNo", field: .customerNo, focus: focus)
@@ -151,11 +152,12 @@ struct CTFormAssignSection: View {
                 HStack(spacing: 10) {
                     CTRowLabel("Kategorie")
                     Spacer(minLength: 8)
+                    // Web `.cfi` 28 (Radius 8), `.cfn` 16 px
                     if let c = cat {
-                        MarkView(category: c, size: 26)
-                        Text(c.name).foregroundStyle(KColor.teal).lineLimit(1)
+                        MarkView(category: c, size: 28)
+                        Text(c.name).font(.system(size: 16)).foregroundStyle(KColor.teal).lineLimit(1)
                     } else {
-                        Text("wählen").foregroundStyle(KColor.ink3)
+                        Text("wählen").font(.system(size: 16)).foregroundStyle(KColor.ink3)
                     }
                     Image(systemName: "chevron.right")
                         .font(.footnote.weight(.semibold))
@@ -203,7 +205,7 @@ struct CTFormContactSection: View {
                     HStack {
                         CTRowLabel("Adresse")
                         Spacer(minLength: 8)
-                        Text(ContractFormRules.placeholder).foregroundStyle(KColor.ink3)
+                        Text(ContractFormRules.placeholder).font(.system(size: 16)).foregroundStyle(KColor.ink3)
                     }
                     .contentShape(Rectangle())
                 }
@@ -282,8 +284,13 @@ struct CTFormNoteSection: View {
 
     var body: some View {
         CTSection {
+            // Web `.fnotef`: 16 px (Zeile 23.2), 12 0, 84 hoch
             TextField("Zugangsweg, Ansprechpartner, Besonderheiten", text: $form.note, axis: .vertical)
+                .font(.system(size: 16))
+                .lineSpacing(23.2 - 16 * 1.193)
                 .lineLimit(3...10)
+                .frame(minHeight: 60, alignment: .top)
+                .padding(.vertical, 12)
                 .foregroundStyle(KColor.ink)
                 .focused(focus, equals: .note)
                 .accessibilityLabel("Notiz")

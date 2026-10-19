@@ -282,6 +282,8 @@ private struct CTFormHeadSections: View {
 
 /// Logo (76 pt) mit Stift, Bezeichnung gross, Vertragspartner mit Katalog-Knopf, rechts Dokumente-Knopf
 private struct CTFormHead: View {
+    /// Web `var(--c,#5F666E)` ohne gesetzte Farbe
+    static let neutralMark = "#5F666E"
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
     var focus: FocusState<ContractFormField?>.Binding
@@ -298,7 +300,9 @@ private struct CTFormHead: View {
                     if form.logoOpen { form.docsOpen = false }
                 }
             } label: {
-                MarkView(logoID: logo?.id, logoBg: logo?.bg, colorHex: form.markColor(data),
+                // Web: `#logoPrev` setzt nur die Hintergrundfarbe, nicht `--c`; die Design-Schicht (`.mark:not(:has(img))` mit
+                // `!important`) zeigt darum ohne Bild immer die neutrale Kachel (#5F666E, 20 %) – Farbwahl wirkt in Liste/Detail
+                MarkView(logoID: logo?.id, logoBg: logo?.bg, colorHex: CTFormHead.neutralMark,
                          symbol: KIcon.symbol(for: data.category(form.categoryID)), size: 76)
                     .overlay(alignment: .bottomTrailing) {
                         CTIcon.named("pen", 13)
@@ -580,6 +584,7 @@ private struct CTFormCostSection: View {
                             .font(.system(size: 10, weight: .bold))
                         Text("Preisänderung")
                             .font(.system(size: 13, weight: .semibold))
+                            .ctLine(18.85)
                     }
                     .foregroundStyle(KColor.teal)
                     .padding(.horizontal, 11).padding(.vertical, 5)
@@ -601,6 +606,7 @@ private struct CTFormCostSection: View {
             CTRowLabel(form.prices.isEmpty ? "Betrag" : "Anfangspreis")
                 .layoutPriority(1)
             TextField("", text: $form.amountText, prompt: Text(ContractFormRules.placeholder).foregroundColor(KColor.ink3))
+                .font(.system(size: 16, weight: .medium))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .monospacedDigit()
@@ -728,6 +734,7 @@ private struct CTFormCostSection: View {
                 CTRowLabel("Zahlung am")
                 Spacer(minLength: 8)
                 Text(form.dueText)
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(KColor.teal)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -764,6 +771,7 @@ private struct CTFormCostSection: View {
         }
         if !m.isEmpty || !form.payAccount.ctTrimmed.isEmpty || focus.wrappedValue == .payAccount {
             TextField("über, z.B. Visa …4417", text: $form.payAccount)
+                .font(.system(size: 16, weight: .medium))
                 .autocorrectionDisabled()
                 .multilineTextAlignment(.trailing)
                 .foregroundStyle(KColor.teal)

@@ -61,12 +61,13 @@ struct CTDetailKeyFigures: View {
         let barText: String? = month.sharePercent.map { "\($0) % deiner Fixkosten" } ?? month.status
         CTRatioRow().callAsFunction {
             // Web `.kzm`: Fläche, Radius 16, 13/14, Abstand 10 (Inhalt oben/unten verteilt)
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text("pro Monat")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(KColor.ink2)
                     .ctLine(17.4)
-                Spacer(minLength: 0)
+                // Web gap 10 nur einmal (Abstand im VStack käme vor und nach dem Spacer)
+                Spacer(minLength: 10)
                 VStack(alignment: .leading, spacing: 0) {
                     bigAmount(mon, currency: cu)
                     if fx {
@@ -111,8 +112,6 @@ struct CTDetailKeyFigures: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(.top, 2)
-        .padding(.bottom, 12)
     }
 
     /// Summe aller Zahlungen von Vertragsbeginn bis heute in Vertragswährung (Web `paidSoFar` im Detail); nil ohne Beginn.
@@ -132,7 +131,7 @@ struct CTDetailKeyFigures: View {
             .foregroundStyle(KColor.ink)
             .lineLimit(1)
             .minimumScaleFactor(0.6)
-            .ctLine(37.4)
+            .ctLineExact(37.4)
     }
 
     /// Web `.kzt`: Fläche, Radius 16 (v164), 10/12, senkrecht mittig; Wert Serif 20/500, 3 darüber
@@ -149,7 +148,7 @@ struct CTDetailKeyFigures: View {
                 .foregroundStyle(KColor.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-                .ctLine(22)
+                .ctLineExact(22)
                 .padding(.top, 3)
             if !extra.isEmpty {
                 Text(verbatim: extra).font(.system(size: 11)).foregroundStyle(KColor.ink2).padding(.top, 2)
@@ -168,6 +167,12 @@ struct CTDetailKeyFigures: View {
 struct CTDetailCompletenessHint: View {
     @Environment(AppModel.self) private var model
     let contract: Contract
+
+    /// Hinweis vorhanden? (für die Abstände im Detail)
+    static func has(contract: Contract, model: AppModel) -> Bool {
+        let f = model.files
+        return Completeness.hint(contract: contract.id, data: model.data, today: model.today, hasFile: { f.has($0) }) != nil
+    }
 
     var body: some View {
         // Kern-Vollständigkeit (inkl. «Ohne Logo» aus settings.logoSkip), Web `vkHintHtml`
@@ -205,7 +210,6 @@ struct CTDetailCompletenessHint: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .padding(.top, 2).padding(.bottom, 10)
             .accessibilityIdentifier("detail.vkHint")
         }
     }
@@ -224,13 +228,16 @@ struct CTDetailDeadlineBox: View {
         let alert = box.tone == .alert
         let tone = alert ? KColor.alert : KColor.warn
         VStack(alignment: .leading, spacing: 10) {
+            // Web `.dfrist b` 15/700 (Zeile 21.75), `small` 12.5 (18.125, 2 darüber), Knöpfe 10 darunter, 14/600 (20.3) mit 10 Innenabstand
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: box.title)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(tone)
+                    .ctLine(21.75)
                 Text(verbatim: box.subtitle)
                     .font(.system(size: 12.5))
                     .foregroundStyle(KColor.ink2)
+                    .ctLine(18.125)
             }
             .accessibilityElement(children: .combine)
             HStack(spacing: 8) {
@@ -238,6 +245,7 @@ struct CTDetailDeadlineBox: View {
                     Text(box.cancelTitle)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
+                        .ctLine(20.3)
                         .frame(maxWidth: .infinity).padding(.vertical, 10)
                         .background(KColor.tealFill, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
@@ -247,6 +255,7 @@ struct CTDetailDeadlineBox: View {
                     Text(box.keepTitle)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(KColor.ink)
+                        .ctLine(20.3)
                         .frame(maxWidth: .infinity).padding(.vertical, 10)
                         .background(KColor.ink.opacity(0.07), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
@@ -259,7 +268,6 @@ struct CTDetailDeadlineBox: View {
         // Web: color-mix(Ton 11 % bzw. 9 %, --surface)
         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(KColor.surface)
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(tone.opacity(alert ? 0.09 : 0.11))))
-        .padding(.top, 2).padding(.bottom, 8)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("detail.deadline")
     }

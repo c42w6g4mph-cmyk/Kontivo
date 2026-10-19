@@ -58,6 +58,20 @@ extension View {
     func ctLine(_ h: CGFloat) -> some View {
         frame(minHeight: h)
     }
+
+    /// Mehrzeiliger SF-Text mit CSS-Zeilenhöhe `lh` bei Schriftgrösse `size`: Zeilenabstand = lh − natürliche Zeilenhöhe,
+    /// die Hälfte davon oben und unten (half-leading wie im Browser)
+    func ctLines(_ size: CGFloat, _ lh: CGFloat) -> some View {
+        let extra = max(0, lh - size * 1.193)
+        return lineSpacing(extra).padding(.vertical, extra / 2)
+    }
+
+    /// Einzeiliger Text mit genau der CSS-Zeilenhöhe, auch wenn die natürliche Zeilenhöhe der Schrift grösser ist
+    /// (New York/Serif: Ober- und Unterlänge ≈ 1.2–1.3 em > CSS line-height 1.1); Glyphen mittig wie im Browser (half-leading)
+    func ctLineExact(_ h: CGFloat) -> some View {
+        fixedSize(horizontal: false, vertical: true)
+            .frame(height: h)
+    }
 }
 
 // MARK: - Titelzeile (Web `.top`: min-height 57, padding-top 17, h1 30/600 −0.015em, Plus 40 Messing)

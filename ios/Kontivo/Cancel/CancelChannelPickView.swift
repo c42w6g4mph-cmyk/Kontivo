@@ -44,7 +44,7 @@ struct CancelChannelPickView: View {
                 Text("Wird beim Vertrag gespeichert. Miete braucht immer einen Brief mit Unterschrift.")
                     .font(.system(size: 12.5))
                     .foregroundStyle(KColor.ink2)
-                    .lineSpacing(4.4)
+                    .ctLines(12.5, 19.375)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 4).padding(.horizontal, 2)
             }

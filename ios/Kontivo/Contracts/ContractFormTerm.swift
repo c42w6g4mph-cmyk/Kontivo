@@ -79,25 +79,34 @@ struct CTFormTermSection: View {
                         switchLabel(ContractFormRules.remindTitle, ContractFormRules.remindSubtitle)
                     }
                     .tint(KColor.teal)
+                    .padding(.vertical, 9)
                     .accessibilityIdentifier("form.remind")
                 }
                 // Web v202: «Pflichtvertrag» mit Infoknopf, Unterzeile «Kündigen nur mit neuem Anbieter»
                 Toggle(isOn: $form.mandatory) {
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 6) {
-                            Text(CTFormText.mandatoryTitle).foregroundStyle(KColor.ink)
+                        HStack(spacing: 7) {
+                            Text(CTFormText.mandatoryTitle)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(KColor.ink)
                             CTInfoButton(label: ContractFormRules.mandatoryInfoAccessibility) { showMandInfo = true }
                         }
-                        Text(CTFormText.mandatorySubtitle).font(.footnote).foregroundStyle(KColor.ink2)
+                        .ctLine(21.75)
+                        Text(CTFormText.mandatorySubtitle)
+                            .font(.system(size: 12.5))
+                            .foregroundStyle(KColor.ink2)
+                            .ctLines(12.5, 16.875)
                     }
                 }
                 .tint(KColor.teal)
+                .padding(.vertical, 9)
                 .accessibilityIdentifier("form.mandatory")
                 // Nativ zusätzlich (README «Bewusst anders»): Mietvertrag; ohne Wahl gilt die Erkennung aus Bezeichnung/Kategorie
                 Toggle(isOn: rentBinding) {
                     switchLabel("Mietvertrag", "Kündigung immer per Brief mit Unterschrift")
                 }
                 .tint(KColor.teal)
+                .padding(.vertical, 9)
                 .accessibilityIdentifier("form.rent")
             }
             if form.showsCancelDates {
@@ -122,10 +131,17 @@ struct CTFormTermSection: View {
         }
     }
 
+    /// Web `.fsw .t`: Titel 15/500 (Zeile 21.75), Unterzeile 12.5 (Zeile 16.875), Abstand 2
     private func switchLabel(_ title: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).foregroundStyle(KColor.ink)
-            Text(sub).font(.footnote).foregroundStyle(KColor.ink2)
+            Text(title)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(KColor.ink)
+                .ctLine(21.75)
+            Text(sub)
+                .font(.system(size: 12.5))
+                .foregroundStyle(KColor.ink2)
+                .ctLines(12.5, 16.875)
         }
     }
 
@@ -145,7 +161,8 @@ struct CTFormTermSection: View {
     private var modeRow: some View {
         VStack(alignment: .leading, spacing: 8) {
             CTRowLabel("Vertragsart")
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
+            // Web `.fg2.fchq`: Raster 2 Spalten, Abstand 7
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 7), GridItem(.flexible(), spacing: 7)], spacing: 7) {
                 ForEach(ContractTermMode.allCases, id: \.self) { tm in
                     CTFormChip(title: tm.title, isOn: form.termMode == tm, enabled: form.termModeEnabled(tm, data: model.data),
                                identifier: "term." + tm.rawValue) {
@@ -156,7 +173,8 @@ struct CTFormTermSection: View {
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Art des Vertrags")
         }
-        .padding(.vertical, 4)
+        // Web `.frow.fcol`: 12 0, Abstand 8
+        .padding(.vertical, 12)
     }
 
     // MARK: Probeabo (Web .tmtrial)
@@ -175,7 +193,7 @@ struct CTFormTermSection: View {
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Dauer des Probeabos")
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 12)
         .ctMiss(form, .trial)
         .id(ContractFormField.trial)
         if form.trialChoice == "date" {
@@ -192,7 +210,7 @@ struct CTFormTermSection: View {
         let open = form.termMonthsOpen
         VStack(alignment: .leading, spacing: 8) {
             CTRowLabel("Mindestlaufzeit")
-            HStack(spacing: 6) {
+            HStack(spacing: 7) {
                 ForEach(ContractFormRules.termMonthsQuick, id: \.self) { n in
                     CTFormChip(title: ContractFormRules.termMonthsText(n), isOn: !other && !open && form.termMonths == n,
                                identifier: "termMonths.\(n)") {
@@ -207,7 +225,7 @@ struct CTFormTermSection: View {
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Mindestlaufzeit")
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 12)
         .id(ContractFormField.termMonths)
         if open {
             VStack(spacing: 10) {
@@ -238,7 +256,7 @@ struct CTFormTermSection: View {
         let open = form.noticeOpen
         VStack(alignment: .leading, spacing: 8) {
             CTRowLabel("Kündigungsfrist")
-            HStack(spacing: 6) {
+            HStack(spacing: 7) {
                 ForEach(ContractFormRules.noticeQuick, id: \.self) { n in
                     CTFormChip(title: ContractFormRules.noticeChoiceText(n, .months),
                                isOn: !other && !open && form.noticeUnit == .months && form.noticeN == n,
@@ -254,7 +272,7 @@ struct CTFormTermSection: View {
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Kündigungsfrist")
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 12)
         .ctMiss(form, .notice)
         .id(ContractFormField.notice)
         if open {
@@ -294,7 +312,7 @@ struct CTFormTermSection: View {
                 withAnimation(.easeInOut(duration: 0.15)) { form.toggleCancelChannel(v) }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 12)
         .id(ContractFormField.cancelWay)
         switch ch {
         case .online:

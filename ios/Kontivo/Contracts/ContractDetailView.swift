@@ -92,18 +92,33 @@ struct ContractDetailView: View {
                             Color.clear.preference(key: CTDetailScrollKey.self, value: g.frame(in: .named("ctDetail")).minY)
                         }
                     )
-                CTDetailPills(pills: info.pills)
+                // Abstände wie die zusammenfallenden Web-Ränder (margin collapsing): Kopf 0 0 6, Pillen 8 0 14
+                // (ohne Pillen ein 10 hoher Platzhalter), Kennzahlen 2 0 12, Hinweis 2 0 10, Kasten 2 0 8, Zeile 0 0 10, Abschnitt 20 0 2
+                if info.pills.isEmpty {
+                    Color.clear.frame(height: 6 + 10 + 2)
+                } else {
+                    Color.clear.frame(height: 8)
+                    CTDetailPills(pills: info.pills)
+                    Color.clear.frame(height: 14)
+                }
                 CTDetailKeyFigures(contract: c, month: info.month)
-                CTDetailCompletenessHint(contract: c)
+                let hasHint = CTDetailCompletenessHint.has(contract: c, model: model)
+                if hasHint {
+                    Color.clear.frame(height: 12)
+                    CTDetailCompletenessHint(contract: c)
+                }
                 if let box = info.box {
+                    Color.clear.frame(height: hasHint ? 10 : 12)
                     CTDetailDeadlineBox(box: box, onCancel: { boxCancel(info) }, onKeep: { boxKeep(info) })
                 }
                 // Preiserhöhung: kurze Zeile mit ⓘ, Erklärung im Blatt (Web v205 `skrInfo`/`openSkr`)
                 if let x = skr {
+                    Color.clear.frame(height: info.box != nil ? 8 : (hasHint ? 10 : 12))
                     CTSkrLine(info: x) {
                         if let sh = calc.specialCancelSheet(c) { skrSheet = CTSkrSheetItem(data: sh) }
                     }
                 }
+                // erster Abschnittskopf mit 20 oben (grösser als alle Ränder darüber)
                 CTDetailSections(contract: c, info: info)
                 Color.clear.frame(height: 18)
             }
@@ -281,7 +296,6 @@ private struct CTDetailHeader: View {
             CTDetailDocsButton(count: contract.documents.count, action: onDocs)
         }
         .padding(.top, 14)
-        .padding(.bottom, 6)
     }
 }
 
@@ -338,21 +352,17 @@ struct CTFitTitle: View {
 
 // MARK: - Pillen (Web `.pills`: 8 0 14, Abstand 6; `.pill` 11 px, 3/9, neutral `--sunken`, warn 18 %, alert 16 %)
 
-/// Pillen aus dem Kern (Rangfolge und Texte wie Web `openDetail`); ohne Pille 10 pt Abstand.
+/// Pillen aus dem Kern (Rangfolge und Texte wie Web `openDetail`); Abstände setzt das Detail.
 private struct CTDetailPills: View {
     let pills: [DetailPill]
 
     var body: some View {
-        if pills.isEmpty {
-            Color.clear.frame(height: 10)
-        } else {
+        if !pills.isEmpty {
             CTFlowLayout(spacing: 6, lineSpacing: 6) {
                 ForEach(pills.indices, id: \.self) { i in
                     CTPill(text: pills[i].text, tone: pills[i].tone)
                 }
             }
-            .padding(.top, 8)
-            .padding(.bottom, 14)
             .accessibilityIdentifier("detail.pills")
         }
     }

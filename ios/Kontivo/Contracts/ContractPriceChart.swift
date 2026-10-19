@@ -33,13 +33,16 @@ struct CTPriceChart: View {
         if let m = given ?? contract.flatMap({ model.calc.priceChart($0) }) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 10) {
+                    // Web `.pchead`: 12.5 px Tinte 2 (Zeile 18.125); `.pbadge` 14/650 (Zeile 20.3), 4/10, neutral in Tinte
                     Text(verbatim: m.sinceText)
-                        .font(.footnote)
+                        .font(.system(size: 12.5))
                         .foregroundStyle(KColor.ink2)
+                        .ctLine(18.125)
                     Spacer(minLength: 8)
                     Text(verbatim: m.badgeText)
-                        .font(.footnote.weight(.bold))
-                        .foregroundStyle(tone(m.badgeTone, neutral: KColor.ink2))
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(tone(m.badgeTone, neutral: KColor.ink))
+                        .ctLine(20.3)
                         .padding(.horizontal, 10).padding(.vertical, 4)
                         .background(Capsule().fill(tone(m.badgeTone, neutral: KColor.ink).opacity(m.badgeTone == .neutral ? 0.07 : 0.15)))
                         .lineLimit(1)

@@ -86,7 +86,7 @@ struct LetterView: View {
             Text(Letter.kvgHint)
                 .font(.system(size: 13))
                 .foregroundStyle(KColor.ink2)
-                .lineSpacing(2.7)
+                .ctLines(13, 18.2)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.bottom, 12)
                 .accessibilityIdentifier("letter.kvg")
@@ -95,17 +95,20 @@ struct LetterView: View {
         LetterLabeled(label: "Betreff") {
             TextField("", text: $subject)
                 .font(.system(size: 16))
+                .frame(minHeight: LetterMetric.line + 0.8)
                 .focused($focus, equals: .subject)
                 .letterBox()
                 .accessibilityLabel("Betreff")
         }
         LetterLabeled(label: "Text") {
+            // Web `textarea.lt`: 260 hoch (11/12 Innenabstand), 16 px, Zeile 23.2
             TextEditor(text: $bodyText)
                 .font(.system(size: 16))
-                .lineSpacing(4.6)
-                .frame(minHeight: 238)
+                .lineSpacing(LetterMetric.lineGap)
+                .frame(minHeight: 238 - LetterMetric.lineGap / 2 + 16)
                 .scrollContentBackground(.hidden)
                 .focused($focus, equals: .body)
+                .padding(.top, LetterMetric.lineGap / 2)
                 .padding(.horizontal, -5).padding(.vertical, -8)
                 .letterBox()
                 .accessibilityLabel("Text")
@@ -114,7 +117,7 @@ struct LetterView: View {
         Text(Letter.hints(c, parts: parts, calc: calc).joined(separator: " "))
             .font(.system(size: 12.5))
             .foregroundStyle(KColor.ink2)
-            .lineSpacing(4.4)
+            .ctLines(12.5, 19.375)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 12)
         // Nativ zusätzlich (README «Bewusst anders»): direkt verschicken bzw. drucken (PDF ohne Vorschau)
@@ -135,6 +138,7 @@ struct LetterView: View {
                 Text("Wer kündigt?")
                     .font(.system(size: 12.5))
                     .foregroundStyle(KColor.ink2)
+                    .ctLine(18.125)
                 LetterChipFlow(spacing: 6).callAsFunction {
                     if persons.count == 2 {
                         ForEach(persons) { p in
@@ -154,7 +158,7 @@ struct LetterView: View {
         LetterSenderLine(parts: parts, missing: Letter.signersMissingAddress(signers, data: model.data)) { pid in
             model.present(.manage(.sender(pid)))
         }
-        .padding(.top, 4)
+        // Web: `.note` 4 oben fällt mit Chips (0 0 6) bzw. Kopfleiste (4) zusammen
         .padding(.bottom, 12)
         .id(persons.count >= 2 ? LetterAnchor.sender : LetterAnchor.who)
     }
@@ -165,16 +169,21 @@ struct LetterView: View {
                 if toText.isEmpty {
                     Text("Firma AG\nStrasse Nr.\nPLZ Ort")
                         .font(.system(size: 16))
+                        .lineSpacing(LetterMetric.lineGap)
+                        .padding(.top, LetterMetric.lineGap / 2)
                         .foregroundStyle(KColor.ink3)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
                 }
+                // Web `#ltTo`: 92 hoch (11/12, 3 Zeilen à 23.2), 16 px
                 TextEditor(text: $toText)
                     .font(.system(size: 16))
-                    .frame(minHeight: 70)
+                    .lineSpacing(LetterMetric.lineGap)
+                    .frame(minHeight: 3 * LetterMetric.line - LetterMetric.lineGap / 2 + 16)
                     .scrollContentBackground(.hidden)
                     .textInputAutocapitalization(.words)
                     .focused($focus, equals: .to)
+                    .padding(.top, LetterMetric.lineGap / 2)
                     .padding(.horizontal, -5).padding(.vertical, -8)
                     .accessibilityLabel("Empfänger")
             }
@@ -186,6 +195,7 @@ struct LetterView: View {
                     Text("Adresse suchen")
                         .font(.system(size: 12.5, weight: .semibold))
                         .foregroundStyle(KColor.teal)
+                        .ctLine(18.125)
                         .padding(.vertical, 7)
                         .contentShape(Rectangle())
                 }
@@ -209,11 +219,13 @@ struct LetterView: View {
             Text("Fehlt noch — wird beim Vertrag gespeichert")
                 .font(.system(size: 12.5))
                 .foregroundStyle(KColor.ink2)
+                .ctLine(18.125)
             HStack(alignment: .top, spacing: 11) {
                 if c.customerNo.isEmpty {
                     LetterLabeled(label: "Kundennummer") {
                         TextField("", text: $custNo)
                             .font(.system(size: 16))
+                            .frame(minHeight: LetterMetric.line + 0.8)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .focused($focus, equals: .customer)
@@ -227,6 +239,7 @@ struct LetterView: View {
                     LetterLabeled(label: l) {
                         TextField("", text: $contrNo)
                             .font(.system(size: 16))
+                            .frame(minHeight: LetterMetric.line + 0.8)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .focused($focus, equals: .contract)
@@ -243,6 +256,7 @@ struct LetterView: View {
         Text("Unterschrift")
             .font(.system(size: 12.5))
             .foregroundStyle(KColor.ink2)
+            .ctLine(18.125)
             .padding(.bottom, 6)
         if rent {
             Text(Letter.rentSignatureNote(signerCount: signers.count))
@@ -268,10 +282,11 @@ struct LetterView: View {
                                    })
                     .padding(.bottom, 12)
             }
+            // Web `.note` 6 oben fällt mit 12 unter der Unterschrift zusammen
             Text("Jede Person unterschreibt selbst.")
                 .font(.system(size: 12.5))
                 .foregroundStyle(KColor.ink2)
-                .padding(.top, -6)
+                .ctLines(12.5, 19.375)
         }
     }
 
@@ -580,9 +595,10 @@ private struct LetterFormHost<Content: View>: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
+                // Web: Inhalt 4 unter der Kopfleiste (`.shbar` margin-bottom 4)
                 VStack(alignment: .leading, spacing: 0) { content }
                     .padding(.horizontal, 17)
-                    .padding(.top, 12)
+                    .padding(.top, 4)
                     .padding(.bottom, 24)
                     .frame(maxWidth: KMetric.maxContent + 34)
                     .frame(maxWidth: .infinity)
@@ -610,7 +626,7 @@ private struct LetterSenderLine: View {
             Text("\(Text(line.bold).fontWeight(.bold))\(line.text)")
                 .font(.system(size: 12.5))
                 .foregroundStyle(KColor.ink2)
-                .lineSpacing(4.4)
+                .ctLines(12.5, 19.375)
                 .fixedSize(horizontal: false, vertical: true)
             if !parts.signers.isEmpty && !missing.isEmpty {
                 LetterChipFlow(spacing: 6).callAsFunction {
@@ -648,6 +664,7 @@ private struct LetterSignatureRow: View {
             Text(name)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(KColor.ink2)
+                .ctLine(18.85)
                 .padding(.horizontal, 2)
                 .padding(.bottom, 5)
             GeometryReader { geo in
@@ -690,11 +707,19 @@ private struct LetterLabeled<Content: View>: View {
                 .font(.system(size: 12.5))
                 .foregroundStyle(KColor.ink2)
                 .lineLimit(1)
+                .ctLine(18.125)
             content
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.bottom, 12)
     }
+}
+
+/// Masse der Eingabefelder (Web `.field input/textarea` 16 px, Zeile 23.2)
+private enum LetterMetric {
+    static let line: CGFloat = 23.2
+    /// Zeilenabstand zusätzlich zur natürlichen SF-Zeilenhöhe (16 × 1.193)
+    static let lineGap: CGFloat = 23.2 - 16 * 1.193
 }
 
 private extension View {
@@ -716,6 +741,7 @@ private struct LetterChip: View {
             Text(title)
                 .font(.system(size: 14, weight: isOn ? .semibold : .regular))
                 .lineLimit(1)
+                .ctLine(20.3)
                 .padding(.horizontal, 13).padding(.vertical, 8)
                 .foregroundStyle(isOn ? KColor.paper : KColor.ink2)
                 .background(Capsule().fill(isOn ? KColor.ink : Color.clear))
@@ -738,6 +764,7 @@ private struct LetterSmallButton: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(destructive ? KColor.alert : KColor.ink)
                 .lineLimit(1)
+                .ctLine(18.85)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8).padding(.horizontal, 4)
                 .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.surface))

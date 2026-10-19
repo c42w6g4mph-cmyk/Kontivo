@@ -30,9 +30,10 @@ struct DeadlinesTab: View {
                         .padding(.bottom, 28)
                         .kContentWidth()
                     } else {
+                        // Web `.wrap` padding-bottom 104 + Safe-Area (138 bis Fensterrand); Tableiste/Safe-Area liefern 83
                         content(ov, review: review)
                             .padding(.horizontal, KMetric.gutter)
-                            .padding(.bottom, 28)
+                            .padding(.bottom, 54)
                             .kContentWidth()
                     }
                 Color.clear.frame(height: 1).id("deadlines.end")
@@ -78,15 +79,14 @@ struct DeadlinesTab: View {
                     VStack(spacing: 0) {
                         ForEach(Array(ov.items.enumerated()), id: \.element) { item in
                             if let c = model.data.contract(item.element.contractID) {
+                                // Web `.tit + .tit`: border-top 1 px zählt zur Zeilenhöhe
+                                if item.offset > 0 { DeadlineRule() }
                                 DeadlineItemRow(item: item.element, contract: c, data: model.data,
                                                 canCalendar: DeadlineCalendar.deadline(for: item.element, contract: c) != nil,
                                                 onOpen: { model.present(.contractDetail(c.id)) },
                                                 onKeep: { keep(item.element) },
                                                 onKill: { killTarget = DeadlineKillTarget(contractID: c.id, trial: item.element.trial) },
                                                 onCalendar: { addToCalendar(item.element) })
-                                    .overlay(alignment: .top) {
-                                        if item.offset > 0 { DeadlineRule() }
-                                    }
                             }
                         }
                     }
@@ -166,16 +166,18 @@ struct DeadlinesTab: View {
                 .accessibilityValue(open ? "aufgeklappt" : "zugeklappt")
                 .accessibilityIdentifier("deadlines.flex")
                 if open {
+                    // Web `.tfnote`: border-top 1 px, 12/14; Liste direkt darunter ohne Linie
+                    Rectangle().fill(KColor.line).frame(height: 1)
                     Text(verbatim: Calc.DeadlineOverview.flexNote)
                         .font(.system(size: 13))
                         .foregroundStyle(KColor.ink2)
                         .onbLine(13, 18.2)
                         .padding(.horizontal, 14).padding(.vertical, 12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .overlay(alignment: .top) { Rectangle().fill(KColor.line).frame(height: 1) }
                     VStack(spacing: 0) {
                         ForEach(Array(ov.flexible.enumerated()), id: \.element) { i, r in
                             if let c = model.data.contract(r.contractID) {
+                                if i > 0 { DeadlineRule() }
                                 Button { model.present(.contractDetail(c.id)) } label: {
                                     HStack(spacing: 12) {
                                         MarkView(contract: c, data: model.data, size: 34)
@@ -190,13 +192,11 @@ struct DeadlinesTab: View {
                                     .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
-                                .overlay(alignment: .top) { if i > 0 { DeadlineRule() } }
                                 .accessibilityElement(children: .combine)
                             }
                         }
                     }
                     .padding(.horizontal, 14)
-                    .overlay(alignment: .top) { Rectangle().fill(KColor.line).frame(height: 1) }
                 }
             }
             .background(KColor.surface)
@@ -210,6 +210,8 @@ struct DeadlinesTab: View {
         if !rows.isEmpty {
             let open = openFolds.contains(key)
             VStack(alignment: .leading, spacing: 0) {
+                // Web `.tfold`: border-top 1 px (zählt zur Höhe 45.3)
+                Rectangle().fill(KColor.line).frame(height: 1)
                 Button {
                     toggleFold(key)
                 } label: {
@@ -226,7 +228,6 @@ struct DeadlinesTab: View {
                     }
                     .padding(.horizontal, 2)
                     .padding(.vertical, 12)
-                    .overlay(alignment: .top) { Rectangle().fill(KColor.line).frame(height: 1) }
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -235,10 +236,10 @@ struct DeadlinesTab: View {
                     VStack(spacing: 0) {
                         ForEach(Array(rows.enumerated()), id: \.element) { i, r in
                             if let c = model.data.contract(r.contractID) {
+                                if i > 0 { DeadlineRule() }
                                 DeadlineListRow(contract: c, data: model.data, partner: r.partner, text: r.text + (chevron ? " ›" : "")) {
                                     if let f = onRow { f(c) } else { model.present(.contractDetail(c.id)) }
                                 }
-                                .overlay(alignment: .top) { if i > 0 { DeadlineRule() } }
                             }
                         }
                     }
