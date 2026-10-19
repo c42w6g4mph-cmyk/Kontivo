@@ -27,50 +27,49 @@ struct FixReportOptionsSheet: View {
         let persons = model.data.persons
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .top) {
-                    Text("Fixkosten-Bericht")
-                        .font(KFont.title(22))
-                        .tracking(-0.264)
-                        .foregroundStyle(KColor.ink)
-                        .padding(.top, 2)
-                        .accessibilityAddTraits(.isHeader)
-                    Spacer(minLength: 12)
-                    KBRoundButton(edge: .clear, fill: KColor.sunken, action: { model.dismissTop() }) {
-                        Text(verbatim: "×").font(.system(size: 20))
-                    }
-                    .accessibilityLabel("Schliessen")
-                    .padding(.top, -16)
-                    .padding(.trailing, -12)
-                }
-                .padding(.bottom, 3)
+                // Web `h2#pickTitle`: 22 px Semibold, Zeilenhöhe 31.9, rechts 44 frei für «×»
+                Text("Fixkosten-Bericht")
+                    .font(KFont.title(22))
+                    .tracking(-0.264)
+                    .foregroundStyle(KColor.ink)
+                    .lineLimit(1)
+                    .frame(height: 31.9)
+                    .padding(.trailing, 44)
+                    .accessibilityAddTraits(.isHeader)
+                // Web `p.note` (12.5 px, Zeilenhöhe 1.55), 12 unter dem Titel
                 Text(verbatim: Calc.reportIntro)
                     .font(.system(size: 12.5))
-                    .lineSpacing(12.5 * 0.35)
+                    .kLineHeight(12.5, 19.375)
                     .foregroundStyle(KColor.ink2)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 2)
-                    .padding(.top, 9)
+                    .padding(.top, 12)
                     .padding(.bottom, 12)
                 if persons.count > 1 {
+                    // Web `.seg2` margin 2/10 plus Abstand 6 der Liste (flex gap)
                     segment(persons)
-                        .padding(.top, 2)
-                        .padding(.bottom, 10)
+                        .padding(.top, 2 + 6)
+                        .padding(.bottom, 10 + 6)
                 }
                 Toggle(isOn: $ids) {
-                    VStack(alignment: .leading, spacing: 1) {
+                    // Web `.swrow .t`: b 15/21.75, small 12.5/16.875, 2 dazwischen
+                    VStack(alignment: .leading, spacing: 2) {
                         Text("Kunden- und Vertragsnummern")
                             .font(.system(size: 15, weight: .medium))
                             .foregroundStyle(KColor.ink)
+                            .frame(minHeight: 21.75)
                         Text("Beim Weitergeben an Dritte ausschalten")
                             .font(.system(size: 12.5))
                             .foregroundStyle(KColor.ink2)
+                            .frame(minHeight: 16.875)
                     }
                 }
                 .tint(KColor.tealFill)
                 .padding(.horizontal, 13)
                 .padding(.vertical, 11)
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.field))
-                .padding(.bottom, 12)
+                .padding(.top, persons.count > 1 ? 0 : 6)
+                .padding(.bottom, 12 + 6)
                 .accessibilityIdentifier("report.ids")
                 Button {
                     create()
@@ -93,19 +92,31 @@ struct FixReportOptionsSheet: View {
                         .font(.system(size: 14))
                         .foregroundStyle(KColor.ink2)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13 + KBM.pad(20.3, 14))
+                        // Web `.ghost`: Rand 1 + Innenabstand 13 (Höhe 48.3)
+                        .padding(.vertical, 14 + KBM.pad(20.3, 14))
                         .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .padding(.top, 12)
+                .padding(.top, 13)
             }
             .padding(.horizontal, KBM.side)
-            .padding(.top, 30)
+            .padding(.top, 32)
             .padding(.bottom, 18)
         }
+        .overlay(alignment: .topTrailing) {
+            // Web `.pickx`: 36 pt Kreis versenkt, 16 pt unter der Blattkante, 12 pt vom Rand
+            KBRoundButton(edge: .clear, fill: KColor.sunken, action: { model.dismissTop() }) {
+                Text(verbatim: "×").font(.system(size: 20))
+            }
+            .accessibilityLabel("Schliessen")
+            .padding(.top, 16)
+            .padding(.trailing, 12)
+        }
         .background(KColor.paper.ignoresSafeArea())
-        .presentationDetents([.height(persons.count > 1 ? 395 : 345), .large])
+        // Web: Blatthöhe = Inhalt (391 pt mit Personenwahl, 333 ohne); das iOS-26-Blatt schwebt über dem
+        // Home-Indikator, darum ohne die 34 pt Sicherheitsabstand des Web-Blatts
+        .presentationDetents([.height(persons.count > 1 ? 391 : 333), .large])
         .presentationDragIndicator(.visible)
         .onAppear {
             // aus «Kosten»: aktiver Personenfilter; aus «Mehr»: letzte Auswahl

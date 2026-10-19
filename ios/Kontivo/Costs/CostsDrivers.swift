@@ -31,6 +31,7 @@ struct KBCostDriversView: View {
                 } else {
                     label(d.listTitle)
                         .padding(.top, 13)
+                        .padding(.bottom, 6)
                     if let e = d.emptyNote { note(e).padding(.top, 2) }
                     ForEach(Array(d.groups.enumerated()), id: \.element.id) { i, g in
                         if i > 0 { KBRowDivider() }
@@ -53,6 +54,8 @@ struct KBCostDriversView: View {
                     .onChange(of: f) { _, n in box.frame = n }
             })
         }
+        // Web `.grp` padding-bottom 2
+        .padding(.bottom, 2)
         .id(KBCostDriversView.anchorID)
     }
 
@@ -66,7 +69,7 @@ struct KBCostDriversView: View {
     private func note(_ t: String) -> some View {
         Text(verbatim: t)
             .font(.system(size: 12.5))
-            .lineSpacing(12.5 * 0.2)
+            .kLineHeight(12.5, 17.5)
             .foregroundStyle(KColor.ink3)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.bottom, 10)
@@ -164,13 +167,16 @@ struct KBCostDriversView: View {
                 categoryMark(g.key, size: 36)
                     .padding(.top, 2)
                 VStack(alignment: .leading, spacing: 2) {
+                    // Web `.ptrow .mn` 15.5/20.15, `.mm` 12.5/16.25
                     Text(verbatim: g.key)
                         .font(.system(size: 15.5, weight: .semibold, design: .rounded))
+                        .kLineHeight(15.5, 20.15)
                         .foregroundStyle(KColor.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     if !g.why.isEmpty {
                         Text(verbatim: g.why)
                             .font(.system(size: 12.5))
+                            .kLineHeight(12.5, 16.25)
                             .foregroundStyle(KColor.ink2)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -178,11 +184,12 @@ struct KBCostDriversView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 delta(g.delta, unit: unit, size: 16)
                     .padding(.top, 2)
+                // Web `.aechev`: 17/24.65, 12 breit, Zeichen links
                 Text(verbatim: "›")
                     .font(.system(size: 17))
                     .foregroundStyle(KColor.ink3)
                     .rotationEffect(.degrees(on ? 90 : 0))
-                    .frame(width: 12)
+                    .frame(width: 12, height: 24.65, alignment: .leading)
                     .padding(.top, 4)
             }
             .padding(.vertical, 10)
@@ -257,6 +264,8 @@ struct KBCostDriversView: View {
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(KColor.ink2)
         }
+        // Web `.ptv`: Zeilenhöhe 1.45
+        .frame(minHeight: size * 1.45)
         .fixedSize()
     }
 

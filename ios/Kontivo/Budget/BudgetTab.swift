@@ -70,7 +70,7 @@ struct BudgetTab: View {
                           "Fair geteilt: wer zahlt wie viel im Haushalt"],
                   buttonTitle: "Einnahme erfassen",
                   action: { model.present(.incomeForm(nil)) })
-            .padding(.top, 36)
+            // Web `.esv.eh` direkt unter der Titelzeile (padding-top 36 steckt schon in EmptyHero)
             .padding(.bottom, 24)
     }
 }
@@ -374,6 +374,8 @@ struct KBBudgetIncomeList: View {
                 }
             }
         }
+        // Web `.grp` padding-bottom 2
+        .padding(.bottom, 2)
     }
 
     @ViewBuilder
@@ -484,6 +486,8 @@ struct KBBudgetExpenseList: View {
             sumBlock(home: home)
                 .padding(.top, 8)
         }
+        // Web `.grp` padding-bottom 2
+        .padding(.bottom, 2)
     }
 
     /// «Einnahmen» / «− Ausgaben» / «= Verfügbar» (Web `.xsum`, 14 px)
@@ -606,18 +610,21 @@ struct KBFairShareView: View {
                                 .foregroundStyle(KColor.ink3)
                                 .lineLimit(1)
                                 .frame(height: 18.1)
+                            // Web `.fgbar`: 8 hoch, 6 oben; Strich 3 × 16 ragt oben und unten 4 heraus (ohne Platz zu belegen)
                             GeometryReader { g in
                                 let w = g.size.width
                                 ZStack(alignment: .leading) {
                                     Capsule().fill(KColor.line).frame(height: 8)
                                     Capsule().fill(KColor.teal.opacity(0.45)).frame(width: w * CGFloat(r.fixedPercent) / 100, height: 8)
+                                }
+                                .frame(height: 8)
+                                .overlay(alignment: .leading) {
                                     RoundedRectangle(cornerRadius: 2).fill(KColor.ink).frame(width: 3, height: 16)
                                         .offset(x: w * CGFloat(r.incomePercent) / 100 - 1.5)
                                 }
-                                .frame(height: 16)
                             }
-                            .frame(height: 16)
-                            .padding(.top, 2)
+                            .frame(height: 8)
+                            .padding(.top, 6)
                             .accessibilityHidden(true)
                         }
                     }
@@ -626,7 +633,7 @@ struct KBFairShareView: View {
                 }
                 Text(verbatim: Calc.fairHint)
                     .font(.system(size: 12.5))
-                    .lineSpacing(12.5 * 0.25)
+                    .kLineHeight(12.5, 18.125)
                     .foregroundStyle(KColor.ink3)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 8)
@@ -637,6 +644,8 @@ struct KBFairShareView: View {
             .padding(.bottom, 8)
             .kbSurface(KBM.listRadius)
         }
+        // Web `.grp` padding-bottom 2
+        .padding(.bottom, 2)
         .accessibilityIdentifier("budget.fair")
     }
 }

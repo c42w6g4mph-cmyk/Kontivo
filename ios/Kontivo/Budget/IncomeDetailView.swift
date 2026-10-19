@@ -100,8 +100,8 @@ struct IncomeDetailView: View {
                 } else {
                     Color.clear.frame(height: 6 + 10)
                 }
+                // Web `.kz` margin 2 oben, 12 unten (fällt mit den 20 über «Einnahme» zusammen)
                 KBIncomeKeyFigures(income: i, info: info, home: calc.home)
-                    .padding(.bottom, 12)
                 KBDetailSection("Einnahme")
                 if let ch = calc.priceChart(i) {
                     KBIncomeChart(chart: ch)
@@ -123,15 +123,15 @@ struct IncomeDetailView: View {
                     KBDetailSection("Notiz")
                     Text(verbatim: i.note)
                         .font(.system(size: 14.5))
+                        .kLineHeight(14.5, 21.025)
                         .foregroundStyle(KColor.ink)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 2)
                 }
             }
             .padding(.horizontal, KBM.side)
             .padding(.bottom, 18)
-            .kContentWidth()
+            .kbWrapWidth()
         }
         .coordinateSpace(name: "incDetail")
         .onPreferenceChange(KBIncomeScrollKey.self) { y in
@@ -260,6 +260,7 @@ struct KBDetailSection: View {
         Text(verbatim: title)
             .font(.system(size: 12.5, weight: .semibold))
             .foregroundStyle(KColor.ink2)
+            .frame(minHeight: 18.125)
             .padding(.top, 20)
             .padding(.bottom, 2)
             .accessibilityAddTraits(.isHeader)
@@ -279,15 +280,21 @@ struct KBIncomeKeyFigures: View {
     var body: some View {
         let cu = income.currency
         KBRatioRow().callAsFunction {
-            VStack(alignment: .leading, spacing: 10) {
+            // Web `.kzm`: Spalte mit space-between (Höhe = rechte Spalte), Bezeichnung 12/17.4, Betrag 34/37.4,
+            // Balken 6 (10 oben, 6 unten), Anteil 12/17.4
+            VStack(alignment: .leading, spacing: 0) {
                 Text(verbatim: info.mainLabel)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(KColor.ink2)
-                VStack(alignment: .leading, spacing: 3) {
+                    .frame(height: 17.4)
+                Spacer(minLength: 0)
+                VStack(alignment: .leading, spacing: 0) {
                     bigAmount(info.mainAmount, currency: cu)
+                        .frame(height: 37.4)
                     if info.foreign {
                         Text(verbatim: "≈ " + Format.money0(info.mainAmountHome) + " " + home.rawValue)
                             .font(.caption).foregroundStyle(KColor.ink2)
+                            .padding(.top, 3)
                     }
                     if let pc = info.sharePercent {
                         GeometryReader { g in
@@ -302,10 +309,12 @@ struct KBIncomeKeyFigures: View {
                         .accessibilityHidden(true)
                         Text(verbatim: "\(pc) % deiner Einnahmen")
                             .font(.system(size: 12)).foregroundStyle(KColor.ink2)
-                            .padding(.top, 6 - 3)
+                            .frame(height: 17.4)
+                            .padding(.top, 6)
                     } else if let n = info.note {
                         Text(verbatim: n)
                             .font(.system(size: 12)).foregroundStyle(KColor.ink2)
+                            .frame(minHeight: 17.4)
                     }
                 }
             }
@@ -324,7 +333,6 @@ struct KBIncomeKeyFigures: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .padding(.top, 2)
-        .padding(.bottom, 4)
     }
 
     /// «7’600» gross, «.00» klein, Währung klein (Web decAt)
@@ -340,16 +348,19 @@ struct KBIncomeKeyFigures: View {
     }
 
     private func tile(_ label: String, value: String, currency: String) -> some View {
+        // Web `.kzt`: 10/12 Innenabstand, Bezeichnung 12/17.4, Wert 20/22 mit 3 Abstand (Höhe 62.4)
         VStack(alignment: .leading, spacing: 3) {
             Text(verbatim: label)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(KColor.ink2)
+                .frame(height: 17.4)
             (Text(verbatim: value).font(KFont.serif(20, .medium))
                 + Text(verbatim: currency.isEmpty ? "" : " " + currency).font(.system(size: 12, weight: .semibold)).foregroundStyle(KColor.ink2))
                 .tracking(-0.2)
                 .foregroundStyle(KColor.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
+                .frame(height: 22)
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)

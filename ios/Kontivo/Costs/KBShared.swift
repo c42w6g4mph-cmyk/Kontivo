@@ -14,6 +14,8 @@ enum KBM {
     static let cardRadius: CGFloat = 16
     /// Listen «ilist», «fgcard», «xsum», «ptcard» (Web `--r`)
     static let listRadius: CGFloat = 13
+    /// Web `.wrap{max-width:580px; padding:0 17px}` (Breite inkl. Seitenrand → Inhalt 546 pt auf dem iPad)
+    static let wrapWidth: CGFloat = 580
 
     /// Zusätzlicher Abstand oben/unten, damit eine Textzeile die CSS-Zeilenhöhe `lh` erreicht (SF ≈ 1.193 × Schriftgrösse).
     static func pad(_ lh: CGFloat, _ size: CGFloat) -> CGFloat { max(0, (lh - size * 1.193) / 2) }
@@ -222,8 +224,10 @@ struct KBPage<Content: View>: View {
                     content
                 }
                 .padding(.horizontal, KBM.side)
-                .padding(.bottom, 28)
-                .kContentWidth()
+                // Web `.wrap` padding-bottom 104 + Sicherheitsabstand (138 pt ab Bildschirmunterkante); die Tableiste
+                // (83 pt) rechnet SwiftUI schon ein
+                .padding(.bottom, 55)
+                .kbWrapWidth()
             }
             .coordinateSpace(name: KBPageSpace.name)
             #if DEBUG
@@ -313,6 +317,11 @@ extension View {
                 @unknown default: break
                 }
             }
+    }
+
+    /// Breite wie Web `.wrap` (580 inkl. Seitenrand), mittig
+    func kbWrapWidth() -> some View {
+        frame(maxWidth: KBM.wrapWidth).frame(maxWidth: .infinity)
     }
 
     /// Weisse Fläche mit Rundung (Web `.kcard`, `.mrows2`: 16 pt, ohne Rand)
@@ -553,6 +562,8 @@ struct KBCompareLine: View {
                 .foregroundStyle(KColor.ink2)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        // Web `.kvs`: 13/18.85, margin-top 11
+        .frame(minHeight: 18.85)
         .padding(.top, 11)
     }
 
@@ -589,13 +600,14 @@ struct KBStatCell: View {
             .foregroundStyle(KColor.ink3)
             .lineLimit(1)
             .padding(.vertical, KBM.pad(16.675, 11.5))
+            // Zeilenhöhe 24.65 fest (Serif hat andere Masse als SF, KBM.pad passt nur für SF)
             Text(verbatim: value)
                 .font(KFont.serif(17, .medium))
                 .tracking(-0.17)
                 .foregroundStyle(muted ? KColor.ink3 : (valueColor ?? KColor.ink))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .padding(.vertical, KBM.pad(24.65, 17))
+                .frame(height: 24.65)
         }
         .frame(maxWidth: .infinity, alignment: trailing ? .trailing : .leading)
         .accessibilityElement(children: .combine)
