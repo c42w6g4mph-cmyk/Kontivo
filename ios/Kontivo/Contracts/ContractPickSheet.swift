@@ -87,6 +87,8 @@ struct CTPickRow: View {
                         .lineLimit(1)
                 }
             }
+            // Web `.pick`: Zeile 23.2 + 13/13 → 49.2
+            .frame(minHeight: 23.2)
             .padding(.vertical, 13).padding(.horizontal, 14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: 11, style: .continuous).fill(selected ? KColor.tealFill : KColor.field))

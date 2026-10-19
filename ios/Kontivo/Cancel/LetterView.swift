@@ -95,7 +95,7 @@ struct LetterView: View {
         LetterLabeled(label: "Betreff") {
             TextField("", text: $subject)
                 .font(.system(size: 16))
-                .frame(minHeight: LetterMetric.line)
+                .frame(minHeight: LetterMetric.line + 0.8)
                 .focused($focus, equals: .subject)
                 .letterBox()
                 .accessibilityLabel("Betreff")
