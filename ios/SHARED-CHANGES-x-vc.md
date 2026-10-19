@@ -17,3 +17,5 @@ Für A (swift-x-va) und B (swift-x-vb): diese Punkte sind zentral erledigt, bitt
 | Design/Components.swift `Chip` | Zeilenhöhe 20.3 (`frame(minHeight:)`), Innenabstand 8/13 (7/12 + Rand 1) → 36.3 hoch | Wunsch A (Web `.chips .chip`). A kann `CTFormChip(fill: false, fontSize: 14)` im Formular wieder durch `Chip` ersetzen. |
 
 Wunsch A «Grosstitel 2–4 pt höher»: mit der `KTabHeader`-Änderung oben erledigt (Grundlinie jetzt 109.9 pt = Safari/SF-Rechnung 109.7; Chromium-Foto zeigt wegen Inter-Metrik ≈1 pt höher).
+
+Wünsche B: Tab-Titel und `KPrimaryButton` (max. 320 inkl. Innenabstand) sind oben erledigt. `KMetric.maxContent` ist jetzt 580 = B's lokales `KBM.wrapWidth` – B kann `KBM.wrapWidth` beim Zusammenführen durch `KMetric.maxContent` ersetzen.
