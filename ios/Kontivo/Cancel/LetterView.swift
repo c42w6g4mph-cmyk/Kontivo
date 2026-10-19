@@ -600,7 +600,7 @@ private struct LetterFormHost<Content: View>: View {
                     .padding(.horizontal, 17)
                     .padding(.top, 4)
                     .padding(.bottom, 24)
-                    .frame(maxWidth: KMetric.maxContent + 34)
+                    .frame(maxWidth: KMetric.maxContent)
                     .frame(maxWidth: .infinity)
             }
                 .background(KColor.paper.ignoresSafeArea())

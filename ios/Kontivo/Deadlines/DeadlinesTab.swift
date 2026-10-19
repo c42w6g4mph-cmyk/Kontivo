@@ -30,10 +30,10 @@ struct DeadlinesTab: View {
                         .padding(.bottom, 28)
                         .kContentWidth()
                     } else {
-                        // Web `.wrap` padding-bottom 104 + Safe-Area (138 bis Fensterrand); Tableiste/Safe-Area liefern 83
+                        // Web `.wrap` padding-bottom 138 bis Fensterrand: KMetric.tabPageBottom (inkl. 1 pt Endmarke darunter)
                         content(ov, review: review)
                             .padding(.horizontal, KMetric.gutter)
-                            .padding(.bottom, 54)
+                            .padding(.bottom, KMetric.tabPageBottom - 1)
                             .kContentWidth()
                     }
                 Color.clear.frame(height: 1).id("deadlines.end")

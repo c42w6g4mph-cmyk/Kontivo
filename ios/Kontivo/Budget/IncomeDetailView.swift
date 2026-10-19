@@ -131,7 +131,7 @@ struct IncomeDetailView: View {
             }
             .padding(.horizontal, KBM.side)
             .padding(.bottom, 18)
-            .kbWrapWidth()
+            .kContentWidth()
         }
         .coordinateSpace(name: "incDetail")
         .onPreferenceChange(KBIncomeScrollKey.self) { y in

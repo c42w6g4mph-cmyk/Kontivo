@@ -118,7 +118,7 @@ struct CostsTab: View {
             VStack(spacing: 0) {
                 KTabHeader(title: "Kosten")
                     .padding(.horizontal, KBM.side)
-                    .kbWrapWidth()
+                    .kContentWidth()
                 EmptyHero(symbol: "chart.bar",
                           title: "Dein Monat,\nim Voraus geplant",
                           text: "Sobald Verträge da sind, siehst du hier, was wann abgebucht wird.",
@@ -130,7 +130,7 @@ struct CostsTab: View {
                     // Web `.esv.eh` (padding-top 36 steckt schon in EmptyHero), Seitenrand `.wrap` 17
                     .padding(.horizontal, KBM.side)
                     .padding(.bottom, 24)
-                    .kbWrapWidth()
+                    .kContentWidth()
             }
         }
         .kTabPage(title: "Kosten")

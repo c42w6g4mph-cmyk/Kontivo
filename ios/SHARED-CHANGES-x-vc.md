@@ -19,3 +19,12 @@ Für A (swift-x-va) und B (swift-x-vb): diese Punkte sind zentral erledigt, bitt
 Wunsch A «Grosstitel 2–4 pt höher»: mit der `KTabHeader`-Änderung oben erledigt (Grundlinie jetzt 109.9 pt = Safari/SF-Rechnung 109.7; Chromium-Foto zeigt wegen Inter-Metrik ≈1 pt höher).
 
 Wünsche B: Tab-Titel und `KPrimaryButton` (max. 320 inkl. Innenabstand) sind oben erledigt. `KMetric.maxContent` ist jetzt 580 = B's lokales `KBM.wrapWidth` – B kann `KBM.wrapWidth` beim Zusammenführen durch `KMetric.maxContent` ersetzen.
+
+## Erledigt beim Zusammenführen in swift-final (C → A → B)
+
+- Tab-Titel: nur zentral in `KTabHeader`; A und B haben nicht lokal ausgeglichen (geprüft).
+- `Cancel/LetterView.swift`: `maxContent + 34` → `maxContent`.
+- Fristen-Ende (`DeadlinesTab`) und Kosten/Budget-Ende (`KBPage`): `KMetric.tabPageBottom` (vorher 54 + 1 bzw. 55).
+- Vertragsformular «Personen»: `CTFormChip(fill: false, fontSize: 14)` → `Chip` (Web `.chips .chip`: Rand gewählt Tinte, 13 seitlich).
+- Leerseiten Kosten/Budget: doppelte `.padding(.top, 36)` war in B schon entfernt (nur noch in `EmptyHero`).
+- `KBM.wrapWidth`/`kbWrapWidth()` entfernt → `KMetric.maxContent`/`kContentWidth()`; `IncomeFormView` mit innerem Rand 17 in `maxContent` (Inhalt 546).

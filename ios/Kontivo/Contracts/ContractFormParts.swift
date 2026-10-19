@@ -362,7 +362,7 @@ struct CTFormChip: View {
     var fill = true
     var enabled = true
     var identifier = ""
-    /// Web `.fchq .chip` 13.5 px (Zeile 19.575); freie Chips (`.chips .chip`, z.B. Personen) 14 px (Zeile 20.3)
+    /// Web `.fchq .chip` 13.5 px (Zeile 19.575); freie Chips (`.chips .chip`, z.B. Personen) nutzen `Chip`
     var fontSize: CGFloat = 13.5
     let action: () -> Void
 

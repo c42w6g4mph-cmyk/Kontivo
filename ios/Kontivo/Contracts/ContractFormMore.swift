@@ -121,12 +121,12 @@ struct CTFormAssignSection: View {
         CTSection {
             categoryRow
             if data.persons.count >= 2 {
-                // Web `.frow.fcol` 12 0, Abstand 8; `.chips` Abstand 6
+                // Web `.frow.fcol` 12 0, Abstand 8; `.chips` Abstand 6, `.chips .chip` = `Chip` (36.3 hoch)
                 VStack(alignment: .leading, spacing: 8) {
                     CTRowLabel("Personen")
                     CTFlowLayout(spacing: 6, lineSpacing: 6) {
                         ForEach(data.persons) { p in
-                            CTFormChip(title: p.name, isOn: form.holderIDs.contains(p.id), fill: false, fontSize: 14) {
+                            Chip(title: p.name, isOn: form.holderIDs.contains(p.id)) {
                                 form.toggleHolder(p.id, persons: model.data.persons)
                             }
                         }
