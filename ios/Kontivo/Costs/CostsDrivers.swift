@@ -31,6 +31,7 @@ struct KBCostDriversView: View {
                 } else {
                     label(d.listTitle)
                         .padding(.top, 13)
+                        .padding(.bottom, 6)
                     if let e = d.emptyNote { note(e).padding(.top, 2) }
                     ForEach(Array(d.groups.enumerated()), id: \.element.id) { i, g in
                         if i > 0 { KBRowDivider() }

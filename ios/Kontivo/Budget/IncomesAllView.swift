@@ -78,8 +78,8 @@ struct IncomesAllView: View {
             .padding(.trailing, 12)
         }
         .background(KColor.paper.ignoresSafeArea())
-        // Web: Blatt so hoch wie der Inhalt (+ unterer Sicherheitsabstand), höchstens ganz offen
-        .presentationDetents([.height(contentHeight > 0 ? contentHeight + 34 : 545), .large])
+        // Web: Blatt so hoch wie der Inhalt; das iOS-26-Blatt schwebt über dem Home-Indikator (ohne 34 pt unten)
+        .presentationDetents([.height(contentHeight > 0 ? contentHeight : 512), .large])
         .presentationDragIndicator(.visible)
     }
 

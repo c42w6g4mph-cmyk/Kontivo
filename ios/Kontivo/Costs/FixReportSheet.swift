@@ -114,8 +114,9 @@ struct FixReportOptionsSheet: View {
             .padding(.trailing, 12)
         }
         .background(KColor.paper.ignoresSafeArea())
-        // Web: Blatthöhe = Inhalt (Bild 02 Web: 424 pt mit Personen, 368 ohne) inkl. 34 pt unten
-        .presentationDetents([.height(persons.count > 1 ? 425 : 367), .large])
+        // Web: Blatthöhe = Inhalt (391 pt mit Personenwahl, 333 ohne); das iOS-26-Blatt schwebt über dem
+        // Home-Indikator, darum ohne die 34 pt Sicherheitsabstand des Web-Blatts
+        .presentationDetents([.height(persons.count > 1 ? 391 : 333), .large])
         .presentationDragIndicator(.visible)
         .onAppear {
             // aus «Kosten»: aktiver Personenfilter; aus «Mehr»: letzte Auswahl
