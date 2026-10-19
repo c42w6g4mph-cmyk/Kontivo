@@ -16,6 +16,16 @@ final class NativeUITests: KontivoUITestCase {
     /// Schalter rechts antippen (ein Tipp auf die Beschriftung schaltet SwiftUI-Toggles nicht um)
     private func flip(_ e: XCUIElement, _ what: String) {
         reveal(e, what)
+        // Schalter ganz über die Tableiste holen: liegt die Zeilenmitte hinter der Tableiste, trifft der Tipp den aktiven
+        // Tab «Mehr» (scrollt nach oben, Schalter bleibt aus). `reveal` prüft nur bis 90 pt über dem Fensterrand.
+        let bar = app.tabBars.firstMatch
+        var n = 0
+        while bar.exists && e.exists && e.frame.maxY > bar.frame.minY - 12 && n < 4 {
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -160)))
+            usleep(500_000)
+            n += 1
+        }
         let inner = e.switches.firstMatch
         if inner.exists && inner.isHittable {
             inner.tap()
