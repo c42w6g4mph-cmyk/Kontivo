@@ -71,6 +71,10 @@ jobs:
             sleep 20
             xcrun simctl terminate "$UDID" ch.kontivo.app >/dev/null 2>&1 || true
           fi
+          # Aufwärmlauf (Ergebnis zählt nicht): der allererste Teststart im frischen Simulator bricht teils ab
+          # («Restarting after unexpected exit …», Test-Runner neu gestartet, Test fehlt in der Zählung)
+          xcodebuild test -project ios/Kontivo.xcodeproj -scheme Kontivo -destination "$DEST" -derivedDataPath build \
+            -only-testing:KontivoUITests/SyncUITests CODE_SIGNING_ALLOWED=NO > ci-out/ui-warmup.txt 2>&1 || true
           set -o pipefail
           xcodebuild test -project ios/Kontivo.xcodeproj -scheme Kontivo -destination "$DEST" \
             -derivedDataPath build -resultBundlePath ci-out/ui.xcresult \
