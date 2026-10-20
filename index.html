@@ -1063,6 +1063,7 @@ textarea.lt{min-height:260px;font-size:16px;line-height:1.45;resize:none;font-fa
 .sheet.letter{z-index:63}
 #sheetPick.over{z-index:67}.sheet.sig{z-index:66}
 .ltrow{display:flex;align-items:center;gap:10px;margin-top:4px}
+.ltwin{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;font-size:13px;color:var(--ink2)}.ltwin .seg2{margin:0;min-width:170px}.ltwin .seg2 button{padding:5px 8px;font-size:13px}
 .ltrow .note{margin:0;font-size:12px}
 .sigbox{position:relative;height:96px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);display:grid;place-items:center;overflow:hidden}
 .sigbox img{max-height:84px;max-width:90%;object-fit:contain}
@@ -2071,7 +2072,8 @@ body{background:var(--paper)!important}
   <div id="ltWhoBox"><div class="flabel">Wer kündigt?</div><div class="chips" id="ltWho" style="margin:0 0 6px"></div></div>
   <p class="note" id="ltSender" style="margin:4px 0 12px"></p>
   <div class="field"><label for="ltTo">Empfänger</label><textarea id="ltTo" style="min-height:92px" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort"></textarea>
-    <div class="ltrow"><button type="button" class="mini" id="ltAddr">Adresse suchen</button><span class="note" id="ltAddrMsg"></span></div></div>
+    <div class="ltrow"><button type="button" class="mini" id="ltAddr">Adresse suchen</button><span class="note" id="ltAddrMsg"></span></div>
+    <div class="ltwin"><span>Kuvert-Fenster</span><div class="seg2 sm" id="ltWin"><button type="button" data-ltwin="l">Links</button><button type="button" data-ltwin="r">Rechts</button></div></div></div>
   <p id="ltKvg" hidden style="margin:0 0 12px;font-size:13px;line-height:1.4;color:var(--ink2)">Grundversicherung (KVG): Die Kündigung wird erst gültig, wenn die neue Krankenkasse deine Aufnahme bestätigt hat – sonst bleibst du beim bisherigen Versicherer.</p>
   <div id="ltMiss" hidden><div class="flabel">Fehlt noch — wird beim Vertrag gespeichert</div>
     <div class="two"><div class="field" id="ltMissC"><label for="ltCust">Kundennummer</label><input id="ltCust" type="text" autocomplete="off"></div>
@@ -5108,9 +5110,30 @@ function isRent(c){var t=(c.label||"")+" "+(c.partner||"");
   return /miete|mietvertrag|mietzins|wohnungsmiete|mietwohnung|untermiete|nebenkosten/i.test(t)||(catKey(c.cat)==="Wohnen"&&/wohnung|zimmer|apartment|vermiet|verwaltung|immobilien/i.test(t));}
 function ltDefaultSigners(c){var H=holderStats().map(function(h){return h.name;}),own=holdersOf(c).filter(function(h){return H.indexOf(h)>=0;});
   return own.length?own:(H.length===1?H.slice():[]);}
+/* Land für Brief-Konventionen (CH/DE): ausdrückliche Länderzeile > PLZ (4 Stellen CH, 5 Stellen DE) > Katalog > Währung.
+   Empfänger bestimmt Anrede, Gruss, Datum; Absenderland entscheidet, ob eine Länderzeile nötig ist. SwiftUI: enum LetterCountry */
+var CC_RE={CH:/^(schweiz|suisse|svizzera|switzerland|ch)$/i,DE:/^(deutschland|germany|allemagne|de|brd)$/i};
+function ccLine(l){l=String(l||"").trim();return CC_RE.CH.test(l)?"CH":CC_RE.DE.test(l)?"DE":"";}
+function ccFromLines(lines){var L=(lines||[]).map(function(x){return String(x||"").trim();}).filter(Boolean);if(!L.length)return "";
+  var cl=ccLine(L[L.length-1]);if(cl)return cl;
+  /* letzte Zeile ohne Ziffern nach einer PLZ-Zeile = anderes Land (z.B. «Niederlande») */
+  if(L.length>1&&!/\d/.test(L[L.length-1])&&/\d/.test(L[L.length-2]))return "X";
+  for(var i=L.length-1;i>=0;i--){var m=L[i].match(/^(?:(CH|D|DE)[-\s])?(\d{4,5})\s+\S/i);if(m){if(m[1])return /^ch$/i.test(m[1])?"CH":"DE";return m[2].length===5?"DE":"CH";}}
+  return "";}
+function ltRecvCC(c,toLines){var cc=ccFromLines(toLines);if(cc)return cc;var t=tplMatch(c);if(t&&(t[1]==="CH"||t[1]==="DE"))return t[1];
+  return c.cur==="EUR"?"DE":c.cur==="CHF"?"CH":(state.settings.home==="EUR"?"DE":"CH");}
+function ltSendCC(o){var cl=ccLine(o.country);if(cl)return cl;if(o.country)return "X";var z=String(o.zip||"").trim();
+  if(/^\d{5}$/.test(z))return "DE";if(/^\d{4}$/.test(z))return "CH";return state.settings.home==="EUR"?"DE":"CH";}
+var CC_NAME={CH:"SCHWEIZ",DE:"DEUTSCHLAND"},CC_NAME2={CH:"Schweiz",DE:"Deutschland"};
+function ltDate(cc,city){var d=today();return (city?city+", ":"")+(cc==="CH"?d.getDate()+". "+MON[d.getMonth()]+" "+d.getFullYear():String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear());}
 function letterParts(c,signers){
   signers=signers||ltDefaultSigners(c);
-  var ps=signers.map(function(h){var o=sndOf(h);return {h:h,o:o,name:[o.first,o.last].filter(Boolean).join(" ")||h,addr:sndAddr(o),city:o.city};});
+  var pg0=c.partner?peGroup(String(c.partner).trim().toLowerCase()):null;
+  var al=String(c.addr||(pg0&&pg0.addr)||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean),pn=String(c.partner||"").trim();
+  var rcc=ltRecvCC(c,al);
+  /* Absender in anderem Land als der Vertragspartner: Land beim Absender ergänzen (fehlt es) */
+  var ps=signers.map(function(h){var o=sndOf(h),sc=ltSendCC(o);if(!o.country&&(sc==="CH"||sc==="DE")&&sc!==rcc)o=Object.assign({},o,{country:CC_NAME2[sc]});
+    return {h:h,o:o,cc:sc,name:[o.first,o.last].filter(Boolean).join(" ")||h,addr:sndAddr(o),city:o.city};});
   /* Absender nach gleicher Adresse gruppiert; mehr als 7 Zeilen: zuerst ohne Land, dann eine Zeile pro Person («Name, Strasse, PLZ Ort») */
   var noC=function(p){return sndAddr(Object.assign({},p.o,{country:""}));};
   var block=function(nc){var grp=[],out=[];ps.forEach(function(p){var a=nc?noC(p):p.addr,k=a.join("|"),g=grp.filter(function(x){return x.k===k;})[0];if(g)g.n.push(p.name);else grp.push({k:k,n:[p.name],a:a});});
@@ -5119,18 +5142,18 @@ function letterParts(c,signers){
   if(sender.length>7){sender=block(true);sCut="Absender gekürzt: Land weggelassen.";}
   if(sender.length>7){sender=ps.map(function(p){return [p.name].concat(noC(p)).join(", ");});sCut="Absender gekürzt: eine Zeile pro Person.";}
   if(sender.length>7){sender=sender.slice(0,7);sCut="Absender gekürzt: Nicht alle Personen passen in den Absender (höchstens 7 Zeilen).";}
-  var pg0=c.partner?peGroup(String(c.partner).trim().toLowerCase()):null;
-  var al=String(c.addr||(pg0&&pg0.addr)||"").split(/\n/).map(function(x){return x.trim();}).filter(Boolean),pn=String(c.partner||"").trim();
   /* Erste Adresszeile enthält den Namen (z.B. «Swisscom (Schweiz) AG») → nicht doppelt */
   var to=(pn&&!(al[0]&&al[0].toLowerCase().indexOf(pn.toLowerCase())>=0)?[pn]:[]).concat(al);
+  /* Auslandsbrief: Bestimmungsland als letzte Zeile in Grossbuchstaben (Post CH/DE), nur wenn noch keine Länderzeile da ist */
+  var scc=(ps[0]||{}).cc||ltSendCC({});if(al.length&&scc!==rcc&&CC_NAME[rcc]&&!ccLine(to[to.length-1])&&!/^[A-ZÄÖÜ ]{4,}$/.test(to[to.length-1]))to.push(CC_NAME[rcc]);
   var nr=[c.custNo?"Kundennummer: "+c.custNo:"",c.contrNo?contrLbl(c)+": "+c.contrNo:""].filter(Boolean);
   var e=termEnd(c),d=noticeDeadline(c),we=ps.length>1;
   /* Anrede: CH ohne Komma, danach gross («Hiermit»); DE mit Komma, danach klein */
-  var deL=c.cur==="EUR";var body="Sehr geehrte Damen und Herren"+(deL?",":"")+"\n\n"+(deL?"hiermit ":"Hiermit ")+(we?"kündigen wir":"kündige ich")+" den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"+(e?", nach "+(we?"unserer":"meiner")+" Berechnung zum "+fmtD(iso(e)):"")+".\n\n"+
-    "Bitte bestätigen Sie "+(we?"uns":"mir")+" die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse";
+  var deL=rcc!=="CH";var body="Sehr geehrte Damen und Herren"+(deL?",":"")+"\n\n"+(deL?"hiermit ":"Hiermit ")+(we?"kündigen wir":"kündige ich")+" den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"+(e?", nach "+(we?"unserer":"meiner")+" Berechnung zum "+fmtD(iso(e)):"")+".\n\n"+
+    "Bitte bestätigen Sie "+(we?"uns":"mir")+" die Kündigung und das Vertragsende schriftlich.\n\n"+(deL?"Mit freundlichen Grüßen":"Freundliche Grüsse");
   /* Betreff ohne doppelten Namen («Kündigung Netflix», nicht «… Netflix bei Netflix») */
   var lb=String(c.label||"").trim(),subj="Kündigung "+(lb||pn)+(lb&&pn&&lb.toLowerCase().indexOf(pn.toLowerCase())<0?" bei "+pn:"");
-  return {names:ps.map(function(p){return p.name;}),signers:signers.slice(),sender:sender,sCut:sCut,to:to,city:(ps[0]||{}).city||"",subject:subj,ref:nr,body:body,deadline:d};
+  return {cc:rcc,scc:scc,names:ps.map(function(p){return p.name;}),signers:signers.slice(),sender:sender,sCut:sCut,to:to,city:(ps[0]||{}).city||"",subject:subj,ref:nr,body:body,deadline:d};
 }
 var ltSigners=[],ltAuto={body:""};
 function ltBodyText(L){return (L.ref.length?L.ref.join("\n")+"\n\n":"")+L.body;}
@@ -5162,11 +5185,14 @@ function paintLtWho(){
 /* Wechsel der Unterzeichnenden: Text nur neu setzen, wenn er nicht von Hand geändert wurde */
 function ltSetSigners(a){ltSigners=a;var L=letterParts(ltC,ltSigners),b=document.getElementById("ltBody"),nb=ltBodyText(L);
   if(b.value===ltAuto.body){b.value=nb;ltAuto.body=nb;}paintLtWho();}
+function paintLtWin(){var r=state.settings.ltWin==="r";document.querySelectorAll("[data-ltwin]").forEach(function(b){b.setAttribute("aria-pressed",(b.dataset.ltwin==="r")===r);});}
+document.addEventListener("click",function(e){var b=e.target.closest("[data-ltwin]");if(!b)return;state.settings.ltWin=b.dataset.ltwin==="r"?"r":"l";saveSettings();paintLtWin();
+  toast(b.dataset.ltwin==="r"?"Adresse rechts (Schweizer Kuvert mit Fenster rechts)":"Adresse links (DIN-Kuvert, Fenster links)");});
 function ltRefresh(){if(ltC&&document.getElementById("sheetLetter").classList.contains("on"))paintLtWho();}
 var ltTrial=false,ltMade=false;
 function openLetter(c,trial){ltTrial=!!trial;ltMade=false;/* immer den aktuellen Stand lesen (Detail kann veraltet sein, z.B. nach nachgetragener Kundennummer) */
   var id=c._id;if(id&&state.contracts[id]){c=Object.assign({},state.contracts[id]);c._id=id;}
-  ltC=c;ltSigners=ltDefaultSigners(c);var L=letterParts(c,ltSigners);
+  ltC=c;ltSigners=ltDefaultSigners(c);var L=letterParts(c,ltSigners);paintLtWin();
   document.getElementById("ltTo").value=L.to.join("\n");
   document.getElementById("ltSubj").value=L.subject;
   ltAuto.body=ltBodyText(L);document.getElementById("ltBody").value=ltAuto.body;
@@ -5335,8 +5361,9 @@ function pdfWrap(str,bold,pt,maxPt){var words=str.split(" "),lines=[],cur="";
     var t=cur?cur+" "+w:w;if(pdfWidth(t,bold,pt)<=maxPt||!cur)cur=t;else{lines.push(cur);cur=w;}});
   if(cur||!lines.length)lines.push(cur);return lines;}
 function pdfEsc(str){var o="";for(var i=0;i<str.length;i++){var b=pdfByte(str[i]);if(b===40||b===41||b===92)o+="\\"+String.fromCharCode(b);else if(b<32||b>126)o+="\\"+("00"+b.toString(8)).slice(-3);else o+=String.fromCharCode(b);}return o;}
-/* Brief nach DIN 5008 / Schweizer Geschäftsbrief: A4, linker Rand 25 mm, Absender oben, Anschriftfeld ab 50 mm
-   (Fensterkuvert), Ort/Datum rechts, Betreff fett, Text, Gruss, Unterschrift (Bild), Name. Mehrseitig. */
+/* Brief nach DIN 5008 Form B (Fenster links) bzw. Schweizer Geschäftsbrief SN 010130 (Fenster links oder rechts, settings.ltWin):
+   A4, linker Rand 25 mm, Absender oben, Rücksendeangabe im Fenster, Falz-/Lochmarken, Ort/Datum nach Land des Vertragspartners (L.cc),
+   Betreff fett, Text, Gruss, Unterschrift (Bild), Name. Mehrseitig. SwiftUI: UIGraphicsPDFRenderer mit denselben Massen */
 function letterPdf(L){
   var cl=function(a){return (a||[]).map(pdfClean);};
   L=Object.assign({},L,{sender:cl(L.sender),to:cl(L.to),ref:cl(L.ref),names:cl(L.names),subject:pdfClean(L.subject),body:pdfClean(L.body),city:pdfClean(L.city),name:pdfClean(L.name)});
@@ -5346,14 +5373,23 @@ function letterPdf(L){
   function txt(str,x,yy,bold,pt){ops.push("BT /"+(bold?"F2":"F1")+" "+(pt||PT)+" Tf "+x.toFixed(1)+" "+yy.toFixed(1)+" Td ("+pdfEsc(str)+") Tj ET");}
   function line(str,bold){if(y<BOT){pages.push(ops);ops=[];y=TOP;}txt(str,LFT,y,bold);y-=LH;}
   function para(str,bold){str.split("\n").forEach(function(ln){pdfWrap(ln,bold,PT,W).forEach(function(w){line(w,bold);});});}
+  /* Masse in mm → pt (1 mm = 2.8346 pt), y von oben gemessen */
+  var MM=2.8346,Y=function(mm){return 842-mm*MM;},right=L.win==="r";
   /* Absender (klein) ab 20 mm */
-  var yy=842-57;L.sender.forEach(function(ln){txt(ln,LFT,yy,false,9.5);yy-=12;});
-  /* Anschriftfeld ab 50 mm */
-  yy=842-142;L.to.forEach(function(ln){txt(ln,LFT,yy);yy-=LH;});
-  /* Ort und Datum rechts, 90 mm */
-  var dt=(L.city?L.city+", ":"")+fmtD(iso(today()));txt(dt,RGT-pdfWidth(dt,false,PT),842-255);
+  var yy=Y(20);L.sender.forEach(function(ln){txt(ln,LFT,yy,false,9.5);yy-=12;});
+  /* Falzmarken 105/210 mm und Lochmarke 148.5 mm (DIN 5008 Form B) am linken Rand */
+  [[105,14],[148.5,20],[210,14]].forEach(function(f){ops.push("q 0.4 w 0.6 G "+(4*MM).toFixed(1)+" "+Y(f[0]).toFixed(1)+" m "+((4*MM)+f[1]).toFixed(1)+" "+Y(f[0]).toFixed(1)+" l S Q");});
+  /* Anschriftfeld: links nach DIN 5008 Form B (Feld 45–90 mm, Anschriftzone ab 62.7 mm, 25 mm vom Rand),
+     rechts für Schweizer Kuverts mit Fenster rechts (ab 118 mm von links, Zone ab ca. 52 mm) */
+  var ax=right?118*MM:LFT,ay=right?52:62.7,alh=12.6,apt=10.5;
+  var ret=L.sender.length?pdfClean(L.sender.join(", ")):"";
+  if(ret){var rp=7,rw=right?(205-118-8)*MM:85*MM-(LFT-20*MM);while(rp>5.6&&pdfWidth(ret,false,rp)>rw)rp-=0.2;
+    if(pdfWidth(ret,false,rp)<=rw){txt(ret,ax,Y(ay-3.2),false,rp);ops.push("q 0.3 w 0.6 G "+ax.toFixed(1)+" "+(Y(ay-3.2)-1.6).toFixed(1)+" m "+(ax+pdfWidth(ret,false,rp)).toFixed(1)+" "+(Y(ay-3.2)-1.6).toFixed(1)+" l S Q");}}
+  yy=Y(ay)-apt;L.to.forEach(function(ln){txt(ln,ax,yy,false,apt);yy-=alh;});
+  /* Ort und Datum: CH «Kreuzlingen, 20. Oktober 2026», DE «Konstanz, 20.10.2026»; rechtsbündig, bei Fenster rechts links über dem Betreff */
+  var dt=ltDate(L.cc,L.city);if(right)txt(dt,LFT,Y(97));else txt(dt,RGT-pdfWidth(dt,false,PT),Y(97));
   /* Betreff ab 105 mm */
-  y=842-298;pdfWrap(L.subject,true,PT,W).forEach(function(w){line(w,true);});y-=LH*0.6;
+  y=Y(107);pdfWrap(L.subject,true,PT,W).forEach(function(w){line(w,true);});y-=LH*0.6;
   if(L.ref.length){L.ref.forEach(function(r){pdfWrap(r,false,PT,W).forEach(function(w){line(w);});});y-=LH*0.6;}
   /* Text: Absätze durch Leerzeilen */
   String(L.body).replace(/\r/g,"").split(/\n{2,}/).forEach(function(b,i){para(b);y-=LH*0.8;});
@@ -5485,13 +5521,13 @@ function reportPdf(R){
   var mx=Math.max.apply(null,R.M.map(function(x){return x.v;}))||1,gx=LM+12,gw=RM-LM-24,slot=gw/12,bwd2=slot-8,base=y3-ch+44,maxH=110;
   /* jeder Balken mit Wert (Summe der Zahlungen im Monat); Jahr bei erstem Monat und Januar */
   R.M.forEach(function(m,i){var hgt=Math.max(1.5,m.v/mx*maxH),x=gx+i*slot+4,mo=m.d.getMonth();
-    rr(x,base,bwd2,hgt,3,m.hi?"#A88437":"#E3D7BC");
+    rr(x,base,bwd2,hgt,3,"#D9C9A1");
     tx(MON[mo].slice(0,3)+(i===0||mo===0?" "+String(m.d.getFullYear()).slice(2):""),x+bwd2/2,base-11,{pt:6.8,c:"#6A6C70",al:"c"});
-    tx(repNum(m.v),x+bwd2/2,base+hgt+4,m.hi?{f:"F2",pt:6.6,c:"#86671F",al:"c"}:{pt:6.4,c:"#4A4C50",al:"c"});});
+    tx(repNum(m.v),x+bwd2/2,base+hgt+4,{pt:6.4,c:"#4A4C50",al:"c"});});
   var ly=y3-ch+14,lx=LM+12;
-  rr(lx,ly,7,7,1.5,"#E3D7BC");lx+=11+tx("Monat mit den regelmässigen Zahlungen",lx+11,ly+0.5,{pt:7,c:"#6A6C70"})+14;
   var pk=R.M.filter(function(m){return m.hi;}).map(function(m){return MON[m.d.getMonth()].slice(0,3)+" "+m.big.n;});
-  if(pk.length){rr(lx,ly,7,7,1.5,"#A88437");tx(repFit("Höher wegen Jahres- oder Sonderzahlung: "+pk.join(" · "),false,7,RM-12-lx-11),lx+11,ly+0.5,{pt:7,c:"#6A6C70"});}
+  rr(lx,ly,7,7,1.5,"#D9C9A1");lx+=11+tx("Summe aller Zahlungen im Monat",lx+11,ly+0.5,{pt:7,c:"#6A6C70"})+14;
+  if(pk.length)tx(repFit("Höher wegen Jahres- oder Sonderzahlung: "+pk.join(" · "),false,7,RM-12-lx),lx,ly+0.5,{pt:7,c:"#6A6C70"});
   tx(R.L.length?"Ab Seite 2: alle Verträge mit Kündigungsregel"+(R.ids?", Kunden-Nr.":"")+" und Kontakt – zum Ablegen oder Weitergeben.":"",LM,y3-ch-18,{pt:7.5,c:"#6A6C70"});
   foot(1,N);pages.push(ops);
   /* ---------- Vertragsblätter: 2 Spalten × 5 Zeilen pro Seite ---------- */
@@ -5566,7 +5602,7 @@ document.getElementById("ltPdf").addEventListener("click",async function(){
   if(to.length>6&&!(await ask({title:"Anschrift zu lang",text:"Die Anschrift hat "+to.length+" Zeilen. Ins Fenster eines Kuverts passen höchstens 6, sonst überdeckt sie Datum oder Betreff.",ok:"Trotzdem erstellen"})))return;
   var sm=ltSigners.filter(function(h){return !sndOk(h);});
   if(sm.length&&!(await ask({title:"Absender unvollständig",text:"Bei "+sm.join(" und ")+" fehlt die Adresse. Der Vertragspartner kann die Kündigung so schlechter zuordnen.",ok:"Trotzdem erstellen"})))return;
-  var L={sender:base.sender,to:to,city:base.city,subject:subj,ref:ref,body:blines.join("\n").trim(),names:base.names,sigs:isRent(ltC)?[]:ltSigners.map(sigOf)};
+  var L={cc:ltRecvCC(ltC,to),win:state.settings.ltWin==="r"?"r":"l",sender:base.sender,to:to,city:base.city,subject:subj,ref:ref,body:blines.join("\n").trim(),names:base.names,sigs:isRent(ltC)?[]:ltSigners.map(sigOf)};
   var blob;try{blob=letterPdf(L);}catch(e){toast("PDF konnte nicht erstellt werden");return;}
   ltMade=true;
   /* Dateiname ASCII: Umlaute als ae/oe/ue, ß als ss, übrige Akzente weg */
