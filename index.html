@@ -525,8 +525,8 @@ body.hasplus .topadd{display:inline-flex}
 .tplsum.ok .h{justify-content:flex-start;gap:11px}.tplsum.ok .h>.gk{width:30px;height:30px}.tplsum.ok .h>.gk svg{width:16px;height:16px}
 .tplsum.ok .h b{display:block;font-size:15px}.tplsum.ok .h small{display:block;font-size:12.5px;color:var(--ink2);font-weight:400}
 .tplsum ul{list-style:none;margin:0;padding:0;display:grid;gap:0}.tplsum li{display:flex;gap:8px;align-items:center;font-size:13.5px;min-width:0;padding:5px 0}.tplsum li+li{border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
-.tplsum li .k{flex:none;color:var(--ink)}.tplsum li .v{flex:1;min-width:0;text-align:right;font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tplsum p.hn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.tplsum p.hn.open{white-space:normal}
+.tplsum li .k{flex:none;color:var(--ink)}.tplsum li .v{flex:1;min-width:0;text-align:right;font-size:12.5px;color:var(--ink2);overflow-wrap:anywhere}
+.tplsum p.hn{white-space:normal}.tplsum .hnm{font-size:12.5px;color:var(--brass);font-weight:600;padding:0}.tplsum .hnw{font-weight:500;color:var(--warn)}
 .tplsum .f{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:-2px}.tplsum .f span{font-size:11.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.tplsum .f .mdlink{font-size:13.5px;flex:none}
 .sugg .tplh{flex:1 1 100%;font-size:12.5px;color:var(--ink2);line-height:1.4;background:var(--sunken);border-radius:9px;padding:8px 10px}
 #tplRows{display:flex;flex-direction:column;gap:6px}
@@ -3129,7 +3129,6 @@ function openStatFilter(){var L={cat:"Kategorie",partner:"Vertragspartner"},f=st
 function openKArt(){var ka=kArt(),l=document.getElementById("pickList");document.getElementById("pickTitle").textContent="Kostenart";l.dataset.dim="kart";
   l.innerHTML=KART.map(function(x){return '<button class="pick" data-pv="'+x[0]+'" aria-pressed="'+(ka===x[0])+'"><span>'+x[1]+'<small style="display:block;font-size:12.5px;opacity:.7;font-weight:400">'+x[2]+'</small></span><span></span></button>';}).join("");
   openSheet(document.getElementById("sheetPick"));}
-document.addEventListener("click",function(e){var hx=e.target.closest("[data-hnx]");if(hx)hx.classList.toggle("open");});
 document.addEventListener("click",function(e){if(state.tab!=="budget"||!e.target.closest("[data-bart]"))return;
   var ba=bArt(),l=document.getElementById("pickList");document.getElementById("pickTitle").textContent="Kostenart";l.dataset.dim="bart";
   l.innerHTML=BART.map(function(x){return '<button class="pick" data-pv="'+x[0]+'" aria-pressed="'+(ba===x[0])+'"><span>'+x[1]+'<small style="display:block;font-size:12.5px;opacity:.7;font-weight:400">'+x[2]+'</small></span><span></span></button>';}).join("");
@@ -4501,6 +4500,16 @@ var TPL=[
  ["evm", "DE", "Energie & Wasser", "Strom", "evm.de", 1, "m", "", "Online / Kundenkonto", 0, "Grundversorgung jederzeit mit 2 Wochen Frist; Sondertarife nach der Erstlaufzeit monatlich mit 1 Monat Frist; online über «Strom- oder Gasvertrag kündigen» oder per E-Mail.", "evm.de/kuendigen", "Energieversorgung Mittelrhein AG\nLudwig-Erhard-Strasse 8\n56073 Koblenz", "serviceteam@evm.de", "+49 261 402-11111", 1]
 ];
 var TPLI={n:0,cc:1,cat:2,lab:3,web:4,no:5,nu:6,tm:7,cf:8,md:9,h:10,url:11,addr:12,mail:13,tel:14,ok:15};
+/* Erfolgskarte: nur der erste Satz des Katalog-Hinweises (ganz, nie abgeschnitten), Rest hinter «mehr»; Prüfhinweis bei unbestätigten Daten immer sichtbar */
+function hnShort(t){var h=String(t[10]||"").trim(),warn=t[15]===0?'<b class="hnw">Kontaktdaten nicht offiziell bestätigt – vor dem Versand prüfen.</b>':"";
+  if(!h)return warn?'<p class="hn">'+warn+"</p>":"";
+  /* Satzende: «.» oder «;», aber nicht nach Abkürzungen (bzw., z.B., inkl., ca., u.a., Nr., etc.) */
+  var re=/(?:[.;])(?=\s)/g,m,cut=-1;while((m=re.exec(h))){var pre=h.slice(0,m.index+1);if(!/(bzw|z\.\s?B|inkl|ca|u\.\s?a|Nr|etc|evtl|ggf|max|min|mind|vgl|d\.\s?h|Mo|Fr|Sa|So|St)\.$/i.test(pre)){cut=m.index;break;}}
+  var first=cut<0?h:h.slice(0,cut+1).replace(/;$/,"."),rest=cut<0?"":h.slice(cut+1).trim();
+  /* passt der erste Satz nicht in 2 Zeilen: nur ein Link, der den ganzen Hinweis zeigt – nie abgeschnitten */
+  if(first.length>110)return '<p class="hn"><button type="button" class="hnm" data-hnm>Hinweis zum Kündigen anzeigen</button><span class="hnr" hidden>'+esc(h)+"</span>"+(warn?"<br>"+warn:"")+"</p>";
+  return '<p class="hn">'+esc(first)+(rest?' <button type="button" class="hnm" data-hnm>mehr</button><span class="hnr" hidden> '+esc(rest)+"</span>":"")+(warn?"<br>"+warn:"")+"</p>";}
+document.addEventListener("click",function(e){var b=e.target.closest("[data-hnm]");if(!b)return;var r=b.nextElementSibling;if(r)r.hidden=false;b.remove();});
 function tplHint(t){return (t[10]||"")+(t[15]===0?" Kontaktdaten nicht offiziell bestätigt – vor dem Versand prüfen.":"");}
 /* Katalog-Eintrag zu einem bestehenden Vertrag: exakter Name; bei Länder-Varianten (AXA / AXA Deutschland) entscheidet die Währung */
 function tplMatch(c){
@@ -4549,7 +4558,7 @@ function paintSugg(){
     if(draft.tplSum&&draft.tplUndo){var CKS='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>',nI=draft.tplSum.length;
       el.innerHTML='<div class="tplsum ok"><div class="h"><span class="gk">'+CKS+'</span><span><b>Vertragsdaten ergänzt</b><small>'+(nI===1?"1 Angabe":nI+" Angaben")+' aus dem Kontivo-Katalog</small></span></div>'+
       (nI?'<ul>'+draft.tplSum.map(function(x){x=Array.isArray(x)?x:[x,""];return '<li><span class="gk">'+CKS+'</span><span class="k">'+esc(x[0])+'</span><span class="v">'+esc(x[1])+"</span></li>";}).join("")+"</ul>":"")+
-      (hn.trim()?'<p class="hn" data-hnx title="Antippen für den ganzen Text">'+esc(hn.trim())+"</p>":"")+'<div class="f"><span>Stand 10/2026 · Änderungen vorbehalten</span><button type="button" class="mdlink" data-tplundo>Rückgängig</button></div></div>';return;}
+      hnShort(cur)+'<div class="f"><span>Stand 10/2026 · Änderungen vorbehalten</span><button type="button" class="mdlink" data-tplundo>Rückgängig</button></div></div>';return;}
     el.innerHTML='<span class="sl tplh">'+esc(hn)+"</span>";return;}
   /* exakter Treffer (z.B. «CSS», «O2»), noch nicht übernommen: genau diese Vorlage anbieten */
   if(cur){var alle=tplAll(cur[0]);
@@ -4575,9 +4584,9 @@ function tplSumItems(a,b){var I=[],ch=function(i){return a[i]!==b[i];},has={},ad
   if(a.termMode!==b.termMode&&b.termMode==="fixed")add("Mindestlaufzeit",b.fRenew?"mit Verlängerung":"feste Laufzeit");
   if(ch("fTermP")&&b.fTermP&&b.termMode!=="fixed"){var o=document.querySelector('#fTermP option[value="'+b.fTermP+'"]');add("Kündigungsfrist",o?o.textContent:"");}
   if(ch("fCancF")&&b.fCancF)add("Kündigungsweg",{"Online / Kundenkonto":"online","E-Mail":"per E-Mail","Brief":"per Brief","Einschreiben":"per Einschreiben","Telefon":"per Telefon"}[b.fCancF]||b.fCancF);
-  var sh=function(v){v=String(v||"").replace(/^https?:\/\//,"").replace(/^www\./,"");return v.length>28?v.slice(0,27)+"…":v;};
+  var sh=function(v){return String(v||"").replace(/^https?:\/\//,"").replace(/^www\./,"");};
   if(ch("fWeb")&&b.fWeb)add("Website",sh(domainOf(b.fWeb)||b.fWeb));
-  if(ch("fCancUrl")&&b.fCancUrl)add("Kündigungslink",sh(b.fCancUrl));
+  if(ch("fCancUrl")&&b.fCancUrl)add("Kündigungslink",domainOf(b.fCancUrl)||sh(b.fCancUrl));
   if(ch("fTel")&&b.fTel)add("Telefon",b.fTel);
   if(ch("fMail")&&b.fMail)add("E-Mail",sh(b.fMail));
   if(ch("fAddr")&&b.fAddr)add("Adresse",sh(String(b.fAddr).split(/\n/).slice(-1)[0]));
