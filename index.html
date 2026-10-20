@@ -524,8 +524,9 @@ body.hasplus .topadd{display:inline-flex}
 .tplsum .gk{display:inline-grid;place-items:center;border-radius:50%;background:var(--ok);color:var(--surface);flex:none;width:16px;height:16px}.tplsum .gk svg{width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
 .tplsum.ok .h{justify-content:flex-start;gap:11px}.tplsum.ok .h>.gk{width:30px;height:30px}.tplsum.ok .h>.gk svg{width:16px;height:16px}
 .tplsum.ok .h b{display:block;font-size:15px}.tplsum.ok .h small{display:block;font-size:12.5px;color:var(--ink2);font-weight:400}
-.tplsum ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}.tplsum li{display:flex;gap:7px;align-items:center;font-size:13px;min-width:0}
-.tplsum .f{display:flex;justify-content:flex-end;border-top:1px solid var(--line);padding-top:9px}.tplsum .f .mdlink{font-size:13.5px}
+.tplsum ul{list-style:none;margin:0;padding:0;display:grid;gap:0}.tplsum li{display:flex;gap:8px;align-items:center;font-size:13.5px;min-width:0;padding:5px 0}.tplsum li+li{border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.tplsum li .k{flex:none;color:var(--ink2)}.tplsum li .v{flex:1;min-width:0;text-align:right;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tplsum .f{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:-2px}.tplsum .f span{font-size:12px;color:var(--ink3)}.tplsum .f .mdlink{font-size:13.5px;flex:none}
 .sugg .tplh{flex:1 1 100%;font-size:12.5px;color:var(--ink2);line-height:1.4;background:var(--sunken);border-radius:9px;padding:8px 10px}
 #tplRows{display:flex;flex-direction:column;gap:6px}
 .tplhead{display:flex;gap:8px;align-items:center;margin:0 0 8px;position:sticky;top:0;z-index:2;background:var(--surface);padding:2px 0 8px}
@@ -4545,8 +4546,8 @@ function paintSugg(){
     /* Erfolgskarte (20.10.2026, Variante 1): grüner Haken, übernommene Felder als Haken-Liste, Hinweis, Rückgängig. SwiftUI: Label mit checkmark.circle.fill */
     if(draft.tplSum&&draft.tplUndo){var CKS='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>',nI=draft.tplSum.length;
       el.innerHTML='<div class="tplsum ok"><div class="h"><span class="gk">'+CKS+'</span><span><b>Vertragsdaten ergänzt</b><small>'+(nI===1?"1 Angabe":nI+" Angaben")+' aus dem Kontivo-Katalog</small></span></div>'+
-      (nI?'<ul>'+draft.tplSum.map(function(x){return '<li><span class="gk">'+CKS+'</span>'+esc(x)+"</li>";}).join("")+"</ul>":"")+
-      (hn.trim()?'<p>'+esc(hn.trim())+"</p>":"")+'<div class="f"><button type="button" class="mdlink" data-tplundo>Rückgängig</button></div></div>';return;}
+      (nI?'<ul>'+draft.tplSum.map(function(x){x=Array.isArray(x)?x:[x,""];return '<li><span class="gk">'+CKS+'</span><span class="k">'+esc(x[0])+'</span><span class="v">'+esc(x[1])+"</span></li>";}).join("")+"</ul>":"")+
+      (hn.trim()?'<p>'+esc(hn.trim())+"</p>":"")+'<div class="f"><span>Ohne Gewähr – bitte beim Anbieter prüfen.</span><button type="button" class="mdlink" data-tplundo>Rückgängig</button></div></div>';return;}
     el.innerHTML='<span class="sl tplh">'+esc(hn)+"</span>";return;}
   /* exakter Treffer (z.B. «CSS», «O2»), noch nicht übernommen: genau diese Vorlage anbieten */
   if(cur){var alle=tplAll(cur[0]);
@@ -4565,15 +4566,20 @@ function tplTerm(t){if(t[2]==="Steuern & Gebühren")return "nicht kündbar";if(t
 /* Katalog-Zusammenfassung: Schnappschuss vor dem Übernehmen (für «Rückgängig») und Liste, was sich geändert hat */
 var TPL_IDS=["fPartner","fLabel","fNotice","fNoticeU","fTermP","fCancF","fWeb","fCancUrl","fTel","fMail","fAddr","fCur"],TPL_CHK=["fNoCancel","fMand","fNoWatch"];
 function tplSnap(){var o={cat:draft.cat,termMode:termMode,fEnd:document.getElementById("fEnd").value,fRenew:document.getElementById("fRenew").value,fTrial:document.getElementById("fTrial").value};TPL_IDS.forEach(function(i){o[i]=document.getElementById(i).value;});TPL_CHK.forEach(function(i){o[i]=document.getElementById(i).checked;});return o;}
-function tplSumItems(a,b){var I=[],ch=function(i){return a[i]!==b[i];},add=function(x){if(I.indexOf(x)<0)I.push(x);};
-  /* Feldnamen statt Werte (klarer auf einen Blick): «Kündigungsfrist» statt «per Ende Periode» */
-  if(a.cat!==b.cat&&b.cat)add("Kategorie");
-  if((ch("fNotice")||ch("fNoticeU"))&&b.fNotice)add("Kündigungsfrist");
-  if(a.termMode!==b.termMode&&b.termMode==="fixed")add("Mindestlaufzeit");
-  if(ch("fTermP")&&b.fTermP&&b.termMode!=="fixed")add("Kündigungsfrist");
-  if(ch("fCancF")&&b.fCancF)add("Kündigungsweg");
-  [["fWeb","Website"],["fCancUrl","Kündigungslink"],["fTel","Telefon"],["fMail","E-Mail"],["fAddr","Adresse"]].forEach(function(x){if(ch(x[0])&&b[x[0]])add(x[1]);});
-  if(!a.fMand&&b.fMand)add("Pflichtvertrag");if(!a.fNoCancel&&b.fNoCancel)add("Nicht kündbar");
+function tplSumItems(a,b){var I=[],ch=function(i){return a[i]!==b[i];},has={},add=function(k,v){if(has[k]){if(v&&I[has[k]-1][1].indexOf(v)<0)I[has[k]-1][1]+=" · "+v;return;}I.push([k,v||""]);has[k]=I.length;};
+  /* [Feldname, übernommener Wert] – links das Feld, rechts der Wert aus dem Katalog */
+  if(a.cat!==b.cat&&b.cat)add("Kategorie",b.cat);
+  if((ch("fNotice")||ch("fNoticeU"))&&b.fNotice){var n=+b.fNotice,u=b.fNoticeU;add("Kündigungsfrist",u==="k"?"bis zum "+n+".":n+" "+({m:n===1?"Monat":"Monate",w:n===1?"Woche":"Wochen",d:n===1?"Tag":"Tage"}[u]||""));}
+  if(a.termMode!==b.termMode&&b.termMode==="fixed")add("Mindestlaufzeit",b.fRenew?"mit Verlängerung":"feste Laufzeit");
+  if(ch("fTermP")&&b.fTermP&&b.termMode!=="fixed"){var o=document.querySelector('#fTermP option[value="'+b.fTermP+'"]');add("Kündigungsfrist",o?o.textContent:"");}
+  if(ch("fCancF")&&b.fCancF)add("Kündigungsweg",{"Online / Kundenkonto":"online","E-Mail":"per E-Mail","Brief":"per Brief","Einschreiben":"per Einschreiben","Telefon":"per Telefon"}[b.fCancF]||b.fCancF);
+  var sh=function(v){v=String(v||"").replace(/^https?:\/\//,"").replace(/^www\./,"");return v.length>28?v.slice(0,27)+"…":v;};
+  if(ch("fWeb")&&b.fWeb)add("Website",sh(domainOf(b.fWeb)||b.fWeb));
+  if(ch("fCancUrl")&&b.fCancUrl)add("Kündigungslink",sh(b.fCancUrl));
+  if(ch("fTel")&&b.fTel)add("Telefon",b.fTel);
+  if(ch("fMail")&&b.fMail)add("E-Mail",sh(b.fMail));
+  if(ch("fAddr")&&b.fAddr)add("Adresse",sh(String(b.fAddr).split(/\n/).slice(-1)[0]));
+  if(!a.fMand&&b.fMand)add("Pflichtvertrag","ja");if(!a.fNoCancel&&b.fNoCancel)add("Nicht kündbar","ja");
   return I;}
 /* Katalog gewählt, noch kein Logo: wie bei Internet-Treffern ein Logo vorschlagen (im Entwurf sichtbar, gilt erst mit «Sichern»).
    Zuerst Website-Symbol der Katalog-Domain, sonst die normale Logo-Suche. SwiftUI: Task nach applyTemplate */
@@ -4585,7 +4591,7 @@ async function tplLogo(t){
   var same=draft===d0&&document.getElementById("sheetForm").classList.contains("on")&&document.getElementById("fPartner").value.trim()===n0;
   if(!same||!r||(draft.logoId&&KBlob.has(draft.logoId)))return;
   draft.logoId=r.id;draft.logoBg=r.bg;draft.tplLogo=r.id;paintLogo();paintSwatches();
-  if(draft.tplSum&&draft.tplSum.indexOf("Logo")<0){draft.tplSum.unshift("Logo");paintSugg();}}
+  if(draft.tplSum&&!draft.tplSum.some(function(x){return (x[0]||x)==="Logo";})){draft.tplSum.unshift(["Logo","übernommen"]);paintSugg();}}
 function tplUndo(){var o=draft.tplUndo,a=draft.tplAfter||{},cur=tplSnap();if(!o)return;
   /* nur zurücksetzen, was seit dem Übernehmen nicht von Hand geändert wurde */
   var same=function(k){return a[k]===undefined||cur[k]===a[k];};
