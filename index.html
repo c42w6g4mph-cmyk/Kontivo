@@ -5483,12 +5483,15 @@ function reportPdf(R){
   var y3=y2-bh-gap,ch=200;rr(LM,y3-ch,RM-LM,ch,12,"#F9F9F7");
   tx("Fixkosten der nächsten 12 Monate",LM+12,y3-20,{f:"F2",pt:9.2});tx("inkl. Jahreszahlungen und angekündigter Preise",RM-12,y3-20,{pt:7.5,c:"#6A6C70",al:"r"});
   var mx=Math.max.apply(null,R.M.map(function(x){return x.v;}))||1,gx=LM+12,gw=RM-LM-24,slot=gw/12,bwd2=slot-8,base=y3-ch+44,maxH=110;
-  R.M.forEach(function(m,i){var hgt=Math.max(1.5,m.v/mx*maxH),x=gx+i*slot+4;
-    rr(x,base,bwd2,hgt,3,m.hi?"#A88437":"#E3D7BC");tx(MON[m.d.getMonth()].slice(0,3),x+bwd2/2,base-11,{pt:6.8,c:"#6A6C70",al:"c"});
-    if(m.hi)tx(repNum(m.v),x+bwd2/2,base+hgt+4,{pt:6.4,c:"#86671F",al:"c"});});
-  var ly=y3-ch+14;rr(LM+12,ly,7,7,1.5,"#E3D7BC");var lw2=tx("regulär ~"+repNum(R.tot)+" / Mt.",LM+23,ly+0.5,{pt:7,c:"#6A6C70"});
-  var pk=R.M.filter(function(m){return m.hi;}).map(function(m){return MON[m.d.getMonth()].slice(0,3)+" ("+m.big.n+")";});
-  if(pk.length){rr(LM+35+lw2,ly,7,7,1.5,"#A88437");tx(repFit("Spitzen: "+pk.join(" · "),false,7,RM-LM-70-lw2),LM+46+lw2,ly+0.5,{pt:7,c:"#6A6C70"});}
+  /* jeder Balken mit Wert (Summe der Zahlungen im Monat); Jahr bei erstem Monat und Januar */
+  R.M.forEach(function(m,i){var hgt=Math.max(1.5,m.v/mx*maxH),x=gx+i*slot+4,mo=m.d.getMonth();
+    rr(x,base,bwd2,hgt,3,m.hi?"#A88437":"#E3D7BC");
+    tx(MON[mo].slice(0,3)+(i===0||mo===0?" "+String(m.d.getFullYear()).slice(2):""),x+bwd2/2,base-11,{pt:6.8,c:"#6A6C70",al:"c"});
+    tx(repNum(m.v),x+bwd2/2,base+hgt+4,m.hi?{f:"F2",pt:6.6,c:"#86671F",al:"c"}:{pt:6.4,c:"#4A4C50",al:"c"});});
+  var ly=y3-ch+14,lx=LM+12;
+  rr(lx,ly,7,7,1.5,"#E3D7BC");lx+=11+tx("Monat mit den regelmässigen Zahlungen",lx+11,ly+0.5,{pt:7,c:"#6A6C70"})+14;
+  var pk=R.M.filter(function(m){return m.hi;}).map(function(m){return MON[m.d.getMonth()].slice(0,3)+" "+m.big.n;});
+  if(pk.length){rr(lx,ly,7,7,1.5,"#A88437");tx(repFit("Höher wegen Jahres- oder Sonderzahlung: "+pk.join(" · "),false,7,RM-12-lx-11),lx+11,ly+0.5,{pt:7,c:"#6A6C70"});}
   tx(R.L.length?"Ab Seite 2: alle Verträge mit Kündigungsregel"+(R.ids?", Kunden-Nr.":"")+" und Kontakt – zum Ablegen oder Weitergeben.":"",LM,y3-ch-18,{pt:7.5,c:"#6A6C70"});
   foot(1,N);pages.push(ops);
   /* ---------- Vertragsblätter: 2 Spalten × 5 Zeilen pro Seite ---------- */
