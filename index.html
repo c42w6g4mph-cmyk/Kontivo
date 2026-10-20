@@ -1121,6 +1121,28 @@ details.moreact[open] summary::after{transform:rotate(-135deg);margin-top:4px}
 .xsum b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
 .xsum .t{border-top:1px solid var(--line);margin-top:4px;padding-top:7px;color:var(--ink);font-weight:600}
 .xsum .t b{font-weight:700}
+.xsum .t.m{font-weight:500;margin-bottom:4px;padding-bottom:4px}.xsum .t.m+div{padding-top:3px}.xsum .t.m b{font-weight:600}
+/* Variable Kosten: Kacheln im Budget */
+.vtiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vtile{background:var(--surface);border-radius:var(--r);padding:13px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-height:104px;text-align:left;min-width:0}
+.vtile .mark{width:32px;height:32px;border-radius:8px;margin-bottom:5px}.vtile .mark .cicon{width:18px;height:18px}
+.vtile em{font-style:normal;font-size:13.5px;color:var(--ink2);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vtile b{font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.vtile small{font-size:12px;color:var(--ink3);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vtile.vadd{background:transparent!important;border:1.5px dashed var(--line);align-items:center;justify-content:center;color:var(--brass);font-weight:600;font-size:14.5px;gap:2px}
+.vtile.vadd span{font-size:22px;line-height:1;font-weight:400}
+.vhint{font-size:12.5px;color:var(--ink3);margin:8px 4px 0;line-height:1.4}
+.vempty{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border-radius:var(--r);padding:13px}
+.vempty .vplus{width:34px;height:34px;flex:none;border-radius:9px;border:1.5px dashed var(--ink3);display:grid;place-items:center;color:var(--brass);font-size:20px}
+.vempty .t b{display:block;font-size:15px;font-weight:600}.vempty .t small{font-size:12.5px;color:var(--ink3)}
+#sheetVar .logotap .mark{width:56px;height:56px;border-radius:14px}#sheetVar .logotap .mark .cicon{width:30px;height:30px}
+#sheetVar .fhead{align-items:center}
+.vsug{margin:12px 0 0}.vsug .chip{padding:6px 11px;font-size:13.5px}
+.vcur{font-size:15px;color:var(--ink2)}
+.vicg{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:12px 0}
+.vicg button{display:grid;place-items:center;border-radius:11px;padding:3px;border:2px solid transparent}
+.vicg button[aria-pressed="true"]{border-color:var(--brass)}
+.vicg .mark{width:38px;height:38px;border-radius:9px}.vicg .mark .cicon{width:21px;height:21px}
 /* ---------- Einführung (Onboarding) ---------- */
 #onb{position:fixed;inset:0;z-index:100;display:flex;justify-content:center;
   background:radial-gradient(ellipse 560px 360px at 50% 0,var(--glow),transparent 72%) no-repeat,var(--paper);
@@ -1392,7 +1414,7 @@ from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}
 .fkz>div{flex:1;background:var(--field);border-radius:12px;padding:10px 12px;min-width:0}
 .fkz small{display:block;font-size:12.5px;color:var(--ink2)}
 .fkz b{font-size:22px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}.fkz u{text-decoration:none;font-size:13px;font-weight:500;color:var(--ink2);margin-left:3px}
-#sheetForm h3.fsec,#sheetInc h3.fsec{margin:22px 2px 8px;padding:0;border:0;font-size:13px;font-weight:600;color:var(--ink2)}
+#sheetForm h3.fsec,#sheetInc h3.fsec,#sheetVar h3.fsec{margin:22px 2px 8px;padding:0;border:0;font-size:13px;font-weight:600;color:var(--ink2)}
 #fPayM:has(option[value=""]:checked){color:var(--ink3);font-weight:400}
 .fcard{background:var(--field);border-radius:12px;padding:0 13px}
 .frow{display:flex;align-items:center;gap:12px;min-height:48px;padding:4px 0;border-top:1px solid var(--line);width:100%;text-align:left;font-size:15px}
@@ -1996,6 +2018,28 @@ body{background:var(--paper)!important}
   <button class="ghost danger" id="iDel" hidden>Einnahme löschen</button>
 </div>
 
+<!-- Variable Kosten (Planwert pro Monat): Bezeichnung, Symbol, Betrag, Personen. SwiftUI: Form in einem Sheet -->
+<div class="sheet" id="sheetVar" role="dialog" aria-modal="true" aria-label="Variable Kosten">
+  <div class="grab"></div>
+  <div class="shbar"><button class="shx" id="vcCancel">Abbrechen</button><h2 id="vcTitle">Variable Kosten</h2><button class="shok" id="vcSave">Sichern</button></div>
+  <div class="fhead">
+    <div class="logotap" id="vcPrev" aria-hidden="true"></div>
+    <div class="fhf"><input id="vcLabel" class="fht" type="text" placeholder="Bezeichnung, z.B. Benzin" aria-label="Bezeichnung" autocomplete="off" maxlength="60" enterkeyhint="next"></div>
+  </div>
+  <div class="chips vsug" id="vcSug"></div>
+  <h3 class="fsec">Betrag</h3>
+  <div class="fcard">
+    <div class="frow"><label for="vcAmt">Pro Monat (ca.)</label><span class="fv"><input id="vcAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><span class="vcur" id="vcCur"></span></span></div>
+  </div>
+  <p class="vhint" style="margin:8px 2px 0">Geschätzter Planwert. Zählt nur im Budget, nicht in Kosten und Fristen.</p>
+  <h3 class="fsec">Symbol</h3>
+  <div class="fcard"><div class="vicg" id="vcIcons"></div></div>
+  <div id="vcHWrap"><h3 class="fsec">Person</h3>
+  <div class="fcard"><div class="frow fcol"><span class="fl">Wer trägt die Kosten</span><div class="chips" id="vcHolders"></div></div></div></div>
+  <div style="height:14px"></div>
+  <button class="ghost danger" id="vcDel" hidden>Löschen</button>
+</div>
+
 <!-- Filterauswahl -->
 <div class="sheet md" id="sheetMd" role="dialog" aria-modal="true" aria-label="Stammdaten">
   <div class="grab"></div>
@@ -2243,6 +2287,24 @@ function migCats(){var ch=migModel(),s=state.settings,old=!(+s.dataVer>=DATA_VER
   /* Symbol-Schlüssel alter Namen (betrifft nur das Symbol) */
   if(Array.isArray(s.catList))s.catList=s.catList.map(function(x){if(x.i&&CAT_MIG[x.i]){ch=true;return Object.assign({},x,{i:CAT_MIG[x.i]});}return x;});
   if(ch)saveLocal();}
+/* Variable Kosten: eigene Symbole (Schlüssel → [Name, Pfad, Farbe]); SwiftUI: enum VarIcon mit SF Symbols */
+var VAR_IC={
+ benzin:["Benzin",'<path d="M5.5 20V5.5A1.5 1.5 0 0 1 7 4h5.5A1.5 1.5 0 0 1 14 5.5V20"/><path d="M4 20h11.5"/><path d="M8 8.5h4.5"/><path d="M14 11h1.5a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 0 3 0V8.5l-2.5-2.5"/>',"#4E6E8E"],
+ essen:["Lebensmittel",'<path d="M3.5 5h2l2 10h10l2-7H6.8"/><circle cx="9.5" cy="18.5" r="1.3"/><circle cx="16.5" cy="18.5" r="1.3"/>',"#5E8A4F"],
+ aus:["Auswärts essen",'<path d="M7 3.5v6a2 2 0 0 0 4 0v-6M9 9.5v11"/><path d="M16.5 20.5v-17c-2 1-3 3.5-3 6.5v3.5h3"/>',"#B5654A"],
+ frei:["Freizeit & Ausgang",'<path d="M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4z"/><path d="M14.5 7.5v1.5M14.5 11.25v1.5M14.5 15v1.5"/>',"#8A5A9E"],
+ kleid:["Kleidung",'<path d="M9 4 4.5 6.5l1.5 4 2-.8V20h8V9.7l2 .8 1.5-4L15 4a3 3 0 0 1-6 0z"/>',"#B03A5B"],
+ haus:["Haushalt",'<path d="M9.5 3.5h4v3.5h-4z"/><path d="M8.5 7h6l1.5 4v9.5h-9V11z"/><path d="M13.5 3.5h3"/>',"#3F7F7A"],
+ ferien:["Ferien",'<circle cx="12" cy="12" r="3.8"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M6 18l1.4-1.4M16.6 7.4 18 6"/>',"#C08A2E"],
+ gesch:["Geschenke",'<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M4 13h16M12 9v11"/><path d="M12 9c-2.5 0-4-1-4-2.5S10.5 5 12 9c1.5-4 4-3.5 4-2.5S14.5 9 12 9z"/>',"#C2536B"],
+ tier:["Haustier",'<circle cx="7" cy="10.5" r="1.6"/><circle cx="10.3" cy="6.8" r="1.6"/><circle cx="13.7" cy="6.8" r="1.6"/><circle cx="17" cy="10.5" r="1.6"/><path d="M12 12c-3 0-5 3.5-4.5 5.5.4 1.5 2.5 1.5 4.5.8 2 .7 4.1.7 4.5-.8.5-2-1.5-5.5-4.5-5.5z"/>',"#8B6B4A"],
+ mobil:["Mobilität",'<path d="M5 16.5V12l1.8-4.2A2 2 0 0 1 8.6 6.5h6.8a2 2 0 0 1 1.8 1.3L19 12v4.5"/><path d="M4 16.5h16"/><path d="M5 12h14"/><circle cx="8" cy="16.5" r="1.8"/><circle cx="16" cy="16.5" r="1.8"/>',"#5F666E"],
+ gesund:["Gesundheit",'<path d="M12 20s-7-4.4-7-9.6A4 4 0 0 1 12 8a4 4 0 0 1 7 2.4C19 15.6 12 20 12 20z"/><path d="M12 11v4M10 13h4"/>',"#C0473B"],
+ sonst:["Sonstiges",'<rect x="4.5" y="4.5" width="15" height="15" rx="3"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/>',"#6E7B3A"]};
+var VAR_SUG=[["Benzin","benzin"],["Lebensmittel","essen"],["Auswärts essen","aus"],["Freizeit & Ausgang","frei"],["Kleidung","kleid"],["Haushalt","haus"],["Ferien","ferien"],["Geschenke","gesch"],["Haustier","tier"]];
+function varMark(ic){var e=VAR_IC[ic]||VAR_IC.sonst;return '<div class="mark" style="--c:'+e[2]+'"><svg class="cicon" viewBox="0 0 24 24" aria-hidden="true">'+e[1]+"</svg></div>";}
+function varList(){return Object.keys(state.vars||{}).map(function(k){var v=Object.assign({},state.vars[k]);v._id=k;return v;})
+  .sort(function(a,b){return conv(+b.amount||0,b.cur)-conv(+a.amount||0,a.cur)||(a.t||0)-(b.t||0);});}
 var CAT_ICON={
  "Wohnen":'<path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9h11v-9"/><path d="M10.5 19v-5h3v5"/>',
  "Energie & Wasser":'<path d="M13 3.5 6.5 13h5l-1 7.5L17.5 11h-5z"/>',
@@ -2306,7 +2368,7 @@ function amtIn(v,cur){var t=(+v||0).toFixed(2);return numStyle(cur)==="DE"?t.rep
 var MS=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 var MON=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 
-var state={settings:{home:"CHF",rates:{},holders:["Ich"]},contracts:{},incomes:{},tab:"list",sel:new Date().getMonth(),year:new Date().getFullYear()};
+var state={settings:{home:"CHF",rates:{},holders:["Ich"]},contracts:{},incomes:{},vars:{},tab:"list",sel:new Date().getMonth(),year:new Date().getFullYear()};
 /* Testdatum (window.__KONTIVO_TODAY) auch für den gewählten Monat */
 setTimeout(function(){try{var t=today();if(state.sel===new Date().getMonth()&&state.year===new Date().getFullYear()){state.sel=t.getMonth();state.year=t.getFullYear();}}catch(e){}},0);
 var assets=null,editId=null,draft={};
@@ -2561,10 +2623,10 @@ function saveLocal(){
   if(loadBad!=null){/* bei jedem Speichern melden und vor Folge-Toasts schützen, sonst gehen Eingaben unbemerkt verloren */
     toast("Nicht gespeichert – deine Daten sind beschädigt. Unter Mehr → Daten ein Backup einspielen.",4000);toastLock=Date.now()+4000;return;}
   if(!state.settings.dataVer)state.settings.dataVer=DATA_VER;/* neue oder geleerte Daten: keine Migration mehr nötig */
-  try{localStorage.setItem(LS,JSON.stringify({settings:state.settings,contracts:state.contracts,incomes:state.incomes}));saveErr=false;}
+  try{localStorage.setItem(LS,JSON.stringify({settings:state.settings,contracts:state.contracts,incomes:state.incomes,vars:state.vars}));saveErr=false;}
   catch(e){
     /* Speicher voll: Arbeitsstand auf den zuletzt gespeicherten zurücksetzen, damit nichts gesichert wirkt, was es nicht ist */
-    try{var r0=localStorage.getItem(LS);if(r0){var o0=JSON.parse(r0);state.contracts=o0.contracts||{};state.incomes=o0.incomes||{};if(o0.settings)state.settings=Object.assign({home:"CHF",rates:{},holders:["Ich"]},o0.settings);}}catch(e2){}
+    try{var r0=localStorage.getItem(LS);if(r0){var o0=JSON.parse(r0);state.contracts=o0.contracts||{};state.incomes=o0.incomes||{};state.vars=o0.vars||{};if(o0.settings)state.settings=Object.assign({home:"CHF",rates:{},holders:["Ich"]},o0.settings);}}catch(e2){}
     setTimeout(function(){try{render();}catch(e3){}},0);
     if(!saveErr){saveErr=true;setTimeout(function(){ask({title:"Nicht gespeichert",alert:true,
       text:"Der Speicher auf diesem Gerät ist voll. Deine letzte Änderung wurde nicht übernommen.\n\nErstelle unter Mehr → Daten ein Backup und entferne nicht mehr benötigte Dokumente oder Unterschriften."}).then(function(){saveErr=false;});},250);}}}
@@ -2574,6 +2636,7 @@ function loadLocal(){var r=null;try{r=localStorage.getItem(LS);if(!r)return;var 
   if(o.settings)state.settings=Object.assign(state.settings,o.settings);
   if(o.contracts)state.contracts=o.contracts;
   if(o.incomes)state.incomes=o.incomes;
+  if(o.vars&&typeof o.vars==="object"&&!Array.isArray(o.vars))state.vars=o.vars;
   migCats();migVia();}catch(e){if(r)loadBad=r;}}
 /* Kündigungsweg «Einschreiben» gibt es nicht mehr (10.10.2026): gleich wie «Brief», Tipp «eingeschrieben» steht im Kündigungsschreiben */
 function migVia(){Object.keys(state.contracts||{}).forEach(function(k){var c=state.contracts[k];if(c&&c.cancF==="Einschreiben")c.cancF="Brief";});}
@@ -3299,9 +3362,11 @@ function renderBudget(v){
   } else if(HL.length<=1)bhf="";
   else bhf='<div class="fbar3 one" role="group" aria-label="Filter"><button class="fsel'+(BH?" on":"")+'" data-bsheet><span>'+esc(BH?dn(BH):"Person")+"</span></button>"+(BH?'<button class="fclr" data-bhdel type="button" aria-label="Filter zurücksetzen">×</button>':"")+"</div>";
   state._bHL=HL;
+  /* Variable Kosten: geschätzter Planwert pro Monat, in jedem Monat gleich (nur Budget, nicht Kosten/Fristen) */
+  var VL=varList().filter(function(x){return shr(x)>0;}),vMon=VL.reduce(function(a,x){return a+conv(+x.amount||0,x.cur)*shr(x);},0);
   var tInc=0,tFix=0;
-  M.forEach(function(m){m.free=m.inc-m.fix;tInc+=m.inc;tFix+=m.fix;});
-  var tFree=tInc-tFix,sel=Math.min(11,Math.max(0,state.sel||0)),o="";
+  M.forEach(function(m){m.vr=vMon;m.free=m.inc-m.fix-m.vr;tInc+=m.inc;tFix+=m.fix;});
+  var tFree=tInc-tFix-vMon*12,sel=Math.min(11,Math.max(0,state.sel||0)),o="";
   var incs=incList().filter(function(c){return shr(c)>0;}).sort(function(a,b){return conv(curPrice(b),b.cur)-conv(curPrice(a),a.cur);});
   o+=bhf;
   if(!incs.length&&BH){
@@ -3333,7 +3398,7 @@ function renderBudget(v){
     var smF=new Date(Y,sel,1),smT=new Date(Y,sel+1,0);
     var bNoStart=Object.keys(state.contracts).some(function(k){var c=state.contracts[k];return shr(c)&&!c.start&&payments(c,smF,smT).length;})||
       incList().some(function(c){return shr(c)&&!c.start&&occurrences(c,smF,smT).length;});
-    var bpmFree=bpmInc-bpmFix,bpmHas=!bNoStart&&(bpmInc>0.005||bpmFix>0.005),bpmD=sm.free-bpmFree;
+    var bpmFree=bpmInc-bpmFix-vMon,bpmHas=!bNoStart&&(bpmInc>0.005||bpmFix>0.005),bpmD=sm.free-bpmFree;
     var bvT="",bvC="";
     if(bpmHas){var br=Math.round(Math.abs(bpmD));
       if(br<1)bvT="gleich wie "+MON[sel]+" "+(Y-1);
@@ -3343,7 +3408,7 @@ function renderBudget(v){
     state._fq=bq!=null?{p:bq,avg:tInc>0.005?Math.round(tFree/tInc*100):null,inc:sm.inc,free:sm.free,y:Y,mon:MON[sel]+" "+Y,who:BH?dn(BH):"",bh:BH}:null;
     var bh='<div class="kh"><div class="keb"><span class="kmo">'+MON[sel]+" "+Y+'</span><span class="kcnt">'+(BH?esc(dn(BH)):"")+'</span></div>'+
       '<div class="kbig'+(sm.free<0?" neg":"")+'">'+bBig(sm.free)+'<span class="ru">'+H+'</span></div>'+
-      '<div class="ksub">verfügbar nach Fixkosten'+(bq!=null?'<span class="ksep"> · </span><button type="button" class="kfq" data-fq aria-label="'+bq+' % der Einnahmen, Einordnung anzeigen">'+(bq<0?"−"+(-bq):bq)+'\u00a0% der Einnahmen<i aria-hidden="true">i</i></button>':"")+'</div>'+
+      '<div class="ksub">'+(vMon>0.005?"verfügbar nach Fix- und variablen Kosten":"verfügbar nach Fixkosten")+(bq!=null?'<span class="ksep"> · </span><button type="button" class="kfq" data-fq aria-label="'+bq+' % der Einnahmen, Einordnung anzeigen">'+(bq<0?"−"+(-bq):bq)+'\u00a0% der Einnahmen<i aria-hidden="true">i</i></button>':"")+'</div>'+
       (bvT?'<div class="kvs'+bvC+'">'+(bvC?"<i>"+(bpmD>0?"↑":"↓")+"</i>":"")+bvT+"</div>":"")+
 "</div>";
     var brow='<div class="krow"><div class="kc'+(sm.inc<0.005?" nil":"")+'"><em>Einnahmen</em><b>'+money(sm.inc)+'</b></div>'+
@@ -3372,6 +3437,15 @@ function renderBudget(v){
         :'<div class="iempty">Keine Einnahmen im '+MON[sel]+"</div>")+
       '<div class="ifoot"><button type="button" id="incAdd">+ Einnahme</button><button type="button" data-incall>Alle Einnahmen ('+incs.length+') ›</button></div></div></div>';
   } else if(BH)o+='<div class="grp"><button class="addline" id="incAdd">+ Einnahme erfassen</button></div>';
+  /* Variable Kosten als Kacheln (geschätzt pro Monat); Antippen bearbeitet, «+» erfasst. SwiftUI: LazyVGrid(2 Spalten) */
+  if(incs.length){var multiH=(state.settings.holders||[]).length>1;
+    o+='<div class="grp"><div class="grphead"><span>Variable Kosten</span><span>'+(VL.length?"≈ "+money(vMon)+" "+H:"geschätzt pro Monat")+'</span></div>'+
+      (VL.length?'<div class="vtiles">'+VL.map(function(x){var a=conv(+x.amount||0,x.cur)*shr(x),hs=holdersOf(x),
+          sub=multiH&&hs.length&&hs.length<(state.settings.holders||[]).length?hs.join(", "):"pro Monat";if(shr(x)<1)sub=shareTxt(shr(x));
+          return '<button class="vtile" type="button" data-var="'+esc(x._id)+'">'+varMark(x.ic)+'<em>'+esc(x.label||(VAR_IC[x.ic]||VAR_IC.sonst)[0])+'</em><b>≈ '+money(a)+'</b><small>'+esc(sub)+'</small></button>';}).join("")+
+        '<button class="vtile vadd" type="button" data-varadd><span>+</span>Hinzufügen</button></div>'+
+        '<p class="vhint">Geschätzt pro Monat. Kontivo erfasst keine einzelnen Ausgaben.</p>'
+      :'<button class="vempty" type="button" data-varadd><span class="vplus">+</span><span class="t"><b>Variable Kosten schätzen</b><small>Zum Beispiel Benzin oder Lebensmittel, als Betrag pro Monat</small></span></button>')+'</div>';}
   if(incs.length){
     /* Ausgaben des Monats: flache Liste wie in «Kosten», nach Betrag; die grössten 5, Rest hinter «Alle anzeigen» */
     var eF=new Date(Y,sel,1),eT=new Date(Y,sel+1,0),xs=[],eTot=0;
@@ -3385,7 +3459,10 @@ function renderBudget(v){
     o+='<div class="grp"><div class="grphead"><span>Ausgaben '+MON[sel]+'</span><span>'+money(eTot)+" "+H+'</span></div><div class="mrows mrows2">'+
       (xs.length?list.map(xrow).join(""):'<div class="mempty">Keine Ausgaben im '+MON[sel]+'</div>')+
       (xs.length>LIM&&more>1?'<button class="tfold pfold" id="xAll" aria-expanded="'+showAll+'"><span>'+(showAll?"Nur die grössten 5":"Alle "+xs.length+" anzeigen")+'</span><i></i></button>':"")+'</div>'+
-      '<div class="xsum"><div><span>Einnahmen</span><b>'+moneyS(sm.inc)+'</b></div><div><span>− Ausgaben</span><b>'+moneyS(sm.fix)+'</b></div><div class="t"><span>= Verfügbar</span><b>'+moneyS(sm.free)+" "+H+"</b></div></div></div>";
+      '<div class="xsum"><div><span>Einnahmen</span><b>'+moneyS(sm.inc)+'</b></div>'+
+      (sm.vr>0.005?'<div><span>− Fixkosten</span><b>'+moneyS(sm.fix)+'</b></div><div class="t m"><span>= Nach Fixkosten</span><b>'+moneyS(sm.inc-sm.fix)+'</b></div><div><span>− Variable Kosten</span><b>'+moneyS(sm.vr)+'</b></div>'
+        :'<div><span>− Ausgaben</span><b>'+moneyS(sm.fix)+'</b></div>')+
+      '<div class="t"><span>= Verfügbar</span><b>'+moneyS(sm.free)+" "+H+"</b></div></div></div>";
   }
   v.innerHTML=o;
 }
@@ -3396,7 +3473,7 @@ function openSheet(el){document.getElementById("scrim").classList.add("on");el.c
 function closeSheets(){
   if(fBank&&bk){bkBackToList();return;}
   document.getElementById("scrim").classList.remove("on");
-  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetPick","sheetMd","sheetLetter","sheetSig","sheetSigPick","sheetBank","sheetVk"].forEach(function(i){document.getElementById(i).classList.remove("on");});
+  ["sheetForm","sheetDetail","sheetCrop","sheetInc","sheetVar","sheetPick","sheetMd","sheetLetter","sheetSig","sheetSigPick","sheetBank","sheetVk"].forEach(function(i){document.getElementById(i).classList.remove("on");});
   if(typeof vk!=="undefined"&&vk&&!vk.busy)vk=null;
   document.getElementById("csvOut").innerHTML="";
   webWaitClear();/* offene Logo-Suche (Google) endet mit dem Formular */
@@ -6281,6 +6358,61 @@ document.getElementById("iDel").addEventListener("click",function(){
   var id0=incId;ask({title:"Einnahme löschen?",text:"«"+(c&&(c.label||c.name))+"» wird endgültig gelöscht.",ok:"Löschen",danger:true})
     .then(function(y){if(y){dropIncome(id0);closeSheets();render();toast("Gelöscht");}});
 });
+/* ---------- Variable Kosten (Planwert pro Monat) ----------
+   Datenmodell: state.vars[id] = {label, ic, amount, cur, holders[], t}; SwiftUI: struct VariableCost */
+var varId=null,vdraft=null;
+function vPaint(){
+  document.getElementById("vcPrev").innerHTML=varMark(vdraft.ic);
+  document.getElementById("vcIcons").innerHTML=Object.keys(VAR_IC).map(function(k){
+    return '<button type="button" data-vic="'+k+'" aria-pressed="'+(vdraft.ic===k)+'" aria-label="'+esc(VAR_IC[k][0])+'">'+varMark(k)+'</button>';}).join("");
+  var lb=document.getElementById("vcLabel").value.trim().toLowerCase(),used={};
+  Object.keys(state.vars).forEach(function(k){if(k!==varId)used[String(state.vars[k].label||"").toLowerCase()]=1;});
+  var sg=VAR_SUG.filter(function(x){return !used[x[0].toLowerCase()];});
+  var el=document.getElementById("vcSug");el.hidden=!!varId||!sg.length;
+  el.innerHTML=sg.map(function(x){return '<button type="button" class="chip" data-vsug="'+esc(x[0])+'" data-vsic="'+x[1]+'" aria-pressed="'+(lb===x[0].toLowerCase())+'">'+esc(x[0])+'</button>';}).join("");
+  var H=(state.settings.holders||["Ich"]).slice();vdraft.holders.forEach(function(x){if(H.indexOf(x)<0)H.push(x);});
+  document.getElementById("vcHWrap").hidden=H.length<2;
+  document.getElementById("vcHolders").innerHTML=H.map(function(x){return '<button type="button" class="chip" data-vh="'+esc(x)+'" aria-pressed="'+(vdraft.holders.indexOf(x)>=0)+'">'+esc(x)+'</button>';}).join("");
+}
+function openVar(id){
+  var v=id?state.vars[id]:null;varId=v?id:null;
+  vdraft={ic:(v&&v.ic)||"sonst",cur:(v&&v.cur)||state.settings.home,holders:v?holdersOf(v).slice():(state.settings.holders||["Ich"]).slice()};
+  document.getElementById("vcTitle").textContent=varId?"Bearbeiten":"Variable Kosten";
+  document.getElementById("vcLabel").value=(v&&v.label)||"";
+  document.getElementById("vcAmt").value=v?amtIn(v.amount,v.cur):"";
+  document.getElementById("vcCur").textContent=vdraft.cur;
+  document.getElementById("vcDel").hidden=!varId;
+  vPaint();openSheet(document.getElementById("sheetVar"));
+}
+document.addEventListener("click",function(ev){
+  var t=ev.target.closest("[data-var],[data-varadd]");
+  if(t&&document.getElementById("view").contains(t)){openVar(t.dataset.var||null);return;}
+  var sh=document.getElementById("sheetVar");if(!sh.contains(ev.target)||!vdraft)return;
+  var b=ev.target.closest("[data-vic]");if(b){vdraft.ic=b.dataset.vic;vPaint();return;}
+  b=ev.target.closest("[data-vsug]");if(b){document.getElementById("vcLabel").value=b.dataset.vsug;vdraft.ic=b.dataset.vsic;vPaint();
+    var am=document.getElementById("vcAmt");if(!am.value.trim())am.focus();return;}
+  b=ev.target.closest("[data-vh]");if(b){var h=b.dataset.vh,i=vdraft.holders.indexOf(h);
+    if(i>=0){if(vdraft.holders.length>1)vdraft.holders.splice(i,1);}else vdraft.holders.push(h);
+    vdraft.holders=holdersSorted(vdraft.holders);vPaint();return;}
+});
+document.getElementById("vcLabel").addEventListener("input",function(){
+  /* Symbol zum Vorschlag passend setzen, solange noch keins gewählt ist */
+  var l=this.value.trim().toLowerCase(),m=VAR_SUG.filter(function(x){return x[0].toLowerCase()===l;})[0];
+  if(m&&vdraft.ic==="sonst")vdraft.ic=m[1];vPaint();});
+document.getElementById("vcSave").addEventListener("click",function(){
+  var lb=document.getElementById("vcLabel").value.trim().replace(/\s+/g," "),amt=parseAmt(document.getElementById("vcAmt").value);
+  if(!lb){goMiss("vcLabel","Bezeichnung fehlt");return;}
+  if(amt==null||amt<=0){goMiss("vcAmt",document.getElementById("vcAmt").value.trim()?"Betrag prüfen":"Betrag fehlt");return;}
+  var prev=varId?state.vars[varId]:null;
+  state.vars[varId||uid()]={label:lb.slice(0,60),ic:vdraft.ic,amount:Math.round(amt*100)/100,cur:vdraft.cur,holders:vdraft.holders.slice(),t:(prev&&prev.t)||Date.now()};
+  saveLocal();var was=varId;closeSheets();render();toast(was?"Aktualisiert":"Variable Kosten erfasst");
+});
+document.getElementById("vcCancel").addEventListener("click",closeSheets);
+document.getElementById("vcDel").addEventListener("click",function(){
+  if(!varId)return;var id0=varId,v=state.vars[id0];
+  ask({title:"Löschen?",text:"«"+(v&&v.label)+"» wird aus den variablen Kosten entfernt.",ok:"Löschen",danger:true})
+    .then(function(y){if(y){delete state.vars[id0];saveLocal();closeSheets();render();toast("Gelöscht");}});
+});
 document.getElementById("scrim").addEventListener("click",function(){
   if(document.getElementById("sheetAsk").classList.contains("on")){askDone(false);return;}
   if(document.getElementById("sheetCrop").classList.contains("on")){closeCrop();return;}
@@ -6490,6 +6622,7 @@ function mapHolders(fn){
     return nc;}
   Object.keys(state.contracts).forEach(function(k){var nc=one(state.contracts[k]);if(nc){putContract(k,nc);n++;}});
   Object.keys(state.incomes).forEach(function(k){var nc=one(state.incomes[k]);if(nc){putIncome(k,nc);n++;}});
+  Object.keys(state.vars).forEach(function(k){var nc=one(state.vars[k]);if(nc){state.vars[k]=nc;saveLocal();n++;}});
   return n;
 }
 function closeSheetEl(id){document.getElementById(id).classList.remove("on");
@@ -7665,7 +7798,7 @@ document.getElementById("bkSave").addEventListener("click",async function(){
   if(miss&&!(await ask({title:"Dateien fehlen",ok:"Trotzdem sichern",
     text:(miss===1?"1 Datei konnte":miss+" Dateien konnten")+" nicht gelesen werden – trotzdem sichern?"})))return;
   var data=JSON.stringify({app:"vertraege",version:2,exported:new Date().toISOString(),
-    settings:state.settings,contracts:state.contracts,incomes:state.incomes,files:files});
+    settings:state.settings,contracts:state.contracts,incomes:state.incomes,vars:state.vars,files:files});
   var name="kontivo-sicherung-"+iso(today())+".json",dl=null;
   try{dl=await claude.use("downloads");}catch(e){}
   if(dl){try{await dl.save({filename:name,data:data});toast("Backup gespeichert");return;}catch(e){if(e&&e.code==="declined")return;}}
@@ -7745,11 +7878,18 @@ function sanitizeImport(o){
   if("sig" in s&&!SIG.test(String(s.sig)))delete s.sig;  /* alte globale Unterschrift (migModel) */
   if(Array.isArray(s.catList))s.catList=s.catList.filter(obj).map(function(x){if(badCol(x.c))delete x.c;return x;});
   if(obj(s.avatars)){Object.keys(s.avatars).forEach(function(h){if(!HEX.test(String(s.avatars[h])))delete s.avatars[h];});}else delete s.avatars;
+  /* Variable Kosten (Planwerte): nur Bezeichnung, Symbol, Betrag, Währung, Personen */
+  var vs=obj(o.vars)?o.vars:{},vo={};
+  Object.keys(vs).forEach(function(k){var v=vs[k];if(!obj(v)||BADK.indexOf(k)>=0)return;var nk=KEY.test(k)?k:uid();
+    var a=num(v.amount);vo[nk]={label:typeof v.label==="string"?v.label.slice(0,60):"",ic:VAR_IC[v.ic]?v.ic:"sonst",
+      amount:a==null||a<0||a>1e7?0:Math.round(a*100)/100,cur:CURS.indexOf(v.cur)>=0?v.cur:(s.home||"CHF"),
+      holders:Array.isArray(v.holders)?v.holders.filter(function(h){return typeof h==="string"&&h.trim();}):[],t:num(v.t)||0};});
+  o.vars=vo;
   o.settings=s;return o;
 }
 async function restoreAll(o,miss){
   sanitizeImport(o);
-  state.contracts=o.contracts;state.incomes=o.incomes;
+  state.contracts=o.contracts;state.incomes=o.incomes;state.vars=o.vars||{};
   /* Einstellungen ersetzen statt mischen; nur die Darstellung (theme) bleibt gerätebezogen */
   var th=state.settings.theme;
   state.settings=Object.assign({home:"CHF",rates:{},holders:["Ich"]},o.settings);
@@ -7821,7 +7961,7 @@ document.getElementById("wipeAll").addEventListener("click",async function(){
   if(loadBad!=null){try{localStorage.setItem(LS+".defekt",loadBad);}catch(e){}loadBad=null;}
   toast("Lösche …");
   if(assets){try{var al=await assets.list();var list=(al&&al.assets)||[];for(var x=0;x<list.length;x++){try{await assets.delete(list[x].id);}catch(e){}}}catch(e){}}
-  state.contracts={};state.incomes={};
+  state.contracts={};state.incomes={};state.vars={};
   var keep={home:state.settings.home,rates:state.settings.rates,rateDate:state.settings.rateDate,theme:state.settings.theme,sort:state.settings.sort};
   state.settings=Object.assign({holders:["Ich"]},keep);state.bHolder="";state.flt={cat:null,partner:null,holder:null};
   saveLocal();
