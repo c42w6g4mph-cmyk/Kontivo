@@ -1122,21 +1122,16 @@ details.moreact[open] summary::after{transform:rotate(-135deg);margin-top:4px}
 .xsum .t{border-top:1px solid var(--line);margin-top:4px;padding-top:7px;color:var(--ink);font-weight:600}
 .xsum .t b{font-weight:700}
 .xsum .t.m{font-weight:500;margin-bottom:4px;padding-bottom:4px}.xsum .t.m+div{padding-top:3px}.xsum .t.m b{font-weight:600}
-/* Variable Kosten: Kacheln im Budget */
-.vtiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.vtile{background:var(--surface);border-radius:var(--r);padding:13px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-height:104px;text-align:left;min-width:0}
-.vtile .mark{width:32px;height:32px;border-radius:8px;margin-bottom:5px}.vtile .mark .cicon{width:18px;height:18px}
-.vtile em{font-style:normal;font-size:13.5px;color:var(--ink2);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vtile b{font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-.vtile small{font-size:12px;color:var(--ink3);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vtile.vadd{background:transparent!important;border:1.5px dashed var(--line);align-items:center;justify-content:center;color:var(--brass);font-weight:600;font-size:14.5px;gap:2px}
-.vtile.vadd span{font-size:22px;line-height:1;font-weight:400}
+/* Variable Kosten: Liste im Budget, Formular, Ansicht */
+.vlist .ifoot{margin:0 -14px;border-top:1px solid var(--line)}.vlist .ifoot button{padding:12px 14px}
 .vhint{font-size:12.5px;color:var(--ink3);margin:8px 4px 0;line-height:1.4}
 .vempty{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border-radius:var(--r);padding:13px}
 .vempty .vplus{width:34px;height:34px;flex:none;border-radius:9px;border:1.5px dashed var(--ink3);display:grid;place-items:center;color:var(--brass);font-size:20px}
 .vempty .t b{display:block;font-size:15px;font-weight:600}.vempty .t small{font-size:12.5px;color:var(--ink3)}
-#sheetVar .logotap .mark{width:56px;height:56px;border-radius:14px}#sheetVar .logotap .mark .cicon{width:30px;height:30px}
-#sheetVar .fhead{align-items:center}
+#sheetVar .logotap .mark{width:76px;height:76px;border-radius:17px}#sheetVar .logotap .mark .cicon{width:40px;height:40px}
+.vctag{font-size:13.5px;color:var(--ink2);padding:0 10px}
+.vicpanel{background:var(--field);border-radius:12px;padding:12px 13px 4px;margin-top:12px}.vicpanel .vicg{padding:0 0 8px}
+.detailhead .mark .cicon{width:56%;height:56%}
 .vsug{margin:12px 0 0}.vsug .chip{padding:6px 11px;font-size:13.5px}
 .vcur{font-size:15px;color:var(--ink2)}
 .vicg{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:12px 0}
@@ -2022,20 +2017,22 @@ body{background:var(--paper)!important}
 <div class="sheet" id="sheetVar" role="dialog" aria-modal="true" aria-label="Variable Kosten">
   <div class="grab"></div>
   <div class="shbar"><button class="shx" id="vcCancel">Abbrechen</button><h2 id="vcTitle">Variable Kosten</h2><button class="shok" id="vcSave">Sichern</button></div>
+  <!-- Aufbau wie das Vertragsformular, abgespeckt: Kopf mit Symbol + Bezeichnung, Kacheln, Karten -->
   <div class="fhead">
-    <div class="logotap" id="vcPrev" aria-hidden="true"></div>
-    <div class="fhf"><input id="vcLabel" class="fht" type="text" placeholder="Bezeichnung, z.B. Benzin" aria-label="Bezeichnung" autocomplete="off" maxlength="60" enterkeyhint="next"></div>
+    <button type="button" class="logotap" id="vcPrevTap" aria-label="Symbol ändern" aria-expanded="false"><span id="vcPrev"></span><i class="ledit" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></i></button>
+    <div class="fhf"><input id="vcLabel" class="fht" type="text" placeholder="Bezeichnung, z.B. Benzin" aria-label="Bezeichnung" autocomplete="off" maxlength="60" enterkeyhint="next">
+      <div class="vctag">Variable Kosten · geschätzt</div></div>
   </div>
+  <div class="vicpanel" id="vcIconWrap" hidden><div class="lsec" style="margin:0 2px 8px">Symbol</div><div class="vicg" id="vcIcons"></div></div>
   <div class="chips vsug" id="vcSug"></div>
+  <div class="fkz" id="vcKz"></div>
   <h3 class="fsec">Betrag</h3>
   <div class="fcard">
     <div class="frow"><label for="vcAmt">Pro Monat (ca.)</label><span class="fv"><input id="vcAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><span class="vcur" id="vcCur"></span></span></div>
   </div>
   <p class="vhint" style="margin:8px 2px 0">Geschätzter Planwert. Zählt nur im Budget, nicht in Kosten und Fristen.</p>
-  <h3 class="fsec">Symbol</h3>
-  <div class="fcard"><div class="vicg" id="vcIcons"></div></div>
-  <div id="vcHWrap"><h3 class="fsec">Person</h3>
-  <div class="fcard"><div class="frow fcol"><span class="fl">Wer trägt die Kosten</span><div class="chips" id="vcHolders"></div></div></div></div>
+  <div id="vcHWrap"><h3 class="fsec">Zuordnung</h3>
+  <div class="fcard"><div class="frow fcol"><span class="fl">Personen</span><div class="chips" id="vcHolders"></div></div></div></div>
   <div style="height:14px"></div>
   <button class="ghost danger" id="vcDel" hidden>Löschen</button>
 </div>
@@ -3437,15 +3434,15 @@ function renderBudget(v){
         :'<div class="iempty">Keine Einnahmen im '+MON[sel]+"</div>")+
       '<div class="ifoot"><button type="button" id="incAdd">+ Einnahme</button><button type="button" data-incall>Alle Einnahmen ('+incs.length+') ›</button></div></div></div>';
   } else if(BH)o+='<div class="grp"><button class="addline" id="incAdd">+ Einnahme erfassen</button></div>';
-  /* Variable Kosten als Kacheln (geschätzt pro Monat); Antippen bearbeitet, «+» erfasst. SwiftUI: LazyVGrid(2 Spalten) */
-  if(incs.length){var multiH=(state.settings.holders||[]).length>1;
-    o+='<div class="grp"><div class="grphead"><span>Variable Kosten</span><span>'+(VL.length?"≈ "+money(vMon)+" "+H:"geschätzt pro Monat")+'</span></div>'+
-      (VL.length?'<div class="vtiles">'+VL.map(function(x){var a=conv(+x.amount||0,x.cur)*shr(x),hs=holdersOf(x),
-          sub=multiH&&hs.length&&hs.length<(state.settings.holders||[]).length?hs.join(", "):"pro Monat";if(shr(x)<1)sub=shareTxt(shr(x));
-          return '<button class="vtile" type="button" data-var="'+esc(x._id)+'">'+varMark(x.ic)+'<em>'+esc(x.label||(VAR_IC[x.ic]||VAR_IC.sonst)[0])+'</em><b>≈ '+money(a)+'</b><small>'+esc(sub)+'</small></button>';}).join("")+
-        '<button class="vtile vadd" type="button" data-varadd><span>+</span>Hinzufügen</button></div>'+
-        '<p class="vhint">Geschätzt pro Monat. Kontivo erfasst keine einzelnen Ausgaben.</p>'
-      :'<button class="vempty" type="button" data-varadd><span class="vplus">+</span><span class="t"><b>Variable Kosten schätzen</b><small>Zum Beispiel Benzin oder Lebensmittel, als Betrag pro Monat</small></span></button>')+'</div>';}
+  /* Variable Kosten als Liste wie die Ausgaben (geschätzt pro Monat); Antippen = Ansicht, «+» erfasst. SwiftUI: Section mit Rows */
+  var varGroup=function(){var multiH=(state.settings.holders||[]).length>1;
+    return '<div class="grp"><div class="grphead"><span>Variable Kosten</span><span>'+(VL.length?"≈ "+money(vMon)+" "+H:"geschätzt pro Monat")+'</span></div>'+
+      (VL.length?'<div class="mrows2 vlist">'+VL.map(function(x){var a=conv(+x.amount||0,x.cur)*shr(x),hs=holdersOf(x),
+          sub=[multiH&&hs.length?hs.join(" & "):"",shr(x)<1?shareTxt(shr(x)):""].filter(Boolean).join(" · ")||"pro Monat";
+          return '<button class="mrow" type="button" data-var="'+esc(x._id)+'">'+varMark(x.ic)+'<span class="mt"><span class="mn">'+esc(x.label||(VAR_IC[x.ic]||VAR_IC.sonst)[0])+'</span><span class="mm">'+esc(sub)+'</span></span>'+
+            '<span class="ma"><span><b>≈ '+money(a)+'</b></span><span class="ms">geschätzt</span></span></button>';}).join("")+
+        '<div class="ifoot vfoot"><button type="button" data-varadd>+ Variable Kosten</button></div></div>'
+      :'<button class="vempty" type="button" data-varadd><span class="vplus">+</span><span class="t"><b>Variable Kosten schätzen</b><small>Zum Beispiel Benzin oder Lebensmittel, als Betrag pro Monat</small></span></button>')+'</div>';};
   if(incs.length){
     /* Ausgaben des Monats: flache Liste wie in «Kosten», nach Betrag; die grössten 5, Rest hinter «Alle anzeigen» */
     var eF=new Date(Y,sel,1),eT=new Date(Y,sel+1,0),xs=[],eTot=0;
@@ -3458,8 +3455,8 @@ function renderBudget(v){
         '<span class="ma"><span><b>'+(it.a<0?"−"+money(-it.a):money(it.a))+'</b></span><span class="ms">'+esc(c.cat||"Sonstiges")+"</span></span></button>";};
     o+='<div class="grp"><div class="grphead"><span>Ausgaben '+MON[sel]+'</span><span>'+money(eTot)+" "+H+'</span></div><div class="mrows mrows2">'+
       (xs.length?list.map(xrow).join(""):'<div class="mempty">Keine Ausgaben im '+MON[sel]+'</div>')+
-      (xs.length>LIM&&more>1?'<button class="tfold pfold" id="xAll" aria-expanded="'+showAll+'"><span>'+(showAll?"Nur die grössten 5":"Alle "+xs.length+" anzeigen")+'</span><i></i></button>':"")+'</div>'+
-      '<div class="xsum"><div><span>Einnahmen</span><b>'+moneyS(sm.inc)+'</b></div>'+
+      (xs.length>LIM&&more>1?'<button class="tfold pfold" id="xAll" aria-expanded="'+showAll+'"><span>'+(showAll?"Nur die grössten 5":"Alle "+xs.length+" anzeigen")+'</span><i></i></button>':"")+'</div></div>'+varGroup()+
+      '<div class="grp"><div class="xsum"><div><span>Einnahmen</span><b>'+moneyS(sm.inc)+'</b></div>'+
       (sm.vr>0.005?'<div><span>− Fixkosten</span><b>'+moneyS(sm.fix)+'</b></div><div class="t m"><span>= Nach Fixkosten</span><b>'+moneyS(sm.inc-sm.fix)+'</b></div><div><span>− Variable Kosten</span><b>'+moneyS(sm.vr)+'</b></div>'
         :'<div><span>− Ausgaben</span><b>'+moneyS(sm.fix)+'</b></div>')+
       '<div class="t"><span>= Verfügbar</span><b>'+moneyS(sm.free)+" "+H+"</b></div></div></div>";
@@ -6359,8 +6356,12 @@ document.getElementById("iDel").addEventListener("click",function(){
     .then(function(y){if(y){dropIncome(id0);closeSheets();render();toast("Gelöscht");}});
 });
 /* ---------- Variable Kosten (Planwert pro Monat) ----------
-   Datenmodell: state.vars[id] = {label, ic, amount, cur, holders[], t}; SwiftUI: struct VariableCost */
+   Datenmodell: state.vars[id] = {label, ic, amount, cur, holders[], t}; SwiftUI: struct VariableCost
+   Ansicht wie Einnahme/Vertrag (im #sheetDetail), Formular wie Vertragsformular (abgespeckt) */
 var varId=null,vdraft=null;
+function vKzPaint(){var a=parseAmt(document.getElementById("vcAmt").value),cu=vdraft.cur,u='<u>'+esc(cu)+'</u>';
+  var f=function(v){return a>0?"≈ "+v+u:"–";};
+  document.getElementById("vcKz").innerHTML='<div><small>pro Monat</small><b>'+f(money(a,cu))+'</b></div><div><small>pro Jahr</small><b>'+f(nf0.format(a*12,cu))+'</b></div>';}
 function vPaint(){
   document.getElementById("vcPrev").innerHTML=varMark(vdraft.ic);
   document.getElementById("vcIcons").innerHTML=Object.keys(VAR_IC).map(function(k){
@@ -6373,7 +6374,9 @@ function vPaint(){
   var H=(state.settings.holders||["Ich"]).slice();vdraft.holders.forEach(function(x){if(H.indexOf(x)<0)H.push(x);});
   document.getElementById("vcHWrap").hidden=H.length<2;
   document.getElementById("vcHolders").innerHTML=H.map(function(x){return '<button type="button" class="chip" data-vh="'+esc(x)+'" aria-pressed="'+(vdraft.holders.indexOf(x)>=0)+'">'+esc(x)+'</button>';}).join("");
+  vKzPaint();
 }
+function vIcons(on){document.getElementById("vcIconWrap").hidden=!on;document.getElementById("vcPrevTap").setAttribute("aria-expanded",on);}
 function openVar(id){
   var v=id?state.vars[id]:null;varId=v?id:null;
   vdraft={ic:(v&&v.ic)||"sonst",cur:(v&&v.cur)||state.settings.home,holders:v?holdersOf(v).slice():(state.settings.holders||["Ich"]).slice()};
@@ -6382,19 +6385,49 @@ function openVar(id){
   document.getElementById("vcAmt").value=v?amtIn(v.amount,v.cur):"";
   document.getElementById("vcCur").textContent=vdraft.cur;
   document.getElementById("vcDel").hidden=!varId;
-  vPaint();openSheet(document.getElementById("sheetVar"));
+  vIcons(false);vPaint();openSheet(document.getElementById("sheetVar"));
 }
+/* Ansicht: Kopf mit Symbol, Kacheln «pro Monat» (Anteil an den Einnahmen) und «pro Jahr», Angaben; Bearbeiten, Menü Duplizieren/Löschen */
+function openVarDetail(id){var v=state.vars[id];if(!v)return;
+  var H=state.settings.home,cu=v.cur||H,a=+v.amount||0,u='<u>'+esc(cu)+"</u>",mt=money(a,cu),k=decAt(mt),big="≈ "+(k<0?mt:mt.slice(0,k)+"<i>"+mt.slice(k)+"</i>");
+  var t=today(),inc=0;incList().forEach(function(x){var e2=parseD(x.end),s2=parseD(x.start);if(+x.cycle&&!(e2&&e2<t)&&!(s2&&s2>t))inc+=conv(curPrice(x),x.cur)/(+x.cycle);});
+  var vt=varList().reduce(function(s2,x){return s2+conv(+x.amount||0,x.cur);},0),pi=inc>0.005?Math.round(conv(a,cu)/inc*100):null,pv=vt>0.005?Math.round(conv(a,cu)/vt*100):null;
+  var tile=function(val,lab){return '<div class="kzt"><small>'+lab+"</small><b>"+val+"</b></div>";};
+  var kz='<div class="kz"><div class="kzm"><small>pro Monat</small><div><b>'+big+u+"</b>"+(cu!==H?'<em>≈ '+nf0.format(conv(a,cu))+" "+esc(H)+"</em>":"")+
+    (pi!=null?'<span class="kzbar" aria-hidden="true"><i style="width:'+Math.max(2,Math.min(100,pi))+'%"></i></span><em>'+pi+" % deiner Einnahmen</em>":'<em>geschätzt</em>')+'</div></div><div class="kzc">'+
+    tile("≈ "+nf0.format(a*12,cu)+u,"pro Jahr")+tile(pv!=null?pv+" %":"—","Anteil variabel")+"</div></div>";
+  var hs=holdersOf(v),rows=[["Betrag","geschätzt, monatlich"],(state.settings.holders||[]).length>1&&hs.length?["Personen",hs.join(" & ")]:null,["Zählt in","Budget (nicht in Kosten und Fristen)"]].filter(Boolean);
+  var name=v.label||(VAR_IC[v.ic]||VAR_IC.sonst)[0];
+  var menu='<div class="dmenu" id="dMenu" role="menu" hidden><button type="button" role="menuitem" data-vact="dup"><span>Duplizieren</span></button><button type="button" role="menuitem" class="red" data-vact="delete"><span>Löschen</span></button></div>';
+  var db=document.getElementById("detailBody");
+  db.innerHTML='<div class="shbar"><button class="shx" data-vact="close">Schliessen</button><h2>'+esc(name)+'</h2><button type="button" class="dmbtn" data-vact="menu" aria-label="Aktionen" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg></button><button class="shok" data-vact="edit">Bearbeiten</button>'+menu+"</div>"+
+    '<div class="detailhead">'+varMark(v.ic)+'<div style="flex:1;min-width:0"><h2 style="margin:0">'+esc(name)+'</h2><div style="font-size:13px;color:var(--ink2)">Variable Kosten · geschätzt</div></div></div>'+
+    '<div style="height:10px"></div>'+kz+'<h3 class="dsec">Variable Kosten</h3>'+
+    '<dl class="dgrp">'+rows.map(function(r){return '<div class="dl"><dt>'+esc(r[0])+"</dt><dd>"+esc(r[1])+"</dd></div>";}).join("")+"</dl>"+
+    '<p class="vhint" style="margin:10px 2px 0">Planwert für schwankende Ausgaben. Kontivo erfasst keine einzelnen Ausgaben.</p><div style="height:18px"></div>';
+  db.querySelectorAll("[data-vact]").forEach(function(b){b.addEventListener("click",function(){
+    var x=b.dataset.vact,dm=document.getElementById("dMenu");
+    if(x==="menu"){var on=dm.hidden;dm.hidden=!on;b.setAttribute("aria-expanded",on);return;}
+    if(dm)dm.hidden=true;
+    if(x==="close"){closeSheets();return;}
+    if(x==="edit"){closeSheets();setTimeout(function(){openVar(id);},180);return;}
+    if(x==="dup"){var n=Object.assign({},state.vars[id]);n.t=Date.now();var nid=uid();state.vars[nid]=n;saveLocal();closeSheets();render();setTimeout(function(){openVar(nid);},180);toast("Dupliziert");return;}
+    if(x==="delete"){ask({title:"Löschen?",text:"«"+name+"» wird aus den variablen Kosten entfernt.",ok:"Löschen",danger:true}).then(function(y){if(y){delete state.vars[id];saveLocal();closeSheets();render();toast("Gelöscht");}});}
+  });});
+  openSheet(document.getElementById("sheetDetail"));}
 document.addEventListener("click",function(ev){
   var t=ev.target.closest("[data-var],[data-varadd]");
-  if(t&&document.getElementById("view").contains(t)){openVar(t.dataset.var||null);return;}
+  if(t&&document.getElementById("view").contains(t)){if(t.dataset.var)openVarDetail(t.dataset.var);else openVar(null);return;}
   var sh=document.getElementById("sheetVar");if(!sh.contains(ev.target)||!vdraft)return;
-  var b=ev.target.closest("[data-vic]");if(b){vdraft.ic=b.dataset.vic;vPaint();return;}
+  if(ev.target.closest("#vcPrevTap")){vIcons(document.getElementById("vcIconWrap").hidden);return;}
+  var b=ev.target.closest("[data-vic]");if(b){vdraft.ic=b.dataset.vic;vPaint();vIcons(false);return;}
   b=ev.target.closest("[data-vsug]");if(b){document.getElementById("vcLabel").value=b.dataset.vsug;vdraft.ic=b.dataset.vsic;vPaint();
     var am=document.getElementById("vcAmt");if(!am.value.trim())am.focus();return;}
   b=ev.target.closest("[data-vh]");if(b){var h=b.dataset.vh,i=vdraft.holders.indexOf(h);
     if(i>=0){if(vdraft.holders.length>1)vdraft.holders.splice(i,1);}else vdraft.holders.push(h);
     vdraft.holders=holdersSorted(vdraft.holders);vPaint();return;}
 });
+document.getElementById("vcAmt").addEventListener("input",function(){if(vdraft)vKzPaint();});
 document.getElementById("vcLabel").addEventListener("input",function(){
   /* Symbol zum Vorschlag passend setzen, solange noch keins gewählt ist */
   var l=this.value.trim().toLowerCase(),m=VAR_SUG.filter(function(x){return x[0].toLowerCase()===l;})[0];
