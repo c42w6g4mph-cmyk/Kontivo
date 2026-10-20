@@ -2339,14 +2339,14 @@ function varList(){return Object.keys(state.vars||{}).map(function(k){var v=Obje
    inKosten: Hinweis, dass sie nicht in den Fixkosten oben zählen. SwiftUI: VariableCostSection(share:) */
 /* Liste «Variable Kosten» im Budget (nur Anzeige, wie die Ausgaben): Einträge, die im gewählten Monat gelten.
    Erfassen/Bearbeiten im Verträge-Tab (Ansicht «Variabel»); Antippen öffnet die Ansicht. SwiftUI: VariableCostSection */
-function varGroupHtml(shr,y,mo){var H=state.settings.home,multiH=(state.settings.holders||[]).length>1,a=new Date(y,mo,1),b=new Date(y,mo+1,0);
+function varGroupHtml(shr,y,mo,noAp){var ap=noAp?"":"≈ ";var H=state.settings.home,multiH=(state.settings.holders||[]).length>1,a=new Date(y,mo,1),b=new Date(y,mo+1,0);
   var VL=varList().filter(function(x){return shr(x)>0&&varActiveIn(x,a,b);}),vMon=VL.reduce(function(n,x){return n+conv(+x.amount||0,x.cur)*shr(x);},0);
   if(!VL.length)return "";
-  return '<div class="grp"><div class="grphead"><span>Variable Kosten '+MON[mo]+'</span><span>≈ '+money(vMon)+" "+H+'</span></div><div class="mrows2 vlist">'+
+  return '<div class="grp"><div class="grphead"><span>Variable Kosten '+MON[mo]+'</span><span>'+ap+money(vMon)+" "+H+'</span></div><div class="mrows2 vlist">'+
     VL.map(function(x){var am=conv(+x.amount||0,x.cur)*shr(x),hs=holdersOf(x),
       sub=[multiH&&hs.length?hs.join(" & "):"",shr(x)<1?shareTxt(shr(x)):""].filter(Boolean).join(" · ")||"pro Monat";
       return '<button class="mrow" type="button" data-var="'+esc(x._id)+'">'+varMarkOf(x)+'<span class="mt"><span class="mn">'+esc(x.label||(VAR_IC[x.ic]||VAR_IC.sonst)[0])+'</span><span class="mm">'+esc(sub)+'</span></span>'+
-        '<span class="ma"><span><b>≈ '+money(am)+'</b></span><span class="ms">geschätzt</span></span></button>';}).join("")+'</div></div>';}
+        '<span class="ma"><span><b>'+ap+money(am)+'</b></span><span class="ms">geschätzt</span></span></button>';}).join("")+'</div></div>';}
 var CAT_ICON={
  "Wohnen":'<path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9h11v-9"/><path d="M10.5 19v-5h3v5"/>',
  "Energie & Wasser":'<path d="M13 3.5 6.5 13h5l-1 7.5L17.5 11h-5z"/>',
@@ -3121,8 +3121,8 @@ function openKArt(){var ka=kArt(),l=document.getElementById("pickList");document
   l.innerHTML=KART.map(function(x){return '<button class="pick" data-pv="'+x[0]+'" aria-pressed="'+(ka===x[0])+'"><span>'+x[1]+'<small style="display:block;font-size:12.5px;opacity:.7;font-weight:400">'+x[2]+'</small></span><span></span></button>';}).join("");
   openSheet(document.getElementById("sheetPick"));}
 document.addEventListener("click",function(e){if(state.tab!=="budget"||!e.target.closest("[data-bart]"))return;
-  var ba=state.settings.bArt==="fix"?"fix":"all",l=document.getElementById("pickList");document.getElementById("pickTitle").textContent="Kostenart";l.dataset.dim="bart";
-  l.innerHTML=[["all","Alle Kosten","Einnahmen minus Fixkosten und geschätzte variable Kosten"],["fix","Fixkosten","Was dir nach den Verträgen bleibt"]].map(function(x){return '<button class="pick" data-pv="'+x[0]+'" aria-pressed="'+(ba===x[0])+'"><span>'+x[1]+'<small style="display:block;font-size:12.5px;opacity:.7;font-weight:400">'+x[2]+'</small></span><span></span></button>';}).join("");
+  var ba=bArt(),l=document.getElementById("pickList");document.getElementById("pickTitle").textContent="Kostenabzug";l.dataset.dim="bart";
+  l.innerHTML=BART.map(function(x){return '<button class="pick" data-pv="'+x[0]+'" aria-pressed="'+(ba===x[0])+'"><span>'+x[1]+'<small style="display:block;font-size:12.5px;opacity:.7;font-weight:400">'+x[2]+'</small></span><span></span></button>';}).join("");
   openSheet(document.getElementById("sheetPick"));});
 document.addEventListener("click",function(e){if(state.tab!=="stat")return;
   if(e.target.closest("[data-kart]")){openKArt();return;}
@@ -3351,22 +3351,22 @@ function renderStat(v){
   var bigN=function(v){var t=money(v),k=decAt(t);return k<0?t:t.slice(0,k)+'<small>'+t.slice(k)+"</small>";};
   var nPay=sm.items.length;
   var hdr='<div class="kh"><div class="keb"><span class="kmo">'+MON[sel]+" "+Y+'</span><span class="kcnt">'+(fltCount()?esc(fltLabel()):"")+'</span></div>'+
-    '<div class="kbig">'+(KA!=="fix"&&useV?"≈ ":"")+bigN(sm.tt)+'<span class="ru">'+H+'</span></div>'+
+    '<div class="kbig">'+bigN(sm.tt)+'<span class="ru">'+H+'</span></div>'+
     (KA==="fix"?(pmTxt?'<div class="kvs'+pmCls+'">'+(pmCls?"<i>"+(pmD>0?"↑":"↓")+"</i>":"")+pmTxt+"</div>":""):
-     '<div class="kvs">'+(KA==="var"?"geschätzt · im Budget abgezogen":"Fixkosten "+money(sm.fx)+(useV?" · variabel ≈ "+money(sm.vr):""))+"</div>")+"</div>";
+     '<div class="kvs">'+(KA==="var"?"geschätzt · im Budget abgezogen":"Fixkosten "+money(sm.fx)+(useV?" · variabel "+money(sm.vr):""))+"</div>")+"</div>";
   var nVar=VL0.filter(function(x){return varActiveIn(x,new Date(Y,sel,1),new Date(Y,sel+1,0))&&holderShare(x)>0;}).length;
-  var split=KA==="all"&&useV?'<div class="krow"><div class="kc"><em>Fixkosten</em><b>'+money(sm.fx)+'</b></div><div class="kc r"><em>Variabel</em><b>≈ '+money(sm.vr)+'</b></div></div>':
-    KA==="var"?'<div class="krow"><div class="kc"><em>Einträge</em><b>'+nVar+'</b></div><div class="kc r"><em>Total '+Y+'</em><b>≈ '+nf0.format(tot)+'</b></div></div>':
+  var split=KA==="all"&&useV?'<div class="krow"><div class="kc"><em>Fixkosten</em><b>'+money(sm.fx)+'</b></div><div class="kc r"><em>Variabel</em><b>'+money(sm.vr)+'</b></div></div>':
+    KA==="var"?'<div class="krow"><div class="kc"><em>Einträge</em><b>'+nVar+'</b></div><div class="kc r"><em>Total '+Y+'</em><b>'+nf0.format(tot)+'</b></div></div>':
     !nPay?'<div class="krow kempty">In diesem Monat ist nichts fällig.</div>':
     '<div class="krow">'+
     '<div class="kc'+(sm.paid<0.005?" nil":"")+'"><em><i class="pdot pd"></i>Bezahlt'+(sm.open<0.005?'<span class="kok">✓</span>':"")+'</em><b>'+money(sm.paid)+'</b></div>'+
     '<div class="kc r'+(sm.open<0.005?" nil":"")+'"><em><i class="pdot op"></i>Offen</em><b>'+money(sm.open)+'</b></div></div>';
-  var ap2=KA!=="fix"&&useV?"≈ ":"";
+  var ap2="";
   var foot='<div class="krow kfoot"><div class="kc"><em>Ø pro Monat</em><b>'+ap2+nf0.format(avg)+'</b></div>'+
     '<div class="kc r"><em>Total '+Y+'</em><b>'+ap2+nf0.format(tot)+"</b></div></div>";
   o+='<div class="readout mcard kcard" style="display:block">'+hdr+split+chartH+foot+"</div>"+hint;
   var MSO=state.mSort==="amt"?"amt":"date";
-  var vgr=useV?varGroupHtml(function(x){return holderShare(x);},Y,sel):"";
+  var vgr=useV?varGroupHtml(function(x){return holderShare(x);},Y,sel,true):"";
   if(KA!=="var")o+='<div class="grp"><div class="grphead ghs"><span>Fällig im '+MON[sel]+'</span>'+(sm.items.length>1?'<span class="pseg msort" role="group" aria-label="Sortierung">'+
     '<button data-msort="date" aria-pressed="'+(MSO==="date")+'">Datum</button><button data-msort="amt" aria-pressed="'+(MSO==="amt")+'">Betrag</button></span>':"")+'</div><div class="mrows mrows2">'+
     (sm.items.length?openI.map(mrow).join("")+(paidI.length&&openI.length?'<button class="tfold pfold" data-paidtog aria-expanded="'+(!!state.showPaid)+'"><span>Bereits bezahlt ('+paidI.length+')</span><i></i></button>':"")+
@@ -3520,6 +3520,9 @@ function openFq(){
     '<p class="fqf">'+(showAvg?'<span class="fqyl"><i></i>Jahresschnitt '+d.y+': '+(d.avg<0?"−"+(-d.avg):d.avg)+'\u00a0%</span>':"")+'<span>Richtwerte von Budgetberatungen, keine feste Norm.</span><span>Genauigkeit abhängig von deinen erfassten Verträgen.</span></p></div>';
   openSheet(document.getElementById("sheetPick"));
 }
+/* Budget: was abgezogen wird (settings.bArt): none = ohne Kostenabzug, fix = Fixkosten, all = alle Kosten (Standard). SwiftUI: Menu */
+var BART=[["none","Ohne Kostenabzug","Nur deine Einnahmen"],["fix","Mit Fixkostenabzug","Einnahmen minus Fixkosten"],["all","Mit allen Kosten","Einnahmen minus Fixkosten und variable Kosten"]];
+function bArt(){var b=state.settings.bArt;return b==="none"||b==="fix"?b:"all";}
 function renderBudget(v){
   setTopYear(null);
   var nowY=today().getFullYear(),Y=state.year||nowY,H=esc(state.settings.home);
@@ -3536,14 +3539,14 @@ function renderBudget(v){
   var bhf;
   var hn=holderNamer(HL,361),dn=hn.dn;
   /* eine Zeile wie im Kosten-Tab: Personen-Segment + Kostenart (Alle Kosten | Fixkosten, settings.bArt) */
-  var BA=state.settings.bArt==="fix"?"fix":"all";
+  var BA=bArt();
   bhf='<div class="frow1" role="group" aria-label="Filter">'+personSeg(HL,BH,"bh",200)+
-    '<button class="fsel kbtn'+(BA==="fix"?" on":"")+'" data-bart type="button"><span>'+(BA==="fix"?"Fixkosten":"Alle Kosten")+'</span></button></div>';
+    '<button class="fsel kbtn'+(BA!=="all"?" on":"")+'" data-bart type="button"><span>'+BART.filter(function(x){return x[0]===BA;})[0][1]+'</span></button></div>';
   state._bHL=HL;
   /* Variable Kosten: geschätzter Planwert pro Monat, in jedem Monat gleich (nur Budget, nicht Kosten/Fristen) */
   var tInc=0,tFix=0;
-  var tVr=0;M.forEach(function(m,i){m.vr=BA==="fix"?0:varMonth(Y,i,shr);m.free=m.inc-m.fix-m.vr;tInc+=m.inc;tFix+=m.fix;tVr+=m.vr;});
-  var tFree=tInc-tFix-tVr,sel=Math.min(11,Math.max(0,state.sel||0)),o="";
+  var tVr=0,noF=BA==="none";M.forEach(function(m,i){m.vr=BA==="all"?varMonth(Y,i,shr):0;m.free=m.inc-(noF?0:m.fix)-m.vr;tInc+=m.inc;tFix+=m.fix;tVr+=m.vr;});
+  var tFree=tInc-(noF?0:tFix)-tVr,sel=Math.min(11,Math.max(0,state.sel||0)),o="";
   var incs=incList().filter(function(c){return shr(c)>0;}).sort(function(a,b){return conv(curPrice(b),b.cur)-conv(curPrice(a),a.cur);});
   o+=bhf;
   if(!incs.length&&BH){
@@ -3574,21 +3577,21 @@ function renderBudget(v){
       payments(c,bpmF,bpmT).forEach(function(p){bpmFix+=conv(p.a,c.cur)*f;});});
     /* gleiche Sperre wie in «Kosten»: Einträge ohne Beginn im Monat zählen rückwirkend voll, dann kein Vorjahresvergleich */
     var smF=new Date(Y,sel,1),smT=new Date(Y,sel+1,0);
-    var bpmFree=bpmInc-bpmFix-(BA==="fix"?0:varMonth(Y-1,sel,shr)),bpmHas=(bpmInc>0.005||bpmFix>0.005),bpmD=sm.free-bpmFree;
+    var bpmFree=bpmInc-(noF?0:bpmFix)-(BA==="all"?varMonth(Y-1,sel,shr):0),bpmHas=(bpmInc>0.005||bpmFix>0.005),bpmD=sm.free-bpmFree;
     var bvT="",bvC="";
     if(bpmHas){var br=Math.round(Math.abs(bpmD));
       if(br<1)bvT="gleich wie "+MON[sel]+" "+(Y-1);
       else{bvT=nf0.format(br)+" "+H+(bpmD>0?" mehr":" weniger")+" als "+MON[sel]+" "+(Y-1);bvC=bpmD>0?" down":" up";}}
     var bBig=function(v){var t=money(Math.abs(v)),k=decAt(t);t=k<0?t:t.slice(0,k)+"<small>"+t.slice(k)+"</small>";return (v<0?"−":"")+t;};
-    var bq=sm.inc>0.005?Math.round(sm.free/sm.inc*100):null;
+    var bq=sm.inc>0.005&&!noF?Math.round(sm.free/sm.inc*100):null;
     state._fq=bq!=null?{p:bq,avg:tInc>0.005?Math.round(tFree/tInc*100):null,inc:sm.inc,free:sm.free,y:Y,mon:MON[sel]+" "+Y,who:BH?dn(BH):"",bh:BH}:null;
     var bh='<div class="kh"><div class="keb"><span class="kmo">'+MON[sel]+" "+Y+'</span><span class="kcnt">'+(BH?esc(dn(BH)):"")+'</span></div>'+
       '<div class="kbig'+(sm.free<0?" neg":"")+'">'+bBig(sm.free)+'<span class="ru">'+H+'</span></div>'+
-      '<div class="ksub">'+(sm.vr>0.005?"verfügbar nach Fix- und variablen Kosten":"verfügbar nach Fixkosten")+(bq!=null?'<span class="ksep"> · </span><button type="button" class="kfq" data-fq aria-label="'+bq+' % der Einnahmen, Einordnung anzeigen">'+(bq<0?"−"+(-bq):bq)+'\u00a0% der Einnahmen<i aria-hidden="true">i</i></button>':"")+'</div>'+
+      '<div class="ksub">'+(noF?"Einnahmen ohne Kostenabzug":sm.vr>0.005?"verfügbar nach Fix- und variablen Kosten":"verfügbar nach Fixkosten")+(bq!=null?'<span class="ksep"> · </span><button type="button" class="kfq" data-fq aria-label="'+bq+' % der Einnahmen, Einordnung anzeigen">'+(bq<0?"−"+(-bq):bq)+'\u00a0% der Einnahmen<i aria-hidden="true">i</i></button>':"")+'</div>'+
       (bvT?'<div class="kvs'+bvC+'">'+(bvC?"<i>"+(bpmD>0?"↑":"↓")+"</i>":"")+bvT+"</div>":"")+
 "</div>";
     var brow='<div class="krow"><div class="kc'+(sm.inc<0.005?" nil":"")+'"><em>Einnahmen</em><b>'+money(sm.inc)+'</b></div>'+
-      '<div class="kc r'+(sm.fix<0.005?" nil":"")+'"><em>Fixkosten</em><b>'+money(sm.fix)+'</b>'+"</div></div>";
+      (noF?"":'<div class="kc r'+(sm.fix<0.005?" nil":"")+'"><em>Fixkosten</em><b>'+money(sm.fix)+'</b></div>')+"</div>";
     var bfoot='<div class="krow kfoot"><div class="kc"><em>Ø pro Monat</em><b class="'+(bav<0?"up":"")+'">'+(bav<0?"−":"")+nf0.format(Math.abs(bav))+'</b></div>'+
       '<div class="kc r"><em>Verfügbar '+Y+'</em><b class="'+(tFree<0?"up":"")+'">'+(tFree<0?"−":"")+nf0.format(Math.abs(tFree))+"</b></div></div>";
     o+='<div class="readout mcard kcard" style="display:block">'+bh+brow+bc+bfoot+"</div>";
@@ -3614,8 +3617,8 @@ function renderBudget(v){
       '</div></div>';
   }
   /* Variable Kosten als Liste wie die Ausgaben (geschätzt pro Monat); Antippen = Ansicht, «+» erfasst. SwiftUI: Section mit Rows */
-  var varGroup=function(){return BA==="fix"?"":varGroupHtml(shr,Y,sel);};
-  if(incs.length){
+  var varGroup=function(){return BA!=="all"?"":varGroupHtml(shr,Y,sel);};
+  if(incs.length&&!noF){
     /* Ausgaben des Monats: flache Liste wie in «Kosten», nach Betrag; die grössten 5, Rest hinter «Alle anzeigen» */
     var eF=new Date(Y,sel,1),eT=new Date(Y,sel+1,0),xs=[],eTot=0;
     Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k],f=shr(c);if(!f)return;
@@ -6406,7 +6409,7 @@ document.getElementById("pickList").addEventListener("click",function(ev){
     else{idraft.cat=pb.dataset.pv;iPaintChips();}
     closePick();return;
   }
-  if(pd==="bart"){var bb=ev.target.closest("[data-pv]");if(!bb)return;state.settings.bArt=bb.dataset.pv==="fix"?"fix":"";saveSettings();closeSheets();renderView();return;}
+  if(pd==="bart"){var bb=ev.target.closest("[data-pv]");if(!bb)return;state.settings.bArt=bb.dataset.pv==="all"?"":bb.dataset.pv;saveSettings();closeSheets();renderView();return;}
   if(pd==="kart"){var kb2=ev.target.closest("[data-pv]");if(!kb2)return;state.settings.kArt=kb2.dataset.pv==="fix"?"":kb2.dataset.pv;saveSettings();closeSheets();renderView();return;}
   if(pd==="statf"&&ev.target.closest("[data-sfreset]")){state.flt.cat=null;state.flt.partner=null;state.autoSel=true;closeSheets();renderView();return;}
   if(/^alt[fsp]-/.test(pd)){var am=pd.split("-")[1];
