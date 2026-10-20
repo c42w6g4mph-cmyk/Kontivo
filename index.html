@@ -188,7 +188,6 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .kcard .kbig .ru{font-family:-apple-system,system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--ink3);margin-left:8px;letter-spacing:.02em}
 .kcard .kvs{display:flex;align-items:center;gap:7px;margin-top:11px;font-size:13px;font-weight:550;color:var(--ink2)}
 .kcard .kvs i{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;font-style:normal;font-size:11px;font-weight:800;background:var(--sunken)}
-.kcard .kvn{font-size:12px;color:var(--ink3);margin-top:3px}
 .kcard .kvs.down{color:var(--ok)}.kcard .kvs.down i{background:color-mix(in srgb,var(--ok) 16%,transparent)}
 .kcard .kvs.up{color:var(--warn)}.kcard .kvs.up i{background:color-mix(in srgb,var(--warn) 16%,transparent)}
 .krow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
@@ -3330,11 +3329,9 @@ function renderStat(v){
   var pp=sm.sum?sm.paid/sm.sum*100:0;
   // Vergleich mit demselben Monat im Vorjahr
   var pmS=0,pmF=new Date(Y-1,sel,1),pmT=new Date(Y-1,sel+1,0),pmLbl=MS[sel]+". "+(Y-1);
-  /* Verträge ohne Beginn zählen rückwirkend voll: beim Vorjahresvergleich auf beiden Seiten weglassen statt den Vergleich zu verbergen */
-  var nsIds={},nsN=0;sm.items.forEach(function(it){if(!it.c.start&&!nsIds[it.c._id]){nsIds[it.c._id]=1;nsN++;}});
-  pool.forEach(function(c){if(!fltMatch(c,null)||nsIds[c._id])return;var f2=holderShare(c);payments(c,pmF,pmT).forEach(function(p){pmS+=conv(p.a,c.cur)*f2;});});
-  var smCmp=sm.items.reduce(function(n,it){return n+(nsIds[it.c._id]?0:it.v);},0);
-  var pmD=smCmp-pmS,pmHtml;
+  /* Vorjahresvergleich ganz einfach: Summe dieses Monats gegen Summe desselben Monats im Vorjahr */
+  pool.forEach(function(c){if(!fltMatch(c,null))return;var f2=holderShare(c);payments(c,pmF,pmT).forEach(function(p){pmS+=conv(p.a,c.cur)*f2;});});
+  var pmD=sm.sum-pmS,pmHtml;
   var vsL=" vs. "+MS[sel]+" "+String(Y-1).slice(2);
   if(pmS<0.005)pmHtml='<span class="dpill">neu'+vsL+'</span>';
   else if(Math.abs(pmD)<0.005)pmHtml='<span class="dpill">='+vsL+'</span>';
@@ -3355,7 +3352,7 @@ function renderStat(v){
   var nPay=sm.items.length;
   var hdr='<div class="kh"><div class="keb"><span class="kmo">'+MON[sel]+" "+Y+'</span><span class="kcnt">'+(fltCount()?esc(fltLabel()):"")+'</span></div>'+
     '<div class="kbig">'+(KA!=="fix"&&useV?"≈ ":"")+bigN(sm.tt)+'<span class="ru">'+H+'</span></div>'+
-    (KA==="fix"?(pmTxt?'<div class="kvs'+pmCls+'">'+(pmCls?"<i>"+(pmD>0?"↑":"↓")+"</i>":"")+pmTxt+"</div>"+(nsN?'<div class="kvn">ohne '+(nsN===1?"1 Vertrag":nsN+" Verträge")+' ohne Vertragsbeginn</div>':""):""):
+    (KA==="fix"?(pmTxt?'<div class="kvs'+pmCls+'">'+(pmCls?"<i>"+(pmD>0?"↑":"↓")+"</i>":"")+pmTxt+"</div>":""):
      '<div class="kvs">'+(KA==="var"?"geschätzt · im Budget abgezogen":"Fixkosten "+money(sm.fx)+(useV?" · variabel ≈ "+money(sm.vr):""))+"</div>")+"</div>";
   var nVar=VL0.filter(function(x){return varActiveIn(x,new Date(Y,sel,1),new Date(Y,sel+1,0))&&holderShare(x)>0;}).length;
   var split=KA==="all"&&useV?'<div class="krow"><div class="kc"><em>Fixkosten</em><b>'+money(sm.fx)+'</b></div><div class="kc r"><em>Variabel</em><b>≈ '+money(sm.vr)+'</b></div></div>':
@@ -3571,16 +3568,13 @@ function renderBudget(v){
     var sm=M[sel];
     // Vergleich mit demselben Monat im Vorjahr
     var bpmInc=0,bpmFix=0,bpmF=new Date(Y-1,sel,1),bpmT=new Date(Y-1,sel+1,0);
-    /* wie in «Kosten»: Einträge ohne Beginn auf beiden Seiten weglassen statt den Vergleich zu verbergen */
-    var smF0=new Date(Y,sel,1),smT0=new Date(Y,sel+1,0),nsInc=0,nsFix=0,nsN=0;
-    incList().forEach(function(c){var f=shr(c);if(!f)return;if(!c.start){var o0=occurrences(c,smF0,smT0);if(o0.length){nsN++;o0.forEach(function(d){nsInc+=conv(priceAt(c,d),c.cur)*f;});}return;}
-      occurrences(c,bpmF,bpmT).forEach(function(d){bpmInc+=conv(priceAt(c,d),c.cur)*f;});});
+    /* ganz einfach: verfügbarer Betrag dieses Monats gegen denselben Monat im Vorjahr */
+    incList().forEach(function(c){var f=shr(c);if(f)occurrences(c,bpmF,bpmT).forEach(function(d){bpmInc+=conv(priceAt(c,d),c.cur)*f;});});
     Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k],f=shr(c);if(!f)return;
-      if(!c.start){var p0=payments(c,smF0,smT0);if(p0.length){nsN++;p0.forEach(function(p){nsFix+=conv(p.a,c.cur)*f;});}return;}
       payments(c,bpmF,bpmT).forEach(function(p){bpmFix+=conv(p.a,c.cur)*f;});});
     /* gleiche Sperre wie in «Kosten»: Einträge ohne Beginn im Monat zählen rückwirkend voll, dann kein Vorjahresvergleich */
     var smF=new Date(Y,sel,1),smT=new Date(Y,sel+1,0);
-    var bpmFree=bpmInc-bpmFix-(BA==="fix"?0:varMonth(Y-1,sel,shr)),bpmHas=(bpmInc>0.005||bpmFix>0.005),bpmD=(sm.free-nsInc+nsFix)-bpmFree;
+    var bpmFree=bpmInc-bpmFix-(BA==="fix"?0:varMonth(Y-1,sel,shr)),bpmHas=(bpmInc>0.005||bpmFix>0.005),bpmD=sm.free-bpmFree;
     var bvT="",bvC="";
     if(bpmHas){var br=Math.round(Math.abs(bpmD));
       if(br<1)bvT="gleich wie "+MON[sel]+" "+(Y-1);
@@ -3591,7 +3585,7 @@ function renderBudget(v){
     var bh='<div class="kh"><div class="keb"><span class="kmo">'+MON[sel]+" "+Y+'</span><span class="kcnt">'+(BH?esc(dn(BH)):"")+'</span></div>'+
       '<div class="kbig'+(sm.free<0?" neg":"")+'">'+bBig(sm.free)+'<span class="ru">'+H+'</span></div>'+
       '<div class="ksub">'+(sm.vr>0.005?"verfügbar nach Fix- und variablen Kosten":"verfügbar nach Fixkosten")+(bq!=null?'<span class="ksep"> · </span><button type="button" class="kfq" data-fq aria-label="'+bq+' % der Einnahmen, Einordnung anzeigen">'+(bq<0?"−"+(-bq):bq)+'\u00a0% der Einnahmen<i aria-hidden="true">i</i></button>':"")+'</div>'+
-      (bvT?'<div class="kvs'+bvC+'">'+(bvC?"<i>"+(bpmD>0?"↑":"↓")+"</i>":"")+bvT+"</div>"+(nsN?'<div class="kvn">ohne '+nsN+(nsN===1?" Eintrag":" Einträge")+' ohne Beginn</div>':""):"")+
+      (bvT?'<div class="kvs'+bvC+'">'+(bvC?"<i>"+(bpmD>0?"↑":"↓")+"</i>":"")+bvT+"</div>":"")+
 "</div>";
     var brow='<div class="krow"><div class="kc'+(sm.inc<0.005?" nil":"")+'"><em>Einnahmen</em><b>'+money(sm.inc)+'</b></div>'+
       '<div class="kc r'+(sm.fix<0.005?" nil":"")+'"><em>Fixkosten</em><b>'+money(sm.fix)+'</b>'+"</div></div>";
