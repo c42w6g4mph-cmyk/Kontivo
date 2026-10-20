@@ -191,6 +191,7 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .kcard .kvs.down{color:var(--ok)}.kcard .kvs.down i{background:color-mix(in srgb,var(--ok) 16%,transparent)}
 .kcard .kvs.up{color:var(--warn)}.kcard .kvs.up i{background:color-mix(in srgb,var(--warn) 16%,transparent)}
 .krow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.krow.krow3{grid-template-columns:1fr 1fr 1fr;gap:8px}.krow3 .kc b{font-size:clamp(16px,4.6vw,21px)}.krow3 .kc:nth-child(2){text-align:center}.krow3 .kc:nth-child(2) em{justify-content:center}
 .krow.kempty{display:block;font-size:13px;color:var(--ink3)}
 .kc em{display:flex;align-items:center;font-style:normal;font-size:11.5px;color:var(--ink3);white-space:nowrap}
 .kc em .pdot{width:8px;height:8px;border-radius:50%;margin-right:6px}
@@ -2339,7 +2340,7 @@ function varList(){return Object.keys(state.vars||{}).map(function(k){var v=Obje
    inKosten: Hinweis, dass sie nicht in den Fixkosten oben zählen. SwiftUI: VariableCostSection(share:) */
 /* Liste «Variable Kosten» im Budget (nur Anzeige, wie die Ausgaben): Einträge, die im gewählten Monat gelten.
    Erfassen/Bearbeiten im Verträge-Tab (Ansicht «Variabel»); Antippen öffnet die Ansicht. SwiftUI: VariableCostSection */
-function varGroupHtml(shr,y,mo,noAp){var ap=noAp?"":"≈ ";var H=state.settings.home,multiH=(state.settings.holders||[]).length>1,a=new Date(y,mo,1),b=new Date(y,mo+1,0);
+function varGroupHtml(shr,y,mo,noAp){var ap="";var H=state.settings.home,multiH=(state.settings.holders||[]).length>1,a=new Date(y,mo,1),b=new Date(y,mo+1,0);
   var VL=varList().filter(function(x){return shr(x)>0&&varActiveIn(x,a,b);}),vMon=VL.reduce(function(n,x){return n+conv(+x.amount||0,x.cur)*shr(x);},0);
   if(!VL.length)return "";
   return '<div class="grp"><div class="grphead"><span>Variable Kosten '+MON[mo]+'</span><span>'+ap+money(vMon)+" "+H+'</span></div><div class="mrows2 vlist">'+
@@ -2809,10 +2810,10 @@ function renderAltList(v,m){
   var sl=hf==="fut"?fut:act,sum=sl.reduce(function(n,c){return n+altMon(c,m)*share(c);},0);
   /* Kopf wie bei den Verträgen: Summe folgt Filter und Status-Chip */
   document.querySelector(".hero .hlabel").textContent=hf==="fut"?"Noch nicht aktiv, pro Monat":(inc?"Einnahmen pro Monat":"Variable Kosten pro Monat");
-  document.getElementById("hMonth").textContent=(inc?"":"≈ ")+money(sum);document.getElementById("hCur").textContent=H;
+  document.getElementById("hMonth").textContent=money(sum);document.getElementById("hCur").textContent=H;
   var fl=ALT_DIMS[m].map(function(d){return f[d[0]];}).filter(Boolean).join(" · ");
   document.getElementById("hSub").textContent=hf==="fut"?(inc?"Zählt ab Beginn zu deinen Einnahmen":"Zählt ab Beginn im Budget"):
-    (inc?"":"≈ ")+nf0.format(sum*12)+" "+H+" im Jahr"+(inc?"":" · geschätzt")+(fl?" – "+fl:"");
+    nf0.format(sum*12)+" "+H+" im Jahr"+(inc?"":" · geschätzt")+(fl?" – "+fl:"");
   document.getElementById("hChips").innerHTML=fut.length?'<button class="hchip act'+(hf==="act"?" on":"")+'" data-hfa="act" aria-pressed="'+(hf==="act")+'"><b>'+act.length+"</b> aktiv ›</button>"+
     '<button class="hchip act'+(hf==="fut"?" on":"")+'" data-hfa="fut" aria-pressed="'+(hf==="fut")+'"><b>'+fut.length+"</b> noch nicht aktiv ›</button>":"";
   document.getElementById("reviewCard").innerHTML="";
@@ -2824,7 +2825,7 @@ function renderAltList(v,m){
     var amt=inc?curPrice(c):(+c.amount||0);
     return '<button class="card'+(itOver(c)?" dim":"")+'" '+(inc?'data-inc':'data-var')+'="'+esc(c._id)+'">'+(inc?incMark(c):varMarkOf(c))+
       '<div class="cmain"><div class="n">'+esc(inc?(c.label||c.name||"Einnahme"):(c.label||(VAR_IC[c.ic]||VAR_IC.sonst)[0]))+'</div>'+(meta?'<div class="m">'+esc(meta)+"</div>":"")+tag+'</div>'+
-      '<div class="camt"><div class="a">'+(inc?"":"≈ ")+money(amt,c.cur)+'<span class="cu">'+esc(c.cur||H)+'</span></div>'+(inc&&cy!==1?'<div class="c">'+esc(ICYCLE[cy]||"")+'</div>':(!inc?'<div class="c">pro Monat</div>':""))+'</div></button>';};
+      '<div class="camt"><div class="a">'+money(amt,c.cur)+'<span class="cu">'+esc(c.cur||H)+'</span></div>'+(inc&&cy!==1?'<div class="c">'+esc(ICYCLE[cy]||"")+'</div>':(!inc?'<div class="c">pro Monat</div>':""))+'</div></button>';};
   var hfLab={fut:"Noch nicht aktiv",act:"Aktiv"};
   var lfbar=(lfn||hf)?'<div class="fbar ftagbar" role="group" aria-label="Aktive Filter">'+(hf?'<button class="ftag" data-hfadel aria-label="Filter entfernen">'+hfLab[hf]+"<span>×</span></button>":"")+
     ALT_DIMS[m].filter(function(d){return f[d[0]];}).map(function(d){return '<button class="ftag" data-afdel="'+d[0]+'" aria-label="Filter '+esc(f[d[0]])+' entfernen">'+esc(f[d[0]])+"<span>×</span></button>";}).join("")+"</div>":"";
@@ -2844,7 +2845,7 @@ function renderAltList(v,m){
   groups.forEach(function(g){var gs=g.l.filter(function(c){return !itAhead(c);}).reduce(function(n,c){return n+altMon(c,m)*share(c);},0);
     /* Summen wie bei den Verträgen: A–Z ohne Summe, Fälligkeit = Betrag der Zahlungen, sonst pro Monat */
     var st=srt==="name"||srt==="partner"?"":srt==="due"?money(g.l.reduce(function(n,c){return n+(inc?conv(curPrice(c),c.cur):conv(+c.amount||0,c.cur))*share(c);},0))+" "+esc(H):
-      (g.l.length>1?(inc?"":"≈ ")+money(gs)+" "+esc(H)+"/Mt.":(g.l.every(itAhead)?"noch nicht aktiv":""));
+      (g.l.length>1?money(gs)+" "+esc(H)+"/Mt.":(g.l.every(itAhead)?"noch nicht aktiv":""));
     o+='<div class="grp">'+(g.k?'<div class="grphead"><span>'+esc(g.k)+'</span><span>'+st+'</span></div>':"")+g.l.map(row).join("")+"</div>";});
   if(!L.length)o+='<div class="empty"><b>Keine Treffer</b>'+(q?"Für «"+esc(state.q)+"» gibt es keinen Eintrag.":"Mit diesem Filter gibt es keinen Eintrag.")+"</div>";
   if(A.length){var sk=inc?"showArchI":"showArchV";
@@ -3121,7 +3122,7 @@ function openKArt(){var ka=kArt(),l=document.getElementById("pickList");document
   l.innerHTML=KART.map(function(x){return '<button class="pick" data-pv="'+x[0]+'" aria-pressed="'+(ka===x[0])+'"><span>'+x[1]+'<small style="display:block;font-size:12.5px;opacity:.7;font-weight:400">'+x[2]+'</small></span><span></span></button>';}).join("");
   openSheet(document.getElementById("sheetPick"));}
 document.addEventListener("click",function(e){if(state.tab!=="budget"||!e.target.closest("[data-bart]"))return;
-  var ba=bArt(),l=document.getElementById("pickList");document.getElementById("pickTitle").textContent="Kostenabzug";l.dataset.dim="bart";
+  var ba=bArt(),l=document.getElementById("pickList");document.getElementById("pickTitle").textContent="Kostenart";l.dataset.dim="bart";
   l.innerHTML=BART.map(function(x){return '<button class="pick" data-pv="'+x[0]+'" aria-pressed="'+(ba===x[0])+'"><span>'+x[1]+'<small style="display:block;font-size:12.5px;opacity:.7;font-weight:400">'+x[2]+'</small></span><span></span></button>';}).join("");
   openSheet(document.getElementById("sheetPick"));});
 document.addEventListener("click",function(e){if(state.tab!=="stat")return;
@@ -3521,7 +3522,7 @@ function openFq(){
   openSheet(document.getElementById("sheetPick"));
 }
 /* Budget: was abgezogen wird (settings.bArt): none = ohne Kostenabzug, fix = Fixkosten, all = alle Kosten (Standard). SwiftUI: Menu */
-var BART=[["none","Ohne Kostenabzug","Nur deine Einnahmen"],["fix","Mit Fixkostenabzug","Einnahmen minus Fixkosten"],["all","Mit allen Kosten","Einnahmen minus Fixkosten und variable Kosten"]];
+var BART=[["all","Alle Kosten","Einnahmen minus Fixkosten und variable Kosten"],["fix","Fixkosten","Einnahmen minus Fixkosten"],["none","Ohne Kosten","Nur deine Einnahmen, z.B. um starke Monate zu sehen"]];
 function bArt(){var b=state.settings.bArt;return b==="none"||b==="fix"?b:"all";}
 function renderBudget(v){
   setTopYear(null);
@@ -3587,11 +3588,12 @@ function renderBudget(v){
     state._fq=bq!=null?{p:bq,avg:tInc>0.005?Math.round(tFree/tInc*100):null,inc:sm.inc,free:sm.free,y:Y,mon:MON[sel]+" "+Y,who:BH?dn(BH):"",bh:BH}:null;
     var bh='<div class="kh"><div class="keb"><span class="kmo">'+MON[sel]+" "+Y+'</span><span class="kcnt">'+(BH?esc(dn(BH)):"")+'</span></div>'+
       '<div class="kbig'+(sm.free<0?" neg":"")+'">'+bBig(sm.free)+'<span class="ru">'+H+'</span></div>'+
-      '<div class="ksub">'+(noF?"Einnahmen ohne Kostenabzug":sm.vr>0.005?"verfügbar nach Fix- und variablen Kosten":"verfügbar nach Fixkosten")+(bq!=null?'<span class="ksep"> · </span><button type="button" class="kfq" data-fq aria-label="'+bq+' % der Einnahmen, Einordnung anzeigen">'+(bq<0?"−"+(-bq):bq)+'\u00a0% der Einnahmen<i aria-hidden="true">i</i></button>':"")+'</div>'+
+      '<div class="ksub">'+(noF?"Einnahmen, ohne Kosten":sm.vr>0.005?"verfügbar nach Fix- und variablen Kosten":"verfügbar nach Fixkosten")+(bq!=null?'<span class="ksep"> · </span><button type="button" class="kfq" data-fq aria-label="'+bq+' % der Einnahmen, Einordnung anzeigen">'+(bq<0?"−"+(-bq):bq)+'\u00a0% der Einnahmen<i aria-hidden="true">i</i></button>':"")+'</div>'+
       (bvT?'<div class="kvs'+bvC+'">'+(bvC?"<i>"+(bpmD>0?"↑":"↓")+"</i>":"")+bvT+"</div>":"")+
 "</div>";
-    var brow='<div class="krow"><div class="kc'+(sm.inc<0.005?" nil":"")+'"><em>Einnahmen</em><b>'+money(sm.inc)+'</b></div>'+
-      (noF?"":'<div class="kc r'+(sm.fix<0.005?" nil":"")+'"><em>Fixkosten</em><b>'+money(sm.fix)+'</b></div>')+"</div>";
+    var brow='<div class="krow'+(sm.vr>0.005?" krow3":"")+'"><div class="kc'+(sm.inc<0.005?" nil":"")+'"><em>Einnahmen</em><b>'+money(sm.inc)+'</b></div>'+
+      (noF?"":'<div class="kc'+(sm.vr>0.005?"":" r")+(sm.fix<0.005?" nil":"")+'"><em>Fixkosten</em><b>'+money(sm.fix)+'</b></div>')+
+      (sm.vr>0.005?'<div class="kc r"><em>Variabel</em><b>'+money(sm.vr)+'</b></div>':"")+"</div>";
     var bfoot='<div class="krow kfoot"><div class="kc"><em>Ø pro Monat</em><b class="'+(bav<0?"up":"")+'">'+(bav<0?"−":"")+nf0.format(Math.abs(bav))+'</b></div>'+
       '<div class="kc r"><em>Verfügbar '+Y+'</em><b class="'+(tFree<0?"up":"")+'">'+(tFree<0?"−":"")+nf0.format(Math.abs(tFree))+"</b></div></div>";
     o+='<div class="readout mcard kcard" style="display:block">'+bh+brow+bc+bfoot+"</div>";
@@ -6580,7 +6582,7 @@ document.getElementById("iDel").addEventListener("click",function(){
    Ansicht wie Einnahme/Vertrag (im #sheetDetail), Formular wie Vertragsformular (abgespeckt) */
 var varId=null,vdraft=null;
 function vKzPaint(){var a=parseAmt(document.getElementById("vcAmt").value),cu=vdraft.cur,u='<u>'+esc(cu)+'</u>';
-  var f=function(v){return a>0?"≈ "+v+u:"–";};
+  var f=function(v){return a>0?v+u:"–";};
   document.getElementById("vcKz").innerHTML='<div><small>pro Monat</small><b>'+f(money(a,cu))+'</b></div><div><small>pro Jahr</small><b>'+f(nf0.format(a*12,cu))+'</b></div>';}
 function vPaint(){
   document.getElementById("vcPrev").innerHTML=varMarkOf(vdraft);
@@ -6611,13 +6613,13 @@ function openVar(id){
 }
 /* Ansicht: Kopf mit Symbol, Kacheln «pro Monat» (Anteil an den Einnahmen) und «pro Jahr», Angaben; Bearbeiten, Menü Duplizieren/Löschen */
 function openVarDetail(id){var v=state.vars[id];if(!v)return;
-  var H=state.settings.home,cu=v.cur||H,a=+v.amount||0,u='<u>'+esc(cu)+"</u>",mt=money(a,cu),k=decAt(mt),big="≈ "+(k<0?mt:mt.slice(0,k)+"<i>"+mt.slice(k)+"</i>");
+  var H=state.settings.home,cu=v.cur||H,a=+v.amount||0,u='<u>'+esc(cu)+"</u>",mt=money(a,cu),k=decAt(mt),big=(k<0?mt:mt.slice(0,k)+"<i>"+mt.slice(k)+"</i>");
   var t=today(),inc=0;incList().forEach(function(x){var e2=parseD(x.end),s2=parseD(x.start);if(+x.cycle&&!(e2&&e2<t)&&!(s2&&s2>t))inc+=conv(curPrice(x),x.cur)/(+x.cycle);});
   var vt=varList().reduce(function(s2,x){return s2+conv(+x.amount||0,x.cur);},0),pi=inc>0.005?Math.round(conv(a,cu)/inc*100):null,pv=vt>0.005?Math.round(conv(a,cu)/vt*100):null;
   var tile=function(val,lab){return '<div class="kzt"><small>'+lab+"</small><b>"+val+"</b></div>";};
   var kz='<div class="kz"><div class="kzm"><small>pro Monat</small><div><b>'+big+u+"</b>"+(cu!==H?'<em>≈ '+nf0.format(conv(a,cu))+" "+esc(H)+"</em>":"")+
     (pi!=null?'<span class="kzbar" aria-hidden="true"><i style="width:'+Math.max(2,Math.min(100,pi))+'%"></i></span><em>'+pi+" % deiner Einnahmen</em>":'<em>geschätzt</em>')+'</div></div><div class="kzc">'+
-    tile("≈ "+nf0.format(a*12,cu)+u,"pro Jahr")+tile(pv!=null?pv+" %":"—","Anteil variabel")+"</div></div>";
+    tile(nf0.format(a*12,cu)+u,"pro Jahr")+tile(pv!=null?pv+" %":"—","Anteil variabel")+"</div></div>";
   var hs=holdersOf(v),rows=[["Betrag","geschätzt, monatlich"],v.start?["Ab",fmtD(v.start)]:null,v.end?["Bis",fmtD(v.end)]:null,(state.settings.holders||[]).length>1&&hs.length?["Personen",hs.join(" & ")]:null,["Zählt in","Budget (nicht in Kosten und Fristen)"]].filter(Boolean);
   var pill=itOver(v)?'<div class="pills"><span class="pill">Beendet am '+fmtD(v.end)+'</span></div>':itAhead(v)?'<div class="pills"><span class="pill">Ab '+fmtD(v.start)+'</span></div>':'<div style="height:10px"></div>';
   var name=v.label||(VAR_IC[v.ic]||VAR_IC.sonst)[0];
