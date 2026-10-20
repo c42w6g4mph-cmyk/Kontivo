@@ -232,6 +232,10 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .kcard .kbig.neg{color:var(--alert)}
 .kcard .bchart{margin-top:34px;height:140px;margin-right:16px}
 .kcard .chart{margin-top:34px;height:140px}
+.col i.vr{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--brass) 50%,var(--surface)) 0 3px,color-mix(in srgb,var(--brass) 16%,var(--surface)) 3px 6px)}
+.col.on i.vr{background:repeating-linear-gradient(135deg,var(--brass) 0 3px,color-mix(in srgb,var(--brass) 45%,var(--surface)) 3px 6px)}
+.vleg{display:flex;gap:16px;font-size:12.5px;color:var(--ink2);margin:10px 0 0}.vleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.vleg i.lf{background:color-mix(in srgb,var(--ink) 16%,var(--surface))}.vleg i.lv{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--brass) 50%,var(--surface)) 0 3px,color-mix(in srgb,var(--brass) 16%,var(--surface)) 3px 6px)}
 .kcard .col i.pd{background:color-mix(in srgb,var(--teal) 34%,var(--surface))}
 .kcard .col.on i.pd{background:var(--teal)}
 .kcard .col i.op{background:color-mix(in srgb,var(--ink) 12%,var(--surface))}
@@ -3081,23 +3085,34 @@ function holderNamer(HL,width){
   var dn=function(h){if(!useFirst)return h;var w=String(h).trim().split(/\s+/);return (clash&&w.length>1)?w[0]+" "+w[w.length-1].charAt(0)+".":w[0];};
   return {dn:dn,ok:HL.length>1&&HL.length<=4&&HL.map(dn).join("").length<=Math.floor(28*width/361)};}
 /* Kosten: Inhaber als Chips direkt sichtbar, Kategorie/Vertragspartner hinter «Mehr» (SwiftUI: Picker .segmented + DisclosureGroup) */
+/* Kosten-Tab: höchstens 2 Filterknöpfe – «Kostenart» (Alle/Fix/Variabel, settings.kArt, Standard Fixkosten) und «Filter» (Kategorie, Vertragspartner);
+   bei mehreren Personen darüber die Personen-Chips. SwiftUI: Menu + Filter-Sheet */
+var KART=[["all","Alle Kosten","Fixkosten und geschätzte variable Kosten"],["fix","Fixkosten","Verträge, Gebühren und Steuern"],["var","Variable Kosten","Geschätzt, z.B. Benzin oder Lebensmittel"]];
+function kArt(){var k=state.settings.kArt;return k==="all"||k==="var"?k:"fix";}
 function statFilterBar(){
   var f=state.flt,HL=holderStats().filter(function(h){return h.c>0;}).map(function(h){return h.name;});
   if(f.holder&&HL.indexOf(f.holder)<0)HL.push(f.holder);
-  var nOther=(f.cat?1:0)+(f.partner?1:0),open=!!(state.fMore||nOther),hn=holderNamer(HL,318);
-  var moreBtn='<button class="fmore'+(nOther?" on":"")+'" data-fmore type="button" aria-expanded="'+open+'" aria-label="Weitere Filter">'+
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>'+(nOther?'<b>'+nOther+"</b>":"")+"</button>";
-  var row1;
-  if(HL.length<=1){/* Nur eine Person: keine Inhaber-Wahl nötig, übrige Filter direkt */
-    return '<div class="fbar3" role="group" aria-label="Filter">'+fselHtml("cat","Kategorie")+fselHtml("partner","Vertragspartner")+
-      (nOther?'<button class="fclr" data-fclear type="button" aria-label="Filter zurücksetzen">×</button>':"")+"</div>";}
-  if(hn.ok)row1='<div class="fbar3" role="group" aria-label="Person">'+[""].concat(HL).map(function(h){var on=h?f.holder===h:!f.holder;
-      return '<button class="fsel fh'+(on?" on":"")+'" data-fh="'+esc(h)+'" aria-pressed="'+on+'" type="button"><span>'+esc(h?hn.dn(h):"Alle")+"</span></button>";}).join("")+moreBtn+"</div>";
-  else row1='<div class="fbar3" role="group" aria-label="Filter">'+fselHtml("holder","Alle Personen")+moreBtn+"</div>";
-  var row2=open?'<div class="fbar3 frow2" role="group" aria-label="Weitere Filter">'+fselHtml("cat","Kategorie")+fselHtml("partner","Vertragspartner")+
-    (nOther?'<button class="fclr" data-fclear2 type="button" aria-label="Kategorie und Vertragspartner zurücksetzen">×</button>':"")+"</div>":"";
+  var nOther=(f.cat?1:0)+(f.partner?1:0),hn=holderNamer(HL,361),ka=kArt(),kl=KART.filter(function(x){return x[0]===ka;})[0][1];
+  var row1="";
+  if(HL.length>1){if(hn.ok)row1='<div class="fbar3" role="group" aria-label="Person">'+[""].concat(HL).map(function(h){var on=h?f.holder===h:!f.holder;
+      return '<button class="fsel fh'+(on?" on":"")+'" data-fh="'+esc(h)+'" aria-pressed="'+on+'" type="button"><span>'+esc(h?hn.dn(h):"Alle")+"</span></button>";}).join("")+"</div>";
+    else row1='<div class="fbar3" role="group" aria-label="Person">'+fselHtml("holder","Alle Personen")+"</div>";}
+  var row2='<div class="fbar3'+(row1?" frow2":"")+'" role="group" aria-label="Filter"><button class="fsel'+(ka!=="fix"?" on":"")+'" data-kart type="button"><span>'+esc(kl)+'</span></button>'+
+    '<button class="fsel'+(nOther&&ka!=="var"?" on":"")+'" data-sfilter type="button"'+(ka==="var"?' aria-disabled="true" style="opacity:.4"':"")+'><span>Filter'+(nOther&&ka!=="var"?" · "+nOther:"")+'</span></button></div>';
   return row1+row2;
 }
+function openStatFilter(){var L={cat:"Kategorie",partner:"Vertragspartner"},f=state.flt;
+  document.getElementById("pickTitle").textContent="Filter";var l=document.getElementById("pickList");l.dataset.dim="statf";
+  l.innerHTML=["cat","partner"].map(function(d){return '<button class="pick" data-fdim2="'+d+'"><span>'+L[d]+'</span><span>'+esc(f[d]||"Alle")+" ›</span></button>";}).join("")+
+    ((f.cat||f.partner)?'<button class="pick pickreset" data-sfreset><span>Filter zurücksetzen</span><span></span></button>':"")+
+    (kArt()==="all"?'<p class="lphint">Variable Kosten haben keine Kategorie und keinen Vertragspartner. Mit Filter zählen nur die Verträge.</p>':"");
+  openSheet(document.getElementById("sheetPick"));}
+function openKArt(){var ka=kArt(),l=document.getElementById("pickList");document.getElementById("pickTitle").textContent="Kostenart";l.dataset.dim="kart";
+  l.innerHTML=KART.map(function(x){return '<button class="pick" data-pv="'+x[0]+'" aria-pressed="'+(ka===x[0])+'"><span>'+x[1]+'<small style="display:block;font-size:12.5px;opacity:.7;font-weight:400">'+x[2]+'</small></span><span></span></button>';}).join("");
+  openSheet(document.getElementById("sheetPick"));}
+document.addEventListener("click",function(e){if(state.tab!=="stat")return;
+  if(e.target.closest("[data-kart]")){openKArt();return;}
+  var sf=e.target.closest("[data-sfilter]");if(sf){if(kArt()==="var"){toast("Bei variablen Kosten gibt es keine Kategorie und keinen Vertragspartner");return;}openStatFilter();return;}});
 function openPick(dim){
   if(dim==="sort"){
     var so=[["due","Fälligkeit"],["cost","Kosten, höchste zuerst"],["partner","Vertragspartner, A–Z"],["cat","Kategorie"],["holder","Person"]],cs=state.settings.sort||"cat";
@@ -3262,18 +3277,22 @@ function renderStat(v){
       if(inF){var mo=months[d.getMonth()];mo.sum+=val;if(d<T0)mo.paid+=val;else mo.open+=val;mo.items.push({c:c,d:d,v:val,a:p.a*sh,sh:sh,ex:p.ex});}
     });
   });
-  var tot=0,max=0;months.forEach(function(m){tot+=m.sum;if(m.sum>max)max=m.sum;});
+  /* Kostenart: fix = wie bisher; all = Fixkosten + geschätzte variable Kosten (ohne Kategorie-/Vertragspartnerfilter); var = nur variable */
+  var KA=kArt(),useV=KA==="var"||(KA==="all"&&!FL.cat&&!FL.partner),VL0=varList();
+  months.forEach(function(m,i){m.vr=useV?varMonth(Y,i,function(x){return holderShare(x);}):0;m.fx=KA==="var"?0:m.sum;m.tt=m.fx+m.vr;});
+  var tot=0,max=0;months.forEach(function(m){tot+=m.tt;if(m.tt>max)max=m.tt;});
   var sel=Math.min(11,Math.max(0,state.sel||0));
   if(state.autoSel){state.autoSel=false;
-    if(!months[sel].sum&&tot){var nx=-1;for(var j=0;j<12;j++){var q=(sel+j)%12;if(months[q].sum){nx=q;break;}}if(nx>=0){sel=nx;state.sel=nx;}}}
+    if(!months[sel].tt&&tot){var nx=-1;for(var j=0;j<12;j++){var q=(sel+j)%12;if(months[q].tt){nx=q;break;}}if(nx>=0){sel=nx;state.sel=nx;}}}
   setTopYear(Y,nowY);var o='';
   var fn=fltCount();
   o+=statFilterBar();
   var noStart=pool.filter(function(c){return !c.start&&c.status!=="cancelled";}).length;
   var hint=(Y<nowY&&noStart)?'<p class="note" style="margin:8px 0 0">'+noStart+(noStart===1?" Vertrag hat":" Verträge haben")+
     ' keinen Vertragsbeginn und '+(noStart===1?"wird":"werden")+' deshalb rückwirkend voll gezählt.</p>':"";
-  if(!allN&&!Object.keys(state.contracts).length){setTopYear(null);v.innerHTML=emptyStat();return;}
-  if(!allN){v.innerHTML=o+'<div class="empty"><b>Keine Zahlungen in '+Y+'</b>Für dieses Jahr sind keine Zahlungen erfasst oder berechenbar.</div>'+hint;return;}
+  if(!allN&&!Object.keys(state.contracts).length&&!(KA!=="fix"&&VL0.length)){setTopYear(null);v.innerHTML=emptyStat();return;}
+  if(KA==="var"&&!tot){v.innerHTML=o+'<div class="empty"><b>Keine variablen Kosten in '+Y+'</b>Erfasse sie im Tab Verträge unter «Variabel».</div>';return;}
+  if(!allN&&!tot){v.innerHTML=o+'<div class="empty"><b>Keine Zahlungen in '+Y+'</b>Für dieses Jahr sind keine Zahlungen erfasst oder berechenbar.</div>'+hint;return;}
   var avg=tot/12,mx=max||1,ap=avg/mx*100;
   var pT=0,pf=new Date(Y-1,0,1),pt=new Date(Y-1,11,31);
   pool.forEach(function(c){if(!fltMatch(c,null))return;var f1=holderShare(c);payments(c,pf,pt).forEach(function(p){pT+=conv(p.a,c.cur)*f1;});});
@@ -3283,13 +3302,16 @@ function renderStat(v){
   var chartH='<div class="chartwrap"><div class="chart" role="group" aria-label="Zahlungen pro Monat '+Y+'">'+(tot?'<div class="avg" style="bottom:'+ap+'%"><span>Ø</span></div>':"");
   months.forEach(function(m,i){
     chartH+='<button class="col'+(i===sel?" on":"")+(m.sum?"":" zero")+'" data-m="'+i+'" aria-pressed="'+(i===sel)+
-      '" aria-label="'+MON[i]+" "+Y+": "+money(m.sum)+" "+H+'">'+
-      '<i class="op'+(m.open>0?" cap":"")+'" style="height:'+Math.max(0,m.open/mx*100)+'%"></i>'+
-      '<i class="pd'+(!(m.open>0)?" cap":"")+'" style="height:'+Math.max(0,m.paid/mx*100)+'%"></i></button>';
+      '" aria-label="'+MON[i]+" "+Y+": "+money(m.tt)+" "+H+'">'+
+      (m.vr>0.005?'<i class="vr cap" style="height:'+(m.vr/mx*100)+'%"></i>':"")+
+      (KA==="var"?"":'<i class="op'+(m.open>0&&!(m.vr>0.005)?" cap":"")+'" style="height:'+Math.max(0,m.open/mx*100)+'%"></i>'+
+      '<i class="pd'+(!(m.open>0)&&!(m.vr>0.005)?" cap":"")+'" style="height:'+Math.max(0,m.paid/mx*100)+'%"></i>')+'</button>';
   });
-  chartH+='</div></div><div class="mlabels">'+months.map(function(m,i){return '<span class="'+(i===sel?"on":"")+(Y===nowY&&i===T0.getMonth()?" now":"")+'">'+MS[i]+"</span>";}).join("")+"</div>";
+  chartH+='</div></div><div class="mlabels">'+months.map(function(m,i){return '<span class="'+(i===sel?"on":"")+(Y===nowY&&i===T0.getMonth()?" now":"")+'">'+MS[i]+"</span>";}).join("")+"</div>"+
+    (KA!=="fix"&&useV?'<div class="vleg">'+(KA==="all"?'<span><i class="lf"></i>Fixkosten</span>':"")+'<span><i class="lv"></i>Variabel (geschätzt)</span></div>':"")+
+    (KA==="all"&&!useV?'<p class="vleg">Mit Kategorie- oder Vertragspartnerfilter zählen nur die Verträge.</p>':"");
   var sm=months[sel];sm.items.sort(function(x,y){return x.d-y.d;});
-  var dl=sm.sum-avg,dcls=Math.abs(dl)<0.005?"":(dl>0?"up":"down");
+  var dl=sm.tt-avg,dcls=Math.abs(dl)<0.005?"":(dl>0?"up":"down");
   var pp=sm.sum?sm.paid/sm.sum*100:0;
   // Vergleich mit demselben Monat im Vorjahr
   var pmS=0,pmF=new Date(Y-1,sel,1),pmT=new Date(Y-1,sel+1,0),pmLbl=MS[sel]+". "+(Y-1);
@@ -3315,21 +3337,28 @@ function renderStat(v){
   var bigN=function(v){var t=money(v),k=decAt(t);return k<0?t:t.slice(0,k)+'<small>'+t.slice(k)+"</small>";};
   var nPay=sm.items.length;
   var hdr='<div class="kh"><div class="keb"><span class="kmo">'+MON[sel]+" "+Y+'</span><span class="kcnt">'+(fltCount()?esc(fltLabel()):"")+'</span></div>'+
-    '<div class="kbig">'+bigN(sm.sum)+'<span class="ru">'+H+'</span></div>'+
-    (pmTxt?'<div class="kvs'+pmCls+'">'+(pmCls?"<i>"+(pmD>0?"↑":"↓")+"</i>":"")+pmTxt+"</div>":"")+"</div>";
-  var split=!nPay?'<div class="krow kempty">In diesem Monat ist nichts fällig.</div>':
+    '<div class="kbig">'+(KA!=="fix"&&useV?"≈ ":"")+bigN(sm.tt)+'<span class="ru">'+H+'</span></div>'+
+    (KA==="fix"?(pmTxt?'<div class="kvs'+pmCls+'">'+(pmCls?"<i>"+(pmD>0?"↑":"↓")+"</i>":"")+pmTxt+"</div>":""):
+     '<div class="kvs">'+(KA==="var"?"geschätzt · im Budget abgezogen":"Fixkosten "+money(sm.fx)+(useV?" · variabel ≈ "+money(sm.vr):""))+"</div>")+"</div>";
+  var nVar=VL0.filter(function(x){return varActiveIn(x,new Date(Y,sel,1),new Date(Y,sel+1,0))&&holderShare(x)>0;}).length;
+  var split=KA==="all"&&useV?'<div class="krow"><div class="kc"><em>Fixkosten</em><b>'+money(sm.fx)+'</b></div><div class="kc r"><em>Variabel</em><b>≈ '+money(sm.vr)+'</b></div></div>':
+    KA==="var"?'<div class="krow"><div class="kc"><em>Einträge</em><b>'+nVar+'</b></div><div class="kc r"><em>Total '+Y+'</em><b>≈ '+nf0.format(tot)+'</b></div></div>':
+    !nPay?'<div class="krow kempty">In diesem Monat ist nichts fällig.</div>':
     '<div class="krow">'+
     '<div class="kc'+(sm.paid<0.005?" nil":"")+'"><em><i class="pdot pd"></i>Bezahlt'+(sm.open<0.005?'<span class="kok">✓</span>':"")+'</em><b>'+money(sm.paid)+'</b></div>'+
     '<div class="kc r'+(sm.open<0.005?" nil":"")+'"><em><i class="pdot op"></i>Offen</em><b>'+money(sm.open)+'</b></div></div>';
-  var foot='<div class="krow kfoot"><div class="kc"><em>Ø pro Monat</em><b>'+nf0.format(avg)+'</b></div>'+
-    '<div class="kc r"><em>Total '+Y+'</em><b>'+nf0.format(tot)+"</b></div></div>";
+  var ap2=KA!=="fix"&&useV?"≈ ":"";
+  var foot='<div class="krow kfoot"><div class="kc"><em>Ø pro Monat</em><b>'+ap2+nf0.format(avg)+'</b></div>'+
+    '<div class="kc r"><em>Total '+Y+'</em><b>'+ap2+nf0.format(tot)+"</b></div></div>";
   o+='<div class="readout mcard kcard" style="display:block">'+hdr+split+chartH+foot+"</div>"+hint;
   var MSO=state.mSort==="amt"?"amt":"date";
-  o+='<div class="grp"><div class="grphead ghs"><span>Fällig im '+MON[sel]+'</span>'+(sm.items.length>1?'<span class="pseg msort" role="group" aria-label="Sortierung">'+
+  var vgr=useV?varGroupHtml(function(x){return holderShare(x);},Y,sel):"";
+  if(KA!=="var")o+='<div class="grp"><div class="grphead ghs"><span>Fällig im '+MON[sel]+'</span>'+(sm.items.length>1?'<span class="pseg msort" role="group" aria-label="Sortierung">'+
     '<button data-msort="date" aria-pressed="'+(MSO==="date")+'">Datum</button><button data-msort="amt" aria-pressed="'+(MSO==="amt")+'">Betrag</button></span>':"")+'</div><div class="mrows mrows2">'+
     (sm.items.length?openI.map(mrow).join("")+(paidI.length&&openI.length?'<button class="tfold pfold" data-paidtog aria-expanded="'+(!!state.showPaid)+'"><span>Bereits bezahlt ('+paidI.length+')</span><i></i></button>':"")+
       ((state.showPaid||!openI.length)?paidI.map(mrow).join(""):""):'<div class="mempty">In diesem Monat ist nichts fällig.</div>')+"</div></div>";
-  o+=ptSection(pool,Y,nowY,H);
+  o+=vgr;
+  if(KA!=="var")o+=ptSection(pool,Y,nowY,H);
   v.innerHTML=o+"</div>";
 }
 var TITLES={list:"Verträge",stat:"Kosten",budget:"Budget",term:"Fristen",arch:"Archiv",set:"Mehr"};
@@ -6365,6 +6394,8 @@ document.getElementById("pickList").addEventListener("click",function(ev){
     else{idraft.cat=pb.dataset.pv;iPaintChips();}
     closePick();return;
   }
+  if(pd==="kart"){var kb2=ev.target.closest("[data-pv]");if(!kb2)return;state.settings.kArt=kb2.dataset.pv==="fix"?"":kb2.dataset.pv;saveSettings();closeSheets();renderView();return;}
+  if(pd==="statf"&&ev.target.closest("[data-sfreset]")){state.flt.cat=null;state.flt.partner=null;state.autoSel=true;closeSheets();renderView();return;}
   if(/^alt[fsp]-/.test(pd)){var am=pd.split("-")[1];
     var af=ev.target.closest("[data-afdim]");if(af){openAltPick(am,af.dataset.afdim);return;}
     if(ev.target.closest("[data-afreset]")){state.fltA[am]={cat:null,partner:null,holder:null};closeSheets();renderView();return;}
