@@ -2304,6 +2304,18 @@ var VAR_SUG=[["Benzin","benzin"],["Lebensmittel","essen"],["Auswärts essen","au
 function varMark(ic){var e=VAR_IC[ic]||VAR_IC.sonst;return '<div class="mark" style="--c:'+e[2]+'"><svg class="cicon" viewBox="0 0 24 24" aria-hidden="true">'+e[1]+"</svg></div>";}
 function varList(){return Object.keys(state.vars||{}).map(function(k){var v=Object.assign({},state.vars[k]);v._id=k;return v;})
   .sort(function(a,b){return conv(+b.amount||0,b.cur)-conv(+a.amount||0,a.cur)||(a.t||0)-(b.t||0);});}
+/* Liste «Variable Kosten» für Budget und Kosten (gleiche Zeilen wie die Ausgaben); shr = Anteil je Eintrag (Personenfilter).
+   inKosten: Hinweis, dass sie nicht in den Fixkosten oben zählen. SwiftUI: VariableCostSection(share:) */
+function varGroupHtml(shr,inKosten){var H=state.settings.home,multiH=(state.settings.holders||[]).length>1;
+  var VL=varList().filter(function(x){return shr(x)>0;}),vMon=VL.reduce(function(a,x){return a+conv(+x.amount||0,x.cur)*shr(x);},0);
+  return '<div class="grp"><div class="grphead"><span>Variable Kosten</span><span>'+(VL.length?"≈ "+money(vMon)+" "+H+(inKosten?" / Mt.":""):"geschätzt pro Monat")+'</span></div>'+
+    (VL.length?'<div class="mrows2 vlist">'+VL.map(function(x){var a=conv(+x.amount||0,x.cur)*shr(x),hs=holdersOf(x),
+        sub=[multiH&&hs.length?hs.join(" & "):"",shr(x)<1?shareTxt(shr(x)):""].filter(Boolean).join(" · ")||"pro Monat";
+        return '<button class="mrow" type="button" data-var="'+esc(x._id)+'">'+varMark(x.ic)+'<span class="mt"><span class="mn">'+esc(x.label||(VAR_IC[x.ic]||VAR_IC.sonst)[0])+'</span><span class="mm">'+esc(sub)+'</span></span>'+
+          '<span class="ma"><span><b>≈ '+money(a)+'</b></span><span class="ms">geschätzt</span></span></button>';}).join("")+
+      '<div class="ifoot vfoot"><button type="button" data-varadd>+ Variable Kosten</button></div></div>'+
+      (inKosten?'<p class="vhint">Geschätzt, nicht in den Fixkosten oben enthalten. Im Budget werden sie abgezogen.</p>':"")
+    :'<button class="vempty" type="button" data-varadd><span class="vplus">+</span><span class="t"><b>Variable Kosten schätzen</b><small>Zum Beispiel Benzin oder Lebensmittel, als Betrag pro Monat</small></span></button>')+'</div>';}
 var CAT_ICON={
  "Wohnen":'<path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9h11v-9"/><path d="M10.5 19v-5h3v5"/>',
  "Energie & Wasser":'<path d="M13 3.5 6.5 13h5l-1 7.5L17.5 11h-5z"/>',
@@ -3193,6 +3205,7 @@ function renderStat(v){
     '<button data-msort="date" aria-pressed="'+(MSO==="date")+'">Datum</button><button data-msort="amt" aria-pressed="'+(MSO==="amt")+'">Betrag</button></span>':"")+'</div><div class="mrows mrows2">'+
     (sm.items.length?openI.map(mrow).join("")+(paidI.length&&openI.length?'<button class="tfold pfold" data-paidtog aria-expanded="'+(!!state.showPaid)+'"><span>Bereits bezahlt ('+paidI.length+')</span><i></i></button>':"")+
       ((state.showPaid||!openI.length)?paidI.map(mrow).join(""):""):'<div class="mempty">In diesem Monat ist nichts fällig.</div>')+"</div></div>";
+  o+=varGroupHtml(function(x){return holderShare(x);},true);
   o+=ptSection(pool,Y,nowY,H);
   v.innerHTML=o+"</div>";
 }
@@ -3437,14 +3450,7 @@ function renderBudget(v){
       '<div class="ifoot"><button type="button" id="incAdd">+ Einnahme</button><button type="button" data-incall>Alle Einnahmen ('+incs.length+') ›</button></div></div></div>';
   } else if(BH)o+='<div class="grp"><button class="addline" id="incAdd">+ Einnahme erfassen</button></div>';
   /* Variable Kosten als Liste wie die Ausgaben (geschätzt pro Monat); Antippen = Ansicht, «+» erfasst. SwiftUI: Section mit Rows */
-  var varGroup=function(){var multiH=(state.settings.holders||[]).length>1;
-    return '<div class="grp"><div class="grphead"><span>Variable Kosten</span><span>'+(VL.length?"≈ "+money(vMon)+" "+H:"geschätzt pro Monat")+'</span></div>'+
-      (VL.length?'<div class="mrows2 vlist">'+VL.map(function(x){var a=conv(+x.amount||0,x.cur)*shr(x),hs=holdersOf(x),
-          sub=[multiH&&hs.length?hs.join(" & "):"",shr(x)<1?shareTxt(shr(x)):""].filter(Boolean).join(" · ")||"pro Monat";
-          return '<button class="mrow" type="button" data-var="'+esc(x._id)+'">'+varMark(x.ic)+'<span class="mt"><span class="mn">'+esc(x.label||(VAR_IC[x.ic]||VAR_IC.sonst)[0])+'</span><span class="mm">'+esc(sub)+'</span></span>'+
-            '<span class="ma"><span><b>≈ '+money(a)+'</b></span><span class="ms">geschätzt</span></span></button>';}).join("")+
-        '<div class="ifoot vfoot"><button type="button" data-varadd>+ Variable Kosten</button></div></div>'
-      :'<button class="vempty" type="button" data-varadd><span class="vplus">+</span><span class="t"><b>Variable Kosten schätzen</b><small>Zum Beispiel Benzin oder Lebensmittel, als Betrag pro Monat</small></span></button>')+'</div>';};
+  var varGroup=function(){return varGroupHtml(shr,false);};
   if(incs.length){
     /* Ausgaben des Monats: flache Liste wie in «Kosten», nach Betrag; die grössten 5, Rest hinter «Alle anzeigen» */
     var eF=new Date(Y,sel,1),eT=new Date(Y,sel+1,0),xs=[],eTot=0;
@@ -5518,16 +5524,12 @@ function reportPdf(R){
   /* 12-Monats-Vorschau */
   var y3=y2-bh-gap,ch=200;rr(LM,y3-ch,RM-LM,ch,12,"#F9F9F7");
   tx("Fixkosten der nächsten 12 Monate",LM+12,y3-20,{f:"F2",pt:9.2});tx("inkl. Jahreszahlungen und angekündigter Preise",RM-12,y3-20,{pt:7.5,c:"#6A6C70",al:"r"});
-  var mx=Math.max.apply(null,R.M.map(function(x){return x.v;}))||1,gx=LM+12,gw=RM-LM-24,slot=gw/12,bwd2=slot-8,base=y3-ch+44,maxH=110;
+  var mx=Math.max.apply(null,R.M.map(function(x){return x.v;}))||1,gx=LM+12,gw=RM-LM-24,slot=gw/12,bwd2=slot-8,base=y3-ch+28,maxH=124;
   /* jeder Balken mit Wert (Summe der Zahlungen im Monat); Jahr bei erstem Monat und Januar */
   R.M.forEach(function(m,i){var hgt=Math.max(1.5,m.v/mx*maxH),x=gx+i*slot+4,mo=m.d.getMonth();
     rr(x,base,bwd2,hgt,3,"#D9C9A1");
     tx(MON[mo].slice(0,3)+(i===0||mo===0?" "+String(m.d.getFullYear()).slice(2):""),x+bwd2/2,base-11,{pt:6.8,c:"#6A6C70",al:"c"});
     tx(repNum(m.v),x+bwd2/2,base+hgt+4,{pt:6.4,c:"#4A4C50",al:"c"});});
-  var ly=y3-ch+14,lx=LM+12;
-  var pk=R.M.filter(function(m){return m.hi;}).map(function(m){return MON[m.d.getMonth()].slice(0,3)+" "+m.big.n;});
-  rr(lx,ly,7,7,1.5,"#D9C9A1");lx+=11+tx("Summe aller Zahlungen im Monat",lx+11,ly+0.5,{pt:7,c:"#6A6C70"})+14;
-  if(pk.length)tx(repFit("Höher wegen Jahres- oder Sonderzahlung: "+pk.join(" · "),false,7,RM-12-lx),lx,ly+0.5,{pt:7,c:"#6A6C70"});
   tx(R.L.length?"Ab Seite 2: alle Verträge mit Kündigungsregel"+(R.ids?", Kunden-Nr.":"")+" und Kontakt – zum Ablegen oder Weitergeben.":"",LM,y3-ch-18,{pt:7.5,c:"#6A6C70"});
   foot(1,N);pages.push(ops);
   /* ---------- Vertragsblätter: 2 Spalten × 5 Zeilen pro Seite ---------- */
