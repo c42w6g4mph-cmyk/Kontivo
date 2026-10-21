@@ -1684,7 +1684,7 @@ body{background:var(--paper)!important}
 .pth{display:flex;align-items:center;gap:12px}.pth .mark{width:36px;height:36px;border-radius:10px;flex:none}.ptn{flex:1;min-width:0;font-size:15.5px;font-weight:600;overflow-wrap:break-word}
 .ptl{display:grid;gap:5px;margin:6px 0 0 48px}.pti{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;line-height:1.35;color:var(--ink2)}
 .ptic{flex:none;display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;font-size:9.5px;font-weight:800;color:var(--surface);margin-top:1px;background:var(--ink3)}
-.ptic.up{background:var(--warn)}.ptic.down{background:var(--ok)}.ptx{flex:1;min-width:0}.ptx b{font-weight:600;color:var(--ink)}.ptx .rz{white-space:nowrap}
+.ptic.up{background:var(--warn)}.ptic.down{background:var(--ok)}.ptx{flex:1;min-width:0;overflow-wrap:anywhere}.ptx b{font-weight:600;color:var(--ink)}.ptx .rz{display:inline-block;max-width:100%;white-space:nowrap}
 .ptm2{font-size:12.5px;color:var(--ink3);margin-left:24px}.ptrow2.open .ptm2{display:none}/* Preistreiber: Namen und Gründe nie abschneiden, lieber umbrechen */
 .ptrow,.ptsr{align-items:flex-start}.ptrow .mark,.ptsr .mark{margin-top:2px}.ptrow .ptv,.ptsr .ptv{margin-top:2px}.ptrow .aechev{margin-top:4px}
 .ptrow .mn,.ptrow .mm,.ptsr .mn,.ptsr .mm{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto;line-height:1.3}.ptrow .mt,.ptsr .mt{gap:2px}
@@ -1800,7 +1800,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v249</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v250</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -3228,13 +3228,14 @@ function ptKind(c,ya,yb,sa,sb){
   var my=function(d){return MON[d.getMonth()]+(d.getFullYear()!==yb?" "+d.getFullYear():"");},st=parseD(c.start),lim=limitOf(c),T=today(),dir=sb>sa?"up":"down",R=function(ic,cl,t){return {ic:ic,cl:cl,t:t};};
   if(sa<0.005&&sb>=0.005){var f0=null;payments(c,new Date(yb,0,1),new Date(yb,11,31)).forEach(function(p){if(!p.ex&&(!f0||p.d<f0))f0=p.d;});
     return R("+","up",st&&st.getFullYear()===yb?"neu ab "+my(st):(f0?"neu ab "+my(f0):"neu"));}
-  if(sb<0.005&&sa>=0.005){if(c.paused)return R("✕","down","pausiert");if(lim)return R("✕","down",(lim>T?"endet im ":"beendet im ")+my(lim));return R("✕","down","keine Zahlung mehr");}
+  if(sb<0.005&&sa>=0.005){if(c.paused)return R("✕","down","pausiert");if(lim)return R("✕","down",lim.getFullYear()<yb?"seit "+my(lim)+" beendet":(lim>T?"endet im ":"beendet im ")+my(lim));return R("✕","down","keine Zahlung mehr");}
   var pc=pricesOf(c),inB=pc.filter(function(e){var d=parseD(e.from);return d&&d.getFullYear()===yb;}),inA=pc.filter(function(e){var d=parseD(e.from);return d&&d.getFullYear()===ya;});
   var pct=function(e){var d=parseD(e.from),old=priceAt(c,addDays(d,-1)),nw=+e.amount;if(!(old>0))return null;return Math.round((nw-old)/old*100);};
   if(inB.length){var e=inB[inB.length-1],q=pct(e),d=parseD(e.from);
     if(q===null||q===0)return R(dir==="up"?"↑":"↓",dir,"Preis angepasst ab "+my(d));
     return R(q>0?"↑":"↓",q>0?"up":"down",(q>0?"+":"−")+Math.abs(q)+" % ab "+my(d));}
   if(lim&&lim.getFullYear()===yb)return R("✕","down",(lim>T?"endet im ":"beendet im ")+my(lim));
+  if(lim&&lim.getFullYear()===ya)return R("✕","down","seit "+my(lim)+" beendet");
   if(inA.length){var qa=pct(inA[inA.length-1]);return R(qa>0?"↑":"↓",qa>0?"up":"down",qa>0?"Erhöhung gilt ganzes Jahr":qa<0?"Senkung gilt ganzes Jahr":"Preisänderung gilt ganzes Jahr");}
   if(st&&st.getFullYear()===ya)return R("↑","up","erstes volles Jahr");
   var exB=extrasOf(c).filter(function(x){return parseD(x.date).getFullYear()===yb;}),exA=extrasOf(c).filter(function(x){return parseD(x.date).getFullYear()===ya;});
@@ -3275,7 +3276,8 @@ function ptSection(pool,Y,nowY,H){
         endY=function(r){var d=limitOf(r.c);return r.b<0.005||(d&&(d.getFullYear()===Y||d.getFullYear()===Y-1)&&r.d<0);};
     var up=ch.filter(function(r){return r.d>0&&(r.a<0.005||stY(r));})[0],dn=ch.filter(function(r){return r.d<0&&endY(r);})[0];
     if(up&&dn&&ch.length<=3){var same=titleOf(up.c)===titleOf(dn.c);
-      out.push(line("⇄","sw",same?titleOf(up.c):titleOf(dn.c),same?"Wechsel zu "+(up.c.partner||titleOf(up.c)):"→ "+titleOf(up.c)));ch=ch.filter(function(r){return r!==up&&r!==dn;});}
+      var a1=titleOf(dn.c),b1=titleOf(up.c),wa=a1.split(" "),wb=b1.split(" "),k=0;while(k<wa.length-1&&k<wb.length-1&&wa[k]===wb[k])k++;
+      out.push(same?line("⇄","sw",b1,"Wechsel zu "+(up.c.partner||b1)):k?line("⇄","sw",wa.slice(0,k).join(" "),wa.slice(k).join(" ")+" → "+wb.slice(k).join(" ")):line("⇄","sw",a1,"→ "+b1));ch=ch.filter(function(r){return r!==up&&r!==dn;});}
     ch.forEach(function(r){var k=ptKind(r.c,Y-1,Y,r.a,r.b);out.push(line(k.ic,k.cl,titleOf(r.c),k.t));});
     var more=out.length-2;return out.slice(0,2).join("")+(more>0?'<div class="ptm2">+ '+more+(more===1?" weitere Änderung":" weitere Änderungen")+"</div>":"");};
   o+='<div class="ptsep"></div><div class="ptlb">'+(Y>nowY?"Prognose":"Was sich verändert hat")+" · "+(Y-1)+" → "+Y+"</div>";
