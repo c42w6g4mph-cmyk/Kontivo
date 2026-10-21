@@ -565,7 +565,7 @@ body.hasplus .topadd{display:inline-flex}
 .ma .ms.warn{color:var(--warn);font-weight:600}
 .mn .mp{font-weight:500;color:var(--ink2);font-size:.88em}
 .mrow.past .mn,.mrow.past .ma b{color:var(--ink2)}
-.mrow.past .mark{opacity:.7}
+.mrow.past .mark{opacity:.45}.mrow.past .mt,.mrow.past .ma{opacity:.5}
 .mempty{padding:12px 0 2px;border-top:1px solid var(--line);font-size:14px;color:var(--ink2)}
 .mlabels span.now::after{content:"";display:block;width:4px;height:4px;border-radius:50%;background:var(--teal);margin:3px auto 0}
 /* Gewählter Monat: Kürzel in Akzentfarbe (SwiftUI: .foregroundStyle(.tint).fontWeight(.heavy)) */
@@ -3348,7 +3348,7 @@ function renderStat(v){
   var openI=sm.items.filter(function(it){return it.d>=T0;}),paidI=sm.items.filter(function(it){return it.d<T0;});
   if(state.mSort==="amt"){var byV=function(x,y){return y.v-x.v;};openI.sort(byV);paidI.sort(byV);}
   var mrow=function(it){var c=it.c,d=it.d,past=d<T0,dn=daysBetween(T0,d);
-    var st=(past?"am ":"fällig ")+fmtShort(d);/* nur Datum, keine «in n Tagen» (Wunsch 21.10.2026) */
+    var st=dn===0?"heute":(past?"am ":"fällig ")+fmtShort(d);/* nur Datum bzw. «heute», keine «in n Tagen» (21.10.2026) */
     return '<button class="mrow'+(past?" past":"")+'" data-open="'+esc(c._id)+'">'+markHtml(c)+
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span>'+(function(){var m=[it.sh<1?shareTxt(it.sh):"",metaOf(c),it.ex?exLabel(it.ex):""].filter(Boolean).join(" · ");return m?'<span class="mm">'+esc(m)+"</span>":"";})()+"</span>"+
       '<span class="ma"><span><b>'+(it.a<0?"−"+money(-it.a,c.cur):money(it.a,c.cur))+'</b> <u>'+esc(c.cur)+'</u></span><span class="ms'+(!past&&dn>0&&dn<=7?" warn":"")+'">'+st+"</span></span></button>";};
@@ -3378,8 +3378,8 @@ function renderStat(v){
   var vgr=useV?varGroupHtml(function(x){return holderShare(x);},Y,sel,true):"";
   if(KA!=="var")o+='<div class="grp"><div class="grphead ghs"><span>Fällig im '+MON[sel]+'</span>'+(sm.items.length>1?'<span class="pseg msort" role="group" aria-label="Sortierung">'+
     '<button data-msort="date" aria-pressed="'+(MSO==="date")+'">Datum</button><button data-msort="amt" aria-pressed="'+(MSO==="amt")+'">Betrag</button></span>':"")+'</div><div class="mrows mrows2">'+
-    (sm.items.length?openI.map(mrow).join("")+(paidI.length&&openI.length?'<button class="tfold pfold" data-paidtog aria-expanded="'+(!!state.showPaid)+'"><span>Bereits bezahlt ('+paidI.length+')</span><i></i></button>':"")+
-      ((state.showPaid||!openI.length)?paidI.map(mrow).join(""):""):'<div class="mempty">In diesem Monat ist nichts fällig.</div>')+"</div></div>";
+    /* eine durchgehende Liste: bereits bezahlte ausgegraut statt zugeklappt (21.10.2026) */
+    (sm.items.length?(MSO==="amt"?sm.items.slice().sort(function(x,y){return y.v-x.v;}):sm.items).map(mrow).join(""):'<div class="mempty">In diesem Monat ist nichts fällig.</div>')+"</div></div>";
   o+=vgr;
   if(KA!=="var")o+=ptSection(pool,Y,nowY,H);
   v.innerHTML=o+"</div>";
