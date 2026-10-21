@@ -1794,7 +1794,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v246</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v247</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -3216,24 +3216,25 @@ function statKey(c,t){return t==="cat"?(c.cat||"Sonstiges"):(String(c.partner||"
    eingetragene Änderungen (Preise, Beginn, Ende, Pausen), keine Teuerung. Säule antippen setzt das Jahr der ganzen Seite.
    Filter (Person/Kategorie/Vertragspartner) gilt wie oben. SwiftUI: Swift Charts BarMark (3 Balken) + List je Vertrag. */
 function ptYearSum(c,y){var s=0,f=holderShare(c);payments(c,new Date(y,0,1),new Date(y,11,31)).forEach(function(p){s+=conv(p.a,c.cur)*f;});return s;}
+/* Grund je Vertrag als Stichwort (21.10.2026: kurz und sofort erkennbar, z.B. «beendet Jun», «+44 %», «neu ab Jan») */
 function ptReason(c,ya,yb,sa,sb){
-  var my=function(d){return MON[d.getMonth()]+(d.getFullYear()!==yb?" "+d.getFullYear():"");},st=parseD(c.start),lim=limitOf(c),T=today();
+  var my=function(d){return MS[d.getMonth()]+(d.getFullYear()!==yb?" "+String(d.getFullYear()).slice(2):"");},st=parseD(c.start),lim=limitOf(c),T=today();
   if(sa<0.005&&sb>=0.005){var f0=null;payments(c,new Date(yb,0,1),new Date(yb,11,31)).forEach(function(p){if(!p.ex&&(!f0||p.d<f0))f0=p.d;});
-    return st&&st.getFullYear()===yb?"neu seit "+my(st):(f0?"neu ab "+my(f0):"neu");}
-  if(sb<0.005&&sa>=0.005){if(c.paused)return "pausiert";if(lim)return (lim>T?"endet im ":"beendet im ")+my(lim);return "keine Zahlung mehr";}
+    return st&&st.getFullYear()===yb?"neu ab "+my(st):(f0?"neu ab "+my(f0):"neu");}
+  if(sb<0.005&&sa>=0.005){if(c.paused)return "pausiert";if(lim)return (lim>T?"endet ":"beendet ")+my(lim);return "keine Zahlung mehr";}
   var pc=pricesOf(c),inB=pc.filter(function(e){var d=parseD(e.from);return d&&d.getFullYear()===yb;}),inA=pc.filter(function(e){var d=parseD(e.from);return d&&d.getFullYear()===ya;});
   var pct=function(e){var d=parseD(e.from),old=priceAt(c,addDays(d,-1)),nw=+e.amount;if(!(old>0))return null;return Math.round((nw-old)/old*100);};
   if(inB.length){var e=inB[inB.length-1],q=pct(e),d=parseD(e.from);
-    if(q===null)return "Preis geändert seit "+MON[d.getMonth()];if(q===0)return "Preis angepasst";
-    return "Preis "+(q>0?"↑ ":"↓ ")+Math.abs(q)+" % seit "+MON[d.getMonth()];}
-  if(lim&&lim.getFullYear()===yb)return (lim>T?"endet im ":"beendet im ")+MON[lim.getMonth()];
-  if(inA.length){var qa=pct(inA[inA.length-1]);return qa>0?"Erhöhung gilt ganzes Jahr":qa<0?"Senkung gilt ganzes Jahr":"Preisänderung gilt ganzes Jahr";}
+    if(q===null||q===0)return "Preis angepasst "+my(d);
+    return (q>0?"+":"−")+Math.abs(q)+" % ab "+my(d);}
+  if(lim&&lim.getFullYear()===yb)return (lim>T?"endet ":"beendet ")+my(lim);
+  if(inA.length){var qa=pct(inA[inA.length-1]);return qa>0?"Erhöhung ganzjährig":qa<0?"Senkung ganzjährig":"Preisänderung ganzjährig";}
   if(st&&st.getFullYear()===ya)return "erstes volles Jahr";
   var exB=extrasOf(c).filter(function(x){return parseD(x.date).getFullYear()===yb;}),exA=extrasOf(c).filter(function(x){return parseD(x.date).getFullYear()===ya;});
-  if(exB.length)return (exB[0].amount<0?"Gutschrift im ":"Sonderzahlung im ")+MON[parseD(exB[0].date).getMonth()];
+  if(exB.length)return (exB[0].amount<0?"Gutschrift ":"Sonderzahlung ")+my(parseD(exB[0].date));
   if(exA.length)return (exA[0].amount<0?"Gutschrift":"Sonderzahlung")+" im Vorjahr";
   if(c.paused)return "pausiert";
-  return sb>sa?"mehr Zahlungen im Jahr":"weniger Zahlungen im Jahr";
+  return sb>sa?"mehr Zahlungen":"weniger Zahlungen";
 }
 function ptSection(pool,Y,nowY,H){
   /* Säulen: Vorjahr · aktuelles Jahr · Folgejahr (fest um heute); nur wenn oben weiter weg geblättert wird, um das gewählte Jahr.
@@ -3261,14 +3262,14 @@ function ptSection(pool,Y,nowY,H){
     .filter(function(g){return Math.abs(g.d)>=0.5||g.ch.length;}).sort(function(x,y){return Math.abs(y.d)-Math.abs(x.d);});
   var n0=Object.keys(G).length-cats.length;
   var why=function(g){var ch=g.ch;if(!ch.length)return "";
-    if(ch.length===1)return titleOf(ch[0].c)+" "+ptReason(ch[0].c,Y-1,Y,ch[0].a,ch[0].b);
+    if(ch.length===1)return titleOf(ch[0].c)+" · "+ptReason(ch[0].c,Y-1,Y,ch[0].a,ch[0].b);
     /* Wechsel: ein Vertrag endet (oder fällt weg), ein anderer beginnt in einem der beiden Jahre (alte → neue Wohnung) */
     var stY=function(r){var d=parseD(r.c.start);return d&&(d.getFullYear()===Y||d.getFullYear()===Y-1);},
         endY=function(r){var d=limitOf(r.c);return r.b<0.005||(d&&(d.getFullYear()===Y||d.getFullYear()===Y-1)&&r.d<0);};
     if(ch.length===2){var up=ch.filter(function(r){return r.d>0&&(r.a<0.005||stY(r));})[0],dn=ch.filter(function(r){return r.d<0&&endY(r);})[0];
       if(up&&dn){var nm=function(r){return titleOf(r.c)===titleOf(up===r?dn.c:up.c)?(r.c.partner||titleOf(r.c)):titleOf(r.c);};
-        return titleOf(up.c)===titleOf(dn.c)?"Neue "+titleOf(up.c)+": "+(up.c.partner||titleOf(up.c)):"Wechsel: "+nm(dn)+" → "+nm(up);}}
-    return titleOf(ch[0].c)+" "+ptReason(ch[0].c,Y-1,Y,ch[0].a,ch[0].b)+" und "+(ch.length-1)+(ch.length===2?" weiterer":" weitere");};
+        return titleOf(up.c)===titleOf(dn.c)?titleOf(up.c)+" · neu: "+(up.c.partner||titleOf(up.c)):nm(dn)+" → "+nm(up);}}
+    return titleOf(ch[0].c)+" · "+ptReason(ch[0].c,Y-1,Y,ch[0].a,ch[0].b)+" · +"+(ch.length-1)+" weitere";};
   o+='<div class="ptsep"></div><div class="ptlb">'+(Y>nowY?"Prognose":"Was sich verändert hat")+" · "+(Y-1)+" → "+Y+"</div>";
   if(!cats.length)o+='<p class="ptnote">Keine Veränderung gegenüber '+(Y-1)+".</p>";
   var sgn=function(d,u){var r=Math.round(d);return '<span class="ptv '+(r>0?"up":r<0?"down":"")+'"><b>'+(r>0?"+":r<0?"−":"±")+nf0.format(Math.abs(r))+"</b><u>"+u+"</u></span>";};
