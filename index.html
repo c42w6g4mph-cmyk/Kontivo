@@ -3348,7 +3348,7 @@ function renderStat(v){
   var openI=sm.items.filter(function(it){return it.d>=T0;}),paidI=sm.items.filter(function(it){return it.d<T0;});
   if(state.mSort==="amt"){var byV=function(x,y){return y.v-x.v;};openI.sort(byV);paidI.sort(byV);}
   var mrow=function(it){var c=it.c,d=it.d,past=d<T0,dn=daysBetween(T0,d);
-    var st=past?"am "+fmtShort(d):(dn===0?"heute fällig":(dn<=7?"in "+dn+(dn===1?" Tag":" Tagen"):"fällig "+fmtShort(d)));
+    var st=(past?"am ":"fällig ")+fmtShort(d);/* nur Datum, keine «in n Tagen» (Wunsch 21.10.2026) */
     return '<button class="mrow'+(past?" past":"")+'" data-open="'+esc(c._id)+'">'+markHtml(c)+
       '<span class="mt"><span class="mn">'+esc(titleOf(c))+'</span>'+(function(){var m=[it.sh<1?shareTxt(it.sh):"",metaOf(c),it.ex?exLabel(it.ex):""].filter(Boolean).join(" · ");return m?'<span class="mm">'+esc(m)+"</span>":"";})()+"</span>"+
       '<span class="ma"><span><b>'+(it.a<0?"−"+money(-it.a,c.cur):money(it.a,c.cur))+'</b> <u>'+esc(c.cur)+'</u></span><span class="ms'+(!past&&dn>0&&dn<=7?" warn":"")+'">'+st+"</span></span></button>";};
