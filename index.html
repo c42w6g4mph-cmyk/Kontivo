@@ -1680,11 +1680,11 @@ body{background:var(--paper)!important}
 .ptv{flex:none;display:flex;align-items:baseline;gap:4px;white-space:nowrap}.ptv b{font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}.ptv u{text-decoration:none;font-size:11px;font-weight:500;color:var(--ink2)}
 .ptv.up b{color:var(--warn)}.ptv.down b{color:var(--ok)}
 .ptrow.open .aechev,.ptrow2.open .aechev{transform:rotate(90deg)}
-.ptrow2{display:block;width:100%;text-align:left;padding:12px 0;border-top:1px solid var(--line);background:none;color:inherit;font:inherit}.ptlist>.ptrow2:first-child{border-top:0}
-.pth{display:flex;align-items:center;gap:12px}.pth .mark{width:36px;height:36px;border-radius:10px;flex:none}.ptn{flex:1;min-width:0;font-size:15.5px;font-weight:600;overflow-wrap:break-word}
-.ptl{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0 48px}
-.ptch{display:inline-block;max-width:100%;border-radius:14px;font-size:12.5px;font-weight:500;line-height:1.35;color:var(--ink);padding:4px 10px 4px 8px;border-radius:99px;background:color-mix(in srgb,var(--ink3) 16%,transparent);overflow-wrap:break-word}
-.ptch:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px;background:var(--ink3)}
+.ptrow2{display:block;width:100%;text-align:left;padding:10px 0;border-top:1px solid var(--line);background:none;color:inherit;font:inherit}.ptlist>.ptrow2:first-child{border-top:0}
+.pth{display:flex;align-items:center;gap:12px}.pth .mark{width:32px;height:32px;border-radius:9px;flex:none}.pth .mark svg{width:17px;height:17px}.ptn{flex:1;min-width:0;font-size:15.5px;font-weight:600;overflow-wrap:break-word}
+.ptl{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 0 44px}
+.ptch{display:inline-block;max-width:100%;font-size:12px;font-weight:500;line-height:1.3;color:var(--ink);padding:2px 8px 2px 7px;border-radius:10px;background:color-mix(in srgb,var(--ink3) 16%,transparent);overflow-wrap:break-word}
+ .ptch:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:1px;background:var(--ink3)}
 .ptch b{font-weight:600;color:var(--ink2)}.ptch.pu:before{background:var(--warn)}.ptch.pu b{color:var(--warn)}.ptch.pd:before{background:var(--ok)}.ptch.pd b{color:var(--ok)}
 .ptch.ptm2{color:var(--ink3);background:none;padding-left:4px}.ptch.ptm2:before{display:none}.pti{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;line-height:1.35;color:var(--ink2)}
 .ptic{flex:none;display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;font-size:9.5px;font-weight:800;color:var(--surface);margin-top:1px;background:var(--ink3)}
@@ -1700,10 +1700,10 @@ body{background:var(--paper)!important}
 .ptmore{display:block;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--line);font-size:14px;font-weight:600;color:var(--teal);background:none}
 .ptseg{display:flex;gap:20px;border-bottom:1px solid var(--line);margin:-4px 0 12px}.ptseg button{padding:6px 0 9px;font-size:14.5px;font-weight:500;color:var(--ink2);border-bottom:2.5px solid transparent;margin-bottom:-1px;background:none}
 .ptseg button.on{color:var(--ink);font-weight:650;border-bottom-color:var(--brass)}
-.ptpie{display:flex;align-items:center;gap:18px;padding:4px 0 14px}.ptdn{position:relative;flex:none;width:136px;height:136px;border-radius:50%}.ptdn:after{content:"";position:absolute;inset:16%;border-radius:50%;background:var(--surface)}
+.ptpie{display:flex;align-items:center;gap:16px;padding:4px 0 14px}.ptdn{position:relative;flex:none;width:128px;height:128px;border-radius:50%}.ptdn:after{content:"";position:absolute;inset:16%;border-radius:50%;background:var(--surface)}
 .ptdc{position:absolute;inset:0;z-index:1;display:grid;place-content:center;text-align:center}.ptdc b{font-family:var(--serif,Georgia),serif;font-weight:500;font-size:19px;line-height:1.1;font-variant-numeric:tabular-nums}.ptdc s{text-decoration:none;font-size:11.5px;color:var(--ink3)}
 .ptlg{flex:1;min-width:0;display:grid;gap:2px}.ptlr{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:3px 0;font-size:13.5px;color:var(--ink);background:none}
-.ptlr i{width:9px;height:9px;border-radius:50%;flex:none}.ptlr span{flex:1;min-width:0;-webkit-hyphens:auto;hyphens:auto;line-height:1.25}.ptlr em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--ink2);font-weight:600}
+.ptlr i{width:9px;height:9px;border-radius:50%;flex:none}.ptlr span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;line-height:1.25}.ptlr span.wr{white-space:normal;-webkit-hyphens:auto;hyphens:auto}.ptlr em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--ink2);font-weight:600}
 .ptnote{font-size:12.5px;color:var(--ink3);margin:2px 0 10px;line-height:1.4}
 #onb .obacc{color:var(--teal)}
 #onb .obtab svg{width:15px;height:15px}
@@ -1811,7 +1811,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v254</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v255</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -3055,7 +3055,7 @@ function renderView(){
     v.innerHTML=o||emptyTerm();
     return;
   }
-  if(state.tab==="stat"){renderStat(v);return;}
+  if(state.tab==="stat"){renderStat(v);fitPtLegend();return;}
   if(state.tab==="budget"){renderBudget(v);return;}
   var ar=archived();
   v.innerHTML=ar.length?'<div class="grp">'+ar.map(function(c){return cardHtml(c,"list");}).join("")+"</div>"
@@ -3272,6 +3272,10 @@ function ptDonut(inF,per,Y,H){var G={},T=0;inF.forEach(function(c){var v=per[c._
   return '<div class="ptpie"><div class="ptdn" style="background:conic-gradient('+cg+')" role="img" aria-label="Fixkosten '+Y+' nach Kategorie"><div class="ptdc"><b>'+nf0.format(T)+"</b><s>"+H+" "+Y+"</s></div></div>"+
     '<div class="ptlg">'+L.map(function(r){var dot='<i style="background:'+r.c+'"></i><span>'+esc(r.k)+"</span><em>"+pc(r.v)+"</em>";
       return r.o?'<div class="ptlr">'+dot+"</div>":'<button class="ptlr" data-sfilter="cat|'+esc(r.k)+'" aria-label="Nur '+esc(r.k)+' anzeigen">'+dot+"</button>";}).join("")+"</div></div>";}
+/* Legende: Name einzeilig; zu lange Namen werden schrittweise kleiner (bis 11 px), erst dann umbrochen */
+function fitPtLegend(){document.querySelectorAll(".ptlr span").forEach(function(sp){sp.style.fontSize="";sp.classList.remove("wr");
+  var f=13.5;while(sp.scrollWidth>sp.clientWidth+0.5&&f>11){f-=0.5;sp.style.fontSize=f+"px";}if(sp.scrollWidth>sp.clientWidth+0.5)sp.classList.add("wr");});}
+window.addEventListener("resize",function(){if(state.tab==="stat")fitPtLegend();});
 function ptSection(pool,Y,nowY,H){
   /* Säulen: Vorjahr · aktuelles Jahr · Folgejahr (fest um heute); nur wenn oben weiter weg geblättert wird, um das gewählte Jahr.
      Werte = Jahrestotal (gleich «Total JJJJ» oben). Treiber je Kategorie: Wechsel innerhalb einer Kategorie (alte → neue Miete)
