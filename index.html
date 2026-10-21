@@ -1811,7 +1811,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v255</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v256</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -3123,13 +3123,15 @@ function holderNamer(HL,width){
 /* Kosten-Tab: höchstens 2 Filterknöpfe – «Kostenart» (Alle/Fix/Variabel, settings.kArt, Standard Fixkosten) und «Filter» (Kategorie, Vertragspartner);
    bei mehreren Personen darüber die Personen-Chips. SwiftUI: Menu + Filter-Sheet */
 var KART=[["all","Alle Kosten","Fixkosten und geschätzte variable Kosten"],["fix","Fixkosten","Verträge, Gebühren und Steuern"],["var","Variable Kosten","Geschätzt, z.B. Benzin oder Lebensmittel"]];
-function kArt(){var k=state.settings.kArt;return k==="all"||k==="var"?k:"fix";}
+/* Ohne erfasste variable Kosten: keine Kostenart-Wahl, immer Fixkosten (wie vor v234) */
+function hasVars(){return varList().length>0;}
+function kArt(){var k=state.settings.kArt;return hasVars()&&(k==="all"||k==="var")?k:"fix";}
 function statFilterBar(){
   var f=state.flt,HL=holderStats().filter(function(h){return h.c>0;}).map(function(h){return h.name;});
   if(f.holder&&HL.indexOf(f.holder)<0)HL.push(f.holder);
   var nOther=(f.cat?1:0)+(f.partner?1:0),ka=kArt(),kl=KART.filter(function(x){return x[0]===ka;})[0][1];
-  return '<div class="frow1" role="group" aria-label="Filter">'+personSeg(HL,f.holder,"fh",ka==="fix"?200:170)+
-    '<button class="fsel kbtn'+(ka!=="fix"?" on":"")+'" data-kart type="button"><span>'+esc(kl)+'</span></button>'+
+  return '<div class="frow1" role="group" aria-label="Filter">'+personSeg(HL,f.holder,"fh",!hasVars()?300:ka==="fix"?200:170)+
+    (hasVars()?'<button class="fsel kbtn'+(ka!=="fix"?" on":"")+'" data-kart type="button"><span>'+esc(kl)+'</span></button>':"")+
     '<button class="ficon'+(nOther&&ka!=="var"?" on":"")+'" data-sfbtn type="button" aria-label="Filter Kategorie und Vertragspartner"'+(ka==="var"?' aria-disabled="true"':"")+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>'+(nOther&&ka!=="var"?"<b>"+nOther+"</b>":"")+'</button></div>'+
     (nOther&&ka!=="var"?'<div class="fbar ftagbar" role="group" aria-label="Aktive Filter">'+["cat","partner"].filter(function(d){return f[d];}).map(function(d){return '<button class="ftag" data-fdel="'+d+'" aria-label="Filter '+esc(f[d])+' entfernen">'+esc(f[d])+"<span>×</span></button>";}).join("")+"</div>":"");
 }
@@ -3581,7 +3583,7 @@ function openFq(){
 /* Budget: was abgezogen wird (settings.bArt): none = ohne Kostenabzug, fix = Fixkosten, all = alle Kosten (Standard). SwiftUI: Menu */
 var BART=[["all","Alle Kosten","Einnahmen minus Fixkosten und variable Kosten"],["fix","Fixkosten","Einnahmen minus Fixkosten"],["none","Ohne Kosten","Nur deine Einnahmen, z.B. um starke Monate zu sehen"]];
 /* Standard Fixkosten (wie im Kosten-Tab); gespeichert wird nur eine Abweichung */
-function bArt(){var b=state.settings.bArt;return b==="none"||b==="all"?b:"fix";}
+function bArt(){var b=state.settings.bArt;return hasVars()&&(b==="none"||b==="all")?b:"fix";}
 function renderBudget(v){
   setTopYear(null);
   var nowY=today().getFullYear(),Y=state.year||nowY,H=esc(state.settings.home);
@@ -3599,8 +3601,8 @@ function renderBudget(v){
   var hn=holderNamer(HL,361),dn=hn.dn;
   /* eine Zeile wie im Kosten-Tab: Personen-Segment + Kostenart (Alle Kosten | Fixkosten, settings.bArt) */
   var BA=bArt();
-  bhf='<div class="frow1" role="group" aria-label="Filter">'+personSeg(HL,BH,"bh",200)+
-    '<button class="fsel kbtn'+(BA!=="fix"?" on":"")+'" data-bart type="button"><span>'+BART.filter(function(x){return x[0]===BA;})[0][1]+'</span></button></div>';
+  bhf='<div class="frow1" role="group" aria-label="Filter">'+personSeg(HL,BH,"bh",hasVars()?200:361)+
+    (hasVars()?'<button class="fsel kbtn'+(BA!=="fix"?" on":"")+'" data-bart type="button"><span>'+BART.filter(function(x){return x[0]===BA;})[0][1]+'</span></button>':"")+'</div>';
   state._bHL=HL;
   /* Variable Kosten: geschätzter Planwert pro Monat, in jedem Monat gleich (nur Budget, nicht Kosten/Fristen) */
   var tInc=0,tFix=0;
