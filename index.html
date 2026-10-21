@@ -1812,7 +1812,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v257</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v258</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -5195,7 +5195,7 @@ function openCrop(file){
   img.onerror=function(){URL.revokeObjectURL(url);toast("Bild konnte nicht gelesen werden");};
   img.src=url;
 }
-function closeCrop(){document.getElementById("sheetCrop").classList.remove("on");crop.src=null;crop.ptr={};}
+function closeCrop(){document.getElementById("sheetCrop").classList.remove("on");crop.src=null;crop.ptr={};crop.onDone=null;}
 (function(){
   var cv=document.getElementById("cropCv"),last=null;
   function pts(){return Object.keys(crop.ptr).map(function(k){return crop.ptr[k];});}
@@ -5230,8 +5230,10 @@ document.getElementById("cropOk").addEventListener("click",function(){
   toast("Speichere Logo…");
   out.toBlob(async function(bl){
     if(!bl){toast("Bild konnte nicht erzeugt werden");return;}
-    if(cropTarget==="p"&&!pe){closeCrop();toast("Vertragspartner-Seite ist geschlossen");return;}
+    var done=crop.onDone;
+    if(!done&&cropTarget==="p"&&!pe){closeCrop();toast("Vertragspartner-Seite ist geschlossen");return;}
     try{var r=await assets.upload(bl);
+      if(done){closeCrop();done({id:r.id,bg:bg});toast("Logo gesetzt");return;}
       if(cropTarget==="h"){setAv(avFor,r.id);closeCrop();paintMd(0);render();toast("Bild gesetzt");return;}
       if(cropTarget==="p"){pe.logoId=r.id;pe.logoBg=bg;pe.logoChanged=true;paintPeMark();}else if(cropTarget==="i"){idraft.logoId=r.id;idraft.logoBg=bg;iPaintLogo();}else if(cropTarget==="v"){if(vdraft){vdraft.logoId=r.id;vdraft.logoBg=bg;vPaint();}}else{draft.logoId=r.id;draft.logoBg=bg;paintLogo();}
       closeCrop();toast("Logo gesetzt");}
@@ -8102,11 +8104,14 @@ function paintCands(box,cs,onPick){
       var cv=document.createElement("canvas");cv.width=cv.height=512;tileDraw(cv.getContext("2d"),im,tf);
       var sm=document.createElement("canvas");sm.width=sm.height=128;var g=sm.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(cv,0,0,128,128);
       var el=box.querySelector('.lcand[data-i="'+i+'"] img');if(el){el.src=sm.toDataURL("image/png");el.closest(".lcand").classList.remove("wide");}}).catch(function(){});});
+  /* Antippen öffnet zuerst «Logo zuschneiden» (wie bei der Websuche); erst «Übernehmen» setzt das Logo */
   box.onclick=async function(ev){var b=ev.target.closest(".lcand");if(!b)return;
-    toast("Übernehme Logo…");var r;try{r=await takeLogo(list[+b.dataset.i]);}catch(e){r={err:"speicher"};}
-    if(!r||!r.id){toast(LERR[r&&r.err]||"Übernahme fehlgeschlagen");return;}
+    var c=list[+b.dataset.i],r;toast("Lade Logo…");
+    try{r=c.src==="wiki"?await padBlob(c.url):(c.src==="site"||c.src==="social")?await padBlob(c.url,120,true):await logoBlob(c.url);}catch(e){r={err:"laden"};}
+    if(!r||!r.blob){toast(LERR[r&&r.err]||"Bild konnte nicht geladen werden");return;}
     /* Liste bleibt stehen: anderes Logo direkt antippen, ohne neu zu suchen */
-    box.querySelectorAll(".lcand").forEach(function(x){x.classList.toggle("sel",x===b);});onPick(r);toast("Logo übernommen");};
+    crop.onDone=function(res){box.querySelectorAll(".lcand").forEach(function(x){x.classList.toggle("sel",x===b);});onPick(res);};
+    openCrop(r.blob);};
 }
 var LC_CACHE={};
 async function runCands(boxId,name,cur,onPick,alt,web){
