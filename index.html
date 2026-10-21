@@ -1800,7 +1800,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v248</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v249</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -5421,8 +5421,7 @@ function closeLetter(){var made=ltMade&&ltC&&ltC._id,id=made?ltC._id:null,tr=ltT
   /* Nach dem PDF wie bei Online/E-Mail nachfragen, ob gekündigt wurde */
   var c=id&&state.contracts[id];if(!c||c.cancelPer||c.status==="cancelled")return;
   var t2=tr&&parseD(c.trial),T=t2?addDays(t2,-1):termEnd(Object.assign({_id:id},c));
-  setTimeout(function(){ask({title:"Brief verschickt?",text:"«"+titleOf(c)+"» als gekündigt markieren"+(T?", läuft bis "+fmtD(iso(T)):"")+". Der Vertrag zählt bis zum Ende weiter und wandert danach ins Archiv.",ok:"Ja, gekündigt",no:"Noch nicht"})
-    .then(function(y){if(y)markCancelled(id,!!t2);});},250);}
+  setTimeout(function(){askCancelled(id,!!t2,"Brief verschickt?");},250);}
 document.getElementById("ltClose").addEventListener("click",closeLetter);
 /* Unterschrift pro Inhaber: zeichnen (Canvas) oder Namenszug; als JPEG (weisser Grund) in settings.sigs[Inhaber] */
 var sigD={drawing:false,last:null,dirty:false},sigFor="";
@@ -6063,6 +6062,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
         if(isPaused(c)){var nc2=stripId(c);nc2.pausedUntil=iso(today());if(!nc2.pausedAt)nc2.pausedAt=iso(today());putContract(idv,nc2);closeSheets();render();toast("Fortgesetzt");}
         else openPausePick(idv);}
       /* «Schon gekündigt …» (früher «Ins Archiv»): fragt nur «Läuft bis», gleicher Weg wie Kündigen (cancelPer); heute/früher = sofort beendet, Archiv ergibt sich */
+      else if(a==="cancel"&&!fixd){askCancelled(idv,false,"Schon gekündigt","Wann hast du «"+titleOf(c)+"» gekündigt? Das Vertragsende rechnet Kontivo ab diesem Tag.");}
       else if(a==="cancel"){var T0=fixd?today():(termEnd(c)||today()),dflt=iso(T0),td=iso(today());
         ask({title:fixd?"Vertrag beendet":"Schon gekündigt",text:fixd?"Bis wann läuft «"+titleOf(c)+"»? Danach zählt er nicht mehr zu deinen Kosten.":"Bis wann läuft «"+titleOf(c)+"» noch? Vorgeschlagen ist der nächste mögliche Termin. Ist er schon vorbei, wähle heute oder ein früheres Datum.",ok:"Sichern",
           html:'<div class="fcard" style="margin:0 0 8px"><div class="frow"><label for="askPer">Läuft bis</label><input id="askPer" type="date" value="'+dflt+'"></div></div>'+
@@ -6130,9 +6130,7 @@ function stripId(c){var x=Object.assign({},c);delete x._id;return x;}
 var kPending=null;
 document.addEventListener("visibilitychange",function(){if(document.visibilityState!=="visible"||!kPending)return;var kp=kPending,id=kp.id;kPending=null;var c=state.contracts[id];if(!c)return;
   var tr=!!(kp.trial&&parseD(c.trial));
-  setTimeout(function(){var T=tr?addDays(parseD(c.trial),-1):termEnd(Object.assign({_id:id},c));
-    ask({title:"Gekündigt?",text:"«"+titleOf(c)+"» als gekündigt markieren"+(T?", läuft bis "+fmtD(iso(T)):"")+". Der Vertrag zählt bis zum Ende weiter und wandert danach ins Archiv.",ok:"Ja, gekündigt"})
-      .then(function(y){if(y)markCancelled(id,tr);});},400);});
+  setTimeout(function(){askCancelled(id,tr,"Gekündigt?");},400);});
 /* Dokumente aus dem Detail: Liste antippen öffnet die Datei, «Datei anhängen» speichert direkt am Vertrag
    (ohne Bearbeiten). SwiftUI: Sheet mit List + fileImporter/PhotosPicker, nativ zusätzlich Dokumentscanner */
 var CLIP_IC='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/></svg>';
@@ -6249,10 +6247,25 @@ function killOptions(idv,trial){
     "Nach dem Markieren zählt der Vertrag bis zum Ende weiter und wandert danach ins Archiv.</p>";
   openSheet(document.getElementById("sheetPick"));
 }
-function markCancelled(idv,trial,per){
+/* Vertragsende, wenn am Tag d gekündigt wurde (nicht am Tag des Antippens): Rechnung wie termEnd, Stichtag = d */
+function endAsOf(c,d,trial){if(trial&&parseD(c.trial))return addDays(parseD(c.trial),-1);var keep=window.__KONTIVO_TODAY;
+  try{window.__KONTIVO_TODAY=iso(d);return termEnd(c);}finally{if(keep)window.__KONTIVO_TODAY=keep;else delete window.__KONTIVO_TODAY;}}
+/* Einheitliche Rückfrage beim Markieren als gekündigt: «Gekündigt am» (Standard heute) und «Läuft bis» (folgt dem Kündigungsdatum, bis von Hand geändert) */
+var cxl=null;
+function askCancelled(idv,trial,title,text){var c=state.contracts[idv];if(!c)return;var cc=Object.assign({_id:idv},c),td=today(),T=endAsOf(cc,td,trial)||td;
+  cxl={c:cc,trial:!!trial,touched:false};
+  return ask({title:title||"Gekündigt?",ok:"Ja, gekündigt",no:"Noch nicht",text:text||("«"+titleOf(c)+"» als gekündigt markieren. Der Vertrag zählt bis zum Ende weiter und wandert danach ins Archiv."),
+    html:'<div class="fcard" style="margin:0 0 8px"><div class="frow"><label for="askOn">Gekündigt am</label><input id="askOn" type="date" value="'+iso(td)+'" max="'+iso(td)+'"></div>'+
+      '<div class="frow"><label for="askPer">Läuft bis</label><input id="askPer" type="date" value="'+iso(T)+'"></div></div>'+
+      '<p class="note" style="margin:0 2px 14px">Steht ein anderes Enddatum in der Kündigungsbestätigung, trag dieses ein.</p>'})
+  .then(function(y){if(!y)return;var on=(document.getElementById("askOn")||{}).value||iso(td),per=(document.getElementById("askPer")||{}).value||iso(T);markCancelled(idv,trial,per,on);});}
+document.addEventListener("change",function(e){if(!cxl)return;
+  if(e.target.id==="askPer"){cxl.touched=true;return;}
+  if(e.target.id==="askOn"&&!cxl.touched){var d=parseD(e.target.value);if(!d)return;var T=endAsOf(cxl.c,d,cxl.trial);var p=document.getElementById("askPer");if(p&&T)p.value=iso(T);}});
+function markCancelled(idv,trial,per,on){
   var c=Object.assign({},state.contracts[idv]),cc=Object.assign({_id:idv},c);
   var T=per?parseD(per):trial?addDays(parseD(c.trial),-1):termEnd(cc);
-  c.cancelPer=T?iso(T):iso(today());c.cancelledOn=iso(today());if(c.review)delete c.review;
+  c.cancelPer=T?iso(T):iso(today());c.cancelledOn=on&&parseD(on)?on:iso(today());if(c.review)delete c.review;
   putContract(idv,c);closeSheets();render();
   var pd0=parseD(c.cancelPer),t0=today();toast(pd0<t0?"Beendet – steht jetzt im Archiv":+pd0===+t0?"Endet heute – danach im Archiv":"Gekündigt — läuft bis "+fmtD(c.cancelPer));
   if(c.mand){var nc=Object.assign({},c);nc.cancelPer="";nc.cancelledOn="";nc.keptFor="";nc.partner="";nc.logoId="";nc.logoBg="";
@@ -6456,7 +6469,7 @@ document.getElementById("pickList").addEventListener("click",function(ev){
   if(pd.indexOf("kill-")===0){
     var kid=pd.slice(5),ktr=/-t$/.test(kid);if(ktr)kid=kid.slice(0,-2);
     var kb=ev.target.closest("[data-pv]");if(!kb)return;
-    if(kb.dataset.pv==="done"){markCancelled(kid,ktr);return;}
+    if(kb.dataset.pv==="done"){closeSheets();setTimeout(function(){askCancelled(kid,ktr,"Schon gekündigt");},200);return;}
     closeSheets();setTimeout(function(){openDetail(kid,{trial:ktr});setTimeout(function(){var kt=document.querySelector('#detailBody [data-kbtn][data-act^="k"]');if(kt){kt.click();kt.scrollIntoView({block:"center"});}},120);},180);return;
   }
   if(pd.indexOf("catpick-")===0){
