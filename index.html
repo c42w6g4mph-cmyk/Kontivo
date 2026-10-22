@@ -403,6 +403,7 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .mgi{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex:none;color:#fff}.mgi svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mgi.i1{background:#4A5A66}.mgi.i2{background:#6B4BA0}.mgi.i3{background:#B4612A}.mgi.i4{background:#2E6A4E}.mgi.i4.w{background:#9A6710}
 .mgp{font-style:normal;font-size:13px!important;font-weight:600;padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)!important}
+.bkrow{align-items:center}.bkrow .mdt{flex:1;min-width:0}.bkrow .mdt b{font-size:15.5px;font-weight:600}.bkrow small{font-size:12.5px;margin-top:2px}.bkrow .bkrng{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap}.bkrow small:empty{display:none}
 .mgp.w{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)!important}.mgp:empty{display:none}
 .srowbtn{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:12px 0;border-top:1px solid var(--line);text-align:left;font-size:16px}
 .srowbtn:first-of-type{border-top:0;padding-top:2px}
@@ -1778,7 +1779,9 @@ body{background:var(--paper)!important}
     <button class="srowbtn" data-md="qual" type="button" hidden><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
   <div class="sgroup"><div class="sgh">Daten</div>
     <input type="file" id="bankFile" multiple accept=".csv,.txt,.xml,.sta,.mt940,.940,.xlsx,.xls,text/csv,text/plain,text/xml,application/xml,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
-    <div class="tiles">
+    <!-- Kontoauszug (22.10.2026): Einstieg + Zeitraum der letzten Import-Sitzung (settings.bankLast). SwiftUI: Button-Zeile in «Daten» -->
+    <button class="srowbtn mgr bkrow" id="bkRow" type="button"><span class="mgi i1" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></span><span class="mdt"><b>Kontoauszug einlesen</b><small class="bkrng" id="bkRng"></small><small id="bkAgo"></small></span><i aria-hidden="true">›</i></button>
+    <div class="tiles" style="margin-top:10px">
       <button class="tile" id="bkLoad" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg><b>Backup laden</b></button>
       <button class="tile" id="bkSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><b>Backup erstellen</b></button>
       <button class="tile" id="csvImp" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg><b>CSV importieren</b></button>
@@ -1812,7 +1815,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v265</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v266</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -3451,7 +3454,7 @@ function paintFab(){
   document.getElementById("view").hidden=isSet;
   if(isSet&&sp.hidden)fillSettings();
   sp.hidden=!isSet;
-  if(isSet){try{paintVkRow();}catch(e){}}
+  if(isSet){try{paintVkRow();}catch(e){}try{paintBkRow();}catch(e){}}
   document.getElementById("pageTitle").textContent=TITLES[state.tab]||"Verträge";
   if(state.tab!=="stat"&&state.tab!=="budget")setTopYear(null);
   updMini();
@@ -8265,6 +8268,7 @@ function sanitizeImport(o){
   if(Array.isArray(s.holders))s.holders=s.holders.filter(function(h){return typeof h==="string"&&h.trim();});
   if(!Array.isArray(s.holders)||!s.holders.length)delete s.holders;
   if(Array.isArray(s.lastHolders))s.lastHolders=s.lastHolders.filter(function(h){return typeof h==="string";});else delete s.lastHolders;
+  if(obj(s.bankLast)&&/^\d{4}-\d\d-\d\d$/.test(s.bankLast.from)&&/^\d{4}-\d\d-\d\d$/.test(s.bankLast.to)&&/^\d{4}-\d\d-\d\d$/.test(s.bankLast.at))s.bankLast={from:s.bankLast.from,to:s.bankLast.to,at:s.bankLast.at,n:Math.max(1,+s.bankLast.n||1)};else delete s.bankLast;
   if(Array.isArray(s.bankIgn))s.bankIgn=s.bankIgn.filter(function(h){return typeof h==="string";});else delete s.bankIgn;
   if(s.bankAlias&&typeof s.bankAlias==="object"&&!Array.isArray(s.bankAlias)){var BA={};Object.keys(s.bankAlias).forEach(function(k){var v=s.bankAlias[k];
     if(v&&typeof v.n==="string"&&v.n.trim())BA[k]={n:v.n.trim().slice(0,80),c:typeof v.c==="string"?v.c:""};});s.bankAlias=BA;}else delete s.bankAlias;
@@ -9490,6 +9494,7 @@ document.getElementById("bankFile").addEventListener("change",async function(ev)
   var r=bankMerge(ok.map(function(x){return x.r;})),res;
   bkLoad(1,r.tx.length);await bkPaint();await bkWait(Math.max(0,450-(Date.now()-t0)));
   try{res=bankFind(r);}catch(e){closeSheetEl("sheetBank");toast("Die Datei konnte nicht ausgewertet werden");return;}
+  if(r.tx.length){state.settings.bankLast={from:r.tx[0].d,to:r.tx[r.tx.length-1].d,at:iso(today()),n:ok.length};saveSettings();try{paintBkRow();}catch(e){}}
   bkLoad(2,r.tx.length);await bkPaint();await bkWait(Math.max(0,900-(Date.now()-t0)));
   if(run!==bkRun||!sh.classList.contains("on"))return;
   try{res.inc=bankFindInc(r);}catch(e){res.inc=null;}
@@ -9850,6 +9855,16 @@ function vkRingHtml(p,cls){return '<span class="vkring'+(cls?" "+cls:"")+'" styl
 function vkHintHtml(id){var c=state.contracts[id];if(!c||!isActiveC(c)||c.cancelPer)return "";var r=(vkNeeds(id).per[id])||[];if(!r.length)return "";
   var L={logo:"Logo",term:"Kündigungsfrist",snd:"Absender-Adresse"},why=r.indexOf("term")>=0?"dann zeigt Kontivo die Frist rechtzeitig":r.indexOf("snd")>=0?"dann ist die Kündigung startklar":"dann sieht der Vertrag komplett aus";
   return '<button type="button" class="vkhint" data-act="vk"><span aria-hidden="true">✨</span><span><b>'+(r.length===1?"1 Angabe fehlt noch":r.length+" Angaben fehlen noch")+"</b><small>"+r.map(function(x){return L[x];}).join(" · ")+" – "+why+"</small></span><em>Ergänzen ›</em></button>";}
+/* Zeile «Kontoauszug einlesen» unter Mehr → Daten: Zeitraum (TT.MM.JJJJ – TT.MM.JJJJ) + wann eingelesen */
+function fmtDot(s){var d=parseD(s);return d?String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear():"";}
+function agoTxt(s){var d=parseD(s);if(!d)return "";var n=Math.round((today()-d)/864e5);
+  if(n<=0)return "heute";if(n===1)return "gestern";if(n<14)return "vor "+n+" Tagen";if(n<60)return "vor "+Math.round(n/7)+" Wochen";
+  var m=Math.round(n/30.44);return m<2?"vor 1 Monat":"vor "+m+" Monaten";}
+function paintBkRow(){var el=document.getElementById("bkRow");if(!el)return;var L=state.settings.bankLast,r=document.getElementById("bkRng"),a=document.getElementById("bkAgo");
+  if(L){r.textContent=fmtDot(L.from)+" – "+fmtDot(L.to);a.textContent=agoTxt(L.at)+" eingelesen"+(L.n>1?" · "+L.n+" Dateien":"");
+    el.setAttribute("aria-label","Kontoauszug einlesen. Zuletzt eingelesen: "+fmtDot(L.from)+" bis "+fmtDot(L.to)+", "+agoTxt(L.at));}
+  else{r.textContent="";a.textContent="CSV, Excel, camt.053 oder MT940";el.removeAttribute("aria-label");}}
+document.getElementById("bkRow").addEventListener("click",function(){document.getElementById("bankFile").click();});
 function paintVkRow(){var el=document.getElementById("vkOpen");if(!el)return;var n=vkNeeds(),open=n.total-n.ready,sub=document.getElementById("vkSub");
   sub.textContent=!n.total?"":open?open+" offen":"Startklar";sub.classList.toggle("w",!!open);
   document.getElementById("vkIc").classList.toggle("w",!!open);
