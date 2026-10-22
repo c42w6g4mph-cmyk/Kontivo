@@ -1629,6 +1629,9 @@ body{background:var(--paper)!important}
 .bkr .bkam{align-self:center;font-size:15.5px;font-variant-numeric:tabular-nums}.bkr .bkam small{font-size:11px;white-space:nowrap}
 .bkchev{color:var(--ink3);font-size:18px;margin-left:2px;align-self:center}
 .bkq{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}.bkq i{font-style:normal;font-size:11px;line-height:1;padding:4px 7px;border-radius:20px;background:var(--sunken);color:var(--ink2)}
+.bkwarn{display:block;width:100%;text-align:left;margin:0 0 10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--warn) 14%,var(--surface));color:inherit;font:inherit}
+.bkwarn b{display:block;font-size:14.5px;color:var(--warn)}.bkwarn span{display:block;font-size:12.5px;color:var(--ink2);margin-top:2px;line-height:1.35}
+.bkspan{color:var(--warn)!important}
 .bkq i.ok{background:color-mix(in srgb,var(--ok) 14%,var(--surface));color:var(--ok)}.bkq i.miss{background:color-mix(in srgb,var(--brass) 16%,var(--surface));color:var(--teal)}
 .bkr.off .bktx b,.bkr.off .bkam{color:var(--ink3)}.bkr.off .mark{opacity:.45}
 .bkck[aria-checked="true"]{background:var(--brass)!important;border-color:var(--brass)!important}.bkck[aria-checked="true"]::after{border-color:var(--onBrass)!important}
@@ -1815,7 +1818,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v271</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v272</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8232,7 +8235,7 @@ function sanitizeImport(o){
   var BADK=["__proto__","constructor","prototype"];
   var noProto=function(x){if(obj(x))BADK.forEach(function(k){if(Object.prototype.hasOwnProperty.call(x,k))delete x[k];});return x;};
   /* Felder auf Typ und erlaubte Werte prüfen, damit fremde oder bearbeitete Backups keine Ansicht zum Absturz bringen */
-  var STRF=["partner","label","name","cat","due","start","end","noticeU","cancTerm","custNo","contrNo","payM","payA","cancF","trial","cancUrl","web","addr","tel","mail","note","logoId","status","cancelledAt","cancelPer","cancelledOn","keptFor","pausedAt","pausedUntil"];
+  var STRF=["partner","label","name","cat","due","start","end","noticeU","cancTerm","custNo","contrNo","payM","payA","cancF","trial","cancUrl","web","addr","tel","mail","note","logoId","status","cancelledAt","cancelPer","cancelledOn","keptFor","pausedAt","pausedUntil","cred","mref"];
   var CYC=[1,2,3,6,12,24],CURS=["CHF","EUR","USD","GBP","TRY"];
   var num=function(v){var n=typeof v==="number"?v:typeof v==="string"&&v.trim()!==""?+v:NaN;return isFinite(n)?n:null;};
   var typ=function(c){noProto(c);
@@ -8998,8 +9001,16 @@ function bankFind(r,ign){
     cl.forEach(function(c,i){var nk=k.replace("|","#"+(i+1)+"|");groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:g.names,
       tx:c.tx.sort(function(x,y){return x.d<y.d?-1:1;})};});
   });
-  var ref=r.to,span=dd(r.from,r.to),out=[],known=[],used={};
+  var ref=r.to,span=dd(r.from,r.to),out=[],known=[],used={},after=[];
+  /* gekündigter Vertrag, der nach seinem Ende («Läuft bis») noch abgebucht wurde → Hinweis, nicht als neuer Vertrag */
+  var cancelledHit=function(g){var tx=g.tx,last=tx[tx.length-1],lastD=parseD(last.d),nm=g.tpl?g.tpl[0]:bankPretty(Object.keys(g.names)[0]);
+    var k1=bankKey1(nm),k2=bankKey1(last.name||"");
+    return Object.keys(state.contracts).filter(function(id){var c=state.contracts[id],e=parseD(c.cancelPer);if(!e||(c.cur||"CHF")!==g.cur)return false;
+      if(!(last.cred&&c.cred===last.cred)){var ck=bankKey1(c.partner||"");if(!(ck&&(ck===k1||ck===k2))&&!(g.tpl&&lnorm(c.partner)===lnorm(g.tpl[0])))return false;}
+      var late=tx.filter(function(t){return parseD(t.d)>e;});if(!late.length)return false;
+      after.push({id:id,c:c,n:late.length,last:late[late.length-1].d,amount:Math.round(-late[late.length-1].a*100)/100,cur:g.cur});return true;}).length>0;};
   Object.keys(groups).forEach(function(k){
+    if(cancelledHit(groups[k]))return;
     var s=bankEval(k,groups[k]);if(s)bankApplyAlias(s);
     if(!s){var kn=bankLooseKnown(k,groups[k]);if(kn&&!used[kn.match.id]){used[kn.match.id]=1;known.push(kn);}return;}
     s.cat=bankCat(s);if(s.alias&&s.alias.c&&allCats().indexOf(s.alias.c)>=0)s.cat=s.alias.c;
@@ -9093,20 +9104,21 @@ function bankFind(r,ign){
   }
   var rank={hoch:0,mittel:1,niedrig:2};
   out.sort(function(a,b){return (a.match?0:1)-(b.match?0:1)||rank[a.conf]-rank[b.conf]||(b.amount/b.cycle)-(a.amount/a.cycle);});
-  return {sugg:out,known:known,from:r.from,to:r.to,n:r.tx.length,fmt:r.fmt,bank:r.bank};
+  return {sugg:out,known:known,after:after,from:r.from,to:r.to,n:r.tx.length,fmt:r.fmt,bank:r.bank};
 }
 /* ---- Wiederkehrende Gutschriften (Einnahmen) finden ----
    Lohn, Rente, Zulagen: gleiche Quelle, fester Rhythmus, ähnlicher Betrag. Umbuchungen, TWINT, Rückerstattungen,
    Zinsen und Zahlungen von dir selbst (Name einer Person) werden ausgeschlossen. Nur Vorschläge – übernommen wird erst nach Bestätigung.
    SwiftUI: gleiche Regeln in BankIncomeFinder. */
-var BKINSKIP=/umbuchung|uebertrag|kontouebertrag|eigene?s? konto|sparkonto|twint|paypal|revolut|wise\b|rueckerstattung|ruckerstattung|erstattung|refund|retoure?|storno|gutschrift karte|zinsen|zins\b|interest|bargeld|einzahlung|bancomat|geldautomat|\batm\b|leistungsabrechnung|kostenbeteiligung|cashback|ausgleich|steuerrueck|kontoubertrag|steuerruck/;
+var BKINSKIP=/umbuchung|uebertrag|kontouebertrag|eigene?s? konto|sparkonto|twint|paypal|revolut|wise\b|rueckerstattung|ruckerstattung|erstattung|refund|retoure?|storno|gutschrift karte|bargeld|einzahlung|bancomat|geldautomat|\batm\b|leistungsabrechnung|kostenbeteiligung|cashback|ausgleich|steuerrueck|kontoubertrag|steuerruck/;
 function bankIncCat(h){
   /* h ist mit lnorm normalisiert: Umlaute ohne e (Bezüge → bezuge, Salär → salar) */
   if(/\blohn|nettolohn|gehalt|salaer|\bsalar|salair|salary|payroll|bezuege|bezuge|besoldung|dienstbezug|entgelt|verguetung|vergutung|lohnzahlung|monatslohn/.test(h))return "Lohn";
   if(/rente|\bahv\b|\biv\b|pension|\bbvg\b|pensionskasse|vorsorgeeinrichtung|drv\b|rentenversicherung/.test(h))return "Rente";
   if(/kindergeld|kinderzulage|familienzulage|familienkasse|ausbildungszulage|elterngeld/.test(h))return "Zulagen";
-  if(/mietzins|\bmiete\b|untermiete|mieteinnahme|mieteingang|\bpacht/.test(h))return "Vermietung";
-  if(/ausschuettung|ausschuttung|dividende|dividend|ertragsgutschrift|ertraegnis|ertragnis/.test(h))return "Kapitalerträge";
+  if(/mietzins|\bmiete\b|untermiete|mieteinnahme|mieteingang|mietertrag|\bpacht/.test(h))return "Vermietung";
+  if(/ausschuettung|ausschuttung|dividende|dividend|ertragsgutschrift|ertraegnis|ertragnis|zinsgutschrift|zinsen|\bzins\b|interest|coupon|kupon/.test(h))return "Kapitalerträge";
+  if(/unterhalt|alimente|kinderunterhalt|\bbafoeg|\bbafog|stipendium|wohngeld|buergergeld|burgergeld|sozialhilfe|arbeitslosengeld|\balg\b|krankengeld|elterngeld|taggeld/.test(h))return "Unterstützung";
   if(/honorar|provision|nebenjob|minijob/.test(h))return "Nebeneinkommen";
   return "Sonstiges";
 }
@@ -9135,6 +9147,7 @@ function bankFindInc(r){
     var cat=Object.keys(g.cats).sort(function(a,b){return g.cats[b]-g.cats[a];})[0];
     /* nur einmal im Auszug, aber eindeutig Lohn/Rente/Zulage (neue Stelle, kurzer Auszug): als unsicherer Vorschlag, monatlich */
     var once=n===1&&/^(Lohn|Rente|Zulagen)$/.test(cat);if(n<2&&!once)return;
+    if(cat==="Kapitalerträge"&&!tx.some(function(t){return t.a>=20;}))return;
     var cyc=1;
     if(!once){var iv=[];for(var i=1;i<n;i++)iv.push(Math.round((parseD(tx[i].d)-parseD(tx[i-1].d))/864e5));
     var cs=iv.map(bankCycle),cnt={};cs.forEach(function(c){if(c)cnt[c]=(cnt[c]||0)+1;});
@@ -9172,6 +9185,10 @@ function bankApplyAlias(s){var A=state.settings.bankAlias||{},a=A[bankIgnKey(s)]
 function bankKey1(n){var t=bankTok(n).filter(function(x){return x.length>=3&&LGEN.indexOf(x)<0&&LPLACE.indexOf(x)<0;});return t[0]||"";}
 /* passende laufende Verträge (gleiche Währung): Katalogeintrag gleich oder erstes markantes Wort gleich */
 function bankCands(s){var k1=bankKey1(s.name),k2=bankKey1(s.raw||""),out=[];
+  /* gemerkte Gläubiger-ID (+ Mandat, wenn beide es haben) schlägt jede Namenslogik */
+  if(s.cred){var byId=Object.keys(state.contracts).filter(function(id){var c=state.contracts[id];
+    return c.cred===s.cred&&(c.cur||"CHF")===s.cur&&(!s.mref||!c.mref||c.mref===s.mref)&&c.status!=="cancelled"&&!isEnded(c);});
+    if(byId.length)return byId;}
   Object.keys(state.contracts).forEach(function(id){
     var c=state.contracts[id];if(c.status==="cancelled"||isEnded(c)||(c.cur||"CHF")!==s.cur)return;
     var ct=bankTpl(c.partner||"","",c.cur||"CHF"),ck=bankKey1(c.partner||""),cl=bankKey1(c.label||"");
@@ -9207,6 +9224,8 @@ function bankToContract(s,holders){
     prices:s.change?[{from:s.change.from,amount:s.change.amount}]:[],docs:[],extras:[],status:"active",cancelledAt:"",t:Date.now()};
   if(c.cat===catByKey("Steuern & Gebühren")){c.noCancel=true;c.mand=false;c.cancTerm="";}
   c.payM=bankPayM(s);var nr=bankNums(s);c.custNo=nr.cust;c.contrNo=nr.contr;
+  /* Gläubiger-ID/Mandat aus dem Auszug merken: beim nächsten Import eindeutiger Treffer, auch wenn der Bank-Text anders lautet (RSG Group → McFit) */
+  if(s.cred)c.cred=String(s.cred).slice(0,40);if(s.mref)c.mref=String(s.mref).slice(0,40);
   return c;
 }
 /* Zahlungsart aus der Buchungsart (Lastschrift, Dauerauftrag, Karte, eBill, QR) */
@@ -9382,6 +9401,11 @@ function paintBank(){
     var sure=vis.filter(function(i){return bk.items[i].s.conf!=="niedrig";}),maybe=vis.filter(function(i){return bk.items[i].s.conf==="niedrig";});
     var nIgn=bk.items.filter(function(it){return it.s.ignored;}).length;
     h+='<h3 class="bkt">'+(sure.length||maybe.length?"Sind das deine Fixkosten?":"Keine neuen Fixkosten")+'</h3>';
+    /* Zahlung trotz Kündigung: Abbuchung nach «Läuft bis» – der Vertragspartner bucht weiter ab */
+    (r.after||[]).forEach(function(a){h+='<button type="button" class="bkwarn" data-open="'+esc(a.id)+'"><b>'+esc(a.c.partner||titleOf(a.c))+' bucht weiter ab</b><span>Gekündigt per '+bkDay(a.c.cancelPer)+', trotzdem '+(a.n===1?"eine Abbuchung":a.n+" Abbuchungen")+' danach, zuletzt '+bkDay(a.last)+' ('+money(a.amount,a.cur)+' '+esc(a.cur)+'). Beim Vertragspartner nachfragen.</span></button>';});
+    /* kurzer Zeitraum: Jahresverträge fehlen womöglich */
+    var spanM=r.from&&r.to?Math.round((parseD(r.to)-parseD(r.from))/864e5/30.4):0;
+    if(spanM&&spanM<11)h+='<p class="bki bkspan">Der Auszug umfasst nur '+(spanM<1?"wenige Wochen":spanM+" Monate")+'. Jahresbeiträge (Versicherungen, Steuern, Mitgliedschaften) fehlen womöglich – am besten die letzten 12 Monate exportieren.</p>';
     if(sure.length||maybe.length)h+='<p class="bki">Alles mit Häkchen wird übernommen. Kategorie, Logo und – bei bekannten Anbietern – die Kündigungsfrist sind schon ergänzt. Tippe auf einen Eintrag, um etwas zu ändern.</p>';
     h+=bkLogoLine()+bkWhoBar();
     if(bk.price.length)h+='<h4 class="bkh2"><span>Neuer Preis bei erfassten Verträgen</span><span>'+bk.price.length+'</span></h4><div class="bklist">'+bk.price.map(bkPriceRow).join("")+'</div>';
@@ -9573,6 +9597,7 @@ function bkCancel(){if(bk){[].concat(bk.items,bk.inc).forEach(function(it){if(it
 document.getElementById("bkX").addEventListener("click",function(){if(bkBack())return;bkRun++;bkCancel();closeSheetEl("sheetBank");});
 document.getElementById("bkBody").addEventListener("click",function(e){
   var t=e.target.closest("button");if(!t||!bk)return;
+  if(t.classList.contains("bkwarn")){closeSheetEl("sheetBank");openDetail(t.dataset.open);return;}
   if(t.dataset.bkon!=null){var it=bk.items[+t.dataset.bkon];it.on=!it.on;t.setAttribute("aria-checked",it.on);t.parentNode.classList.toggle("off",!it.on);bkFoot();return;}
   if(t.dataset.ikon!=null){var ii=bk.inc[+t.dataset.ikon];ii.on=!ii.on;t.setAttribute("aria-checked",ii.on);t.parentNode.classList.toggle("off",!ii.on);bkFoot();return;}
   if(t.dataset.bkyes!=null||t.dataset.bkno!=null){var iy=bk.items[+(t.dataset.bkyes!=null?t.dataset.bkyes:t.dataset.bkno)];iy.on=t.dataset.bkyes!=null;paintBank();return;}
