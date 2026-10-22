@@ -1815,7 +1815,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v268</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v269</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9277,11 +9277,13 @@ function bkSub(it){var s=it.s,e=it.ed,t=[];
   return t.join(" · ");}
 function bkTitle(it){var l=it.ed.label;return l&&lnorm(l)!==lnorm(it.ed.name)?l:it.ed.name;}
 function bkNoCancel(it){return it.ed.cat===catByKey("Steuern & Gebühren");}
+/* Versicherer mit mehreren Sparten (Katalog-Bezeichnung nur «Versicherung»): Katalog-Frist gilt für die Hauptsparte, nicht sicher für diese Police */
+function bkTermCheck(it){var t=it.s&&it.s.tpl;if(it.over||!t||it.term)return false;return catKey(t[2])==="Versicherung"&&/^versicherung(en)?$/i.test(String(t[3]||""));}
 function bkHasTerm(it){return bkHasTermBase(it)||it.term==="1"||it.term==="3"||it.term==="x";}
 function bkMark(it,inc){var e=it.ed;return markHtml({partner:e.name,cat:e.cat,label:e.label||"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg:""});}
 function bkRow(it,i){
   var e=it.ed,cur=it.s.cur,maybe=it.s.conf==="niedrig";
-  var tags='<span class="bkq"><i>'+esc(e.cat)+'</i>'+(maybe||bkNoCancel(it)?"":bkHasTerm(it)?'<i class="ok">✓ Frist</i>':'<i class="miss">Frist fehlt</i>')+'</span>';
+  var tags='<span class="bkq"><i>'+esc(e.cat)+'</i>'+(maybe||bkNoCancel(it)?"":bkHasTerm(it)?(bkTermCheck(it)?'<i class="miss">Frist prüfen</i>':'<i class="ok">✓ Frist</i>'):'<i class="miss">Frist fehlt</i>')+'</span>';
   return '<div class="bkr'+(it.on?"":" off")+'">'+
     (maybe?"":'<button type="button" class="bkck" data-bkon="'+i+'" role="checkbox" aria-checked="'+it.on+'" aria-label="'+esc(bkTitle(it))+' übernehmen"></button>')+
     '<button type="button" class="bkmain" data-bkopen="'+i+'">'+bkMark(it)+
