@@ -1812,7 +1812,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v258</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v259</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -1957,7 +1957,7 @@ body{background:var(--paper)!important}
     <div class="frow fcol tmcanc"><span class="fl">Kündigungsweg</span>
       <div class="seg2 fseg" id="fCancT" role="group" aria-label="Kündigungsweg"><button type="button" data-cv="Online / Kundenkonto" aria-pressed="false">Online</button><button type="button" data-cv="E-Mail" aria-pressed="false">E-Mail</button><button type="button" data-cv="Brief" aria-pressed="false">Brief</button><button type="button" data-cv="Telefon" aria-pressed="false">Telefon</button></div>
       <div hidden><select id="fCancF"><option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Telefon</option></select></div></div>
-    <div class="frow tmcanc" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="sonst Website" autocomplete="off"></div>
+    <div class="frow tmcanc" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="optional" autocomplete="off"></div>
     <div class="frow tmcanc" id="fCancMailW" hidden><label for="fCancMail">E-Mail für Kündigung</label><input id="fCancMail" type="email" placeholder="hinzufügen" autocomplete="off"></div>
     <div class="frow tmcanc cvaddr" id="fCancAddrW" hidden><span class="t"><b id="fCancAddrT"></b><small id="fCancAddrS"></small></span><button type="button" class="mdlink" id="fCancAddrB">Erfassen</button></div>
     <label class="frow fsw tmcanc" id="fRemindW"><span class="t"><b>An Frist erinnern</b><small>Erscheint unter «Fristen»</small></span><input type="checkbox" class="swi" id="fRemind"></label>
@@ -3279,6 +3279,9 @@ function ptDonut(inF,per,Y,H){var G={},T=0;inF.forEach(function(c){var v=per[c._
 function fitPtLegend(){document.querySelectorAll(".ptlr span").forEach(function(sp){sp.style.fontSize="";sp.classList.remove("wr");
   var f=13.5;while(sp.scrollWidth>sp.clientWidth+0.5&&f>11){f-=0.5;sp.style.fontSize=f+"px";}if(sp.scrollWidth>sp.clientWidth+0.5)sp.classList.add("wr");});}
 window.addEventListener("resize",function(){if(state.tab==="stat")fitPtLegend();});
+/* Betragsfelder: beim Antippen steht der Cursor immer am Ende (Löschen beginnt bei den Rappen/Cents) – gilt für alle Betragsfelder */
+document.addEventListener("focusin",function(e){var el=e.target;if(!el||!el.matches||!el.matches('input[inputmode="decimal"]'))return;
+  var go=function(){if(document.activeElement!==el)return;try{var n=el.value.length;el.setSelectionRange(n,n);}catch(x){}};setTimeout(go,0);setTimeout(go,80);});
 function ptSection(pool,Y,nowY,H){
   /* Säulen: Vorjahr · aktuelles Jahr · Folgejahr (fest um heute); nur wenn oben weiter weg geblättert wird, um das gewählte Jahr.
      Werte = Jahrestotal (gleich «Total JJJJ» oben). Treiber je Kategorie: Wechsel innerhalb einer Kategorie (alte → neue Miete)
@@ -6205,11 +6208,18 @@ function skrRule(c,f){var k=catKey(c.cat),de=c.cur==="EUR",P=c.partner||"dem Ver
   return {none:true,when:"siehe Mitteilung",tips:c.cur==="CHF"?["In der Schweiz gibt es dafür kein allgemeines Gesetz. Ob und bis wann du kündigen kannst, steht in den AGB und oft in der Mitteilung."]:
     ["Es gibt kein allgemeines gesetzliches Sonderkündigungsrecht. Ob und bis wann du kündigen kannst, steht in den AGB und meist in der Mitteilung.","Eine Erhöhung ohne gültige Preisklausel musst du nicht hinnehmen."]};
 }
+/* Ordentlich kündbar vor dem neuen Preis (z.B. Netflix: monatlich, kurze Frist)? Dann bringt der Hinweis nichts.
+   Ist der Preis schon in Kraft: kündbar innert ~1 Monat ab heute gilt ebenfalls als «flexibel» */
+function regEndsFirst(c,f){if(isFixed(c))return false;var t=today(),dayB=addDays(f,-1),T=null;
+  if(!c.end&&!c.cancTerm){var n=+c.notice||0,u=c.noticeU;T=u==="d"?addDays(t,n):u==="w"?addDays(t,7*n):addMonths(t,n);}
+  else{try{T=termEnd(c);}catch(e){T=null;}if(T&&nDl(c,T)<t)T=null;}
+  if(!T)return false;return T<=dayB||(f<=t&&daysBetween(t,T)<=31);}
 function skrInfo(c){var t=today(),ps=pricesOf(c),L=[],prev=+c.amount||0;
   ps.forEach(function(p){var a=+p.amount;L.push({f:parseD(p.from),a:a,prev:prev,up:prev>0&&a>prev,pct:prev>0?Math.round((a/prev-1)*100):0});prev=a;});
   for(var i=L.length-1;i>=0;i--){var x=L[i],f=x.f;/* neueste Erhöhung zuerst (angekündigte vor vergangenen) */
     if(!x.up||!f)continue;var r=skrRule(c,f),end=r.until||new Date(f.getFullYear(),f.getMonth(),f.getDate()+30);
     if(end<t)continue;
+    if(regEndsFirst(c,f))return null;
     var dd=r.until?String(r.until.getDate()).padStart(2,"0")+"."+String(r.until.getMonth()+1).padStart(2,"0")+"."+(r.until.getFullYear()!==t.getFullYear()?String(r.until.getFullYear()).slice(2):""):"";
     return {f:f,a:x.a,prev:x.prev,pct:x.pct,r:r,until:r.until,head:r.none?"Preis erhöht":"Sonderkündigung möglich",
       tail:r.none?"Kündigungsrecht prüfen":(r.until?(r.min?"bis mind. ":"bis ")+dd:"Frist ab Mitteilung")};}
