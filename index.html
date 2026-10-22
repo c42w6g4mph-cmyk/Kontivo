@@ -1818,7 +1818,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v272</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v273</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9025,7 +9025,7 @@ function bankFind(r,ign){
     var tx=g.tx,name=g.tpl?g.tpl[0]:bankPretty(Object.keys(g.names).sort(function(a,b){return g.names[b]-g.names[a];})[0]);
     var am=tx.map(function(t){return Math.round(-t.a*100)/100;});
     var s={id:k,key:k,name:name,cur:g.cur,amount:am[am.length-1],cycle:1,tpl:g.tpl,n:tx.length,last:tx[tx.length-1].d,first:tx[0].d,
-      dates:tx.map(function(t){return t.d;}),amounts:am,text:tx[tx.length-1].text,raw:tx[tx.length-1].name,loose:true};
+      dates:tx.map(function(t){return t.d;}),amounts:am,text:tx[tx.length-1].text,raw:tx[tx.length-1].name,loose:true,cred:tx[tx.length-1].cred||"",mref:tx[tx.length-1].mref||""};
     bankApplyAlias(s);
     var c=bankMatchName(s);if(!c)return null;
     var cp=curPrice(state.contracts[c]);
@@ -9072,7 +9072,10 @@ function bankFind(r,ign){
       } else {
         if(n<3)return;
         /* schwankende Beträge nur bei Rechnungen/Lastschriften (Strom, Handy); Kartenabos haben einen festen Preis */
-        if(kind==="card"&&!g.tpl)return;
+        /* Ausnahme: Kartenabo in Fremdwährung (USD/GBP) – Betrag schwankt nur durch den Kurs: monatlich, eng (±5 %), mind. 3× */
+        var fx=kind==="card"&&n>=3&&cyc===1&&(function(){var s0=am.slice().sort(function(a,b){return a-b;}),m0=s0[Math.floor(s0.length/2)];return am.every(function(v){return Math.abs(v-m0)<=m0*0.05;});})()&&
+          (lnorm(tx.map(function(t){return (t.text||"")+" "+(t.type||"");}).join(" ")).match(/\busd\b|\bgbp\b|\bchf\b|fremdw|kurs|wechselkurs|auslandseinsatz|devisen/)||tx.some(function(t){return t.fx;}));
+        if(kind==="card"&&!g.tpl&&!fx)return;
         var srt=am.slice().sort(function(a,b){return a-b;}),med=srt[Math.floor(srt.length/2)];
         if(am.filter(function(v){return Math.abs(v-med)<=med*0.10;}).length<am.length*0.7)return;
         varies=true;last=med;
@@ -9116,7 +9119,8 @@ function bankIncCat(h){
   if(/\blohn|nettolohn|gehalt|salaer|\bsalar|salair|salary|payroll|bezuege|bezuge|besoldung|dienstbezug|entgelt|verguetung|vergutung|lohnzahlung|monatslohn/.test(h))return "Lohn";
   if(/rente|\bahv\b|\biv\b|pension|\bbvg\b|pensionskasse|vorsorgeeinrichtung|drv\b|rentenversicherung/.test(h))return "Rente";
   if(/kindergeld|kinderzulage|familienzulage|familienkasse|ausbildungszulage|elterngeld/.test(h))return "Zulagen";
-  if(/mietzins|\bmiete\b|untermiete|mieteinnahme|mieteingang|mietertrag|\bpacht/.test(h))return "Vermietung";
+  if(/mietzins|\bmiete\b|untermiete|mieteinnahme|mieteingang|mietertrag|jahresmiete|garagenmiete|\bpacht/.test(h))return "Vermietung";
+  if(/\bbonus|gratifikation|erfolgsbeteiligung|weihnachtsgeld|urlaubsgeld|13 monatslohn|13 gehalt|jahresprämie|jahrespraemie|jahrespramie/.test(h))return "Bonus";
   if(/ausschuettung|ausschuttung|dividende|dividend|ertragsgutschrift|ertraegnis|ertragnis|zinsgutschrift|zinsen|\bzins\b|interest|coupon|kupon/.test(h))return "Kapitalerträge";
   if(/unterhalt|alimente|kinderunterhalt|\bbafoeg|\bbafog|stipendium|wohngeld|buergergeld|burgergeld|sozialhilfe|arbeitslosengeld|\balg\b|krankengeld|elterngeld|taggeld/.test(h))return "Unterstützung";
   if(/honorar|provision|nebenjob|minijob/.test(h))return "Nebeneinkommen";
@@ -9137,7 +9141,7 @@ function bankFindInc(r){
     var cat=bankIncCat(hay);
     /* Anbieter aus dem Katalog (Krankenkasse, Telekom) zahlen meist Rückerstattungen – nur mit Lohn-/Rentenwort */
     if(bankTpl(nm,t.text,t.cur||home)&&cat==="Sonstiges")return;
-    var key=(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)))+"|"+(t.cur||home);
+    var key=(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)))+(cat==="Bonus"?"·bonus":"")+"|"+(t.cur||home);
     var g=groups[key]=groups[key]||{tx:[],names:{},cur:t.cur||home,cats:{}};
     g.tx.push(t);g.names[nm]=(g.names[nm]||0)+1;g.cats[cat]=(g.cats[cat]||0)+1;
   });
@@ -9146,14 +9150,16 @@ function bankFindInc(r){
     var g=groups[k],tx=g.tx.sort(function(a,b){return a.d<b.d?-1:1;}),n=tx.length;
     var cat=Object.keys(g.cats).sort(function(a,b){return g.cats[b]-g.cats[a];})[0];
     /* nur einmal im Auszug, aber eindeutig Lohn/Rente/Zulage (neue Stelle, kurzer Auszug): als unsicherer Vorschlag, monatlich */
-    var once=n===1&&/^(Lohn|Rente|Zulagen)$/.test(cat);if(n<2&&!once)return;
+    /* einmal im Auszug: Lohn/Rente/Zulage → monatlich (neue Stelle); Jahreseinnahme (Dividende, Jahresmiete, Bonus, Jahresrente) → jährlich. Beides unsicher */
+    var h1=lnorm((tx[0].name||"")+" "+(tx[0].text||"")),yrI=n===1&&(/^(Kapitalerträge|Vermietung|Bonus)$/.test(cat)||/jahres|jaehrlich|jahrlich|annual|yearly|dividende|ausschuttung|ausschuettung/.test(h1));
+    var once=n===1&&(yrI||/^(Lohn|Rente|Zulagen)$/.test(cat));if(n<2&&!once)return;
     if(cat==="Kapitalerträge"&&!tx.some(function(t){return t.a>=20;}))return;
-    var cyc=1;
+    var cyc=yrI?12:1;
     if(!once){var iv=[];for(var i=1;i<n;i++)iv.push(Math.round((parseD(tx[i].d)-parseD(tx[i-1].d))/864e5));
     var cs=iv.map(bankCycle),cnt={};cs.forEach(function(c){if(c)cnt[c]=(cnt[c]||0)+1;});
     cyc=+Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];})[0]||0;if(!cyc||cnt[cyc]<iv.length*0.6)return;
     if(cyc===1&&n<(cat==="Sonstiges"?4:2))return;}
-    if(cyc>1&&n<2)return;
+    if(cyc>1&&n<2&&!once)return;
     var am=tx.map(function(t){return Math.round(t.a*100)/100;}),srt=am.slice().sort(function(a,b){return a-b;}),med=srt[Math.floor(srt.length/2)];
     /* Ausreisser nach oben (13. Monatslohn, Bonus) zählen nicht */
     var core=am.filter(function(v){return v<=med*1.5;});
@@ -9171,8 +9177,13 @@ function bankFindInc(r){
     Object.keys(state.incomes).forEach(function(id){if(hit||used[id])return;var c=state.incomes[id];if((c.cur||home)!==s.cur||c.status==="ended")return;
       var ck=bankKey1(c.name||"")||bankKey1(c.label||"");
       if((ck&&ck===k1)||(c.cat===s.cat&&s.cat!=="Sonstiges"&&Math.abs((+c.amount||0)-s.amount)<=s.amount*0.2))hit=id;});
-    if(hit){used[hit]=1;s.match=hit;known.push(s);return;}
-    out.push(s);
+    if(hit){used[hit]=1;s.match=hit;known.push(s);}else out.push(s);
+    /* Lohn mit Ausreisser nach oben (13. Monatslohn, Bonus im selben Lohnlauf): Zusatzbetrag als eigene Jahreseinnahme vorschlagen, ohne Häkchen */
+    if(cat==="Lohn"&&cyc===1&&n>=6){var big=tx.filter(function(t){return t.a>med*1.5;});
+      if(big.length===1){var bt=big[0],sep=tx.some(function(t){return t!==bt&&t.d.slice(0,7)===bt.d.slice(0,7);}),extra=Math.round((sep?bt.a:bt.a-med)*100)/100,bd=parseD(bt.d),bdue=bd,gb=0;while(bdue<t0d&&gb++<20)bdue=addMonthsE(bd,12*gb);
+        if(extra>=100&&!Object.keys(state.incomes).some(function(id){var c=state.incomes[id];return c.cat==="Bonus"&&(c.cur||home)===s.cur&&c.status!=="ended";}))
+          out.push({key:k+"·bonus",name:name,label:"13. Monatslohn / Bonus",cat:"Bonus",cur:s.cur,amount:extra,cycle:12,due:iso(bdue),n:1,first:bt.d,last:bt.d,
+            dates:[bt.d],amounts:[extra],lo:extra,hi:extra,varies:false,skipped:0,raw:bt.name||name,text:bt.text||"",once:true,conf:"niedrig"});}}
   });
   out.sort(function(a,b){return (a.conf==="hoch"?0:1)-(b.conf==="hoch"?0:1)||b.amount/b.cycle-a.amount/a.cycle;});
   return {sugg:out,known:known};
@@ -9655,6 +9666,9 @@ document.getElementById("bkGo").addEventListener("click",function(){
     if(it.ed.name!==it.s.name||it.ed.cat!==it.s.cat){var AL=state.settings.bankAlias||{};AL[bankIgnKey(it.s)]={n:it.ed.name,c:it.ed.cat};state.settings.bankAlias=AL;}
     state.contracts[stamp+k]=c;n++;
   });
+  /* schon erfasste Verträge: Gläubiger-ID/Mandat nachtragen, wenn noch keine gespeichert ist (nächster Import trifft dann sicher) */
+  ((bk.res&&bk.res.known)||[]).concat(bk.price.map(function(x){return x.s;})).forEach(function(s){var c=s.match&&state.contracts[s.match.id];
+    if(!c||c.cred||!s.cred)return;c.cred=String(s.cred).slice(0,40);if(s.mref)c.mref=String(s.mref).slice(0,40);});
   bk.price.forEach(function(x){if(!x.on)return;var m=x.s.match,c=state.contracts[m.id];if(!c)return;
     var pr=(c.prices||[]).filter(function(q){return q.from!==m.from;});pr.push({from:m.from,amount:m.amount});
     pr.sort(function(a,b){return a.from<b.from?-1:1;});c.prices=pr;p++;});
