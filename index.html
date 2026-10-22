@@ -1812,7 +1812,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v264</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v265</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8892,7 +8892,7 @@ function bankTpl(name,text,cur){
   return best;
 }
 var BKLABTPL={"Bausparvertrag":/bauspar/,"Reiseversicherung":/reise|\beti\b|schutzbrief|travel|annullation/,"Rechtsschutz":/rechtsschutz|assista/,"Leasing":/leasing/,"Säule 3a":/\b3a\b|vorsorge|saeule|saule|pillar/,"Zusatzversicherung":/zusatz|\bvvg\b|spitalvers|ambulant|halbprivat|\bprivat\b/,"Krankenkasse":/grundvers|\bkvg\b|obligatorisch|\bokp\b/};
-var BKSKIP=/bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlung gaa|\bgaa\b|\bga \d{4,}|^ga\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b|ubertrag|kontoubertrag/;
+var BKSKIP=/bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlung gaa|\bgaa\b|\bga \d{4,}|^ga\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b|kontoubertrag/;
 /* Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant) */
 var BKSHOP=/\b(cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|doner|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|gartnerei|blumen|baumarkt)\b/;
 /* Alltagseinkäufe (Detailhandel, Tankstellen, Fast Food): nie ein Vertrag, ausser ein Katalogeintrag passt (Migros Bank, Coop Mobile) */
@@ -9086,7 +9086,7 @@ function bankFind(r,ign){
    Lohn, Rente, Zulagen: gleiche Quelle, fester Rhythmus, ähnlicher Betrag. Umbuchungen, TWINT, Rückerstattungen,
    Zinsen und Zahlungen von dir selbst (Name einer Person) werden ausgeschlossen. Nur Vorschläge – übernommen wird erst nach Bestätigung.
    SwiftUI: gleiche Regeln in BankIncomeFinder. */
-var BKINSKIP=/umbuchung|uebertrag|kontouebertrag|eigene?s? konto|sparkonto|twint|paypal|revolut|wise\b|rueckerstattung|ruckerstattung|erstattung|refund|retoure?|storno|gutschrift karte|zinsen|zins\b|interest|bargeld|einzahlung|bancomat|geldautomat|\batm\b|leistungsabrechnung|kostenbeteiligung|cashback|ausgleich|steuerrueck|ubertrag|kontoubertrag|steuerruck/;
+var BKINSKIP=/umbuchung|uebertrag|kontouebertrag|eigene?s? konto|sparkonto|twint|paypal|revolut|wise\b|rueckerstattung|ruckerstattung|erstattung|refund|retoure?|storno|gutschrift karte|zinsen|zins\b|interest|bargeld|einzahlung|bancomat|geldautomat|\batm\b|leistungsabrechnung|kostenbeteiligung|cashback|ausgleich|steuerrueck|kontoubertrag|steuerruck/;
 function bankIncCat(h){
   /* h ist mit lnorm normalisiert: Umlaute ohne e (Bezüge → bezuge, Salär → salar) */
   if(/\blohn|nettolohn|gehalt|salaer|\bsalar|salair|salary|payroll|bezuege|bezuge|besoldung|dienstbezug|entgelt|verguetung|vergutung|lohnzahlung|monatslohn/.test(h))return "Lohn";
