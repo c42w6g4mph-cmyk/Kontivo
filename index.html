@@ -8977,9 +8977,11 @@ function bankFind(r,ign){
   /* gleiche Gläubiger-ID, verschiedene Mandate (zwei Policen bei derselben Versicherung): je Mandat eine Gruppe */
   Object.keys(groups).forEach(function(k){
     var g=groups[k],by={};g.tx.forEach(function(t){if(t.mref)(by[t.mref]=by[t.mref]||[]).push(t);});
-    var ms=Object.keys(by).filter(function(m){return by[m].length>=2;});if(ms.length<2)return;
-    delete groups[k];
+    /* auch Einzelzahlungen je Mandat (Hausrat im Januar, Kfz im Februar bei derselben Versicherung): sonst würden sie zusammengelegt und verworfen */
+    var ms=Object.keys(by);if(ms.length<2)return;
+    var rest=g.tx.filter(function(t){return !t.mref;});delete groups[k];
     ms.forEach(function(m,i){var nk=k.replace("|","~"+lnorm(m).replace(/ /g,"")+"|");groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:g.names,mref:m,tx:by[m]};});
+    if(rest.length)groups[k]={key:k,tpl:g.tpl,cur:g.cur,names:g.names,tx:rest};
   });
   Object.keys(groups).forEach(function(k){
     var g=groups[k];if(g.tx.length<4)return;
@@ -9212,13 +9214,22 @@ function bankNums(s){var t=String(s.text||"")+" "+String(s.raw||""),o={cust:"",c
   if(o.cust&&!/\d/.test(o.cust))o.cust="";if(o.contr&&!/\d/.test(o.contr))o.contr="";
   return o;}
 /* Bezeichnung ohne Katalog aus dem Zahlungsgrund («Miete Wohnung 3.OG» → Miete) */
-var BKLABEL=[[/\bmiete\b|mietzins|wohnungsmiete/,"Miete"],[/nebenkosten|heizkosten/,"Nebenkosten"],[/parkplatz|einstellplatz|tiefgarage|garage/,"Parkplatz"],
+var BKLABEL=[[/kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|strassenverkehrsamt/,"Kfz-Steuer"],
+  [/kfz|autoversicherung|motorfahrzeugversicherung|fahrzeugversicherung|kasko/,"Autoversicherung"],[/rechtsschutz/,"Rechtsschutz"],
+  [/wohngebaeude|wohngebaude|gebaeudeversicherung|gebaudeversicherung/,"Gebäudeversicherung"],[/unfallversicherung/,"Unfallversicherung"],
+  [/zahnzusatz|zusatzversicherung/,"Zusatzversicherung"],[/berufsunfaehig|berufsunfahig|\bbu\b/,"Berufsunfähigkeit"],
+  [/risikoleben|lebensversicherung/,"Lebensversicherung"],[/reiseversicherung|reiseruecktritt|reiseruckritt|reiseruecktritt/,"Reiseversicherung"],
+  [/tierhalter|hundehaftpflicht|tierkranken/,"Tierversicherung"],
+  [/\bmiete\b|mietzins|wohnungsmiete/,"Miete"],[/nebenkosten|heizkosten/,"Nebenkosten"],[/parkplatz|einstellplatz|tiefgarage|garage/,"Parkplatz"],
   [/hypothek|darlehen|kreditrate|\bkredit\b/,"Kredit"],[/leasing/,"Leasing"],[/steuer|steuerverwaltung|finanzamt/,"Steuern"],
   [/krankenkasse|krankenversicherung|grundversicherung/,"Krankenkasse"],[/hausrat/,"Hausrat"],[/haftpflicht/,"Haftpflicht"],
   [/fitness|\bgym\b/,"Fitness"],[/mitgliederbeitrag|mitgliedsbeitrag|jahresbeitrag|vereinsbeitrag/,"Mitgliedschaft"],[/spende/,"Spende"],
   [/kita|krippe|tagesmutter|hort/,"Kinderbetreuung"],[/schulgeld|studiengebuehr|semestergebuehr/,"Ausbildung"]];
-function bankLabel(s){if(s.tpl&&s.tpl[3])return s.tpl[3];var h=lnorm((s.text||"")+" "+(s.raw||"")+" "+(s.name||""));
-  for(var i=0;i<BKLABEL.length;i++)if(BKLABEL[i][0].test(h))return BKLABEL[i][1];return "";}
+/* Zweck aus dem Buchungstext schlägt eine allgemeine Katalog-Bezeichnung («Versicherung»): Allianz mit «Hausrat» im Text = Hausrat, nicht irgendeine Police */
+var BK_GENERIC=/^(versicherung|versicherungen|mitgliedschaft|abo|vertrag|bank|konto)$/i;
+function bankLabel(s){var h=lnorm((s.text||"")+" "+(s.raw||"")+" "+(s.name||"")),t="";
+  for(var i=0;i<BKLABEL.length;i++)if(BKLABEL[i][0].test(h)){t=BKLABEL[i][1];break;}
+  if(s.tpl&&s.tpl[3]&&!(t&&BK_GENERIC.test(s.tpl[3])))return s.tpl[3];return t;}
 /* ---------- Kontoauszug: Vorschläge prüfen (#sheetBank) ----------
    Checkliste (Variante 1) mit Inline-Bearbeitung (Variante 5): Zeile antippen klappt Felder auf.
    bk.items[i] = {s: Vorschlag, on, ed: {name, amount, cycle, cat, holders, due}}, bk.price[i] = {s, on}
