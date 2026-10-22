@@ -1812,7 +1812,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v261</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v262</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9449,7 +9449,10 @@ function bankReadFile(f){return new Promise(function(res){if(f.size>20e6){res({f
   rd.onload=async function(){var r=null,b=new Uint8Array(rd.result,0,Math.min(8,rd.result.byteLength));
     if(b[0]===0x50&&b[1]===0x4B&&b[2]===3&&b[3]===4){try{r=bankRead(await xlsxText(rd.result));}catch(e){r=null;}res({f:f,r:r,head:r?"":bkLastHead,xlsx:true});return;}
     if(b[0]===0xD0&&b[1]===0xCF&&b[2]===0x11&&b[3]===0xE0){res({f:f,r:null,head:"",xls:true});return;}
-    try{r=bankRead(rd.result);}catch(e){r=null;}res({f:f,r:r,head:bkLastHead});};
+    try{r=bankRead(rd.result);}catch(e){r=null;}
+    /* Format erkannt (Kopfzeile mit Datum + Betrag), aber keine Buchungen: eigene Meldung statt «nicht erkannt» */
+    var em=false;if(!r){try{var tx0=bankDecode(rd.result);em=/(buchungs?tag|buchungsdatum|datum|valuta|date)/i.test(tx0)&&/(betrag|soll|haben|belastung|gutschrift|amount)/i.test(tx0);}catch(e){}}
+    res({f:f,r:r,head:bkLastHead,empty:em});};
   rd.onerror=function(){res({f:f,r:null,head:""});};rd.readAsArrayBuffer(f);});}
 /* Ladeanzeige: Fenster sofort öffnen, Schritte nacheinander abhaken (Variante 2, 09.10.2026) */
 var bkRun=0;
@@ -9477,6 +9480,8 @@ document.getElementById("bankFile").addEventListener("change",async function(ev)
   if(run!==bkRun||!sh.classList.contains("on"))return;  /* abgebrochen */
   var ok=got.filter(function(x){return x.r;}),bad=got.filter(function(x){return !x.r;});
   if(!ok.length&&bad.every(function(x){return x.big;})){closeSheetEl("sheetBank");toast("Die Datei ist zu gross (über 20 MB)",3200);return;}
+  if(!ok.length&&bad.every(function(x){return x.empty;})){closeSheetEl("sheetBank");
+    await ask({title:"Keine Buchungen gefunden",alert:true,text:"Die Datei ist ein Kontoauszug, enthält aber keine Buchungen. Wähle im E-Banking einen Zeitraum mit Buchungen, am besten die letzten 12 Monate, und exportiere erneut."});return;}
   if(!ok.length){closeSheetEl("sheetBank");var h=bad.length===1?bad[0].head:"";
     await ask({title:bad.length>1?"Dateien nicht erkannt":"Datei nicht erkannt",alert:true,text:(bad.length===1&&bad[0].xls?"Das ist eine ältere Excel-Datei (.xls). Speichere sie als .xlsx oder CSV, oder exportiere den Auszug im E-Banking als CSV. ":bad.length===1&&bad[0].xlsx?"Die Excel-Datei enthält keine erkennbaren Buchungen. ":"")+"Kontivo liest Kontoauszüge als CSV, Excel (.xlsx), camt.053 (XML) oder MT940. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren». PDF-Auszüge gehen nicht."+(h?" Erste Zeile deiner Datei: «"+h+"».":"")});return;}
   var r=bankMerge(ok.map(function(x){return x.r;})),res;
