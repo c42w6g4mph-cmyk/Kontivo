@@ -1835,7 +1835,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v279</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v280</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -6829,6 +6829,9 @@ document.getElementById("scrim").addEventListener("click",function(){
   if(document.getElementById("sheetCrop").classList.contains("on")){closeCrop();return;}
   if(document.getElementById("sheetSig").classList.contains("on")){closeSig();return;}
   if(document.getElementById("sheetSigPick").classList.contains("on")){closeSigPick();return;}
+  /* Kontoauszug-Import (23.10.2026): Tippen daneben schliesst nicht – sonst ist die ganze Auswertung weg. Nur «Abbrechen» bzw. «Zurück».
+     Gilt auch für das Formular, das aus dem Import geöffnet wurde (fBank). SwiftUI: .interactiveDismissDisabled() */
+  if(document.getElementById("sheetBank").classList.contains("on")||fBank)return;
   /* Absender über dem Brief (over) liegt oben: zuerst diese Seite schliessen */
   if(document.getElementById("sheetMd").classList.contains("over")&&document.getElementById("sheetMd").classList.contains("on")){closeMd();return;}
   if(document.getElementById("sheetLetter").classList.contains("on")){closeLetter();return;}
@@ -8454,7 +8457,7 @@ function csvTerm(x){var t=csvNorm(x);if(!t||/jederzeit|anytime/.test(t))return "
   if(/halbjahr/.test(t))return "h";if(/vertragsjahr/.test(t))return "a";if(/jahresende|jahr/.test(t))return "y";return "";}
 function csvCat(x){var t=csvNorm(x);if(!t)return "";
   var R=[["Gesundheit",/gesund|arzt|zahn|apothek|optik|brille|health/],["Versicherung",/versich|police|haftpflicht|krankenkass|insurance/],["Abos & Medien",/stream|entertain|musik|music|video|software|app|cloud|zeitschrift|zeitung|abo|medien/],
-    ["Mobilfunk & Internet",/handy|mobilfunk|internet|telefon|dsl|glasfaser|phone|tv/],["Energie & Wasser",/strom|gas|energie|heiz|wasser|energy/],
+    ["Mobilfunk & Internet",/handy|mobilfunk|internet|telefon|dsl|glasfaser|phone|tv/],["Energie & Wasser",/strom|\bgas\b|erdgas|energie|heiz|wasser|energy/],
     ["Wohnen",/miete|wohn|haus|immobil|nebenkost|rent/],["Freizeit & Sport",/fitness|sport|verein|freizeit|gym/],
     ["Familie & Bildung",/kind|kita|hort|schule|bildung|familie|betreuung|kurs|studium/],["Steuern & Gebühren",/steuer|gebühr|gebuehr|abgabe|serafe|billag|tax/],
     ["Mobilität",/auto|kfz|bahn|mobilit|leasing|oev|transport|car|parkplatz/],["Finanzen",/bank|konto|kredit|finanz|spar|depot|vorsorge|säule|finance/]];
@@ -8860,6 +8863,12 @@ function bankNameFrom(t){
   /* Kartenzahlung «… 12.09.2026 03:14 NETFLIX.COM …»: Händler steht nach Datum und Uhrzeit */
   m=full.match(/\d{1,2}\.\d{1,2}\.\d{2,4}[ \t]*\/?[ \t]*\d{1,2}:\d{2}(?::\d{2})?[ \t]+([A-Za-zÄÖÜäöü][^,]+)/);
   if(m){var mm=bankNameClean(m[1].split(/\s*,\s*/)[0]);if(mm&&!bankIsType(mm))return mm;}
+  /* Adressblock (23.10.2026): Zeile vor «Strasse» und «PLZ Ort» ist der Name – auch wenn davor eine Mitteilung wie «Miete» steht */
+  var ln=String(t||"").replace(/\r/g,"").split(/\n+/).map(function(x){return x.replace(/\s+/g," ").trim();}).filter(Boolean);
+  for(var li=1;li<ln.length;li++){if(!/^(?:[A-Z]{1,2}-?)?\d{4,5}\s+[A-Za-zÄÖÜäöü]/.test(ln[li]))continue;
+    var st=ln[li-1],ni=/\d|(?:strasse|str\.|gasse|weg|platz|allee|quai|ring|rain|hof|steig|graben|matt|halde)\b/i.test(st)&&li>=2?li-2:li-1,cand=ln[ni];
+    if(cand&&!/:\s*$/.test(cand)&&!/\d{3,}/.test(cand)&&!bankIsType(cand)){var cn=bankNameClean(cand);if(cn&&!bankIsType(cn)&&cn.length>2)return cn;}
+    break;}
   var parts=full.split(/\s*,\s*|\s+\/\s+|\s·\s/);
   for(var pi=0;pi<parts.length;pi++){
     var x=parts[pi];
@@ -8912,12 +8921,14 @@ function bankTpl(name,text,cur){
   /* gleicher Name, mehrere Verträge (CSS Krankenkasse/Zusatzversicherung, Mainova Strom/Gas): Bezeichnung aus dem Buchungstext wählen */
   if(best){var sib=TPL.filter(function(o){return o[0]===best[0]&&o[1]===best[1];});
     if(sib.length>1){var pick=sib.filter(function(o){var r=BKLABTPL[o[3]];if(r)return r.test(nt);var lt=ltok(o[3]);return lt.length&&lt.every(function(x){return nt.indexOf(" "+x+" ")>=0;});})[0];if(pick)best=pick;}}
+  /* «Raiffeisen Pensionskasse» (Vermieterin) ist nicht die Bank Raiffeisen (23.10.2026) */
+  if(best&&best[2]==="Finanzen"&&(/ (pensionskasse|vorsorgestiftung|anlagestiftung|stiftung|immobilien|immo|liegenschaft|liegenschaften|verwaltung|wohnbau|baugenossenschaft) /.test(nn)||/ (miete|mietzins|nebenkosten) /.test(nt)))return null;
   return best;
 }
 var BKLABTPL={"Bausparvertrag":/bauspar/,"Reiseversicherung":/reise|\beti\b|schutzbrief|travel|annullation/,"Rechtsschutz":/rechtsschutz|assista/,"Leasing":/leasing/,"Säule 3a":/\b3a\b|vorsorge|saeule|saule|pillar/,"Zusatzversicherung":/zusatz|\bvvg\b|spitalvers|ambulant|halbprivat|\bprivat\b/,"Krankenkasse":/grundvers|\bkvg\b|obligatorisch|\bokp\b/};
 var BKSKIP=/bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlung gaa|\bgaa\b|\bga \d{4,}|^ga\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b|kontoubertrag/;
 /* Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant) */
-var BKSHOP=/\b(cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|doner|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|gartnerei|blumen|baumarkt)\b/;
+var BKSHOP=/\b(gastro|gastronomie|badi beizli|cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|doner|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|gartnerei|blumen|baumarkt)\b/;
 /* Alltagseinkäufe (Detailhandel, Tankstellen, Fast Food): nie ein Vertrag, ausser ein Katalogeintrag passt (Migros Bank, Coop Mobile) */
 var BKRETAIL=/\b(migros|migrolino|coop|denner|aldi|lidl|rewe|edeka|kaufland|netto|penny|spar|volg|landi|manor|globus|jumbo|obi|bauhaus|hornbach|ikea|dm|rossmann|mueller|muller|douglas|zalando|galaxus|digitec|interdiscount|mediamarkt|media markt|saturn|fust|brack|shell|bp|avia|aral|esso|tamoil|agrola|socar|jet|starbucks|mcdonald s?|mcdonalds|burger king|subway|k kiosk|valora|avec|tchibo|decathlon|h und m|zara|c und a|tk maxx|primark)\b/;
 var BKFEE=/entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt|kontogebuhr|kontogebuehr|kontoabschluss|abschluss entgelt/;
@@ -8929,7 +8940,7 @@ var BKCAT=[[/steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Ste
   [/leasing|sbb|halbtax|deutschlandticket|bahn|bvg|parking|parkplatz|garage|tankstelle/,"Mobilität"],
   [/fitness|sport|verein|club|gym|mcfit|yoga|\be v\b|\b(sc|fc|tsv|sv|tus|vfb|vfl|djk|sg|turnverein|schwimmverein)\b/,"Freizeit & Sport"],
   [/versicherung|praemie|police|krankenkasse|kranken/,"Versicherung"],
-  [/strom|energie|gas|wasser|stadtwerke|abschlag|akonto/,"Energie & Wasser"],
+  [/strom|energie|\bgas\b|erdgas|gasversorg|wasser|stadtwerke|abschlag|akonto/,"Energie & Wasser"],
   [/swisscom|sunrise|salt|telekom|vodafone|mobilfunk|internet|festnetz/,"Mobilfunk & Internet"],
   [/netflix|spotify|abo|zeitung|streaming|disney|apple com bill|youtube|dropbox|icloud|google one|onedrive|\bdomain|hosting|ionos|strato|hostpoint|infomaniak/,"Abos & Medien"],
   [/entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt|darlehen|kreditrate|\bkredit\b|hypothek|bausparvertrag|sparplan|depotgebuhr|depotgebuehr/,"Finanzen"]];
