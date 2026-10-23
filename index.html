@@ -1837,7 +1837,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v293</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v294</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8106,6 +8106,20 @@ async function allCands(name,cur,alt,web,manual){
   if(!all.some(function(c){return c.score>=3;})&&alt&&lusable(alt)&&lnorm(alt)!==lnorm(name)){
     var r2=await Promise.all([wikiCands(alt).catch(function(){return [];}),logoCands(alt,cur).catch(function(){return [];})]);
     r2[0].concat(r2[1]).forEach(function(c){c.score=Math.min(c.score,2.5);all.push(c);});}
+  /* Nichts Brauchbares mit dem vollen Namen (23.10.2026): kürzer suchen – erst ohne Rechtsform/Allerweltswörter («Raiffeisen Pensionskasse»),
+     dann nur das markanteste Wort («Raiffeisen»). Nur eindeutige Firmentreffer (Score ≥ 3) zählen; Ämter («Stadtverwaltung …») werden nie gekürzt */
+  if(!all.some(function(c){return c.score>=3;})){
+    var words=String(name||"").replace(/[.,()]/g," ").split(/\s+/).filter(function(w){var t=lnorm(w);return t&&LSTOP.indexOf(t)<0&&LGEN.indexOf(t)<0&&LADJ.indexOf(t)<0;});
+    var amt=words.some(function(w){var t=lnorm(w);return LPLACE.some(function(pl){return t===pl||t.indexOf(pl)===0||t.slice(-pl.length)===pl;});});
+    /* Marke steht vorne: erstes Wort (nach «Schweizerische» & Co.) muss erhalten bleiben – sonst bliebe bei «Energie Kreuzlingen» nur der Ort */
+    var w1=String(name||"").replace(/[.,()]/g," ").split(/\s+/).filter(function(w){var t=lnorm(w);return t&&LADJ.indexOf(t)<0&&LSTOP.indexOf(t)<0;})[0]||"";
+    if(!words.length||lnorm(words[0])!==lnorm(w1))amt=true;
+    var vars=[];if(!amt&&words.length){var v1=words.join(" ");if(lnorm(v1)!==lnorm(name))vars.push(v1);var w0=lnorm(words[0]);if(words.length>1&&w0.length>=5&&lusable(words[0])&&!/^(kita|krippe|schule|praxis|garage|immobilien|immo|wohnbau|hausverwaltung|fitness|studio|zahnarzt|arzt|apotheke|physio|physiotherapie|kanzlei|treuhand|stiftung|pensionskasse|reinigung|hauswart|elektro|sanitar|maler|transport|taxi|autohaus|carrosserie|restaurant|hotel|camping|musikschule|sport|verein)$/.test(w0))vars.push(words[0]);}
+    for(var vi=0;vi<vars.length;vi++){
+      var r3=await Promise.all([wikiCands(vars[vi],dom).catch(function(){return [];}),logoCands(vars[vi],cur,dom).catch(function(){return [];})]);
+      var gd=r3[0].concat(r3[1]).filter(function(c){return c.score>=3;});
+      if(gd.length){gd.forEach(function(c){c.score=Math.min(c.score,4.5);c.via=vars[vi];all.push(c);});if(!dom&&r3[0].dom&&!r[0].dom)r[0].dom=r3[0].dom;break;}}
+  }
   var d2=dom||r[0].dom||"";
   /* Icon der Website: aus dem Vertrag sicher, aus Wikipedia nur bei eindeutigem Firmentreffer */
   /* Reihenfolge der Qualität: Website-App-Symbol > passendes App-Store-Symbol > Profilbild > Wikipedia-Schriftzug */
