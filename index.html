@@ -1835,7 +1835,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v283</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v284</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8847,7 +8847,7 @@ var BKTYPEW=("belastung gutschrift zahlung zahlungen einkauf warenbezug und dien
   "kartennummer kartenverfuegung verfuegung verfugung vergutungsauftrag vergutung lastschriftverfahren standing order ihr ihre karten xxxx xx x").split(" ");
 function bankIsType(p){var w=lnorm(p).split(" ").filter(Boolean);return !w.length||w.every(function(x){return /^\d+$/.test(x)||(x.length<2&&w.length>1)||BKTYPEW.indexOf(x)>=0;});}
 function bankNameClean(n){
-  n=String(n||"").replace(/\s+/g," ").trim();
+  n=String(n||"").replace(/\s+/g," ").trim().replace(/\s*(?:\.{2,}|…)$/,"");
   n=n.split(/\s(?:MITTEILUNGEN?|Mitteilungen?:|REFERENZ|Referenz(?:-Nr\.?)?:?|QR-Referenz|Transaktions(?:-Nr\.?|datum)|Karten?-?Nr\.?|Kartennummer|IBAN|Kto\/IBAN|Kto|BLZ|Konto-Nr\.?|CH\d{2}\s?\d|DE\d{2}\s?\d|\d{4,5}\s+[A-ZÄÖÜa-zäöü]{2}|Ref\.|Buchungstext:|Verwendungszweck)/)[0];
   /* Rechtsform am Anfang («Genossenschaft Migros Ostschweiz») ist Teil des Namens: nur abschneiden, wenn davor schon ein Name steht (17.10.2026) */
   var lg=n.match(/^(.+?\s(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\.V\.|e\.\s?V\.|Genossenschaft))(?:\s|$)/i);if(lg)n=lg[1];
@@ -8869,7 +8869,7 @@ function bankNameFrom(t){
   /* ausdrückliche Bezeichnungen */
   var m=full.match(/(?:Empf(?:ä|ae)nger|Auftraggeber|Beg(?:ü|ue)nstigter|Bezugsort|Zahlungsempf(?:ä|ae)nger)\s*:\s*(.+?)(?=\s+(?:Kto\/IBAN|IBAN|Konto|BLZ|Buchungstext|Verwendungszweck|Transaktionsdatum|Karten-?Nr|Referenz)\b|\s*,|$)/i);
   if(m&&!bankIsType(m[1]))return bankNameClean(m[1]);
-  m=full.match(/(?:issued by|sent money to|received money from|payment to|zahlung an|ebill-zahlung an|e-bill-zahlung an)\s+(.+?)(?=\s+with reference|\s*,|$)/i);
+  m=full.split(/\s*,\s*Mitteilung\b/i)[0].match(/(?:issued by|sent money to|received money from|payment to|\bzahlung an|ebill-zahlung an|e-bill-zahlung an)\s+(.+?)(?=\s+with reference|\s*,|$)/i);
   if(m)return bankNameClean(m[1]);
   /* Kartenzahlung «… 12.09.2026 03:14 NETFLIX.COM …»: Händler steht nach Datum und Uhrzeit */
   m=full.match(/\d{1,2}\.\d{1,2}\.\d{2,4}[ \t]*\/?[ \t]*\d{1,2}:\d{2}(?::\d{2})?[ \t]+([A-Za-zÄÖÜäöü][^,]+)/);
@@ -8972,7 +8972,7 @@ function bankCat(s){
   return "Sonstiges";
 }
 /* ---- Wiederkehrende Belastungen finden ---- */
-function bankCycle(days){var C=[[1,25,36],[2,55,66],[3,84,98],[6,170,195],[12,350,380]];
+function bankCycle(days){var C=[[1,25,36],[2,55,66],[3,80,105],[6,170,195],[12,350,380]];
   for(var i=0;i<C.length;i++)if(days>=C[i][1]&&days<=C[i][2])return C[i][0];return 0;}
 function bankFind(r,ign){
   ign=ign||state.settings.bankIgn||[];
@@ -9007,6 +9007,12 @@ function bankFind(r,ign){
     var raw=g.tx.map(function(t){return (t.name||"")+" "+(t.text||"");}).join(" ").toLowerCase(),dom=String(g.tpl[4]||"").toLowerCase().replace(/^www\./,"");
     if(dom&&raw.indexOf(dom)>=0)return;
     g.tpl=null;});
+  /* Lastschrift und Einzelrechnungen desselben Anbieters mit ganz anderen Beträgen trennen (23.10.2026):
+     SWICA Prämie 1'279.50 per LSV vs. Kostenbeteiligungen 28–36 per QR-Rechnung */
+  var mdn=function(L){var a=L.map(function(t){return -t.a;}).sort(function(x,y){return x-y;});return a[Math.floor(a.length/2)];};
+  Object.keys(groups).forEach(function(k){var g=groups[k],D=g.tx.filter(function(t){return t.kind==="dd"&&!t.cred;}),O=g.tx.filter(function(t){return !(t.kind==="dd"&&!t.cred);});
+    if(!D.length||!O.length)return;var ma=mdn(D),mb=mdn(O);if(Math.abs(ma-mb)<=Math.max(ma,mb)*0.35)return;
+    g.tx=O;var nk=k.replace("|","~dd|");groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:g.names,tx:D};});
   /* Gleiches erstes Wort, ähnlicher Betrag → zusammenführen (NETFLIX.COM / Netflix.com Amsterdam) */
   var ks=Object.keys(groups);
   ks.forEach(function(a){ks.forEach(function(b){
@@ -9074,6 +9080,12 @@ function bankFind(r,ign){
     var tx=[],seen={},kc={};g.tx.forEach(function(t){if(t.kind)kc[t.kind]=(kc[t.kind]||0)+1;});
     var kind=Object.keys(kc).sort(function(a,b){return kc[b]-kc[a];})[0]||"";
     g.tx.forEach(function(t){var id=t.d+"|"+t.a;if(seen[id])return;seen[id]=1;tx.push(t);});
+    /* Pause über 13 Monate (SWICA 2023–24 per LSV, dann 2 Jahre nichts, jetzt wieder): nur die laufende Phase zählt (23.10.2026) */
+    for(var gi=tx.length-1;gi>0;gi--)if(dd(tx[gi-1].d,tx[gi].d)>400){var pre=tx.slice(0,gi);tx=tx.slice(gi);
+      /* nur eine Zahlung nach der Pause: zählt nur, wenn es davor einen regelmässigen Vertrag gab (SWICA), nicht bei sporadischen Zahlungen (Sunrise) */
+      if(tx.length===1){var pi=[];for(var pj=1;pj<pre.length;pj++)pi.push(bankCycle(dd(pre[pj-1].d,pre[pj].d)));
+        if(pre.length<3||pi.filter(Boolean).length<pi.length*0.7)return;}
+      break;}
     var name=g.tpl?g.tpl[0]:bankPretty(Object.keys(g.names).sort(function(a,b){return g.names[b]-g.names[a];})[0]);
     var am=tx.map(function(t){return Math.round(-t.a*100)/100;}),last=am[am.length-1],n=tx.length;
     /* einmalige Zusatzzahlung mitten im Verlauf (Jahresabrechnung, Servicepauschale) nicht als Preis werten:
@@ -9104,7 +9116,7 @@ function bankFind(r,ign){
           if(nlv(lv[0])<2||Math.abs(lv[1]-lv[0])>lv[0]*0.35){
             /* alter Preis nur einmal ganz am Anfang des Auszugs: Vertrag mit dem neuen Preis vorschlagen */
             if(nlv(lv[0])===1&&nlv(lv[1])>=3&&am[0]===lv[0]&&Math.abs(lv[1]-lv[0])<=lv[0]*0.35){tx=tx.slice(1);am=am.slice(1);n=tx.length;last=lv[1];}
-            else if(n<3||Math.abs(lv[1]-lv[0])>lv[0]*0.05)return;
+            else if(n<3||Math.abs(lv[1]-lv[0])>lv[0]*(kind==="card"?0.05:0.10))return;
           } else {var j=am.indexOf(lv[1]);ch={from:tx[j].d,prev:lv[0],amount:lv[1]};}
         }
       } else {
@@ -9115,7 +9127,13 @@ function bankFind(r,ign){
           (lnorm(tx.map(function(t){return (t.text||"")+" "+(t.type||"");}).join(" ")).match(/\busd\b|\bgbp\b|\bchf\b|fremdw|kurs|wechselkurs|auslandseinsatz|devisen/)||tx.some(function(t){return t.fx;}));
         if(kind==="card"&&!g.tpl&&!fx)return;
         var srt=am.slice().sort(function(a,b){return a-b;}),med=srt[Math.floor(srt.length/2)];
-        if(am.filter(function(v){return Math.abs(v-med)<=med*0.10;}).length<am.length*0.7)return;
+        /* Schwankung nur über die letzten 13 Monate prüfen (lange Auszüge driften); Strom/Energie schwankt mit dem Verbrauch: ±20 % */
+        var amR=tx.map(function(t,i){return dd(t.d,ref)<=400?am[i]:null;}).filter(function(v){return v!=null;});if(amR.length<3)amR=am;
+        var sR=amR.slice().sort(function(a,b){return a-b;}),mR=sR[Math.floor(sR.length/2)],
+          tol=(g.tpl&&g.tpl[2]==="Energie & Wasser")||/energie|strom|\bgas\b|wasser|stadtwerk|elektrizit|\bekz\b|\bewz\b|\bewb\b|\biwb\b/.test(lnorm(name))?0.20:0.10;
+        /* Anlauf: anteilige erste Rechnungen (Wingo 12.00, 17.95), dann zweimal der volle Betrag 27.95 → ok mit vollem Betrag */
+        var l2=am.slice(-2),ramp=n>=3&&Math.abs(l2[0]-l2[1])<0.005&&am.every(function(v){return v<=l2[1]+0.005;});
+        if(!ramp&&amR.filter(function(v){return Math.abs(v-mR)<=mR*tol;}).length<amR.length*0.7)return;
         /* aktueller Betrag: Median der letzten 3 Rechnungen (Abo-Wechsel bei Wingo 44.95 → 27.95), nicht des ganzen Auszugs */
         varies=true;var l3=am.slice(-3).sort(function(a,b){return a-b;});last=l3[Math.floor(l3.length/2)];
       }
@@ -9134,7 +9152,8 @@ function bankFind(r,ign){
       if(BKONCENO.test(lnorm(name+" "+(t0.text||""))))return;
       /* kurzer Auszug und Zahlung ganz am Ende: eher monatlich; bei langem Auszug (> 10 Monate) wäre eine Monatszahlung mehrfach drin */
       var per=bankPeriod(t0.text),yr=/jahres|jaehrlich|jahrlich|bahncard|12 monate|annual|yearly/.test(lnorm(name+" "+(t0.text||"")));
-      cyc=per||(yr?12:((dd(t0.d,ref)<40&&span>40&&span<=300)?1:12));
+      if(Math.abs(t0.a)<5)return;
+      cyc=per||(yr?12:((dd(t0.d,ref)<40&&span>40&&(span<=300||/lastschriftverfahren|\blsv\b/.test(lnorm((t0.text||"")+" "+(t0.type||"")))))?1:12));
       if(!per&&!yr&&g.tpl&&!g.tpl[1]&&cyc===12&&dd(t0.d,ref)>45)return;
       /* langer Auszug: eine Jahreszahlung, die über 13 Monate zurückliegt, hätte sich wiederholt → kein laufender Vertrag (SWICA 2022) */
       if(dd(t0.d,ref)>cyc*30.5+30)return;   /* internationale Monatsabos (Netflix…) mit nur einer Zahlung: eher Einkauf */
