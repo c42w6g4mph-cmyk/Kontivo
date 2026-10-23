@@ -33,6 +33,10 @@ E = {
  "camtcodes": dict(s=[("Muster Versicherung", 1, 12.5), ("Muster Versicherung", 1, 12.5), ("Muster Energie", 1, 100.1), ("Neues Fitness", 1, 24.9, "mittel")]),
  "alias": dict(s=[("Deutschlandticket", 1, 63)]),
  "gepflegt": dict(s=[], k=["Swisscom", "Immo Seeblick", "Die Mobiliar"]),
+ # Review 23.10.2026
+ "mietkonto": dict(s=[("Muster Hausverwaltung", 1, 350)]),
+ "zweikinder": dict(s=[("FC Muster", 1, 45), ("FC Muster", 1, 45)]),
+ "stabilkey": dict(s=[("Haftpflicht Muster", 1, 25), ("Muster Assekuranz", 1, 12), ("Muster Assekuranz", 1, 8)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);
  return {sugg:f.sugg.map(function(s){return [s.name,s.cycle,s.amount,s.due,!!s.match,s.conf]}),
@@ -59,5 +63,10 @@ with sync_playwright() as p:
             if sorted(r["known"]) != sorted(e.get("k", [])): errs.append(f"bereits erfasst {r['known']}")
             if "miss" in e and sorted(r["miss"]) != sorted(e["miss"]): errs.append(f"nicht im Auszug {r['miss']}")
         print(("✓" if not errs else "✗"), f"{k:15}", "; ".join(errs)); fails += bool(errs)
+    # Laufzeit (Review 23.10.2026: Katalogabgleich war O(n²), 94 s bei 1'720 Buchungen): Stressdatei muss unter 3 s ausgewertet sein
+    for fn in ["ch_tkb_stress.csv", "de_sparkasse_stress.csv"]:
+        ms = pg.evaluate("""(txt)=>{var B=window.KontivoBank();B.state.contracts={};var t0=performance.now(),r=B.read(txt);B.find(r,[]);B.findInc(r);return Math.round(performance.now()-t0);}""",
+                         open(os.path.join(D, "stress", fn), encoding="utf-8", errors="replace").read())
+        ok = ms < 3000; print(("✓" if ok else "✗"), f"{'zeit '+fn[:9]:15}", f"{ms} ms"); fails += (not ok)
     b.close()
 print("Alles gut" if not fails else f"{fails} Fehler"); sys.exit(1 if fails else 0)

@@ -1837,7 +1837,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v288</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v289</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8735,7 +8735,10 @@ function bankCsv(txt){
   tx=tx.filter(function(t){return !(t.coll&&tx.some(function(x){return x.sub&&x.d===t.d;}));});
   /* Kreditkarten-Abrechnungen führen Einkäufe positiv: fast alles positiv und die wenigen Belastungen sind Zahlungen an die Karte */
   var negs=tx.filter(function(t){return t.a<0;});
-  if(pos>neg*3&&negs.length&&negs.filter(function(t){return /zahlung|payment|dank|thank|gutschrift|ausgleich|lastschrift|einzug|erhalten/i.test(t.name+" "+t.text);}).length>=negs.length*0.6)
+  /* Umkehr nur, wenn die Datei nach Kreditkarte aussieht (Spalte «Karte», Kopfzeilen mit Kartenanbieter) – sonst würde ein Konto mit vielen
+     Gutschriften (Mietkonto) umgedreht und Mieteingänge erschienen als Fixkosten (23.10.2026) */
+  var cardHint=col.card||/kreditkart|credit ?card|karteninhaber|kartennummer|card ?number|kartenkonto|viseca|swisscard|cembra|cornercard|corner banca|american express|\bamex\b|mastercard|\bvisa\b|miles ?(and|&) ?more|barclaycard|advanzia|hanseatic|erscheint auf ihrer abrechnung|\bcardid\b|card ?id\b/i.test((col.head||[]).join(" ")+" "+preRows.map(function(r){return r.join(" ");}).join(" "));
+  if(cardHint&&pos>neg*3&&negs.length&&negs.filter(function(t){return /zahlung|payment|dank|thank|gutschrift|ausgleich|lastschrift|einzug|erhalten/i.test(t.name+" "+t.text);}).length>=negs.length*0.6)
     tx.forEach(function(t){t.a=-t.a;});
   else if(col.card&&col.deb<0&&pos>neg*4)tx.forEach(function(t){t.a=-t.a;});
   var hc=(col.head||[]).join("|"),cur=/\bCHF\b/i.test(hc)?"CHF":(/EUR|€/i.test(hc)?"EUR":"");
@@ -9029,7 +9032,7 @@ function bankFind(r,ign){
   var mdn=function(L){var a=L.map(function(t){return -t.a;}).sort(function(x,y){return x-y;});return a[Math.floor(a.length/2)];};
   Object.keys(groups).forEach(function(k){var g=groups[k],D=g.tx.filter(function(t){return t.kind==="dd"&&!t.cred;}),O=g.tx.filter(function(t){return !(t.kind==="dd"&&!t.cred);});
     if(!D.length||!O.length)return;var ma=mdn(D),mb=mdn(O);if(Math.abs(ma-mb)<=Math.max(ma,mb)*0.35)return;
-    g.tx=O;var nk=k.replace("|","~dd|");groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:g.names,tx:D};});
+    g.tx=O;var nk=k.replace("|","~dd|");groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:Object.assign({},g.names),tx:D};});
   /* Gleiches erstes Wort, ähnlicher Betrag → zusammenführen (NETFLIX.COM / Netflix.com Amsterdam) */
   var ks=Object.keys(groups);
   ks.forEach(function(a){ks.forEach(function(b){
@@ -9046,7 +9049,7 @@ function bankFind(r,ign){
     /* auch Einzelzahlungen je Mandat (Hausrat im Januar, Kfz im Februar bei derselben Versicherung): sonst würden sie zusammengelegt und verworfen */
     var ms=Object.keys(by);if(ms.length<2)return;
     var rest=g.tx.filter(function(t){return !t.mref;});delete groups[k];
-    ms.forEach(function(m,i){var nk=k.replace("|","~"+lnorm(m).replace(/ /g,"")+"|");groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:g.names,mref:m,tx:by[m]};});
+    ms.forEach(function(m,i){var nk=k.replace("|","~"+lnorm(m).replace(/ /g,"")+"|");groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:Object.assign({},g.names),mref:m,tx:by[m]};});
     if(rest.length)groups[k]={key:k,tpl:g.tpl,cur:g.cur,names:g.names,tx:rest};
   });
   Object.keys(groups).forEach(function(k){
@@ -9059,12 +9062,25 @@ function bankFind(r,ign){
     var inter=false;for(var a=0;a<rng.length;a++)for(var b=a+1;b<rng.length;b++)if(rng[a][0]<rng[b][1]&&rng[b][0]<rng[a][1])inter=true;
     if(!inter)return;
     delete groups[k];
-    cl.forEach(function(c,i){var nk=k.replace("|","#"+(i+1)+"|");groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:g.names,
+    /* Schlüssel je Stufe = gerundeter typischer Betrag statt laufender Nummer (23.10.2026): «Nicht mehr vorschlagen» und gelernte Namen
+       bleiben am richtigen Vertrag, auch wenn im nächsten Auszug ein weiterer Betrag dazukommt. SwiftUI: gleicher Schlüssel */
+    var ckey=function(c){var a=c.tx.map(function(t){return -t.a;}).sort(function(x,y){return x-y;});return k.replace("|","#"+Math.round(a[Math.floor(a.length/2)])+"|");};
+    cl.forEach(function(c){var nk=ckey(c);while(groups[nk])nk=nk.replace("|","'|");c.key=nk;groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:Object.assign({},g.names),
       tx:c.tx.sort(function(x,y){return x.d<y.d?-1:1;})};});
     /* Stufe, die direkt auf eine andere folgt (Steuerraten 760 bis Juni, ab Juli 340): Vorgänger merken → Preisänderung (23.10.2026) */
     cl.forEach(function(c,i){var f0=c.tx[0].d,best=null;cl.forEach(function(o){if(o===c||o.tx.length<2)return;var lo=o.tx[o.tx.length-1].d,gap=dd(lo,f0);
         if(gap>0&&gap<=45&&o.tx[0].d<f0&&(!best||lo>best.d))best={d:lo,amount:Math.round(o.v*100)/100};});
-      if(best&&c.tx.length>=2)groups[k.replace("|","#"+(i+1)+"|")].prevC=best;});
+      if(best&&c.tx.length>=2)groups[c.key].prevC=best;});
+  });
+  /* Gleiche Zahlung regelmässig mehrfach am selben Tag (zwei Kinder im Verein, 2× 120.–): das sind mehrere Verträge → in parallele Reihen
+     aufteilen (23.10.2026). Vereinzelte Doppelbuchung bleibt eine Zahlung (bankEval fasst gleiche Datum+Betrag zusammen). */
+  Object.keys(groups).forEach(function(k){var g=groups[k],by={};g.tx.forEach(function(t){var id=t.d+"|"+t.a;(by[id]=by[id]||[]).push(t);});
+    var ids=Object.keys(by);if(ids.length<2)return;var m=Math.min.apply(null,ids.map(function(i){return by[i].length;}));
+    var multi=ids.filter(function(i){return by[i].length>=2;}).length;if(m<2&&multi<ids.length*0.7)return;
+    var mm=Math.max(2,Math.round(ids.map(function(i){return by[i].length;}).sort(function(a,b){return a-b;})[Math.floor(ids.length/2)]));
+    delete groups[k];
+    for(var j=0;j<mm;j++){var nk=k.replace("|","§"+(j+1)+"|"),tj=[];ids.forEach(function(i){var L=by[i].slice().sort(function(a,b){return String(a.text).localeCompare(String(b.text));});if(L[j])tj.push(L[j]);});
+      tj.sort(function(x,y){return x.d<y.d?-1:1;});groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:Object.assign({},g.names),tx:tj,prevC:g.prevC};}
   });
   var ref=r.to,span=dd(r.from,r.to),out=[],known=[],used={},after=[];
   /* gekündigter Vertrag, der nach seinem Ende («Läuft bis») noch abgebucht wurde → Hinweis, nicht als neuer Vertrag */
@@ -9393,7 +9409,7 @@ function bkWho(txt){var HL=state.settings.holders||[];if(HL.length<2||!txt)retur
   return hit;}
 function openBank(res,label,quiet){
   var H=bkHolders(),ow=bkWho(res.owner||"");if(ow.length===1)H=ow;
-  bk={res:res,label:label,open:-1,openInc:-1,step:"fix",showIgn:false,
+  bk={res:res,label:label,step:"fix",showIgn:false,
     items:res.sugg.filter(function(s){return !s.match;}).map(function(s){
       return {s:s,on:s.conf!=="niedrig"&&!s.ignored&&!s.same&&!s.arch,q:"",logo:null,term:"",ed:{name:s.name,label:bankLabel(s),amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
     price:res.sugg.filter(function(s){return s.match&&s.match.kind==="price";}).map(function(s){return {s:s,on:true};}),
@@ -9446,50 +9462,7 @@ function bkIncRow(it,i){var e=it.ed,cur=it.s.cur;
 function bkHseg(e,attr){var HL=state.settings.holders||["Ich"];if(HL.length<2)return "";var all=HL.every(function(h){return e.holders.indexOf(h)>=0;});
   return '<div class="field"><label>Person</label><div class="hseg">'+HL.map(function(h){return '<button type="button" '+attr+'="'+esc(h)+'" aria-pressed="'+(!all&&e.holders.length===1&&e.holders[0]===h)+'">'+esc(h)+'</button>';}).join("")+
     '<button type="button" '+attr+'="*" aria-pressed="'+all+'">'+(HL.length===2?"Beide":"Alle")+'</button></div></div>';}
-function bkLogoField(it,attr,sattr){
-  return '<div class="bklogo2">'+bkMark(it)+'<span>'+(it.logo?"Logo":"Kein Logo")+'</span>'+(it.logo?'<button type="button" '+attr+'>Entfernen</button>':"")+
-    '<button type="button" class="bklsr" '+sattr+'>'+(it.logo?"Ändern":"Logo suchen")+'</button></div><div class="logocands" id="bkLC"></div>';}
-function bkEditor(it,i){
-  var e=it.ed,s=it.s,cyc=[1,2,3,6,12,24];if(cyc.indexOf(e.cycle)<0)cyc.push(e.cycle);
-  return '<div class="bked" data-bki="'+i+'">'+
-    '<div class="bkhead">'+bkMark(it)+'<span><b>'+esc(bkTitle(it))+'</b><small>'+esc(e.cat)+'</small></span></div>'+
-    bkLogoField(it,'data-bklogox="'+i+'"','data-bklogos="'+i+'"')+
-    '<div class="bk2"><div class="field"><label for="bkL">Bezeichnung</label><input id="bkL" data-bke="label" value="'+esc(e.label||"")+'" placeholder="z.B. iCloud, Miete" autocomplete="off"></div>'+
-    '<div class="field"><label for="bkN">Vertragspartner</label><input id="bkN" data-bke="name" value="'+esc(e.name)+'" autocomplete="off"></div></div>'+
-    '<div class="bk2"><div class="field"><label for="bkA">Betrag ('+esc(s.cur)+')</label><input id="bkA" class="num" data-bke="amount" inputmode="decimal" value="'+esc(amtIn(e.amount,s.cur))+'"></div>'+
-    '<div class="field"><label for="bkC">Rhythmus</label><select id="bkC" data-bke="cycle">'+cyc.map(function(c){return '<option value="'+c+'"'+(c===e.cycle?" selected":"")+'>'+esc(CYCLE[c]||"alle "+c+" Monate")+'</option>';}).join("")+'</select></div></div>'+
-    '<div class="bk2"><div class="field"><label for="bkK">Kategorie</label><select id="bkK" data-bke="cat">'+allCats().map(function(c){return '<option'+(c===e.cat?" selected":"")+'>'+esc(c)+'</option>';}).join("")+'</select></div>'+
-    '<div class="field"><label for="bkD">Nächste Zahlung</label><input id="bkD" type="date" data-bke="due" value="'+esc(e.due)+'"></div></div>'+
-    bkHseg(e,"data-bkh")+
-    (s.change?'<p class="note bknote">Preis bisher '+money(s.change.prev,s.cur)+', seit '+bkDay(s.change.from)+' '+money(s.change.amount,s.cur)+' '+esc(s.cur)+'. Beides kommt in den Preisverlauf.</p>':"")+
-    bkProof(s)+
-    (s.tpl?'<p class="note bknote">Kündigungsfrist und Kontaktdaten aus dem Katalog («'+esc(s.tpl[0])+'»).</p>':"")+
-    '<div class="bkedb"><button type="button" class="bkign" data-bkign="'+i+'">Nie mehr vorschlagen</button></div></div>';
-}
-function bkIncEditor(it,i){
-  var e=it.ed,s=it.s,cyc=[1,2,3,6,12];if(cyc.indexOf(e.cycle)<0)cyc.push(e.cycle);
-  var rng=s.varies?'Typischer Betrag der letzten Eingänge (schwankte zwischen '+money(s.lo,s.cur)+' und '+money(s.hi,s.cur)+' '+esc(s.cur)+').':"";
-  if(s.skipped)rng+=(rng?" ":"")+(s.skipped===1?"1 höherer Eingang (z.B. 13. Monatslohn, Bonus) ist nicht mitgerechnet.":s.skipped+" höhere Eingänge (z.B. 13. Monatslohn, Bonus) sind nicht mitgerechnet.");
-  return '<div class="bked" data-iki="'+i+'">'+
-    '<div class="bkhead">'+bkMark(it,true)+'<span><b>'+esc(e.label||e.name)+'</b><small>Einnahme · '+esc(e.cat)+'</small></span></div>'+
-    bkLogoField(it,'data-iklogox="'+i+'"','data-iklogos="'+i+'"')+
-    '<div class="bk2"><div class="field"><label for="ikL">Bezeichnung</label><input id="ikL" data-ike="label" value="'+esc(e.label)+'" placeholder="z.B. Lohn" autocomplete="off"></div>'+
-    '<div class="field"><label for="ikN">Von</label><input id="ikN" data-ike="name" value="'+esc(e.name)+'" autocomplete="off"></div></div>'+
-    '<div class="bk2"><div class="field"><label for="ikA">Betrag ('+esc(s.cur)+')</label><input id="ikA" class="num" data-ike="amount" inputmode="decimal" value="'+esc(amtIn(e.amount,s.cur))+'"></div>'+
-    '<div class="field"><label for="ikC">Rhythmus</label><select id="ikC" data-ike="cycle">'+cyc.map(function(c){return '<option value="'+c+'"'+(c===e.cycle?" selected":"")+'>'+esc(ICYCLE[c]||"alle "+c+" Monate")+'</option>';}).join("")+'</select></div></div>'+
-    (rng?'<p class="note bknote">'+rng+'</p>':"")+
-    '<div class="bk2"><div class="field"><label for="ikK">Art</label><select id="ikK" data-ike="cat">'+INC_CATS.map(function(c){return '<option'+(c===e.cat?" selected":"")+'>'+esc(c)+'</option>';}).join("")+'</select></div>'+
-    '<div class="field"><label for="ikD">Nächster Eingang</label><input id="ikD" type="date" data-ike="due" value="'+esc(e.due)+'"></div></div>'+
-    bkHseg(e,"data-ikh")+bkProof(s)+'</div>';
-}
 /* Herkunft: woraus der Vorschlag stammt (Originaltext + letzte Buchungen) */
-function bkProof(s){var k=s.dates.length,from=Math.max(0,k-4),L=[];
-  for(var j=k-1;j>=from;j--)L.push(bkDay(s.dates[j])+" · "+money(s.amounts[j]!=null?s.amounts[j]:s.amount,s.cur));
-  return '<div class="bkproof"><span>Im Auszug</span><b>«'+esc(String(s.raw||s.name).slice(0,60))+'»</b>'+
-    (s.text&&lnorm(s.text)!==lnorm(s.raw||"")?'<small>'+esc(String(s.text).slice(0,90))+'</small>':"")+
-    '<small>'+esc(L.join("  ·  "))+(k>4?" … ("+k+" Buchungen)":"")+'</small>'+
-    ((s.kind&&BKKIND[s.kind])||s.mref||s.cred?'<small>'+esc([BKKIND[s.kind]||"",s.cred?"Gläubiger-ID "+s.cred:"",s.mref?"Mandat "+s.mref:""].filter(Boolean).join(" · "))+'</small>':"")+
-    (s.alias?'<small>Name wie beim letzten Import übernommen</small>':"")+'</div>';}
 var BKKIND={dd:"Lastschrift / eBill",so:"Dauerauftrag",card:"Kartenzahlung",tr:"Überweisung"};
 function bkKnownRow(s){var c=state.contracts[s.match&&s.match.id];if(!c)return "";
   return '<div class="bkr bkkn"><span class="bkok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>'+
@@ -9518,11 +9491,8 @@ function bkLogoLine(){var r=bk.logoRun;if(!r.total||r.done>=r.total)return "";re
 function paintBank(){
   var r=bk.res,b=document.getElementById("bkBody"),st=bkSteps(),si=Math.max(0,st.indexOf(bk.step)),h="";
   if(st.indexOf(bk.step)<0)bk.step=st[0];
-  document.getElementById("bkX").textContent=(bk.open>=0||bk.openInc>=0||si>0)?"‹ Zurück":"Abbrechen";
+  document.getElementById("bkX").textContent=si>0?"‹ Zurück":"Abbrechen";
   document.getElementById("bkT").textContent="Kontoauszug";
-  document.getElementById("sheetBank").classList.toggle("bkedit",bk.open>=0||bk.openInc>=0);
-  if(bk.open>=0){b.innerHTML=bkEditor(bk.items[bk.open],bk.open);bkFoot();b.scrollTop=0;return;}
-  if(bk.openInc>=0){b.innerHTML=bkIncEditor(bk.inc[bk.openInc],bk.openInc);bkFoot();b.scrollTop=0;return;}
   if(st.length>1)h+='<div class="bksteps2" aria-label="Schritt '+(si+1)+' von '+st.length+'">'+st.map(function(x,j){return '<i class="'+(j<=si?"on":"")+'"></i>';}).join("")+'</div>';
   if(bk.step==="fix"){
     var vis=bk.items.map(function(it,i){return i;}).filter(function(i){return bk.showIgn||!bk.items[i].s.ignored;});
@@ -9565,7 +9535,6 @@ function bkCounts(){
   return {n:n,p:p,i:i,all:n+p+i};}
 function bkFoot(){
   var btn=document.getElementById("bkGo"),k=bkCounts(),st=bkSteps(),last=bk.step===st[st.length-1];
-  if(bk.open>=0||bk.openInc>=0){btn.textContent="Fertig";btn.disabled=false;btn.dataset.mode="back";return;}
   if(!last){btn.textContent="Weiter";btn.disabled=false;btn.dataset.mode="next";return;}
   /* nichts Neues gefunden (alles schon erfasst): «Fertig» statt grauem «Nichts ausgewählt» */
   if(!bkFixCount()&&!bk.inc.length&&!bk.price.length){btn.dataset.mode="done";btn.textContent="Fertig";btn.disabled=false;return;}
@@ -9733,7 +9702,6 @@ function bkIncFormDone(c){var it=bk&&bk.inc[fBank.i];if(!it){fBank=null;closeShe
 document.getElementById("fBankIgn").addEventListener("click",function(){if(!fBank||!bk)return;var it=bk.items[fBank.i],k=bankIgnKey(it.s),L=state.settings.bankIgn||[];
   if(L.indexOf(k)<0){L.push(k);state.settings.bankIgn=L;saveSettings();}it.s.ignored=true;it.on=false;var nm=it.ed.name;bkBackToList();toast("«"+nm+"» wird nicht mehr vorgeschlagen");});
 function bkBack(){
-  if(bk&&(bk.open>=0||bk.openInc>=0)){bk.open=-1;bk.openInc=-1;paintBank();return true;}
   var st=bk?bkSteps():[],si=bk?st.indexOf(bk.step):0;
   if(bk&&si>0){bk.step=st[si-1];paintBank();document.getElementById("bkBody").scrollTop=0;return true;}
   return false;}
@@ -9760,40 +9728,14 @@ document.getElementById("bkBody").addEventListener("click",function(e){
   if(t.dataset.bkpon!=null){var p=bk.price[+t.dataset.bkpon];p.on=!p.on;t.setAttribute("aria-checked",p.on);bkFoot();return;}
   if(t.dataset.bkopen!=null){bkOpenForm(+t.dataset.bkopen);return;}
   if(t.dataset.ikopen!=null){bkOpenInc(+t.dataset.ikopen);return;}
-  if(t.dataset.bkback!=null){bk.open=-1;bk.openInc=-1;paintBank();document.getElementById("bkBody").scrollTop=bk.scroll||0;return;}
   if(t.dataset.bkterm!=null){var it4=bk.items[+t.dataset.bkterm];it4.term=t.dataset.v;
     t.parentNode.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",x===t);});return;}
-  if(t.dataset.bklogos!=null||t.dataset.iklogos!=null){var inc2=t.dataset.iklogos!=null,il3=inc2?bk.inc[+t.dataset.iklogos]:bk.items[+t.dataset.bklogos],me=bk;
-    runCands("bkLC",il3.ed.name,il3.s.cur,function(r){if(bk!==me)return;if(il3.logo&&il3.logo.id&&il3.logo.id!==r.id)bkDropLogo(il3.logo.id);il3.logo=r;paintBank();},il3.ed.label||"",il3.s.tpl?il3.s.tpl[4]||"":"");return;}
-  if(t.dataset.bklogox!=null){var il=bk.items[+t.dataset.bklogox];if(il.logo){bkDropLogo(il.logo.id);il.logo=null;}paintBank();return;}
-  if(t.dataset.iklogox!=null){var il2=bk.inc[+t.dataset.iklogox];if(il2.logo){bkDropLogo(il2.logo.id);il2.logo=null;}paintBank();return;}
-  if(t.dataset.bkh!=null||t.dataset.ikh!=null){var inc=t.dataset.ikh!=null,ed=t.closest(".bked"),it2=inc?bk.inc[+ed.dataset.iki]:bk.items[+ed.dataset.bki],v=inc?t.dataset.ikh:t.dataset.bkh;
-    it2.ed.holders=v==="*"?(state.settings.holders||["Ich"]).slice():[v];it2.on=true;
-    ed.querySelectorAll(inc?"[data-ikh]":"[data-bkh]").forEach(function(x){x.setAttribute("aria-pressed",x===t);});return;}
-  if(t.dataset.bkign!=null){var it3=bk.items[+t.dataset.bkign],k=bankIgnKey(it3.s),L=state.settings.bankIgn||[];
-    if(L.indexOf(k)<0){L.push(k);state.settings.bankIgn=L;saveSettings();}
-    it3.s.ignored=true;it3.on=false;bk.open=-1;paintBank();toast("«"+it3.ed.name+"» wird nicht mehr vorgeschlagen");return;}
   if(t.dataset.bkall!=null){var hv=t.dataset.bkall;[].concat(bk.items,bk.inc).forEach(function(x){x.ed.holders=[hv];});paintBank();return;}
   if(t.dataset.bkshow!=null){bk.showIgn=!bk.showIgn;paintBank();return;}
   if(t.dataset.bkknown!=null){bk.showKnown=!bk.showKnown;paintBank();return;}
 });
-/* Eingaben direkt ins Modell (Feld behält den Fokus); die Liste wird beim Zurückgehen neu gezeichnet */
-function bkInput(e){
-  if(!bk)return;var f=e.target.dataset.bke,fi=e.target.dataset.ike;if(!f&&!fi)return;
-  var ed=e.target.closest(".bked"),it=f?bk.items[+ed.dataset.bki]:bk.inc[+ed.dataset.iki],v=e.target.value,k=f||fi;
-  if(k==="amount"){var n=parseAmt(v);if(n==null||n<0)return;it.ed.amount=Math.round(n*100)/100;}
-  else if(k==="cycle")it.ed.cycle=+v;
-  else if(k==="name"){if(!v.trim())return;it.ed.name=v.trim();}
-  else if(k==="label")it.ed.label=v.trim();
-  else it.ed[k]=v;
-  it.on=true;
-  if(k==="cat"||k==="label"||k==="name"){var hd=ed.querySelector(".bkhead");if(hd)hd.outerHTML='<div class="bkhead">'+bkMark(it,!!fi)+'<span><b>'+esc(fi?(it.ed.label||it.ed.name):bkTitle(it))+'</b><small>'+esc((fi?"Einnahme · ":"")+it.ed.cat)+'</small></span></div>';var lm=ed.querySelector(".bklogo2 .mark");if(lm)lm.outerHTML=bkMark(it,!!fi);}
-}
-document.getElementById("bkBody").addEventListener("input",bkInput);
-document.getElementById("bkBody").addEventListener("change",bkInput);
 document.getElementById("bkGo").addEventListener("click",function(){
   if(!bk)return;var mode=this.dataset.mode;
-  if(mode==="back"){bk.open=-1;bk.openInc=-1;paintBank();document.getElementById("bkBody").scrollTop=bk.scroll||0;return;}
   if(mode==="done"){bkRun++;bkCancel();closeSheetEl("sheetBank");return;}
   if(mode==="next"){var st=bkSteps();bk.step=st[st.indexOf(bk.step)+1]||st[st.length-1];paintBank();document.getElementById("bkBody").scrollTop=0;return;}
   var n=0,p=0,ni=0,stamp=uid();
@@ -9805,14 +9747,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
       if(it.logo)bkDropLogo(it.logo.id);n++;return;}
     if(it.over){var co=bkContractOf(it);if(!bkOverTerm(co)&&(it.term==="1"||it.term==="3")){co.notice=+it.term;co.noticeU="m";co.cancTerm="";}else if(!bkOverTerm(co)&&it.term==="x"){co.noCancel=true;}
       state.contracts[stamp+k]=co;n++;return;}
-    var s=Object.assign({},it.s,{name:it.ed.name,cycle:it.ed.cycle,cat:it.ed.cat,due:it.ed.due||it.s.due});
-    /* Betrag geändert: bei erkannter Preisänderung ist es der neue Preis, sonst der einzige */
-    if(s.change){if(Math.abs(it.ed.amount-s.change.amount)>0.004){if(Math.abs(it.ed.amount-s.change.prev)<0.005)s.change=null;else s.change=Object.assign({},s.change,{amount:it.ed.amount});}}
-    s.amount=it.ed.amount;
-    var c=bankToContract(s,it.ed.holders);c.label=it.ed.label||"";
-    if(it.logo&&it.logo.id){c.logoId=it.logo.id;c.logoBg=it.logo.bg||"";}
-    /* Schnellwahl Kündigungsfrist (Schritt 3): jederzeit kündbar mit 1 bzw. 3 Monaten Frist, oder nicht kündbar */
-    if(!bkHasTermBase(it)){if(it.term==="1"||it.term==="3"){c.notice=+it.term;c.noticeU="m";c.cancTerm="";}else if(it.term==="x"){c.noCancel=true;c.mand=false;c.cancTerm="";}}
+    var c=bkContractOf(it);/* gleiche Umwandlung wie beim Öffnen des Vorschlags (Betrag, Preisänderung, Logo, Schnellwahl Frist) */
     if(it.ed.name!==it.s.name||it.ed.cat!==it.s.cat){var AL=state.settings.bankAlias||{};AL[bankIgnKey(it.s)]={n:it.ed.name,c:it.ed.cat};state.settings.bankAlias=AL;}
     state.contracts[stamp+k]=c;n++;
   });
