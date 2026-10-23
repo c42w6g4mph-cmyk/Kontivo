@@ -1837,7 +1837,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v296</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v297</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8434,7 +8434,7 @@ function csvParse(t){
 /* Kündigungsweg aus freiem Text auf die vier Formularwerte abbilden (sonst unverändert) */
 function csvVia(x){var n=csvNorm(x);if(!n)return "";if(/einschreib|registered|brief|post|letter/.test(n))return "Brief";
   if(/mail/.test(n))return "E-Mail";if(/online|konto|portal|web|app|link/.test(n))return "Online / Kundenkonto";return String(x).trim();}
-function csvNorm(x){return String(x||"").toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]/g,"");}
+function csvNorm(x){return String(x||"").toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");}
 var CSVMAP={partner:["partner","anbieter","vertragspartner","firma","unternehmen","provider","company","merchant","name","vertragsname"],
   label:["bezeichnung","vertrag","titel","label","beschreibung","abo","service","produkt","abonnement","name"],
   cat:["kategorie","category","art"],amount:["betrag","preis","kosten","amount","price","cost","costs","beitrag","monatsbetrag","zahlung","payment"],
@@ -8599,6 +8599,11 @@ function bankDate(s){
     if(mm>12&&dd<=12&&s.indexOf("/")>0){var x=dd;dd=mm;mm=x;}   /* US-Format MM/TT/JJJJ */
     if(mm>12||dd>31||!mm||!dd)return "";return iso(new Date(y,mm-1,dd));}
   if((m=s.match(/^(\d{4})(\d{2})(\d{2})$/)))return iso(new Date(+m[1],+m[2]-1,+m[3]));
+  /* weitere Formate (23.10.2026): 2025/10/03, 2025.10.03, «3. Okt. 2025», «3 October 2025», «Oct 3, 2025» */
+  if((m=s.match(/^(\d{4})[\/.](\d{1,2})[\/.](\d{1,2})\b/)))return +m[2]>=1&&+m[2]<=12&&+m[3]>=1&&+m[3]<=31?iso(new Date(+m[1],+m[2]-1,+m[3])):"";
+  var MN={jan:1,feb:2,mar:3,mrz:3,maer:3,apr:4,mai:5,may:5,jun:6,jul:7,aug:8,sep:9,okt:10,oct:10,nov:11,dez:12,dec:12},mk=function(w){var k=lnorm(w).replace(/[^a-z]/g,"");return MN[k.slice(0,4)]||MN[k.slice(0,3)]||0;};
+  if((m=s.match(/^(\d{1,2})\.?\s+([A-Za-zÄÖÜäöü]{3,})\.?\s+(\d{4})\b/))&&mk(m[2])){var mo=mk(m[2]);return +m[1]<=31?iso(new Date(+m[3],mo-1,+m[1])):"";}
+  if((m=s.match(/^([A-Za-z]{3,})\.?\s+(\d{1,2}),?\s+(\d{4})\b/))&&mk(m[1])){var mo2=mk(m[1]);return +m[2]<=31?iso(new Date(+m[3],mo2-1,+m[2])):"";}
   return "";
 }
 /* Betrag: «-1'850.00», «1.180,00-», «CHF -49.90», «−12,99 €» */
@@ -8618,17 +8623,17 @@ function bankNum(s,dec){
 }
 /* ---- CSV ---- */
 var BKCOL={
-  date:["buchungsdatum","buchungstag","completeddate","datumdesabschlusses","abschlussdatum","buchung","bookingdate","bookedat","datum","date","transactiondate","transaktionsdatum","starteddate","startdatum","datumdesbeginns","valutadatum","valuta","wertstellung","wertstellungsdatum","valuedate","wert"],
+  date:["buchungsdatum","buchungstag","completeddate","datumdesabschlusses","abschlussdatum","buchung","bookingdate","bookedat","datum","date","transactiondate","transaktionsdatum","starteddate","startdatum","datumdesbeginns","valutadatum","valuta","wertstellung","wertstellungsdatum","valuedate","wert","data","datacontabile","datadiregistrazione","datevaleur","datedecomptabilisation"],
   amt:["betrag","umsatz","amount","transaktionsbetrag","nettobetrag","paymentamount","buchungsbetrag","betraginchf","betragineur","creditdebitamount","betragchf","betrageur","umsatzineur","umsatzinchf","betraginchf","betragineur","montant","importo","betrag€","einzelbetrag"],
-  deb:["belastung","lastschrift","soll","debit","ausgang","lastschriftinchf","belastungchf","belastungeur","belastungen","sollbetrag","debitamount","debit chf"],
-  cre:["gutschrift","haben","credit","eingang","gutschriftinchf","gutschriftchf","gutschrifteur","gutschriften","habenbetrag","creditamount"],
+  deb:["belastung","lastschrift","soll","debit","ausgang","addebito","addebitoinchf","lastschriftinchf","belastungchf","belastungeur","belastungen","sollbetrag","debitamount","debit chf"],
+  cre:["gutschrift","haben","credit","eingang","accredito","accreditoinchf","gutschriftinchf","gutschriftchf","gutschrifteur","gutschriften","habenbetrag","creditamount"],
   cur:["waehrung","whg","whr","currency","devise","valuta waehrung"],
   name:["auftraggeberzahlungsempfaenger","empfaengerzahlungspflichtiger","senderempfaenger","auftraggeberbeguenstigter","nameauftraggeberbeguenstigter","senderorrecipient","counterpartyname","activityname","empfaenger1","beguenstigterzahlungspflichtiger","auftraggeberempfaenger","namezahlungsbeteiligter","partnername","beguenstigterauftraggeber","begunstigterauftraggeber",
     "empfaengerauftraggeber","zahlungsbeteiligter","gegenpartei","payee","merchant","haendler","name","counterparty","beschreibung1","empfaenger"],
   payee:["zahlungsempfaengerin","zahlungsempfaenger","empfaengerin","beguenstigter","beguenstigte","payeename","recipient"],
   payer:["zahlungspflichtiger","zahlungspflichtigein","zahlungspflichtige","auftraggeber","auftraggeberin","payername","sender"],
   text:["verwendungszweck","vorgangverwendungszweck","transaktionsbeschreibung","transaktionsbeschreibungzusatz","buchungsdetails","reference","paymentreference","erscheintaufihrerabrechnungals","avisierungstext","buchungstext","beschreibung2","beschreibung3","beschreibung","description","text","zahlungszweck",
-    "details","mitteilung","subject","umsatzart","vorgang","texte de notification","libelle"],
+    "details","mitteilung","subject","umsatzart","vorgang","texte de notification","libelle","testo di avviso","descrizione","causale","notification text"],
   cred:["glaeubigerid","glaubigerid","creditorid","glaeubigeridentifikation"],
   mref:["mandatsreferenz","mandatereference","mandatereferenz","mandatsref","mandateid","mandatsid"],
   sh:["sollhaben","sh","dc","debitcredit","sollhabenkennzeichen","kennzeichen","belastunggutschrift","gutschriftbelastung","debitkredit"],
@@ -8636,7 +8641,7 @@ var BKCOL={
 };
 function bankHead(cells){
   var h=cells.map(function(x){return csvNorm(x);}),col={},used={};
-  var bad=/ursprung|original|saldo|balance|fremd|gebuehr|auslagen|kurs|rate|detail|nachbuchung|einzel|gutschriftbelastung|belastunggutschrift|sollhaben|debitkredit/;
+  var bad=/ursprung|original|saldo|solde|balance|fremd|gebuehr|auslagen|kurs|rate|detail|nachbuchung|einzel|gutschriftbelastung|belastunggutschrift|sollhaben|debitkredit|id$|nr$|nummer|number|karte|card|referenz|reference|mandat|datum|date/;
   var pick=function(k,loose){var l=BKCOL[k];
     for(var a=0;a<l.length;a++)for(var i=0;i<h.length;i++){if(used[i]||!h[i])continue;
       if(h[i]===csvNorm(l[a])||(loose&&h[i].indexOf(csvNorm(l[a]))===0&&!bad.test(h[i]))){used[i]=1;return i;}}
@@ -8653,7 +8658,7 @@ function bankHead(cells){
 }
 function bankBankOf(h){
   var s="|"+h.map(function(x){return csvNorm(x);}).join("|")+"|",has=function(x){return s.indexOf("|"+x+"|")>=0;};
-  if(has("avisierungstext"))return "PostFinance";
+  if(has("avisierungstext")||has("textedenotification")||has("testodiavviso")||has("notificationtext"))return "PostFinance";
   if(has("beschreibung1")&&has("abschlussdatum"))return "UBS";
   if(has("zkbreferenz"))return "ZKB";
   if(has("bookedat"))return "Raiffeisen";
@@ -8671,7 +8676,7 @@ function bankBankOf(h){
 var BKBADSTATE=/revert|declin|fail|pending|vorgemerkt|vormerkung|cancel|ausstehend|abgelehnt|rueckgaengig|rückgängig|zurueck|zurück|storniert|fehlgeschlagen|zurückerstattet|in bearbeitung/i;
 var BKBADTYPE=/exchange|umtausch|wechsel|top.?up|aufladung|aufgeladen|einzahlung|^atm$|geldautomat|bargeld|barauszahlung|auszahlung gaa|cashback|bancomat/i;
 var BKBADPROD=/saving|sparen|spar|deposit|pocket|vault|tresor|invest|crypto|krypto/i;
-var bkLastHead="";
+var bkLastHead="",bkLastDiag="";/* Grund, wenn nichts gelesen wurde: nohead | date | empty (für die Fehlermeldung) */
 /* Zahlungsart: dd = Lastschrift/eBill (starkes Vertragssignal), so = Dauerauftrag, card = Karte, tr = Überweisung, "" = unbekannt.
    gvc = MT940-Geschäftsvorfallcode (DK-Liste), sonst Stichwörter aus Typ-Spalte/Buchungstext. */
 function bankKind(gvc,txt){
@@ -8708,7 +8713,7 @@ function bankCsv(txt){
   for(var di=0;di<dls.length&&hi<0;di++){var rs=csvParse("sep="+dls[di]+"\n"+body);if(!rows)rows=rs;
     for(var r=0;r<Math.min(rs.length,60);r++){var c=bankHead(rs[r]);if(c.ok){hi=r;col=c;rows=rs;col.head=rs[r];break;}}}
   if(hi<0){col=bankGuessCols(dls,body);if(col){rows=col.rows;hi=-1;}}
-  if(!col){var fr=rows.filter(function(r){return r.join("").trim();})[0]||[];bkLastHead=fr.slice(0,10).join(" · ").slice(0,160);return null;}
+  if(!col){var fr=rows.filter(function(r){return r.join("").trim();})[0]||[];bkLastHead=fr.slice(0,10).join(" · ").slice(0,160);bkLastDiag="nohead";return null;}
   var g=function(row,i){return i>=0&&row[i]!=null?String(row[i]).replace(/^"+|"+$/g,"").trim():"";},tx=[],pos=0,neg=0,data=rows.slice(hi+1);
   /* Dezimaltrennzeichen aus den Beträgen der Datei */
   var dc=0,dd=0;data.slice(0,300).forEach(function(row){[col.amt,col.deb,col.cre,col.sub].forEach(function(i){var v=g(row,i);if(/,\d{1,2}(\D*)$/.test(v))dc++;else if(/\.\d{1,3}(\D*)$/.test(v))dd++;});});
@@ -8726,7 +8731,8 @@ function bankCsv(txt){
     if(!d){
       /* Einzelposten einer Sammelbuchung (UBS «Einzelbetrag», ZKB «Betrag Detail», TKB «Betrag Einzelzahlung», LUKB ohne Datum) */
       var last=bankParent(tx),sv=bankNum(g(row,col.sub),dec);if(sv==null)sv=bankNum(g(row,col.deb),dec);if(sv==null)sv=bankNum(g(row,col.amt),dec);
-      if(last&&sv&&(g(row,col.sub)||/sammel|zahlungen|collective/i.test(last.text+" "+last.name))&&row.join("").trim()){
+      var foot=!g(row,col.sub)&&/saldo|kontostand|\btotal\b|summe|endbetrag|anfangsbestand|schlussbestand|balance/i.test(row.join(" "));
+      if(last&&sv&&!foot&&Math.abs(sv)<=Math.abs(last.a)+0.005&&(g(row,col.sub)||/sammel|zahlungen|collective/i.test(last.text+" "+last.name))&&row.join("").trim()){
         var sn=g(row,nmCol),sm=bankSubMemo(text);if(!sn&&sm){sn=sm.name;}
         last.coll=true;tx.push({d:last.d,a:(last.a<0?-1:1)*Math.abs(sv),cur:last.cur,name:sn,memo:sm?sm.memo:"",text:text,cred:"",mref:"",kind:last.kind,sub:true});}
       return;}   /* sonst Fusszeilen wie «Kontostand;…» */
@@ -8754,11 +8760,12 @@ function bankCsv(txt){
   var negs=tx.filter(function(t){return t.a<0;});
   /* Umkehr nur, wenn die Datei nach Kreditkarte aussieht (Spalte «Karte», Kopfzeilen mit Kartenanbieter) – sonst würde ein Konto mit vielen
      Gutschriften (Mietkonto) umgedreht und Mieteingänge erschienen als Fixkosten (23.10.2026) */
-  var cardHint=col.card||/kreditkart|credit ?card|karteninhaber|kartennummer|card ?number|kartenkonto|viseca|swisscard|cembra|cornercard|corner banca|american express|\bamex\b|mastercard|\bvisa\b|miles ?(and|&) ?more|barclaycard|advanzia|hanseatic|erscheint auf ihrer abrechnung|\bcardid\b|card ?id\b/i.test((col.head||[]).join(" ")+" "+preRows.map(function(r){return r.join(" ");}).join(" "));
+  var hasSaldo=(col.head||[]).some(function(x){return /saldo|balance|kontostand/.test(csvNorm(x));});
+  var cardHint=(col.card&&!hasSaldo)||/kreditkart|credit ?card|karteninhaber|kartennummer|card ?number|kartenkonto|viseca|swisscard|cembra|cornercard|corner banca|american express|\bamex\b|mastercard|\bvisa\b|miles ?(and|&) ?more|barclaycard|advanzia|hanseatic|erscheint auf ihrer abrechnung|\bcardid\b|card ?id\b/i.test((col.head||[]).join(" ")+" "+preRows.map(function(r){return r.join(" ");}).join(" "));
   if(cardHint&&pos>neg*3&&negs.length&&negs.filter(function(t){return /zahlung|payment|dank|thank|gutschrift|ausgleich|lastschrift|einzug|erhalten/i.test(t.name+" "+t.text);}).length>=negs.length*0.6)
     tx.forEach(function(t){t.a=-t.a;});
-  else if(col.card&&col.deb<0&&pos>neg*4)tx.forEach(function(t){t.a=-t.a;});
-  var hc=(col.head||[]).join("|"),cur=/\bCHF\b/i.test(hc)?"CHF":(/EUR|€/i.test(hc)?"EUR":"");
+  else if(col.card&&!hasSaldo&&col.deb<0&&pos>neg*4)tx.forEach(function(t){t.a=-t.a;});
+  var hc=(col.head||[]).join("|"),cur=/\bCHF\b/i.test(hc)?"CHF":(/\bEUR\b|€/i.test(hc)?"EUR":"");
   if(!cur){var nC=(body.match(/\bCHF\b/g)||[]).length,nE=(body.match(/\bEUR\b|€/g)||[]).length;
     if(nC!==nE)cur=nC>nE?"CHF":"EUR";
     else{var iC=(body.match(/\b(?:CH|LI)\d{2}[ \d]{4}/g)||[]).length,iE=(body.match(/\b(?:DE|AT|LU|NL|FR|IT|ES|BE|IE)\d{2}[ \dA-Z]{4}/g)||[]).length;
@@ -8770,7 +8777,11 @@ function bankCsv(txt){
       var m=lab.match(/(?:konto)?inhaber\s*:\s*(.+)/i);if(m){owner=m[1].trim();return true;}}return false;});
   if(!owner&&col.name2>=0&&col.name>=0){var oc=nmCol===col.name2?col.name:col.name2,ov={};data.slice(0,300).forEach(function(r){var v=g(r,oc);if(v)ov[v]=(ov[v]||0)+1;});
     var top=Object.keys(ov).sort(function(a,b){return ov[b]-ov[a];})[0];if(top&&ov[top]>=Math.min(data.length,300)*0.6)owner=top;}
-  return {fmt:"CSV",bank:col.guess?"":bankBankOf(col.head||[]),tx:tx,owner:owner};
+  if(!tx.length){var dr=data.filter(function(r){return g(r,col.date);});bkLastDiag=dr.length&&!dr.slice(0,20).some(function(r){return bankDate(g(r,col.date));})?"date":"empty";}
+  /* eigenes Konto (für das Zusammenführen mehrerer Dateien): IBAN im Vorspann oder Spalte «Auftragskonto» */
+  var acct="",pre=preRows.map(function(r){return r.join(" ");}).join(" "),mI=pre.match(/\b([A-Z]{2}\d{2}(?: ?[A-Z0-9]){11,30})\b/);if(mI)acct=mI[1].replace(/ /g,"");
+  if(!acct){var ak=(col.head||[]).map(csvNorm).indexOf("auftragskonto");if(ak>=0&&data[0])acct=g(data[0],ak).replace(/ /g,"");}
+  return {fmt:"CSV",bank:col.guess?"":bankBankOf(col.head||[]),tx:tx,owner:owner,acct:acct};
 }
 /* letzte Buchung, die selbst kein Einzelposten ist (Sammelbuchung mit mehreren Posten) */
 function bankParent(tx){for(var i=tx.length-1;i>=0;i--)if(!tx[i].sub)return tx[i];return null;}
@@ -8829,7 +8840,8 @@ function bankCamt(txt){
   });
   var ver=(txt.match(/camt\.05[234]/)||["camt"])[0];
   var owner=((one(one(one(doc,"Acct"),"Ownr"),"Nm"))||{}).textContent||"";
-  return {fmt:ver,bank:"",tx:tx,owner:owner.trim()};
+  var acct=((one(one(one(doc,"Acct"),"Id"),"IBAN"))||{}).textContent||"";
+  return {fmt:ver,bank:"",tx:tx,owner:owner.trim(),acct:acct.trim()};
 }
 /* ---- MT940 ---- */
 function bankMt940(txt){
@@ -8853,10 +8865,11 @@ function bankMt940(txt){
     tx.push({d:d,a:sg*v,cur:cur,name:((f["32"]||"")+(f["33"]||"")).trim(),text:svwz.trim(),cred:cred,mref:mref,kind:bankKind(gvc,(f["00"]||"")+" "+svwz)||(cred?"dd":"")});
     cur=nextCur;
   });
-  return {fmt:"MT940",bank:"",tx:tx};
+  var m25=txt.match(/(?:^|\n):25:([^\r\n]+)/);
+  return {fmt:"MT940",bank:"",tx:tx,acct:m25?m25[1].replace(/\s/g,""):""};
 }
 function bankRead(buf){
-  var txt=typeof buf==="string"?buf:bankDecode(buf),r=null;bkLastHead="";
+  var txt=typeof buf==="string"?buf:bankDecode(buf),r=null;bkLastHead="";bkLastDiag="";
   if(/<\s*(\w+:)?Document[\s>]/.test(txt)&&/camt\.05[234]/.test(txt))r=bankCamt(txt);
   else if(/(^|\n):20:/.test(txt)&&/\n:61:/.test(txt))r=bankMt940(txt);
   else r=bankCsv(txt);
@@ -9629,18 +9642,19 @@ function bkDropLogo(id){var used=false;[state.contracts,state.incomes,state.vars
 /* mehrere Dateien auf einmal (Konto, Kreditkarte, zweites Konto …) → eine gemeinsame Vorschlagsliste */
 function bankMerge(rs){
   if(rs.length===1)return rs[0];
-  var tx=[],seen={};
+  /* gleiche Buchung in zwei Exporten desselben Kontos (überlappende Zeiträume) nur einmal. Konto (IBAN) im Schlüssel, damit zwei Konten
+     derselben Bank sich nicht gegenseitig Buchungen wegnehmen; gleiche Buchung mehrfach (2× 45.– am selben Tag): die Datei mit den meisten zählt */
+  var tx=[],by={};
   rs.forEach(function(r,fi){r.tx.forEach(function(t){
-    /* gleiche Buchung in zwei Exporten desselben Kontos (überlappende Zeiträume) nur einmal */
-    var k=(r.bank||r.fmt)+"|"+t.d+"|"+t.a+"|"+lnorm(t.name+" "+t.text).slice(0,60);
-    if(seen[k]!=null&&seen[k]!==fi)return;seen[k]=fi;tx.push(t);});});
+    var k=(r.acct||r.bank||r.fmt)+"|"+t.d+"|"+t.a+"|"+lnorm(t.name+" "+t.text).slice(0,60),e=by[k]=by[k]||{};(e[fi]=e[fi]||[]).push(t);});});
+  Object.keys(by).forEach(function(k){var e=by[k],best=null;Object.keys(e).forEach(function(fi){if(!best||e[fi].length>best.length)best=e[fi];});tx=tx.concat(best);});
   tx.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
   var ow=rs.map(function(r){return r.owner||"";}).filter(Boolean);
   return {fmt:rs.map(function(r){return r.fmt;}).join(", "),bank:"",tx:tx,from:tx[0].d,to:tx[tx.length-1].d,files:rs.length,owner:ow.length===rs.length&&ow.every(function(o){return lnorm(o)===lnorm(ow[0]);})?ow[0]:""};
 }
 /* Excel (.xlsx) direkt lesen: ZIP entpacken (DecompressionStream, auf dem Gerät), erstes Tabellenblatt → CSV-Text für bankRead.
    Datumszellen sind Zahlen (Tage seit 1899-12-30) → TT.MM.JJJJ in Spalten, deren Überschrift nach Datum klingt. SwiftUI: CoreXLSX o.ä. */
-async function xlsxText(buf){var u=new Uint8Array(buf),dv=new DataView(buf),e=-1;
+async function zipOpen(buf){var u=new Uint8Array(buf),dv=new DataView(buf),e=-1;
   for(var i=u.length-22;i>=Math.max(0,u.length-70000);i--)if(dv.getUint32(i,true)===0x06054b50){e=i;break;}
   if(e<0)throw new Error("zip");var n=dv.getUint16(e+10,true),p=dv.getUint32(e+16,true),F={},td=new TextDecoder("utf-8");
   for(var k=0;k<n;k++){var m=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
@@ -9648,28 +9662,44 @@ async function xlsxText(buf){var u=new Uint8Array(buf),dv=new DataView(buf),e=-1
   var get=async function(name){var f=F[name];if(!f)return "";var o=f.lo+30+dv.getUint16(f.lo+26,true)+dv.getUint16(f.lo+28,true),d=u.subarray(o,o+f.cs);
     if(f.m===0)return td.decode(d);if(f.m!==8||typeof DecompressionStream==="undefined")throw new Error("inflate");
     return await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();};
+  return {names:Object.keys(F),get:get};}
+/* xlsx → je Tabellenblatt ein CSV-Text (alle Blätter, Reihenfolge wie in der Mappe); Kopfzeile = erste Zeile, die bankHead erkennt (Titelzeile davor ok) */
+async function xlsxTexts(buf){var Z=await zipOpen(buf),get=Z.get;
   var x=function(t){return t.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&#(\d+);/g,function(_,c){return String.fromCharCode(+c);}).replace(/&amp;/g,"&");};
   var ss=[],sx=await get("xl/sharedStrings.xml");(sx.match(/<si>[\s\S]*?<\/si>/g)||[]).forEach(function(si){ss.push(x((si.match(/<t[^>]*>[\s\S]*?<\/t>/g)||[]).map(function(t){return t.replace(/<[^>]+>/g,"");}).join("")));});
-  var sh=Object.keys(F).filter(function(k){return /^xl\/worksheets\/sheet\d+\.xml$/.test(k);}).sort(function(a,b){return parseInt(a.replace(/\D/g,""))-parseInt(b.replace(/\D/g,""));})[0];
-  if(!sh)throw new Error("sheet");var xml=await get(sh),rows=[];
+  var shs=Z.names.filter(function(k){return /^xl\/worksheets\/sheet\d+\.xml$/.test(k);}).sort(function(a,b){return parseInt(a.replace(/\D/g,""))-parseInt(b.replace(/\D/g,""));});
+  if(!shs.length)throw new Error("sheet");var outT=[];
+  for(var si=0;si<shs.length;si++){var xml=await get(shs[si]),rows=[];
   var col=function(r){var c=r.replace(/\d/g,""),v=0;for(var i=0;i<c.length;i++)v=v*26+c.charCodeAt(i)-64;return v-1;};
   (xml.match(/<row[^>]*>[\s\S]*?<\/row>|<row[^>]*\/>/g)||[]).forEach(function(rw){var row=[];
     (rw.match(/<c [^>]*?(\/>|>[\s\S]*?<\/c>)/g)||[]).forEach(function(c){var r=(/ r="([A-Z]+\d+)"/.exec(c)||[])[1],t=(/ t="(\w+)"/.exec(c)||[])[1]||"n",v=(/<v>([\s\S]*?)<\/v>/.exec(c)||[])[1];
       var val=t==="s"?ss[+v]||"":t==="inlineStr"?x((c.match(/<t[^>]*>([\s\S]*?)<\/t>/)||[])[1]||""):x(v||"");if(r)row[col(r)]=val;else row.push(val);});
     rows.push(row);});
-  var hi=rows.findIndex(function(r){return r.some(function(v){return /buchung|datum|valuta|date/i.test(v||"");});}),dc={};
+  var hi=rows.findIndex(function(r){return r.length>=3&&bankHead(r.map(function(v){return v==null?"":String(v);})).ok;});
+  if(hi<0)hi=rows.findIndex(function(r){return r.some(function(v){return /buchung|datum|valuta|date/i.test(v||"");});});var dc={};
   if(hi>=0)rows[hi].forEach(function(v,i){if(/datum|tag|valuta|wert$|^wert|date/i.test(v||""))dc[i]=1;});
-  return rows.map(function(r,ri){var out=[];for(var i=0;i<r.length;i++){var v=r[i]==null?"":String(r[i]);
+  outT.push(rows.map(function(r,ri){var out=[];for(var i=0;i<r.length;i++){var v=r[i]==null?"":String(r[i]);
       if(ri>hi&&dc[i]&&/^\d{5}(\.\d+)?$/.test(v)){var d=new Date(Date.UTC(1899,11,30)+Math.floor(+v)*864e5);v=String(d.getUTCDate()).padStart(2,"0")+"."+String(d.getUTCMonth()+1).padStart(2,"0")+"."+d.getUTCFullYear();}
-      out.push(/[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v);}return out.join(";");}).join("\n");}
+      out.push(/[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v);}return out.join(";");}).join("\n"));}
+  return outT;}
+/* ZIP-Datei: Excel (alle Blätter), camt-Sammlung (CH-Banken liefern camt.053/054 gezippt) oder Apple Numbers → Ergebnis + Grund */
+async function bankZip(buf){var Z=await zipOpen(buf);
+  if(Z.names.some(function(n){return /^xl\/workbook\.xml$/.test(n);})){var ts=await xlsxTexts(buf),d0="";
+    for(var i=0;i<ts.length;i++){var r=bankRead(ts[i]);if(r)return {r:r};if(!d0||bkLastDiag==="date")d0=bkLastDiag;}return {r:null,diag:d0||"nohead",xlsx:true};}
+  if(Z.names.some(function(n){return /^index\/|\.iwa$/i.test(n);}))return {r:null,diag:"numbers"};
+  var xs=Z.names.filter(function(n){return /\.(xml|txt|sta|940)$/i.test(n)&&!/__macosx/i.test(n);}),rs=[];
+  for(var j=0;j<xs.length&&j<200;j++){try{var r2=bankRead(await Z.get(xs[j]));if(r2)rs.push(r2);}catch(e){}}
+  if(rs.length)return {r:rs.length===1?rs[0]:bankMerge(rs)};
+  return {r:null,diag:"zip"};}
 function bankReadFile(f){return new Promise(function(res){if(f.size>20e6){res({f:f,r:null,head:"",big:true});return;}var rd=new FileReader();
   rd.onload=async function(){var r=null,b=new Uint8Array(rd.result,0,Math.min(8,rd.result.byteLength));
-    if(b[0]===0x50&&b[1]===0x4B&&b[2]===3&&b[3]===4){try{r=bankRead(await xlsxText(rd.result));}catch(e){r=null;}res({f:f,r:r,head:r?"":bkLastHead,xlsx:true});return;}
+    if(b[0]===0x50&&b[1]===0x4B&&b[2]===3&&b[3]===4){var z=null;try{z=await bankZip(rd.result);}catch(e){z={r:null,diag:"zip"};}res({f:f,r:z.r,head:"",diag:z.diag||"",xlsx:!!z.xlsx});return;}
+    if(b[0]===0x25&&b[1]===0x50&&b[2]===0x44&&b[3]===0x46){res({f:f,r:null,head:"",diag:"pdf"});return;}
     if(b[0]===0xD0&&b[1]===0xCF&&b[2]===0x11&&b[3]===0xE0){res({f:f,r:null,head:"",xls:true});return;}
     try{r=bankRead(rd.result);}catch(e){r=null;}
     /* Format erkannt (Kopfzeile mit Datum + Betrag), aber keine Buchungen: eigene Meldung statt «nicht erkannt» */
     var em=false;if(!r){try{var tx0=bankDecode(rd.result);em=/(buchungs?tag|buchungsdatum|datum|valuta|date)/i.test(tx0)&&/(betrag|soll|haben|belastung|gutschrift|amount)/i.test(tx0);}catch(e){}}
-    res({f:f,r:r,head:bkLastHead,empty:em});};
+    res({f:f,r:r,head:bkLastHead,empty:em&&bkLastDiag!=="date",diag:r?"":bkLastDiag});};
   rd.onerror=function(){res({f:f,r:null,head:""});};rd.readAsArrayBuffer(f);});}
 /* Ladeanzeige: Fenster sofort öffnen, Schritte nacheinander abhaken (Variante 2, 09.10.2026) */
 var bkRun=0;
@@ -9703,11 +9733,16 @@ document.getElementById("bankFile").addEventListener("change",async function(ev)
   /* Nicht lesbar (23.10.2026): kurze Meldung mit Dateikarte und direktem «Andere Datei wählen». SwiftUI: .alert bzw. Sheet mit FileCard + .fileImporter */
   if(!ok.length){closeSheetEl("sheetBank");
     var allEmpty=bad.every(function(x){return x.empty;}),one=bad.length===1,b0=bad[0],
-      sub=function(x){return x.empty?"Keine Buchungen im gewählten Zeitraum":x.xls?"Ältere Excel-Datei (.xls)":"Keine Buchungen gefunden";},
+      sub=function(x){return x.big?"Zu gross (über 20 MB)":x.diag==="pdf"?"PDF wird nicht unterstützt":x.diag==="numbers"?"Apple-Numbers-Datei":x.diag==="date"?"Datumsformat nicht erkannt":
+        x.diag==="zip"?"ZIP ohne Kontoauszug":x.empty?"Keine Buchungen im gewählten Zeitraum":x.xls?"Ältere Excel-Datei (.xls)":"Keine Buchungen gefunden";},
       cards='<div class="axfl">'+bad.slice(0,3).map(function(x){return '<div class="axf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg><div><b>'+esc(x.f.name)+"</b><small>"+esc(sub(x))+"</small></div></div>";}).join("")+
         (bad.length>3?'<div class="axmore">und '+(bad.length-3)+" weitere</div>":"")+"</div>",
       txt=allEmpty?"Wähle beim Export einen Zeitraum mit Buchungen, am besten die letzten 12 Monate.":
         one&&b0.xls?"Speichere sie als .xlsx oder exportiere die Umsätze im E-Banking als CSV.":
+        one&&b0.diag==="pdf"?"Exportiere die Umsätze im E-Banking als CSV, Excel oder camt.053.":
+        one&&b0.diag==="numbers"?"Öffne sie in Numbers und wähle Ablage → Exportieren → CSV.":
+        one&&b0.diag==="date"?"Kontivo kennt das Datum nicht. Exportiere mit Datum im Format TT.MM.JJJJ oder JJJJ-MM-TT.":
+        one&&b0.big?"Wähle einen kürzeren Zeitraum, z.B. die letzten 12 Monate.":
         one?"Diese Datei enthält keine Buchungen mit Datum und Betrag.":"Diese Dateien enthalten keine Buchungen mit Datum und Betrag.";
     await ask({title:allEmpty?"Keine Buchungen":one?"Kein Kontoauszug":"Keine Kontoauszüge",html:cards+'<p class="note axt">'+esc(txt)+"</p>",
       ok:"Andere Datei wählen",no:"Abbrechen",onOk:function(){document.getElementById("bankFile").click();}});return;}
