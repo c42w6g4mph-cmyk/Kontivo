@@ -1837,7 +1837,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v292</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v293</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8997,6 +8997,18 @@ function bankCat(s){
 /* ---- Wiederkehrende Belastungen finden ---- */
 function bankCycle(days){var C=[[1,25,36],[2,55,66],[3,80,105],[6,170,195],[12,350,380]];
   for(var i=0;i<C.length;i++)if(days>=C[i][1]&&days<=C[i][2])return C[i][0];return 0;}
+/* Nächste Zahlung (23.10.2026): nicht der Tag der letzten Buchung, sondern der übliche Zahltag der letzten 3–12 Buchungen.
+   Häufigster Tag statt Durchschnitt (25, 25, 23, 24 → 25, nicht 24): Wochenend-/Feiertagsverschiebungen fallen so heraus.
+   Gleich oft: der spätere Tag (Verschiebung meist auf den Werktag davor). Meist ≥ 28. → Monatsende. SwiftUI: BankImport.nextDue */
+function bankNextDue(dates,cyc){var D=dates.map(parseD).filter(Boolean),last=D[D.length-1];if(!last)return today();
+  var rec=D.slice(-12),day=last.getDate();
+  if(rec.length>=3){var cnt={};rec.forEach(function(d){var k=d.getDate();cnt[k]=(cnt[k]||0)+1;});
+    var eom=rec.filter(function(d){return d.getDate()>=28;}).length>=rec.length*0.5;
+    day=eom?31:+Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||b-a;})[0];}
+  var t0=today(),y=last.getFullYear(),m=last.getMonth(),g=0,dt;
+  /* ab dem Monat der letzten Zahlung im Rhythmus weiter, bis der Termin heute oder später liegt */
+  do{var mm=m+cyc*g,dim=new Date(y,mm+1,0).getDate();dt=new Date(y,mm,Math.min(day,dim));g++;}while(dt<t0&&g<400);
+  return dt;}
 function bankFind(r,ign){
   ign=ign||state.settings.bankIgn||[];
   var D=function(s){return parseD(s);},dd=function(a,b){return Math.round((D(b)-D(a))/864e5);};
@@ -9210,7 +9222,7 @@ function bankFind(r,ign){
       conf="niedrig";
     }
     /* nächste Zahlung: ab letzter Buchung im Rhythmus weiter bis heute */
-    var lastD=D(tx[n-1].d),due=lastD,gg=0,t0d=today();while(due<t0d&&gg++<400)due=addMonthsE(lastD,cyc*gg);
+    var due=bankNextDue(tx.map(function(t){return t.d;}),cyc);
     var s={id:k,key:k,name:name,cur:g.cur,amount:Math.round(last*100)/100,change:ch,cycle:cyc,due:iso(due),last:tx[n-1].d,first:tx[0].d,n:n,
       dates:tx.map(function(t){return t.d;}),amounts:am,conf:conf,varies:varies,tpl:g.tpl,text:tx[n-1].text,cred:tx[n-1].cred,raw:tx[n-1].name||bankNameFrom(tx[n-1].text),kind:kind,mref:tx[n-1].mref||"",memo:tx[n-1].memo||""};
     return s;
@@ -9282,7 +9294,7 @@ function bankFindInc(r){
     var last=tx[n-1],ld=parseD(last.d);if((ref-ld)/864e5>cyc*30.5*1.5+7)return;
     var recent=core.slice(-3),typ=recent.slice().sort(function(a,b){return a-b;})[Math.floor(recent.length/2)];
     var lo=Math.min.apply(null,core),hi=Math.max.apply(null,core);
-    var due=ld,gg=0,t0d=today();while(due<t0d&&gg++<400)due=addMonthsE(ld,cyc*gg);
+    var due=bankNextDue(tx.map(function(t){return t.d;}),cyc);
     var name=bankPretty(Object.keys(g.names).sort(function(a,b){return g.names[b]-g.names[a];})[0]);
     var s={key:k,name:name,label:cat==="Sonstiges"?"":cat,cat:cat,cur:BK_CUR.indexOf(g.cur)<0?home:g.cur,amount:typ,cycle:cyc,due:iso(due),n:n,
       first:tx[0].d,last:last.d,dates:tx.map(function(t){return t.d;}),amounts:am,lo:lo,hi:hi,varies:hi-lo>0.005,
