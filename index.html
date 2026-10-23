@@ -1835,7 +1835,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v282</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v283</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8702,7 +8702,8 @@ function bankCsv(txt){
       /* Einzelposten einer Sammelbuchung (UBS «Einzelbetrag», ZKB «Betrag Detail», TKB «Betrag Einzelzahlung», LUKB ohne Datum) */
       var last=bankParent(tx),sv=bankNum(g(row,col.sub),dec);if(sv==null)sv=bankNum(g(row,col.deb),dec);if(sv==null)sv=bankNum(g(row,col.amt),dec);
       if(last&&sv&&(g(row,col.sub)||/sammel|zahlungen|collective/i.test(last.text+" "+last.name))&&row.join("").trim()){
-        last.coll=true;tx.push({d:last.d,a:(last.a<0?-1:1)*Math.abs(sv),cur:last.cur,name:g(row,nmCol),text:text,cred:"",mref:"",kind:last.kind,sub:true});}
+        var sn=g(row,nmCol),sm=bankSubMemo(text);if(!sn&&sm){sn=sm.name;}
+        last.coll=true;tx.push({d:last.d,a:(last.a<0?-1:1)*Math.abs(sv),cur:last.cur,name:sn,memo:sm?sm.memo:"",text:text,cred:"",mref:"",kind:last.kind,sub:true});}
       return;}   /* sonst Fusszeilen wie «Kontostand;…» */
     /* Revolut & Co.: nur abgeschlossene Buchungen vom Hauptkonto, kein Umtausch/Aufladen */
     if(BKBADSTATE.test(g(row,col.state))||BKBADTYPE.test(ty)||BKBADPROD.test(g(row,col.prod)))return;
@@ -8853,6 +8854,16 @@ function bankNameClean(n){
   n=n.replace(/^Genossenschaft\s+(?=\S)/i,"");
   return n.split(" ").slice(0,5).join(" ").trim();
 }
+/* Einzelposten im Sammelauftrag (TKB, 23.10.2026): «Vollkasko Audi / Schweizerische Mobiliar …» = Mitteilung, dann Empfänger.
+   Nur wenn die 2. Zeile ein Name ist (keine Strasse, PLZ, Land) und die 1. Zeile kein Firmenname. SwiftUI: BankParser.subMemo */
+var BKLAND=/^(schweiz|suisse|svizzera|switzerland|deutschland|germany|osterreich|oesterreich|austria|liechtenstein|frankreich|france|italien|italia|litauen|niederlande)$/;
+function bankStreet(x){return /\d/.test(x)||/(strasse|str\.|gasse|weg|platz|allee|quai)$/i.test(x);}
+function bankSubMemo(text){var tl=String(text||"").replace(/\r/g,"").split(/\n+/).map(function(x){return x.replace(/\s+/g," ").trim();}).filter(Boolean);
+  if(tl.length<2||/mitteilung\s*:/i.test(text))return null;
+  var a=tl[0],b=tl[1];
+  if(/\b(ag|gmbh|sa|sarl|kg|ohg|ug|genossenschaft|verein|stiftung|e ?v)\.?$/i.test(a))return null;
+  if(bankStreet(b)||/^\d{4,5}\s/.test(b)||BKLAND.test(lnorm(b))||!/[A-Za-zÄÖÜäöü]{3}/.test(b)||/:/.test(a))return null;
+  return {memo:a.slice(0,60),name:b};}
 function bankNameFrom(t){
   var full=String(t||"").replace(/\r/g,"").split(/\n+/).map(function(x){return x.replace(/\s+/g," ").trim();}).filter(Boolean).join(" , ");
   /* ausdrückliche Bezeichnungen */
@@ -8863,12 +8874,14 @@ function bankNameFrom(t){
   /* Kartenzahlung «… 12.09.2026 03:14 NETFLIX.COM …»: Händler steht nach Datum und Uhrzeit */
   m=full.match(/\d{1,2}\.\d{1,2}\.\d{2,4}[ \t]*\/?[ \t]*\d{1,2}:\d{2}(?::\d{2})?[ \t]+([A-Za-zÄÖÜäöü][^,]+)/);
   if(m){var mm=bankNameClean(m[1].split(/\s*,\s*/)[0]);if(mm&&!bankIsType(mm))return mm;}
-  /* Adressblock (23.10.2026): Zeile vor «Strasse» und «PLZ Ort» ist der Name – auch wenn davor eine Mitteilung wie «Miete» steht */
+  /* Adressblock (23.10.2026): Name = erste Zeile zwischen Kopfzeile (Ref.-Nr.) und «PLZ Ort». Strasse, Postfach, Abteilung
+     («Contact Center», «Finanzabteilung») und Zweckwörter («Miete») davor werden übersprungen: «Sunrise GmbH / Postfach / 8050 Zürich» → Sunrise GmbH */
   var ln=String(t||"").replace(/\r/g,"").split(/\n+/).map(function(x){return x.replace(/\s+/g," ").trim();}).filter(Boolean);
-  for(var li=1;li<ln.length;li++){if(!/^(?:[A-Z]{1,2}-?)?\d{4,5}\s+[A-Za-zÄÖÜäöü]/.test(ln[li]))continue;
-    var st=ln[li-1],ni=/\d|(?:strasse|str\.|gasse|weg|platz|allee|quai|ring|rain|hof|steig|graben|matt|halde)\b/i.test(st)&&li>=2?li-2:li-1,cand=ln[ni];
-    if(cand&&!/:\s*$/.test(cand)&&!/\d{3,}/.test(cand)&&!bankIsType(cand)){var cn=bankNameClean(cand);if(cn&&!bankIsType(cn)&&cn.length>2)return cn;}
-    break;}
+  var pli=-1;for(var li=1;li<ln.length;li++)if(/^(?:[A-Z]{1,2}-?)?\d{4,5}\s+[A-Za-zÄÖÜäöü]/.test(ln[li])){pli=li;break;}
+  if(pli>0){var st0=0;for(var hi=0;hi<pli;hi++)if(/ref\.?-?\s?nr|e-?banking|e-?rechnung|^(belastung|gutschrift|zahlungsauftrag|dauerauftrag|lastschrift|vergutung|verguetung)\b/i.test(ln[hi]))st0=hi+1;
+    var BKDEPT=/^(postfach|case postale|casella postale|po box|c\/o|contact ?cent(er|re)|kundendienst|kundenservice|kundencenter|service ?cent(er|re)|customer (care|service)|finanzabteilung|finanzen|abteilung|buchhaltung|debitoren|debitorenbuchhaltung|inkasso|ordnungsbussen|steueramt|zentrale|hauptsitz|miete|mietzins|nebenkosten|prämie|praemie|rechnung)\b/i;
+    for(var bi=st0;bi<pli;bi++){var cand=ln[bi];if(bankStreet(cand)||BKDEPT.test(cand)||/:\s*$/.test(cand)||bankIsType(cand))continue;
+      var cn=bankNameClean(cand);if(cn&&!bankIsType(cn)&&cn.length>2)return cn;break;}}
   var parts=full.split(/\s*,\s*|\s+\/\s+|\s·\s/);
   for(var pi=0;pi<parts.length;pi++){
     var x=parts[pi];
@@ -8981,7 +8994,7 @@ function bankFind(r,ign){
     if((t.kind==="card"||(!t.kind&&Math.abs(t.a)%10===0))&&!/\b3a\b|vorsorge|saeule|saule|leasing/.test(hay)&&/^(sparkasse|volksbank|raiffeisen|commerzbank|deutsche bank|postbank|hypovereinsbank|targobank|santander|ubs|postfinance|zkb|kantonalbank|migros bank|valiant|atm|geldautomat)\b/.test(lnorm(nm)))return;
     if(BKSKIP.test(hay)||BKSHOP.test(lnorm(nm)))return;
     var tk=bankTok(nm),key=tp?"tpl:"+tp[0]+(TPL.some(function(o){return o!==tp&&o[0]===tp[0];})?"·"+tp[3]:""):(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
-    if(!key)return;key=key+"|"+(t.cur||home);
+    if(!key)return;if(t.memo)key+="~"+lnorm(t.memo).replace(/ /g,"").slice(0,24);key=key+"|"+(t.cur||home);
     (groups[key]=groups[key]||{key:key,tpl:tp,tx:[],names:{},cur:t.cur||home}).tx.push(t);
     groups[key].names[nm]=(groups[key].names[nm]||0)+1;
   });
@@ -9103,7 +9116,8 @@ function bankFind(r,ign){
         if(kind==="card"&&!g.tpl&&!fx)return;
         var srt=am.slice().sort(function(a,b){return a-b;}),med=srt[Math.floor(srt.length/2)];
         if(am.filter(function(v){return Math.abs(v-med)<=med*0.10;}).length<am.length*0.7)return;
-        varies=true;last=med;
+        /* aktueller Betrag: Median der letzten 3 Rechnungen (Abo-Wechsel bei Wingo 44.95 → 27.95), nicht des ganzen Auszugs */
+        varies=true;var l3=am.slice(-3).sort(function(a,b){return a-b;});last=l3[Math.floor(l3.length/2)];
       }
       /* beendet? letzte Zahlung deutlich länger her als der Rhythmus */
       if(dd(tx[n-1].d,ref)>cyc*30.5*1.5+7)return;
@@ -9121,13 +9135,15 @@ function bankFind(r,ign){
       /* kurzer Auszug und Zahlung ganz am Ende: eher monatlich; bei langem Auszug (> 10 Monate) wäre eine Monatszahlung mehrfach drin */
       var per=bankPeriod(t0.text),yr=/jahres|jaehrlich|jahrlich|bahncard|12 monate|annual|yearly/.test(lnorm(name+" "+(t0.text||"")));
       cyc=per||(yr?12:((dd(t0.d,ref)<40&&span>40&&span<=300)?1:12));
-      if(!per&&!yr&&g.tpl&&!g.tpl[1]&&cyc===12&&dd(t0.d,ref)>45)return;   /* internationale Monatsabos (Netflix…) mit nur einer Zahlung: eher Einkauf */
+      if(!per&&!yr&&g.tpl&&!g.tpl[1]&&cyc===12&&dd(t0.d,ref)>45)return;
+      /* langer Auszug: eine Jahreszahlung, die über 13 Monate zurückliegt, hätte sich wiederholt → kein laufender Vertrag (SWICA 2022) */
+      if(dd(t0.d,ref)>cyc*30.5+30)return;   /* internationale Monatsabos (Netflix…) mit nur einer Zahlung: eher Einkauf */
       conf="niedrig";
     }
     /* nächste Zahlung: ab letzter Buchung im Rhythmus weiter bis heute */
     var lastD=D(tx[n-1].d),due=lastD,gg=0,t0d=today();while(due<t0d&&gg++<400)due=addMonthsE(lastD,cyc*gg);
     var s={id:k,key:k,name:name,cur:g.cur,amount:Math.round(last*100)/100,change:ch,cycle:cyc,due:iso(due),last:tx[n-1].d,first:tx[0].d,n:n,
-      dates:tx.map(function(t){return t.d;}),amounts:am,conf:conf,varies:varies,tpl:g.tpl,text:tx[n-1].text,cred:tx[n-1].cred,raw:tx[n-1].name||bankNameFrom(tx[n-1].text),kind:kind,mref:tx[n-1].mref||""};
+      dates:tx.map(function(t){return t.d;}),amounts:am,conf:conf,varies:varies,tpl:g.tpl,text:tx[n-1].text,cred:tx[n-1].cred,raw:tx[n-1].name||bankNameFrom(tx[n-1].text),kind:kind,mref:tx[n-1].mref||"",memo:tx[n-1].memo||""};
     return s;
   }
   var rank={hoch:0,mittel:1,niedrig:2};
@@ -9163,7 +9179,7 @@ function bankFindInc(r){
     var tk=bankTok(nm);
     /* Zahlung von dir selbst (anderes Konto): Name enthält einen Personennamen */
     if(me.some(function(w){return w.length&&w.some(function(x){return tk.indexOf(x)>=0;});}))return;
-    var cat=bankIncCat(hay);
+    var cat=bankIncCat(lnorm(nm+" "+(t.text||"")+" "+String(t.type||"").replace(/verg(ü|ue|u)tung/ig,"")));
     /* Anbieter aus dem Katalog (Krankenkasse, Telekom) zahlen meist Rückerstattungen – nur mit Lohn-/Rentenwort */
     if(bankTpl(nm,t.text,t.cur||home)&&cat==="Sonstiges")return;
     var key=(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)))+(cat==="Bonus"?"·bonus":"")+"|"+(t.cur||home);
@@ -9173,6 +9189,9 @@ function bankFindInc(r){
   var out=[],known=[],used={};
   Object.keys(groups).forEach(function(k){
     var g=groups[k],tx=g.tx.sort(function(a,b){return a.d<b.d?-1:1;}),n=tx.length;
+    /* Spesen, Korrekturen u.ä. von derselben Quelle (Arbeitgeber zahlt Lohn + Spesen): Beträge unter halbem Median stören den Rhythmus (23.10.2026) */
+    if(n>=4){var s0=tx.map(function(t){return t.a;}).sort(function(a,b){return a-b;}),m0=s0[Math.floor(s0.length/2)],tk0=tx.filter(function(t){return t.a>=m0*0.5;});
+      if(tk0.length>=3&&tk0.length<n){tx=tk0;n=tx.length;}}
     var cat=Object.keys(g.cats).sort(function(a,b){return g.cats[b]-g.cats[a];})[0];
     /* nur einmal im Auszug, aber eindeutig Lohn/Rente/Zulage (neue Stelle, kurzer Auszug): als unsicherer Vorschlag, monatlich */
     /* einmal im Auszug: Lohn/Rente/Zulage → monatlich (neue Stelle); Jahreseinnahme (Dividende, Jahresmiete, Bonus, Jahresrente) → jährlich. Beides unsicher */
@@ -9204,7 +9223,7 @@ function bankFindInc(r){
       if((ck&&ck===k1)||(c.cat===s.cat&&s.cat!=="Sonstiges"&&Math.abs((+c.amount||0)-s.amount)<=s.amount*0.2))hit=id;});
     if(hit){used[hit]=1;s.match=hit;known.push(s);}else out.push(s);
     /* Lohn mit Ausreisser nach oben (13. Monatslohn, Bonus im selben Lohnlauf): Zusatzbetrag als eigene Jahreseinnahme vorschlagen, ohne Häkchen */
-    if(cat==="Lohn"&&cyc===1&&n>=6){var big=tx.filter(function(t){return t.a>med*1.5;});
+    if(cat==="Lohn"&&cyc===1&&n>=6){var big=tx.filter(function(t){return t.a>med*1.5&&(ref-parseD(t.d))/864e5<400;});/* langer Auszug: nur der letzte 13. Monatslohn */
       if(big.length===1){var bt=big[0],sep=tx.some(function(t){return t!==bt&&t.d.slice(0,7)===bt.d.slice(0,7);}),extra=Math.round((sep?bt.a:bt.a-med)*100)/100,bd=parseD(bt.d),bdue=bd,gb=0;while(bdue<t0d&&gb++<20)bdue=addMonthsE(bd,12*gb);
         if(extra>=100&&!Object.keys(state.incomes).some(function(id){var c=state.incomes[id];return c.cat==="Bonus"&&(c.cur||home)===s.cur&&c.status!=="ended";}))
           out.push({key:k+"·bonus",name:name,label:"13. Monatslohn / Bonus",cat:"Bonus",cur:s.cur,amount:extra,cycle:12,due:iso(bdue),n:1,first:bt.d,last:bt.d,
@@ -9295,7 +9314,7 @@ var BKLABEL=[[/hundesteuer/,"Hundesteuer"],[/grundsteuer/,"Grundsteuer"],[/bahnc
   [/kita|krippe|tagesmutter|hort/,"Kinderbetreuung"],[/schulgeld|studiengebuehr|semestergebuehr/,"Ausbildung"]];
 /* Zweck aus dem Buchungstext schlägt eine allgemeine Katalog-Bezeichnung («Versicherung»): Allianz mit «Hausrat» im Text = Hausrat, nicht irgendeine Police */
 var BK_GENERIC=/^(versicherung|versicherungen|mitgliedschaft|abo|vertrag|bank|konto)$/i;
-function bankLabel(s){var h=lnorm((s.text||"")+" "+(s.raw||"")+" "+(s.name||"")),t="";
+function bankLabel(s){if(s.memo&&lusable(s.memo)&&!/^\d/.test(s.memo))return s.memo.charAt(0).toUpperCase()+s.memo.slice(1);var h=lnorm((s.text||"")+" "+(s.raw||"")+" "+(s.name||"")),t="";
   for(var i=0;i<BKLABEL.length;i++)if(BKLABEL[i][0].test(h)){t=BKLABEL[i][1];break;}
   if(s.tpl&&s.tpl[3]&&!(t&&BK_GENERIC.test(s.tpl[3])))return s.tpl[3];return t;}
 /* ---------- Kontoauszug: Vorschläge prüfen (#sheetBank) ----------
