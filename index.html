@@ -1837,7 +1837,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v304</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v305</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -7317,6 +7317,15 @@ function heRename(v){
   saveSettings();if(state.bHolder===o)state.bHolder=v;if(state.flt&&state.flt.holder===o)state.flt.holder=v;
   mapHolders(function(h){return h===o?v:h;});p.name=v;render();paintMd(0);toast("Umbenannt");
 }
+/* Platzhalter-Person «Ich» bekommt den Vornamen aus der Absender-Adresse (23.10.2026) – nur wenn der Name noch frei ist */
+function holderRenameCore(o,v){var H=(state.settings.holders||["Ich"]).slice();
+  state.settings.holders=H.indexOf(o)>=0?H.map(function(h){return h===o?v:h;}):H.concat([v]);sndRename(o,v);
+  if((state.settings.lastHolders||[]).indexOf(o)>=0)state.settings.lastHolders=state.settings.lastHolders.map(function(h){return h===o?v:h;});
+  saveSettings();if(state.bHolder===o)state.bHolder=v;if(state.flt&&state.flt.holder===o)state.flt.holder=v;
+  mapHolders(function(h){return h===o?v:h;});}
+function holderAutoName(h,first){var v=String(first||"").trim().split(/\s+/)[0]||"";if(!v||!/^(ich|me|du)$/i.test(h))return h;
+  if((state.settings.holders||[]).some(function(x){return x!==h&&x.toLowerCase()===v.toLowerCase();}))return h;
+  holderRenameCore(h,v);return v;}
 function heMerge(from,to){
   var H=(state.settings.holders||["Ich"]).filter(function(h){return h!==from;});if(H.indexOf(to)<0)H.push(to);
   state.settings.holders=H;state.settings.lastHolders=(state.settings.lastHolders||[]).filter(function(h){return h!==from;});sndRename(from,to);saveSettings();
@@ -7464,7 +7473,7 @@ function qMultiSave(key,box){var i=key.indexOf(":"),f=key.slice(0,i),id=key.slic
   if(f==="sender"){var r=Object.assign({},sndRaw(id)),sb=box.querySelector("[data-qms]"),lv1=!!(sb&&sb.dataset.qlv==="1");
     if(lv1){r.first=v.first||"";r.last=v.last||"";if(!(r.first||r.last)){toast("Bitte einen Namen eingeben");return;}setSnd(id,r);paintMd(0);toast("Absender von "+id+" gespeichert");return;}
     ["first","last","street","zip","city"].forEach(function(k){r[k]=v[k]||"";});delete r.same;
-    if(!(r.first||r.last)||!r.street||!r.city){toast("Bitte Name, Strasse und Ort eingeben");return;}setSnd(id,r);paintMd(0);toast("Absender von "+id+" gespeichert");}}
+    if(!(r.first||r.last)||!r.street||!r.city){toast("Bitte Name, Strasse und Ort eingeben");return;}setSnd(id,r);var nid=holderAutoName(id,r.first);if(nid!==id)render();paintMd(0);toast("Absender von "+nid+" gespeichert");}}
 function qEditor(o,f){if(f==="notice"||f==="addr"||f==="sender")return qMulti(o,f);
   if(o.kind==="i"){var last=o.key.split(":").pop(),ki=' data-qe="inc|'+esc(o.id)+':'+last+'"';
     if(last==="amount")return '<input class="qein" type="text" inputmode="decimal" placeholder="Betrag in '+esc(o.c.cur||"CHF")+'"'+ki+'>';
@@ -10343,7 +10352,7 @@ function vkSndSave(){var h=vk.snds[vk.si],v={},$=function(x){return document.get
   HS_F.forEach(function(f){var e=$(f[1]);if(e)v[f[0]]=e.value.trim();});
   var o=Object.assign({},sndRaw(h),v);delete o.same;
   if(!((o.first||o.last)&&o.street&&o.city)){toast("Bitte Name, Strasse und Ort eintragen");return;}
-  setSnd(h,o);vkNext("snd");}
+  setSnd(h,o);var nh=holderAutoName(h,o.first);if(nh!==h){vk.snds[vk.si]=nh;render();}vkNext("snd");}
 async function vkLogoApply(){var sel=vk.logos.filter(function(x){return x.st==="ok"&&x.on;});
   if(!sel.length){vkNext("logo");return;}
   vk.busy=true;var btn=document.querySelector('#vkBody [data-vk="logogo"]');
