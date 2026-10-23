@@ -1837,7 +1837,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v306</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v307</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -4677,7 +4677,8 @@ function tplSumItems(a,b){var I=[],ch=function(i){return a[i]!==b[i];},has={},ad
 async function tplLogo(t){
   if(!t||(draft.logoId&&KBlob.has(draft.logoId))||!assets||navigator.onLine===false)return;
   var d0=draft,n0=document.getElementById("fPartner").value.trim(),r=null;
-  try{if(t[4]){var sc=await siteCand(regDom(t[4]),3);if(sc){var a=await takeLogo(sc);if(a&&a.id)r=a;}}
+  try{var pn=logoPin(t[0],t[4]);if(pn){var a0=await takeLogo(pn);if(a0&&a0.id)r=a0;}
+    if(!r&&t[4]){var sc=await siteCand(regDom(t[4]),3);if(sc){var a=await takeLogo(sc);if(a&&a.id)r=a;}}
     if(!r)r=await autoLogo(t[0],document.getElementById("fCur").value,null,t[4]||"");}catch(e){r=null;}
   var same=draft===d0&&document.getElementById("sheetForm").classList.contains("on")&&document.getElementById("fPartner").value.trim()===n0;
   if(!same||!r||(draft.logoId&&KBlob.has(draft.logoId)))return;
@@ -8109,7 +8110,8 @@ async function socialCands(list){
 }
 /* name = Vertragspartner, alt = Bezeichnung (nur Vorschläge, nie automatisch – z.B. «Steuern Audi» ≠ Audi) */
 async function allCands(name,cur,alt,web,manual){
-  var dom=domainOf(web);
+  var dom=domainOf(web),pin=logoPin(name,web)||logoPin(alt||"");
+  if(pin&&!manual)return Object.assign([pin],{dom:dom||""});
   var r=await Promise.all([wikiCands(name,dom).catch(function(){return [];}),logoCands(name,cur,dom).catch(function(){return [];})]);
   var all=r[0].concat(r[1]);
   if(!all.some(function(c){return c.score>=3;})&&alt&&lusable(alt)&&lnorm(alt)!==lnorm(name)){
@@ -8144,9 +8146,14 @@ async function allCands(name,cur,alt,web,manual){
     for(var bi=0;bi<bases.length&&!got;bi++)for(var gi=0;gi<tl.length;gi++){var g=null;try{g=await siteCand(bases[bi]+"."+tl[gi],2.5);}catch(e){g=null;}if(g){g.via=bases[bi]+"."+tl[gi];all.push(g);got=true;break;}}}
   /* Profilbild (X/Instagram) ist meist am saubersten → bevorzugt, auch bei der automatischen Suche (X und Instagram; X liefert oft nichts) */
   if(r[0].social&&r[0].social.length){try{(await socialCands(r[0].social)).forEach(function(c){c.score=6.5;all.push(c);});}catch(e){}}
+  if(pin)all.push(pin);
   var seen={};all=all.filter(function(c){if(seen[c.url])return false;seen[c.url]=1;return true;});
   all.sort(candSort);all.dom=d2;return all;
 }
+/* Feste Logos für sehr häufige Vertragspartner (23.10.2026): Apple immer mit dem Wikipedia-Logo von Apple Inc. (Commons «Apple_logo_black.svg») */
+var LOGO_PIN=[[/^(apple|apple inc|apple services|apple one|apple music|apple tv|apple arcade|apple fitness|icloud|itunes|app store|apple com bill|apple com)\b/,"https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/500px-Apple_logo_black.svg.png","Apple Inc.","apple.com"]];
+function logoPin(name,web){var n=lnorm(name||""),d=domainOf(web||"");for(var i=0;i<LOGO_PIN.length;i++){var P=LOGO_PIN[i];
+    if(P[0].test(n)||(d&&d.replace(/^www\./,"")===P[3]))return {url:P[1],thumb:P[1],title:P[2],seller:"",score:9,src:"wiki",pin:true};}return null;}
 async function autoLogo(name,cur,alt,web){
   /* Bezeichnung nur, wenn kein Vertragspartner eingetragen ist (z.B. «Podimo») */
   var primary=String(name||"").trim()?name:alt;
@@ -9487,13 +9494,16 @@ function bankPriceHist(s){var D=s.dates||[],A=s.amounts||[],n=Math.min(D.length,
   ev.sort(function(x,y){return x.from<y.from?-1:x.from>y.from?1:0;});
   var pr=[],last=r2(lv[0].a);ev.forEach(function(e){if(Math.abs(e.amount-last)<0.005)return;if(pr.length&&pr[pr.length-1].from===e.from)pr.pop();pr.push(e);last=e.amount;});
   return {base:r2(lv[0].a),prices:pr,chg:chg,free:free,cur:r2(lv[lv.length-1].a),levels:lv};}
+/* Vertragsbeginn = erste Zahlung, aber nur wenn sie deutlich nach dem Anfang des Auszugs liegt (> 1,5 Zahlungsrhythmen) – sonst lief der
+   Vertrag schon vorher und der wahre Beginn ist unbekannt (23.10.2026) */
+function bankStart(s){if(!s.stFrom||!s.first||!(s.n>=2)||s.change)return "";/* Preisstufe nach Wechsel (Steuer 760 → 340): Vertrag lief schon vorher */var d=(parseD(s.first)-parseD(s.stFrom))/864e5;return d>(+s.cycle||1)*30.44*1.5?s.first:"";}
 function bankToContract(s,holders){
   var t=s.tpl,ph=bankPriceHist(s);
   /* Preisverlauf aus den Zahlungen, sonst die eine erkannte Preisänderung; letzter Preis = gewählter Betrag */
   if(ph&&ph.prices.length){var lp=ph.prices[ph.prices.length-1];if(Math.abs(ph.cur-s.amount)>0.004&&lp.amount>0)lp.amount=s.amount;}
   else if(ph&&Math.abs(ph.base-s.amount)>0.004&&!s.change)ph=null;
   var base=ph?ph.base:s.change?s.change.prev:s.amount;
-  var c={partner:s.name,label:t?t[3]:"",cat:s.cat,amount:Math.round(base*100)/100,cur:s.cur,cycle:s.cycle,due:s.due,start:"",end:"",
+  var c={partner:s.name,label:t?t[3]:"",cat:s.cat,amount:Math.round(base*100)/100,cur:s.cur,cycle:s.cycle,due:s.due,start:bankStart(s),end:"",
     notice:t?t[5]:0,noticeU:t?t[6]:"m",renew:"",cancTerm:t?t[7]||"":"",mand:!!(t&&t[9]),custNo:"",contrNo:"",holders:holders.slice(),
     payM:"",payA:"",cancF:t?t[8]||"":"",cancUrl:t&&t[8]==="Online / Kundenkonto"?t[11]||"":"",trial:"",
     web:t?t[4]:"",tel:t?t[14]||"":"",mail:t?t[13]||"":"",addr:t?t[12]||"":"",note:"",color:"",logoId:"",logoBg:"",
@@ -9553,10 +9563,10 @@ function bkWho(txt){var HL=state.settings.holders||[];if(HL.length<2||!txt)retur
 function openBank(res,label,quiet){
   var H=bkHolders(),ow=bkWho(res.owner||"");if(ow.length===1)H=ow;
   bk={res:res,label:label,step:"fix",showIgn:false,
-    items:res.sugg.filter(function(s){return !s.match;}).map(function(s){
+    items:res.sugg.filter(function(s){return !s.match;}).map(function(s){s.stFrom=res.from;
       return {s:s,on:s.conf!=="niedrig"&&!s.ignored&&!s.same&&!s.arch,q:"",logo:null,term:"",ed:{name:s.name,label:bankLabel(s),amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
     price:res.sugg.filter(function(s){return s.match&&s.match.kind==="price";}).map(function(s){return {s:s,on:true};}),
-    inc:((res.inc&&res.inc.sugg)||[]).map(function(s){var w=bkWho(s.text+" "+(s.raw||""));return {s:s,on:s.conf==="hoch",logo:null,
+    inc:((res.inc&&res.inc.sugg)||[]).map(function(s){s.stFrom=res.from;var w=bkWho(s.text+" "+(s.raw||""));return {s:s,on:s.conf==="hoch",logo:null,
       ed:{label:s.label,name:s.name,amount:s.amount,cycle:s.cycle,cat:s.cat,holders:w.length===1?w:H.slice(),due:s.due}};}),
     owner:res.owner||"",ownerHit:ow.length===1?ow[0]:"",joint:ow.length>1,
     logoRun:{done:0,total:0}};
@@ -9712,7 +9722,8 @@ function bkLogos(){
   async function one(it){var r=null,t=it.s.tpl;
     /* genau wie beim einzelnen Vertrag: Katalog-Anbieter wie tplLogo (Website-Symbol, sonst Suche mit Katalogname),
        sonst autoLogo (Suche mit Vertragspartner, Bezeichnung als Ersatz) */
-    try{if(t){if(t[4]){var sc=await siteCand(regDom(t[4]),3);if(sc){var a=await takeLogo(sc);if(a&&a.id)r=a;}}
+    try{var pn=logoPin(t?t[0]:it.ed.name,t?t[4]:"")||logoPin(it.ed.name);if(pn){var a0=await takeLogo(pn);if(a0&&a0.id)r=a0;}
+      if(!r&&t){if(t[4]){var sc=await siteCand(regDom(t[4]),3);if(sc){var a=await takeLogo(sc);if(a&&a.id)r=a;}}
         if(!r&&lusable(t[0]))r=await autoLogo(t[0],it.s.cur,null,t[4]||"");}
       if(!r)r=await autoLogo(it.ed.name,it.s.cur,it.ed.label||"",t?t[4]||"":"");}catch(e){r=null;}
     if(bk!==me){if(r&&r.id)bkDropLogo(r.id);return;}
@@ -9897,7 +9908,7 @@ function bkIncPrices(it){var ph=bankPriceHist(it.s),a=it.ed.amount;if(!ph||!ph.p
   var pr=ph.prices.map(function(p){return {from:p.from,amount:p.amount};});if(pr[pr.length-1].amount>0)pr[pr.length-1].amount=a;return {amount:ph.base,prices:pr};}
 function bkOpenInc(i){var it=bk.inc[i],e=it.ed;fBank={i:i,inc:true,scroll:document.getElementById("sheetBank").scrollTop};
   document.getElementById("sheetBank").classList.remove("on");
-  openIncome(it.over?Object.assign({},it.over):{name:e.name,label:e.label||"",cat:e.cat,amount:bkIncPrices(it).amount,cur:it.s.cur,cycle:e.cycle,due:e.due||it.s.due,start:"",end:"",holders:e.holders.slice(),prices:bkIncPrices(it).prices,note:"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg||"":""});}
+  openIncome(it.over?Object.assign({},it.over):{name:e.name,label:e.label||"",cat:e.cat,amount:bkIncPrices(it).amount,cur:it.s.cur,cycle:e.cycle,due:e.due||it.s.due,start:bankStart(it.s),end:"",holders:e.holders.slice(),prices:bkIncPrices(it).prices,note:"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg||"":""});}
 function bkBackToList(){var sc=fBank?fBank.scroll:0;fBank=null;["sheetForm","sheetInc"].forEach(function(id){document.getElementById(id).classList.remove("on");});
   var sh=document.getElementById("sheetBank");openSheet(sh);paintBank();sh.scrollTop=sc||0;}
 function bkFormDone(c){var it=bk&&bk.items[fBank.i];if(!it){fBank=null;closeSheets();return;}
@@ -9972,7 +9983,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
   bk.inc.forEach(function(it,k){
     if(!it.on){if(it.logo)drop.push(it.logo.id);return;}var e=it.ed;
     if(it.over){state.incomes[stamp+"i"+k]=Object.assign({},it.over,{t:Date.now()});ni++;return;}
-    var ip=bkIncPrices(it);state.incomes[stamp+"i"+k]={name:e.name,label:e.label||"",cat:e.cat,amount:ip.amount,cur:it.s.cur,cycle:e.cycle,due:e.due||it.s.due,start:"",end:"",
+    var ip=bkIncPrices(it);state.incomes[stamp+"i"+k]={name:e.name,label:e.label||"",cat:e.cat,amount:ip.amount,cur:it.s.cur,cycle:e.cycle,due:e.due||it.s.due,start:bankStart(it.s),end:"",
       holders:e.holders.slice(),prices:ip.prices,note:"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg||"":"",color:"",status:"active",t:Date.now()};ni++;});
   var H=bk.items.filter(function(it){return it.on;}).map(function(it){return it.ed.holders;})[0];
   if(H&&H.length===1&&(state.settings.holders||[]).length>1)state.settings.lastHolders=H.slice();
