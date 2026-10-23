@@ -1636,6 +1636,12 @@ body{background:var(--paper)!important}
 .bkr .bktx small em{font-style:normal;color:var(--teal)}
 .bkr .bkam{align-self:center;font-size:15.5px;font-variant-numeric:tabular-nums}.bkr .bkam small{font-size:11px;white-space:nowrap}
 .bkchev{color:var(--ink3);font-size:18px;margin-left:2px;align-self:center}
+.bkmain.wr{flex-wrap:wrap;align-items:flex-start}.bkr .bkmain.wr .bkam,.bkmain.wr .bkchev{align-self:flex-start}.bkmain.wr .bkchev{margin-top:1px}
+.bkmain.wr .bkq{flex-basis:100%;margin:-3px 0 0 47px}.bkq i.pc{background:color-mix(in srgb,var(--brass) 18%,var(--surface));color:var(--teal)}
+.bktiles{display:grid;gap:8px;margin:2px 0 14px}.bktiles.n1{grid-template-columns:1fr}.bktiles.n2{grid-template-columns:1fr 1fr}.bktiles.n3{grid-template-columns:1fr 1fr 1fr}
+.bktiles div{background:var(--surface);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.bktiles b{font-size:28px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}.bktiles span{font-size:13px;color:var(--ink2);line-height:1.25}
+.bktiles .br b{color:var(--teal)}
 .bkq{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}.bkq i{font-style:normal;font-size:11px;line-height:1;padding:4px 7px;border-radius:20px;background:var(--sunken);color:var(--ink2)}
 .bkwarn{display:block;width:100%;text-align:left;margin:0 0 10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--warn) 14%,var(--surface));color:inherit;font:inherit}
 .bkwarn b{display:block;font-size:14.5px;color:var(--warn)}.bkwarn span{display:block;font-size:12.5px;color:var(--ink2);margin-top:2px;line-height:1.35}
@@ -1821,7 +1827,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v300</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v301</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9514,12 +9520,14 @@ function bkDay(d){var p=String(d).split("-");return (+p[2])+"."+(+p[1])+"."+p[0]
 var BKPER={1:"pro Monat",2:"alle 2 Monate",3:"pro Quartal",6:"pro Halbjahr",12:"pro Jahr",24:"alle 2 Jahre"};
 function bkPer(c){return BKPER[c]||"alle "+c+" Monate";}
 /* Untertitel: Vertragspartner (falls oben die Bezeichnung steht) · Beleg · Hinweis in Messing */
-function bkSub(it){var s=it.s,e=it.ed,t=[];
-  if(e.label&&lnorm(e.label)!==lnorm(e.name))t.push(esc(e.name));
-  t.push(s.conf==="niedrig"?"einmal am "+bkDay(s.last):s.n+"× im Auszug");
-  if(s.change&&Math.abs(e.amount-s.change.amount)<0.005)t.push('<em>neuer Preis ab '+bkDay(s.change.from)+'</em>');
-  else if(s.varies)t.push('<em>Betrag schwankt</em>');
-  return t.join(" · ");}
+function bkSub(it){var e=it.ed;return e.label&&lnorm(e.label)!==lnorm(e.name)?esc(e.name):esc(e.cat||"");}
+/* Chips unter der Zeile (Entscheid 23.10.2026, Variante Q): Anzahl Zahlungen, Preisänderung im Auszug, schwankender Betrag – keine Kategorie, keine Frist (kommt am Schluss) */
+function bkChips(it,inc){var s=it.s,e=it.ed,c=[];
+  c.push('<i>'+(s.conf==="niedrig"?"einmal am "+bkDay(s.last):s.n+(s.n===1?" Zahlung":" Zahlungen"))+'</i>');
+  if(!inc&&s.change&&s.change.prev>0&&Math.abs(e.amount-s.change.amount)<0.005){var pc=(s.change.amount/s.change.prev-1)*100;
+    c.push('<i class="pc">'+(pc>0?"+":"−")+Math.abs(pc).toFixed(1).replace(".",",")+' % ab '+bkDay(s.change.from)+'</i>');}
+  else if(s.varies)c.push('<i>Betrag schwankt</i>');
+  return '<span class="bkq">'+c.join("")+'</span>';}
 function bkTitle(it){var l=it.ed.label;return l&&lnorm(l)!==lnorm(it.ed.name)?l:it.ed.name;}
 function bkNoCancel(it){return it.ed.cat===catByKey("Steuern & Gebühren");}
 /* Versicherer mit mehreren Sparten (Katalog-Bezeichnung nur «Versicherung»): Katalog-Frist gilt für die Hauptsparte, nicht sicher für diese Police */
@@ -9528,12 +9536,11 @@ function bkHasTerm(it){return bkHasTermBase(it)||it.term==="1"||it.term==="3"||i
 function bkMark(it,inc){var e=it.ed;return markHtml({partner:e.name,cat:e.cat,label:e.label||"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg:""});}
 function bkRow(it,i){
   var e=it.ed,cur=it.s.cur,maybe=it.s.conf==="niedrig";
-  var tags='<span class="bkq"><i>'+esc(e.cat)+'</i>'+(maybe||bkNoCancel(it)?"":bkHasTerm(it)?(bkTermCheck(it)?'<i class="miss">Frist prüfen</i>':'<i class="ok">✓ Frist</i>'):'<i class="miss">Frist fehlt</i>')+'</span>';
   return '<div class="bkr'+(it.on?"":" off")+'">'+
     (maybe?"":'<button type="button" class="bkck" data-bkon="'+i+'" role="checkbox" aria-checked="'+it.on+'" aria-label="'+esc(bkTitle(it))+' übernehmen"></button>')+
-    '<button type="button" class="bkmain" data-bkopen="'+i+'">'+bkMark(it)+
-      '<span class="bktx"><b>'+esc(bkTitle(it))+'</b><small>'+bkSub(it)+'</small>'+tags+'</span>'+
-      '<span class="bkam">'+money(e.amount,cur)+'<small>'+esc(cur)+" "+bkPer(e.cycle)+(maybe?"?":"")+'</small></span><span class="bkchev" aria-hidden="true">›</span></button>'+
+    '<button type="button" class="bkmain wr" data-bkopen="'+i+'">'+bkMark(it)+
+      '<span class="bktx"><b>'+esc(bkTitle(it))+'</b><small>'+bkSub(it)+'</small></span>'+
+      '<span class="bkam">'+money(e.amount,cur)+'<small>'+esc(cur)+" "+bkPer(e.cycle)+(maybe?"?":"")+'</small></span><span class="bkchev" aria-hidden="true">›</span>'+bkChips(it)+'</button>'+
     (maybe?'<div class="bkyn"><button type="button" data-bkyes="'+i+'" aria-pressed="'+it.on+'">Ja, übernehmen</button><button type="button" data-bkno="'+i+'" aria-pressed="'+(!it.on)+'">Nein</button></div>':"")+
     bkDupBox(it,i)+'</div>';
 }
@@ -9545,11 +9552,11 @@ function bkDupBox(it,i){var s=it.s,id=s.same||s.arch,c=id&&state.contracts[id];i
   var a=s.arch?["Wieder aktivieren","Neu anlegen"]:["Ja, schon erfasst","Nein, neu"];
   return '<div class="bkdup"><p>'+txt+'</p><div class="bkyn"><button type="button" data-bkdupy="'+i+'" aria-pressed="'+(it.q==="y")+'">'+a[0]+'</button><button type="button" data-bkdupn="'+i+'" aria-pressed="'+(it.q==="n")+'">'+a[1]+'</button></div></div>';}
 function bkIncRow(it,i){var e=it.ed,cur=it.s.cur;
-  var sub=[];if(e.label&&lnorm(e.label)!==lnorm(e.name))sub.push(esc(e.name));sub.push(it.s.n+"× im Auszug");if(it.s.varies)sub.push("<em>Betrag schwankt</em>");
+  var sub=e.label&&lnorm(e.label)!==lnorm(e.name)?esc(e.name):esc(e.cat||"");
   return '<div class="bkr'+(it.on?"":" off")+'"><button type="button" class="bkck" data-ikon="'+i+'" role="checkbox" aria-checked="'+it.on+'" aria-label="'+esc(e.label||e.name)+' übernehmen"></button>'+
-    '<button type="button" class="bkmain" data-ikopen="'+i+'">'+bkMark(it,true)+
-      '<span class="bktx"><b>'+esc(e.label||e.name)+'</b><small>'+sub.join(" · ")+'</small><span class="bkq"><i>'+esc(e.cat)+'</i></span></span>'+
-      '<span class="bkam">'+money(e.amount,cur)+'<small>'+esc(cur)+" "+bkPer(e.cycle)+'</small></span><span class="bkchev" aria-hidden="true">›</span></button></div>';}
+    '<button type="button" class="bkmain wr" data-ikopen="'+i+'">'+bkMark(it,true)+
+      '<span class="bktx"><b>'+esc(e.label||e.name)+'</b><small>'+sub+'</small></span>'+
+      '<span class="bkam">'+money(e.amount,cur)+'<small>'+esc(cur)+" "+bkPer(e.cycle)+'</small></span><span class="bkchev" aria-hidden="true">›</span>'+bkChips(it,true)+'</button></div>';}
 function bkKnownRow(s){var c=state.contracts[s.match&&s.match.id];if(!c)return "";
   return '<div class="bkr bkkn"><span class="bkok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>'+
     '<div class="bkmain">'+markHtml(c)+'<span class="bktx"><b>'+esc(titleOf(c))+'</b><small>'+esc(s.match&&s.match.arch?"gekündigt per "+fmtDot(archEnd(c))+" · letzte Zahlung "+fmtDot(s.last):(s.loose?"im Auszug gefunden":"unverändert"))+'</small></span>'+
@@ -9582,7 +9589,8 @@ function paintBank(){
   if(st.length>1)h+='<div class="bksteps2" aria-label="Schritt '+(si+1)+' von '+st.length+'">'+st.map(function(x,j){return '<i class="'+(j<=si?"on":"")+'"></i>';}).join("")+'</div>';
   if(bk.step==="fix"){
     var vis=bk.items.map(function(it,i){return i;}).filter(function(i){return bk.showIgn||!bk.items[i].s.ignored;});
-    var sure=vis.filter(function(i){return bk.items[i].s.conf!=="niedrig";}),maybe=vis.filter(function(i){return bk.items[i].s.conf==="niedrig";});
+    var mo=function(i){var e=bk.items[i].ed;return (+e.amount||0)/(+e.cycle||1);};
+    var sure=vis.filter(function(i){return bk.items[i].s.conf!=="niedrig";}).sort(function(a,b){return mo(b)-mo(a);}),maybe=vis.filter(function(i){return bk.items[i].s.conf==="niedrig";});
     var nIgn=bk.items.filter(function(it){return it.s.ignored;}).length;
     h+='<h3 class="bkt">'+(sure.length||maybe.length?"Sind das deine Fixkosten?":"Keine neuen Fixkosten")+'</h3>';
     /* Zahlung trotz Kündigung: Abbuchung nach «Läuft bis» – der Vertragspartner bucht weiter ab */
@@ -9590,7 +9598,8 @@ function paintBank(){
     /* kurzer Zeitraum: Jahresverträge fehlen womöglich */
     var spanM=r.from&&r.to?Math.round((parseD(r.to)-parseD(r.from))/864e5/30.4):0;
     if(spanM&&spanM<11)h+='<p class="bki bkspan">Der Auszug umfasst nur '+(spanM<1?"wenige Wochen":spanM+" Monate")+'. Jahresbeiträge (Versicherungen, Steuern, Mitgliedschaften) fehlen womöglich – am besten die letzten 12 Monate exportieren.</p>';
-    if(sure.length||maybe.length)h+='<p class="bki">Alles mit Häkchen wird übernommen. Kategorie, Logo und – bei bekannten Anbietern – die Kündigungsfrist sind schon ergänzt. Tippe auf einen Eintrag, um etwas zu ändern.</p>';
+    /* Kacheln (23.10.2026): Anzahl gefundener Verträge; «Preise aktualisiert» nur bei erfassten Verträgen mit neuem Preis */
+    if(vis.length||bk.price.length)h+=bkTiles([[vis.length,vis.length===1?"Vertrag<br>gefunden":"Verträge<br>gefunden"]].concat(bk.price.length?[[bk.price.length,bk.price.length===1?"Preis<br>aktualisiert":"Preise<br>aktualisiert",1]]:[]));
     h+=bkLogoLine()+bkWhoBar();
     if(bk.price.length)h+='<h4 class="bkh2"><span>Neuer Preis bei erfassten Verträgen</span><span>'+bk.price.length+'</span></h4><div class="bklist">'+bk.price.map(bkPriceRow).join("")+'</div>';
     if(sure.length)h+=(bk.price.length?'<h4 class="bkh2"><span>Neu gefunden</span><span>'+sure.length+'</span></h4>':"")+'<div class="bklist">'+sure.map(function(i){return bkRow(bk.items[i],i);}).join("")+'</div>';
@@ -9601,7 +9610,7 @@ function paintBank(){
     if(nIgn)h+='<button type="button" class="bkshow" data-bkshow>'+(bk.showIgn?"Ausgeblendete verbergen":nIgn+(nIgn===1?" ausgeblendeter Vorschlag":" ausgeblendete Vorschläge")+" ›")+'</button>';
   } else if(bk.step==="inc"){
     var ik=(r.inc&&r.inc.known)||[];
-    h+=(bk.inc.length?'<h3 class="bkt">Und deine Einnahmen?</h3><p class="bki">Regelmässige Gutschriften aus deinem Auszug. Was ein Häkchen hat, wird übernommen.</p>':
+    h+=(bk.inc.length?'<h3 class="bkt">Und deine Einnahmen?</h3>'+bkTiles([[bk.inc.length,bk.inc.length===1?"Einnahme<br>gefunden":"Einnahmen<br>gefunden"]]):
       '<h3 class="bkt">Deine Einnahmen</h3><p class="bki">Nichts Neues gefunden – alles ist schon in Kontivo.</p>')+bkLogoLine()+(bkSteps()[0]==='inc'?bkWhoBar():'');
     if(bk.inc.length)h+='<div class="bklist">'+bk.inc.map(bkIncRow).join("")+'</div>';
     if(ik.length)h+=(bk.inc.length?'<h4 class="bkh2"><span>Bereits in Kontivo</span><span>'+ik.length+'</span></h4>':'')+'<div class="bklist">'+ik.map(bkKnownIncRow).join("")+'</div>';
@@ -9616,12 +9625,14 @@ function paintBank(){
   if(bk.step===st[st.length-1])h+='<p class="note bkpriv">Die Datei wurde nur auf diesem Gerät gelesen und nicht gespeichert.</p>';
   b.innerHTML=h;bkFoot();
 }
+/* Kacheln oben im Import: [[Zahl, Text, Messing?]] – 1 bis 3 nebeneinander, gleich gefüllt. SwiftUI: HStack aus Kacheln */
+function bkTiles(L){return '<div class="bktiles n'+L.length+'">'+L.map(function(t){return '<div class="'+(t[2]?"br":"")+'"><b>'+t[0]+'</b><span>'+t[1]+'</span></div>';}).join("")+'</div>';}
 function bkCounts(){
   var n=bk.items.filter(function(it){return it.on&&(bk.showIgn||!it.s.ignored);}).length,p=bk.price.filter(function(x){return x.on;}).length,i=bk.inc.filter(function(x){return x.on;}).length;
   return {n:n,p:p,i:i,all:n+p+i};}
 function bkFoot(){
   var btn=document.getElementById("bkGo"),k=bkCounts(),st=bkSteps(),last=bk.step===st[st.length-1];
-  if(!last){btn.textContent="Weiter";btn.disabled=false;btn.dataset.mode="next";return;}
+  if(!last){var nx=st[st.indexOf(bk.step)+1];btn.textContent=nx==="inc"?"Weiter zu Einnahmen":nx==="term"?"Weiter zu Kündigungsfristen":"Weiter";btn.disabled=false;btn.dataset.mode="next";return;}
   /* nichts Neues gefunden (alles schon erfasst): «Fertig» statt grauem «Nichts ausgewählt» */
   if(!bkFixCount()&&!bk.inc.length&&!bk.price.length){btn.dataset.mode="done";btn.textContent="Fertig";btn.disabled=false;return;}
   btn.dataset.mode="go";
