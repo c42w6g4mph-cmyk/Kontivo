@@ -662,7 +662,6 @@ body.hasplus .topadd{display:inline-flex}
 /* Kopfzeilen der Fenster, Suchzeile */
 #sheetBank{padding-bottom:0}
 #bankFile{display:none}
-.sheet h3.bkh{display:flex;justify-content:space-between;margin:18px 0 2px;border-bottom:0;padding-bottom:0;text-transform:uppercase;letter-spacing:.04em;font-size:12px}
 .bkck{width:26px;height:26px;border-radius:50%;border:1.6px solid var(--ink3);flex:none;display:flex;align-items:center;justify-content:center;padding:0}
 .bkck[aria-checked="true"]{background:var(--teal);border-color:var(--teal)}
 .bkck[aria-checked="true"]::after{content:"";width:10px;height:6px;border:2.2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
@@ -671,21 +670,12 @@ body.hasplus .topadd{display:inline-flex}
 .bktx{flex:1;min-width:0}.bktx b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bktx small{display:block;font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bkam{text-align:right;font-weight:600;white-space:nowrap;font-size:15px}.bkam small{display:block;font-weight:400;font-size:12px;color:var(--ink2)}
-.bked .field input,.bked .field select{background:var(--surface)}
-.bked .hseg{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}.bked .hseg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.bk2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bk2 .field{min-width:0}
-.bknote{margin:4px 0 8px!important}
-.bkedb{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
-.bkign{font-size:14px;color:var(--alert);padding:8px 0}.bkdone{font-size:14px;font-weight:600;padding:8px 16px;border-radius:10px;background:var(--ink);color:var(--paper)}
-.bkpr .bkmain{padding:10px 0}.bkpr .bktx small{white-space:normal}
 .bkempty{padding:24px 4px 8px;text-align:center}.bkempty b{font-size:16px}
 .bkknown{margin-top:18px!important}
 .bkkn .bkmain{cursor:default}.bkkn .bktx b,.bkkn .bkam{color:var(--ink2)}
 .bkok{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--ok) 16%,transparent);margin-right:2px}
 .bkok svg{width:15px;height:15px;fill:none;stroke:var(--ok);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.bkproof{background:var(--surface);border-radius:11px;padding:9px 12px;margin:10px 0 4px;display:flex;flex-direction:column;gap:2px}
-.bkproof span{font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em}.bkproof b{font-size:14px;font-weight:600;color:var(--ink);word-break:break-word}
-.bkproof small{font-size:12.5px;color:var(--ink2);word-break:break-word}.bkshow{display:block;color:var(--teal);font-size:14px;font-weight:600;padding:10px 0}
+.bkshow{display:block;color:var(--teal);font-size:14px;font-weight:600;padding:10px 0}
 .bkpriv{margin:12px 0 4px!important;color:var(--ink3)!important}
 /* Ladeanzeige Kontoauszug (Variante 2: Logo + Schritte; nativ: ProgressView-Liste im Sheet) */
 .bkload{display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 8px 18px}
@@ -1620,7 +1610,7 @@ body{background:var(--paper)!important}
 /* Wortmarke: erstes O als Zeitring */
 .wmO{display:inline-block;width:.56em;height:.56em;vertical-align:baseline;margin:0 .015em 0 .02em;overflow:visible}
 /* Labels ohne Versalien */
-#onb .obtab,#onb .obsec,#onb .obli em,.bpt span,.sheet h3.bkh,.bkproof span,.qh,.kcard .kmo{text-transform:none!important;letter-spacing:0!important}
+#onb .obtab,#onb .obsec,#onb .obli em,.bpt span,.qh,.kcard .kmo{text-transform:none!important;letter-spacing:0!important}
 #onb .obtab{font-size:13px!important;font-weight:600!important}
 /* Währungen: Flaggen bleiben, Auswahl dezent */
 .obcur{border:1.5px solid var(--line)}
@@ -1660,11 +1650,6 @@ body{background:var(--paper)!important}
 .bkchips{display:flex;gap:6px;flex-wrap:wrap;padding:0 0 12px 47px}.bkchips button{font-size:13.5px;padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 .bkchips button[aria-pressed="true"]{background:var(--brassFab);border-color:var(--brassFab);color:var(--onBrass)}
 .bkload2{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);margin:-4px 0 10px}.bkload2 i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--brass);animation:bkspin .9s linear infinite}
-.bkhead{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:16px;padding:12px 14px;margin:0 0 12px}.bkhead .mark{width:44px;height:44px;border-radius:11px}
-.bkhead b{display:block;font-size:17px;font-weight:600}.bkhead small{font-size:13px;color:var(--ink2)}
-.bklogo2{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink2);margin:0 0 10px}.bklogo2 .mark{width:28px;height:28px;border-radius:7px}.bklogo2 span{flex:1}.bklogo2 button{color:var(--alert);font-size:14px}
-#sheetBank .bked .field input,#sheetBank .bked .field select{background:var(--surface)}
-#sheetBank .bkproof{background:var(--surface)}
 #sheetBank .bkkn{padding-left:14px}
 /* Haken in Messing statt Grün (Ladeanzeige, bereits erfasst, Frist vorhanden); Ladeanzeige: nur der Ring dreht */
 .bksteps .done i{background:var(--brass)!important;border-color:var(--brass)!important;color:var(--onBrass)!important}
@@ -1674,7 +1659,6 @@ body{background:var(--paper)!important}
 .bklogo .bkLogoSvg{display:block;width:84px;height:84px;border-radius:20px;box-shadow:0 10px 26px rgba(0,0,0,.22)}
 .bklogo .bkLogoSvg .splSeg{transform-box:view-box;transform-origin:50% 50%;animation:bkspin 1.4s linear infinite}
 @media (prefers-reduced-motion:reduce){.bklogo .bkLogoSvg .splSeg{animation-duration:4s}}
-.bklogo2 .bklsr{color:var(--teal)!important;font-weight:600}
 #sheetBank .logocands:empty{display:none}
 .bkwho{background:var(--surface);border-radius:14px;padding:10px 12px;margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}
 .bkwho>span{font-size:14px;font-weight:500}.bkwho .hseg{box-shadow:inset 0 0 0 1px var(--line)}.bkwho .hseg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
@@ -1837,7 +1821,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v297</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v298</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9060,7 +9044,7 @@ function bankFind(r,ign){
     var tk=bankTok(nm),key=tp?"tpl:"+tp[0]+(TPL.some(function(o){return o!==tp&&o[0]===tp[0];})?"·"+tp[3]:""):(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
     if(!key)return;if(t.memo){var mk=lnorm(t.memo).replace(/\d+/g," ").replace(/\b(januar|februar|marz|maerz|april|mai|juni|juli|august|september|oktober|november|dezember|jan|feb|mar|apr|jun|jul|aug|sep|sept|okt|oct|nov|dez|dec)\b/g," ").replace(/ /g,"").slice(0,24);if(mk)key+="~"+mk;}key=key+"|"+(t.cur||home);
     (groups[key]=groups[key]||{key:key,tpl:tp,tx:[],names:{},cur:t.cur||home}).tx.push(t);
-    groups[key].names[nm]=(groups[key].names[nm]||0)+1;
+    groups[key].names[nm]=(groups[key].names[nm]||0)+1;t._nm=nm;
   });
   /* Nur eine Kartenzahlung und Katalogname aus einem Wort (Spiegel, Salt, Zeit): reicht nicht als Beleg.
      Katalog nur behalten, wenn die Website im Buchungstext steht («spiegel.de»), sonst als unbekannter Händler behandeln */
@@ -9116,15 +9100,25 @@ function bankFind(r,ign){
         if(gap>0&&gap<=45&&o.tx[0].d<f0&&(!best||lo>best.d))best={d:lo,amount:Math.round(o.v*100)/100};});
       if(best&&c.tx.length>=2)groups[c.key].prevC=best;});
   });
-  /* Gleiche Zahlung regelmässig mehrfach am selben Tag (zwei Kinder im Verein, 2× 120.–): das sind mehrere Verträge → in parallele Reihen
-     aufteilen (23.10.2026). Vereinzelte Doppelbuchung bleibt eine Zahlung (bankEval fasst gleiche Datum+Betrag zusammen). */
-  Object.keys(groups).forEach(function(k){var g=groups[k],by={};g.tx.forEach(function(t){var id=t.d+"|"+t.a;(by[id]=by[id]||[]).push(t);});
-    var ids=Object.keys(by);if(ids.length<2)return;var m=Math.min.apply(null,ids.map(function(i){return by[i].length;}));
-    var multi=ids.filter(function(i){return by[i].length>=2;}).length;if(m<2&&multi<ids.length*0.7)return;
-    var mm=Math.max(2,Math.round(ids.map(function(i){return by[i].length;}).sort(function(a,b){return a-b;})[Math.floor(ids.length/2)]));
+  /* Parallele Reihen (23.10.2026): jeden Monat gleich viele Zahlungen beim selben Partner → so viele Verträge, z.B. Swisscom 29.90 am 5. und 32.90
+     am 12., zwei Kinder-Prämien 105.30/98.40 am selben Tag, 2× 45.– am selben Tag. Zuordnung je Monat nach Betrag (Rang).
+     Gleiche Beträge an verschiedenen Tagen (wöchentlich) werden nicht getrennt. Schlüssel nach typischem Betrag (stabil). */
+  Object.keys(groups).forEach(function(k){var g=groups[k],bm={};g.tx.forEach(function(t){(bm[t.d.slice(0,7)]=bm[t.d.slice(0,7)]||[]).push(t);});
+    var ms=Object.keys(bm);if(ms.length<3)return;var cnt={};ms.forEach(function(m){var c=bm[m].length;cnt[c]=(cnt[c]||0)+1;});
+    var m0=+Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];})[0];if(m0<2||cnt[m0]<Math.max(3,ms.length*0.7))return;
+    var reg=ms.filter(function(m){return bm[m].length===m0;}),sameAmt=reg.every(function(m){var L=bm[m];return L.every(function(t){return Math.abs(t.a-L[0].a)<0.005;});});
+    if(sameAmt&&!reg.every(function(m){var L=bm[m];return L.every(function(t){return t.d===L[0].d;});}))return;
+    var srt=function(L){return L.slice().sort(function(a,b){return (a.a-b.a)||String(a.text).localeCompare(String(b.text))||(a.d<b.d?-1:a.d>b.d?1:0);});};
+    var ser=[];for(var j=0;j<m0;j++)ser.push([]);reg.forEach(function(m){srt(bm[m]).forEach(function(t,j){ser[j].push(t);});});
+    var med=ser.map(function(L){var a=L.map(function(t){return -t.a;}).sort(function(x,y){return x-y;});return a[Math.floor(a.length/2)];});
+    /* verschiedene Beträge: nur trennen, wenn die Reihen klar getrennt sind (je ±10 % um ihren Wert, Abstand > 3 %) – sonst schwankende Einkäufe */
+    if(!sameAmt){if(m0>4)return;var okS=ser.every(function(L,j){return L.every(function(t){return Math.abs(-t.a-med[j])<=med[j]*0.10;})&&(j===0||med[j-1]-med[j]>med[j-1]*0.03);});
+      var sameDay=reg.every(function(m){var L=bm[m];return L.every(function(t){return t.d===L[0].d;});});if(!okS&&!sameDay)return;}
+    ms.forEach(function(m){if(bm[m].length===m0)return;bm[m].forEach(function(t){var bj=0;med.forEach(function(v,j){if(Math.abs(-t.a-v)<Math.abs(-t.a-med[bj]))bj=j;});ser[bj].push(t);});});
     delete groups[k];
-    for(var j=0;j<mm;j++){var nk=k.replace("|","§"+(j+1)+"|"),tj=[];ids.forEach(function(i){var L=by[i].slice().sort(function(a,b){return String(a.text).localeCompare(String(b.text));});if(L[j])tj.push(L[j]);});
-      tj.sort(function(x,y){return x.d<y.d?-1:1;});groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:Object.assign({},g.names),tx:tj,prevC:g.prevC};}
+    ser.forEach(function(L,j){var nk=k.replace("|","§"+(sameAmt?(j+1):Math.round(med[j]*100)/100)+"|");while(groups[nk])nk=nk.replace("|","'|");
+      L.sort(function(x,y){return x.d<y.d?-1:x.d>y.d?1:0;});var nmS={};L.forEach(function(t){if(t._nm)nmS[t._nm]=(nmS[t._nm]||0)+1;});
+      groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:Object.keys(nmS).length?nmS:Object.assign({},g.names),tx:L,prevC:g.prevC};});
   });
   var ref=r.to,span=dd(r.from,r.to),out=[],known=[],used={},after=[];
   /* gekündigter Vertrag, der nach seinem Ende («Läuft bis») noch abgebucht wurde → Hinweis, nicht als neuer Vertrag */
@@ -9139,13 +9133,19 @@ function bankFind(r,ign){
       /* nur Beträge nahe am gekündigten Preis (±25 %) gelten als «weiter abgebucht»; deutlich anderer Betrag = eher neuer Vertrag (23.10.2026) */
       var cpx=curPrice(c),late=tx.filter(function(t){return dd(iso(e),t.d)>BK_GRACE&&(!cpx||Math.abs(-t.a-cpx)<=cpx*0.25);});if(!late.length)return false;
       after.push({id:id,c:c,n:late.length,last:late[late.length-1].d,amount:Math.round(-late[late.length-1].a*100)/100,cur:g.cur});return true;}).length>0;};
-  Object.keys(groups).forEach(function(k){
+  /* Erst alle Gruppen bewerten, dann zuordnen: exakte Treffer zuerst (23.10.2026) – zwei ähnliche Verträge beim selben Anbieter
+     (Swisscom 29.90 + 32.90) dürfen nicht beide demselben erfassten Vertrag zugeordnet werden */
+  var EV=[];Object.keys(groups).forEach(function(k){
     if(cancelledHit(groups[k]))return;
     var s=bankEval(k,groups[k]);if(s)bankApplyAlias(s);
-    if(!s){var kn=bankLooseKnown(k,groups[k]);if(kn&&!used[kn.match.id]){used[kn.match.id]=1;known.push(kn);}return;}
+    if(!s){EV.push({k:k,s:null,q:9});return;}
     s.cat=bankCat(s);if(s.alias&&s.alias.c&&allCats().indexOf(s.alias.c)>=0)s.cat=s.alias.c;
-    s.match=bankMatch(s);
-    if(s.match&&s.match.kind==="known"){if(!used[s.match.id]){used[s.match.id]=1;known.push(s);}return;}
+    s.match=bankMatch(s);var q=!s.match?5:s.match.kind==="known"?(s.varies?1:0):2;EV.push({k:k,s:s,q:q});});
+  EV.sort(function(a,b){return a.q-b.q;});
+  EV.forEach(function(ev){var k=ev.k,s=ev.s;
+    if(!s){var kn=bankLooseKnown(k,groups[k]);if(kn&&!used[kn.match.id]){used[kn.match.id]=1;known.push(kn);}return;}
+    if(s.match&&used[s.match.id])s.match=null;   /* Vertrag schon von einer anderen Reihe belegt → eigener Vorschlag */
+    if(s.match&&s.match.kind==="known"){used[s.match.id]=1;known.push(s);return;}
     if(s.match)used[s.match.id]=1;
     if(!s.match){var ar=bankArchMatch(s),ae=ar&&parseD(archEnd(state.contracts[ar]));
       /* letzte Abbuchung vor dem Kündigungstermin: Vertrag lief da noch → nichts tun, nur als «gekündigt» bei den erfassten zeigen */
@@ -9252,6 +9252,9 @@ function bankFind(r,ign){
       /* kurzer Auszug und Zahlung ganz am Ende: eher monatlich; bei langem Auszug (> 10 Monate) wäre eine Monatszahlung mehrfach drin */
       var per=bankPeriod(t0.text),yr=/jahres|jaehrlich|jahrlich|bahncard|12 monate|annual|yearly/.test(lnorm(name+" "+(t0.text||"")));
       if(Math.abs(t0.a)<5)return;
+      /* Vertragswort (Versicherung, Prämie, Steuer, Mitgliedsbeitrag …): eher Jahreszahlung, auch am Ende eines kurzen Auszugs (23.10.2026);
+         kleine Lastschrift (< 150) bleibt bei der Monatsvermutung */
+      if(!per&&!yr&&BKONCE.test(h0)&&!(kind==="dd"&&Math.abs(t0.a)<150))yr=true;
       cyc=per||(yr?12:((dd(t0.d,ref)<40&&span>40&&(span<=300||/lastschriftverfahren|\blsv\b/.test(lnorm((t0.text||"")+" "+(t0.type||"")))))?1:12));
       if(!per&&!yr&&g.tpl&&!g.tpl[1]&&cyc===12&&dd(t0.d,ref)>45)return;
       /* langer Auszug: eine Jahreszahlung, die über 13 Monate zurückliegt, hätte sich wiederholt → kein laufender Vertrag (SWICA 2022) */
@@ -9328,7 +9331,6 @@ function bankFindInc(r){
     var cs=iv.map(bankCycle),cnt={};cs.forEach(function(c){if(c)cnt[c]=(cnt[c]||0)+1;});
     cyc=+Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];})[0]||0;if(!cyc||cnt[cyc]<iv.length*0.6)return;
     if(cyc===1&&n<(cat==="Sonstiges"?4:2))return;}
-    if(cyc>1&&n<2&&!once)return;
     var am=tx.map(function(t){return Math.round(t.a*100)/100;}),srt=am.slice().sort(function(a,b){return a-b;}),med=srt[Math.floor(srt.length/2)];
     /* Ausreisser nach oben (13. Monatslohn, Bonus) zählen nicht */
     var core=am.filter(function(v){return v<=med*1.5;});
@@ -9410,7 +9412,7 @@ function bankMatch(s){
   if(!best)return null;
   var c=best.c,cp=curPrice(c),same=(+c.cycle||1)===s.cycle;
   var diff=same?Math.abs(cp-s.amount):Math.abs(cp/(+c.cycle||1)-s.amount/s.cycle)*(+c.cycle||1);
-  if(diff<=Math.max(0.05,cp*0.01)||s.varies)return {id:best.id,kind:"known"};
+  if(diff<=Math.max(0.05,cp*0.01)||(s.varies&&diff<=cp*0.35))return {id:best.id,kind:"known"};
   /* nur als Preisänderung melden, wenn der neue Betrag nach dem letzten erfassten Preis beginnt */
   var from=s.change&&same?s.change.from:s.last;
   /* grosser Sprung (> 35 %) ist eher ein zweiter Vertrag beim gleichen Vertragspartner als eine Preisänderung */
@@ -9530,11 +9532,6 @@ function bkIncRow(it,i){var e=it.ed,cur=it.s.cur;
     '<button type="button" class="bkmain" data-ikopen="'+i+'">'+bkMark(it,true)+
       '<span class="bktx"><b>'+esc(e.label||e.name)+'</b><small>'+sub.join(" · ")+'</small><span class="bkq"><i>'+esc(e.cat)+'</i></span></span>'+
       '<span class="bkam">'+money(e.amount,cur)+'<small>'+esc(cur)+" "+bkPer(e.cycle)+'</small></span><span class="bkchev" aria-hidden="true">›</span></button></div>';}
-function bkHseg(e,attr){var HL=state.settings.holders||["Ich"];if(HL.length<2)return "";var all=HL.every(function(h){return e.holders.indexOf(h)>=0;});
-  return '<div class="field"><label>Person</label><div class="hseg">'+HL.map(function(h){return '<button type="button" '+attr+'="'+esc(h)+'" aria-pressed="'+(!all&&e.holders.length===1&&e.holders[0]===h)+'">'+esc(h)+'</button>';}).join("")+
-    '<button type="button" '+attr+'="*" aria-pressed="'+all+'">'+(HL.length===2?"Beide":"Alle")+'</button></div></div>';}
-/* Herkunft: woraus der Vorschlag stammt (Originaltext + letzte Buchungen) */
-var BKKIND={dd:"Lastschrift / eBill",so:"Dauerauftrag",card:"Kartenzahlung",tr:"Überweisung"};
 function bkKnownRow(s){var c=state.contracts[s.match&&s.match.id];if(!c)return "";
   return '<div class="bkr bkkn"><span class="bkok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>'+
     '<div class="bkmain">'+markHtml(c)+'<span class="bktx"><b>'+esc(titleOf(c))+'</b><small>'+esc(s.match&&s.match.arch?"gekündigt per "+fmtDot(archEnd(c))+" · letzte Zahlung "+fmtDot(s.last):(s.loose?"im Auszug gefunden":"unverändert"))+'</small></span>'+
