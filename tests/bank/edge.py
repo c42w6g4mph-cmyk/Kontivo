@@ -39,6 +39,9 @@ E = {
  "kuend_vorher": dict(s=[("Sunrise", 1, 39)], k=["AXA"]),
  "kuend_danach": dict(s=[("Sunrise", 1, 39), ("AXA", 12, 159.6)]),
  "rechtsschutz": dict(s=[("Sunrise", 1, 39)], k=["Die Mobiliar"]),
+ "promoende": dict(s=[("Muster Telecom", 1, 39.9)]),
+ "zweigemeinden": dict(s=[("Gemeinde Taegerwilen", 1, 80), ("Gemeinde Kreuzlingen", 3, 85)]),
+ "kuend_neu": dict(s=[("Sunrise", 1, 49)]),
  "stabilkey": dict(s=[("Haftpflicht Muster", 1, 25), ("Muster Assekuranz", 1, 12), ("Muster Assekuranz", 1, 8)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);
