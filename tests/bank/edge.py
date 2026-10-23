@@ -46,6 +46,7 @@ E = {
  "swisscom2_known": dict(s=[("Swisscom", 1, 32.9)], k=["Swisscom"]),
  "kinderkk": dict(s=[("Muster Krankenkasse", 1, 105.3), ("Muster Krankenkasse", 1, 98.4)]),
  "jahr_kurz": dict(s=[("Sunrise", 1, 39), ("Helvetia", 12, 480)]),
+ "kernreihe": dict(s=[("Apple", 1, 10)]),
  "stabilkey": dict(s=[("Haftpflicht Muster", 1, 25), ("Muster Assekuranz", 1, 12), ("Muster Assekuranz", 1, 8)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);

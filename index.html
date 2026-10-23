@@ -1821,7 +1821,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v298</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v299</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8991,7 +8991,7 @@ var BKCAT=[[/steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Ste
   [/versicherung|praemie|police|krankenkasse|kranken/,"Versicherung"],
   [/strom|energie|\bgas\b|erdgas|gasversorg|wasser|stadtwerke|abschlag|akonto/,"Energie & Wasser"],
   [/swisscom|sunrise|salt|telekom|vodafone|mobilfunk|internet|festnetz/,"Mobilfunk & Internet"],
-  [/netflix|spotify|abo|zeitung|streaming|disney|apple com bill|youtube|dropbox|icloud|google one|onedrive|\bdomain|hosting|ionos|strato|hostpoint|infomaniak/,"Abos & Medien"],
+  [/netflix|spotify|abo|zeitung|streaming|disney|apple com bill|\bapple\b(?! store| retail)|itunes|app store|youtube|dropbox|icloud|google one|onedrive|\bdomain|hosting|ionos|strato|hostpoint|infomaniak/,"Abos & Medien"],
   [/entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt|darlehen|kreditrate|\bkredit\b|hypothek|bausparvertrag|sparplan|depotgebuhr|depotgebuehr/,"Finanzen"]];
 /* Zeitraum im Verwendungszweck → Rhythmus: «Rundfunk 07.2026 - 09.2026» = 3, «Jahresgebühr» = 12 */
 function bankPeriod(txt){var t=String(txt||""),m=t.match(/\b(\d{1,2})[.\/](\d{4})\s*(?:-|–|bis)\s*(\d{1,2})[.\/](\d{4})\b/);
@@ -9137,7 +9137,11 @@ function bankFind(r,ign){
      (Swisscom 29.90 + 32.90) dürfen nicht beide demselben erfassten Vertrag zugeordnet werden */
   var EV=[];Object.keys(groups).forEach(function(k){
     if(cancelledHit(groups[k]))return;
-    var s=bankEval(k,groups[k]);if(s)bankApplyAlias(s);
+    var s=bankEval(k,groups[k]);
+    /* Kern-Reihe (23.10.2026): Abo mit gleichem Betrag am gleichen Tag, dazwischen Einzelkäufe beim selben Händler
+       (Apple 10.– am 7., dazu App-Käufe 10.90/12.–) → nur die regelmässige Reihe bewerten, Einzelkäufe fallen weg */
+    if(!s){var core=bankCore(groups[k]);if(core){s=bankEval(k,core);if(s)groups[k]=core;}}
+    if(s)bankApplyAlias(s);
     if(!s){EV.push({k:k,s:null,q:9});return;}
     s.cat=bankCat(s);if(s.alias&&s.alias.c&&allCats().indexOf(s.alias.c)>=0)s.cat=s.alias.c;
     s.match=bankMatch(s);var q=!s.match?5:s.match.kind==="known"?(s.varies?1:0):2;EV.push({k:k,s:s,q:q});});
@@ -9161,6 +9165,20 @@ function bankFind(r,ign){
     out.push(s);
   });
   /* erkannte Gruppe, die als Vertrag bereits existiert, aber die strengen Regeln nicht erfüllt (schwankende Rechnung, nur 1 Zahlung) */
+  function bankCore(g){var tx=g.tx;if(tx.length<6)return null;var ca={};tx.forEach(function(t){var a=t.a.toFixed(2);ca[a]=(ca[a]||0)+1;});
+    var am=Object.keys(ca).sort(function(a,b){return ca[b]-ca[a];})[0];if(ca[am]<4||ca[am]===tx.length)return null;
+    var S=tx.filter(function(t){return t.a.toFixed(2)===am;}),dc={};S.forEach(function(t){var d=+t.d.slice(8,10);dc[d]=(dc[d]||0)+1;});
+    var md=+Object.keys(dc).sort(function(a,b){return dc[b]-dc[a];})[0];
+    var near=function(d){var x=Math.abs(d-md);return Math.min(x,31-x)<=3;};
+    S=S.filter(function(t){return near(+t.d.slice(8,10));});
+    /* höchstens eine Zahlung pro Monat (die nächste am Stichtag) */
+    var bm={};S.forEach(function(t){var m=t.d.slice(0,7),o=bm[m];if(!o||Math.abs(+t.d.slice(8,10)-md)<Math.abs(+o.d.slice(8,10)-md))bm[m]=t;});
+    S=Object.keys(bm).sort().map(function(m){return bm[m];});
+    /* gleicher Betrag auch oft an anderen Tagen (täglicher Kaffee 4.50) → kein Abo */
+    if(S.length<4||S.length<tx.length*0.4||ca[am]>S.length*1.5)return null;
+    var ok=0;for(var i=1;i<S.length;i++){var g0=dd(S[i-1].d,S[i].d);if(g0>=25&&g0<=36)ok++;}
+    if(ok<(S.length-1)*0.7)return null;
+    return {key:g.key,tpl:g.tpl,cur:g.cur,names:g.names,tx:S,prevC:g.prevC};}
   function bankLooseKnown(k,g){
     var tx=g.tx,name=g.tpl?g.tpl[0]:bankPretty(Object.keys(g.names).sort(function(a,b){return g.names[b]-g.names[a];})[0]);
     var am=tx.map(function(t){return Math.round(-t.a*100)/100;});
