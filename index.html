@@ -1818,7 +1818,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v274</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v275</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8271,7 +8271,7 @@ function sanitizeImport(o){
   if(Array.isArray(s.holders))s.holders=s.holders.filter(function(h){return typeof h==="string"&&h.trim();});
   if(!Array.isArray(s.holders)||!s.holders.length)delete s.holders;
   if(Array.isArray(s.lastHolders))s.lastHolders=s.lastHolders.filter(function(h){return typeof h==="string";});else delete s.lastHolders;
-  if(obj(s.bankLast)&&/^\d{4}-\d\d-\d\d$/.test(s.bankLast.from)&&/^\d{4}-\d\d-\d\d$/.test(s.bankLast.to)&&/^\d{4}-\d\d-\d\d$/.test(s.bankLast.at))s.bankLast={from:s.bankLast.from,to:s.bankLast.to,at:s.bankLast.at,n:Math.max(1,+s.bankLast.n||1)};else delete s.bankLast;
+  if(obj(s.bankLast)&&/^\d{4}-\d\d-\d\d$/.test(s.bankLast.from)&&/^\d{4}-\d\d-\d\d$/.test(s.bankLast.to)&&/^\d{4}-\d\d-\d\d$/.test(s.bankLast.at)&&s.bankLast.ok===1)s.bankLast={from:s.bankLast.from,to:s.bankLast.to,at:s.bankLast.at,n:Math.max(1,+s.bankLast.n||1),ok:1};else delete s.bankLast;
   if(Array.isArray(s.bankIgn))s.bankIgn=s.bankIgn.filter(function(h){return typeof h==="string";});else delete s.bankIgn;
   if(s.bankAlias&&typeof s.bankAlias==="object"&&!Array.isArray(s.bankAlias)){var BA={};Object.keys(s.bankAlias).forEach(function(k){var v=s.bankAlias[k];
     if(v&&typeof v.n==="string"&&v.n.trim())BA[k]={n:v.n.trim().slice(0,80),c:typeof v.c==="string"?v.c:""};});s.bankAlias=BA;}else delete s.bankAlias;
@@ -9681,7 +9681,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
       holders:e.holders.slice(),prices:[],note:"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg||"":"",color:"",status:"active",t:Date.now()};ni++;});
   var H=bk.items.filter(function(it){return it.on;}).map(function(it){return it.ed.holders;})[0];
   if(H&&H.length===1&&(state.settings.holders||[]).length>1)state.settings.lastHolders=H.slice();
-  if((n||ni||p)&&bkPendLast){state.settings.bankLast=Object.assign({},bkPendLast,{at:iso(today())});}bkPendLast=null;
+  if((n||ni||p)&&bkPendLast){state.settings.bankLast=Object.assign({},bkPendLast,{at:iso(today()),ok:1});}bkPendLast=null;
   saveLocal();bk=null;closeSheets();goTab(n||p||!ni?"list":"budget");render();
   toast([n?n+(n===1?" Vertrag angelegt":" Verträge angelegt"):"",ni?ni+(ni===1?" Einnahme":" Einnahmen")+(n?"":" angelegt"):"",p?p+(p===1?" Preis angepasst":" Preise angepasst"):""].filter(Boolean).join(", ")+" — bitte kurz prüfen",3200);
   /* was danach noch fehlt (Logo nicht gefunden, Absender, feste Laufzeit): Vervollständigen anbieten */
@@ -9928,7 +9928,10 @@ function fmtDot(s){var d=parseD(s);return d?String(d.getDate()).padStart(2,"0")+
 function agoTxt(s){var d=parseD(s);if(!d)return "";var n=Math.round((today()-d)/864e5);
   if(n<=0)return "heute";if(n===1)return "gestern";if(n<14)return "vor "+n+" Tagen";if(n<60)return "vor "+Math.round(n/7)+" Wochen";
   var m=Math.round(n/30.44);return m<2?"vor 1 Monat":"vor "+m+" Monaten";}
-function paintBkRow(){var el=document.getElementById("bkRow");if(!el)return;var L=state.settings.bankLast,r=document.getElementById("bkRng"),a=document.getElementById("bkAgo");
+function paintBkRow(){var el=document.getElementById("bkRow");if(!el)return;var L=state.settings.bankLast,r=document.getElementById("bkRng");
+  /* ok:1 = beim Übernehmen gespeichert (v275); ältere Werte aus reinen Testläufen (v266–v273) verwerfen */
+  if(L&&L.ok!==1){delete state.settings.bankLast;L=null;try{saveSettings();}catch(e){}}
+  var a=document.getElementById("bkAgo");
   if(L){r.textContent=fmtDot(L.from)+" – "+fmtDot(L.to);a.textContent=agoTxt(L.at)+" eingelesen"+(L.n>1?" · "+L.n+" Dateien":"");
     el.setAttribute("aria-label","Kontoauszug einlesen. Zuletzt eingelesen: "+fmtDot(L.from)+" bis "+fmtDot(L.to)+", "+agoTxt(L.at));}
   else{r.textContent="";a.textContent="CSV, Excel, camt.053 oder MT940";el.removeAttribute("aria-label");}}
