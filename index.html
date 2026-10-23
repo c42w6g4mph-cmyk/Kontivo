@@ -1837,7 +1837,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v307</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v308</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9477,23 +9477,42 @@ function bankMatch(s){
 /* Preisverlauf aus den Zahlungen (23.10.2026): Stufen = mind. 2 aufeinanderfolgende gleiche Beträge (±0,5 %); einzelne Ausreisser (Gutschrift,
    Teilbetrag) zählen nicht. Ergebnis: Anfangspreis + Preisänderungen mit Datum der ersten Zahlung zum neuen Preis. Null bei schwankenden Beträgen
    (Strom, Kartenkäufe): höchstens 6 Stufen, Stufen decken ≥ 75 % der Zahlungen. SwiftUI: gleiche Funktion im BankImport-Kern */
-function bankPriceHist(s){var D=s.dates||[],A=s.amounts||[],n=Math.min(D.length,A.length);if(n<3)return null;
-  var eq=function(x,y){return Math.abs(x-y)<=Math.max(0.01,Math.abs(y)*0.005);},runs=[];
+/* Einnahmen (Lohn, 23.10.2026): Netto schwankt leicht (Abzüge) → Toleranz 1 %, bis 12 Stufen, Stufe = jüngster Betrag, keine Gratismonate */
+var BK_INCH={tol:0.02,maxLv:12,cov:0.6,inc:true};/* Lohn: < 2 % = Schwankung (Abzüge), keine Lohnänderung */
+/* Lohnverlauf (23.10.2026): Ausreisser (> 15 % vom Stufenwert: 13. Lohn, Bonus, Spesen) zählen nicht; neue Stufe erst, wenn zwei Zahlungen
+   hintereinander > 2 % vom Median der aktuellen Stufe abweichen und unter sich ähnlich sind. Stufenwert = Median. Kleine Schwankungen bleiben eine Stufe */
+function bankIncHist(s){var D=s.dates||[],A=s.amounts||[],n=Math.min(D.length,A.length);if(n<3)return null;
+  var med=function(L){var a=L.slice().sort(function(x,y){return x-y;});return a[Math.floor(a.length/2)];},r2=function(x){return Math.round(x*100)/100;};
+  var lv=[],cur=null;
+  for(var i=0;i<n;i++){var a=A[i];
+    if(!cur){if(i+1<n&&Math.abs(A[i+1]-a)<=a*0.02){cur={from:D[i],v:[a]};lv.push(cur);}continue;}
+    var m=med(cur.v),dv=Math.abs(a-m)/m;
+    if(dv<=0.02){cur.v.push(a);continue;}
+    if(dv>0.15)continue;/* Ausreisser */
+    var b=i+1<n?A[i+1]:null;
+    if(b!=null&&Math.abs(b-a)<=a*0.02&&Math.abs(b-m)/m>0.02){cur={from:D[i],v:[a]};lv.push(cur);}}
+  if(!lv.length||lv.length>12)return null;var cov=lv.reduce(function(t,l){return t+l.v.length;},0);if(cov<n*0.6)return null;
+  var L=lv.map(function(l){return {a:r2(med(l.v)),from:l.from,n:l.v.length,last:l.v[l.v.length-1]};});
+  return {base:L[0].a,prices:L.slice(1).map(function(l){return {from:l.from,amount:l.a};}),chg:L.slice(1).map(function(l){return {from:l.from,amount:l.a};}),free:[],cur:r2(L[L.length-1].last),levels:L};}
+function bankPriceHist(s,o){o=o||{};if(o.inc)return bankIncHist(s);var D=s.dates||[],A=s.amounts||[],n=Math.min(D.length,A.length);if(n<3)return null;
+  var tol=o.tol||0.005,eq=function(x,y){return Math.abs(x-y)<=Math.max(0.01,Math.abs(y)*tol);},runs=[];
   for(var i=0;i<n;i++){var r=runs[runs.length-1];if(r&&eq(A[i],r.a))r.n++;else runs.push({a:A[i],from:D[i],n:1});}
-  var lv=[],cov=0;runs.forEach(function(r){if(r.n<2)return;cov+=r.n;var l=lv[lv.length-1];if(l&&eq(l.a,r.a)){l.n+=r.n;return;}lv.push({a:r.a,from:r.from,n:r.n});});
-  if(!lv.length||lv.length>6||cov<n*0.75)return null;
+  if(o.inc){runs=[];for(var i2=0;i2<n;i2++){var r2=runs[runs.length-1];if(r2&&eq(A[i2],r2.a0)){r2.n++;r2.a=A[i2];}else runs.push({a:A[i2],a0:A[i2],from:D[i2],n:1});}}
+  var lv=[],cov=0;runs.forEach(function(r){if(r.n<2)return;cov+=r.n;var l=lv[lv.length-1];
+    if(l&&eq(r.a0!=null?r.a0:r.a,o.inc?l.a0:l.a)){l.n+=r.n;l.last=r.a;return;}lv.push({a:r.a0!=null?r.a0:r.a,a0:r.a0!=null?r.a0:r.a,last:r.a,from:r.from,n:r.n});});
+  if(!lv.length||lv.length>(o.maxLv||6)||cov<n*(o.cov||0.75))return null;
   var r2=function(x){return Math.round(x*100)/100;},chg=lv.slice(1).map(function(l){return {from:l.from,amount:r2(l.a)};});
   /* Ausgelassene Monate bei Monatsverträgen = gratis (Wunsch 23.10.2026): Lücke > 49 Tage, danach keine Nachzahlung (< 15 Tage) → Preis 0 ab dem
      fälligen Tag, ab der nächsten Zahlung wieder der Preis der Stufe */
   var free=[],ev=chg.slice(),at=function(d){var a=lv[0].a;lv.forEach(function(l){if(l.from<=d)a=l.a;});return r2(a);};
   var dd=function(x,y){return Math.round((parseD(y)-parseD(x))/864e5);};
-  if((+s.cycle||1)===1)for(var j=1;j<n;j++){var g=dd(D[j-1],D[j]);if(g<=49)continue;if(j+1<n&&dd(D[j],D[j+1])<15)continue;
+  if(!o.inc&&(+s.cycle||1)===1)for(var j=1;j<n;j++){var g=dd(D[j-1],D[j]);if(g<=49)continue;if(j+1<n&&dd(D[j],D[j+1])<15)continue;
     var miss=Math.round(g/30.44)-1,f0=parseD(D[j-1]);if(miss<1||miss>3)continue;
     for(var k=1;k<=miss;k++)free.push(iso(addMonths(f0,k)));
     ev.push({from:iso(addMonths(f0,1)),amount:0});ev.push({from:D[j],amount:at(D[j])});}
   ev.sort(function(x,y){return x.from<y.from?-1:x.from>y.from?1:0;});
   var pr=[],last=r2(lv[0].a);ev.forEach(function(e){if(Math.abs(e.amount-last)<0.005)return;if(pr.length&&pr[pr.length-1].from===e.from)pr.pop();pr.push(e);last=e.amount;});
-  return {base:r2(lv[0].a),prices:pr,chg:chg,free:free,cur:r2(lv[lv.length-1].a),levels:lv};}
+  return {base:r2(lv[0].a),prices:pr,chg:chg,free:free,cur:r2(o.inc?lv[lv.length-1].last:lv[lv.length-1].a),levels:lv};}
 /* Vertragsbeginn = erste Zahlung, aber nur wenn sie deutlich nach dem Anfang des Auszugs liegt (> 1,5 Zahlungsrhythmen) – sonst lief der
    Vertrag schon vorher und der wahre Beginn ist unbekannt (23.10.2026) */
 function bankStart(s){if(!s.stFrom||!s.first||!(s.n>=2)||s.change)return "";/* Preisstufe nach Wechsel (Steuer 760 → 340): Vertrag lief schon vorher */var d=(parseD(s.first)-parseD(s.stFrom))/864e5;return d>(+s.cycle||1)*30.44*1.5?s.first:"";}
@@ -9582,10 +9601,10 @@ function bkSub(it){var e=it.ed;return e.label&&lnorm(e.label)!==lnorm(e.name)?es
 function bkChips(it,inc,idx){var s=it.s,e=it.ed,c=[];
   /* Anzahl antippen → Zahlungen aus dem Auszug aufklappen (23.10.2026) */
   c.push(s.conf==="niedrig"?'<i>einmal am '+bkDay(s.last)+'</i>':'<i class="tap" role="button" tabindex="0" data-bkpay="'+(inc?"i":"c")+idx+'" aria-expanded="'+!!it.pay+'">'+s.n+(s.n===1?" Zahlung":" Zahlungen")+'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></i>');
-  var ph=bankPriceHist(s),lc=ph&&ph.chg.length?{prev:ph.chg.length>1?ph.chg[ph.chg.length-2].amount:ph.base,amount:ph.cur,from:ph.chg[ph.chg.length-1].from}:(!inc&&s.change)||null;
+  var ph=bankPriceHist(s,inc?BK_INCH:null),lc=ph&&ph.chg.length?{prev:ph.chg.length>1?ph.chg[ph.chg.length-2].amount:ph.base,amount:ph.cur,from:ph.chg[ph.chg.length-1].from}:(!inc&&s.change)||null;
   if(lc&&lc.prev>0&&Math.abs(e.amount-lc.amount)<0.005){var pc=(lc.amount/lc.prev-1)*100;
     c.push('<i class="pc">'+(pc>0?"+":"−")+Math.abs(pc).toFixed(1).replace(".",",")+' % ab '+bkDay(lc.from)+'</i>');
-    if(ph&&ph.chg.length>1)c.push('<i>'+ph.chg.length+' Preisänderungen</i>');}
+    if(ph&&ph.chg.length>1)c.push('<i>'+ph.chg.length+(inc?' Änderungen':' Preisänderungen')+'</i>');}
   else if(s.varies&&!ph)c.push('<i>Betrag schwankt</i>');
   if(ph&&ph.free.length)c.push('<i>'+(ph.free.length===1?"1 Monat gratis":ph.free.length+" Monate gratis")+'</i>');
   return '<span class="bkq">'+c.join("")+'</span>';}
@@ -9607,10 +9626,10 @@ function bkRow(it,i){
 }
 /* Zahlungen eines Vorschlags (neueste zuerst, 12 sichtbar); geänderter Betrag in Messing. SwiftUI: DisclosureGroup */
 function bkPayList(it,key){if(!it.pay)return "";var s=it.s,D=(s.dates||[]).map(function(d,j){return [d,(s.amounts||[])[j]];}).reverse(),n=it.payAll?D.length:Math.min(12,D.length);
-  var ph=bankPriceHist(s),chg={},lvA=ph?ph.levels.map(function(l){return l.a;}):null;if(ph){ph.chg.forEach(function(p){chg[p.from]=1;});
+  var ph=bankPriceHist(s,key.charAt(0)==="i"?BK_INCH:null),chg={},lvA=ph?ph.levels.map(function(l){return l.a;}):null;if(ph){ph.chg.forEach(function(p){chg[p.from]=1;});
     ph.free.forEach(function(d){D.push([d,null]);});D.sort(function(x,y){return x[0]<y[0]?1:-1;});n=it.payAll?D.length:Math.min(12,D.length);}
   return '<div class="bkpay">'+D.slice(0,n).map(function(x,j){var nx=D[j+1],ch=ph?!!chg[x[0]]:(nx&&Math.abs(x[1]-nx[1])>0.005),
-        odd=ph&&!lvA.some(function(a){return Math.abs(a-x[1])<=Math.max(0.01,a*0.005);});
+        odd=ph&&!ph.levels.some(function(l){return Math.abs(l.a-x[1])<=Math.max(0.01,l.a*(key.charAt(0)==="i"?0.01:0.005))||Math.abs((l.a0||l.a)-x[1])<=l.a*0.01;});
       if(x[1]==null)return '<div><span>'+bkDay(x[0])+' · keine Zahlung</span><b class="od">gratis</b></div>';
       return '<div><span>'+bkDay(x[0])+(ch?' · neuer Preis':'')+(odd?' · einmalig':'')+'</span><b class="'+(ch?"ch":odd?"od":"")+'">'+money(x[1],s.cur)+'</b></div>';}).join("")+
     (D.length>n?'<button type="button" data-bkpayall="'+key+'">Alle '+D.length+' anzeigen</button>':"")+'</div>';}
@@ -9904,7 +9923,7 @@ function bkContractOf(it){if(it.over)return Object.assign({},it.over);
 function bkOpenForm(i){var it=bk.items[i];fBank={i:i,scroll:document.getElementById("sheetBank").scrollTop};
   document.getElementById("sheetBank").classList.remove("on");openForm(bkContractOf(it),false,"Vorschlag");}
 /* Einnahme: Anfangsbetrag + Änderungen aus den Zahlungen (Lohnerhöhung), letzter Betrag = gewählter Betrag */
-function bkIncPrices(it){var ph=bankPriceHist(it.s),a=it.ed.amount;if(!ph||!ph.prices.length)return {amount:a,prices:[]};
+function bkIncPrices(it){var ph=bankPriceHist(it.s,BK_INCH),a=it.ed.amount;if(!ph||!ph.prices.length)return {amount:a,prices:[]};
   var pr=ph.prices.map(function(p){return {from:p.from,amount:p.amount};});if(pr[pr.length-1].amount>0)pr[pr.length-1].amount=a;return {amount:ph.base,prices:pr};}
 function bkOpenInc(i){var it=bk.inc[i],e=it.ed;fBank={i:i,inc:true,scroll:document.getElementById("sheetBank").scrollTop};
   document.getElementById("sheetBank").classList.remove("on");
