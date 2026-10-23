@@ -36,6 +36,8 @@ E = {
  # Review 23.10.2026
  "mietkonto": dict(s=[("Muster Hausverwaltung", 1, 350)]),
  "zweikinder": dict(s=[("FC Muster", 1, 45), ("FC Muster", 1, 45)]),
+ "kuend_vorher": dict(s=[("Sunrise", 1, 39)], k=["AXA"]),
+ "kuend_danach": dict(s=[("Sunrise", 1, 39), ("AXA", 12, 159.6)]),
  "stabilkey": dict(s=[("Haftpflicht Muster", 1, 25), ("Muster Assekuranz", 1, 12), ("Muster Assekuranz", 1, 8)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);

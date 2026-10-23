@@ -209,5 +209,46 @@
 "c": "Versicherung"
 }
 }
+},
+"kuend_vorher": {
+"txt": "Datum;Buchungstext;Betrag\n23.01.2025;LASTSCHRIFT AXA Versicherungen AG Hausrat;-159.60\n23.01.2026;LASTSCHRIFT AXA Versicherungen AG Hausrat;-159.60\n15.03.2026;LASTSCHRIFT Sunrise GmbH;-39.00\n15.04.2026;LASTSCHRIFT Sunrise GmbH;-39.00\n15.05.2026;LASTSCHRIFT Sunrise GmbH;-39.00\n",
+"contracts": {
+"a": {
+"partner": "AXA",
+"label": "Hausrat",
+"cat": "Versicherung",
+"amount": 159.6,
+"cur": "CHF",
+"cycle": 12,
+"due": "2027-01-23",
+"holders": [
+"Sinan"
+],
+"status": "cancelled",
+"cancelledAt": "2026-02-01",
+"cancelPer": "2026-06-30"
+}
+}
+},
+"kuend_danach": {
+"txt": "Datum;Buchungstext;Betrag\n23.01.2025;LASTSCHRIFT AXA Versicherungen AG Hausrat;-159.60\n23.01.2026;LASTSCHRIFT AXA Versicherungen AG Hausrat;-159.60\n15.03.2026;LASTSCHRIFT Sunrise GmbH;-39.00\n15.04.2026;LASTSCHRIFT Sunrise GmbH;-39.00\n15.05.2026;LASTSCHRIFT Sunrise GmbH;-39.00\n",
+"contracts": {
+"a": {
+"partner": "AXA",
+"label": "Hausrat",
+"cat": "Versicherung",
+"amount": 159.6,
+"cur": "CHF",
+"cycle": 12,
+"due": "2027-01-23",
+"holders": [
+"Sinan"
+],
+"status": "active",
+"start": "2024-01-01",
+"end": "2025-12-31",
+"renew": 0
+}
+}
 }
 }
