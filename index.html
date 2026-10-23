@@ -408,6 +408,7 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .axf svg{width:22px;height:22px;flex:none;fill:none;stroke:var(--ink3);stroke-width:1.8;stroke-linejoin:round}.axf div{min-width:0}
 .axf b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.axf small{display:block;font-size:12.5px;color:var(--alert)}
 .axmore{font-size:12.5px;color:var(--ink3);padding-left:4px}.axt{margin:0 0 16px;font-size:14px}
+body.rp{opacity:.9999}
 .mgp.w{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)!important}.mgp:empty{display:none}
 .srowbtn{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:12px 0;border-top:1px solid var(--line);text-align:left;font-size:16px}
 .srowbtn:first-of-type{border-top:0;padding-top:2px}
@@ -1835,7 +1836,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v285</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v286</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -7853,6 +7854,12 @@ async function autoRate(force){
   if(force)toast("Kurse aktualisiert");
 }
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")autoRate(false);});
+/* iOS-Web-App nach Bildschirmsperre: Seite bleibt manchmal weiss, bis neu gezeichnet wird → Repaint erzwingen,
+   offenen Import neu zeichnen (23.10.2026). SwiftUI: nicht nötig (scenePhase) */
+function kRepaint(){var b=document.body;b.classList.add("rp");void b.offsetHeight;requestAnimationFrame(function(){b.classList.remove("rp");});
+  setTimeout(function(){try{if(bk&&document.getElementById("sheetBank").classList.contains("on")){if(bk.loading)bkLoad(3,bk.nTx,bk.logoRun);else paintBank();}}catch(e){}},60);}
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")kRepaint();});
+window.addEventListener("pageshow",function(e){if(e.persisted)kRepaint();});
 setInterval(function(){if(document.visibilityState==="visible")autoRate(false);},3600e3);
 /* In einem anderen Fenster geändert: Stand übernehmen statt ihn später zu überschreiben */
 window.addEventListener("storage",function(e){if(e.key!==LS||e.storageArea!==localStorage||loadBad!=null||!e.newValue)return;
@@ -9547,7 +9554,9 @@ function bkLogos(){
       if(!r)r=await autoLogo(it.ed.name,it.s.cur,it.ed.label||"",t?t[4]||"":"");}catch(e){r=null;}
     if(bk!==me){if(r&&r.id)bkDropLogo(r.id);return;}
     if(r&&r.id&&!it.logo&&!it.over)it.logo=r;me.logoRun.done++;tick();}
-  async function worker(){while(next<q.length&&bk===me){var it=q[next++];await one(it);}}
+  /* Bildschirm gesperrt / App im Hintergrund: Logo-Suche pausieren (iOS beendet sonst die Web-App wegen Speicher/Netz); jede Suche max. 12 s */
+  var bgWait=function(){return document.visibilityState==="visible"?Promise.resolve():new Promise(function(r){var h=function(){if(document.visibilityState==="visible"){document.removeEventListener("visibilitychange",h);r();}};document.addEventListener("visibilitychange",h);});};
+  async function worker(){while(next<q.length&&bk===me){await bgWait();if(bk!==me)return;var it=q[next++];await Promise.race([one(it),bkWait(12000)]);}}
   /* 2 gleichzeitig: mehr führt bei den Gratis-Diensten (Bild-Proxy, Profilbilder) zu Absagen → schlechtere Quelle */
   return Promise.all([worker(),worker()]);
 }
@@ -9614,7 +9623,9 @@ function bkLoad(step,nTx,lr){var L=["Kontoauszug lesen","Fixkosten und Einnahmen
 /* Vertrauen wie in der Einführung (16.10.2026): gleiche grüne Box. SwiftUI: eigene SafeNote-View, in Onboarding und Import verwendet */
 var BK_SAFE='<div class="safenote"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg><span><b>Bleibt auf deinem Gerät.</b> Die Datei wird nur hier gelesen – nie hochgeladen, nie gespeichert.</span></div>';
 /* dem Browser Zeit zum Zeichnen geben, bevor gerechnet wird */
-function bkPaint(){return new Promise(function(r){requestAnimationFrame(function(){setTimeout(r,30);});});}
+function bkPaint(){return new Promise(function(r){var done=false,f=function(){if(!done){done=true;setTimeout(r,30);}};
+  /* rAF steht bei gesperrtem Bildschirm still (iOS): spätestens nach 250 ms trotzdem weiter (23.10.2026) */
+  requestAnimationFrame(f);setTimeout(f,250);});}
 function bkWait(ms){return new Promise(function(r){setTimeout(r,ms);});}
 var bkPendLast=null;
 document.getElementById("bankFile").addEventListener("change",async function(ev){
