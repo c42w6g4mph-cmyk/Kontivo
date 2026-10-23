@@ -404,6 +404,10 @@ from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:t
 .mgi.i1{background:#4A5A66}.mgi.i2{background:#6B4BA0}.mgi.i3{background:#B4612A}.mgi.i4{background:#2E6A4E}.mgi.i4.w{background:#9A6710}
 .mgp{font-style:normal;font-size:13px!important;font-weight:600;padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)!important}
 .bkrow{align-items:center}.bkrow .mdt{flex:1;min-width:0}.bkrow .mdt b{font-size:15.5px;font-weight:600}.bkrow small{font-size:12.5px;margin-top:2px}.bkrow .bkrng{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap}.bkrow small:empty{display:none}
+.axfl{display:grid;gap:6px;margin:8px 0 10px}.axf{display:flex;align-items:center;gap:10px;background:var(--field);border-radius:12px;padding:10px 12px}
+.axf svg{width:22px;height:22px;flex:none;fill:none;stroke:var(--ink3);stroke-width:1.8;stroke-linejoin:round}.axf div{min-width:0}
+.axf b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.axf small{display:block;font-size:12.5px;color:var(--alert)}
+.axmore{font-size:12.5px;color:var(--ink3);padding-left:4px}.axt{margin:0 0 16px;font-size:14px}
 .mgp.w{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)!important}.mgp:empty{display:none}
 .srowbtn{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:12px 0;border-top:1px solid var(--line);text-align:left;font-size:16px}
 .srowbtn:first-of-type{border-top:0;padding-top:2px}
@@ -1831,7 +1835,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v277</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v278</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8348,7 +8352,7 @@ function ask(o){var p=askQ.then(function(){return askBusy?new Promise(function(r
   askQ=p.then(function(){},function(){});return p;}
 function askOpen(o){return new Promise(function(res){
   askBusy=true;askRes=function(v){askBusy=false;res(v);};document.getElementById("askT").textContent=o.title||"";
-  document.getElementById("askP").textContent=o.text||"";
+  var ap=document.getElementById("askP");ap.textContent=o.text||"";ap.hidden=!o.text;
   var ax=document.getElementById("askX");ax.innerHTML=o.html||"";ax.hidden=!o.html;
   askOnOk=o.onOk||null;/* synchron im Tipp ausführen (z.B. Dateiauswahl auf iOS) */
   var ok=document.getElementById("askOk");ok.textContent=o.ok||"OK";ok.classList.toggle("dangerbtn",!!o.danger);
@@ -9559,10 +9563,17 @@ document.getElementById("bankFile").addEventListener("change",async function(ev)
   if(run!==bkRun||!sh.classList.contains("on"))return;  /* abgebrochen */
   var ok=got.filter(function(x){return x.r;}),bad=got.filter(function(x){return !x.r;});
   if(!ok.length&&bad.every(function(x){return x.big;})){closeSheetEl("sheetBank");toast("Die Datei ist zu gross (über 20 MB)",3200);return;}
-  if(!ok.length&&bad.every(function(x){return x.empty;})){closeSheetEl("sheetBank");
-    await ask({title:"Keine Buchungen gefunden",alert:true,text:"Die Datei ist ein Kontoauszug, enthält aber keine Buchungen. Wähle im E-Banking einen Zeitraum mit Buchungen, am besten die letzten 12 Monate, und exportiere erneut."});return;}
-  if(!ok.length){closeSheetEl("sheetBank");var h=bad.length===1?bad[0].head:"";
-    await ask({title:bad.length>1?"Dateien nicht erkannt":"Datei nicht erkannt",alert:true,text:(bad.length===1&&bad[0].xls?"Das ist eine ältere Excel-Datei (.xls). Speichere sie als .xlsx oder CSV, oder exportiere den Auszug im E-Banking als CSV. ":bad.length===1&&bad[0].xlsx?"Die Excel-Datei enthält keine erkennbaren Buchungen. ":"")+"Kontivo liest Kontoauszüge als CSV, Excel (.xlsx), camt.053 (XML) oder MT940. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren». PDF-Auszüge gehen nicht."+(h?" Erste Zeile deiner Datei: «"+h+"».":"")});return;}
+  /* Nicht lesbar (23.10.2026): kurze Meldung mit Dateikarte und direktem «Andere Datei wählen». SwiftUI: .alert bzw. Sheet mit FileCard + .fileImporter */
+  if(!ok.length){closeSheetEl("sheetBank");
+    var allEmpty=bad.every(function(x){return x.empty;}),one=bad.length===1,b0=bad[0],
+      sub=function(x){return x.empty?"Keine Buchungen im gewählten Zeitraum":x.xls?"Ältere Excel-Datei (.xls)":"Keine Buchungen gefunden";},
+      cards='<div class="axfl">'+bad.slice(0,3).map(function(x){return '<div class="axf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg><div><b>'+esc(x.f.name)+"</b><small>"+esc(sub(x))+"</small></div></div>";}).join("")+
+        (bad.length>3?'<div class="axmore">und '+(bad.length-3)+" weitere</div>":"")+"</div>",
+      txt=allEmpty?"Wähle beim Export einen Zeitraum mit Buchungen, am besten die letzten 12 Monate.":
+        one&&b0.xls?"Speichere sie als .xlsx oder exportiere die Umsätze im E-Banking als CSV.":
+        one?"Diese Datei enthält keine Buchungen mit Datum und Betrag.":"Diese Dateien enthalten keine Buchungen mit Datum und Betrag.";
+    await ask({title:allEmpty?"Keine Buchungen":one?"Kein Kontoauszug":"Keine Kontoauszüge",html:cards+'<p class="note axt">'+esc(txt)+"</p>",
+      ok:"Andere Datei wählen",no:"Abbrechen",onOk:function(){document.getElementById("bankFile").click();}});return;}
   var r=bankMerge(ok.map(function(x){return x.r;})),res;
   bkLoad(1,r.tx.length);await bkPaint();await bkWait(Math.max(0,450-(Date.now()-t0)));
   try{res=bankFind(r);}catch(e){closeSheetEl("sheetBank");toast("Die Datei konnte nicht ausgewertet werden");return;}
