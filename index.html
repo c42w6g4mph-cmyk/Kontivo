@@ -1648,6 +1648,11 @@ body{background:var(--paper)!important}
 .bkpay div{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:var(--ink2)}.bkpay div+div{border-top:1px solid var(--line)}
 .bkpay b{font-weight:500;color:var(--ink)}.bkpay b.ch{color:var(--teal);font-weight:600}.bkpay b.od{color:var(--ink3)}
 .bkpay button{display:block;width:100%;text-align:left;padding:7px 0 5px;font-size:13px;color:var(--teal);font-weight:600;border-top:1px solid var(--line)}.bkq i.pc{background:color-mix(in srgb,var(--brass) 18%,var(--surface));color:var(--teal)}
+.bkhero{display:flex;align-items:center;gap:14px;margin:2px 0 14px;padding:16px;border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--brass) 20%,var(--surface)),var(--surface))}
+.bkhero.inc{background:linear-gradient(135deg,color-mix(in srgb,#5FB487 26%,var(--surface)),var(--surface))}
+.bkhero b{display:block;font-size:18px;font-weight:600;color:var(--ink)}.bkhero small{display:block;font-size:13px;color:var(--ink2);margin-top:2px;line-height:1.35}.bkhero small em{font-style:normal;color:var(--teal)}
+.bkstk{display:flex;flex:none;padding-right:9px}.bkstk span{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;margin-right:-9px;color:#fff;box-shadow:0 0 0 3px var(--surface)}
+.bkstk span .cicon{width:19px;height:19px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.bkstk span.more{background:var(--sunken);color:var(--ink2);font-size:13px;font-weight:600}
 .bktiles{display:grid;gap:8px;margin:2px 0 14px}.bktiles.n1{grid-template-columns:1fr}.bktiles.n2{grid-template-columns:1fr 1fr}.bktiles.n3{grid-template-columns:1fr 1fr 1fr}
 .bktiles div{background:var(--surface);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px}
 .bktiles b{font-size:28px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}.bktiles span{font-size:13px;color:var(--ink2);line-height:1.25}
@@ -1837,7 +1842,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v308</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v309</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9688,7 +9693,8 @@ function paintBank(){
     var spanM=r.from&&r.to?Math.round((parseD(r.to)-parseD(r.from))/864e5/30.4):0;
     if(spanM&&spanM<11)h+='<p class="bki bkspan">Der Auszug umfasst nur '+(spanM<1?"wenige Wochen":spanM+" Monate")+'. Jahresbeiträge (Versicherungen, Steuern, Mitgliedschaften) fehlen womöglich – am besten die letzten 12 Monate exportieren.</p>';
     /* Kacheln (23.10.2026): Anzahl gefundener Verträge; «Preise aktualisiert» nur bei erfassten Verträgen mit neuem Preis */
-    if(vis.length||bk.price.length)h+=bkTiles([[vis.length,vis.length===1?"Vertrag<br>gefunden":"Verträge<br>gefunden"]].concat(bk.price.length?[[bk.price.length,bk.price.length===1?"Preis<br>aktualisiert":"Preise<br>aktualisiert",1]]:[]));
+    /* Karte oben (23.10.2026, Variante J1): Symbole der gefundenen Kategorien, «n Verträge erkannt»; neue Preise bei erfassten Verträgen als Zusatz */
+    if(vis.length||bk.price.length)h+=bkHero(vis.map(function(i){return bk.items[i];}),false,bk.price.length);
     h+=bkLogoLine()+bkWhoBar();
     if(bk.price.length)h+='<h4 class="bkh2"><span>Neuer Preis bei erfassten Verträgen</span><span>'+bk.price.length+'</span></h4><div class="bklist">'+bk.price.map(bkPriceRow).join("")+'</div>';
     if(sure.length)h+=(bk.price.length?'<h4 class="bkh2"><span>Neu gefunden</span><span>'+sure.length+'</span></h4>':"")+'<div class="bklist">'+sure.map(function(i){return bkRow(bk.items[i],i);}).join("")+'</div>';
@@ -9699,7 +9705,7 @@ function paintBank(){
     if(nIgn)h+='<button type="button" class="bkshow" data-bkshow>'+(bk.showIgn?"Ausgeblendete verbergen":nIgn+(nIgn===1?" ausgeblendeter Vorschlag":" ausgeblendete Vorschläge")+" ›")+'</button>';
   } else if(bk.step==="inc"){
     var ik=(r.inc&&r.inc.known)||[];
-    h+=(bk.inc.length?'<h3 class="bkt">Und deine Einnahmen?</h3>'+bkTiles([[bk.inc.length,bk.inc.length===1?"Einnahme<br>gefunden":"Einnahmen<br>gefunden"]]):
+    h+=(bk.inc.length?'<h3 class="bkt">Und deine Einnahmen?</h3>'+bkHero(bk.inc,true,0):
       '<h3 class="bkt">Deine Einnahmen</h3><p class="bki">Nichts Neues gefunden – alles ist schon in Kontivo.</p>')+bkLogoLine()+(bkSteps()[0]==='inc'?bkWhoBar():'');
     if(bk.inc.length)h+='<div class="bklist">'+bk.inc.map(bkIncRow).join("")+'</div>';
     if(ik.length)h+=(bk.inc.length?'<h4 class="bkh2"><span>Bereits in Kontivo</span><span>'+ik.length+'</span></h4>':'')+'<div class="bklist">'+ik.map(bkKnownIncRow).join("")+'</div>';
@@ -9715,6 +9721,15 @@ function paintBank(){
   b.innerHTML=h;bkFoot();
 }
 /* Kacheln oben im Import: [[Zahl, Text, Messing?]] – 1 bis 3 nebeneinander, gleich gefüllt. SwiftUI: HStack aus Kacheln */
+/* Kopfkarte im Import: überlappende Kategorie-Symbole (max. 4, sonst «+n»), neutrale Zahl, Kategorien als Satz. SwiftUI: HStack mit Kreisen, negativer Abstand */
+function bkHero(L,inc,np){var cats=[],cn={};L.forEach(function(it){var c=it.ed.cat||"Sonstiges";if(!cn[c]){cn[c]=1;cats.push(c);}});
+  var n=L.length,word=inc?"Einkommen":(n===1?"Vertrag":"Verträge"),t=n?n+" "+word+" erkannt":"";
+  var and=function(a){return a.length<2?a.join(""):a.slice(0,-1).join(", ")+" und "+a[a.length-1];};
+  var sub=n===1?esc(cats[0]+(L[0].ed.name?" · "+L[0].ed.name:"")):esc(and(cats.length>5?cats.slice(0,4).concat([(cats.length-4)+" weitere"]):cats));
+  if(np)sub+=(sub?"<br>":"")+'<em>'+(np===1?"1 Preis aktualisiert":np+" Preise aktualisiert")+"</em>";
+  if(!n)t=np===1?"1 Preis aktualisiert":np+" Preise aktualisiert";
+  var ic=cats.slice(0,cats.length>4?3:4).map(function(c){return '<span style="background:'+esc(catColor(c))+'">'+catIcon(c)+"</span>";}).join("")+(cats.length>4?'<span class="more">+'+(cats.length-3)+"</span>":"");
+  return '<div class="bkhero'+(inc?" inc":"")+'"><div class="bkstk">'+(ic||'<span class="more">✓</span>')+'</div><div><b>'+t+'</b><small>'+sub+"</small></div></div>";}
 function bkTiles(L){return '<div class="bktiles n'+L.length+'">'+L.map(function(t){return '<div class="'+(t[2]?"br":"")+'"><b>'+t[0]+'</b><span>'+t[1]+'</span></div>';}).join("")+'</div>';}
 function bkCounts(){
   var n=bk.items.filter(function(it){return it.on&&(bk.showIgn||!it.s.ignored);}).length,p=bk.price.filter(function(x){return x.on;}).length,i=bk.inc.filter(function(x){return x.on;}).length;
