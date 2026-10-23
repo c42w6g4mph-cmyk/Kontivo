@@ -1837,7 +1837,7 @@ body{background:var(--paper)!important}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v287</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v288</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8923,21 +8923,30 @@ function bankTok(s){return ltok(s).filter(function(t){return !/\d/.test(t)&&BKST
 var BKALIAS={"Rundfunkgebühr":/rundfunk|beitragsservice|\bserafe\b/,"SBB Halbtax":/halbtax/,"Deutschlandticket":/deutschlandticket|d ticket/,"Die Mobiliar":/\bmobiliar\b/,"Amazon Prime":/amazon prime|prime video|amzn prime/,"O2":/\bo2\b|telefonica germany|telefonica o2/,"Zurich":/zurich (versicherung|insurance|schweiz|lebens)/,"M-net":/\bm ?net (telekommunikation|gmbh)|\bmnet\b/,"Migros Mobile":/migros mobile|m ?budget mobile/,"SIG":/services industriels de geneve|\bsig (services|sa|geneve)\b|^ sig (?!sauer)/,"SiL Lausanne":/services industriels de lausanne|\bsil lausanne\b/};
 /* Produkte, deren Nennung im Text den Namen des Anbieters schlägt (Firmen-Aliase wie Zurich nicht: «8000 Zürich, Schweiz» in der Adresse) */
 var BKPROD=["Deutschlandticket","SBB Halbtax","Amazon Prime","O2","Rundfunkgebühr"];
-function bankTpl(name,text,cur){
+/* Katalog vorindexiert (23.10.2026): Tokens je Eintrag und «erstes Wort je Land» nur einmal berechnen.
+   Vorher O(Katalog²) pro Aufruf → 94 s für 1'720 Buchungen; Ergebnis pro (Name, Text, Währung) zwischengespeichert.
+   SwiftUI: einmal beim Laden des Katalogs (lazy static) */
+var TPLX=null,TPLC=new Map();
+function tplIdx(){if(TPLX&&TPLX.n===TPL.length)return TPLX;var tk=TPL.map(function(t){return ltok(t[0]);}),first={};
+  TPL.forEach(function(t,i){if(t[1]&&tk[i][0])(first[t[1]]=first[t[1]]||{})[tk[i][0]]=1;});
+  TPLX={n:TPL.length,tk:tk,first:first,len:TPL.map(function(t,i){return tk[i].length;})};TPLC=new Map();return TPLX;}
+function bankTpl(name,text,cur){var ck=name+"\u0001"+text+"\u0001"+cur;tplIdx();
+  if(TPLC.has(ck))return TPLC.get(ck);if(TPLC.size>5000)TPLC.clear();var res=bankTpl0(name,text,cur);TPLC.set(ck,res);return res;}
+function bankTpl0(name,text,cur){var X=tplIdx();
   /* Banken schreiben Umlaute oft als ae/oe/ue (Suedkurier): für den Abgleich auf die lnorm-Form (u/o/a) reduzieren */
   var deU=function(x){return String(x||"").replace(/ae/g,"a").replace(/oe/g,"o").replace(/ue/g,"u");};name=deU(name);text=deU(text);
   var nn=" "+lnorm(name)+" ",nt=" "+lnorm(name+" "+text)+" ",cc=cur==="EUR"?"DE":(cur==="CHF"?"CH":""),via=BKVIA.test(nn),best=null;
   /* inN: 2 = Produkt-Alias im Text (Deutschlandticket über Stadtwerke, O2 über Telefónica), 1 = Name, 0 = nur Text */
   var inN=0;
-  var better=function(t,n){if(!best)return true;var d=n-inN;if(d)return d>0;return ((t[1]===cc)-(best[1]===cc)||ltok(t[0]).length-ltok(best[0]).length||t[0].length-best[0].length)>0;};/* spezifischer gewinnt: «Allianz Travel» vor «Allianz Suisse» */
-  TPL.forEach(function(t){
-    var al=BKALIAS[t[0]];if(al){if(al.test(nt)){var n1=al.test(nn)?1:(BKPROD.indexOf(t[0])>=0?2:0);if(better(t,n1)){best=t;inN=n1;}}return;}
-    var tk=ltok(t[0]);if(!tk.length||(t[1]&&cc&&t[1]!==cc&&TPL.some(function(o){return o!==t&&o[1]===cc&&ltok(o[0])[0]===tk[0];})))return;
+  var better=function(t,n,ti){if(!best)return true;var d=n-inN;if(d)return d>0;return ((t[1]===cc)-(best[1]===cc)||X.len[ti]-X.len[bi]||t[0].length-best[0].length)>0;},bi=-1;/* spezifischer gewinnt: «Allianz Travel» vor «Allianz Suisse» */
+  TPL.forEach(function(t,ti){
+    var al=BKALIAS[t[0]];if(al){if(al.test(nt)){var n1=al.test(nn)?1:(BKPROD.indexOf(t[0])>=0?2:0);if(better(t,n1,ti)){best=t;bi=ti;inN=n1;}}return;}
+    var tk=X.tk[ti];if(!tk.length||(t[1]&&cc&&t[1]!==cc&&X.first[cc]&&X.first[cc][tk[0]]))return;
     /* ein Wort (CSS, Zurich, Netflix): nur im Namen, sonst Fehltreffer über Ortsnamen; bei PayPal & Co. auch im Freitext */
     var hay=tk.length===1&&!via?nn:nt;
     /* ein Wort: muss vorne im Namen stehen (davor nur Allerweltswörter) – «Garten Center Spiegel» ist nicht «Der Spiegel» */
     if(tk.length===1&&!via){var nt2=bankTok(name),ix=nt2.indexOf(tk[0]);if(ix>0&&nt2.slice(0,ix).some(function(w){return w.length>3&&LGEN.indexOf(w)<0&&!/^(lastschrift|zahlung|erechnung|ebill|dauerauftrag|gutschrift|belastung|einkauf|kauf|abo|abonnement|rechnung)$/.test(w);}))return;}
-    if(tk.every(function(x){return hay.indexOf(" "+x+" ")>=0;})){var n2=tk.every(function(x){return nn.indexOf(" "+x+" ")>=0;});if(better(t,n2?1:0)){best=t;inN=n2?1:0;}}
+    if(tk.every(function(x){return hay.indexOf(" "+x+" ")>=0;})){var n2=tk.every(function(x){return nn.indexOf(" "+x+" ")>=0;});if(better(t,n2?1:0,ti)){best=t;bi=ti;inN=n2?1:0;}}
   });
   /* gleicher Name, mehrere Verträge (CSS Krankenkasse/Zusatzversicherung, Mainova Strom/Gas): Bezeichnung aus dem Buchungstext wählen */
   if(best){var sib=TPL.filter(function(o){return o[0]===best[0]&&o[1]===best[1];});
