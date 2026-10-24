@@ -196,3 +196,40 @@ extension Calc {
         }
     }
 }
+
+// Beschriftung der Auswahl wie Web `KART` (Kosten) und `BART` (Budget), v237/v238
+public extension CostKind {
+    var title: String {
+        switch self {
+        case .all: return "Alle Kosten"
+        case .fix: return "Fixkosten"
+        case .variable: return "Variable Kosten"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .all: return "Fixkosten und geschätzte variable Kosten"
+        case .fix: return "Verträge, Gebühren und Steuern"
+        case .variable: return "Geschätzt, z.B. Benzin oder Lebensmittel"
+        }
+    }
+}
+
+public extension BudgetKind {
+    var title: String {
+        switch self {
+        case .all: return "Alle Kosten"
+        case .fix: return "Fixkosten"
+        case .none: return "Ohne Kosten"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .all: return "Einnahmen minus Fixkosten und variable Kosten"
+        case .fix: return "Einnahmen minus Fixkosten"
+        case .none: return "Nur deine Einnahmen, z.B. um starke Monate zu sehen"
+        }
+    }
+}
