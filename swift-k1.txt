@@ -1,115 +1,60 @@
-branch=swift-k1 run=185 sha=5786991a918fd1dda219e071540a945b53abc81a
-core=success app=cancelled ui=skipped
+branch=swift-k1 run=186 sha=572991e2ac6c13e1b9d10740ed0487b34b472477
+core=cancelled app=skipped ui=skipped
 
 ===== KERN: Fehler =====
 
 ===== KERN: Abweichungen (Details) =====
 
 ===== KERN: Ende =====
-Test Case '-[KontivoCoreTests.WebSync160Tests testParseAmountTolerant]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testParseAmountTolerant]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync160Tests testPriceChartDropLabels]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testPriceChartDropLabels]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync160Tests testRemindersUseTrialLast]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testRemindersUseTrialLast]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync160Tests testSaveRulesAndHolderSplit]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testSaveRulesAndHolderSplit]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync160Tests testTermHint]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testTermHint]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync160Tests testTermMonthsAndNotice]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testTermMonthsAndNotice]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' passed (0.000 seconds).
-Test Suite 'WebSync160Tests' passed at 2026-10-24 23:49:31.469.
-	 Executed 25 tests, with 0 failures (0 unexpected) in 0.021 (0.024) seconds
-Test Suite 'WebSync224Tests' started at 2026-10-24 23:49:31.469.
-Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogHits]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogHits]' passed (0.044 seconds).
-Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogSameNames]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogSameNames]' passed (0.002 seconds).
-Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogTermShort]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogTermShort]' passed (0.001 seconds).
-Test Case '-[KontivoCoreTests.WebSync224Tests testCategoryColors]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testCategoryColors]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync224Tests testFormTexts]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testFormTexts]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync224Tests testMissingFields]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testMissingFields]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync224Tests testPhoneChannel]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testPhoneChannel]' passed (0.001 seconds).
-Test Case '-[KontivoCoreTests.WebSync224Tests testRateCheckedAtRoundTrip]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testRateCheckedAtRoundTrip]' passed (0.001 seconds).
-Test Case '-[KontivoCoreTests.WebSync224Tests testRatePolicy]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testRatePolicy]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync224Tests testRememberSinglePerson]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testRememberSinglePerson]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync224Tests testSwissPowerAndLeasing]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testSwissPowerAndLeasing]' passed (0.000 seconds).
-Test Suite 'WebSync224Tests' passed at 2026-10-24 23:49:31.520.
-	 Executed 11 tests, with 0 failures (0 unexpected) in 0.050 (0.051) seconds
-Test Suite 'WebSync323Tests' started at 2026-10-24 23:49:31.520.
-Test Case '-[KontivoCoreTests.WebSync323Tests testAutoNamePerson]' started.
-Test Case '-[KontivoCoreTests.WebSync323Tests testAutoNamePerson]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync323Tests testEndAsOfAndCancelledOn]' started.
-Test Case '-[KontivoCoreTests.WebSync323Tests testEndAsOfAndCancelledOn]' passed (0.000 seconds).
-Test Case '-[KontivoCoreTests.WebSync323Tests testLetterCountry]' started.
-Test Case '-[KontivoCoreTests.WebSync323Tests testLetterCountry]' passed (0.001 seconds).
-Test Case '-[KontivoCoreTests.WebSync323Tests testPaymentStatusAndMonthComparison]' started.
-Test Case '-[KontivoCoreTests.WebSync323Tests testPaymentStatusAndMonthComparison]' passed (0.001 seconds).
-Test Suite 'WebSync323Tests' passed at 2026-10-24 23:49:31.522.
-	 Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
-Test Suite 'KontivoCorePackageTests.xctest' passed at 2026-10-24 23:49:31.522.
-	 Executed 254 tests, with 0 failures (0 unexpected) in 56.663 (56.702) seconds
-Test Suite 'All tests' passed at 2026-10-24 23:49:31.522.
-	 Executed 254 tests, with 0 failures (0 unexpected) in 56.663 (56.704) seconds
-◇ Test run started.
-↳ Testing Library Version: 1501
-↳ Target Platform: arm64e-apple-macos14.0
-✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
+Building for debugging...
+[0/19] /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/.build/arm64-apple-macosx/debug/KontivoCorePackageTests.derived/runner.swift
+[1/19] Copying golden_ui.json
+[1/19] Copying golden_texts.json
+[1/19] Copying golden_import.json
+[4/19] Copying golden_drivers.json
+[4/19] Copying golden_budget.json
+[6/19] Copying costs_demo_backup.json
+[6/19] Copying golden.json
+[8/19] Copying cases_texts.json
+[9/19] Copying cases_budget.json
+[10/19] Copying cases.json
+[11/19] Copying catalog.json
+[11/19] Write sources
+[15/19] Copying BankFixtures
+[16/19] Write swift-version--686F30C3778417F.txt
+[18/48] Compiling KontivoCore CategoryPalette.swift
+[19/48] Compiling KontivoCore Completeness.swift
+[20/48] Compiling KontivoCore ContractDetailRules.swift
+[21/48] Compiling KontivoCore ContractFormRules.swift
+[22/48] Compiling KontivoCore CostDrivers.swift
+[23/48] Compiling KontivoCore Day.swift
+[24/48] Compiling KontivoCore ExtKostenBudget.swift
+[25/48] Compiling KontivoCore ExtManage.swift
+[26/48] Compiling KontivoCore FixReport.swift
+[27/48] Compiling KontivoCore Format.swift
+[28/48] Compiling KontivoCore Letter.swift
+[29/48] Compiling KontivoCore Models.swift
+[30/48] Compiling KontivoCore Mutations.swift
+[31/48] Compiling KontivoCore ParseNum.swift
+[32/48] Emitting module KontivoCore
+[33/48] Compiling KontivoCore Backup.swift
+[34/48] Compiling KontivoCore BankCatalog.swift
+[35/48] Compiling KontivoCore BankFind.swift
+[36/48] Compiling KontivoCore BankIncome.swift
+[37/48] Compiling KontivoCore BankName.swift
+[38/48] Compiling KontivoCore BankRead.swift
+[39/48] Compiling KontivoCore BankStatementText.swift
+[40/48] Compiling KontivoCore BankTypes.swift
+[41/48] Compiling KontivoCore BankUtil.swift
+[42/48] Compiling KontivoCore BankZip.swift
+[43/48] Compiling KontivoCore BudgetShare.swift
+[44/48] Compiling KontivoCore CSV.swift
+[45/48] Compiling KontivoCore Calc.swift
+[46/48] Compiling KontivoCore Catalog.swift
 
 ===== APP: Fehler =====
 
 ===== APP: Ende =====
-    
-
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankRead.swift (in target 'KontivoCore' from project 'KontivoCore')
-    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
-    
-
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankStatementText.swift (in target 'KontivoCore' from project 'KontivoCore')
-    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
-    
-
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankTypes.swift (in target 'KontivoCore' from project 'KontivoCore')
-    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
-    
-
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankUtil.swift (in target 'KontivoCore' from project 'KontivoCore')
-    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
-    
-
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankZip.swift (in target 'KontivoCore' from project 'KontivoCore')
-    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
-    
-
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BudgetShare.swift (in target 'KontivoCore' from project 'KontivoCore')
-    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
-    
-
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/CSV.swift (in target 'KontivoCore' from project 'KontivoCore')
-    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
-    
-
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Calc.swift (in target 'KontivoCore' from project 'KontivoCore')
-    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
-    
-
-SwiftDriverJobDiscovery normal x86_64 Compiling Catalog.swift, CategoryPalette.swift, Completeness.swift, ContractDetailRules.swift, ContractFormRules.swift, CostDrivers.swift, Day.swift, ExtKostenBudget.swift, ExtManage.swift, FixReport.swift, Format.swift, Letter.swift, Models.swift, Mutations.swift (in target 'KontivoCore' from project 'KontivoCore')
-
-SwiftCompile normal arm64 Compiling\ resource_bundle_accessor.swift,\ Backup.swift,\ BankCatalog.swift,\ BankFind.swift,\ BankIncome.swift,\ BankName.swift,\ BankRead.swift,\ BankStatementText.swift,\ BankTypes.swift,\ BankUtil.swift,\ BankZip.swift,\ BudgetShare.swift,\ CSV.swift,\ Calc.swift /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/KontivoCore.build/Debug-iphonesimulator/KontivoCore.build/DerivedSources/resource_bundle_accessor.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Backup.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankCatalog.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankFind.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankIncome.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankName.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankRead.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankStatementText.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankTypes.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankUtil.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BankZip.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/BudgetShare.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/CSV.swift /Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Sources/KontivoCore/Calc.swift (in target 'KontivoCore' from project 'KontivoCore')
-SwiftCompile normal arm64 /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/KontivoCore.build/Debug-iphonesimulator/KontivoCore.build/DerivedSources/resource_bundle_accessor.swift (in target 'KontivoCore' from project 'KontivoCore')
-    cd /Users/runner/work/Kontivo/Kontivo/ios/Kontivo.xcodeproj
-    
 
 ===== UI-TESTS =====
 ui=skipped
