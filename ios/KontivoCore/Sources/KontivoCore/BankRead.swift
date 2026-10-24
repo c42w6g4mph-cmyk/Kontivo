@@ -803,6 +803,13 @@ enum BankReader {
     static func read(_ data: Data) throws -> BankFile {
         if data.count > maxBytes { throw BankReadError.tooBig }
         if data.isEmpty { throw BankReadError.empty }
+        // ZIP (Excel, OpenDocument, gezippte Exporte), PDF, altes Excel am Dateianfang erkennen (Web `bankReadFile`)
+        let b = [UInt8](data.prefix(4))
+        if b.count == 4 {
+            if b == [0x50, 0x4B, 3, 4] { return try zip(data) }
+            if b == [0x25, 0x50, 0x44, 0x46] { throw BankReadError.notRecognized(.pdf) }
+            if b == [0xD0, 0xCF, 0x11, 0xE0] { throw BankReadError.notRecognized(.oldExcel) }
+        }
         return try read(text: decode(data))
     }
 

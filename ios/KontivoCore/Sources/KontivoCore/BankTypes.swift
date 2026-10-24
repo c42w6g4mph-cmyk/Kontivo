@@ -98,7 +98,47 @@ public enum BankReadDiag: String, Equatable, Sendable {
     case dateFormat = "date"
     /// Kopfzeile erkannt, keine Buchungen
     case noBookings = "empty"
+    /// ZIP ohne Kontoauszug
+    case zip = "zip"
+    /// Excel-Datei nicht lesbar
+    case xlsxError = "xlsxerr"
+    /// Apple-Numbers-Datei (als CSV exportieren)
+    case numbers = "numbers"
+    /// Ältere Excel-Datei (.xls)
+    case oldExcel = "xls"
+    /// PDF (nativ über die Texterkennung, Web: nicht unterstützt)
+    case pdf = "pdf"
     case none = ""
+}
+
+public extension BankReadDiag {
+    /// Zeile unter dem Dateinamen (Web `sub` in «Kein Kontoauszug», v278)
+    var fileSubtitle: String {
+        switch self {
+        case .pdf: return "PDF wird nicht unterstützt"
+        case .numbers: return "Apple-Numbers-Datei"
+        case .dateFormat: return "Datumsformat nicht erkannt"
+        case .zip: return "ZIP ohne Kontoauszug"
+        case .xlsxError: return "Excel-Datei nicht lesbar"
+        case .noBookings: return "Keine Buchungen im gewählten Zeitraum"
+        case .oldExcel: return "Ältere Excel-Datei (.xls)"
+        case .noHeader, .none: return "Keine Buchungen gefunden"
+        }
+    }
+
+    /// Hinweis bei genau einer nicht lesbaren Datei (Web `txt`, v278)
+    var advice: String {
+        switch self {
+        case .noBookings: return "Wähle beim Export einen Zeitraum mit Buchungen, am besten die letzten 12 Monate."
+        case .oldExcel: return "Speichere sie als .xlsx oder exportiere die Umsätze im E-Banking als CSV."
+        case .pdf: return "Exportiere die Umsätze im E-Banking als CSV, Excel oder camt.053."
+        case .numbers: return "Öffne sie in Numbers und wähle Ablage → Exportieren → CSV."
+        case .dateFormat: return "Kontivo kennt das Datum nicht. Exportiere mit Datum im Format TT.MM.JJJJ oder JJJJ-MM-TT."
+        case .zip: return "In der ZIP-Datei ist keine CSV-, Excel- oder camt-Datei mit Buchungen. Entpacke sie und wähle die Datei darin."
+        case .xlsxError: return "Exportiere die Umsätze im E-Banking als CSV und wähle diese Datei."
+        case .noHeader, .none: return "Diese Datei enthält keine Buchungen mit Datum und Betrag."
+        }
+    }
 }
 
 /// Datei nicht lesbar. `notRecognized`: mit Grund (Web `bkLastDiag`).

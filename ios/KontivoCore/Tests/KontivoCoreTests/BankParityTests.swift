@@ -58,7 +58,7 @@ final class BankParityTests: XCTestCase {
     static func str(_ v: Any?) -> String { v as? String ?? "" }
     static func dayStr(_ d: Day?) -> String { d?.iso ?? "" }
 
-    func compareRead(_ f: BankFile, _ e: J, _ D: Diff, tx: Bool) {
+    static func compareRead(_ f: BankFile, _ e: J, _ D: Diff, tx: Bool) {
         D.eq(f.bank, BankParityTests.str(e["bank"]), "bank")
         D.eq(f.format, BankParityTests.str(e["fmt"]), "fmt")
         D.eq(f.tx.count, (e["n"] as? Int) ?? -1, "Anzahl Buchungen")
@@ -254,7 +254,7 @@ final class BankParityTests: XCTestCase {
             }
             do {
                 let f = try BankImport.read(fileData(name))
-                compareRead(f, e, D, tx: true)
+                BankParityTests.compareRead(f, e, D, tx: true)
                 compareFind(BankImport.find(f, data: data, today: BankParityTests.today), e["find"] as? J ?? [:], data, D, contracts: true)
                 compareIncome(BankImport.findIncome(f, data: data, today: BankParityTests.today), (e["find"] as? J)?["inc"] as? J, data, D)
             } catch {
@@ -305,7 +305,7 @@ final class BankParityTests: XCTestCase {
             }
             do {
                 let f = try BankImport.read(Data(txt.utf8))
-                compareRead(f, e, D, tx: false)
+                BankParityTests.compareRead(f, e, D, tx: false)
                 compareFind(BankImport.find(f, data: data, today: BankParityTests.today), e["find"] as? J ?? [:], data, D, contracts: true)
                 compareIncome(BankImport.findIncome(f, data: data, today: BankParityTests.today), (e["find"] as? J)?["inc"] as? J, data, D)
             } catch {
@@ -325,7 +325,7 @@ final class BankParityTests: XCTestCase {
             let e = try XCTUnwrap(m["result"] as? J)
             let files = try names.map { try BankImport.read(fileData($0)) }
             let f = BankImport.merge(files)
-            compareRead(f, e, D, tx: false)
+            BankParityTests.compareRead(f, e, D, tx: false)
             compareFind(BankImport.find(f, data: data, today: BankParityTests.today), e["find"] as? J ?? [:], data, D, contracts: false)
             compareIncome(BankImport.findIncome(f, data: data, today: BankParityTests.today), (e["find"] as? J)?["inc"] as? J, data, D)
             D.report()

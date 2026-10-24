@@ -63,10 +63,10 @@ final class BankPickers: NSObject {
     private var onFiles: (([URL]) -> Void)?
     private var onImages: (([UIImage]) -> Void)?
 
-    /// Dateitypen wie Web `#bankFile` (.csv,.txt,.xml,.sta,.mt940,.940) plus PDF und Bilder (nativ)
+    /// Dateitypen wie Web `#bankFile` (.csv,.txt,.xml,.sta,.mt940,.940,.xlsx,.xls) plus PDF und Bilder (nativ)
     static var fileTypes: [UTType] {
         var t: [UTType] = [.commaSeparatedText, .plainText, .text, .xml, .pdf, .image]
-        for ext in ["csv", "txt", "xml", "sta", "mt940", "940"] {
+        for ext in ["csv", "txt", "xml", "sta", "mt940", "940", "xlsx", "xls"] {
             if let u = UTType(filenameExtension: ext), !t.contains(u) { t.append(u) }
         }
         return t

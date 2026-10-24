@@ -200,8 +200,8 @@ final class BankImportSession: Identifiable {
         if !bad.isEmpty && bad.allSatisfy({ $0.visual }) {
             return "Im Auszug wurden keine Buchungen mit Datum und Betrag gefunden. Fotografiere den Auszug gerade und gut beleuchtet oder nimm den CSV-Export aus dem E-Banking."
         }
-        if bad.count == 1 && bad[0].diag == .dateFormat {
-            return "Kontivo kennt das Datum nicht. Exportiere mit Datum im Format TT.MM.JJJJ oder JJJJ-MM-TT."
+        if bad.count == 1 && bad[0].diag != .none && bad[0].diag != .noHeader {
+            return bad[0].diag.advice
         }
         return "Kontivo liest Kontoauszüge als CSV, camt.053 (XML), MT940, PDF oder Foto. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren»."
     }
