@@ -1348,15 +1348,20 @@ input[type=file]{display:none}
 .tld,.tls:empty{display:none}
 .tlon .tlr,.tlon .tlstart{position:relative;padding-left:28px}
 .tlon .tlr::before,.tlon .tlstart::before{content:"";position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--line)}
-.tlon .tlr:first-child::before{top:50%}.tlon .tlstart::before{bottom:50%}
+.tlon .swr:first-child>.tlr::before{top:50%}.tlon .tlstart::before{bottom:50%}
 .tlon .tld{display:block;position:absolute;left:5px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--surface);border:2.5px solid var(--ink3);box-sizing:border-box;z-index:1}
 .tlon .cur>.tld{background:var(--brass);border-color:var(--brass);box-shadow:0 0 0 4px color-mix(in srgb,var(--brass) 22%,transparent)}
 .tlon .fut>.tld{border-style:dashed;border-color:var(--warn)}
 .tlon .tlstart>label{color:var(--ink)}.tlon .tlstart>label>span{display:block}
 .tls{display:block;font-size:12px;color:var(--ink3);margin-top:1px}
 .tlp{font-weight:600}.tlp.up{color:var(--warn)}.tlp.down{color:var(--ok)}
-.tlon .tlr,.tlon .tlstart{grid-template-columns:minmax(0,1fr) 7.4em 26px}
-.tlon .tlr .pai,.tlon .tlstart input.num{grid-column:2}.tlon .tlr .del{grid-column:3}
+.tlon .tlr,.tlon .tlstart{grid-template-columns:minmax(0,1fr) 7.4em}
+.tlon .tlr .pai,.tlon .tlstart input.num{grid-column:2}
+/* Stufe löschen: nach links wischen (wie iOS-Listen) → «Löschen»; ganz durchwischen löscht direkt */
+.swr{position:relative;overflow:hidden}
+.swr>.tlr{background:var(--surface);touch-action:pan-y;transition:transform .2s ease;will-change:transform}
+.swr.drag>.tlr{transition:none}
+.swd{position:absolute;right:0;top:1px;bottom:0;width:88px;background:var(--alert);color:#fff;font-size:15px;font-weight:600}
 .tlon .tlr.cur .pdl>span{font-weight:700}.tlon .tlstart.cur>label>span{font-weight:700}
 .tlon .tlstart>label{grid-column:1}.tlcur{border-top:0}.tlcur .fv{margin-left:auto}
 .tlon .fadd.fpill{width:100%;margin:0;padding:0;min-height:46px;border-top:1px solid var(--line);border-radius:0;background:none;font-size:15px;gap:8px}
@@ -1667,7 +1672,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v316</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v317</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -4801,11 +4806,11 @@ function paintPrices(){paintOptCounts();spRefresh();paintKz();syncPOpen();
 function priceRowsHtml(ps,prev,cur,inc){var t=today(),ni=-1,R=[];ps.forEach(function(p,i){if(parseD(p.from)<=t)ni=i;});
   ps.forEach(function(p,i){var fut=parseD(p.from)>t,pc=prev?(p.amount-prev)/prev*100:0,up=inc?" down":" up",dn=inc?" up":" down",h;
     var sub=[i===ni?"aktuell":fut?"geplant":""].concat(prev?['<span class="tlp'+(pc>0.05?up:pc<-0.05?dn:"")+'">'+pctTxt(pc)+"</span>"]:[]).filter(Boolean).join(" · ");
-    h='<div class="frow fpr fgr tlr'+(i===ni?" cur":fut?" fut":"")+'" data-pf="'+esc(p.from)+'"><i class="tld"></i><label class="fl pdl"><span>ab '+fmtShort(parseD(p.from))+'</span>'+
+    h='<div class="swr"><button type="button" class="swd" data-pdel="'+esc(p.from)+'">Löschen</button><div class="frow fpr fgr tlr'+(i===ni?" cur":fut?" fut":"")+'" data-pf="'+esc(p.from)+'"><i class="tld"></i><label class="fl pdl"><span>ab '+fmtShort(parseD(p.from))+'</span>'+
       (sub?'<small class="tls">'+sub+"</small>":"")+
       '<input type="date" class="pdi" value="'+esc(p.from)+'" aria-label="Gültig ab"></label>'+
       '<input class="num pai" type="text" inputmode="decimal" value="'+esc(amtIn(p.amount,cur))+'" aria-label="Betrag ab '+fmtShort(parseD(p.from))+'">'+
-      '<button type="button" class="del" data-pdel="'+esc(p.from)+'" aria-label="Änderung entfernen">×</button></div>';R.push(h);prev=p.amount;});
+      "</div></div>";R.push(h);prev=p.amount;});
   return R.reverse().join("");}
 /* Zeitstrahl ein/aus (ab 1 Preisänderung): Zeile «Währung» oben, dann «+ Änderung», Stufen neueste zuerst, Startzeile zuletzt.
    Ohne Preisänderungen bleibt die einfache Betragszeile mit Währung daneben.
@@ -4822,10 +4827,25 @@ function tlPaint(pre,ps,a0,cur,start,inc){var head=document.getElementById(pre+"
   if(on)head.querySelector(".fv").appendChild(sel);else{row.querySelector(".fv").appendChild(sel);head.innerHTML="";}
   var ob=document.getElementById(pre==="f"?"pOpen":"iPOpen"),of=document.getElementById(pre==="f"?"pForm":"iPForm");
   if(on)head.after(ob,of);else row.after(ob,of);}
+/* Nach links wischen auf .swr-Zeilen: bis 88 px zeigt «Löschen», über 55 % der Breite löscht direkt (Klick auf den Knopf).
+   Nach einem Wisch wird der folgende Klick geschluckt (kein Datumsrad/Tastatur). SwiftUI: .swipeActions(edge: .trailing, allowsFullSwipe: true) */
+function swipeDel(l){var g=null,open=null,W=88,shut=function(w){if(!w)return;w.firstChild.nextSibling.style.transform="";w.classList.remove("on");if(open===w)open=null;};
+  l.addEventListener("pointerdown",function(e){var w=e.target.closest(".swr");if(!w||e.target.closest(".swd"))return;
+    if(open&&open!==w)shut(open);g={w:w,x:e.clientX,y:e.clientY,b:w.classList.contains("on")?-W:0,dx:0,h:null};});
+  l.addEventListener("pointermove",function(e){if(!g)return;var dx=e.clientX-g.x,dy=e.clientY-g.y;
+    if(g.h==null){if(Math.abs(dx)<8&&Math.abs(dy)<8)return;g.h=Math.abs(dx)>Math.abs(dy);if(g.h){g.w.classList.add("drag");var ae=document.activeElement;if(ae&&g.w.contains(ae))ae.blur();}}
+    if(!g.h)return;g.dx=Math.min(0,g.b+dx);g.w.firstChild.nextSibling.style.transform="translateX("+g.dx+"px)";});
+  var end=function(){if(!g)return;var w=g.w,h=g.h,dx=g.dx;g=null;w.classList.remove("drag");if(!h)return;l._sw=Date.now();
+    if(-dx>w.offsetWidth*0.55){w.querySelector(".swd").click();return;}
+    if(-dx>W/2){w.firstChild.nextSibling.style.transform="translateX(-"+W+"px)";w.classList.add("on");open=w;}else shut(w);};
+  l.addEventListener("pointerup",end);l.addEventListener("pointercancel",end);
+  l.addEventListener("click",function(e){if(l._sw&&Date.now()-l._sw<350&&!e.target.closest(".swd")){e.preventDefault();e.stopPropagation();}},true);
+  document.addEventListener("pointerdown",function(e){if(open&&!open.contains(e.target))shut(open);},true);}
 /* Fokus über das Neuzeichnen retten (Tippen von einem Betrag in den nächsten) */
 function pListPaint(l,html){var a=document.activeElement,k=a&&l.contains(a)&&a.closest(".fpr")?[a.closest(".fpr").dataset.pf,a.className]:null;
   l.innerHTML=html;if(k){var r=l.querySelector('.fpr[data-pf="'+k[0]+'"] .'+k[1].split(" ").pop());if(r)try{r.focus();}catch(e){}}}
 function bindPriceList(lid,arr,setArr,repaint,startId){var l=document.getElementById(lid);
+  swipeDel(l);
   l.addEventListener("click",function(ev){var b=ev.target.closest("[data-pdel]");if(!b)return;
     setArr(arr().filter(function(p){return p.from!==b.dataset.pdel;}));repaint();});
   l.addEventListener("change",function(ev){var e=ev.target,row=e.closest(".fpr");if(!row)return;var f=row.dataset.pf,
