@@ -2208,7 +2208,7 @@ body{background:var(--paper)!important}
 <script>
 /* Kontivo iOS: lokaler Ersatz für die claude.ai-Laufzeit (Dateien, Downloads) */
 (function(){
-  var DBN="kontivo-files",ST="blobs",dbP=null,cache={},urls={};
+  var DBN="kontivo-files",ST="blobs",dbP=null,cache=Object.create(null),urls=Object.create(null);/* ohne Prototyp: has("constructor") ist false */
   function idb(){
     if(dbP)return dbP;
     dbP=new Promise(function(res,rej){
@@ -2391,20 +2391,18 @@ var VAR_IC={
  sonst:["Sonstiges",'<rect x="4.5" y="4.5" width="15" height="15" rx="3"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/>',"#6E7B3A"]};
 var VAR_SUG=[["Benzin","benzin"],["Lebensmittel","essen"],["Auswärts essen","aus"],["Freizeit & Ausgang","frei"],["Kleidung","kleid"],["Haushalt","haus"],["Ferien","ferien"],["Geschenke","gesch"],["Haustier","tier"]];
 function varMark(ic){var e=VAR_IC[ic]||VAR_IC.sonst;return '<div class="mark" style="--c:'+e[2]+'"><svg class="cicon" viewBox="0 0 24 24" aria-hidden="true">'+e[1]+"</svg></div>";}
-function varList(){return Object.keys(state.vars||{}).map(function(k){var v=Object.assign({},state.vars[k]);v._id=k;return v;})
+function varList(){return withIds(state.vars)
   .sort(function(a,b){return conv(+b.amount||0,b.cur)-conv(+a.amount||0,a.cur)||(a.t||0)-(b.t||0);});}
-/* Liste «Variable Kosten» für Budget und Kosten (gleiche Zeilen wie die Ausgaben); shr = Anteil je Eintrag (Personenfilter).
-   inKosten: Hinweis, dass sie nicht in den Fixkosten oben zählen. SwiftUI: VariableCostSection(share:) */
-/* Liste «Variable Kosten» im Budget (nur Anzeige, wie die Ausgaben): Einträge, die im gewählten Monat gelten.
-   Erfassen/Bearbeiten im Verträge-Tab (Ansicht «Variabel»); Antippen öffnet die Ansicht. SwiftUI: VariableCostSection */
-function varGroupHtml(shr,y,mo,noAp){var ap="";var H=state.settings.home,multiH=(state.settings.holders||[]).length>1,a=new Date(y,mo,1),b=new Date(y,mo+1,0);
+/* Liste «Variable Kosten» in Budget und Kosten (nur Anzeige, wie die Ausgaben): Einträge, die im gewählten Monat gelten; shr = Anteil je Eintrag (Personenfilter).
+   Erfassen/Bearbeiten im Verträge-Tab (Ansicht «Variabel»); Antippen öffnet die Ansicht. SwiftUI: VariableCostSection(share:) */
+function varGroupHtml(shr,y,mo){var H=state.settings.home,multiH=(state.settings.holders||[]).length>1,a=new Date(y,mo,1),b=new Date(y,mo+1,0);
   var VL=varList().filter(function(x){return shr(x)>0&&varActiveIn(x,a,b);}),vMon=VL.reduce(function(n,x){return n+conv(+x.amount||0,x.cur)*shr(x);},0);
   if(!VL.length)return "";
-  return '<div class="grp"><div class="grphead"><span>Variable Kosten '+MON[mo]+'</span><span>'+ap+money(vMon)+" "+H+'</span></div><div class="mrows2 vlist">'+
+  return '<div class="grp"><div class="grphead"><span>Variable Kosten '+MON[mo]+'</span><span>'+money(vMon)+" "+H+'</span></div><div class="mrows2 vlist">'+
     VL.map(function(x){var am=conv(+x.amount||0,x.cur)*shr(x),hs=holdersOf(x),
       sub=[multiH&&hs.length?hs.join(" & "):"",shr(x)<1?shareTxt(shr(x)):""].filter(Boolean).join(" · ")||"pro Monat";
       return '<button class="mrow" type="button" data-var="'+esc(x._id)+'">'+varMarkOf(x)+'<span class="mt"><span class="mn">'+esc(x.label||(VAR_IC[x.ic]||VAR_IC.sonst)[0])+'</span><span class="mm">'+esc(sub)+'</span></span>'+
-        '<span class="ma"><span><b>'+ap+money(am)+'</b></span><span class="ms">geschätzt</span></span></button>';}).join("")+'</div></div>';}
+        '<span class="ma"><span><b>'+money(am)+'</b></span><span class="ms">geschätzt</span></span></button>';}).join("")+'</div></div>';}
 var CAT_ICON={
  "Wohnen":'<path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9h11v-9"/><path d="M10.5 19v-5h3v5"/>',
  "Energie & Wasser":'<path d="M13 3.5 6.5 13h5l-1 7.5L17.5 11h-5z"/>',
@@ -2504,6 +2502,9 @@ function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n
 function isEOM(d){return d.getDate()===new Date(d.getFullYear(),d.getMonth()+1,0).getDate();}
 /* Monate addieren für Vertragsenden: Monatsletzter bleibt Monatsletzter (31.01. + 2 = 31.03., 30.04. + 1 = 31.05.) */
 function addMonthsE(d,n){return isEOM(d)?new Date(d.getFullYear(),d.getMonth()+n+1,0):addMonths(d,n);}
+/* Ende ab Anker e0 um je r Monate fortschreiben, solange stop(e) gilt (immer vom Anker, kein Drift; max. 400 Schritte).
+   SwiftUI: func rollEnd(_ e0: Date, every r: Int, while stop: (Date) -> Bool) -> Date */
+function rollEnd(e0,r,stop){var e=e0,g=0;while(g<400&&stop(e)){g++;e=addMonthsE(e0,g*r);}return e;}
 function daysBetween(a,b){return Math.round((b-a)/86400000);}
 /* Kurse in CHF pro Einheit, alle Fremdwährungen in settings.rates (z.B. rates.EUR).
    RATE0 sind nur grobe Startwerte bis zum ersten automatischen Abruf. */
@@ -2530,16 +2531,17 @@ function colorFor(c){
   var h=0,s=String(c.partner||c.label||c.name||"");for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%COLORS.length;
   return COLORS[h];
 }
-function markHtml(c,cls){
+function markHtml(c){
   var col=colorFor(c);
-  if(c.logoId&&KBlob.has(c.logoId)) return '<div class="mark '+(cls||"")+'" style="background:'+esc(c.logoBg||"#fff")+'"><img src="'+esc(KBlob.url(c.logoId))+'" alt=""></div>';
-  return '<div class="mark '+(cls||"")+'" style="--c:'+esc(col)+'">'+catIcon(c.cat||"Sonstiges")+"</div>";
+  if(c.logoId&&KBlob.has(c.logoId)) return '<div class="mark " style="background:'+esc(c.logoBg||"#fff")+'"><img src="'+esc(KBlob.url(c.logoId))+'" alt=""></div>';
+  return '<div class="mark " style="--c:'+esc(col)+'">'+catIcon(c.cat||"Sonstiges")+"</div>";
 }
 
 /* ---------- Rechnen ---------- */
 function pricesOf(c){return (c.prices||[]).filter(function(p){return p&&parseD(p.from)&&isFinite(+p.amount);})
   .slice().sort(function(a,b){return parseD(a.from)-parseD(b.from);});}/* nach echtem Datum, nicht nach Text */
-function priceAt(c,d){var p=+c.amount||0;pricesOf(c).forEach(function(e){var f=parseD(e.from);if(f&&f<=d)p=+e.amount;});return p;}
+/* ps: bereits gelesene pricesOf(c) (payments rechnet sie einmal je Vertrag statt je Termin) */
+function priceAt(c,d,ps){var p=+c.amount||0;(ps||pricesOf(c)).forEach(function(e){var f=parseD(e.from);if(f&&f<=d)p=+e.amount;});return p;}
 function curPrice(c){return priceAt(c,today());}
 /* Preisverlauf als Stufen-Diagramm (nur bei mind. 1 Preisänderung).
    Oben: Gesamtveränderung seit Start in Worten. An jedem Punkt: Preis darüber, Datum und Prozent zum vorherigen Preis darunter,
@@ -2597,7 +2599,7 @@ function extrasOf(c){return (c.extras||[]).filter(function(x){return x&&parseD(x
   .map(function(x){return {date:x.date,amount:+x.amount,note:x.note||""};}).sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0);});}
 /* Alle Zahlungen im Zeitraum: reguläre Termine + Sonderzahlungen, Betrag in Vertragswährung */
 function payments(c,from,to){
-  var o=occurrences(c,from,to).map(function(d){return {d:d,a:priceAt(c,d)};});
+  var ps=pricesOf(c),o=occurrences(c,from,to).map(function(d){return {d:d,a:priceAt(c,d,ps)};});
   extrasOf(c).forEach(function(x){var d=parseD(x.date);if(d>=from&&d<=to)o.push({d:d,a:x.amount,ex:x});});
   return o;}
 function exLabel(x){return (x.amount<0?"Gutschrift":"Sonderzahlung")+(x.note?" · "+x.note:"");}
@@ -2618,7 +2620,7 @@ function limitOf(c){
   var base=null,cp=parseD(c.cancelPer);
   if(c.status==="cancelled"){
     var ca=parseD(c.cancelledAt),e=parseD(c.end);
-    if(e&&+c.renew&&ca){var e0=e,g=0;while(e<ca&&g<400){g++;e=addMonthsE(e0,g*+c.renew);}}
+    if(e&&+c.renew&&ca)e=rollEnd(e,+c.renew,function(x){return x<ca;});
     base=e||ca||null;
   } else base=(c.end&&!c.renew)?parseD(c.end):null;
   if(cp)return (base&&base<cp)?base:cp;
@@ -2648,8 +2650,7 @@ function occurrences(c,from,to){
 function effEnd(c){
   var e=parseD(c.end);if(!e)return null;
   var r=+c.renew||0;if(!r)return e;
-  var t=today(),e0=e,g=0;while(e<t&&g<400){g++;e=addMonthsE(e0,g*r);}
-  return e;
+  var t=today();return rollEnd(e,r,function(x){return x<t;});
 }
 function nDl(c,e){
   var n=+c.notice||0;if(!n)return e;
@@ -2658,12 +2659,17 @@ function nDl(c,e){
   if(c.noticeU==="d")return addDays(e,-n);
   return isEOM(e)?new Date(e.getFullYear(),e.getMonth()-n+1,0):addMonths(e,-n);
 }
+/* Gegenstück zu nDl: Ende, wenn heute (t) mit der Frist gekündigt wird («Flexibel» in Fristen) */
+function endIfToday(c,t){var n=+c.notice||0,u=c.noticeU;if(!n)return t;
+  if(u==="d")return addDays(t,n);if(u==="w")return addDays(t,7*n);
+  if(u==="k")return new Date(t.getFullYear(),t.getMonth()+(t.getDate()<=n?1:2),0);return addMonths(t,n);}
 /* Kündigungstermine bei unbefristeten Verträgen */
 var TERMS={"":"jederzeit","p":"Ende der Zahlungsperiode","m":"Monatsende","q":"Quartalsende","h":"Halbjahresende","y":"Jahresende","a":"Ende Vertragsjahr"};
-function nextTerm(c,base,after){
+/* 2. Parameter ungenutzt (Aufrufer: nextTerm(c) bzw. nextTerm(c,null,T)); after = erster Termin nach diesem Datum */
+function nextTerm(c,_unused,after){
   if(c.end||!c.cancTerm)return null;
   /* Vertrag beginnt erst später: Kündigungsfrist frühestens ab Beginn (sonst stünde ein neuer Vertrag schon vor Beginn unter «Fristen») */
-  var t=base||today(),st0=parseD(c.start);if(!after&&st0&&st0>t)t=st0;var T,ok=function(x){return after?x>after:nDl(c,x)>=t;};
+  var t=today(),st0=parseD(c.start);if(!after&&st0&&st0>t)t=st0;var T,ok=function(x){return after?x>after:nDl(c,x)>=t;};
   if(c.cancTerm==="p"){var a=parseD(c.due);if(!a)return null;var m=+c.cycle||1,k;
     var md=function(d){return (d.getFullYear()-a.getFullYear())*12+d.getMonth()-a.getMonth();};
     if(after)k=Math.floor(md(after)/m)-1;else{var nd=nextDue(c);if(!nd)return null;k=Math.round(md(nd)/m);}
@@ -2681,10 +2687,10 @@ function nextTerm(c,base,after){
 }
 /* Nächstes mögliches Vertragsende. Befristet mit Verlängerung: ist die Frist für das aktuelle Ende verpasst,
    gilt das nächste Verlängerungsende (sonst verschwände der Vertrag bis zum Ablauf aus «Fristen») */
-function termEnd(c){var e0=parseD(c.end);if(!e0)return nextTerm(c);var r=+c.renew||0;if(!r)return e0;var t=today(),e=e0,g=0;
-  while(g<400&&(e<t||(!c.cancelPer&&nDl(c,e)<t))){g++;e=addMonthsE(e0,g*r);}return e;}
+function termEnd(c){var e0=parseD(c.end);if(!e0)return nextTerm(c);var r=+c.renew||0;if(!r)return e0;var t=today();
+  return rollEnd(e0,r,function(e){return e<t||(!c.cancelPer&&nDl(c,e)<t);});}
 /* Verlängerungsende nach T (befristet mit Verlängerung), vom Anker gerechnet */
-function renewAfter(c,T){var e0=parseD(c.end),r=+c.renew||0;if(!e0||!r||!T)return null;var e=e0,g=0;while(e<=T&&g<400){g++;e=addMonthsE(e0,g*r);}return e;}
+function renewAfter(c,T){var e0=parseD(c.end),r=+c.renew||0;if(!e0||!r||!T)return null;return rollEnd(e0,r,function(e){return e<=T;});}
 /* Steuern lassen sich nicht kündigen: keine Frist, nicht in «Fristen» */
 function isTax(c){return catKey(c.cat)==="Steuern & Gebühren"||/^Steuern/i.test(String(c.cat||""));}
 /* Nicht kündbar: Steuern & Gebühren automatisch, sonst c.noCancel (z.B. Rundfunkgebühr unter «Wohnen»). Keine Frist, nicht in «Fristen», kein Kündigen */
@@ -2704,13 +2710,15 @@ function notStarted(c){var s0=parseD(c.start);return !!(s0&&s0>today());}
 function endedByNotice(c){var p=parseD(c.cancelPer);return !!(p&&p<today());}
 function endedByTerm(c){var e=parseD(c.end);return !!(e&&!(+c.renew)&&e<today());}
 function isEnded(c){return endedByNotice(c)||endedByTerm(c);}
-function active(){return Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;}).filter(function(c){return c.status!=="cancelled"&&!isEnded(c);});}
-function archived(){return Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;}).filter(function(c){return c.status==="cancelled"||isEnded(c);});}
+/* Map {id: Eintrag} → Liste von Kopien mit _id (Verträge, Einnahmen, variable Kosten). SwiftUI: Identifiable-Modelle */
+function withIds(m){return Object.keys(m||{}).map(function(k){var c=Object.assign({},m[k]);c._id=k;return c;});}
+function active(){return withIds(state.contracts).filter(isActiveC);}
+function archived(){return withIds(state.contracts).filter(function(c){return !isActiveC(c);});}
 function isKept(c){var T=termEnd(c);return !!(T&&c.keptFor&&c.keptFor===iso(T));}
 function isAnytime(c){return !c.end&&(c.cancTerm==="m"||(c.cancTerm==="p"&&(+c.cycle||1)<=1));}
 function needsAction(c){if(c.cancelPer||isFixed(c))return false;var T=termEnd(c);if(!T||isAnytime(c)||c.noWatch)return false;
   if(c.keptFor&&c.keptFor===iso(T))return false;var d=nDl(c,T),n=daysBetween(today(),d);return n>=0&&n<=30;}
-function trialNeeds(c){var d=parseD(c.trial),t=today();return !!(d&&d>t&&daysBetween(t,d)<=30&&c.trialKept!==c.trial&&!c.cancelPer);}
+function trialNeeds(c){var d=parseD(c.trial),t=today();return !!(d&&d>t&&daysBetween(t,d)<=30&&c.trialKept!==c.trial&&c.trialKept!==true&&!c.cancelPer);}
 /* Probeabo läuft noch (unabhängig von der 30-Tage-Schwelle): steht immer unter «Fristen». c.trial = erster kostenpflichtiger Tag, gratis bis zum Vortag */
 function trialOn(c){var d=parseD(c.trial),t=today();return !!(d&&d>t&&c.trialKept!==c.trial&&c.trialKept!==true&&!c.cancelPer&&c.status!=="cancelled");}
 function trialLast(c){var d=parseD(c.trial);return d?addDays(d,-1):null;}
@@ -2787,13 +2795,14 @@ function renderHero(){
     (np?'<button class="hchip act'+(hf==="paused"?" on":"")+'" data-hf="paused" aria-pressed="'+(hf==="paused")+'"><b>'+np+"</b> pausiert ›</button>":"")+
     (fut?'<button class="hchip act'+(hf==="fut"?" on":"")+'" data-hf="fut" aria-pressed="'+(hf==="fut")+'"><b>'+fut+"</b> noch nicht aktiv ›</button>":"");
 
-  var t0=today();
-  var rc=document.getElementById("reviewCard"),rb=parseD(state.settings.lastReview);
+  state._rvDue=rvDue();
+}
+/* Quartals-Check fällig (Karte in «Fristen»): 90 Tage seit dem letzten Check bzw. dem ersten Vertrag, nicht zurückgestellt */
+function rvDue(){
+  var t0=today(),rb=parseD(state.settings.lastReview);
   if(!rb){var ts=Object.keys(state.contracts).map(function(k){return state.contracts[k].t||0;}).filter(Boolean);if(ts.length){var mn=new Date(Math.min.apply(null,ts));rb=new Date(mn.getFullYear(),mn.getMonth(),mn.getDate());}}
   var snz=parseD(state.settings.reviewSnooze);
-  state._rvDue=!!(rb&&daysBetween(rb,t0)>=90&&!(snz&&snz>t0)&&active().length);
-  rc.innerHTML="";document.getElementById("hFlag").hidden=true;
-
+  return !!(rb&&daysBetween(rb,t0)>=90&&!(snz&&snz>t0)&&active().length);
 }
 
 function inDays(d){
@@ -2873,7 +2882,6 @@ function renderAltList(v,m){
     nf0.format(sum*12)+" "+H+" im Jahr"+(inc?"":" · geschätzt")+(fl?" – "+fl:"");
   document.getElementById("hChips").innerHTML=fut.length?'<button class="hchip act'+(hf==="act"?" on":"")+'" data-hfa="act" aria-pressed="'+(hf==="act")+'"><b>'+act.length+"</b> aktiv ›</button>"+
     '<button class="hchip act'+(hf==="fut"?" on":"")+'" data-hfa="fut" aria-pressed="'+(hf==="fut")+'"><b>'+fut.length+"</b> noch nicht aktiv ›</button>":"";
-  document.getElementById("reviewCard").innerHTML="";
   var fb=document.getElementById("filterBtn");fb.classList.toggle("on",!!lfn);document.getElementById("filterLbl").textContent="Filter"+(lfn?" · "+lfn:"");
   var srt=altSort(m);document.getElementById("sortLbl").textContent=(ALT_SORT[m].filter(function(o){return o[0]===srt;})[0][1]).replace(/,.*$/,"");
   var row=function(c){var hs=holdersOf(c),multi=(state.settings.holders||[]).length>1,cy=+c.cycle,sh=share(c);
@@ -2916,7 +2924,7 @@ document.addEventListener("click",function(e){var m=state.lm;if(state.tab!=="lis
   b=e.target.closest("[data-afdel]");if(b){altFlt(m)[b.dataset.afdel]=null;renderView();return;}});
 document.addEventListener("click",function(e){var b=e.target.closest("[data-archtog2]");if(!b)return;var k=b.dataset.archtog2;state[k]=!state[k];renderView();});
 function cardHtml(c,mode){
-  var nd=nextDue(c),right="",cls=isPaused(c)?"pausedc":"";
+  var nd=mode==="pay"?nextDue(c):null,right="",cls=isPaused(c)?"pausedc":"";
   if(mode==="pay"){
     var pd=nd,t0=today(),dn=pd?daysBetween(t0,pd):null,st;
     if(dn===0)st='<div class="due">heute fällig</div>';
@@ -2937,10 +2945,7 @@ function cardHtml(c,mode){
     (meta?'<div class="m">'+esc(meta)+"</div>":"")+(c.cancelPer?'<div class="ptag">gekündigt per '+fmtShort(parseD(c.cancelPer))+"</div>":"")+(notStarted(c)?'<div class="ptag">ab '+fmtShort(parseD(c.start))+"</div>":"")+(isPaused(c)?'<div class="ptag">pausiert'+(c.pausedUntil?" bis "+fmtShort(parseD(c.pausedUntil)):"")+"</div>":"")+'</div><div class="camt">'+right+'</div></button>';
 }
 function renderView(){
-  var v=document.getElementById("view"),a=active(),ar=running();
-  document.getElementById("cList").textContent=a.length?a.length:"";
-  document.getElementById("cArch").textContent=archived().length?archived().length:"";
-  var tT0=today();
+  var v=document.getElementById("view"),a=active();
   var tCount=a.filter(function(c){return !isFixed(c)&&(needsAction(c)||trialNeeds(c));}).length;
   document.getElementById("cTerm").textContent=tCount?tCount:"";
 
@@ -2971,9 +2976,8 @@ function renderView(){
     if(!a.length){v.innerHTML=lfbar+(q?'<div class="empty"><b>Keine Treffer</b>Für «'+esc(state.q)+'» gibt es keinen aktiven Vertrag.</div>':((lfn||HF)?'<div class="empty"><b>Keine Treffer</b>Für «'+esc([HF?{fut:"Noch nicht aktiv",paused:"Pausiert",act:"Aktiv"}[HF]:"",lfn?fltLabel():""].filter(Boolean).join(" · "))+'» gibt es keinen aktiven Vertrag.</div>':
       '<div class="empty"><b>Keine laufenden Verträge</b>Alle Verträge sind gekündigt oder abgelaufen und liegen im Archiv. Tippe oben auf + für einen neuen Vertrag.</div>'))+ab;return;}
     var srt=state.settings.sort||"cat",H=esc(state.settings.home);
-    var opts=[["due","Fälligkeit"],["cost","Kosten, höchste zuerst"],["partner","Vertragspartner, A–Z"],["cat","Kategorie"],["holder","Person"]];
-    var sl=(opts.filter(function(o){return o[0]===srt;})[0]||opts[0])[1];
-    var out="";document.getElementById("sortLbl").textContent={cat:"Kategorie",cost:"Kosten",partner:"Vertragspartner",due:"Fälligkeit",holder:"Person"}[srt]||"Kategorie";
+    var so=SORT_C.filter(function(o){return o[0]===srt;})[0];
+    var out="";document.getElementById("sortLbl").textContent=so?so[1].replace(/,.*$/,""):"Kategorie";
     function group(title,list,mode,sumTxt){
       /* wie die Summe oben: ohne pausierte und noch nicht aktive Verträge */
       var sm=list.reduce(function(n,c){return n+(isPaused(c)||notStarted(c)||trialOn(c)?0:monthlyCost(c));},0);
@@ -2990,14 +2994,16 @@ function renderView(){
       sorted.forEach(function(c){var L=(String(c.partner||"#").trim()[0]||"#").toUpperCase();if(!byL[L]){byL[L]=[];order.push(L);}byL[L].push(c);});
       order.forEach(function(L){group(L,byL[L],"list",false);});
     } else if(srt==="due"){
-      var withD=a.filter(function(c){return nextDue(c);}).sort(function(x,y){return nextDue(x)-nextDue(y);});
+      /* nächste Zahlung je Vertrag einmal rechnen (nicht im Sort-Komparator) */
+      var ND={};a.forEach(function(c){ND[c._id]=nextDue(c);});
+      var withD=a.filter(function(c){return ND[c._id];}).sort(function(x,y){return ND[x._id]-ND[y._id];});
       var byM={},mo=[];
-      withD.forEach(function(c){var d=nextDue(c),k=MON[d.getMonth()]+" "+d.getFullYear();if(!byM[k]){byM[k]=[];mo.push(k);}byM[k].push(c);});
+      withD.forEach(function(c){var d=ND[c._id],k=MON[d.getMonth()]+" "+d.getFullYear();if(!byM[k]){byM[k]=[];mo.push(k);}byM[k].push(c);});
       mo.forEach(function(k){
-        var sum=byM[k].reduce(function(n,c){var d=nextDue(c);return n+conv(priceAt(c,d),c.cur);},0);
+        var sum=byM[k].reduce(function(n,c){var d=ND[c._id];return n+conv(priceAt(c,d),c.cur);},0);
         group(k,byM[k],"pay",money(sum)+" "+H);
       });
-      var noD=a.filter(function(c){return !nextDue(c);});
+      var noD=a.filter(function(c){return !ND[c._id];});
       if(noD.length)group("Ohne Zahlungstermin",noD);
     } else if(srt==="holder"){
       var byH={},ho=[];
@@ -3016,25 +3022,28 @@ function renderView(){
     var H=esc(state.settings.home),t1=today(),o="";
     var isP=isAnytime;
     var ddmm=function(d){return ("0"+d.getDate()).slice(-2)+"."+("0"+(d.getMonth()+1)).slice(-2)+"."+(d.getFullYear()===t1.getFullYear()?"":String(d.getFullYear()).slice(-2));};
-    var todo=a.filter(function(c){return needsAction(c)&&!trialNeeds(c);}).sort(function(x,y){return noticeDeadline(x)-noticeDeadline(y);});
+    /* Frist und Monatskosten je Vertrag einmal rechnen (nicht im Sort-Komparator) */
+    var NDL={},MC={},mc=function(c){var k=c._id;return k in MC?MC[k]:(MC[k]=monthlyCost(c));};
+    var todo=a.filter(function(c){return needsAction(c)&&!trialNeeds(c);});todo.forEach(function(c){NDL[c._id]=noticeDeadline(c);});
+    todo.sort(function(x,y){return NDL[x._id]-NDL[y._id];});
     var triTodo=a.filter(trialNeeds).sort(function(x,y){return parseD(x.trial)-parseD(y.trial);});
     var nTodo=todo.length+triTodo.length;
     var anytime=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&!trialOn(c)&&(isP(c)||(!noticeDeadline(c)&&(+c.notice||0)>0));});
     var nofrist=a.filter(function(c){return !c.cancelPer&&!c.noWatch&&!trialOn(c)&&!noticeDeadline(c)&&!(+c.notice||0)&&!c.mand;});
     var unw=a.filter(function(c){return c.noWatch&&!c.cancelPer;});
     // Kopfzeile
-    if(nTodo){var nx=todo.map(noticeDeadline).concat(triTodo.map(trialLast)).sort(function(x,y){return x-y;})[0];
-      var urgent=todo.filter(function(c){return daysBetween(t1,noticeDeadline(c))<=7;}).length+triTodo.filter(function(c){return daysBetween(t1,trialLast(c))<=7;}).length;
+    if(nTodo){var nx=todo.map(function(c){return NDL[c._id];}).concat(triTodo.map(trialLast)).sort(function(x,y){return x-y;})[0];
+      var urgent=todo.filter(function(c){return daysBetween(t1,NDL[c._id])<=7;}).length+triTodo.filter(function(c){return daysBetween(t1,trialLast(c))<=7;}).length;
       o+='<div class="tstat'+(urgent?" alert":" warn")+'"><i>'+nTodo+'</i><b>'+(nTodo===1?"1 Entscheidung offen":nTodo+" Entscheidungen offen")+'</b><span>'+(function(t){return t.charAt(0).toUpperCase()+t.slice(1);})([nx?"nächste Frist "+inDays(daysBetween(t1,nx)):"",urgent&&urgent<nTodo?urgent+" dringend":""].filter(Boolean).join(" · "))+"</span></div>";}
     /* Status zentriert unter dem Titel (SwiftUI: ContentUnavailableView-ähnlich, Symbol + Titel + Untertitel) */
     else if(a.length)o+='<div class="tstat ok"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12.5 4 4 8-9"/></svg></i><b>Alles erledigt</b><span>Keine offenen Entscheidungen</span></div>';
-    var row=function(c,txt,cls){return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+
-      '<span class="mt"><span class="mn">'+titleP(c)+'</span></span><span class="tst'+(cls?" "+cls:"")+'">'+esc(txt)+"</span></button>";};
+    var row=function(c,txt){return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+
+      '<span class="mt"><span class="mn">'+titleP(c)+'</span></span><span class="tst">'+esc(txt)+"</span></button>";};
     /* Quartals-Check: «Weg damit» vorgemerkte Verträge, bis gekündigt oder «Doch behalten» */
-    var marked=a.filter(function(c){return reviewKill(c)&&!c.cancelPer;}).sort(function(x,y){return monthlyCost(y)-monthlyCost(x);});
-    if(marked.length){var mSum=marked.reduce(function(n,c){return n+monthlyCost(c);},0);
+    var marked=a.filter(function(c){return reviewKill(c)&&!c.cancelPer;}).sort(function(x,y){return mc(y)-mc(x);});
+    if(marked.length){var mSum=marked.reduce(function(n,c){return n+mc(c);},0);
       o+='<div class="grp"><div class="grphead"><span>Zum Kündigen vorgemerkt</span><span>'+money(mSum)+" "+H+'/Mt.</span></div>'+
-        marked.map(function(c){return '<div class="tcard"><button class="card" data-open="'+esc(c._id)+'">'+markHtml(c)+'<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline2">'+(partnerOf(c)?esc(partnerOf(c))+" · ":"")+nf0.format(monthlyCost(c)*12)+" "+H+" pro Jahr · beim Quartals-Check vorgemerkt</div></div></button>"+
+        marked.map(function(c){return '<div class="tcard"><button class="card" data-open="'+esc(c._id)+'">'+markHtml(c)+'<div class="cmain"><div class="n">'+esc(titleOf(c))+'</div><div class="tline2">'+(partnerOf(c)?esc(partnerOf(c))+" · ":"")+nf0.format(mc(c)*12)+" "+H+" pro Jahr · beim Quartals-Check vorgemerkt</div></div></button>"+
           '<div class="tacts"><button data-rvkeep="'+esc(c._id)+'">Doch behalten</button><button data-kill="'+esc(c._id)+'">'+(c.mand?"Wechseln":"Kündigen")+"</button></div></div>";}).join("")+"</div>";}
     /* Eine Liste nach Datum (Variante 1): Knöpfe Behalten/Kündigen erst ab 2 Monaten vor Vertragsende (bei längerer Frist ab 30 Tagen vor der Frist, needsAction) oder wenn ein Probeabo endet */
     var items=[];
@@ -3071,13 +3080,11 @@ function renderView(){
     /* Flexibel: kurzfristig kündbare Verträge als eine Karte mit Logostapel, aufklappbar */
     if(anytime.length){var fOp=!!(state.tfold||{}).any;
       /* Ende bei Kündigung heute: Kündbar-auf-Termin (nextTerm) oder bei «jederzeit mit Frist» heute + Frist */
-      var fEnd=function(c){var T=nextTerm(c);if(T)return T;var n=+c.notice||0,t=today(),u=c.noticeU;if(!n)return t;
-        if(u==="d")return new Date(t.getFullYear(),t.getMonth(),t.getDate()+n);if(u==="w")return new Date(t.getFullYear(),t.getMonth(),t.getDate()+7*n);
-        if(u==="k")return new Date(t.getFullYear(),t.getMonth()+(t.getDate()<=n?1:2),0);return addMonths(t,n);};
+      var FE={},fEnd=function(c){var k=c._id;return k in FE?FE[k]:(FE[k]=nextTerm(c)||endIfToday(c,today()));};
       var fRow=function(c){var T=fEnd(c),nt=noticeText(c);
         return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+titleP(c)+'</span><span class="mm">'+(nt?(c.noticeU==="k"?"Kündigung "+nt:"Frist "+nt):"Ohne Frist")+'</span></span>'+
           '<span class="tchip">'+(T?"endet "+ddmm(T):"offen")+"</span></button>";};
-      o+='<div class="grp"><div class="grphead"><span>Flexibel</span></div><div class="tflex'+(fOp?" on":"")+'"><button class="tfx" data-tfold="any" aria-expanded="'+fOp+'"><span class="tstk">'+anytime.slice().sort(function(x,y){return monthlyCost(y)-monthlyCost(x);}).slice(0,4).map(function(c){return markHtml(c);}).join("")+'</span>'+
+      o+='<div class="grp"><div class="grphead"><span>Flexibel</span></div><div class="tflex'+(fOp?" on":"")+'"><button class="tfx" data-tfold="any" aria-expanded="'+fOp+'"><span class="tstk">'+anytime.slice().sort(function(x,y){return mc(y)-mc(x);}).slice(0,4).map(function(c){return markHtml(c);}).join("")+'</span>'+
         '<span class="mt"><span class="mn">'+anytime.length+(anytime.length===1?" Vertrag":" Verträge")+'</span><span class="mm">Ohne Mindestlaufzeit</span></span><i></i></button>'+
         (fOp?'<p class="tfnote">Vertragsende, wenn du heute kündigst</p><div class="mrows2">'+anytime.slice().sort(function(x,y){return fEnd(x)-fEnd(y);}).map(fRow).join("")+"</div>":"")+"</div></div>";}
     o+=fold("none","Ohne Frist erfasst",nofrist,function(){return "ergänzen";}," · ergänzen",rowQ);
@@ -3089,9 +3096,7 @@ function renderView(){
   }
   if(state.tab==="stat"){renderStat(v);fitPtLegend();return;}
   if(state.tab==="budget"){renderBudget(v);return;}
-  var ar=archived();
-  v.innerHTML=ar.length?'<div class="grp">'+ar.map(function(c){return cardHtml(c,"list");}).join("")+"</div>"
-    :'<div class="empty"><b>Archiv leer</b>Gekündigte und abgelaufene Verträge landen hier und zählen nicht mehr in den Summen.</div>';
+  /* «Mehr» (set): #view ist versteckt, nichts zu rendern */
 }
 function applyTheme(){
   var t=state.settings.theme||"auto",r=document.documentElement;
@@ -3104,14 +3109,19 @@ document.getElementById("themeSeg").addEventListener("click",function(ev){
   var b=ev.target.closest("[data-th]");if(!b)return;
   state.settings.theme=b.dataset.th;applyTheme();saveSettings();
 });
-function render(){applyTheme();renderHero();renderView();syncLine();paintFab();}
+/* Im Verträge-Tab rendert renderView den Hero selbst (bzw. renderAltList überschreibt ihn): hier nur der Quartals-Check-Status für «Fristen».
+   In den anderen Tabs bleibt der (versteckte) Hero aktuell. */
+function render(){applyTheme();if(state.tab==="list")state._rvDue=rvDue();else renderHero();renderView();syncLine();paintFab();}
 /* Lange Titel in Karten einzeilig halten: Schrift leicht verkleinern (min. 13px), danach «…» */
 var fitQ=0;
+/* in drei Phasen (zurücksetzen, alle messen, alle setzen): nur ein Layout-Durchlauf statt einer pro Karte */
 function fitTitles(){fitQ=0;fitHeads();
-  document.querySelectorAll(".card .cmain .n").forEach(function(el){el.style.fontSize="";
-    var w=el.clientWidth,s=el.scrollWidth;if(!w||s<=w+1)return;
+  var L=[].slice.call(document.querySelectorAll(".card .cmain .n"));
+  L.forEach(function(el){el.style.fontSize="";});
+  var fs=L.map(function(el){var w=el.clientWidth,s=el.scrollWidth;if(!w||s<=w+1)return null;
     var base=parseFloat(getComputedStyle(el).fontSize)||16;
-    el.style.fontSize=Math.max(12,Math.floor(base*w/s*10)/10)+"px";});}
+    return Math.max(12,Math.floor(base*w/s*10)/10)+"px";});
+  L.forEach(function(el,i){if(fs[i])el.style.fontSize=fs[i];});}
 /* Detailkopf: Schrift schrittweise kleiner – erst für eine Zeile (bis ~78 %), sonst bis 17px für höchstens 2 Zeilen, bis 14px damit das längste Wort ganz passt; erst dann Silbentrennung (.fitbrk).
    SwiftUI: .lineLimit(2).minimumScaleFactor(0.6) */
 function fitHeads(){
@@ -3187,9 +3197,11 @@ document.addEventListener("click",function(e){if(state.tab!=="budget"||!e.target
 document.addEventListener("click",function(e){if(state.tab!=="stat")return;
   if(e.target.closest("[data-kart]")){openKArt();return;}
   var sf=e.target.closest("[data-sfbtn]");if(sf){if(kArt()==="var"){toast("Bei variablen Kosten gibt es keine Kategorie und keinen Vertragspartner");return;}openStatFilter();return;}});
+/* Sortieroptionen Verträge (Kurzlabel im Knopf = Text bis zum Komma, wie ALT_SORT) */
+var SORT_C=[["due","Fälligkeit"],["cost","Kosten, höchste zuerst"],["partner","Vertragspartner, A–Z"],["cat","Kategorie"],["holder","Person"]];
 function openPick(dim){
   if(dim==="sort"){
-    var so=[["due","Fälligkeit"],["cost","Kosten, höchste zuerst"],["partner","Vertragspartner, A–Z"],["cat","Kategorie"],["holder","Person"]],cs=state.settings.sort||"cat";
+    var so=SORT_C,cs=state.settings.sort||"cat";
     document.getElementById("pickTitle").textContent="Sortieren nach";
     var l=document.getElementById("pickList");l.dataset.dim="sort";
     l.innerHTML=so.map(function(o){return '<button class="pick" data-pv="'+o[0]+'" aria-pressed="'+(cs===o[0])+'"><span>'+o[1]+"</span><span></span></button>";}).join("");
@@ -3229,7 +3241,7 @@ function shareTxt(f){return "Anteil "+Math.round(f*100)+" %";}
 function closeLpop(){var p=document.getElementById("lpop");if(p)p.remove();}
 function showLpop(dim,key){
   closeLpop();var H=esc(state.settings.home);
-  var all=Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;})
+  var all=withIds(state.contracts)
     .filter(function(c){return dim==="holder"?holdersOf(c).indexOf(key)>=0:statKey(c,dim)===key;});
   var act=all.filter(function(c){return c.status!=="cancelled"&&!isEnded(c);}).sort(function(a,b){return monthlyCost(b)-monthlyCost(a);});
   var nOld=all.length-act.length,sum=0;
@@ -3268,7 +3280,6 @@ function statKey(c,t){return t==="cat"?(c.cat||"Sonstiges"):(String(c.partner||"
    Filter (Person/Kategorie/Vertragspartner) gilt wie oben. SwiftUI: Swift Charts BarMark (3 Balken) + List je Vertrag. */
 function ptYearSum(c,y){var s=0,f=holderShare(c);payments(c,new Date(y,0,1),new Date(y,11,31)).forEach(function(p){s+=conv(p.a,c.cur)*f;});return s;}
 /* Grund je Vertrag: {ic, cl, t} – Symbol (✕ beendet, ↑/↓ Preis, + neu), Farbe nach Richtung, kurzer ganzer Satz («beendet im Juni», «+44 % ab Oktober») */
-function ptReason(c,ya,yb,sa,sb){var k=ptKind(c,ya,yb,sa,sb);return k.t;}
 function ptKind(c,ya,yb,sa,sb){
   var my=function(d){return MON[d.getMonth()]+(d.getFullYear()!==yb?" "+d.getFullYear():"");},st=parseD(c.start),lim=limitOf(c),T=today(),dir=sb>sa?"up":"down",R=function(ic,cl,t){return {ic:ic,cl:cl,t:t};};
   if(sa<0.005&&sb>=0.005){var f0=null;payments(c,new Date(yb,0,1),new Date(yb,11,31)).forEach(function(p){if(!p.ex&&(!f0||p.d<f0))f0=p.d;});
@@ -3369,20 +3380,18 @@ function ptSection(pool,Y,nowY,H){
   return o+"</div></div>";
 }
 function renderStat(v){
-  var nowY=today().getFullYear(),Y=state.year||nowY,H=esc(state.settings.home),FL=state.flt,G=state.sg||"cat";
+  var nowY=today().getFullYear(),Y=state.year||nowY,H=esc(state.settings.home),FL=state.flt;
   /* Personenfilter zurücksetzen, wenn nur noch eine Person Verträge hat (Chips wären ausgeblendet, Filter unsichtbar) */
   if(FL.holder&&holderStats().filter(function(h){return h.c>0;}).length<=1)FL.holder=null;
-  var from=new Date(Y,0,1),to=new Date(Y,11,31),months=[],gY={},gM=[],allTot=0,allN=0;
-  for(var i=0;i<12;i++){months.push({sum:0,paid:0,open:0,items:[]});gM.push({});}
+  var from=new Date(Y,0,1),to=new Date(Y,11,31),months=[],allN=0;
+  for(var i=0;i<12;i++)months.push({sum:0,paid:0,open:0,items:[]});
   var T0=today();
-  var pool=Object.keys(state.contracts).map(function(k){var c=Object.assign({},state.contracts[k]);c._id=k;return c;});
+  var pool=withIds(state.contracts);
   pool.forEach(function(c){
     var inF=fltMatch(c,null);
-    var inG=fltMatch(c,G);
     var sh=holderShare(c);
     payments(c,from,to).forEach(function(p){
-      var d=p.d,val=conv(p.a,c.cur)*sh;allTot+=val;allN++;
-      if(inG){var k=statKey(c,G),gm=gM[d.getMonth()];gY[k]=(gY[k]||0)+val;gm[k]=(gm[k]||0)+val;}
+      var d=p.d,val=conv(p.a,c.cur)*sh;allN++;
       if(inF){var mo=months[d.getMonth()];mo.sum+=val;if(d<T0)mo.paid+=val;else mo.open+=val;mo.items.push({c:c,d:d,v:val,a:p.a*sh,sh:sh,ex:p.ex});}
     });
   });
@@ -3394,7 +3403,6 @@ function renderStat(v){
   if(state.autoSel){state.autoSel=false;
     if(!months[sel].tt&&tot){var nx=-1;for(var j=0;j<12;j++){var q=(sel+j)%12;if(months[q].tt){nx=q;break;}}if(nx>=0){sel=nx;state.sel=nx;}}}
   setTopYear(Y,nowY);var o='';
-  var fn=fltCount();
   o+=statFilterBar();
   var noStart=pool.filter(function(c){return !c.start&&c.status!=="cancelled";}).length;
   var hint=(Y<nowY&&noStart)?'<p class="note" style="margin:8px 0 0">'+noStart+(noStart===1?" Vertrag hat":" Verträge haben")+
@@ -3403,11 +3411,6 @@ function renderStat(v){
   if(KA==="var"&&!tot){v.innerHTML=o+'<div class="empty"><b>Keine variablen Kosten in '+Y+'</b>Erfasse sie im Tab Verträge unter «Variabel».</div>';return;}
   if(!allN&&!tot){v.innerHTML=o+'<div class="empty"><b>Keine Zahlungen in '+Y+'</b>Für dieses Jahr sind keine Zahlungen erfasst oder berechenbar.</div>'+hint;return;}
   var avg=tot/12,mx=max||1,ap=avg/mx*100;
-  var pT=0,pf=new Date(Y-1,0,1),pt=new Date(Y-1,11,31);
-  pool.forEach(function(c){if(!fltMatch(c,null))return;var f1=holderShare(c);payments(c,pf,pt).forEach(function(p){pT+=conv(p.a,c.cur)*f1;});});
-  var yd=pT>0?(tot-pT)/pT*100:null,ydV="—",ydC="";
-  if(yd!=null&&!pool.some(function(c){return !c.start&&fltMatch(c,null);})){
-    if(Math.abs(yd)<0.05)ydV="±0 %";else{ydV=(yd>0?"+":"−")+Math.abs(yd).toLocaleString(numStyle()==="DE"?"de-DE":"de-CH",{minimumFractionDigits:1,maximumFractionDigits:1})+" %";ydC=yd>0?"up":"down";}}
   var chartH='<div class="chartwrap"><div class="chart" role="group" aria-label="Zahlungen pro Monat '+Y+'">'+(tot?'<div class="avg" style="bottom:'+ap+'%"><span>Ø</span></div>':"");
   months.forEach(function(m,i){
     chartH+='<button class="col'+(i===sel?" on":"")+(m.sum?"":" zero")+'" data-m="'+i+'" aria-pressed="'+(i===sel)+
@@ -3420,19 +3423,11 @@ function renderStat(v){
     (KA!=="fix"&&useV?'<div class="vleg">'+(KA==="all"?'<span><i class="lf"></i>Fixkosten</span>':"")+'<span><i class="lv"></i>Variabel (geschätzt)</span></div>':"")+
     (KA==="all"&&!useV?'<p class="vleg">Mit Kategorie- oder Vertragspartnerfilter zählen nur die Verträge.</p>':"");
   var sm=months[sel];sm.items.sort(function(x,y){return x.d-y.d;});
-  var dl=sm.tt-avg,dcls=Math.abs(dl)<0.005?"":(dl>0?"up":"down");
-  var pp=sm.sum?sm.paid/sm.sum*100:0;
   // Vergleich mit demselben Monat im Vorjahr
-  var pmS=0,pmF=new Date(Y-1,sel,1),pmT=new Date(Y-1,sel+1,0),pmLbl=MS[sel]+". "+(Y-1);
+  var pmS=0,pmF=new Date(Y-1,sel,1),pmT=new Date(Y-1,sel+1,0);
   /* Vorjahresvergleich ganz einfach: Summe dieses Monats gegen Summe desselben Monats im Vorjahr */
   pool.forEach(function(c){if(!fltMatch(c,null))return;var f2=holderShare(c);payments(c,pmF,pmT).forEach(function(p){pmS+=conv(p.a,c.cur)*f2;});});
-  var pmD=sm.sum-pmS,pmHtml;
-  var vsL=" vs. "+MS[sel]+" "+String(Y-1).slice(2);
-  if(pmS<0.005)pmHtml='<span class="dpill">neu'+vsL+'</span>';
-  else if(Math.abs(pmD)<0.005)pmHtml='<span class="dpill">='+vsL+'</span>';
-  else pmHtml='<span class="dpill '+(pmD>0?"up":"down")+'" title="Differenz zum Vorjahresmonat">'+(pmD>0?"+":"−")+nf0.format(Math.abs(pmD))+vsL+"</span>";
-  var openI=sm.items.filter(function(it){return it.d>=T0;}),paidI=sm.items.filter(function(it){return it.d<T0;});
-  if(state.mSort==="amt"){var byV=function(x,y){return y.v-x.v;};openI.sort(byV);paidI.sort(byV);}
+  var pmD=sm.sum-pmS;
   var mrow=function(it){var c=it.c,d=it.d,past=d<T0,dn=daysBetween(T0,d);
     var st=dn===0?"heute":fmtShort(d);/* nur Datum bzw. «heute», ohne «am»/«fällig» */
     return '<button class="mrow'+(past?" past":"")+'" data-open="'+esc(c._id)+'">'+markHtml(c)+
@@ -3440,7 +3435,7 @@ function renderStat(v){
       '<span class="ma"><span><b>'+(it.a<0?"−"+money(-it.a,c.cur):money(it.a,c.cur))+'</b> <u>'+esc(c.cur)+'</u></span><span class="ms'+(!past&&dn>0&&dn<=7?" warn":"")+'">'+st+"</span></span></button>";};
   // Vorjahresmonat: ganze Franken reichen für den Vergleich
   var pmTxt="",pmCls="";
-  if(pmHtml&&pmS>=0.005){var pr=Math.round(Math.abs(pmD));
+  if(pmS>=0.005){var pr=Math.round(Math.abs(pmD));
     if(pr<1)pmTxt="gleich wie "+MON[sel]+" "+(Y-1);
     else{pmTxt=nf0.format(pr)+" "+H+(pmD>0?" mehr":" weniger")+" als "+MON[sel]+" "+(Y-1);pmCls=pmD>0?" up":" down";}}
   var bigN=function(v){var t=money(v),k=decAt(t);return k<0?t:t.slice(0,k)+'<small>'+t.slice(k)+"</small>";};
@@ -3456,12 +3451,11 @@ function renderStat(v){
     '<div class="krow">'+
     '<div class="kc'+(sm.paid<0.005?" nil":"")+'"><em><i class="pdot pd"></i>Bezahlt'+(sm.open<0.005?'<span class="kok">✓</span>':"")+'</em><b>'+money(sm.paid)+'</b></div>'+
     '<div class="kc r'+(sm.open<0.005?" nil":"")+'"><em><i class="pdot op"></i>Offen</em><b>'+money(sm.open)+'</b></div></div>';
-  var ap2="";
-  var foot='<div class="krow kfoot"><div class="kc"><em>Ø pro Monat</em><b>'+ap2+nf0.format(avg)+'</b></div>'+
-    '<div class="kc r"><em>Total '+Y+'</em><b>'+ap2+nf0.format(tot)+"</b></div></div>";
+  var foot='<div class="krow kfoot"><div class="kc"><em>Ø pro Monat</em><b>'+nf0.format(avg)+'</b></div>'+
+    '<div class="kc r"><em>Total '+Y+'</em><b>'+nf0.format(tot)+"</b></div></div>";
   o+='<div class="readout mcard kcard" style="display:block">'+hdr+split+chartH+foot+"</div>"+hint;
   var MSO=state.mSort==="amt"?"amt":"date";
-  var vgr=useV?varGroupHtml(function(x){return holderShare(x);},Y,sel,true):"";
+  var vgr=useV?varGroupHtml(function(x){return holderShare(x);},Y,sel):"";
   if(KA!=="var")o+='<div class="grp"><div class="grphead ghs"><span>Fällig im '+MON[sel]+'</span>'+(sm.items.length>1?'<span class="pseg msort" role="group" aria-label="Sortierung">'+
     '<button data-msort="date" aria-pressed="'+(MSO==="date")+'">Datum</button><button data-msort="amt" aria-pressed="'+(MSO==="amt")+'">Betrag</button></span>':"")+'</div><div class="mrows mrows2">'+
     /* eine durchgehende Liste: bereits bezahlte ausgegraut statt zugeklappt (21.10.2026) */
@@ -3470,7 +3464,7 @@ function renderStat(v){
   if(KA!=="var")o+=ptSection(pool,Y,nowY,H);
   v.innerHTML=o+"</div>";
 }
-var TITLES={list:"Verträge",stat:"Kosten",budget:"Budget",term:"Fristen",arch:"Archiv",set:"Mehr"};
+var TITLES={list:"Verträge",stat:"Kosten",budget:"Budget",term:"Fristen",set:"Mehr"};
 function goTab(t){state.tab=t;renderView();paintFab();kLock.y=0;window.scrollTo({top:0});}
 function paintFab(){
   document.body.classList.toggle("hasplus",state.tab==="list");
@@ -3512,19 +3506,8 @@ document.getElementById("topYear").addEventListener("click",function(ev){
 document.getElementById("miniBar").addEventListener("click",function(){window.scrollTo({top:0,behavior:"smooth"});});
 var INC_CATS=["Lohn","Nebeneinkommen","Bonus","Rente","Zulagen","Unterstützung","Kapitalerträge","Vermietung","Rückerstattung","Sonstiges"];
 var ICYCLE={0:"einmalig",1:"monatlich",2:"alle 2 Monate",3:"quartalsweise",6:"halbjährlich",12:"jährlich",24:"alle 2 Jahre"};
-function incList(){return Object.keys(state.incomes).map(function(k){var c=Object.assign({},state.incomes[k]);c._id=k;return c;});}
+function incList(){return withIds(state.incomes);}
 function incMark(c){return markHtml({partner:c.name,color:c.color,cat:c.cat,label:c.label,logoId:c.logoId,logoBg:c.logoBg});}
-/* Alle Einnahmen verwalten (Fenster) */
-function openIncAll(){
-  var t=today(),H=esc(state.settings.home),list=incList().sort(function(a,b){return conv(curPrice(b),b.cur)-conv(curPrice(a),a.cur);});
-  document.getElementById("pickTitle").textContent="Alle Einnahmen";
-  var l=document.getElementById("pickList");l.dataset.dim="incall";
-  l.innerHTML='<div class="ilist">'+list.map(function(c){var en=parseD(c.end),st=parseD(c.start),off=(en&&en<t)||(st&&st>t);
-    var sub=(en&&en<t)?"beendet":((st&&st>t)?"ab "+fmtShort(st):(ICYCLE[c.cycle]||"monatlich"));
-    return '<button class="irow'+(off?" off":"")+'" data-inc="'+esc(c._id)+'">'+incMark(c)+'<span class="it">'+esc(c.label||c.name||"Einnahme")+"<em>"+esc(sub)+'</em></span><b>'+money(curPrice(c),c.cur)+(c.cur!==H?'<u>'+esc(c.cur)+"</u>":"")+"</b></button>";}).join("")+
-    '</div><button class="lbtn main" id="incAdd" type="button" style="margin-top:12px">Einnahme erfassen</button>';
-  openSheet(document.getElementById("sheetPick"));
-}
 /* ---------- Leere Seiten: ein Muster (Symbol, Frage, ein Satz, Vorschau, ein Knopf, zwei Vorteile) ----------
    SwiftUI: ContentUnavailableView mit eigener Vorschau-Karte. Beispiele immer in EUR (Hauptmarkt) und als «Beispiel» markiert. */
 function esIc(p){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+p+'</svg>';}
@@ -3671,8 +3654,6 @@ function renderBudget(v){
     incList().forEach(function(c){var f=shr(c);if(f)occurrences(c,bpmF,bpmT).forEach(function(d){bpmInc+=conv(priceAt(c,d),c.cur)*f;});});
     Object.keys(state.contracts).forEach(function(k){var c=state.contracts[k],f=shr(c);if(!f)return;
       payments(c,bpmF,bpmT).forEach(function(p){bpmFix+=conv(p.a,c.cur)*f;});});
-    /* gleiche Sperre wie in «Kosten»: Einträge ohne Beginn im Monat zählen rückwirkend voll, dann kein Vorjahresvergleich */
-    var smF=new Date(Y,sel,1),smT=new Date(Y,sel+1,0);
     var bpmFree=bpmInc-(noF?0:bpmFix)-(BA==="all"?varMonth(Y-1,sel,shr):0),bpmHas=(bpmInc>0.005||bpmFix>0.005),bpmD=sm.free-bpmFree;
     var bvT="",bvC="";
     if(bpmHas){var br=Math.round(Math.abs(bpmD));
@@ -3696,13 +3677,13 @@ function renderBudget(v){
     if(!BH&&HL.length>=2){var runC=running().filter(function(c){return !notStarted(c)&&!trialOn(c);}),shared=runC.some(function(c){return holdersOf(c).length>1;});
       if(shared){var fixT=0,incT=0,per={};HL.forEach(function(h){per[h]={f:0,i:0};});
         runC.forEach(function(c){var m=monthlyCost(c);fixT+=m;holdersOf(c).forEach(function(h){if(per[h])per[h].f+=m*holderShare(c,h);});});
-        incList().forEach(function(c){if(parseD(c.end)&&parseD(c.end)<today())return;if(notStarted(c))return;var m=(+c.cycle||1)?conv(curPrice(c),c.cur)/(+c.cycle||1):0;incT+=m;holdersOf(c).forEach(function(h){if(per[h])per[h].i+=m;});});
+        incList().forEach(function(c){if(parseD(c.end)&&parseD(c.end)<today())return;if(notStarted(c))return;var cy=c.cycle===0||c.cycle==="0"?0:(+c.cycle||1),m=cy?conv(curPrice(c),c.cur)/cy:0;/* einmalige Einnahme (cycle 0) = 0/Mt., wie occurrences */incT+=m;holdersOf(c).forEach(function(h){if(per[h])per[h].i+=m;});});
         if(fixT>0.005&&incT>0.005){var rows=HL.filter(function(h){return per[h].f>0.005||per[h].i>0.005;}).map(function(h){var pf=Math.round(per[h].f/fixT*100),pi=Math.round(per[h].i/incT*100);
             return '<div class="fgrow">'+avHtml(h)+'<span class="t"><b>'+esc(dn(h))+'</b><small>Fixkosten '+pf+'\u00a0% · Einnahmen '+pi+'\u00a0%</small></span>'+
               '<span class="fgbar" aria-hidden="true"><i style="width:'+pf+'%"></i><em style="left:'+pi+'%"></em></span></div>';}).join("");
           o+='<div class="grp"><div class="grphead"><span>Fair geteilt?</span><span>Fixkosten vs. Einnahmen</span></div><div class="fgcard">'+rows+'<p class="mdhint" style="margin:8px 0 4px">Balken = Anteil an den Fixkosten, Strich = Anteil an den Einnahmen. Gemeinsame Verträge zählen nach Aufteilung.</p></div></div>';}}}
   }
-  // Einnahmen des gewählten Monats: kompakte Liste wie die Ausgaben; Verwaltung aller Einnahmen im Fenster «Alle»
+  // Einnahmen des gewählten Monats: kompakte Liste wie die Ausgaben (verwaltet werden sie im Verträge-Tab, Ansicht «Einnahmen»)
   var iF=new Date(Y,sel,1),iT=new Date(Y,sel+1,0),nowM=[];
   incs.forEach(function(c){var v=0,n=0;occurrences(c,iF,iT).forEach(function(d){v+=priceAt(c,d);n++;});if(n)nowM.push({c:c,a:v});});
   nowM.sort(function(x,y){return conv(y.a,y.c.cur)-conv(x.a,x.c.cur);});
@@ -6021,7 +6002,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   if(!gone&&trialOn(c)){var tl0=trialLast(c);u={lvl:"",days:daysBetween(today(),tl0),date:tl0,T:tl0};}
   /* Vertragsende bei gekündigten Verträgen: das Kündigungsdatum bzw. der letzte Termin vor der Archivierung, nicht fortgeschrieben */
   if(gone){var cp=parseD(c.cancelPer),ca=parseD(c.cancelledAt),e0=parseD(c.end);
-    if(cp)e=cp;else if(e0&&ca&&+c.renew){var g0=0,r0=+c.renew;e=e0;while(e<ca&&g0<400){g0++;e=addMonthsE(e0,g0*r0);}}else if(e0)e=e0;}
+    if(cp)e=cp;else if(e0&&ca&&+c.renew)e=rollEnd(e0,+c.renew,function(x){return x<ca;});else if(e0)e=e0;}
   /* Frist in ≤ 60 Tagen: Hinweis mit «Kündigen» oben, sonst Aktionen dezent unten */
   var due60=!gone&&!fixd&&!!u.date&&u.days!==null&&u.days>=0&&u.days<=60&&!isAnytime(c)&&!c.noWatch&&!c.cancelPer&&!isKept(c)&&!!termEnd(c);
   /* Summe aller Zahlungen seit Vertragsbeginn bis heute (occurrences + Sonderzahlungen), nur mit erfasstem Beginn */
