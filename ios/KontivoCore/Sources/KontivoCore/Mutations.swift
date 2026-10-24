@@ -69,6 +69,7 @@ public struct PersonStat: Hashable, Sendable {
     public var person: Person
     public var contracts: Int
     public var incomes: Int
+    public var variableCosts: Int = 0
 }
 
 /// Fachaktionen auf den Daten. Ansichten ändern `AppData` nur über diese Funktionen.
@@ -435,7 +436,8 @@ extension AppData {
     public func personStats() -> [PersonStat] {
         persons.map { p in
             PersonStat(person: p, contracts: contracts.filter { $0.holderIDs.contains(p.id) }.count,
-                       incomes: incomes.filter { $0.holderID == p.id }.count)
+                       incomes: incomes.filter { $0.holderID == p.id }.count,
+                       variableCosts: variableCosts.filter { $0.holderIDs.contains(p.id) }.count)
         }
     }
 
@@ -496,6 +498,9 @@ extension AppData {
             contracts[i].holderIDs = arr
         }
         for i in incomes.indices where incomes[i].holderID == from { incomes[i].holderID = to }
+        for i in variableCosts.indices where variableCosts[i].holderIDs.contains(from) {
+            variableCosts[i].holderIDs = AppData.replacing(from, with: to, in: variableCosts[i].holderIDs)
+        }
         settings.lastHolderIDs.removeAll { $0 == from }
         let prefix = "h:" + from.uuidString + ":"
         settings.qualityIgnored.removeAll { $0.hasPrefix(prefix) }
@@ -521,6 +526,7 @@ extension AppData {
             contracts[k].split = []
         }
         for k in incomes.indices where incomes[k].holderID == id { incomes[k].holderID = nil }
+        for k in variableCosts.indices { variableCosts[k].holderIDs.removeAll { $0 == id } }
         settings.lastHolderIDs.removeAll { $0 == id }
         let prefix = "h:" + id.uuidString + ":"
         settings.qualityIgnored.removeAll { $0.hasPrefix(prefix) }
@@ -628,7 +634,53 @@ extension AppData {
             incomes[i].holderID = to
             n += 1
         }
+        for i in variableCosts.indices where variableCosts[i].holderIDs.contains(from) {
+            variableCosts[i].holderIDs = AppData.replacing(from, with: to, in: variableCosts[i].holderIDs)
+            n += 1
+        }
         return n
+    }
+
+    /// `from` durch `to` ersetzen, ohne Doppelnennung, Reihenfolge bleibt.
+    static func replacing(_ from: UUID, with to: UUID, in ids: [UUID]) -> [UUID] {
+        var arr: [UUID] = []
+        for h in ids {
+            let r = h == from ? to : h
+            if !arr.contains(r) { arr.append(r) }
+        }
+        return arr
+    }
+
+    // MARK: Variable Kosten (Web v226/v227)
+
+    /// Neue oder geänderte variable Ausgabe übernehmen: Bezeichnung getrimmt (max. 60), Betrag auf Rappen gerundet (0 – 10 Mio.),
+    /// Erfassungszeit bleibt beim Bearbeiten erhalten. Rückgabe: ID.
+    @discardableResult
+    public mutating func putVariableCost(_ v: VariableCost) -> UUID {
+        var x = v
+        x.label = String(Format.collapseSpaces(x.label).prefix(60))
+        x.amount = Swift.min(1e7, Swift.max(0, (x.amount * 100).rounded() / 100))
+        if let i = variableCostIndex(x.id) {
+            x.createdAt = variableCosts[i].createdAt
+            variableCosts[i] = x
+        } else {
+            variableCosts.append(x)
+        }
+        return x.id
+    }
+
+    public mutating func deleteVariableCost(_ id: UUID) {
+        variableCosts.removeAll { $0.id == id }
+    }
+
+    /// Duplizieren (Web `data-vact="dup"`): Kopie mit neuer ID und neuer Erfassungszeit. Rückgabe: neue ID.
+    @discardableResult
+    public mutating func duplicateVariableCost(_ id: UUID, now: Date = Date()) -> UUID? {
+        guard var x = variableCost(id) else { return nil }
+        x.id = UUID()
+        x.createdAt = now
+        variableCosts.append(x)
+        return x.id
     }
 
     /// Einträge (Verträge und Einnahmen), die `a` und `b` gemeinsam gehören (Hinweis beim Übertragen: «… gehören danach nur noch «B».»).

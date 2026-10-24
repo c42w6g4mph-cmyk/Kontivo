@@ -876,6 +876,10 @@ public struct Settings: Codable, Hashable, Sendable {
     /// Zeitpunkt des letzten erfolgreichen Kursabrufs (Web `settings.rateCheckedAt`, ms; v162): bis zum Tageskurs alle 3 h
     /// erneut prüfen (`RatePolicy`). Fehlt in älteren Daten → nil.
     public var rateCheckedAt: Date? = nil
+    /// Kostenart im Tab «Kosten» (Web `settings.kArt`, v234). Wirksam nur mit erfassten variablen Kosten (`Calc.costKind`).
+    public var costKind: CostKind = .fix
+    /// Kostenart im Budget (Web `settings.bArt`, v235–v239). Wirksam nur mit erfassten variablen Kosten (`Calc.budgetKind`).
+    public var budgetKind: BudgetKind = .fix
 
     /// Aktuelle Datenversion der nativen App.
     public static let currentDataVersion = 2
@@ -918,6 +922,8 @@ public struct Settings: Codable, Hashable, Sendable {
         bankAlias = c.value(.bankAlias, [String: BankAlias]())
         logoSkip = c.lossyArray(.logoSkip)
         rateCheckedAt = c.optional(.rateCheckedAt)
+        costKind = c.value(.costKind, CostKind.fix)
+        budgetKind = c.value(.budgetKind, BudgetKind.fix)
     }
 }
 
@@ -930,15 +936,18 @@ public struct AppData: Codable, Hashable, Sendable {
     public var partners: [Partner]
     public var contracts: [Contract]
     public var incomes: [Income]
+    /// Variable Kosten (Planwerte pro Monat, Web `vars`, v226)
+    public var variableCosts: [VariableCost]
 
     public init(settings: Settings = Settings(), persons: [Person] = [], categories: [Category] = [], partners: [Partner] = [],
-                contracts: [Contract] = [], incomes: [Income] = []) {
+                contracts: [Contract] = [], incomes: [Income] = [], variableCosts: [VariableCost] = []) {
         self.settings = settings
         self.persons = persons
         self.categories = categories
         self.partners = partners
         self.contracts = contracts
         self.incomes = incomes
+        self.variableCosts = variableCosts
     }
 
     public init(from decoder: Decoder) throws {
@@ -951,6 +960,7 @@ public struct AppData: Codable, Hashable, Sendable {
         partners = try c.lossyArrayStrict(.partners)
         contracts = try c.lossyArrayStrict(.contracts)
         incomes = try c.lossyArrayStrict(.incomes)
+        variableCosts = try c.lossyArrayStrict(.variableCosts)
     }
 
     /// Startzustand: Person «Ich», 12 Standardkategorien, Hauptwährung CHF.
@@ -990,6 +1000,11 @@ public struct AppData: Codable, Hashable, Sendable {
     public func partnerIndex(_ id: UUID) -> Int? { partners.firstIndex { $0.id == id } }
     public func contractIndex(_ id: UUID) -> Int? { contracts.firstIndex { $0.id == id } }
     public func incomeIndex(_ id: UUID) -> Int? { incomes.firstIndex { $0.id == id } }
+    public func variableCost(_ id: UUID?) -> VariableCost? {
+        guard let id = id else { return nil }
+        return variableCosts.first { $0.id == id }
+    }
+    public func variableCostIndex(_ id: UUID) -> Int? { variableCosts.firstIndex { $0.id == id } }
 
     /// Person mit diesem Namen (exakt).
     public func person(named name: String) -> Person? { persons.first { $0.name == name } }
@@ -1100,6 +1115,7 @@ public struct AppData: Codable, Hashable, Sendable {
             for d in c.documents { add(d.id) }
         }
         for i in incomes { add(i.logoID) }
+        for v in variableCosts { add(v.logoID) }
         for p in partners { add(p.logoID) }
         for p in persons { add(p.avatarID) }
         return out

@@ -1088,10 +1088,14 @@ extension Calc {
         return (Format.money0(pr) + " " + home.rawValue + (pmD > 0 ? " mehr" : " weniger") + " als " + label, pmD > 0 ? .up : .down)
     }
 
+    /// Budget eines Monats (Web `budgetMonth`/`budgetYear`): verfügbar = Einnahmen − Fixkosten − variable Kosten;
+    /// Kostenart «Ohne Kosten» (`countsFixed` false) zieht keine Fixkosten ab, variable Kosten nur bei «Alle Kosten».
     public struct BudgetMonth: Hashable, Sendable {
         public var income: Double = 0
         public var fixed: Double = 0
-        public var free: Double { income - fixed }
+        public var variable: Double = 0
+        public var countsFixed: Bool = true
+        public var free: Double { income - (countsFixed ? fixed : 0) - variable }
     }
 
     public struct BudgetYear: Hashable, Sendable {
@@ -1099,7 +1103,9 @@ extension Calc {
         public var months: [BudgetMonth]
         public var totalIncome: Double
         public var totalFixed: Double
-        public var totalFree: Double { totalIncome - totalFixed }
+        public var totalVariable: Double = 0
+        public var countsFixed: Bool = true
+        public var totalFree: Double { totalIncome - (countsFixed ? totalFixed : 0) - totalVariable }
         public var average: Double { totalFree / 12 }
     }
 
@@ -1122,12 +1128,13 @@ extension Calc {
     /// Heutiger Betrag einer Einnahme.
     public func curPrice(_ i: Income) -> Double { priceAt(i, today) }
 
-    /// Einnahmen und Fixkosten je Monat (Personenanteile wie im Budget).
-    public func budgetYear(_ year: Int, person: UUID?) -> BudgetYear {
-        budgetPeriod(year: year, from: Day(year, 1, 1), to: Day(year, 12, 31), person: person)
+    /// Einnahmen, Fixkosten und variable Kosten je Monat (Personenanteile wie im Budget). `kind` = Kostenart (Web `bArt`):
+    /// `.all` zieht auch variable Kosten ab, `.none` keine Fixkosten. Ohne Angabe die wirksame Kostenart (`budgetKind`).
+    public func budgetYear(_ year: Int, person: UUID?, kind: BudgetKind? = nil) -> BudgetYear {
+        budgetPeriod(year: year, from: Day(year, 1, 1), to: Day(year, 12, 31), person: person, kind: kind ?? budgetKind)
     }
 
-    func budgetPeriod(year: Int, from: Day, to: Day, person: UUID?) -> BudgetYear {
+    func budgetPeriod(year: Int, from: Day, to: Day, person: UUID?, kind: BudgetKind = .fix) -> BudgetYear {
         var m = Array(repeating: BudgetMonth(), count: 12)
         for i in data.incomes {
             let f = incomeShare(i, person: person)
@@ -1139,7 +1146,15 @@ extension Calc {
             if f == 0 { continue }
             for p in payments(c, from: from, to: to) { m[p.date.month - 1].fixed += conv(p.amount, c.currency) * f }
         }
-        return BudgetYear(year: year, months: m, totalIncome: m.reduce(0.0) { $0 + $1.income }, totalFixed: m.reduce(0.0) { $0 + $1.fixed })
+        // variable Kosten nur in den Monaten des Zeitraums (Vorjahresmonat: nur dieser eine Monat)
+        let noF = kind == .none
+        for i in 0..<12 {
+            let a = Day(year, i + 1, 1), b = Day(year, i + 2, 0)
+            m[i].countsFixed = !noF
+            if kind == .all && b >= from && a <= to { m[i].variable = variableMonth(year: year, month: i + 1, person: person) }
+        }
+        return BudgetYear(year: year, months: m, totalIncome: m.reduce(0.0) { $0 + $1.income }, totalFixed: m.reduce(0.0) { $0 + $1.fixed },
+                          totalVariable: m.reduce(0.0) { $0 + $1.variable }, countsFixed: !noF)
     }
 
     /// «Fair geteilt?» (Budget, ohne Personenfilter, ab 2 Personen): Anteil jeder Person an den laufenden Fixkosten gegenüber
@@ -1172,7 +1187,8 @@ extension Calc {
         for i in data.incomes {
             if let e = i.end, e < today { continue }
             if let s = i.start, s > today { continue }
-            let m = conv(curPrice(i), i.currency) / Double(i.cycle == 0 ? 1 : i.cycle)
+            // einmalige Einnahme (cycle 0) = 0/Mt., wie occurrences (Web-Bereinigung v312)
+            let m = i.cycle == 0 ? 0 : conv(curPrice(i), i.currency) / Double(i.cycle)
             incT += m
             if let h = i.holderID { pi[h, default: 0] += m }
         }
@@ -1186,8 +1202,8 @@ extension Calc {
     }
 
     /// Vergleich «verfügbar» mit dem Vorjahresmonat (Budget), nil ohne Vorjahreswerte.
-    public func budgetMonthComparison(year: Int, month: Int, person: UUID?, free: Double) -> (text: String, trend: Trend)? {
-        let p = budgetPeriod(year: year - 1, from: Day(year - 1, month, 1), to: Day(year - 1, month + 1, 0), person: person)
+    public func budgetMonthComparison(year: Int, month: Int, person: UUID?, free: Double, kind: BudgetKind? = nil) -> (text: String, trend: Trend)? {
+        let p = budgetPeriod(year: year - 1, from: Day(year - 1, month, 1), to: Day(year - 1, month + 1, 0), person: person, kind: kind ?? budgetKind)
         let bm = p.months[month - 1]
         if !(bm.income > 0.005 || bm.fixed > 0.005) { return nil }
         let d = free - bm.free

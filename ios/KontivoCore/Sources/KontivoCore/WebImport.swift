@@ -96,6 +96,9 @@ public enum WebImport {
         let iKeys = incomes.orderedKeys
         let cObjs: [(String, JSObject)] = cKeys.compactMap { k in JS.obj(contracts[k]).map { (k, $0) } }
         let iObjs: [(String, JSObject)] = iKeys.compactMap { k in JS.obj(incomes[k]).map { (k, $0) } }
+        // Variable Kosten (Web v226 `vars`): fehlt in älteren Backups
+        let varsObj = JS.obj(o["vars"]) ?? JSObject()
+        let vObjs: [(String, JSObject)] = varsObj.orderedKeys.compactMap { k in JS.obj(varsObj[k]).map { (k, $0) } }
 
         // Dateien
         var files: [String: ImportedFile] = [:]
@@ -118,6 +121,7 @@ public enum WebImport {
         for h in JS.arr(s["holders"]) { addName(JS.str(h)) }
         for (_, c) in cObjs { for h in JS.arr(c["holders"]) { addName(JS.str(h)) } }
         for (_, c) in iObjs { for h in JS.arr(c["holders"]) { addName(JS.str(h)) } }
+        for (_, c) in vObjs { for h in JS.arr(c["holders"]) { addName(JS.str(h)) } }
         let senders = JS.obj(s["senders"]) ?? JSObject()
         let sigs = JS.obj(s["sigs"]) ?? JSObject()
         let avatars = JS.obj(s["avatars"]) ?? JSObject()
@@ -357,8 +361,34 @@ public enum WebImport {
             }
         }
 
+        // Variable Kosten (Web `sanitizeImport`: Bezeichnung max. 60, Betrag 0 – 10 Mio., unbekanntes Symbol → «sonst»)
+        var varsOut: [VariableCost] = []
+        for (_, c) in vObjs {
+            var x = VariableCost()
+            x.label = String(JS.str(c["label"]).prefix(60))
+            x.icon = VarIcon(webKey: JS.str(c["ic"]))
+            let a = JS.num(c["amount"])
+            x.amount = a.isFinite && a >= 0 && a <= 1e7 ? (a * 100).rounded() / 100 : 0
+            x.currency = Currency(rawValue: JS.str(c["cur"])) ?? Currency(rawValue: JS.str(s["home"])) ?? .CHF
+            var vh: [UUID] = []
+            for h in JS.arr(c["holders"]) { if let pid = personIDs[JS.str(h)], !vh.contains(pid) { vh.append(pid) } }
+            x.holderIDs = vh
+            x.start = Day(iso: JS.str(c["start"]))
+            x.end = Day(iso: JS.str(c["end"]))
+            let l = JS.str(c["logoId"])
+            if !l.isEmpty {
+                x.logoID = l
+                let bg = JS.str(c["logoBg"])
+                x.logoBg = bg.isEmpty ? nil : bg
+            }
+            x.createdAt = createdAt(c["t"])
+            varsOut.append(x)
+        }
+
         // Einstellungen
         var st = Settings()
+        st.costKind = CostKind(rawValue: JS.str(s["kArt"])) ?? .fix
+        st.budgetKind = BudgetKind(rawValue: JS.str(s["bArt"])) ?? .fix
         st.homeCurrency = Currency(rawValue: JS.str(s["home"])) ?? .CHF
         var rates: [String: Double] = [:]
         if let r = JS.obj(s["rates"]) {
@@ -395,7 +425,8 @@ public enum WebImport {
         }
         st.dataVersion = Settings.currentDataVersion
 
-        let data = AppData(settings: st, persons: persons, categories: categories, partners: partners, contracts: contractsOut, incomes: incomesOut)
+        let data = AppData(settings: st, persons: persons, categories: categories, partners: partners, contracts: contractsOut, incomes: incomesOut,
+                           variableCosts: varsOut)
         let exp = JS.str(o["exported"])
         return WebImportResult(data: data, files: files, contractIDs: contractIDs, incomeIDs: incomeIDs, personIDs: personIDs,
                                exported: exp.isEmpty ? nil : exp, failedFiles: failed)
