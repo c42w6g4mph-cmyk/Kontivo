@@ -312,6 +312,8 @@ public enum WebImport {
                 x.pauses = [Pause(from: Day(iso: JS.str(c["pausedAt"])) ?? today, until: Day(iso: JS.str(c["pausedUntil"])))]
             }
             x.createdAt = createdAt(c["t"])
+            x.creditorID = String(JS.str(c["cred"]).prefix(40))
+            x.mandateRef = String(JS.str(c["mref"]).prefix(40))
             contractsOut.append(x)
         }
 
@@ -389,6 +391,29 @@ public enum WebImport {
         var st = Settings()
         st.costKind = CostKind(rawValue: JS.str(s["kArt"])) ?? .fix
         st.budgetKind = BudgetKind(rawValue: JS.str(s["bArt"])) ?? .fix
+        st.incomeSort = JS.str(s["sortI"])
+        st.variableSort = JS.str(s["sortV"])
+        st.letterWindowRight = JS.str(s["ltWin"]) == "r"
+        // Kontoauszug: «Nicht mehr vorschlagen» und gelernte Namen (Web sanitizeImport: Texte; Alias n getrimmt, max. 80)
+        st.bankIgn = JS.arr(s["bankIgn"]).compactMap { if case .string(let x) = $0 { return x } else { return nil } }
+        if let ba = JS.obj(s["bankAlias"]) {
+            var out: [String: BankAlias] = [:]
+            for k in ba.orderedKeys {
+                guard let v = JS.obj(ba[k]), case .string(let n)? = v["n"] else { continue }
+                let t = n.trimmingCharacters(in: .whitespacesAndNewlines)
+                if t.isEmpty { continue }
+                var c = ""
+                if case .string(let cs)? = v["c"] { c = cs }
+                out[k] = BankAlias(n: String(t.prefix(80)), c: c)
+            }
+            st.bankAlias = out
+        }
+        // Kontoauszug-Zeitraum nur mit ok:1 (Web v275: Altwerte aus Testläufen verwerfen)
+        if let bl = JS.obj(s["bankLast"]), JS.num(bl["ok"]) == 1, let f = Day(iso: JS.str(bl["from"])), let t = Day(iso: JS.str(bl["to"])),
+           let at = Day(iso: JS.str(bl["at"])) {
+            let n = JS.num(bl["n"])
+            st.lastBankImport = BankImportInfo(from: f, to: t, at: at, files: n.isFinite ? Int(n) : 1)
+        }
         st.homeCurrency = Currency(rawValue: JS.str(s["home"])) ?? .CHF
         var rates: [String: Double] = [:]
         if let r = JS.obj(s["rates"]) {

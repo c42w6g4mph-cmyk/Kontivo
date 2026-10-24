@@ -647,6 +647,10 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
     public var split: [SplitShare]
     /// Entscheid im Quartals-Check
     public var review: ContractReview?
+    /// Gläubiger-ID und Mandatsreferenz aus dem Kontoauszug (Web `cred`/`mref`, v272, max. 40 Zeichen): beim nächsten Import
+    /// eindeutiger Treffer, auch wenn der Bank-Text anders lautet
+    public var creditorID: String = ""
+    public var mandateRef: String = ""
 
     public init(id: UUID = UUID(), label: String = "", partnerID: UUID? = nil, categoryID: UUID? = nil,
                 amount: Double = 0, currency: Currency = .CHF, cycle: Int = 1,
@@ -755,6 +759,8 @@ public struct Contract: Codable, Hashable, Identifiable, Sendable {
         createdAt = c.value(.createdAt, Date(timeIntervalSince1970: 0))
         split = c.lossyArray(.split)
         review = c.optional(.review)
+        creditorID = c.value(.creditorID, "")
+        mandateRef = c.value(.mandateRef, "")
     }
 
     /// Turnus für Rechnungen (JS `+c.cycle||1`).
@@ -880,6 +886,13 @@ public struct Settings: Codable, Hashable, Sendable {
     public var costKind: CostKind = .fix
     /// Kostenart im Budget (Web `settings.bArt`, v235–v239). Wirksam nur mit erfassten variablen Kosten (`Calc.budgetKind`).
     public var budgetKind: BudgetKind = .fix
+    /// Sortierung der Ansichten «Einnahmen» und «Variabel» im Verträge-Tab (Web `settings.sortI`/`sortV`, v233); "" = Standard
+    public var incomeSort: String = ""
+    public var variableSort: String = ""
+    /// Kündigungsschreiben: Adressfenster rechts (Schweizer Kuvert, Web `settings.ltWin` = "r", v229)
+    public var letterWindowRight: Bool = false
+    /// Letzter übernommener Kontoauszug (Web `settings.bankLast`, v266/v275): Zeitraum, Datum, Anzahl Dateien
+    public var lastBankImport: BankImportInfo? = nil
 
     /// Aktuelle Datenversion der nativen App.
     public static let currentDataVersion = 2
@@ -924,6 +937,27 @@ public struct Settings: Codable, Hashable, Sendable {
         rateCheckedAt = c.optional(.rateCheckedAt)
         costKind = c.value(.costKind, CostKind.fix)
         budgetKind = c.value(.budgetKind, BudgetKind.fix)
+        incomeSort = c.value(.incomeSort, "")
+        variableSort = c.value(.variableSort, "")
+        letterWindowRight = c.value(.letterWindowRight, false)
+        lastBankImport = c.optional(.lastBankImport)
+    }
+}
+
+/// Letzter übernommener Kontoauszug (Zeile «Kontoauszug einlesen» unter Mehr → Daten).
+public struct BankImportInfo: Codable, Hashable, Sendable {
+    public var from: Day
+    public var to: Day
+    /// Tag des Imports
+    public var at: Day
+    /// Anzahl Dateien (mindestens 1)
+    public var files: Int
+
+    public init(from: Day, to: Day, at: Day, files: Int = 1) {
+        self.from = from
+        self.to = to
+        self.at = at
+        self.files = Swift.max(1, files)
     }
 }
 
