@@ -88,13 +88,11 @@ public enum KBMonthMath {
 // MARK: - Kosten
 
 extension Calc {
-    /// Statuszeile einer Zahlung in «Fällig im»: «am 03.10.26», «heute fällig», «in 3 Tagen» (warn), «fällig 20.10.26».
+    /// Statuszeile einer Zahlung in «Fällig im» (Web v253): nur Datum («20.10.26») bzw. «heute»; in den nächsten 7 Tagen hervorgehoben.
+    /// Bezahlte (vergangene) Zahlungen stehen ausgegraut in derselben Liste (Web v245, `past`).
     public func kbPaymentStatus(_ d: Day) -> (text: String, warn: Bool) {
-        if d < today { return ("am " + Format.fmtShort(d), false) }
         let dn = today.days(to: d)
-        if dn == 0 { return ("heute fällig", false) }
-        if dn <= 7 { return ("in \(dn)" + (dn == 1 ? " Tag" : " Tagen"), true) }
-        return ("fällig " + Format.fmtShort(d), false)
+        return (dn == 0 ? "heute" : Format.fmtShort(d), d >= today && dn > 0 && dn <= 7)
     }
 
     /// Zweitzeile einer Zahlung in «Fällig im»: «Anteil 50 %» · Vertragspartner · «Sonderzahlung · Notiz».

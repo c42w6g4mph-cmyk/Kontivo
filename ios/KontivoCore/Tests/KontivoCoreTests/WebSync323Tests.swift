@@ -47,3 +47,29 @@ extension WebSync323Tests {
         XCTAssertEqual(d.contract(c.id)?.cancelPer, Day(2026, 10, 31))
     }
 }
+
+extension WebSync323Tests {
+    // MARK: Kosten «Fällig im …» (Web v244/v245/v253) und Vorjahresvergleich (v236)
+
+    func testPaymentStatusAndMonthComparison() {
+        var d = AppData.initial()
+        let today = Day(2026, 10, 20)
+        let calc0 = Calc(data: d, today: today)
+        XCTAssertEqual(calc0.kbPaymentStatus(Day(2026, 10, 20)).text, "heute")
+        XCTAssertFalse(calc0.kbPaymentStatus(Day(2026, 10, 20)).warn)
+        XCTAssertEqual(calc0.kbPaymentStatus(Day(2026, 10, 23)).text, Format.fmtShort(Day(2026, 10, 23)))
+        XCTAssertTrue(calc0.kbPaymentStatus(Day(2026, 10, 23)).warn)
+        XCTAssertFalse(calc0.kbPaymentStatus(Day(2026, 10, 28)).warn)
+        XCTAssertEqual(calc0.kbPaymentStatus(Day(2026, 10, 3)).text, Format.fmtShort(Day(2026, 10, 3)))
+        XCTAssertFalse(calc0.kbPaymentStatus(Day(2026, 10, 3)).warn)
+        // Vertrag ohne Beginn: Vergleich wird trotzdem gezeigt (ganz einfach Monat gegen Vorjahresmonat)
+        let c = Contract(label: "Strom", amount: 100, cycle: 1, due: Day(2025, 1, 15))
+        d.contracts = [c]
+        let calc = Calc(data: d, today: today)
+        let items = calc.costYear(2026, filter: Calc.CostFilter()).months[9].items
+        XCTAssertEqual(items.count, 1)
+        let cmp = calc.monthComparison(year: 2026, month: 10, filter: Calc.CostFilter(), monthSum: 120, items: items)
+        XCTAssertEqual(cmp?.text, "20 CHF mehr als Oktober 2025")
+        XCTAssertEqual(cmp?.trend, .up)
+    }
+}

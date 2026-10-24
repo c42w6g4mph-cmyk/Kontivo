@@ -1085,7 +1085,7 @@ extension Calc {
 
     /// Vergleich eines Monats mit dem Vorjahresmonat («12 CHF mehr als Oktober 2025»), nil wenn nicht anzeigbar.
     public func monthComparison(year: Int, month: Int, filter: CostFilter, monthSum: Double, items: [CostItem]) -> (text: String, trend: Trend)? {
-        if items.contains(where: { data.contract($0.contractID)?.start == nil }) { return nil }
+        // Web v236: ganz einfach Summe dieses Monats gegen denselben Monat im Vorjahr (auch mit Verträgen ohne Beginn)
         let pmS = periodTotal(from: Day(year - 1, month, 1), to: Day(year - 1, month + 1, 0), filter: filter)
         if pmS < 0.005 { return nil }
         let pmD = monthSum - pmS
