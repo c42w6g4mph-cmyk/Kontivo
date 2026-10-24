@@ -67,7 +67,8 @@ final class GoldenUiTests: XCTestCase {
             // Zeilen in Anzeigereihenfolge
             func title(_ id: UUID, _ partner: String) -> String {
                 guard let c = r.data.contract(id) else { return "?" }
-                return r.data.title(of: c) + (partner.isEmpty ? "" : " · " + partner)
+                // Web liest den sichtbaren Text (Leerraum zusammengefasst)
+                return Format.collapseSpaces(r.data.title(of: c) + (partner.isEmpty ? "" : " · " + partner))
             }
             var got: [Row] = []
             for x in ov.marked {
