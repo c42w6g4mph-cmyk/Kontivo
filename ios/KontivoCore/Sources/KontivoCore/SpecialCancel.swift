@@ -181,7 +181,8 @@ extension Calc {
 
     /// Preiserhöhung mit Kündigungsrecht (Web `skrInfo`): neueste Erhöhung zuerst, sichtbar bis «Kündigen bis» bzw. ohne Datum
     /// bis 30 Tage nach Wirksamkeit. Ohne Prüfung von Status/nicht kündbar (dafür `specialCancel(_:)`).
-    public func specialCancelInfo(_ c: Contract) -> SpecialCancelInfo? {
+    /// `ignoreRegularEnd`: ohne die Prüfung «ordentlich vorher kündbar» (Web v259 `regEndsFirst`), nur für Tests der Regel.
+    public func specialCancelInfo(_ c: Contract, ignoreRegularEnd: Bool = false) -> SpecialCancelInfo? {
         var list: [(f: Day, a: Double, prev: Double, up: Bool, pct: Int)] = []
         var prev = c.amount.isFinite ? c.amount : 0
         for p in pricesOf(c) {
@@ -194,6 +195,7 @@ extension Calc {
             let r = specialCancelRule(c, from: x.f)
             let end = r.until ?? x.f.addingDays(30)
             if end < today { continue }
+            if !ignoreRegularEnd && regularEndsFirst(c, x.f) { return nil }
             let tail: String
             if r.none {
                 tail = Calc.skrTailNone
@@ -208,6 +210,27 @@ extension Calc {
         return nil
     }
 
+    /// Ordentlich kündbar vor dem neuen Preis (z.B. Netflix: monatlich, kurze Frist)? Dann bringt der Hinweis nichts (Web v259
+    /// `regEndsFirst`). Ist der Preis schon in Kraft: kündbar innert ~1 Monat ab heute gilt ebenfalls als «flexibel».
+    public func regularEndsFirst(_ c: Contract, _ f: Day) -> Bool {
+        if isFixed(c) { return false }
+        let t = today, dayB = f.addingDays(-1)
+        var T: Day?
+        if c.end == nil && c.cancelTerm == .anytime {
+            let n = c.notice
+            switch c.noticeUnit {
+            case .days: T = t.addingDays(n)
+            case .weeks: T = t.addingDays(7 * n)
+            default: T = t.addingMonths(n)
+            }
+        } else {
+            T = termEnd(c)
+            if let x = T, noticeDeadline(for: c, end: x) < t { T = nil }
+        }
+        guard let e = T else { return false }
+        return e <= dayB || (f <= t && t.days(to: e) <= 31)
+    }
+
     /// Zeile «Sonderkündigung» im Vertragsdetail (Web `openDetail`: nicht gekündigt/beendet und nicht «nicht kündbar»).
     public func specialCancel(_ c: Contract) -> SpecialCancelInfo? {
         let gone = c.status == .cancelled || c.cancelPer != nil || endedByTerm(c)
@@ -216,8 +239,8 @@ extension Calc {
     }
 
     /// Erklärblatt zur Zeile (Web `openSkr`, rechnet wie dort mit `skrInfo` ohne Statusprüfung), nil ohne Preiserhöhung.
-    public func specialCancelSheet(_ c: Contract) -> SpecialCancelSheet? {
-        guard let x = specialCancelInfo(c) else { return nil }
+    public func specialCancelSheet(_ c: Contract, ignoreRegularEnd: Bool = false) -> SpecialCancelSheet? {
+        guard let x = specialCancelInfo(c, ignoreRegularEnd: ignoreRegularEnd) else { return nil }
         let r = x.rule
         let fut = x.from > today
         let pn = partnerName(c)

@@ -1,5 +1,5 @@
 """Erzeugt golden.json aus der Web-App (Referenz für den SwiftUI-Nachbau).
-Aufruf im Repo-Ordner:  python3 -m http.server 8765 &  python3 tests/make_golden.py
+Aufruf:  cd <main-Repo> && python3 -m http.server 8765 &  WEB=<main-Repo> python3 tests/make_golden.py
 Benötigt: pip install playwright (Chromium).
 
 Für Felder ausserhalb von window.KontivoCalc (trialOn, endsSelf, skrInfo, openSkr, renderHero …) wird index.html beim
@@ -14,16 +14,21 @@ import json, os
 from playwright.sync_api import sync_playwright
 
 D = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(D)
+ROOT = os.environ.get('WEB', os.path.dirname(D))  # Web-Repo (main) mit index.html
 spec = json.load(open(os.path.join(D, 'cases.json'), encoding='utf-8'))
 URL = os.environ.get('KONTIVO_URL', 'http://localhost:8765/index.html')
 HTML = open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
-ANCHOR = "cancVia:cancVia,iso:iso,parseD:parseD,state:state};};"
-if ANCHOR not in HTML:
+_i = HTML.find("window.KontivoCalc=function(){return {")
+if _i < 0 or HTML.find("};};", _i) < 0:
     raise SystemExit("Anker für den Test-Haken fehlt in index.html")
+ANCHOR = HTML[_i:HTML.find("};};", _i) + 4]
 HOOK = ("window.__KX=function(){return {trialOn:trialOn,endsSelf:endsSelf,skrInfo:skrInfo,openSkr:openSkr,renderHero:renderHero,"
         "isFixed:isFixed,endedByTerm:endedByTerm};};")
 PATCHED = HTML.replace(ANCHOR, ANCHOR + HOOK, 1)
+# Web v259: kein Hinweis, wenn ordentlich vorher kündbar (regEndsFirst). Für die Regel selbst zusätzlich ohne diese Prüfung (window.__noREF)
+REF = "if(regEndsFirst(c,f))return null;"
+if REF in PATCHED:
+    PATCHED = PATCHED.replace(REF, "if(!window.__noREF&&regEndsFirst(c,f))return null;", 1)
 
 JS_SKR = """function skrOut(K,X,c){var x=X.skrInfo(c);if(!x)return null;var r=x.r;function d(v){return v?K.iso(v):null;}
   return {from:d(x.f),amount:x.a,prev:x.prev,pct:x.pct,until:d(x.until),head:x.head,tail:x.tail,none:!!r.none,
@@ -65,7 +70,8 @@ JS_SKRCASES = """(cases)=>{var K=window.KontivoCalc(),X=window.__KX(),out={};
   cases.forEach(function(cs){var c=Object.assign({cat:"Sonstiges",status:"active",_id:cs.id},cs.c);K.state.contracts[cs.id]=c;});
   cases.forEach(function(cs){var c=K.state.contracts[cs.id],x=X.skrInfo(c),gone=c.status==="cancelled"||!!c.cancelPer||X.endedByTerm(c);
     var l=document.getElementById('pickList');l.dataset.dim='';
-    out[cs.id]={skr:skrOut(K,X,c),detail:!!(x&&!gone&&!X.isFixed(c)),line:x?(x.head+(x.tail?" · "+x.tail:"")):null,sheet:x?sheet(cs.id):null};});
+    out[cs.id]={skr:skrOut(K,X,c),detail:!!(x&&!gone&&!X.isFixed(c)),line:x?(x.head+(x.tail?" · "+x.tail:"")):null,sheet:x?sheet(cs.id):null};
+    window.__noREF=true;var xr=X.skrInfo(c);l.dataset.dim='';out[cs.id].skrRaw=skrOut(K,X,c);out[cs.id].sheetRaw=xr?sheet(cs.id):null;window.__noREF=false;});
   return out;}"""
 
 
@@ -95,6 +101,8 @@ with sync_playwright() as p:
         res["skr"][t] = pg.evaluate(JS_SKRCASES, spec["skrCases"])
         ctx.close()
     b.close()
-json.dump(res, open(os.path.join(D, 'golden.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+import re as _re
+res = json.loads(_re.sub(r"(?<=\d)'(?=\d{3})", "\u2019", json.dumps(res, ensure_ascii=False)))  # Chromium de-CH «'» → «’» (Safari/iOS)
+json.dump(res, open(os.environ.get('OUT', os.path.join(D, 'golden.json')), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print("golden.json:", sum(len(v) for v in res["results"].values()), "Ergebnisse,",
       sum(len(v) for v in res["hero"].values()), "Kopfzeilen,", sum(len(v) for v in res["skr"].values()), "Sonderkündigungs-Fälle")

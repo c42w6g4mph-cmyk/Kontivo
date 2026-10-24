@@ -182,7 +182,7 @@ final class GoldenTests: XCTestCase {
             return
         }
         let cases = JS.arr(so["skrCases"]).compactMap { JS.obj($0) }
-        XCTAssertEqual(cases.count, 17)
+        XCTAssertEqual(cases.count, 18)
         var checked = 0
         for t in skr.orderedKeys {
             guard let today = Day(iso: t), let exp = JS.obj(skr[t]) else { continue }
@@ -198,8 +198,18 @@ final class GoldenTests: XCTestCase {
                 checkSkr(calc.specialCancelInfo(c), e["skr"], m)
                 XCTAssertEqual(calc.specialCancel(c) != nil, bool(e["detail"]), "\(m) Zeile im Detail")
                 XCTAssertEqual(calc.specialCancelInfo(c)?.lineText, str(e["line"]), "\(m) Zeilentext")
-                let sh = calc.specialCancelSheet(c)
-                if let es = JS.obj(e["sheet"]) {
+                // Regel und Blatt auch ohne «ordentlich vorher kündbar» (Web v259), damit die Regeln selbst geprüft bleiben
+                checkSkr(calc.specialCancelInfo(c, ignoreRegularEnd: true), e["skrRaw"], m + " (Regel)")
+                checkSheet(calc.specialCancelSheet(c), e["sheet"], m)
+                checkSheet(calc.specialCancelSheet(c, ignoreRegularEnd: true), e["sheetRaw"], m + " (Regel)")
+                checked += 1
+            }
+        }
+        XCTAssertEqual(checked, 72)
+    }
+
+    func checkSheet(_ sh: SpecialCancelSheet?, _ ev: JSValue?, _ m: String) {
+                if let es = JS.obj(ev) {
                     XCTAssertEqual(sh?.title, str(es["title"]), "\(m) Blatt Titel")
                     XCTAssertEqual(sh?.intro, str(es["intro"]), "\(m) Blatt Einleitung")
                     let rows = JS.arr(es["rows"]).compactMap { JS.obj($0) }
@@ -217,9 +227,5 @@ final class GoldenTests: XCTestCase {
                 } else {
                     XCTAssertNil(sh, "\(m) Blatt: Web keines")
                 }
-                checked += 1
-            }
-        }
-        XCTAssertEqual(checked, 68)
     }
 }

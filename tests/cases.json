@@ -1,52 +1,870 @@
 {
-  "about": "Prüffälle für die Rechenlogik von Kontivo. Eingabe: Vertrag (Felder wie in der App), Stichtage. Erwartete Ergebnisse stehen in golden.json (aus der Web-App erzeugt mit make_golden.py).",
-  "settings": {"home": "CHF", "rates": {"EUR": 0.94, "USD": 0.80}, "holders": ["Sinan", "Lara"]},
-  "todays": ["2026-10-02", "2026-12-31", "2027-02-28", "2028-02-29"],
-  "cases": [
-    {"id": "m-anytime-1m", "note": "unbefristet, 1 Monat auf Monatsende", "c": {"amount": 59.9, "cur": "CHF", "cycle": 1, "due": "2026-10-15", "start": "2024-03-01", "notice": 1, "noticeU": "m", "cancTerm": "m", "holders": ["Sinan"]}},
-    {"id": "m-anytime-60d", "note": "60 Tage auf Monatsende", "c": {"amount": 59.9, "cur": "CHF", "cycle": 1, "due": "2026-10-15", "start": "2024-03-01", "notice": 60, "noticeU": "d", "cancTerm": "m", "holders": ["Sinan"]}},
-    {"id": "q-3m", "note": "3 Monate auf Quartalsende", "c": {"amount": 2100, "cur": "CHF", "cycle": 1, "due": "2026-10-01", "notice": 3, "noticeU": "m", "cancTerm": "q", "holders": ["Sinan", "Lara"]}},
-    {"id": "h-1m", "note": "1 Monat auf Halbjahresende", "c": {"amount": 40, "cur": "CHF", "cycle": 6, "due": "2027-01-01", "notice": 1, "noticeU": "m", "cancTerm": "h", "holders": ["Lara"]}},
-    {"id": "y-1m-kvg", "note": "Krankenkasse, 1 Monat auf Jahresende, Pflichtvertrag", "c": {"amount": 412.5, "cur": "CHF", "cycle": 1, "due": "2026-10-15", "notice": 1, "noticeU": "m", "cancTerm": "y", "mand": true, "holders": ["Sinan"]}},
-    {"id": "a-anniv", "note": "Ende Vertragsjahr ab Start, 1 Monat", "c": {"amount": 190, "cur": "CHF", "cycle": 12, "due": "2027-03-01", "start": "2023-03-01", "notice": 1, "noticeU": "m", "cancTerm": "a", "holders": ["Sinan"]}},
-    {"id": "p-period-annual", "note": "Ende Zahlungsperiode, jährlich, ohne Frist", "c": {"amount": 120, "cur": "EUR", "cycle": 12, "due": "2027-01-15", "notice": 0, "noticeU": "m", "cancTerm": "p", "holders": ["Sinan"]}},
-    {"id": "p-period-monthly", "note": "Ende Zahlungsperiode, monatlich, Streaming", "c": {"amount": 18.9, "cur": "EUR", "cycle": 1, "due": "2026-10-15", "notice": 0, "noticeU": "m", "cancTerm": "p", "holders": ["Sinan", "Lara"]}},
-    {"id": "fix-renew12", "note": "Laufzeit bis 31.12.2026, verlängert sich um 12 Monate, 3 Monate Frist", "c": {"amount": 384, "cur": "CHF", "cycle": 12, "due": "2027-01-01", "end": "2026-12-31", "renew": "12", "notice": 3, "noticeU": "m", "holders": ["Sinan", "Lara"]}},
-    {"id": "fix-renew12-past", "note": "Ende in der Vergangenheit, Verlängerung rollt", "c": {"amount": 89, "cur": "CHF", "cycle": 1, "due": "2026-10-30", "end": "2025-11-30", "renew": "12", "notice": 1, "noticeU": "m", "holders": ["Lara"]}},
-    {"id": "fix-norenew", "note": "befristet ohne Verlängerung", "c": {"amount": 25, "cur": "CHF", "cycle": 1, "due": "2026-10-05", "end": "2027-06-30", "notice": 0, "noticeU": "m", "holders": ["Sinan"]}},
-    {"id": "fix-renew1-2w", "note": "Mindestlaufzeit vorbei, verlängert monatlich, 2 Wochen", "c": {"amount": 30, "cur": "EUR", "cycle": 1, "due": "2026-10-20", "end": "2026-03-31", "renew": "1", "notice": 2, "noticeU": "w", "holders": ["Sinan"]}},
-    {"id": "notice-k", "note": "Frist bis zum 15. des Monats", "c": {"amount": 70, "cur": "CHF", "cycle": 1, "due": "2026-10-28", "notice": 15, "noticeU": "k", "cancTerm": "m", "holders": ["Sinan"]}},
-    {"id": "eom-31", "note": "Fälligkeit am 31., kein Drift", "c": {"amount": 10, "cur": "CHF", "cycle": 1, "due": "2026-01-31", "notice": 1, "noticeU": "m", "cancTerm": "m", "holders": ["Sinan"]}},
-    {"id": "leap-29", "note": "Fälligkeit 29.02. jährlich", "c": {"amount": 100, "cur": "CHF", "cycle": 12, "due": "2028-02-29", "start": "2024-02-29", "notice": 1, "noticeU": "m", "cancTerm": "a", "holders": ["Sinan"]}},
-    {"id": "trial", "note": "Probeabo endet 20.10.2026", "c": {"amount": 12.95, "cur": "CHF", "cycle": 1, "due": "2026-10-20", "notice": 0, "noticeU": "m", "cancTerm": "p", "trial": "2026-10-20", "holders": ["Sinan"]}},
-    {"id": "paused", "note": "pausiert bis 31.01.2027", "c": {"amount": 49, "cur": "CHF", "cycle": 1, "due": "2026-10-10", "notice": 1, "noticeU": "m", "cancTerm": "m", "paused": true, "pausedAt": "2026-09-01", "pausedUntil": "2027-01-31", "holders": ["Lara"]}},
-    {"id": "future-start", "note": "beginnt erst 2027", "c": {"amount": 55, "cur": "CHF", "cycle": 1, "due": "2027-02-01", "start": "2027-02-01", "notice": 1, "noticeU": "m", "cancTerm": "m", "holders": ["Sinan"]}},
-    {"id": "price-change", "note": "Preisänderung ab 01.03.2027", "c": {"amount": 190, "cur": "CHF", "cycle": 12, "due": "2027-03-01", "notice": 1, "noticeU": "m", "cancTerm": "a", "start": "2020-03-01", "prices": [{"from": "2027-03-01", "amount": 199}], "holders": ["Sinan"]}},
-    {"id": "quarterly-usd", "note": "quartalsweise in USD", "c": {"amount": 30, "cur": "USD", "cycle": 3, "due": "2026-11-01", "notice": 1, "noticeU": "m", "cancTerm": "q", "holders": ["Sinan", "Lara"]}},
-    {"id": "cancelled-per", "note": "gekündigt per 30.11.2026", "c": {"amount": 89, "cur": "CHF", "cycle": 1, "due": "2026-10-30", "end": "2026-11-30", "renew": "12", "notice": 1, "noticeU": "m", "cancelPer": "2026-11-30", "cancelledOn": "2026-09-10", "holders": ["Lara"]}},
-    {"id": "kept", "note": "für aktuellen Termin behalten", "c": {"amount": 384, "cur": "CHF", "cycle": 12, "due": "2027-01-01", "end": "2026-12-31", "renew": "12", "notice": 3, "noticeU": "m", "keptFor": "2026-12-31", "holders": ["Sinan"]}},
-    {"id": "nowatch", "note": "nicht beobachtet (Miete)", "c": {"amount": 2100, "cur": "CHF", "cycle": 1, "due": "2026-10-01", "notice": 3, "noticeU": "m", "cancTerm": "q", "noWatch": true, "holders": ["Sinan", "Lara"]}},
-    {"id": "no-terms", "note": "Frist gesetzt, aber kein Rhythmus und keine Laufzeit", "c": {"amount": 85, "cur": "EUR", "cycle": 1, "due": "2026-10-15", "notice": 1, "noticeU": "m", "cancTerm": "", "holders": ["Lara"]}},
-    {"id": "tax", "note": "Steuern: nie Frist", "c": {"amount": 1150, "cur": "CHF", "cycle": 3, "due": "2026-11-30", "notice": 0, "noticeU": "m", "cancTerm": "", "cat": "Steuern & Gebühren", "holders": ["Sinan"]}}
-  ],
-  "skrTodays": ["2026-10-17", "2026-11-30", "2026-12-20", "2027-01-10"],
-  "skrCases": [
-    {"id": "kvg-ch", "note": "Grundversicherung, Prämie per 1.1.2027 → bis letzter Arbeitstag im November", "c": {"label": "Grundversicherung", "partner": "CSS", "cat": "Versicherung", "amount": 400, "cur": "CHF", "cycle": 1, "due": "2026-10-25", "notice": 1, "noticeU": "m", "cancTerm": "y", "mand": true, "prices": [{"from": "2027-01-01", "amount": 430}], "holders": ["Sinan"]}},
-    {"id": "kvg-weekend", "note": "Krankenkasse per 1.1.2031: 30.11.2030 ist Samstag → 29.11.", "c": {"label": "Krankenkasse", "partner": "Helsana", "cat": "Versicherung", "amount": 300, "cur": "CHF", "cycle": 1, "due": "2026-10-25", "notice": 1, "noticeU": "m", "cancTerm": "y", "prices": [{"from": "2031-01-01", "amount": 320}], "holders": ["Sinan"]}},
-    {"id": "kvg-nopartner", "note": "Krankenkasse ohne Vertragspartner per 1.1.2027", "c": {"label": "Krankenkasse", "cat": "Gesundheit", "amount": 350, "cur": "CHF", "cycle": 1, "due": "2026-10-25", "prices": [{"from": "2027-01-01", "amount": 371}], "holders": ["Sinan"]}},
-    {"id": "kvg-midyear", "note": "Grundversicherung, Erhöhung unter dem Jahr → AVB-Text (v206)", "c": {"label": "Grundversicherung", "partner": "SWICA", "cat": "Versicherung", "amount": 380, "cur": "CHF", "cycle": 1, "due": "2026-10-25", "prices": [{"from": "2026-11-01", "amount": 395}], "holders": ["Sinan"]}},
-    {"id": "zusatz-ch", "note": "Zusatzversicherung CH → AVB (v207)", "c": {"label": "Zusatzversicherung", "partner": "CSS", "cat": "Versicherung", "amount": 60, "cur": "CHF", "cycle": 1, "due": "2026-10-25", "prices": [{"from": "2027-01-01", "amount": 66}], "holders": ["Sinan"]}},
-    {"id": "health-ch", "note": "Gesundheit CH ohne Versicherungswort → AVB", "c": {"label": "Physio Abo", "partner": "Physio Plus", "cat": "Gesundheit", "amount": 80, "cur": "CHF", "cycle": 1, "due": "2026-10-25", "prices": [{"from": "2026-12-01", "amount": 88}], "holders": ["Sinan"]}},
-    {"id": "strom-de", "note": "Strom DE → EnWG bis Vortag", "c": {"label": "Strom", "partner": "E.ON", "cat": "Energie & Wasser", "amount": 95, "cur": "EUR", "cycle": 1, "due": "2026-10-25", "prices": [{"from": "2026-12-01", "amount": 104.5}], "holders": ["Sinan"]}},
-    {"id": "wasser-de", "note": "Wasser DE → keine EnWG-Regel", "c": {"label": "Wasser", "partner": "Stadtwerke Konstanz", "cat": "Energie & Wasser", "amount": 30, "cur": "EUR", "cycle": 1, "due": "2026-10-25", "prices": [{"from": "2026-12-01", "amount": 33}], "holders": ["Sinan"]}},
-    {"id": "tkg-de", "note": "Handy DE → TKG mind. bis Erhöhung + 1 Monat − 1 Tag", "c": {"label": "Handy", "partner": "Telekom", "cat": "Mobilfunk & Internet", "amount": 40, "cur": "EUR", "cycle": 1, "due": "2026-10-25", "prices": [{"from": "2026-12-15", "amount": 45}], "holders": ["Sinan"]}},
-    {"id": "rent-de", "note": "Wohnungsmiete DE → § 561 BGB, Frist ab Mitteilung", "c": {"label": "Wohnungsmiete", "partner": "Vonovia", "cat": "Wohnen", "amount": 1000, "cur": "EUR", "cycle": 1, "due": "2026-11-01", "prices": [{"from": "2026-11-01", "amount": 1050}], "holders": ["Sinan"]}},
-    {"id": "vvg-de", "note": "Haftpflicht DE jährlich → § 40 VVG", "c": {"label": "Haftpflicht", "partner": "HUK-COBURG", "cat": "Versicherung", "amount": 600, "cur": "EUR", "cycle": 12, "due": "2027-01-01", "prices": [{"from": "2027-01-01", "amount": 660}], "holders": ["Sinan"]}},
-    {"id": "other-ch", "note": "Streaming CH, Erhöhung 01.10.2026 → 30 Tage sichtbar", "c": {"label": "Netflix", "cat": "Abos & Medien", "amount": 18.9, "cur": "CHF", "cycle": 1, "due": "2026-10-15", "prices": [{"from": "2026-10-01", "amount": 20.9}], "holders": ["Sinan"]}},
-    {"id": "other-usd", "note": "Software in USD → Text wie DE", "c": {"label": "Software", "partner": "Adobe", "cat": "Abos & Medien", "amount": 20, "cur": "USD", "cycle": 1, "due": "2026-10-15", "prices": [{"from": "2026-11-01", "amount": 23}], "holders": ["Sinan"]}},
-    {"id": "multi", "note": "zwei Erhöhungen, neueste zuerst", "c": {"label": "Fitness", "partner": "Activ Fitness", "cat": "Freizeit & Sport", "amount": 50, "cur": "CHF", "cycle": 1, "due": "2026-10-15", "prices": [{"from": "2026-03-01", "amount": 55}, {"from": "2026-11-01", "amount": 60}], "holders": ["Sinan"]}},
-    {"id": "decrease", "note": "Preissenkung → nichts", "c": {"label": "Zeitung", "cat": "Abos & Medien", "amount": 50, "cur": "CHF", "cycle": 1, "due": "2026-10-15", "prices": [{"from": "2026-11-01", "amount": 45}], "holders": ["Sinan"]}},
-    {"id": "fixed", "note": "Steuern mit Erhöhung → keine Zeile im Detail", "c": {"label": "Hundesteuer", "cat": "Steuern & Gebühren", "amount": 120, "cur": "CHF", "cycle": 12, "due": "2027-03-01", "prices": [{"from": "2026-12-01", "amount": 150}], "holders": ["Sinan"]}},
-    {"id": "cancelled", "note": "gekündigt → keine Zeile im Detail", "c": {"label": "Handy", "partner": "Vodafone", "cat": "Mobilfunk & Internet", "amount": 30, "cur": "EUR", "cycle": 1, "due": "2026-10-25", "cancelPer": "2027-01-31", "cancelledOn": "2026-10-01", "prices": [{"from": "2026-12-01", "amount": 35}], "holders": ["Sinan"]}}
+ "about": "Prüffälle für die Rechenlogik von Kontivo. Eingabe: Vertrag (Felder wie in der App), Stichtage. Erwartete Ergebnisse stehen in golden.json (aus der Web-App erzeugt mit make_golden.py).",
+ "settings": {
+  "home": "CHF",
+  "rates": {
+   "EUR": 0.94,
+   "USD": 0.8
+  },
+  "holders": [
+   "Sinan",
+   "Lara"
   ]
+ },
+ "todays": [
+  "2026-10-02",
+  "2026-12-31",
+  "2027-02-28",
+  "2028-02-29"
+ ],
+ "cases": [
+  {
+   "id": "m-anytime-1m",
+   "note": "unbefristet, 1 Monat auf Monatsende",
+   "c": {
+    "amount": 59.9,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-15",
+    "start": "2024-03-01",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "m",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "m-anytime-60d",
+   "note": "60 Tage auf Monatsende",
+   "c": {
+    "amount": 59.9,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-15",
+    "start": "2024-03-01",
+    "notice": 60,
+    "noticeU": "d",
+    "cancTerm": "m",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "q-3m",
+   "note": "3 Monate auf Quartalsende",
+   "c": {
+    "amount": 2100,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-01",
+    "notice": 3,
+    "noticeU": "m",
+    "cancTerm": "q",
+    "holders": [
+     "Sinan",
+     "Lara"
+    ]
+   }
+  },
+  {
+   "id": "h-1m",
+   "note": "1 Monat auf Halbjahresende",
+   "c": {
+    "amount": 40,
+    "cur": "CHF",
+    "cycle": 6,
+    "due": "2027-01-01",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "h",
+    "holders": [
+     "Lara"
+    ]
+   }
+  },
+  {
+   "id": "y-1m-kvg",
+   "note": "Krankenkasse, 1 Monat auf Jahresende, Pflichtvertrag",
+   "c": {
+    "amount": 412.5,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-15",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "y",
+    "mand": true,
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "a-anniv",
+   "note": "Ende Vertragsjahr ab Start, 1 Monat",
+   "c": {
+    "amount": 190,
+    "cur": "CHF",
+    "cycle": 12,
+    "due": "2027-03-01",
+    "start": "2023-03-01",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "a",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "p-period-annual",
+   "note": "Ende Zahlungsperiode, jährlich, ohne Frist",
+   "c": {
+    "amount": 120,
+    "cur": "EUR",
+    "cycle": 12,
+    "due": "2027-01-15",
+    "notice": 0,
+    "noticeU": "m",
+    "cancTerm": "p",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "p-period-monthly",
+   "note": "Ende Zahlungsperiode, monatlich, Streaming",
+   "c": {
+    "amount": 18.9,
+    "cur": "EUR",
+    "cycle": 1,
+    "due": "2026-10-15",
+    "notice": 0,
+    "noticeU": "m",
+    "cancTerm": "p",
+    "holders": [
+     "Sinan",
+     "Lara"
+    ]
+   }
+  },
+  {
+   "id": "fix-renew12",
+   "note": "Laufzeit bis 31.12.2026, verlängert sich um 12 Monate, 3 Monate Frist",
+   "c": {
+    "amount": 384,
+    "cur": "CHF",
+    "cycle": 12,
+    "due": "2027-01-01",
+    "end": "2026-12-31",
+    "renew": "12",
+    "notice": 3,
+    "noticeU": "m",
+    "holders": [
+     "Sinan",
+     "Lara"
+    ]
+   }
+  },
+  {
+   "id": "fix-renew12-past",
+   "note": "Ende in der Vergangenheit, Verlängerung rollt",
+   "c": {
+    "amount": 89,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-30",
+    "end": "2025-11-30",
+    "renew": "12",
+    "notice": 1,
+    "noticeU": "m",
+    "holders": [
+     "Lara"
+    ]
+   }
+  },
+  {
+   "id": "fix-norenew",
+   "note": "befristet ohne Verlängerung",
+   "c": {
+    "amount": 25,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-05",
+    "end": "2027-06-30",
+    "notice": 0,
+    "noticeU": "m",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "fix-renew1-2w",
+   "note": "Mindestlaufzeit vorbei, verlängert monatlich, 2 Wochen",
+   "c": {
+    "amount": 30,
+    "cur": "EUR",
+    "cycle": 1,
+    "due": "2026-10-20",
+    "end": "2026-03-31",
+    "renew": "1",
+    "notice": 2,
+    "noticeU": "w",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "notice-k",
+   "note": "Frist bis zum 15. des Monats",
+   "c": {
+    "amount": 70,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-28",
+    "notice": 15,
+    "noticeU": "k",
+    "cancTerm": "m",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "eom-31",
+   "note": "Fälligkeit am 31., kein Drift",
+   "c": {
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-01-31",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "m",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "leap-29",
+   "note": "Fälligkeit 29.02. jährlich",
+   "c": {
+    "amount": 100,
+    "cur": "CHF",
+    "cycle": 12,
+    "due": "2028-02-29",
+    "start": "2024-02-29",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "a",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "trial",
+   "note": "Probeabo endet 20.10.2026",
+   "c": {
+    "amount": 12.95,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-20",
+    "notice": 0,
+    "noticeU": "m",
+    "cancTerm": "p",
+    "trial": "2026-10-20",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "paused",
+   "note": "pausiert bis 31.01.2027",
+   "c": {
+    "amount": 49,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-10",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "m",
+    "paused": true,
+    "pausedAt": "2026-09-01",
+    "pausedUntil": "2027-01-31",
+    "holders": [
+     "Lara"
+    ]
+   }
+  },
+  {
+   "id": "future-start",
+   "note": "beginnt erst 2027",
+   "c": {
+    "amount": 55,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2027-02-01",
+    "start": "2027-02-01",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "m",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "price-change",
+   "note": "Preisänderung ab 01.03.2027",
+   "c": {
+    "amount": 190,
+    "cur": "CHF",
+    "cycle": 12,
+    "due": "2027-03-01",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "a",
+    "start": "2020-03-01",
+    "prices": [
+     {
+      "from": "2027-03-01",
+      "amount": 199
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "quarterly-usd",
+   "note": "quartalsweise in USD",
+   "c": {
+    "amount": 30,
+    "cur": "USD",
+    "cycle": 3,
+    "due": "2026-11-01",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "q",
+    "holders": [
+     "Sinan",
+     "Lara"
+    ]
+   }
+  },
+  {
+   "id": "cancelled-per",
+   "note": "gekündigt per 30.11.2026",
+   "c": {
+    "amount": 89,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-30",
+    "end": "2026-11-30",
+    "renew": "12",
+    "notice": 1,
+    "noticeU": "m",
+    "cancelPer": "2026-11-30",
+    "cancelledOn": "2026-09-10",
+    "holders": [
+     "Lara"
+    ]
+   }
+  },
+  {
+   "id": "kept",
+   "note": "für aktuellen Termin behalten",
+   "c": {
+    "amount": 384,
+    "cur": "CHF",
+    "cycle": 12,
+    "due": "2027-01-01",
+    "end": "2026-12-31",
+    "renew": "12",
+    "notice": 3,
+    "noticeU": "m",
+    "keptFor": "2026-12-31",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "nowatch",
+   "note": "nicht beobachtet (Miete)",
+   "c": {
+    "amount": 2100,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-01",
+    "notice": 3,
+    "noticeU": "m",
+    "cancTerm": "q",
+    "noWatch": true,
+    "holders": [
+     "Sinan",
+     "Lara"
+    ]
+   }
+  },
+  {
+   "id": "no-terms",
+   "note": "Frist gesetzt, aber kein Rhythmus und keine Laufzeit",
+   "c": {
+    "amount": 85,
+    "cur": "EUR",
+    "cycle": 1,
+    "due": "2026-10-15",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "",
+    "holders": [
+     "Lara"
+    ]
+   }
+  },
+  {
+   "id": "tax",
+   "note": "Steuern: nie Frist",
+   "c": {
+    "amount": 1150,
+    "cur": "CHF",
+    "cycle": 3,
+    "due": "2026-11-30",
+    "notice": 0,
+    "noticeU": "m",
+    "cancTerm": "",
+    "cat": "Steuern & Gebühren",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  }
+ ],
+ "skrTodays": [
+  "2026-10-17",
+  "2026-11-30",
+  "2026-12-20",
+  "2027-01-10"
+ ],
+ "skrCases": [
+  {
+   "id": "kvg-ch",
+   "note": "Grundversicherung, Prämie per 1.1.2027 → bis letzter Arbeitstag im November",
+   "c": {
+    "label": "Grundversicherung",
+    "partner": "CSS",
+    "cat": "Versicherung",
+    "amount": 400,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-25",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "y",
+    "mand": true,
+    "prices": [
+     {
+      "from": "2027-01-01",
+      "amount": 430
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "kvg-weekend",
+   "note": "Krankenkasse per 1.1.2031: 30.11.2030 ist Samstag → 29.11.",
+   "c": {
+    "label": "Krankenkasse",
+    "partner": "Helsana",
+    "cat": "Versicherung",
+    "amount": 300,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-25",
+    "notice": 1,
+    "noticeU": "m",
+    "cancTerm": "y",
+    "prices": [
+     {
+      "from": "2031-01-01",
+      "amount": 320
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "kvg-nopartner",
+   "note": "Krankenkasse ohne Vertragspartner per 1.1.2027",
+   "c": {
+    "label": "Krankenkasse",
+    "cat": "Gesundheit",
+    "amount": 350,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-25",
+    "prices": [
+     {
+      "from": "2027-01-01",
+      "amount": 371
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "kvg-midyear",
+   "note": "Grundversicherung, Erhöhung unter dem Jahr → AVB-Text (v206)",
+   "c": {
+    "label": "Grundversicherung",
+    "partner": "SWICA",
+    "cat": "Versicherung",
+    "amount": 380,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-25",
+    "prices": [
+     {
+      "from": "2026-11-01",
+      "amount": 395
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "zusatz-ch",
+   "note": "Zusatzversicherung CH → AVB (v207)",
+   "c": {
+    "label": "Zusatzversicherung",
+    "partner": "CSS",
+    "cat": "Versicherung",
+    "amount": 60,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-25",
+    "prices": [
+     {
+      "from": "2027-01-01",
+      "amount": 66
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "health-ch",
+   "note": "Gesundheit CH ohne Versicherungswort → AVB",
+   "c": {
+    "label": "Physio Abo",
+    "partner": "Physio Plus",
+    "cat": "Gesundheit",
+    "amount": 80,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-25",
+    "prices": [
+     {
+      "from": "2026-12-01",
+      "amount": 88
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "strom-de",
+   "note": "Strom DE → EnWG bis Vortag",
+   "c": {
+    "label": "Strom",
+    "partner": "E.ON",
+    "cat": "Energie & Wasser",
+    "amount": 95,
+    "cur": "EUR",
+    "cycle": 1,
+    "due": "2026-10-25",
+    "prices": [
+     {
+      "from": "2026-12-01",
+      "amount": 104.5
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "wasser-de",
+   "note": "Wasser DE → keine EnWG-Regel",
+   "c": {
+    "label": "Wasser",
+    "partner": "Stadtwerke Konstanz",
+    "cat": "Energie & Wasser",
+    "amount": 30,
+    "cur": "EUR",
+    "cycle": 1,
+    "due": "2026-10-25",
+    "prices": [
+     {
+      "from": "2026-12-01",
+      "amount": 33
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "tkg-de",
+   "note": "Handy DE → TKG mind. bis Erhöhung + 1 Monat − 1 Tag",
+   "c": {
+    "label": "Handy",
+    "partner": "Telekom",
+    "cat": "Mobilfunk & Internet",
+    "amount": 40,
+    "cur": "EUR",
+    "cycle": 1,
+    "due": "2026-10-25",
+    "prices": [
+     {
+      "from": "2026-12-15",
+      "amount": 45
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "rent-de",
+   "note": "Wohnungsmiete DE → § 561 BGB, Frist ab Mitteilung",
+   "c": {
+    "label": "Wohnungsmiete",
+    "partner": "Vonovia",
+    "cat": "Wohnen",
+    "amount": 1000,
+    "cur": "EUR",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "prices": [
+     {
+      "from": "2026-11-01",
+      "amount": 1050
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "vvg-de",
+   "note": "Haftpflicht DE jährlich → § 40 VVG",
+   "c": {
+    "label": "Haftpflicht",
+    "partner": "HUK-COBURG",
+    "cat": "Versicherung",
+    "amount": 600,
+    "cur": "EUR",
+    "cycle": 12,
+    "due": "2027-01-01",
+    "prices": [
+     {
+      "from": "2027-01-01",
+      "amount": 660
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "other-ch",
+   "note": "Streaming CH, Erhöhung 01.10.2026 → 30 Tage sichtbar",
+   "c": {
+    "label": "Netflix",
+    "cat": "Abos & Medien",
+    "amount": 18.9,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-15",
+    "prices": [
+     {
+      "from": "2026-10-01",
+      "amount": 20.9
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "other-usd",
+   "note": "Software in USD → Text wie DE",
+   "c": {
+    "label": "Software",
+    "partner": "Adobe",
+    "cat": "Abos & Medien",
+    "amount": 20,
+    "cur": "USD",
+    "cycle": 1,
+    "due": "2026-10-15",
+    "prices": [
+     {
+      "from": "2026-11-01",
+      "amount": 23
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "multi",
+   "note": "zwei Erhöhungen, neueste zuerst",
+   "c": {
+    "label": "Fitness",
+    "partner": "Activ Fitness",
+    "cat": "Freizeit & Sport",
+    "amount": 50,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-15",
+    "prices": [
+     {
+      "from": "2026-03-01",
+      "amount": 55
+     },
+     {
+      "from": "2026-11-01",
+      "amount": 60
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "decrease",
+   "note": "Preissenkung → nichts",
+   "c": {
+    "label": "Zeitung",
+    "cat": "Abos & Medien",
+    "amount": 50,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-10-15",
+    "prices": [
+     {
+      "from": "2026-11-01",
+      "amount": 45
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "fixed",
+   "note": "Steuern mit Erhöhung → keine Zeile im Detail",
+   "c": {
+    "label": "Hundesteuer",
+    "cat": "Steuern & Gebühren",
+    "amount": 120,
+    "cur": "CHF",
+    "cycle": 12,
+    "due": "2027-03-01",
+    "prices": [
+     {
+      "from": "2026-12-01",
+      "amount": 150
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "cancelled",
+   "note": "gekündigt → keine Zeile im Detail",
+   "c": {
+    "label": "Handy",
+    "partner": "Vodafone",
+    "cat": "Mobilfunk & Internet",
+    "amount": 30,
+    "cur": "EUR",
+    "cycle": 1,
+    "due": "2026-10-25",
+    "cancelPer": "2027-01-31",
+    "cancelledOn": "2026-10-01",
+    "prices": [
+     {
+      "from": "2026-12-01",
+      "amount": 35
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  {
+   "id": "tkg-fix24",
+   "c": {
+    "partner": "Vodafone",
+    "label": "Mobilfunk 24 Monate",
+    "cat": "Mobilfunk & Internet",
+    "amount": 30,
+    "cur": "EUR",
+    "cycle": 1,
+    "due": "2026-10-15",
+    "start": "2025-07-01",
+    "end": "2027-06-30",
+    "notice": 1,
+    "noticeU": "m",
+    "prices": [
+     {
+      "from": "2026-12-01",
+      "amount": 35
+     }
+    ],
+    "holders": [
+     "Sinan"
+    ]
+   }
+  }
+ ]
 }

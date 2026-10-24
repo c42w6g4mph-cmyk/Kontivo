@@ -118,11 +118,19 @@ final class ReviewPackageTests: XCTestCase {
         XCTAssertEqual(inc[0].step, 2)
         XCTAssertEqual(inc[0].yearly, 24)
         XCTAssertFalse(calc.specialCancelHint(c))         // Web v205: ohne Gesetz nur bis 30 Tage nach 01.09.
-        XCTAssertTrue(Calc(data: d, today: Day(2026, 9, 30)).specialCancelHint(c))
+        // Web v259: monatlich ohne Frist kündbar (Netflix) → kein Hinweis, auch nicht angekündigt
+        XCTAssertFalse(Calc(data: d, today: Day(2026, 9, 30)).specialCancelHint(c))
         XCTAssertFalse(calc.specialCancelHint(old))
         var fut = c
         fut.prices = [PriceChange(from: Day(2026, 11, 1), amount: 20)]
-        XCTAssertTrue(calc.specialCancelHint(fut))        // angekündigt
+        XCTAssertFalse(calc.specialCancelHint(fut))
+        // fest bis Mitte 2027 (nicht ordentlich vorher kündbar) → Hinweis
+        var fix = c
+        fix.end = Day(2027, 6, 30)
+        fix.notice = 1
+        XCTAssertTrue(Calc(data: d, today: Day(2026, 9, 30)).specialCancelHint(fix))
+        fix.prices = [PriceChange(from: Day(2026, 11, 1), amount: 20)]
+        XCTAssertTrue(calc.specialCancelHint(fix))        // angekündigt
     }
 
     func testFairShare() {
