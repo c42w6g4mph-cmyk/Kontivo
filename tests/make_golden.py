@@ -1,7 +1,7 @@
 """Erzeugt golden.json aus der Web-App (Referenz für den SwiftUI-Nachbau).
 Aufruf im Repo-Ordner:  python3 -m http.server 8765 &  python3 tests/make_golden.py
 Benötigt: pip install playwright (Chromium)."""
-import json,os,sys
+import json,os,re,sys
 from playwright.sync_api import sync_playwright
 D=os.path.dirname(os.path.abspath(__file__))
 spec=json.load(open(os.path.join(D,'cases.json'),encoding='utf-8'))
@@ -20,8 +20,9 @@ with sync_playwright() as p:
     b=p.chromium.launch()
     for t in spec["todays"]:
         ctx=b.new_context();ctx.add_init_script("window.__KONTIVO_TODAY='%s';"%t)
+        ctx.route(re.compile(r"frankfurter\.|open\.er-api\.com"),lambda r:r.abort())  # kein Live-Kursabruf: feste Testkurse EUR 0.94, USD 0.80
         pg=ctx.new_page();pg.goto(URL)
-        st={"settings":dict(spec["settings"],onboarded=9,rateTs=9999999999999),"contracts":{},"incomes":{}}
+        st={"settings":dict(spec["settings"],onboarded=9,rateCheckedAt=9999999999999),"contracts":{},"incomes":{}}
         pg.evaluate("s=>localStorage.setItem('vertraege.v1',s)",json.dumps(st));pg.reload();pg.wait_for_timeout(500)
         res["results"][t]=pg.evaluate(JS,spec["cases"]);ctx.close()
     b.close()

@@ -34,7 +34,9 @@ if shutil.which("soffice"):
     subprocess.run(["soffice", "--headless", "--convert-to", "ods", "--outdir", T, P("std.xlsx")], capture_output=True, timeout=180); F["std.ods"] = 202
 ok = True
 with sync_playwright() as p:
-    pg = p.chromium.launch().new_page(); pg.goto(URL); pg.wait_for_timeout(1500)
+    pg = p.chromium.launch().new_page()
+    pg.route(re.compile(r"frankfurter\.|open\.er-api\.com"), lambda r: r.abort())  # kein Live-Kursabruf
+    pg.goto(URL); pg.wait_for_timeout(1500)
     for f, want in F.items():
         b = open(P(f), "rb").read()
         r = pg.evaluate("""async(b64)=>{var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);

@@ -3,7 +3,7 @@ from decimal import Decimal as D
 sys.path.insert(0, os.path.dirname(__file__))
 from scenario import *
 
-OUT = "/root/kontivo/tests/bank/real/ch"
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ch")
 os.makedirs(OUT, exist_ok=True)
 
 def write(name, lines, enc="utf-8", bom=False, eol="\n", final_eol=True):

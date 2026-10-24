@@ -1,7 +1,7 @@
 """Kontoauszug-Import gegen nachgebaute echte Bankformate (tests/bank/real/de|ch, Quellen in SOURCES.md).
 Gleiches Szenario in allen Dateien; geprüft wird, ob die erwarteten Verträge vorgeschlagen werden und nichts anderes.
 Aufruf im Repo-Ordner:  python3 -m http.server 8765 &  python3 tests/bank/real.py [-v] [Dateifilter]"""
-import base64, json, os, sys
+import base64, json, os, sys, re
 from playwright.sync_api import sync_playwright
 D = os.path.join(os.path.dirname(os.path.abspath(__file__)), "real")
 URL = os.environ.get("KONTIVO_URL", "http://localhost:8765/index.html")
@@ -19,8 +19,9 @@ JS = """(b64)=>{var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin
 tot = fails = 0
 with sync_playwright() as p:
     b = p.chromium.launch(); ctx = b.new_context(); ctx.add_init_script("window.__KONTIVO_TODAY='2026-10-08';")
+    ctx.route(re.compile(r"frankfurter\.|open\.er-api\.com"), lambda r: r.abort())  # kein Live-Kursabruf: feste Testkurse
     pg = ctx.new_page(); pg.goto(URL)
-    st = {"settings": {"home": "CHF", "onboarded": 9, "holders": ["Max"], "rateTs": 9999999999999}, "contracts": {}, "incomes": {}}
+    st = {"settings": {"home": "CHF", "onboarded": 9, "holders": ["Max"], "rateCheckedAt": 9999999999999}, "contracts": {}, "incomes": {}}
     pg.evaluate("s=>localStorage.setItem('vertraege.v1',s)", json.dumps(st)); pg.reload(); pg.wait_for_timeout(400)
     for cc in ("de", "ch"):
         for fn in sorted(os.listdir(os.path.join(D, cc))):

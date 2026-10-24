@@ -1,5 +1,5 @@
 /* Kontivo – Offline-Cache. Bei jeder neuen Version VERSION erhöhen. */
-var VERSION="kontivo-v311";
+var VERSION="kontivo-v312";
 var CORE=["./","index.html","manifest.webmanifest","apple-touch-icon.png","icon-192.png","icon-512.png",
   "onb/list-light.webp","onb/list-dark.webp","onb/stat-light.webp","onb/stat-dark.webp","onb/budget-light.webp","onb/budget-dark.webp","onb/term-light.webp","onb/term-dark.webp",
   "fonts/Hurricane-Regular.ttf","fonts/LaBelleAurore.ttf","fonts/Licorice-Regular.ttf","fonts/Zeyada.ttf","fonts/Qwigley-Regular.ttf","fonts/Bilbo-Regular.ttf","fonts/kontivo-serif.woff"];
@@ -21,8 +21,10 @@ self.addEventListener("fetch",function(e){
       if(r&&r.ok){var cp=r.clone();put=caches.open(VERSION).then(function(c){return c.put(req,cp);});}
       return r;
     });
-    var cached=function(){return caches.match(req,{ignoreSearch:true}).then(function(m){return m||caches.match("index.html");});};
-    if(req.mode==="navigate"||/\/(index\.html)?$/.test(url.pathname)){
+    var nav=req.mode==="navigate"||/\/(index\.html)?$/.test(url.pathname);
+    /* Rückfall auf index.html nur für Navigationen, nicht für Bilder, Schriften usw. */
+    var cached=function(){return caches.match(req,{ignoreSearch:true}).then(function(m){return m||(nav?caches.match("index.html"):m);});};
+    if(nav){
       /* App-Start: höchstens 3 s aufs Netz warten, dann Cache; bei HTTP-Fehler Cache, falls vorhanden.
          Die Netzantwort aktualisiert den Cache im Hintergrund weiter (waitUntil). */
       var limit=new Promise(function(res){setTimeout(function(){res(null);},3000);});
@@ -32,11 +34,15 @@ self.addEventListener("fetch",function(e){
       }));
       e.waitUntil(net.then(function(){return put;}).catch(function(){}));
     }
-    else e.respondWith(net.catch(cached));
+    else{
+      e.respondWith(net.catch(cached));
+      /* Cache-Schreibvorgang absichern, sonst kann der Browser ihn abbrechen */
+      e.waitUntil(net.then(function(){return put;}).catch(function(){}));
+    }
     return;
   }
-  /* Schrift und PDF-Anzeige: aus dem Cache, im Hintergrund auffrischen */
-  if(/fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com/.test(url.hostname)){
+  /* PDF-Anzeige: aus dem Cache, im Hintergrund auffrischen */
+  if(/cdnjs\.cloudflare\.com/.test(url.hostname)){
     e.respondWith(caches.open(VERSION+"-ext").then(function(c){return c.match(req).then(function(m){
       var net=fetch(req).then(function(r){if(r&&(r.ok||r.type==="opaque"))c.put(req,r.clone());return r;}).catch(function(){return m;});
       return m||net;});}));
