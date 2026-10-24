@@ -1345,10 +1345,6 @@ input[type=file]{display:none}
 .fpr .tag.cr{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
 .fpr .del{flex:none;color:var(--ink3);font-size:20px;line-height:1;padding:8px 0 8px 4px}
 /* Preisverlauf im Formular als Zeitstrahl (24.10.2026): Kopf «Aktuell», Stufen neueste zuerst, Anfangsbetrag als letzte Stufe */
-.tlh{display:block!important;padding:14px 0 10px}.tlh>*{display:block!important}.tlh small{font-size:13px;color:var(--ink2)}
-.tlh b{display:block;font-family:var(--serif);font-weight:500;font-size:30px;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.15}
-.tlh b u{text-decoration:none;font-family:-apple-system,system-ui,sans-serif;font-size:14px;font-weight:600;color:var(--ink3);margin-left:5px}
-.tlh span{display:block;font-size:13px;color:var(--ink2);margin-top:2px}.tlh em{font-style:normal;font-weight:700}.tlh em.up{color:var(--warn)}.tlh em.down{color:var(--ok)}
 .tld,.tls:empty{display:none}
 .tlon .tlr,.tlon .tlstart{position:relative;padding-left:28px}
 .tlon .tlr::before,.tlon .tlstart::before{content:"";position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--line)}
@@ -1358,6 +1354,11 @@ input[type=file]{display:none}
 .tlon .fut>.tld{border-style:dashed;border-color:var(--warn)}
 .tlon .tlstart>label{color:var(--ink)}.tlon .tlstart>label>span{display:block}
 .tls{display:block;font-size:12px;color:var(--ink3);margin-top:1px}
+.tlp{font-weight:600}.tlp.up{color:var(--warn)}.tlp.down{color:var(--ok)}
+.tlon .tlr,.tlon .tlstart{grid-template-columns:minmax(0,1fr) 7.4em 26px}
+.tlon .tlr .pai,.tlon .tlstart input.num{grid-column:2}.tlon .tlr .del{grid-column:3}
+.tlon .tlr.cur .pdl>span{font-weight:700}.tlon .tlstart.cur>label>span{font-weight:700}
+.tlon .tlstart>label{grid-column:1}.tlcur{border-top:0}.tlcur .fv{margin-left:auto}
 .tlon .fadd.fpill{width:100%;margin:0;padding:0;min-height:46px;border-top:1px solid var(--line);border-radius:0;background:none;font-size:15px;gap:8px}
 .tlon .fadd.fpill svg{width:16px;height:16px}
 .fsw{cursor:pointer;padding:9px 0}.fsw .t{flex:1;min-width:0;display:grid;gap:2px}.fsw b{font-size:15px;font-weight:500;color:var(--ink)}.fsw small{font-size:12.5px;color:var(--ink2);line-height:1.35}
@@ -1666,7 +1667,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v315</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v316</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -2283,8 +2284,8 @@ var nf={format:function(v,cur){return NF[numStyle(cur)].format(v||0);}};
 var nf0={format:function(v,cur){return NF0[numStyle(cur)].format(v||0);}};
 /* Position des Dezimalzeichens (für kleine Rappen/Cent): bei 2 Nachkommastellen immer das letzte . oder , */
 function decAt(t){return Math.max(t.lastIndexOf("."),t.lastIndexOf(","));}
-/* Betrag für Eingabefelder: EUR mit Komma */
-function amtIn(v,cur){var t=(+v||0).toFixed(2);return numStyle(cur)==="DE"?t.replace(".",","):t;}
+/* Betrag für Eingabefelder: gleiches Format wie überall (CHF 1’234.50, EUR 1.234,50); parseAmt liest beides zurück */
+function amtIn(v,cur){return money(+v||0,cur);}
 var MS=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 var MON=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 
@@ -4790,7 +4791,6 @@ function paintKz(){var el=document.getElementById("fKz"),c=draftPC();if(!(c.amou
   el.innerHTML="<div><small>pro Monat</small><b>"+money(mon,c.cur)+u+"</b></div><div><small>pro Jahr</small><b>"+nf0.format(mon*12,c.cur)+u+"</b></div>";}
 function paintPrices(){paintOptCounts();spRefresh();paintKz();syncPOpen();
   var l=document.getElementById("pList"),ps=pricesOf({prices:draft.prices}),cur=document.getElementById("fCur").value;
-  document.getElementById("fAmtL").textContent="Betrag";
   tlPaint("f",ps,parseAmt(document.getElementById("fAmt").value)||0,cur,document.getElementById("fStart").value,false);
   l.innerHTML="";if(!ps.length)return;
   pListPaint(l,priceRowsHtml(ps,parseAmt(document.getElementById("fAmt").value)||0,cur,false));
@@ -4800,31 +4800,28 @@ function paintPrices(){paintOptCounts();spRefresh();paintKz();syncPOpen();
    inc: bei Einnahmen ist mehr gut (grün). SwiftUI: Grid, DatePicker(.compact) + TextField(.decimalPad) je Zeile */
 function priceRowsHtml(ps,prev,cur,inc){var t=today(),ni=-1,R=[];ps.forEach(function(p,i){if(parseD(p.from)<=t)ni=i;});
   ps.forEach(function(p,i){var fut=parseD(p.from)>t,pc=prev?(p.amount-prev)/prev*100:0,up=inc?" down":" up",dn=inc?" up":" down",h;
+    var sub=[i===ni?"aktuell":fut?"geplant":""].concat(prev?['<span class="tlp'+(pc>0.05?up:pc<-0.05?dn:"")+'">'+pctTxt(pc)+"</span>"]:[]).filter(Boolean).join(" · ");
     h='<div class="frow fpr fgr tlr'+(i===ni?" cur":fut?" fut":"")+'" data-pf="'+esc(p.from)+'"><i class="tld"></i><label class="fl pdl"><span>ab '+fmtShort(parseD(p.from))+'</span>'+
-      (i===ni?'<small class="tls">aktuell</small>':(fut?'<small class="tls">geplant</small>':""))+
+      (sub?'<small class="tls">'+sub+"</small>":"")+
       '<input type="date" class="pdi" value="'+esc(p.from)+'" aria-label="Gültig ab"></label>'+
-      '<span class="fpcw">'+(prev?'<span class="fpc'+(pc>0.05?up:pc<-0.05?dn:"")+'">'+pctTxt(pc)+"</span>":"")+"</span>"+
       '<input class="num pai" type="text" inputmode="decimal" value="'+esc(amtIn(p.amount,cur))+'" aria-label="Betrag ab '+fmtShort(parseD(p.from))+'">'+
       '<button type="button" class="del" data-pdel="'+esc(p.from)+'" aria-label="Änderung entfernen">×</button></div>';R.push(h);prev=p.amount;});
   return R.reverse().join("");}
-/* Kopf «Aktuell» und Zustand der Startzeile; ohne Preisänderungen bleibt die einfache Betragszeile.
-   pre: "f" (Vertrag) bzw. "i" (Einnahme). SwiftUI: Section-Header + Timeline-Punkte als overlay je Zeile */
+/* Zeitstrahl ein/aus (ab 1 Preisänderung): Zeile «Währung» oben, dann «+ Änderung», Stufen neueste zuerst, Startzeile zuletzt.
+   Ohne Preisänderungen bleibt die einfache Betragszeile mit Währung daneben.
+   pre: "f" (Vertrag) bzw. "i" (Einnahme). SwiftUI: Section mit Picker «Währung» + Liste mit Timeline-Punkten als overlay */
 function tlPaint(pre,ps,a0,cur,start,inc){var head=document.getElementById(pre+"PHead"),card=head.parentNode,on=ps.length>0,
-    row=document.getElementById(pre+"AmtR"),t=today(),cp=a0,since=null;
+    row=document.getElementById(pre+"AmtR"),sel=document.getElementById(pre+"Cur"),t=today(),since=null;
   card.classList.toggle("tlon",on);
-  ps.forEach(function(p){if(parseD(p.from)<=t){cp=+p.amount;since=p.from;}});
+  ps.forEach(function(p){if(parseD(p.from)<=t)since=p.from;});
   row.classList.toggle("cur",on&&!since);
-  /* Startzeile wie die übrigen Stufen: oben das Datum, darunter klein «Anfangspreis/-betrag» */
   var first=inc?"Anfangsbetrag":"Anfangspreis";
-  if(on)document.getElementById(pre+"AmtL").textContent=start?"ab "+fmtShort(parseD(start)):first;
+  document.getElementById(pre+"AmtL").textContent=on?(start?"ab "+fmtShort(parseD(start)):first):(inc?"Betrag netto":"Betrag");
   document.getElementById(pre+"AmtS").textContent=on&&start?first:"";
-  /* «+ Änderung» steht im Zeitstrahl oben (neueste zuerst), sonst unter dem Betrag */
+  if(on&&!head.firstChild)head.innerHTML='<div class="frow tlcur"><label for="'+pre+'Cur">Währung</label><span class="fv"></span></div>';
+  if(on)head.querySelector(".fv").appendChild(sel);else{row.querySelector(".fv").appendChild(sel);head.innerHTML="";}
   var ob=document.getElementById(pre==="f"?"pOpen":"iPOpen"),of=document.getElementById(pre==="f"?"pForm":"iPForm");
-  if(on)head.after(ob,of);else row.after(ob,of);
-  if(!on){head.innerHTML="";return;}
-  var pc=a0?(cp-a0)/a0*100:0,cls=pc>0.05?(inc?"down":"up"):pc<-0.05?(inc?"up":"down"):"";
-  head.innerHTML='<div class="tlh"><small>Aktuell</small><b>'+money(cp,cur)+"<u>"+esc(cur)+"</u></b><span>"+
-    (since?"seit "+fmtShort(parseD(since))+(a0&&Math.abs(pc)>=0.05?' · <em class="'+cls+'">'+pctTxt(pc)+" seit Start</em>":""):"Anfangsbetrag · Änderung geplant")+"</span></div>";}
+  if(on)head.after(ob,of);else row.after(ob,of);}
 /* Fokus über das Neuzeichnen retten (Tippen von einem Betrag in den nächsten) */
 function pListPaint(l,html){var a=document.activeElement,k=a&&l.contains(a)&&a.closest(".fpr")?[a.closest(".fpr").dataset.pf,a.className]:null;
   l.innerHTML=html;if(k){var r=l.querySelector('.fpr[data-pf="'+k[0]+'"] .'+k[1].split(" ").pop());if(r)try{r.focus();}catch(e){}}}
@@ -6416,7 +6413,6 @@ function iPaintKz(){var el=document.getElementById("iKz"),c=iDraftPC();if(!(c.am
     "<div><small>einmalig</small><b>"+money(cp,c.cur)+u+"</b></div>";}
 function iPaintPrices(){iPaintKz();iSyncPOpen();
   var l=document.getElementById("iPList"),ps=pricesOf({prices:idraft.prices}),cur=document.getElementById("iCur").value;
-  document.getElementById("iAmtL").textContent="Betrag netto";
   tlPaint("i",ps,parseAmt(document.getElementById("iAmt").value)||0,cur,document.getElementById("iStart").value,true);
   l.innerHTML="";if(!ps.length)return;
   pListPaint(l,priceRowsHtml(ps,parseAmt(document.getElementById("iAmt").value)||0,cur,true));}
