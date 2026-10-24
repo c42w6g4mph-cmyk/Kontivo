@@ -507,6 +507,13 @@ public struct Calc {
     }
 
     /// Kündigungsende beim Markieren (Probeabo: Tag vor Probeabo-Ende, sonst termEnd).
+    /// Vertragsende, wenn am Tag `d` gekündigt wurde (nicht am Tag des Antippens), Web v249 `endAsOf`: Rechnung wie `termEnd`
+    /// mit Stichtag `d`; Probeabo: Tag vor dem ersten kostenpflichtigen Tag. Für die Rückfrage «Gekündigt am» / «Läuft bis».
+    public static func endAsOf(_ c: Contract, cancelledOn d: Day, trial: Bool, data: AppData) -> Day? {
+        if trial, let t = c.trial { return t.addingDays(-1) }
+        return Calc(data: data, today: d).termEnd(c)
+    }
+
     public func cancelEnd(_ c: Contract, trial: Bool) -> Day? {
         if trial { return c.trial?.addingDays(-1) }
         return termEnd(c)

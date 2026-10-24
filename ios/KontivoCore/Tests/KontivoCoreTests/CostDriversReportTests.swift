@@ -2,7 +2,7 @@ import XCTest
 @testable import KontivoCore
 
 /// Web v190–v192 «Entwicklung und Preistreiber», Filterauswahl mit Betrag und v220 Fixkosten-Bericht.
-/// Erwartungswerte aus der Web-App v224 (Playwright, gleiche Beispieldaten wie DemoData, Stichtag 03.10.2026).
+/// Erwartungswerte aus der Web-App v224, Preistreiber auf v257 nachgeführt (gleich wie golden_drivers.json, Stichtag 03.10.2026).
 final class CostDriversReportTests: XCTestCase {
     private func demo() throws -> Calc {
         let url = try XCTUnwrap(Bundle.module.url(forResource: "costs_demo_backup", withExtension: "json")
@@ -25,7 +25,7 @@ final class CostDriversReportTests: XCTestCase {
         XCTAssertEqual(d.columns.map(\.place), [.past, .current, .future])
         XCTAssertEqual(d.listTitle, "Was sich verändert hat · 2025 → 2026")
         XCTAssertEqual(d.groups.map(\.key), ["Abos & Medien"])
-        XCTAssertEqual(d.groups.first?.why, "Wechsel: TV → Musik")
+        XCTAssertEqual(d.groups.first?.why, "TV beendet, Musik neu")
         XCTAssertEqual(Calc.driverDeltaText(d.groups[0].delta).text, Format.minus + "64")
         XCTAssertEqual(d.groups[0].changes.map(\.reason), ["beendet im Juni", "neu ab November"])
         XCTAssertEqual(d.othersNote, "Alle anderen Kategorien sind gleich geblieben.")
@@ -36,15 +36,15 @@ final class CostDriversReportTests: XCTestCase {
         let calc = try demo()
         let f = calc.costDrivers(year: 2027, filter: Calc.CostFilter())
         XCTAssertEqual(f.listTitle, "Prognose · 2026 → 2027")
-        XCTAssertEqual(f.groups.map(\.why), ["Musik mehr Zahlungen im Jahr und 1 weiterer", "Halbtax Preis ↑ 5 % seit März"])
+        XCTAssertEqual(f.groups.map(\.why), ["Musik teurer, TV beendet", "Halbtax +5 %"])
         XCTAssertEqual(f.groups.map { Calc.driverDeltaText($0.delta).text }, ["+39", "+9"])
-        XCTAssertEqual(f.groups[0].changes.map(\.reason), ["mehr Zahlungen im Jahr", "beendet im Juni 2026"])
+        XCTAssertEqual(f.groups[0].changes.map(\.reason), ["mehr Zahlungen im Jahr", "seit Juni 2026 beendet"])
         XCTAssertEqual(f.othersNote, "Alle anderen Kategorien bleiben gleich.")
 
         let p = calc.costDrivers(year: 2025, filter: Calc.CostFilter())
         XCTAssertEqual(p.listTitle, "Was sich verändert hat · 2024 → 2025")
-        XCTAssertEqual(p.groups.first?.why, "Miete erstes volles Jahr")
-        XCTAssertEqual(p.groups.first(where: { $0.key == "Versicherung" })?.why, "Krankenkasse erstes volles Jahr und 1 weiterer")
+        XCTAssertEqual(p.groups.first?.why, "Miete ganzes Jahr")
+        XCTAssertEqual(p.groups.first(where: { $0.key == "Versicherung" })?.why, "Krankenkasse ganzes Jahr, Hausrat neu")
         XCTAssertEqual(p.groups.first(where: { $0.key == "Versicherung" })?.changes.map(\.reason), ["erstes volles Jahr", "neu ab Januar"])
         XCTAssertEqual(p.groups.map { Calc.driverDeltaText($0.delta).text },
                        ["+4’200", "+1’209", "+1’150", "+178", "+160", "+120", "+66"])

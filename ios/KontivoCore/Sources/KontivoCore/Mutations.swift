@@ -80,13 +80,14 @@ extension AppData {
     /// sonst bis termEnd (Probeabo: letzter Gratistag), ohne Termin bis heute; wandert danach ins Archiv (`endedByNotice`).
     /// Pflichtvertrag: zusätzlich ein Entwurf für den neuen Vertragspartner ab dem Folgetag, ohne Kontaktdaten des alten (Fix M4).
     @discardableResult
-    public mutating func markCancelled(_ id: UUID, trial: Bool, per perIn: Day? = nil, today: Day, now: Date = Date()) -> CancelResult? {
+    /// `on`: «Gekündigt am» aus der Rückfrage (Web v249), sonst heute.
+    public mutating func markCancelled(_ id: UUID, trial: Bool, per perIn: Day? = nil, on: Day? = nil, today: Day, now: Date = Date()) -> CancelResult? {
         guard let i = contractIndex(id) else { return nil }
         let calc = Calc(data: self, today: today)
         var c = contracts[i]
         let per = perIn ?? calc.cancelEnd(c, trial: trial) ?? today
         c.cancelPer = per
-        c.cancelledOn = today
+        c.cancelledOn = on ?? today
         c.review = nil
         contracts[i] = c
         let toast = per < today ? "Beendet – steht jetzt im Archiv" : (per == today ? "Endet heute – danach im Archiv" : "Gekündigt — läuft bis " + Format.fmtD(per))

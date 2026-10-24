@@ -24,3 +24,26 @@ final class WebSync323Tests: XCTestCase {
         XCTAssertEqual(Letter.dateLine(country: "X", city: "", today: Day(2026, 3, 21)), "21.03.2026")
     }
 }
+
+extension WebSync323Tests {
+    // MARK: «Gekündigt am» (Web v249)
+
+    /// Vertragsende ab dem Kündigungsdatum: Monatsvertrag mit 1 Monat Frist, gekündigt am 25.09. → Ende 31.10.; am 05.10. → 30.11.
+    func testEndAsOfAndCancelledOn() throws {
+        var d = AppData.initial()
+        var c = Contract(label: "Handy", amount: 30, cycle: 1, due: Day(2026, 10, 1), notice: 1, noticeUnit: .months, cancelTerm: .monthEnd)
+        c.start = Day(2025, 1, 1)
+        d.contracts.append(c)
+        XCTAssertEqual(Calc.endAsOf(c, cancelledOn: Day(2026, 9, 25), trial: false, data: d),
+                       Calc(data: d, today: Day(2026, 9, 25)).termEnd(c))
+        XCTAssertNotEqual(Calc.endAsOf(c, cancelledOn: Day(2026, 9, 25), trial: false, data: d),
+                          Calc.endAsOf(c, cancelledOn: Day(2026, 10, 25), trial: false, data: d))
+        var t = c
+        t.trial = Day(2026, 11, 1)
+        XCTAssertEqual(Calc.endAsOf(t, cancelledOn: Day(2026, 9, 25), trial: true, data: d), Day(2026, 10, 31))
+        let r = try XCTUnwrap(d.markCancelled(c.id, trial: false, per: Day(2026, 10, 31), on: Day(2026, 9, 25), today: Day(2026, 10, 8)))
+        XCTAssertEqual(r.cancelPer, Day(2026, 10, 31))
+        XCTAssertEqual(d.contract(c.id)?.cancelledOn, Day(2026, 9, 25))
+        XCTAssertEqual(d.contract(c.id)?.cancelPer, Day(2026, 10, 31))
+    }
+}
