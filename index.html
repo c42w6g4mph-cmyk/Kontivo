@@ -1271,7 +1271,7 @@ input[type=file]{display:none}
 #fPayM:has(option[value=""]:checked){color:var(--ink3);font-weight:400}
 .fcard{padding:0 13px}
 .frow{display:flex;align-items:center;gap:12px;min-height:48px;padding:4px 0;border-top:1px solid var(--line);width:100%;text-align:left;font-size:15px}
-.fcard>.frow:first-child,#fPHead:empty+#pList:empty+.frow,#iPHead:empty+#iPList:empty+.frow,#xList:empty+.fadd,#xList>.swr:first-child>.frow,.fsub>.seg2+.frow{border-top:0}
+.fcard>.frow:first-child,#xList:empty+.fadd,#xList>.swr:first-child>.frow,.fsub>.seg2+.frow{border-top:0}
 .frow>label,.frow .fl{flex:1;min-width:0;color:var(--ink2);font-size:15px}
 .frow>input:not(.swi),.frow>select,.frow>.fv>input,.frow>.fv>select{min-width:0;max-width:64%;border:0;background:transparent;font-size:16px;font-weight:500;color:var(--teal);text-align:right;padding:8px 2px;border-radius:8px;outline:0;font-family:inherit}
 .frow>input::placeholder,.frow>.fv>input::placeholder{color:var(--ink3);font-weight:400}
@@ -1353,17 +1353,17 @@ input[type=file]{display:none}
 .tlon .tlstart>label{color:var(--ink)}.tlon .tlstart>label>span{display:block}
 .tls{display:block;font-size:12px;color:var(--ink3);margin-top:1px}
 .tlp{font-weight:600}.tlp.up{color:var(--warn)}.tlp.down{color:var(--ok)}
-.tlon .tlr,.tlon .tlstart{grid-template-columns:minmax(0,1fr) 7.4em}
-.tlon .tlr .pai,.tlon .tlstart input.num{grid-column:2}
+.tlon .tlr,.tlbase .tlstart{grid-template-columns:minmax(0,1fr) 7.4em}
+.tlon .tlr .pai,.tlbase .tlstart input.num{grid-column:2}
 /* Stufe löschen: nach links wischen (wie iOS-Listen) → «Löschen»; ganz durchwischen löscht direkt */
 .swr{position:relative;overflow:hidden}
 .swr>.frow{background:var(--surface);touch-action:pan-y;transition:transform .2s ease;will-change:transform}
 .swr.drag>.frow{transition:none}
 .swd{position:absolute;right:0;top:1px;bottom:0;width:88px;background:var(--alert);color:#fff;font-size:15px;font-weight:600}
 .tlon .tlr.cur .pdl>span{font-weight:700}.tlon .tlstart.cur>label>span{font-weight:700}
-.tlon .tlstart>label{grid-column:1}.tlcur{border-top:0}.tlcur .fv{margin-left:auto}
-.tlon .fadd.fpill{width:100%;margin:0;padding:0;min-height:46px;border-top:1px solid var(--line);border-radius:0;background:none;font-size:15px;gap:8px}
-.tlon .fadd.fpill svg{width:16px;height:16px}
+.tlbase .tlstart>label{grid-column:1}.tlcur{border-top:0}.tlcur .fv{margin-left:auto}
+.tlbase .fadd.fpill{width:100%;margin:0;padding:0;min-height:46px;border-top:1px solid var(--line);border-radius:0;background:none;font-size:15px;gap:8px}
+.tlbase .fadd.fpill svg{width:16px;height:16px}
 .fsw{cursor:pointer;padding:9px 0}.fsw .t{flex:1;min-width:0;display:grid;gap:2px}.fsw b{font-size:15px;font-weight:500;color:var(--ink)}.fsw small{font-size:12.5px;color:var(--ink2);line-height:1.35}
 #fCats.catfield,#iCats.catfield{height:auto;min-height:48px;background:transparent;border-radius:0;margin:0;padding:4px 0;gap:10px}
 #fCats .cfi,#iCats .cfi{width:28px;height:28px;border-radius:8px}#fCats .cfi .cicon{width:16px;height:16px}
@@ -1670,7 +1670,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v318</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v319</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -4815,16 +4815,16 @@ function priceRowsHtml(ps,prev,cur,inc){var t=today(),ni=-1,R=[];ps.forEach(func
    pre: "f" (Vertrag) bzw. "i" (Einnahme). SwiftUI: Section mit Picker «Währung» + Liste mit Timeline-Punkten als overlay */
 function tlPaint(pre,ps,a0,cur,start,inc){var head=document.getElementById(pre+"PHead"),card=head.parentNode,on=ps.length>0,
     row=document.getElementById(pre+"AmtR"),sel=document.getElementById(pre+"Cur"),t=today(),since=null;
-  card.classList.toggle("tlon",on);
+  card.classList.toggle("tlon",on);card.classList.add("tlbase");
   ps.forEach(function(p){if(parseD(p.from)<=t)since=p.from;});
   row.classList.toggle("cur",on&&!since);
   var first=inc?"Anfangsbetrag":"Anfangspreis";
   document.getElementById(pre+"AmtL").textContent=on?(start?"ab "+fmtShort(parseD(start)):first):(inc?"Betrag netto":"Betrag");
   document.getElementById(pre+"AmtS").textContent=on&&start?first:"";
-  if(on&&!head.firstChild)head.innerHTML='<div class="frow tlcur"><label for="'+pre+'Cur">Währung</label><span class="fv"></span></div>';
-  if(on)head.querySelector(".fv").appendChild(sel);else{row.querySelector(".fv").appendChild(sel);head.innerHTML="";}
-  var ob=document.getElementById(pre==="f"?"pOpen":"iPOpen"),of=document.getElementById(pre==="f"?"pForm":"iPForm");
-  if(on)head.after(ob,of);else row.after(ob,of);}
+  /* gleicher Aufbau mit und ohne Preisänderungen (24.10.2026): Währung oben, «+ Änderung» als Zeile, darunter die Beträge */
+  if(!head.firstChild){head.innerHTML='<div class="frow tlcur"><label for="'+pre+'Cur">Währung</label><span class="fv"></span></div>';
+    head.querySelector(".fv").appendChild(sel);
+    head.after(document.getElementById(pre==="f"?"pOpen":"iPOpen"),document.getElementById(pre==="f"?"pForm":"iPForm"));}}
 /* Nach links wischen auf .swr-Zeilen: bis 88 px zeigt «Löschen», über 55 % der Breite löscht direkt (Klick auf den Knopf).
    Nach einem Wisch wird der folgende Klick geschluckt (kein Datumsrad/Tastatur). SwiftUI: .swipeActions(edge: .trailing, allowsFullSwipe: true) */
 function swipeDel(l){var g=null,open=null,W=88,shut=function(w){if(!w)return;w.firstChild.nextSibling.style.transform="";w.classList.remove("on");if(open===w)open=null;};
