@@ -490,6 +490,7 @@ public struct SyncCore: Sendable {
         d.partners = []
         d.contracts = []
         d.incomes = []
+        d.variableCosts = []
         ledger.pending = [:]
         ledger.entries = [:]
         ledger.settingsBase = nil
@@ -647,9 +648,10 @@ public struct SyncCore: Sendable {
     /// Lokale Daten sehen verloren aus: keine Verträge und Einnahmen, aber der Abgleich kennt welche, ohne dass deren
     /// Löschung erfasst wurde. Dann nicht löschen, sondern neu einrichten (`restartInitial`).
     public func looksLikeLostData(_ data: AppData) -> Bool {
-        guard data.contracts.isEmpty && data.incomes.isEmpty else { return false }
+        guard data.contracts.isEmpty && data.incomes.isEmpty && data.variableCosts.isEmpty else { return false }
         return ledger.entries.contains { name, e in
-            e.digest != nil && (name.hasPrefix(SyncKind.contract.rawValue + ".") || name.hasPrefix(SyncKind.income.rawValue + "."))
+            e.digest != nil && (name.hasPrefix(SyncKind.contract.rawValue + ".") || name.hasPrefix(SyncKind.income.rawValue + ".")
+                || name.hasPrefix(SyncKind.variable.rawValue + "."))
         }
     }
 }

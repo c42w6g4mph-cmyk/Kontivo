@@ -26,6 +26,7 @@ public enum SyncDiff {
         compare(.partner, old.partners, new.partners)
         compare(.contract, old.contracts, new.contracts)
         compare(.income, old.incomes, new.incomes)
+        compare(.variable, old.variableCosts, new.variableCosts)
         return (save, del)
     }
 }
@@ -87,6 +88,15 @@ struct SyncAliases {
             var n = i
             if let h = i.holderID { n.holderID = SyncAliases.resolve(h, person) }
             return (.income(n), n != i)
+        case .variable(let v):
+            var n = v
+            var holders: [UUID] = []
+            for h in v.holderIDs {
+                let r = SyncAliases.resolve(h, person)
+                if !holders.contains(r) { holders.append(r) }
+            }
+            n.holderIDs = holders
+            return (.variable(n), n != v)
         case .person(let p):
             var n = p
             if let s = p.sameAddressAs {
@@ -114,7 +124,7 @@ public enum SyncMerge {
     /// Einführung zählen nicht als eigene Daten. Ein solches Gerät übernimmt beim ersten Abgleich die iCloud-Daten,
     /// statt seine Standarddaten hochzuladen (keine doppelte «Ich» und keine doppelten Kategorien).
     public static func isUntouched(_ d: AppData) -> Bool {
-        guard d.contracts.isEmpty, d.incomes.isEmpty, d.partners.isEmpty, d.persons.count <= 1 else { return false }
+        guard d.contracts.isEmpty, d.incomes.isEmpty, d.variableCosts.isEmpty, d.partners.isEmpty, d.persons.count <= 1 else { return false }
         if let p = d.persons.first {
             if !p.sender.isEmpty || p.sameAddressAs != nil || p.signatureJPEG != nil || p.avatarID != nil { return false }
         }
@@ -134,6 +144,7 @@ public enum SyncMerge {
         var partners: [Partner] = []
         var contracts: [Contract] = []
         var incomes: [Income] = []
+        var variables: [VariableCost] = []
     }
 
     /// Entität ersetzen (gleiche Stelle) oder für das Anhängen vormerken.
@@ -151,6 +162,8 @@ public enum SyncMerge {
             if let i = d.contractIndex(c.id) { d.contracts[i] = c } else if let j = new.contracts.firstIndex(where: { $0.id == c.id }) { new.contracts[j] = c } else { new.contracts.append(c) }
         case .income(let x):
             if let i = d.incomeIndex(x.id) { d.incomes[i] = x } else if let j = new.incomes.firstIndex(where: { $0.id == x.id }) { new.incomes[j] = x } else { new.incomes.append(x) }
+        case .variable(let v):
+            if let i = d.variableCostIndex(v.id) { d.variableCosts[i] = v } else if let j = new.variables.firstIndex(where: { $0.id == v.id }) { new.variables[j] = v } else { new.variables.append(v) }
         }
     }
 
@@ -162,6 +175,7 @@ public enum SyncMerge {
         d.partners += n.partners.sorted { (Partners.sameNameKey($0.name), $0.id.uuidString) < (Partners.sameNameKey($1.name), $1.id.uuidString) }
         d.contracts += n.contracts.sorted { ($0.createdAt, $0.id.uuidString) < ($1.createdAt, $1.id.uuidString) }
         d.incomes += n.incomes.sorted { ($0.createdAt, $0.id.uuidString) < ($1.createdAt, $1.id.uuidString) }
+        d.variableCosts += n.variables.sorted { ($0.createdAt, $0.id.uuidString) < ($1.createdAt, $1.id.uuidString) }
     }
 
     /// Entität entfernen (Einstellungen und Dateien: nichts).
@@ -173,6 +187,7 @@ public enum SyncMerge {
         case .partner: d.partners.removeAll { $0.id == u }
         case .contract: d.contracts.removeAll { $0.id == u }
         case .income: d.incomes.removeAll { $0.id == u }
+        case .variable: d.variableCosts.removeAll { $0.id == u }
         case .settings, .file: break
         }
     }

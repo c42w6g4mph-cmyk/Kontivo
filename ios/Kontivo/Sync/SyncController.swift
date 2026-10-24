@@ -660,7 +660,7 @@ final class SyncController {
         persist(saved: saved)
         pushToEngine(core.pendingKeys)
         downloadMissingFiles()
-        if r.adopted && (!working.contracts.isEmpty || !working.incomes.isEmpty) {
+        if r.adopted && (!working.contracts.isEmpty || !working.incomes.isEmpty || !working.variableCosts.isEmpty) {
             model.syncAdoptedICloudData(endOnboarding: firstRun)
         }
         return true

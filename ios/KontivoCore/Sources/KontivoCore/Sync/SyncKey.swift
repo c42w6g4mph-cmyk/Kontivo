@@ -8,7 +8,7 @@ import Foundation
 
 /// Art eines abgeglichenen Datensatzes. Rohwert = Präfix des Datensatznamens («contract.<UUID>»).
 public enum SyncKind: String, Codable, CaseIterable, Hashable, Sendable {
-    case settings, person, category, partner, contract, income, file
+    case settings, person, category, partner, contract, income, variable, file
 
     /// Datensatztyp in CloudKit
     public var recordType: String {
@@ -19,6 +19,7 @@ public enum SyncKind: String, Codable, CaseIterable, Hashable, Sendable {
         case .partner: return "Partner"
         case .contract: return "Contract"
         case .income: return "Income"
+        case .variable: return "VariableCost"
         case .file: return "File"
         }
     }
@@ -32,7 +33,8 @@ public enum SyncKind: String, Codable, CaseIterable, Hashable, Sendable {
         case .partner: return 3
         case .contract: return 4
         case .income: return 5
-        case .file: return 6
+        case .variable: return 6
+        case .file: return 7
         }
     }
 }
@@ -77,7 +79,7 @@ public struct SyncKey: Hashable, Comparable, Codable, Sendable, CustomStringConv
         case .file:
             guard SyncKey.isFileID(raw) else { return nil }
             self.init(kind: .file, rawID: raw)
-        case .person, .category, .partner, .contract, .income:
+        case .person, .category, .partner, .contract, .income, .variable:
             guard let u = UUID(uuidString: raw) else { return nil }
             self.init(kind, u)
         }

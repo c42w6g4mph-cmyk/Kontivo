@@ -10,6 +10,7 @@ public enum SyncEntity: Hashable, Sendable {
     case partner(Partner)
     case contract(Contract)
     case income(Income)
+    case variable(VariableCost)
 }
 
 /// Kodierung für den Abgleich: JSON mit sortierten Schlüsseln (stabil), Zeitpunkte als ganze Millisekunden (stabil über
@@ -57,6 +58,7 @@ public enum SyncCodec {
         out += d.partners.map { SyncKey(.partner, $0.id) }
         out += d.contracts.map { SyncKey(.contract, $0.id) }
         out += d.incomes.map { SyncKey(.income, $0.id) }
+        out += d.variableCosts.map { SyncKey(.variable, $0.id) }
         return out
     }
 
@@ -84,6 +86,9 @@ public enum SyncCodec {
         case .income:
             guard let u = key.uuid, let i = d.income(u) else { return nil }
             return encode(i, encoder: enc)
+        case .variable:
+            guard let u = key.uuid, let v = d.variableCost(u) else { return nil }
+            return encode(v, encoder: enc)
         }
     }
 
@@ -97,6 +102,7 @@ public enum SyncCodec {
         case .partner(let p): return encode(p, encoder: enc)
         case .contract(let c): return encode(c, encoder: enc)
         case .income(let i): return encode(i, encoder: enc)
+        case .variable(let v): return encode(v, encoder: enc)
         }
     }
 
@@ -123,6 +129,9 @@ public enum SyncCodec {
         case .income:
             guard let i = decode(Income.self, from: r.payload), i.id.uuidString == k.id else { return nil }
             return .income(i)
+        case .variable:
+            guard let v = decode(VariableCost.self, from: r.payload), v.id.uuidString == k.id else { return nil }
+            return .variable(v)
         }
     }
 

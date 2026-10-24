@@ -97,8 +97,9 @@ final class SyncCodecTests: XCTestCase {
         XCTAssertEqual(SyncKey(recordName: f.recordName), f)
         XCTAssertNil(f.uuid)
         // Sortierung: Einstellungen, Stammdaten, Verträge, Einnahmen, Dateien
-        let sorted = [f, SyncKey(.income, u), SyncKey(.contract, u), SyncKey(.person, u), .settings].sorted()
-        XCTAssertEqual(sorted.map { $0.kind }, [.settings, .person, .contract, .income, .file])
+        let sorted = [f, SyncKey(.variable, u), SyncKey(.income, u), SyncKey(.contract, u), SyncKey(.person, u), .settings].sorted()
+        XCTAssertEqual(sorted.map { $0.kind }, [.settings, .person, .contract, .income, .variable, .file])
+        XCTAssertEqual(SyncKind.variable.recordType, "VariableCost")
         XCTAssertEqual(SyncKind.contract.recordType, "Contract")
     }
 
@@ -129,6 +130,8 @@ final class SyncCodecTests: XCTestCase {
                 XCTAssertEqual(i.createdAt.timeIntervalSince1970, expected.createdAt.timeIntervalSince1970, accuracy: 0.001)
                 expected.createdAt = i.createdAt
                 XCTAssertEqual(i, expected)
+            case .variable(let v):
+                XCTAssertEqual(v.id, d.variableCost(v.id)?.id)
             case .settings(let s):
                 XCTAssertEqual(s, SyncSettings(d))
             }
