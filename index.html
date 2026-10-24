@@ -1271,7 +1271,7 @@ input[type=file]{display:none}
 #fPayM:has(option[value=""]:checked){color:var(--ink3);font-weight:400}
 .fcard{padding:0 13px}
 .frow{display:flex;align-items:center;gap:12px;min-height:48px;padding:4px 0;border-top:1px solid var(--line);width:100%;text-align:left;font-size:15px}
-.fcard>.frow:first-child,#fChart:empty+.frow,#xList:empty+.fadd,.fsub>.seg2+.frow{border-top:0}
+.fcard>.frow:first-child,#fPHead:empty+#pList:empty+.frow,#iPHead:empty+#iPList:empty+.frow,#xList:empty+.fadd,.fsub>.seg2+.frow{border-top:0}
 .frow>label,.frow .fl{flex:1;min-width:0;color:var(--ink2);font-size:15px}
 .frow>input:not(.swi),.frow>select,.frow>.fv>input,.frow>.fv>select{min-width:0;max-width:64%;border:0;background:transparent;font-size:16px;font-weight:500;color:var(--teal);text-align:right;padding:8px 2px;border-radius:8px;outline:0;font-family:inherit}
 .frow>input::placeholder,.frow>.fv>input::placeholder{color:var(--ink3);font-weight:400}
@@ -1331,7 +1331,6 @@ input[type=file]{display:none}
 .fpr{cursor:default}
 .fpr .pdl{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;color:var(--ink);cursor:pointer}
 .fpr .pdl span{white-space:nowrap}
-.fpr .pdl .tag{margin-left:0;margin-top:0;font-size:10.5px;padding:1px 6px;color:#fff}.fpr .pdl .tag.fut{color:var(--warn)}
 .fpr .pdi{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;-webkit-appearance:none;appearance:none;border:0;padding:0;margin:0}
 .fpr .fpcw{display:flex;justify-content:flex-end}
 .fpr .del{grid-column:4;justify-self:end;text-align:center}
@@ -1345,7 +1344,22 @@ input[type=file]{display:none}
 .fpr .tag.fut{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
 .fpr .tag.cr{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
 .fpr .del{flex:none;color:var(--ink3);font-size:20px;line-height:1;padding:8px 0 8px 4px}
-#fChart .pchart{background:transparent;padding:12px 0 4px;margin:0}
+/* Preisverlauf im Formular als Zeitstrahl (24.10.2026): Kopf «Aktuell», Stufen neueste zuerst, Anfangsbetrag als letzte Stufe */
+.tlh{display:block!important;padding:14px 0 10px}.tlh>*{display:block!important}.tlh small{font-size:13px;color:var(--ink2)}
+.tlh b{display:block;font-family:var(--serif);font-weight:500;font-size:30px;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.15}
+.tlh b u{text-decoration:none;font-family:-apple-system,system-ui,sans-serif;font-size:14px;font-weight:600;color:var(--ink3);margin-left:5px}
+.tlh span{display:block;font-size:13px;color:var(--ink2);margin-top:2px}.tlh em{font-style:normal;font-weight:700}.tlh em.up{color:var(--warn)}.tlh em.down{color:var(--ok)}
+.tld,.tls:empty{display:none}
+.tlon .tlr,.tlon .tlstart{position:relative;padding-left:28px}
+.tlon .tlr::before,.tlon .tlstart::before{content:"";position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--line)}
+.tlon .tlr:first-child::before{top:50%}.tlon .tlstart::before{bottom:50%}
+.tlon .tld{display:block;position:absolute;left:5px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--surface);border:2.5px solid var(--ink3);box-sizing:border-box;z-index:1}
+.tlon .cur>.tld{background:var(--brass);border-color:var(--brass);box-shadow:0 0 0 4px color-mix(in srgb,var(--brass) 22%,transparent)}
+.tlon .fut>.tld{border-style:dashed;border-color:var(--warn)}
+.tlon .tlstart>label{color:var(--ink)}.tlon .tlstart>label>span{display:block}
+.tls{display:block;font-size:12px;color:var(--ink3);margin-top:1px}
+.tlon .fadd.fpill{width:100%;margin:0;padding:0;min-height:46px;border-top:1px solid var(--line);border-radius:0;background:none;font-size:15px;gap:8px}
+.tlon .fadd.fpill svg{width:16px;height:16px}
 .fsw{cursor:pointer;padding:9px 0}.fsw .t{flex:1;min-width:0;display:grid;gap:2px}.fsw b{font-size:15px;font-weight:500;color:var(--ink)}.fsw small{font-size:12.5px;color:var(--ink2);line-height:1.35}
 #fCats.catfield,#iCats.catfield{height:auto;min-height:48px;background:transparent;border-radius:0;margin:0;padding:4px 0;gap:10px}
 #fCats .cfi,#iCats .cfi{width:28px;height:28px;border-radius:8px}#fCats .cfi .cicon{width:16px;height:16px}
@@ -1652,7 +1666,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v313</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v314</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -1729,9 +1743,9 @@ input[type=file]{display:none}
 
   <h3 class="fsec">Kosten</h3>
   <div class="fcard">
-    <div id="fChart"></div>
-    <div class="frow fgr fgr0"><label for="fAmt" id="fAmtL">Betrag</label><span class="fv"><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><select id="fCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
+    <div id="fPHead"></div>
     <div id="pList"></div>
+    <div class="frow fgr fgr0 tlstart" id="fAmtR"><i class="tld"></i><label for="fAmt"><span id="fAmtL">Betrag</span><small class="tls" id="fAmtS"></small></label><span class="fv"><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><select id="fCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
     <button type="button" class="fadd fpill" id="pOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Preisänderung</button>
     <div class="fsub" id="pForm" hidden>
       <div class="frow"><label for="pFrom">Gültig ab</label><input id="pFrom" type="date"></div>
@@ -1863,9 +1877,9 @@ input[type=file]{display:none}
   <div class="fkz" id="iKz" hidden></div>
   <h3 class="fsec">Betrag</h3>
   <div class="fcard">
-    <div id="iChart"></div>
-    <div class="frow fgr fgr0"><label for="iAmt" id="iAmtL">Betrag netto</label><span class="fv"><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><select id="iCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
+    <div id="iPHead"></div>
     <div id="iPList"></div>
+    <div class="frow fgr fgr0 tlstart" id="iAmtR"><i class="tld"></i><label for="iAmt"><span id="iAmtL">Betrag netto</span><small class="tls" id="iAmtS"></small></label><span class="fv"><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><select id="iCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
     <button type="button" class="fadd fpill" id="iPOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Änderung</button>
     <div class="fsub" id="iPForm" hidden>
       <div class="frow"><label for="iPFrom">Gültig ab</label><input id="iPFrom" type="date"></div>
@@ -4653,7 +4667,7 @@ function dueFromStart(){if(editId||draft.dueSet||termMode==="trial")return;var c
   var t=today(),x=s,k=0;while(x<t&&k<400){k++;x=new Date(s.getFullYear(),s.getMonth()+cy*k,1);x.setDate(Math.min(s.getDate(),new Date(x.getFullYear(),x.getMonth()+1,0).getDate()));}
   var e=document.getElementById("fDue");if(e.value!==iso(x)){e.value=iso(x);e.dispatchEvent(new Event("change"));}}
 document.getElementById("fCycle").addEventListener("change",function(){if(dueOpen){dueOpen=false;}dueFromStart();paintDue();});
-document.getElementById("fStart").addEventListener("change",function(){dueFromStart();paintDue();});
+document.getElementById("fStart").addEventListener("change",function(){dueFromStart();paintDue();paintPrices();});
 document.getElementById("fDue").addEventListener("change",paintDue);
 document.getElementById("fNotice").addEventListener("change",nUnitLbl);
 document.getElementById("fNoticeU").addEventListener("change",nUnitLbl);
@@ -4777,22 +4791,34 @@ function paintKz(){var el=document.getElementById("fKz"),c=draftPC();if(!(c.amou
 function paintPrices(){paintOptCounts();spRefresh();paintKz();syncPOpen();
   var l=document.getElementById("pList"),ps=pricesOf({prices:draft.prices}),cur=document.getElementById("fCur").value;
   document.getElementById("fAmtL").textContent=ps.length?"Anfangspreis":"Betrag";
-  document.getElementById("fChart").innerHTML=ps.length?priceChart(draftPC()):"";
+  tlPaint("f",ps,parseAmt(document.getElementById("fAmt").value)||0,cur,document.getElementById("fStart").value,false);
   l.innerHTML="";if(!ps.length)return;
   pListPaint(l,priceRowsHtml(ps,parseAmt(document.getElementById("fAmt").value)||0,cur,false));
 }
 /* Preisänderungen direkt in der Zeile bearbeiten (23.10.2026): Datum (unsichtbares Datumsfeld über «ab TT.MM.JJ») und Betrag sind Felder.
    Raster wie die Zeile «Anfangspreis»: Datum | Prozent | Betrag | × (Spalte so breit wie die Währungsauswahl) → alle Beträge bündig.
    inc: bei Einnahmen ist mehr gut (grün). SwiftUI: Grid, DatePicker(.compact) + TextField(.decimalPad) je Zeile */
-function priceRowsHtml(ps,prev,cur,inc){var t=today(),ni=-1,h="";ps.forEach(function(p,i){if(parseD(p.from)<=t)ni=i;});
-  ps.forEach(function(p,i){var fut=parseD(p.from)>t,pc=prev?(p.amount-prev)/prev*100:0,up=inc?" down":" up",dn=inc?" up":" down";
-    h+='<div class="frow fpr fgr" data-pf="'+esc(p.from)+'"><label class="fl pdl"><span>ab '+fmtShort(parseD(p.from))+'</span>'+
-      (i===ni?'<small class="tag">aktuell</small>':(fut?'<small class="tag fut">geplant</small>':""))+
+function priceRowsHtml(ps,prev,cur,inc){var t=today(),ni=-1,R=[];ps.forEach(function(p,i){if(parseD(p.from)<=t)ni=i;});
+  ps.forEach(function(p,i){var fut=parseD(p.from)>t,pc=prev?(p.amount-prev)/prev*100:0,up=inc?" down":" up",dn=inc?" up":" down",h;
+    h='<div class="frow fpr fgr tlr'+(i===ni?" cur":fut?" fut":"")+'" data-pf="'+esc(p.from)+'"><i class="tld"></i><label class="fl pdl"><span>ab '+fmtShort(parseD(p.from))+'</span>'+
+      (i===ni?'<small class="tls">aktuell</small>':(fut?'<small class="tls">geplant</small>':""))+
       '<input type="date" class="pdi" value="'+esc(p.from)+'" aria-label="Gültig ab"></label>'+
       '<span class="fpcw">'+(prev?'<span class="fpc'+(pc>0.05?up:pc<-0.05?dn:"")+'">'+pctTxt(pc)+"</span>":"")+"</span>"+
       '<input class="num pai" type="text" inputmode="decimal" value="'+esc(amtIn(p.amount,cur))+'" aria-label="Betrag ab '+fmtShort(parseD(p.from))+'">'+
-      '<button type="button" class="del" data-pdel="'+esc(p.from)+'" aria-label="Änderung entfernen">×</button></div>';prev=p.amount;});
-  return h;}
+      '<button type="button" class="del" data-pdel="'+esc(p.from)+'" aria-label="Änderung entfernen">×</button></div>';R.push(h);prev=p.amount;});
+  return R.reverse().join("");}
+/* Kopf «Aktuell» und Zustand der Startzeile; ohne Preisänderungen bleibt die einfache Betragszeile.
+   pre: "f" (Vertrag) bzw. "i" (Einnahme). SwiftUI: Section-Header + Timeline-Punkte als overlay je Zeile */
+function tlPaint(pre,ps,a0,cur,start,inc){var head=document.getElementById(pre+"PHead"),card=head.parentNode,on=ps.length>0,
+    row=document.getElementById(pre+"AmtR"),t=today(),cp=a0,since=null;
+  card.classList.toggle("tlon",on);
+  ps.forEach(function(p){if(parseD(p.from)<=t){cp=+p.amount;since=p.from;}});
+  row.classList.toggle("cur",on&&!since);
+  document.getElementById(pre+"AmtS").textContent=on?(start?"Start "+fmtShort(parseD(start)):"Start"):"";
+  if(!on){head.innerHTML="";return;}
+  var pc=a0?(cp-a0)/a0*100:0,cls=pc>0.05?(inc?"down":"up"):pc<-0.05?(inc?"up":"down"):"";
+  head.innerHTML='<div class="tlh"><small>Aktuell</small><b>'+money(cp,cur)+"<u>"+esc(cur)+"</u></b><span>"+
+    (since?"seit "+fmtShort(parseD(since))+(a0&&Math.abs(pc)>=0.05?' · <em class="'+cls+'">'+pctTxt(pc)+" seit Start</em>":""):"Anfangsbetrag · Änderung geplant")+"</span></div>";}
 /* Fokus über das Neuzeichnen retten (Tippen von einem Betrag in den nächsten) */
 function pListPaint(l,html){var a=document.activeElement,k=a&&l.contains(a)&&a.closest(".fpr")?[a.closest(".fpr").dataset.pf,a.className]:null;
   l.innerHTML=html;if(k){var r=l.querySelector('.fpr[data-pf="'+k[0]+'"] .'+k[1].split(" ").pop());if(r)try{r.focus();}catch(e){}}}
@@ -6384,8 +6410,8 @@ function iPaintKz(){var el=document.getElementById("iKz"),c=iDraftPC();if(!(c.am
     "<div><small>einmalig</small><b>"+money(cp,c.cur)+u+"</b></div>";}
 function iPaintPrices(){iPaintKz();iSyncPOpen();
   var l=document.getElementById("iPList"),ps=pricesOf({prices:idraft.prices}),cur=document.getElementById("iCur").value;
-  document.getElementById("iAmtL").textContent=ps.length?"Anfangsbetrag netto":"Betrag netto";
-  document.getElementById("iChart").innerHTML=ps.length?priceChart(iDraftPC(),{inc:1}):"";
+  document.getElementById("iAmtL").textContent=ps.length?"Anfangsbetrag":"Betrag netto";
+  tlPaint("i",ps,parseAmt(document.getElementById("iAmt").value)||0,cur,document.getElementById("iStart").value,true);
   l.innerHTML="";if(!ps.length)return;
   pListPaint(l,priceRowsHtml(ps,parseAmt(document.getElementById("iAmt").value)||0,cur,true));}
 function iOpenSub(on){document.getElementById("iPForm").hidden=!on;var b=document.getElementById("iPOpen");b.hidden=!!on;b.setAttribute("aria-expanded",!!on);iSyncPOpen();}
