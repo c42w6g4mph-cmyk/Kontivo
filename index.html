@@ -1673,7 +1673,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v323</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v324</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9100,6 +9100,7 @@ function bankFind(r,ign){
     s.match={id:c,kind:"known"};return s;
   }
   function bankEval(k,g){
+    var ref=bankGEnd(g.tx,r.to);/* Stichtag = Ende der Datei, aus der die Buchungen stammen (mehrere Dateien, 25.10.2026) */
     var tx=[],seen={},kc={};g.tx.forEach(function(t){if(t.kind)kc[t.kind]=(kc[t.kind]||0)+1;});
     var kind=Object.keys(kc).sort(function(a,b){return kc[b]-kc[a];})[0]||"";
     g.tx.forEach(function(t){var id=t.d+"|"+t.a;if(seen[id])return;seen[id]=1;tx.push(t);});
@@ -9260,7 +9261,7 @@ function bankFindInc(r){
     /* Ausreisser nach oben (13. Monatslohn, Bonus) zählen nicht */
     var core=am.filter(function(v){return v<=med*1.5;});
     if(core.filter(function(v){return Math.abs(v-med)<=med*(cat==="Sonstiges"?0.05:0.2);}).length<core.length*0.7)return;
-    var last=tx[n-1],ld=parseD(last.d);if((ref-ld)/864e5>cyc*30.5*1.5+7)return;
+    var last=tx[n-1],ld=parseD(last.d);if((parseD(bankGEnd(tx,r.to))-ld)/864e5>cyc*30.5*1.5+7)return;
     var recent=core.slice(-3),typ=recent.slice().sort(function(a,b){return a-b;})[Math.floor(recent.length/2)];
     var lo=Math.min.apply(null,core),hi=Math.max.apply(null,core);
     var due=bankNextDue(tx.map(function(t){return t.d;}),cyc);
@@ -9630,14 +9631,32 @@ function bkLogos(){
 function bkDropLogo(id){var used=false;[state.contracts,state.incomes,state.vars||{}].forEach(function(m){Object.keys(m).forEach(function(k){if(m[k].logoId===id)used=true;});});
   if(!used){try{KBlob.del(id);}catch(e){}}}
 /* mehrere Dateien auf einmal (Konto, Kreditkarte, zweites Konto …) → eine gemeinsame Vorschlagsliste */
+/* jüngstes Dateiende der Buchungen einer Gruppe (beim Zusammenführen gesetzt), sonst Ende des Gesamtzeitraums */
+function bankGEnd(tx,fb){var m="";tx.forEach(function(t){if(t._end&&t._end>m)m=t._end;});return m||fb;}
 function bankMerge(rs){
   if(rs.length===1)return rs[0];
+  /* Ende je Datei an jeder Buchung: eine Datei, die früher endet, macht ihre Einnahmen/Verträge nicht «veraltet» (25.10.2026) */
+  rs.forEach(function(r){r.tx.forEach(function(t){t._end=r.to;});});
+  /* Dateien mit Konto-IBAN zuerst; Dateien ohne Konto (N26, Buchhaltungs-CSV) werden gegen die anderen abgeglichen */
+  rs=rs.slice().sort(function(a,b){return (b.acct?1:0)-(a.acct?1:0);});
   /* gleiche Buchung in zwei Exporten desselben Kontos (überlappende Zeiträume) nur einmal. Konto (IBAN) im Schlüssel, damit zwei Konten
      derselben Bank sich nicht gegenseitig Buchungen wegnehmen; gleiche Buchung mehrfach (2× 45.– am selben Tag): die Datei mit den meisten zählt */
   var tx=[],by={};
   rs.forEach(function(r,fi){r.tx.forEach(function(t){
     var k=(r.acct||r.bank||r.fmt)+"|"+t.d+"|"+t.a+"|"+lnorm(t.name+" "+t.text).slice(0,60),e=by[k]=by[k]||{};(e[fi]=e[fi]||[]).push(t);});});
-  Object.keys(by).forEach(function(k){var e=by[k],best=null;Object.keys(e).forEach(function(fi){if(!best||e[fi].length>best.length)best=e[fi];});tx=tx.concat(best);});
+  Object.keys(by).forEach(function(k){var e=by[k],best=null,bf=-1;Object.keys(e).forEach(function(fi){if(!best||e[fi].length>best.length){best=e[fi];bf=+fi;}});best.forEach(function(t){t._fi=bf;});tx=tx.concat(best);});
+  /* gleiche Buchung in zwei Formaten (Text unterschiedlich): Datei ohne Konto-IBAN, gleiches Datum + Betrag + gleiches Namenswort wie in einer anderen Datei → doppelt */
+  var ix={},tok=function(t){return bankTok(t.name||bankNameFrom(t.text||"")||"").slice(0,3);};
+  tx.sort(function(a,b){return (a._fi-b._fi)||(a.d<b.d?-1:a.d>b.d?1:0);});
+  /* nur wenn zwei Dateien grösstenteils dieselben Buchungen enthalten (≥ 50 % gleiche Datum+Betrag) – zwei verschiedene Konten derselben Bank
+     (z.B. Privat- und Sparkonto, beide ohne IBAN im Export) teilen nur einzelne Buchungen (Spesen, Überträge) und bleiben vollständig */
+  var da={};rs.forEach(function(r,fi){var S={};r.tx.forEach(function(t){S[t.d+"|"+t.a]=1;});da[fi]=S;});
+  var dup=function(f1,f2){var A=da[f1],B=da[f2],na=Object.keys(A).length,nb=Object.keys(B).length,m=0;if(!na||!nb)return false;
+    Object.keys(A).forEach(function(k){if(B[k])m++;});return m>=Math.min(na,nb)*0.5;},dc={};
+  tx=tx.filter(function(t){var k2=t.d+"|"+t.a,L=ix[k2]||(ix[k2]=[]),tk=tok(t);
+    if(!rs[t._fi].acct&&L.some(function(o){if(o._fi===t._fi)return false;var pk=o._fi+"-"+t._fi;if(dc[pk]==null)dc[pk]=dup(o._fi,t._fi);
+        return dc[pk]&&(!tk.length||tok(o).some(function(x){return tk.indexOf(x)>=0;}));}))return false;
+    L.push(t);return true;});
   tx.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
   var ow=rs.map(function(r){return r.owner||"";}).filter(Boolean);
   return {fmt:rs.map(function(r){return r.fmt;}).join(", "),bank:"",tx:tx,from:tx[0].d,to:tx[tx.length-1].d,owner:ow.length===rs.length&&ow.every(function(o){return lnorm(o)===lnorm(ow[0]);})?ow[0]:""};
