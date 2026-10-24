@@ -96,7 +96,7 @@ final class GoldenUiTests: XCTestCase {
             }
             XCTAssertEqual(got.count, want.count, "\(t) Anzahl Zeilen")
             for i in 0..<Swift.min(got.count, want.count) where got[i] != want[i] {
-                XCTFail("\(t) Zeile \(i + 1):\n  Swift \(got[i])\n  Web   \(want[i])")
+                XCTFail("\(t) Zeile \(i + 1): Swift \(got[i]) ≠ Web \(want[i])")
             }
         }
     }
