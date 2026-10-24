@@ -19,6 +19,12 @@ public struct LetterParts: Hashable, Sendable {
     public var body: String
     /// Kündigungsfrist (muss bis dann beim Vertragspartner sein)
     public var deadline: Day?
+    /// Land des Vertragspartners für Anrede, Gruss und Datum («CH», «DE», «X» = anderes), Web v229 `cc`
+    public var country: String = "CH"
+    /// Land des (ersten) Absenders, Web `scc`
+    public var senderCountry: String = "CH"
+    /// Länderzeile, die beim Empfänger ergänzt wurde («DEUTSCHLAND»), sonst leer (Web `cLine`)
+    public var countryLine: String = ""
 
     /// Inhalt des Textfelds: Referenzzeilen + Leerzeile + Text (`ltBodyText`).
     public var bodyText: String {
@@ -85,13 +91,20 @@ public enum Letter {
     public static func parts(_ c: Contract, signers: [UUID]? = nil, calc: Calc) -> LetterParts {
         let data = calc.data
         let sg = signers ?? defaultSigners(c, data: data)
-        struct P { var name: String; var addr: [String]; var addrNoCountry: [String]; var city: String }
+        let partner = data.partner(c.partnerID)
+        let pn = (partner?.name ?? "").trimmingCharacters(in: .whitespaces)
+        let al = partner?.address.lines ?? []
+        let rcc = recipientCountry(c, lines: al, data: data)
+        struct P { var name: String; var addr: [String]; var addrNoCountry: [String]; var city: String; var cc: String }
         let ps: [P] = sg.map { h in
-            let o = data.resolvedSender(h)
+            var o = data.resolvedSender(h)
+            let sc = senderCountry(o, home: data.settings.homeCurrency)
+            // Absender in anderem Land als der Vertragspartner: Land beim Absender ergänzen (fehlt es)
+            if o.country.trimmingCharacters(in: .whitespaces).isEmpty && (sc == "CH" || sc == "DE") && sc != rcc { o.country = countryName[sc] ?? "" }
             let n = o.fullName
             var nc = o
             nc.country = ""
-            return P(name: n.isEmpty ? (data.person(h)?.name ?? "") : n, addr: o.addressLines, addrNoCountry: nc.addressLines, city: o.city)
+            return P(name: n.isEmpty ? (data.person(h)?.name ?? "") : n, addr: o.addressLines, addrNoCountry: nc.addressLines, city: o.city, cc: sc)
         }
         // Absender nach gleicher Adresse gruppiert; mehr als 7 Zeilen: zuerst ohne Land, dann eine Zeile pro Person
         func block(_ noCountry: Bool) -> [String] {
@@ -126,27 +139,96 @@ public enum Letter {
             sender = Array(sender.prefix(7))
             sCut = "Absender gekürzt: Nicht alle Personen passen in den Absender (höchstens 7 Zeilen)."
         }
-        let partner = data.partner(c.partnerID)
-        let pn = (partner?.name ?? "").trimmingCharacters(in: .whitespaces)
-        let al = partner?.address.lines ?? []
         var to: [String] = []
         let firstHasName: Bool = al.first.map { $0.lowercased().contains(pn.lowercased()) } ?? false
         if !pn.isEmpty && !firstHasName { to.append(pn) }
         to += al
+        // Auslandsbrief: Bestimmungsland als letzte Zeile in Grossbuchstaben (Post CH/DE), nur wenn noch keine Länderzeile da ist
+        let scc = ps.first?.cc ?? senderCountry(SenderAddress(), home: data.settings.homeCurrency)
+        var cLine = ""
+        if !al.isEmpty, scc != rcc, let up = countryUpper[rcc], let lastLine = to.last, countryOf(line: lastLine).isEmpty, !RX.test("^[A-ZÄÖÜ ]{4,}$", lastLine) {
+            cLine = up
+            to.append(up)
+        }
         var refs: [String] = []
         if !c.customerNo.isEmpty { refs.append("Kundennummer: " + c.customerNo) }
         if !c.contractNo.isEmpty { refs.append(contractNumberLabel(c, data: data) + ": " + c.contractNo) }
         let e = calc.termEnd(c)
         let d = calc.noticeDeadline(c)
         let we = ps.count > 1
-        let body = salutation(c.currency) + "\n\n" + (c.currency == .EUR ? "hiermit " : "Hiermit ") + (we ? "kündigen wir" : "kündige ich") + " den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"
+        // Anrede, Gruss nach Land des Vertragspartners (Web v229): CH ohne Komma, danach gross; sonst mit Komma, danach klein
+        let deL = rcc != "CH"
+        let body = "Sehr geehrte Damen und Herren" + (deL ? "," : "") + "\n\n" + (deL ? "hiermit " : "Hiermit ") + (we ? "kündigen wir" : "kündige ich") + " den oben genannten Vertrag ordentlich zum nächstmöglichen Termin"
             + (e != nil ? ", nach " + (we ? "unserer" : "meiner") + " Berechnung zum " + Format.fmtD(e) : "") + ".\n\n"
-            + "Bitte bestätigen Sie " + (we ? "uns" : "mir") + " die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse"
-        return LetterParts(names: ps.map { $0.name }, signers: sg, sender: sender, senderCut: sCut, to: to, city: ps.first?.city ?? "",
-                           subject: subject(c, data: data), references: refs, body: body, deadline: d)
+            + "Bitte bestätigen Sie " + (we ? "uns" : "mir") + " die Kündigung und das Vertragsende schriftlich.\n\n" + (deL ? "Mit freundlichen Grüßen" : "Freundliche Grüsse")
+        var lp = LetterParts(names: ps.map { $0.name }, signers: sg, sender: sender, senderCut: sCut, to: to, city: ps.first?.city ?? "",
+                             subject: subject(c, data: data), references: refs, body: body, deadline: d)
+        lp.country = rcc
+        lp.senderCountry = scc
+        lp.countryLine = cLine
+        return lp
     }
 
-    /// Anrede (Web v156): Deutschland (EUR) mit Komma und danach klein («hiermit»), Schweiz ohne Komma, danach gross.
+    // MARK: Land für Brief-Konventionen (Web v229)
+
+    static let countryName = ["CH": "Schweiz", "DE": "Deutschland"]
+    static let countryUpper = ["CH": "SCHWEIZ", "DE": "DEUTSCHLAND"]
+
+    /// Länderzeile → «CH»/«DE», sonst "" (Web `ccLine`)
+    public static func countryOf(line l: String) -> String {
+        let t = l.trimmingCharacters(in: .whitespaces)
+        if RX.test("^(schweiz|suisse|svizzera|switzerland|ch)$", t, ignoreCase: true) { return "CH" }
+        if RX.test("^(deutschland|germany|allemagne|de|brd)$", t, ignoreCase: true) { return "DE" }
+        return ""
+    }
+
+    /// Land aus Adresszeilen (Web `ccFromLines`): Länderzeile, sonst «X» bei anderer Länderzeile nach PLZ-Zeile, sonst PLZ (4 Stellen CH, 5 DE)
+    public static func countryOf(lines: [String]) -> String {
+        let L = lines.map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        guard let last = L.last else { return "" }
+        let cl = countryOf(line: last)
+        if !cl.isEmpty { return cl }
+        // letzte Zeile ohne Ziffern nach einer PLZ-Zeile = anderes Land (z.B. «Niederlande»)
+        if L.count > 1 && !RX.test("\\d", last) && RX.test("\\d", L[L.count - 2]) { return "X" }
+        for l in L.reversed() {
+            if let m = RX.match("^(?:(CH|D|DE)[-\\s])?(\\d{4,5})\\s+\\S", l, ignoreCase: true) {
+                if m.count > 1, let p = m[1], !p.isEmpty { return p.lowercased() == "ch" ? "CH" : "DE" }
+                return (m.count > 2 ? (m[2] ?? "") : "").count == 5 ? "DE" : "CH"
+            }
+        }
+        return ""
+    }
+
+    /// Land des Vertragspartners (Web `ltRecvCC`): Adresse > Katalog > Währung > Hauptwährung
+    public static func recipientCountry(_ c: Contract, lines: [String], data: AppData) -> String {
+        let cc = countryOf(lines: lines)
+        if !cc.isEmpty { return cc }
+        if let t = Catalog.match(names: [data.partnerName(of: c), c.label], currency: c.currency), t.country == "CH" || t.country == "DE" { return t.country }
+        if c.currency == .EUR { return "DE" }
+        if c.currency == .CHF { return "CH" }
+        return data.settings.homeCurrency == .EUR ? "DE" : "CH"
+    }
+
+    /// Land eines Absenders (Web `ltSendCC`): Länderzeile, sonst PLZ, sonst Hauptwährung
+    public static func senderCountry(_ o: SenderAddress, home: Currency) -> String {
+        let cl = countryOf(line: o.country)
+        if !cl.isEmpty { return cl }
+        if !o.country.trimmingCharacters(in: .whitespaces).isEmpty { return "X" }
+        let z = o.zip.trimmingCharacters(in: .whitespaces)
+        if RX.test("^\\d{5}$", z) { return "DE" }
+        if RX.test("^\\d{4}$", z) { return "CH" }
+        return home == .EUR ? "DE" : "CH"
+    }
+
+    static let monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
+
+    /// Ort und Datum (Web `ltDate`): Schweiz «Kreuzlingen, 24. Oktober 2026», sonst «Konstanz, 24.10.2026»
+    public static func dateLine(country: String, city: String, today d: Day) -> String {
+        (city.isEmpty ? "" : city + ", ")
+            + (country == "CH" ? "\(d.day). \(monthNames[d.month - 1]) \(d.year)" : String(format: "%02d.%02d.%d", d.day, d.month, d.year))
+    }
+
+    /// Anrede (Web v156/v229): ausserhalb der Schweiz mit Komma und danach klein («hiermit»), Schweiz ohne Komma, danach gross.
     public static func salutation(_ currency: Currency) -> String {
         "Sehr geehrte Damen und Herren" + (currency == .EUR ? "," : "")
     }

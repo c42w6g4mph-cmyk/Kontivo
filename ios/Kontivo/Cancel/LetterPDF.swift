@@ -19,10 +19,15 @@ struct LetterPDFInput {
     var names: [String]
     /// Unterschrift je Name (JPEG) oder nil = freie Linie
     var signatures: [Data?]
+    /// Land des Vertragspartners für die Datumszeile («CH» → «20. Oktober 2026», sonst «20.10.2026»), Web v229 `L.cc`
+    var country: String = "CH"
+    /// Kuvert-Fenster rechts (Schweizer Kuvert, Web `settings.ltWin`)
+    var windowRight: Bool = false
 }
 
-/// PDF-Brief nach DIN 5008 / Schweizer Geschäftsbrief: A4, Rand links 25 mm, Absender ab 20 mm, Anschriftfeld ab 50 mm,
-/// Ort/Datum rechts bei 90 mm, Betreff fett ab 105 mm, Referenzen, Text, Unterschriften, Namen. Mehrseitig, Helvetica.
+/// PDF-Brief nach DIN 5008 Form B (Fenster links) bzw. Schweizer Geschäftsbrief SN 010130 (Fenster links oder rechts), Web v229:
+/// A4, Rand links 25 mm, Absender ab 20 mm, Falz-/Lochmarken, Rücksendeangabe im Fenster, Anschriftzone ab 62.7 mm (rechts: ab 118 mm
+/// von links, ab 52 mm), Ort/Datum nach Land bei 97 mm, Betreff fett ab 107 mm, Referenzen, Text, Unterschriften, Namen. Mehrseitig, Helvetica.
 /// Alle Positionen sind Grundlinien, gemessen von der Blattoberkante (Inventar 3, Abschnitt 5).
 enum LetterPDF {
     static let pageSize = CGSize(width: 595, height: 842)
@@ -136,23 +141,53 @@ enum LetterPDF {
             }
 
             ctx.beginPage()
+            let mm: CGFloat = 2.8346
+            let g0 = ctx.cgContext
+            func rule(_ x0: CGFloat, _ y0: CGFloat, _ x1: CGFloat, width w: CGFloat) {
+                g0.saveGState()
+                g0.setStrokeColor(UIColor(white: 0.6, alpha: 1).cgColor)
+                g0.setLineWidth(w)
+                g0.move(to: CGPoint(x: x0, y: y0))
+                g0.addLine(to: CGPoint(x: x1, y: y0))
+                g0.strokePath()
+                g0.restoreGState()
+            }
             // Absender (klein) ab 20 mm
-            var yy: CGFloat = 57
+            var yy: CGFloat = 20 * mm
             for ln in L.sender.prefix(7) {
                 draw(ln, x: left, baseline: yy, font: small)
                 yy += 12
             }
-            // Anschriftfeld ab 50 mm
-            yy = 142
-            for ln in L.to {
-                draw(ln, x: left, baseline: yy, font: regular)
-                yy += lineStep
+            // Falzmarken 105/210 mm und Lochmarke 148.5 mm (DIN 5008 Form B) am linken Rand
+            for (pos, len) in [(105.0, 14.0), (148.5, 20.0), (210.0, 14.0)] {
+                rule(4 * mm, CGFloat(pos) * mm, 4 * mm + CGFloat(len), width: 0.4)
             }
-            // Ort und Datum rechts, 90 mm
-            let dt = (L.city.isEmpty ? "" : L.city + ", ") + Format.fmtD(L.date)
-            draw(dt, x: right - width(dt, regular), baseline: 255, font: regular)
-            // Betreff ab 105 mm
-            y = 298
+            // Anschriftfeld: links nach DIN 5008 Form B (Anschriftzone ab 62.7 mm), rechts für Schweizer Kuverts (ab 118 mm von links, ab 52 mm)
+            let win = L.windowRight
+            let ax: CGFloat = win ? 118 * mm : left, ay: CGFloat = win ? 52 : 62.7, alh: CGFloat = 12.6
+            let apt = regularFont(10.5)
+            // Rücksendeangabe (Absender in einer Zeile, unterstrichen) über der Anschrift, wenn sie passt
+            let ret = L.sender.joined(separator: ", ")
+            if !ret.isEmpty {
+                var rp: CGFloat = 7
+                let rw: CGFloat = win ? (205 - 118 - 8) * mm : 85 * mm - (left - 20 * mm)
+                while rp > 5.6 && width(ret, regularFont(rp)) > rw { rp -= 0.2 }
+                let rf = regularFont(rp)
+                if width(ret, rf) <= rw {
+                    draw(ret, x: ax, baseline: (ay - 3.2) * mm, font: rf)
+                    rule(ax, (ay - 3.2) * mm + 1.6, ax + width(ret, rf), width: 0.3)
+                }
+            }
+            yy = ay * mm + 10.5
+            for ln in L.to {
+                draw(ln, x: ax, baseline: yy, font: apt)
+                yy += alh
+            }
+            // Ort und Datum: CH «Kreuzlingen, 20. Oktober 2026», sonst «Konstanz, 20.10.2026»; rechtsbündig, bei Fenster rechts links
+            let dt = Letter.dateLine(country: L.country, city: L.city, today: L.date)
+            draw(dt, x: win ? left : right - width(dt, regular), baseline: 97 * mm, font: regular)
+            // Betreff ab 107 mm
+            y = 107 * mm
             for w in wrap(L.subject, font: bold, maxWidth: textWidth) { line(w, bold) }
             y += lineStep * 0.6
             if !L.references.isEmpty {

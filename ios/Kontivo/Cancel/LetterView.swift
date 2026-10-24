@@ -454,7 +454,8 @@ struct LetterView: View {
         let data = model.data
         let sigs: [Data?] = rent ? [] : signers.map { data.person($0)?.signatureJPEG }
         let input = LetterPDFInput(sender: base.sender, to: to, city: base.city, date: model.today, subject: subj,
-                                   references: refs, body: split.body, names: base.names, signatures: sigs)
+                                   references: refs, body: split.body, names: base.names, signatures: sigs,
+                                   country: base.country, windowRight: data.settings.letterWindowRight)
         let info = LetterDocumentInfo(subject: subj,
                                       mailText: Letter.mailText(references: refs, body: split.body, names: base.names, sender: base.sender),
                                       names: base.names,

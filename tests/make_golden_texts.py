@@ -2,8 +2,9 @@
 
 Aufruf im Repo-Ordner:
   python3 -m http.server 8771 &
-  KONTIVO_URL=http://localhost:8771/index.html python3 tests/make_golden_texts.py
-Benötigt: pip install playwright (Chromium). index.html wird nicht verändert.
+  KONTIVO_URL=http://localhost:8771/index.html WEB=<main-Repo> python3 tests/make_golden_texts.py
+(index.html wird mit zwei Test-Haken ausgeliefert: Datenqualität und Kündigungsschreiben direkt öffnen)
+Benötigt: pip install playwright (Chromium). Die Datei index.html selbst wird nicht verändert.
 
 Inhalt je Stichtag aus cases.json:
   urgency    Stufe/Tage/Datum je Fall (Quelltext von urgency/daysBetween/today aus index.html, mit den Funktionen des Test-Hakens)
@@ -18,7 +19,7 @@ import json, os, re
 from playwright.sync_api import sync_playwright
 
 D = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(D)
+ROOT = os.environ.get('WEB', os.path.dirname(D))  # Web-Repo (main) mit index.html
 spec = json.load(open(os.path.join(D, 'cases.json'), encoding='utf-8'))
 texts = json.load(open(os.path.join(D, 'cases_texts.json'), encoding='utf-8'))
 URL = os.environ.get('KONTIVO_URL', 'http://localhost:8765/index.html')
@@ -90,6 +91,15 @@ JS_LETTER = """()=>({sender:document.getElementById('ltSender').textContent,to:d
   subject:document.getElementById('ltSubj').value,body:document.getElementById('ltBody').value,hint:document.getElementById('ltHint').textContent})"""
 
 
+def serve(route):
+    u = route.request.url
+    if u.split("?")[0].endswith("/index.html"):
+        h = HTML.replace("function openMd(which){", "window.__openMd=function(w){openMd(w);};function openMd(which){", 1)
+        h = h.replace("function openLetter(c,trial){", "window.__openLetter=function(id){openLetter(state.contracts[id]);};function openLetter(c,trial){", 1)
+        return route.fulfill(status=200, content_type="text/html; charset=utf-8", body=h)
+    return route.continue_()
+
+
 def load(pg, state):
     pg.evaluate("s=>localStorage.setItem('vertraege.v1',s)", json.dumps(state))
     pg.reload()
@@ -103,6 +113,7 @@ with sync_playwright() as p:
     for t in spec["todays"]:
         ctx = b.new_context(viewport={"width": 430, "height": 900}, accept_downloads=True, service_workers="block")
         ctx.add_init_script("window.__KONTIVO_TODAY='%s';" % t)
+        ctx.route("**/index.html*", serve)
         pg = ctx.new_page()
         pg.goto(URL)
         cs = {}
@@ -130,11 +141,12 @@ with sync_playwright() as p:
     t = texts["today"]
     ctx = b.new_context(viewport={"width": 430, "height": 900}, accept_downloads=True, service_workers="block")
     ctx.add_init_script("window.__KONTIVO_TODAY='%s';" % t)
+    ctx.route("**/index.html*", serve)
     pg = ctx.new_page()
     pg.goto(URL)
     st = {"settings": dict(texts["settings"], onboarded=9, rateTs=9999999999999), "contracts": texts["contracts"], "incomes": texts["incomes"]}
     load(pg, st)
-    pg.evaluate("()=>document.querySelector('[data-md=\"qual\"]').click()")
+    pg.evaluate("()=>window.__openMd('qual')")
     pg.wait_for_timeout(250)
     q = pg.evaluate(JS_QUAL_TOP)
     q["lists"] = {}
@@ -142,7 +154,7 @@ with sync_playwright() as p:
         if not row["qf"]:
             continue
         load(pg, st)
-        pg.evaluate("()=>document.querySelector('[data-md=\"qual\"]').click()")
+        pg.evaluate("()=>window.__openMd('qual')")
         pg.wait_for_timeout(200)
         pg.evaluate("qf=>document.querySelector('[data-qf=\"'+qf+'\"]').click()", row["qf"])
         pg.wait_for_timeout(200)
@@ -150,15 +162,13 @@ with sync_playwright() as p:
     letters = {}
     for cid in texts["letters"]:
         load(pg, st)
-        pg.evaluate("id=>document.querySelector('[data-open=\"'+id+'\"]').click()", cid)
-        pg.wait_for_timeout(250)
-        pg.evaluate("()=>document.querySelector('[data-act=\"ktext\"]').click()")
+        pg.evaluate("id=>window.__openLetter(id)", cid)
         pg.wait_for_timeout(250)
         letters[cid] = pg.evaluate(JS_LETTER)
     res["texts"] = {"today": t, "quality": q, "letters": letters}
     ctx.close()
     b.close()
 
-json.dump(res, open(os.path.join(D, 'golden_texts.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+json.dump(res, open(os.environ.get('OUT', os.path.join(D, 'golden_texts.json')), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print("golden_texts.json:", len(res["results"]), "Stichtage,", sum(len(v) for v in res["texts"]["quality"]["lists"].values()),
       "Datenqualitäts-Einträge,", len(res["texts"]["letters"]), "Briefe")
