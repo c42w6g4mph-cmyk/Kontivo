@@ -5,7 +5,7 @@ Anderer Port über KONTIVO_URL. Benötigt: pip install playwright (Chromium).
 
 Aufbau je Stichtag (Jahre: Vorjahr, Stichtagsjahr, Folgejahr; Personen: "alle", "Sinan", "Lara"):
 - fixPerMonth[Person]: Fixkosten pro Monat wie die Kopfzeile (laufend, begonnen, ohne laufendes Probeabo)
-- cost[Jahr][Person]: Kosten-Tab je Monat {sum, paid, open, count} und n (alle Zahlungen im Jahr)
+- cost[Jahr][Person]: Kosten-Tab je Monat {sum, paid, open, count} und n (alle Zahlungen im Jahr); mit Person nur deren Verträge (wie der Personenfilter)
 - budget[Jahr][Person][Kostenart]: je Monat {inc, fix, vr, free} und Jahressummen; Kostenart all | fix | none (settings.bArt)
 - budgetPrevMonth[Person][Kostenart]: Monat des Stichtags im Vorjahr (Vergleichszeile im Budget)
 - fairShare: Anteil je Person an Fixkosten und Einnahmen pro Monat (null ohne gemeinsamen Vertrag)
@@ -24,7 +24,7 @@ JS = """(sp)=>{var K=window.KontivoCalc(),S=K.state,o={};
   o.fixPerMonth={};sp.persons.forEach(function(h){o.fixPerMonth[key(h)]=r(K.fixMonthSum(K.running().filter(function(c){return !K.notStarted(c);}),h));});
   o.cost={};o.budget={};o.varMonth={};
   years.forEach(function(Y){o.cost[Y]={};o.budget[Y]={};
-    sp.persons.forEach(function(h){var cm=K.costMonths(pool,Y,all,h);
+    sp.persons.forEach(function(h){var cm=K.costMonths(pool,Y,h?function(c){return (c.holders||[]).indexOf(h)>=0;}:all,h);
       o.cost[Y][key(h)]={n:cm.n,months:cm.months.map(function(m){return {sum:r(m.sum),paid:r(m.paid),open:r(m.open),count:m.items.length};})};
       o.budget[Y][key(h)]={};
       sp.costKinds.forEach(function(BA){var b=K.budgetYear(Y,shr(h),BA);
