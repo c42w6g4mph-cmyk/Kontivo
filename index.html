@@ -8281,9 +8281,10 @@ document.getElementById("bkFile").addEventListener("change",function(ev){
   rd.onload=async function(){
     var o;try{o=JSON.parse(rd.result);}catch(e){toast("Keine gültige Backup-Datei");return;}
     if(!o||o.app!=="vertraege"||!o.contracts||typeof o.contracts!=="object"||Array.isArray(o.contracts)||(o.incomes!=null&&(typeof o.incomes!=="object"||Array.isArray(o.incomes)))){toast("Keine gültige Backup-Datei – es wurde nichts geändert");return;}
+    var fl={};if(o.files&&typeof o.files==="object")Object.keys(o.files).forEach(function(k){if(fileIdOk(k))fl[k]=o.files[k];});o.files=fl;
     /* gezählt wird, was nach der Prüfung übrig bleibt; ohne gültige Einträge nichts ersetzen */
     var chk;try{chk=sanitizeImport(JSON.parse(JSON.stringify({app:o.app,contracts:o.contracts,incomes:o.incomes||{},settings:o.settings||{}})));}catch(e){chk=null;}
-    var nc=chk?Object.keys(chk.contracts).length:0,ni=chk?Object.keys(chk.incomes).length:0,nf=o.files&&typeof o.files==="object"?Object.keys(o.files).length:0;
+    var nc=chk?Object.keys(chk.contracts).length:0,ni=chk?Object.keys(chk.incomes).length:0,nf=Object.keys(o.files).length;
     if(!nc&&!ni){toast("Das Backup enthält keine Verträge – es wurde nichts geändert",3500);return;}
     var dt=o.exported?new Date(o.exported):null,when=dt&&!isNaN(dt)?"vom "+dt.toLocaleDateString("de-CH"):"(Datum unbekannt)";
     if(!(await ask({title:"Backup einspielen?",text:"Backup "+when+" mit "+(nc===1?"1 Vertrag":nc+" Verträgen")+" und "+(ni===1?"1 Einnahme":ni+" Einnahmen")+(nf?" sowie "+(nf===1?"1 Logo/Dokument":nf+" Logos/Dokumenten"):"")+".\n\nDie aktuellen Daten werden ersetzt.",ok:"Einspielen",danger:true})))return;
@@ -8293,12 +8294,16 @@ document.getElementById("bkFile").addEventListener("change",function(ev){
   };
   rd.readAsText(f);
 });
+/* Datei-IDs (Logos, Dokumente, Schlüssel in o.files) aus fremden Backups: einfache Zeichen, keine Prototyp-Namen */
+function fileIdOk(id){return typeof id==="string"&&/^[A-Za-z0-9_.:-]{1,80}$/.test(id)&&!(id in Object.prototype);}
 /* Backup-Datei kann fremd sein: alles, was ungeprüft in HTML/CSS landet, auf sichere Werte begrenzen */
 function sanitizeImport(o){
   var KEY=/^[A-Za-z0-9_-]{1,40}$/,COL=/^#[0-9A-Fa-f]{3,8}$/,SIG=/^data:image\/(jpeg|png);base64,[A-Za-z0-9+\/]*={0,2}$/,HEX=/^[0-9a-f]{32}$/i;
   var obj=function(x){return !!x&&typeof x==="object"&&!Array.isArray(x);};
   var badCol=function(v){return v!=null&&v!==""&&!COL.test(String(v));};
-  var col=function(c){["color","logoBg"].forEach(function(f){if(badCol(c[f]))delete c[f];});};
+  /* logoBg kommt aus dem Logo-Zuschnitt auch als rgb(r,g,b) */
+  var RGB=/^rgb\(\d{1,3},\d{1,3},\d{1,3}\)$/,badBg=function(v){return badCol(v)&&!RGB.test(String(v));};
+  var col=function(c){if(badCol(c.color))delete c.color;if(badBg(c.logoBg))delete c.logoBg;};
   /* gefährliche Schlüssel (Prototyp) entfernen */
   var BADK=["__proto__","constructor","prototype"];
   var noProto=function(x){if(obj(x))BADK.forEach(function(k){if(Object.prototype.hasOwnProperty.call(x,k))delete x[k];});return x;};
@@ -8306,16 +8311,18 @@ function sanitizeImport(o){
   var STRF=["partner","label","name","cat","due","start","end","noticeU","cancTerm","custNo","contrNo","payM","payA","cancF","trial","cancUrl","web","addr","tel","mail","note","logoId","status","cancelledAt","cancelPer","cancelledOn","keptFor","pausedAt","pausedUntil","cred","mref"];
   var CYC=[1,2,3,6,12,24],CURS=["CHF","EUR","USD","GBP","TRY"];
   var num=function(v){var n=typeof v==="number"?v:typeof v==="string"&&v.trim()!==""?+v:NaN;return isFinite(n)?n:null;};
-  var typ=function(c){noProto(c);
+  var typ=function(c,cyc){noProto(c);
     STRF.forEach(function(f){if(!(f in c)||c[f]==null)return;if(typeof c[f]==="number")c[f]=String(c[f]);else if(typeof c[f]!=="string")delete c[f];});
     if(c.cancF==="Einschreiben")c.cancF="Brief";
     var a=num(c.amount);c.amount=a==null||Math.abs(a)>1e9?0:Math.round(a*100)/100;
-    var y=num(c.cycle);c.cycle=CYC.indexOf(y)>=0?y:1;
+    var y=num(c.cycle);c.cycle=(cyc||CYC).indexOf(y)>=0?y:1;
     if(CURS.indexOf(c.cur)<0)c.cur=state.settings.home||"CHF";
     ["notice","renew"].forEach(function(f){if(!(f in c))return;var n=num(c[f]);if(n==null||n<0||n>1200)delete c[f];else c[f]=n;});
     if(Array.isArray(c.prices))c.prices=c.prices.filter(function(p){var n=num(p.amount);if(n==null||typeof p.from!=="string")return false;p.amount=n;return true;});
     if(Array.isArray(c.extras))c.extras=c.extras.filter(function(p){var n=num(p.amount);if(n==null||typeof p.date!=="string")return false;p.amount=n;if(p.note!=null&&typeof p.note!=="string")p.note=String(p.note);return true;});
-    if(Array.isArray(c.docs))c.docs=c.docs.filter(function(d){return typeof d.id==="string";});
+    /* Datei-IDs wie bei vars prüfen (Schlüssel im Datei-Speicher) */
+    if("logoId" in c&&!fileIdOk(c.logoId))delete c.logoId;
+    if(Array.isArray(c.docs))c.docs=c.docs.filter(function(d){return fileIdOk(d.id);});
     if(obj(c.split)){noProto(c.split);Object.keys(c.split).forEach(function(h){var n=num(c.split[h]);if(n==null||n<0||n>100)delete c.split[h];else c.split[h]=n;});}
     if(c.review!=null&&!obj(c.review))delete c.review;
   };
@@ -8330,7 +8337,8 @@ function sanitizeImport(o){
       if(Array.isArray(c.holders))c.holders=c.holders.filter(function(h){return typeof h==="string"&&h.trim();});
       if(Array.isArray(c.docs))c.docs=c.docs.filter(obj);if(Array.isArray(c.prices))c.prices=c.prices.filter(obj);if(Array.isArray(c.extras))c.extras=c.extras.filter(obj);
       if(c.split!=null&&!obj(c.split))delete c.split;
-      typ(c);
+      /* einmalige Einnahmen (cycle 0) gibt es nur bei Einnahmen */
+      typ(c,m==="incomes"?[0].concat(CYC):CYC);
       out[nk]=c;});
     o[m]=out;});
   var s=noProto(obj(o.settings)?o.settings:{});
@@ -8345,7 +8353,7 @@ function sanitizeImport(o){
     if(v&&typeof v.n==="string"&&v.n.trim())BA[k]={n:v.n.trim().slice(0,80),c:typeof v.c==="string"?v.c:""};});s.bankAlias=BA;}else delete s.bankAlias;
   if(obj(s.sigs)){Object.keys(s.sigs).forEach(function(h){if(!SIG.test(String(s.sigs[h])))delete s.sigs[h];});}else delete s.sigs;
   if("sig" in s&&!SIG.test(String(s.sig)))delete s.sig;  /* alte globale Unterschrift (migModel) */
-  if(Array.isArray(s.catList))s.catList=s.catList.filter(obj).map(function(x){if(badCol(x.c))delete x.c;return x;});
+  if(Array.isArray(s.catList))s.catList=s.catList.filter(function(x){return obj(x)&&typeof x.n==="string"&&x.n.trim();}).map(function(x){if(badCol(x.c))delete x.c;return x;});
   if(obj(s.avatars)){Object.keys(s.avatars).forEach(function(h){if(!HEX.test(String(s.avatars[h])))delete s.avatars[h];});}else delete s.avatars;
   /* Variable Kosten (Planwerte): nur Bezeichnung, Symbol, Betrag, Währung, Personen */
   var vs=obj(o.vars)?o.vars:{},vo={};
@@ -8354,7 +8362,7 @@ function sanitizeImport(o){
       amount:a==null||a<0||a>1e7?0:Math.round(a*100)/100,cur:CURS.indexOf(v.cur)>=0?v.cur:(s.home||"CHF"),
       holders:Array.isArray(v.holders)?v.holders.filter(function(h){return typeof h==="string"&&h.trim();}):[],t:num(v.t)||0,
       start:typeof v.start==="string"&&parseD(v.start)?v.start:"",end:typeof v.end==="string"&&parseD(v.end)?v.end:"",
-      logoId:typeof v.logoId==="string"&&/^[A-Za-z0-9_.:-]{1,80}$/.test(v.logoId)?v.logoId:"",logoBg:typeof v.logoBg==="string"&&COL.test(v.logoBg)?v.logoBg:""};});
+      logoId:fileIdOk(v.logoId)?v.logoId:"",logoBg:typeof v.logoBg==="string"&&(COL.test(v.logoBg)||RGB.test(v.logoBg))?v.logoBg:""};});
   o.vars=vo;
   o.settings=s;return o;
 }
@@ -8418,7 +8426,6 @@ function askDone(v){var sh=document.getElementById("sheetAsk");sh.classList.remo
   var r=askRes;askRes=null;if(r)r(v);}
 var askOnOk=null;
 document.getElementById("askOk").addEventListener("click",function(){var f=askOnOk;askOnOk=null;if(f)try{f();}catch(e){}askDone(true);});
-document.getElementById("askNo").addEventListener("click",function(){askOnOk=null;},true);
 document.getElementById("askNo").addEventListener("click",function(){askDone(false);});
 window.kontivoAsk=ask;
 document.getElementById("askX").addEventListener("click",function(e){var b=e.target.closest("[data-askd]");if(!b)return;var i=document.getElementById("askPer");if(i)i.value=b.dataset.askd;});
@@ -8532,7 +8539,7 @@ function csvHolders(txt,own){
     return ex.filter(function(h){var hl=h.toLowerCase();return hl===lo||(!kom&&hl===first);})[0]||p;});
 }
 function csvToContracts(rows){
-  if(rows.length<2)return {items:[],skipped:0,dup:0,cols:0};
+  if(rows.length<2)return {items:[],skipped:0,dup:0};
   var head=rows[0].map(csvNorm),col={},taken={},own=(head.indexOf("turnusmonate")>=0||head.indexOf("rhythmusmonate")>=0)&&head.indexOf("kuendbarper")>=0;  /* eigener Export */
   Object.keys(CSVMAP).forEach(function(k){for(var a=0;a<CSVMAP[k].length&&col[k]==null;a++){var i=head.indexOf(CSVMAP[k][a]);if(i>=0&&!taken[i]){col[k]=i;taken[i]=1;}}});
   var g=function(r,k){return col[k]==null?"":String(r[col[k]]==null?"":r[col[k]]).trim();};
@@ -8543,9 +8550,10 @@ function csvToContracts(rows){
     var partner=g(r,"partner"),label=g(r,"label"),amt=csvNum(g(r,"amount"));
     if(!partner&&!label){skipped++;return;}
     if(amt==null)amt=0;
-    var tpl=tplFind(partner)||tplFind(label),cy=csvCycle(g(r,"cycle"),adj);
-    if(typeof cy==="string"){var wk=+cy.slice(1)||1;amt=Math.round(amt*52/12/wk*100)/100;cy=1;}  /* wöchentlich / alle n Wochen → monatlich */
+    /* Währung zuerst: der Katalog soll nach der Vertragswährung suchen, nicht nach dem zuletzt offenen Formular */
     var curRaw=(g(r,"cur")+" "+g(r,"amount")).toUpperCase(),cur=/EUR|€/.test(curRaw)?"EUR":/USD|US\$|\$/.test(curRaw)?"USD":/GBP|£/.test(curRaw)?"GBP":/TRY|₺|\bTL\b/.test(curRaw)?"TRY":(/CHF|FR/.test(curRaw)?"CHF":H);
+    var tpl=tplFind(partner,cur)||tplFind(label,cur),cy=csvCycle(g(r,"cycle"),adj);
+    if(typeof cy==="string"){var wk=+cy.slice(1)||1;amt=Math.round(amt*52/12/wk*100)/100;cy=1;}  /* wöchentlich / alle n Wochen → monatlich */
     var catRaw=g(r,"cat"),cat=allCats().filter(function(k){return k.toLowerCase()===catRaw.toLowerCase();})[0]||catByKey(csvCat(catRaw)||(tpl?tpl[2]:""));if(cat&&allCats().indexOf(cat)<0){catRaw=cat;cat="";}
     /* neue Kategorien nur sammeln, angelegt werden sie erst nach der Bestätigung */
     if(!cat&&catRaw){var cs=catList().concat(newC);var ex2=cs.filter(function(x){return x.n.toLowerCase()===catRaw.toLowerCase();})[0];if(!ex2)newC.push({n:catRaw,c:COLORS[(cs.length+3)%COLORS.length],i:"tag"});cat=ex2?ex2.n:catRaw;}
@@ -8603,7 +8611,7 @@ function csvToContracts(rows){
     var e=parseD(c.end);if(e&&e<t0&&c.status!=="cancelled"&&!(+c.renew&&!c.cancelPer)){/* verlängert sich automatisch: läuft weiter */c.status="cancelled";c.cancelledAt=c.end;archived++;}
     if(have[key(c)]){dup++;return;}have[key(c)]=1;out.push(c);
   });
-  return {items:out,skipped:skipped,dup:dup,archived:archived,newHolders:Object.keys(newH),cols:Object.keys(col).length,hasAmt:col.amount!=null,hasName:col.partner!=null||col.label!=null,
+  return {items:out,skipped:skipped,dup:dup,archived:archived,newHolders:Object.keys(newH),hasAmt:col.amount!=null,hasName:col.partner!=null||col.label!=null,
     newCats:newC.filter(function(x){return out.some(function(c){return c.cat===x.n;});}),cycAdj:adj.n,badDates:bad.n};
 }
 /* ---------- Kontoauszug-Import: Datei lesen, wiederkehrende Zahlungen erkennen ----------
@@ -8702,7 +8710,7 @@ function bankBankOf(h){
 var BKBADSTATE=/revert|declin|fail|pending|vorgemerkt|vormerkung|cancel|ausstehend|abgelehnt|rueckgaengig|rückgängig|zurueck|zurück|storniert|fehlgeschlagen|zurückerstattet|in bearbeitung/i;
 var BKBADTYPE=/exchange|umtausch|wechsel|top.?up|aufladung|aufgeladen|einzahlung|^atm$|geldautomat|bargeld|barauszahlung|auszahlung gaa|cashback|bancomat/i;
 var BKBADPROD=/saving|sparen|spar|deposit|pocket|vault|tresor|invest|crypto|krypto/i;
-var bkLastHead="",bkLastDiag="";/* Grund, wenn nichts gelesen wurde: nohead | date | empty (für die Fehlermeldung) */
+var bkLastDiag="";/* Grund, wenn nichts gelesen wurde: nohead | date | empty (für die Fehlermeldung) */
 /* Zahlungsart: dd = Lastschrift/eBill (starkes Vertragssignal), so = Dauerauftrag, card = Karte, tr = Überweisung, "" = unbekannt.
    gvc = MT940-Geschäftsvorfallcode (DK-Liste), sonst Stichwörter aus Typ-Spalte/Buchungstext. */
 function bankKind(gvc,txt){
@@ -8739,7 +8747,7 @@ function bankCsv(txt){
   for(var di=0;di<dls.length&&hi<0;di++){var rs=csvParse("sep="+dls[di]+"\n"+body);if(!rows)rows=rs;
     for(var r=0;r<Math.min(rs.length,60);r++){var c=bankHead(rs[r]);if(c.ok){hi=r;col=c;rows=rs;col.head=rs[r];break;}}}
   if(hi<0){col=bankGuessCols(dls,body);if(col){rows=col.rows;hi=-1;}}
-  if(!col){var fr=rows.filter(function(r){return r.join("").trim();})[0]||[];bkLastHead=fr.slice(0,10).join(" · ").slice(0,160);bkLastDiag="nohead";return null;}
+  if(!col){bkLastDiag="nohead";return null;}
   var g=function(row,i){return i>=0&&row[i]!=null?String(row[i]).replace(/^"+|"+$/g,"").trim():"";},tx=[],pos=0,neg=0,data=rows.slice(hi+1);
   /* Dezimaltrennzeichen aus den Beträgen der Datei */
   var dc=0,dd=0;data.slice(0,300).forEach(function(row){[col.amt,col.deb,col.cre,col.sub].forEach(function(i){var v=g(row,i);if(/,\d{1,2}(\D*)$/.test(v))dc++;else if(/\.\d{1,3}(\D*)$/.test(v))dd++;});});
@@ -8895,7 +8903,7 @@ function bankMt940(txt){
   return {fmt:"MT940",bank:"",tx:tx,acct:m25?m25[1].replace(/\s/g,""):""};
 }
 function bankRead(buf){
-  var txt=typeof buf==="string"?buf:bankDecode(buf),r=null;bkLastHead="";bkLastDiag="";
+  var txt=typeof buf==="string"?buf:bankDecode(buf),r=null;bkLastDiag="";
   if(/<\s*(\w+:)?Document[\s>]/.test(txt)&&/camt\.05[234]/.test(txt))r=bankCamt(txt);
   else if(/(^|\n):20:/.test(txt)&&/\n:61:/.test(txt))r=bankMt940(txt);
   else r=bankCsv(txt);
@@ -8931,6 +8939,8 @@ function bankSubMemo(text){var tl=String(text||"").replace(/\r/g,"").split(/\n+/
   if(/\b(ag|gmbh|sa|sarl|kg|ohg|ug|genossenschaft|verein|stiftung|e ?v)\.?$/i.test(a))return null;
   if(bankStreet(b)||/^\d{4,5}\s/.test(b)||BKLAND.test(lnorm(b))||!/[A-Za-zÄÖÜäöü]{3}/.test(b)||/:/.test(a))return null;
   return {memo:a.slice(0,60),name:b};}
+/* Name einer Buchung (Kosten und Einnahmen gleich): Empfänger/Auftraggeber, sonst aus dem Buchungstext; nur der erste Teil vor «;» / « · » */
+function bankTxName(t){var nm=t.name&&!bankIsType(t.name)?bankNameClean(t.name.split(/\s*,\s*/)[0]):bankNameFrom(t.text);return String(nm||"").split(/;|\s·\s/)[0].trim();}
 function bankNameFrom(t){
   var full=String(t||"").replace(/\r/g,"").split(/\n+/).map(function(x){return x.replace(/\s+/g," ").trim();}).filter(Boolean).join(" , ");
   /* ausdrückliche Bezeichnungen */
@@ -8999,6 +9009,7 @@ function bankTpl0(name,text,cur){var X=tplIdx();
   var nn=" "+deU(lnorm(name))+" ",nt=" "+deU(lnorm(name+" "+text))+" ",cc=cur==="EUR"?"DE":(cur==="CHF"?"CH":""),via=BKVIA.test(nn),best=null;
   /* inN: 2 = Produkt-Alias im Text (Deutschlandticket über Stadtwerke, O2 über Telefónica), 1 = Name, 0 = nur Text */
   var inN=0;
+  var NT2=bankTok(name).map(bankDeU);/* Namens-Tokens einmal pro Buchung statt pro Katalogeintrag */
   var better=function(t,n,ti){if(!best)return true;var d=n-inN;if(d)return d>0;return ((t[1]===cc)-(best[1]===cc)||X.len[ti]-X.len[bi]||t[0].length-best[0].length)>0;},bi=-1;/* spezifischer gewinnt: «Allianz Travel» vor «Allianz Suisse» */
   TPL.forEach(function(t,ti){
     var al=BKALIAS[t[0]];if(al){if(al.test(nt)){var n1=al.test(nn)?1:(BKPROD.indexOf(t[0])>=0?2:0);if(better(t,n1,ti)){best=t;bi=ti;inN=n1;}}return;}
@@ -9006,7 +9017,7 @@ function bankTpl0(name,text,cur){var X=tplIdx();
     /* ein Wort (CSS, Zurich, Netflix): nur im Namen, sonst Fehltreffer über Ortsnamen; bei PayPal & Co. auch im Freitext */
     var hay=tk.length===1&&!via?nn:nt;
     /* ein Wort: muss vorne im Namen stehen (davor nur Allerweltswörter) – «Garten Center Spiegel» ist nicht «Der Spiegel» */
-    if(tk.length===1&&!via){var nt2=bankTok(name).map(bankDeU),ix=nt2.indexOf(tk[0]);if(ix>0&&nt2.slice(0,ix).some(function(w){return w.length>3&&LGEN.indexOf(w)<0&&!/^(lastschrift|zahlung|erechnung|ebill|dauerauftrag|gutschrift|belastung|einkauf|kauf|abo|abonnement|rechnung)$/.test(w);}))return;}
+    if(tk.length===1&&!via){var nt2=NT2,ix=nt2.indexOf(tk[0]);if(ix>0&&nt2.slice(0,ix).some(function(w){return w.length>3&&LGEN.indexOf(w)<0&&!/^(lastschrift|zahlung|erechnung|ebill|dauerauftrag|gutschrift|belastung|einkauf|kauf|abo|abonnement|rechnung)$/.test(w);}))return;}
     if(tk.every(function(x){return hay.indexOf(" "+x+" ")>=0;})){var n2=tk.every(function(x){return nn.indexOf(" "+x+" ")>=0;});if(better(t,n2?1:0,ti)){best=t;bi=ti;inN=n2?1:0;}}
   });
   /* gleicher Name, mehrere Verträge (CSS Krankenkasse/Zusatzversicherung, Mainova Strom/Gas): Bezeichnung aus dem Buchungstext wählen */
@@ -9070,8 +9081,7 @@ function bankFind(r,ign){
   var groups={},home=state.settings.home;
   r.tx.forEach(function(t){
     if(t.a>=0)return;
-    var nm=t.name&&!bankIsType(t.name)?bankNameClean(t.name.split(/\s*,\s*/)[0]):bankNameFrom(t.text);
-    nm=nm.split(/;|\s·\s/)[0].trim();
+    var nm=bankTxName(t);
     /* Kontoführung ohne Empfänger («ENTGELTABSCHLUSS · Entgeltabrechnung siehe Anlage») → Vertragspartner = die Bank */
     if(!(t.name&&!bankIsType(t.name))&&BKFEE.test(lnorm((t.type||"")+" "+(t.text||""))))nm=r.bank||"Bank";
     /* PayPal, Klarna & Co.: eigentlicher Händler steht im Text («Ihr Einkauf bei Muster Cloud») */
@@ -9258,9 +9268,9 @@ function bankFind(r,ign){
       var cs=iv.map(bankCycle),cnt={};cs.forEach(function(c){if(c)cnt[c]=(cnt[c]||0)+1;});
       /* kleinster Rhythmus, bei dem ≥ 70 % der Abstände passen; eine fehlende Zahlung (doppelter Abstand) zählt mit
          (z.B. Quartal mit Sammelauftrag dazwischen, Monat mit ausgelassener Abbuchung) */
-      var dbl={1:2,2:4,3:6,6:12},hit=0;cyc=0;
+      var dbl={1:2,2:4,3:6,6:12};cyc=0;
       Object.keys(cnt).map(Number).sort(function(a,b){return a-b;}).some(function(c0){
-        var h=cs.filter(function(c){return c===c0||c===dbl[c0];}).length;if(h>=iv.length*0.7&&cnt[c0]>=Math.max(1,iv.length*0.3)){cyc=c0;hit=h;return true;}return false;});
+        var h=cs.filter(function(c){return c===c0||c===dbl[c0];}).length;if(h>=iv.length*0.7&&cnt[c0]>=Math.max(1,iv.length*0.3)){cyc=c0;return true;}return false;});
       if(!cyc)return;
       /* Beträge: höchstens zwei Stufen (Preisänderung) oder ±5 % um den Median, sonst variabel (Einkäufe) */
       var lv=[];am.forEach(function(v){if(!lv.length||Math.abs(lv[lv.length-1]-v)>0.004)lv.push(v);});
@@ -9286,7 +9296,6 @@ function bankFind(r,ign){
         var fx=kind==="card"&&n>=3&&cyc===1&&(function(){var s0=am.slice().sort(function(a,b){return a-b;}),m0=s0[Math.floor(s0.length/2)];return am.every(function(v){return Math.abs(v-m0)<=m0*0.05;});})()&&
           (lnorm(tx.map(function(t){return (t.text||"")+" "+(t.type||"");}).join(" ")).match(/\busd\b|\bgbp\b|\bchf\b|fremdw|kurs|wechselkurs|auslandseinsatz|devisen/)||tx.some(function(t){return t.fx;}));
         if(kind==="card"&&!g.tpl&&!fx)return;
-        var srt=am.slice().sort(function(a,b){return a-b;}),med=srt[Math.floor(srt.length/2)];
         /* Schwankung nur über die letzten 13 Monate prüfen (lange Auszüge driften); Strom/Energie schwankt mit dem Verbrauch: ±20 % */
         var amR=tx.map(function(t,i){return dd(t.d,ref)<=400?am[i]:null;}).filter(function(v){return v!=null;});if(amR.length<3)amR=am;
         var sR=amR.slice().sort(function(a,b){return a-b;}),mR=sR[Math.floor(sR.length/2)],
@@ -9359,8 +9368,7 @@ function bankFindInc(r){
   var me=[].concat(state.settings.holders||[]).concat([(state.settings.sender&&state.settings.sender.name)||""]).map(function(h){return bankTok(h).filter(function(x){return x.length>=3;});});
   r.tx.forEach(function(t){
     if(!(t.a>0)||t.sub)return;
-    var nm=t.name&&!bankIsType(t.name)?bankNameClean(t.name.split(/\s*,\s*/)[0]):bankNameFrom(t.text);
-    nm=String(nm||"").split(/;|\s·\s/)[0].trim();if(!nm)return;
+    var nm=bankTxName(t);if(!nm)return;
     var hay=lnorm(nm+" "+(t.text||"")+" "+(t.type||""));
     if(BKINSKIP.test(hay))return;
     var tk=bankTok(nm);
@@ -9485,8 +9493,6 @@ function bankMatch(s){
 /* Preisverlauf aus den Zahlungen (23.10.2026): Stufen = mind. 2 aufeinanderfolgende gleiche Beträge (±0,5 %); einzelne Ausreisser (Gutschrift,
    Teilbetrag) zählen nicht. Ergebnis: Anfangspreis + Preisänderungen mit Datum der ersten Zahlung zum neuen Preis. Null bei schwankenden Beträgen
    (Strom, Kartenkäufe): höchstens 6 Stufen, Stufen decken ≥ 75 % der Zahlungen. SwiftUI: gleiche Funktion im BankImport-Kern */
-/* Einnahmen (Lohn, 23.10.2026): Netto schwankt leicht (Abzüge) → Toleranz 1 %, bis 12 Stufen, Stufe = jüngster Betrag, keine Gratismonate */
-var BK_INCH={tol:0.02,maxLv:12,cov:0.6,inc:true};/* Lohn: < 2 % = Schwankung (Abzüge), keine Lohnänderung */
 /* Lohnverlauf (23.10.2026): Ausreisser (> 15 % vom Stufenwert: 13. Lohn, Bonus, Spesen) zählen nicht; neue Stufe erst, wenn zwei Zahlungen
    hintereinander > 2 % vom Median der aktuellen Stufe abweichen und unter sich ähnlich sind. Stufenwert = Median. Kleine Schwankungen bleiben eine Stufe */
 function bankIncHist(s){var D=s.dates||[],A=s.amounts||[],n=Math.min(D.length,A.length);if(n<3)return null;
@@ -9502,25 +9508,25 @@ function bankIncHist(s){var D=s.dates||[],A=s.amounts||[],n=Math.min(D.length,A.
   if(!lv.length||lv.length>12)return null;var cov=lv.reduce(function(t,l){return t+l.v.length;},0);if(cov<n*0.6)return null;
   var L=lv.map(function(l){return {a:r2(med(l.v)),from:l.from,n:l.v.length,last:l.v[l.v.length-1]};});
   return {base:L[0].a,prices:L.slice(1).map(function(l){return {from:l.from,amount:l.a};}),chg:L.slice(1).map(function(l){return {from:l.from,amount:l.a};}),free:[],cur:r2(L[L.length-1].last),levels:L};}
-function bankPriceHist(s,o){o=o||{};if(o.inc)return bankIncHist(s);var D=s.dates||[],A=s.amounts||[],n=Math.min(D.length,A.length);if(n<3)return null;
-  var tol=o.tol||0.005,eq=function(x,y){return Math.abs(x-y)<=Math.max(0.01,Math.abs(y)*tol);},runs=[];
+/* Kosten: bankPriceHist(s); Einnahmen: bankPriceHist(s,true) → bankIncHist. SwiftUI: zwei getrennte Funktionen */
+function bankPriceHist(s,inc){if(inc)return bankIncHist(s);var D=s.dates||[],A=s.amounts||[],n=Math.min(D.length,A.length);if(n<3)return null;
+  var tol=0.005,eq=function(x,y){return Math.abs(x-y)<=Math.max(0.01,Math.abs(y)*tol);},runs=[];
   for(var i=0;i<n;i++){var r=runs[runs.length-1];if(r&&eq(A[i],r.a))r.n++;else runs.push({a:A[i],from:D[i],n:1});}
-  if(o.inc){runs=[];for(var i2=0;i2<n;i2++){var r2=runs[runs.length-1];if(r2&&eq(A[i2],r2.a0)){r2.n++;r2.a=A[i2];}else runs.push({a:A[i2],a0:A[i2],from:D[i2],n:1});}}
   var lv=[],cov=0;runs.forEach(function(r){if(r.n<2)return;cov+=r.n;var l=lv[lv.length-1];
-    if(l&&eq(r.a0!=null?r.a0:r.a,o.inc?l.a0:l.a)){l.n+=r.n;l.last=r.a;return;}lv.push({a:r.a0!=null?r.a0:r.a,a0:r.a0!=null?r.a0:r.a,last:r.a,from:r.from,n:r.n});});
-  if(!lv.length||lv.length>(o.maxLv||6)||cov<n*(o.cov||0.75))return null;
+    if(l&&eq(r.a,l.a)){l.n+=r.n;l.last=r.a;return;}lv.push({a:r.a,last:r.a,from:r.from,n:r.n});});
+  if(!lv.length||lv.length>6||cov<n*0.75)return null;
   var r2=function(x){return Math.round(x*100)/100;},chg=lv.slice(1).map(function(l){return {from:l.from,amount:r2(l.a)};});
   /* Ausgelassene Monate bei Monatsverträgen = gratis (Wunsch 23.10.2026): Lücke > 49 Tage, danach keine Nachzahlung (< 15 Tage) → Preis 0 ab dem
      fälligen Tag, ab der nächsten Zahlung wieder der Preis der Stufe */
   var free=[],ev=chg.slice(),at=function(d){var a=lv[0].a;lv.forEach(function(l){if(l.from<=d)a=l.a;});return r2(a);};
   var dd=function(x,y){return Math.round((parseD(y)-parseD(x))/864e5);};
-  if(!o.inc&&(+s.cycle||1)===1)for(var j=1;j<n;j++){var g=dd(D[j-1],D[j]);if(g<=49)continue;if(j+1<n&&dd(D[j],D[j+1])<15)continue;
+  if((+s.cycle||1)===1)for(var j=1;j<n;j++){var g=dd(D[j-1],D[j]);if(g<=49)continue;if(j+1<n&&dd(D[j],D[j+1])<15)continue;
     var miss=Math.round(g/30.44)-1,f0=parseD(D[j-1]);if(miss<1||miss>3)continue;
     for(var k=1;k<=miss;k++)free.push(iso(addMonths(f0,k)));
     ev.push({from:iso(addMonths(f0,1)),amount:0});ev.push({from:D[j],amount:at(D[j])});}
   ev.sort(function(x,y){return x.from<y.from?-1:x.from>y.from?1:0;});
   var pr=[],last=r2(lv[0].a);ev.forEach(function(e){if(Math.abs(e.amount-last)<0.005)return;if(pr.length&&pr[pr.length-1].from===e.from)pr.pop();pr.push(e);last=e.amount;});
-  return {base:r2(lv[0].a),prices:pr,chg:chg,free:free,cur:r2(o.inc?lv[lv.length-1].last:lv[lv.length-1].a),levels:lv};}
+  return {base:r2(lv[0].a),prices:pr,chg:chg,free:free,cur:r2(lv[lv.length-1].a),levels:lv};}
 /* Vertragsbeginn = erste Zahlung, aber nur wenn sie deutlich nach dem Anfang des Auszugs liegt (> 1,5 Zahlungsrhythmen) – sonst lief der
    Vertrag schon vorher und der wahre Beginn ist unbekannt (23.10.2026) */
 function bankStart(s){if(!s.stFrom||!s.first||!(s.n>=2)||s.change)return "";/* Preisstufe nach Wechsel (Steuer 760 → 340): Vertrag lief schon vorher */var d=(parseD(s.first)-parseD(s.stFrom))/864e5;return d>(+s.cycle||1)*30.44*1.5?s.first:"";}
@@ -9587,9 +9593,9 @@ function bkHolders(){var HL=state.settings.holders||["Ich"],lh=(state.settings.l
 function bkWho(txt){var HL=state.settings.holders||[];if(HL.length<2||!txt)return [];var t=bankTok(txt);
   var hit=HL.filter(function(h){var w=bankTok(h);return w.length&&(t.indexOf(w[0])>=0||w.every(function(x){return t.indexOf(x)>=0;}));});
   return hit;}
-function openBank(res,label,quiet){
+function openBank(res){
   var H=bkHolders(),ow=bkWho(res.owner||"");if(ow.length===1)H=ow;
-  bk={res:res,label:label,step:"fix",showIgn:false,
+  bk={res:res,step:"fix",showIgn:false,
     items:res.sugg.filter(function(s){return !s.match;}).map(function(s){s.stFrom=res.from;
       return {s:s,on:s.conf!=="niedrig"&&!s.ignored&&!s.same&&!s.arch,q:"",logo:null,term:"",ed:{name:s.name,label:bankLabel(s),amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
     price:res.sugg.filter(function(s){return s.match&&s.match.kind==="price";}).map(function(s){return {s:s,on:true};}),
@@ -9598,9 +9604,8 @@ function openBank(res,label,quiet){
     owner:res.owner||"",ownerHit:ow.length===1?ow[0]:"",joint:ow.length>1,
     logoRun:{done:0,total:0}};
   if(!bkFixCount()&&!bk.price.length&&bk.inc.length)bk.step="inc";
-  if(!quiet){paintBank();openSheet(document.getElementById("sheetBank"));bkLogos();}
 }
-function bkDay(d){var p=String(d).split("-");return p.length<3?String(d):p[2].slice(0,2).padStart(2,"0")+"."+p[1].padStart(2,"0")+"."+p[0];}/* TT.MM.JJJJ, einheitlich (23.10.2026) */
+function bkDay(d){return fmtDot(d)||String(d);}/* TT.MM.JJJJ wie fmtDot (Eingaben sind ISO-Daten) */
 var BKPER={1:"pro Monat",2:"alle 2 Monate",3:"pro Quartal",6:"pro Halbjahr",12:"pro Jahr",24:"alle 2 Jahre"};
 function bkPer(c){return BKPER[c]||"alle "+c+" Monate";}
 /* Untertitel: Vertragspartner (falls oben die Bezeichnung steht) · Beleg · Hinweis in Messing */
@@ -9609,7 +9614,7 @@ function bkSub(it){var e=it.ed;return e.label&&lnorm(e.label)!==lnorm(e.name)?es
 function bkChips(it,inc,idx){var s=it.s,e=it.ed,c=[];
   /* Anzahl antippen → Zahlungen aus dem Auszug aufklappen (23.10.2026) */
   c.push(s.conf==="niedrig"?'<i>einmal am '+bkDay(s.last)+'</i>':'<i class="tap" role="button" tabindex="0" data-bkpay="'+(inc?"i":"c")+idx+'" aria-expanded="'+!!it.pay+'">'+s.n+(s.n===1?" Zahlung":" Zahlungen")+'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></i>');
-  var ph=bankPriceHist(s,inc?BK_INCH:null),lc=ph&&ph.chg.length?{prev:ph.chg.length>1?ph.chg[ph.chg.length-2].amount:ph.base,amount:ph.cur,from:ph.chg[ph.chg.length-1].from}:(!inc&&s.change)||null;
+  var ph=bankPriceHist(s,inc),lc=ph&&ph.chg.length?{prev:ph.chg.length>1?ph.chg[ph.chg.length-2].amount:ph.base,amount:ph.cur,from:ph.chg[ph.chg.length-1].from}:(!inc&&s.change)||null;
   if(lc&&lc.prev>0&&Math.abs(e.amount-lc.amount)<0.005){var pc=(lc.amount/lc.prev-1)*100;
     c.push('<i class="pc">'+(Math.abs(pc)>=100?"vorher "+money(lc.prev,s.cur)+" · ab "+bkDay(lc.from):(pc>0?"+":"−")+Math.abs(pc).toFixed(1).replace(".",",")+' % ab '+bkDay(lc.from))+'</i>');
     if(ph&&ph.chg.length>1)c.push('<i>'+ph.chg.length+(inc?' Änderungen':' Preisänderungen')+'</i>');}
@@ -9618,10 +9623,7 @@ function bkChips(it,inc,idx){var s=it.s,e=it.ed,c=[];
   return '<span class="bkq">'+c.join("")+'</span>';}
 function bkTitle(it){var l=it.ed.label;return l&&lnorm(l)!==lnorm(it.ed.name)?l:it.ed.name;}
 function bkNoCancel(it){return it.ed.cat===catByKey("Steuern & Gebühren");}
-/* Versicherer mit mehreren Sparten (Katalog-Bezeichnung nur «Versicherung»): Katalog-Frist gilt für die Hauptsparte, nicht sicher für diese Police */
-function bkTermCheck(it){var t=it.s&&it.s.tpl;if(it.over||!t||it.term)return false;return catKey(t[2])==="Versicherung"&&/^versicherung(en)?$/i.test(String(t[3]||""));}
-function bkHasTerm(it){return bkHasTermBase(it)||it.term==="1"||it.term==="3"||it.term==="x";}
-function bkMark(it,inc){var e=it.ed;return markHtml({partner:e.name,cat:e.cat,label:e.label||"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg:""});}
+function bkMark(it){var e=it.ed;return markHtml({partner:e.name,cat:e.cat,label:e.label||"",logoId:it.logo?it.logo.id:"",logoBg:it.logo?it.logo.bg:""});}
 function bkRow(it,i){
   var e=it.ed,cur=it.s.cur,maybe=it.s.conf==="niedrig";
   return '<div class="bkr'+(it.on?"":" off")+'">'+
@@ -9634,10 +9636,10 @@ function bkRow(it,i){
 }
 /* Zahlungen eines Vorschlags (neueste zuerst, 12 sichtbar); geänderter Betrag in Messing. SwiftUI: DisclosureGroup */
 function bkPayList(it,key){if(!it.pay)return "";var s=it.s,D=(s.dates||[]).map(function(d,j){return [d,(s.amounts||[])[j]];}).reverse(),n=it.payAll?D.length:Math.min(12,D.length);
-  var ph=bankPriceHist(s,key.charAt(0)==="i"?BK_INCH:null),chg={},lvA=ph?ph.levels.map(function(l){return l.a;}):null;if(ph){ph.chg.forEach(function(p){chg[p.from]=1;});
+  var ph=bankPriceHist(s,key.charAt(0)==="i"),chg={};if(ph){ph.chg.forEach(function(p){chg[p.from]=1;});
     ph.free.forEach(function(d){D.push([d,null]);});D.sort(function(x,y){return x[0]<y[0]?1:-1;});n=it.payAll?D.length:Math.min(12,D.length);}
   return '<div class="bkpay">'+D.slice(0,n).map(function(x,j){var nx=D[j+1],ch=ph?!!chg[x[0]]:false,
-        odd=ph&&!ph.levels.some(function(l){return Math.abs(l.a-x[1])<=Math.max(0.01,l.a*(key.charAt(0)==="i"?0.01:0.005))||Math.abs((l.a0||l.a)-x[1])<=l.a*0.01;});
+        odd=ph&&!ph.levels.some(function(l){return Math.abs(l.a-x[1])<=Math.max(0.01,l.a*(key.charAt(0)==="i"?0.01:0.005))||Math.abs(l.a-x[1])<=l.a*0.01;});
       if(x[1]==null)return '<div><span>'+bkDay(x[0])+' · keine Zahlung</span><b class="od">gratis</b></div>';
       return '<div><span>'+bkDay(x[0])+(ch?' · neuer Preis':'')+(odd?' · einmalig':'')+'</span><b class="'+(ch?"ch":odd?"od":"")+'">'+money(x[1],s.cur)+'</b></div>';}).join("")+
     (D.length>n?'<button type="button" data-bkpayall="'+key+'">Alle '+D.length+' anzeigen</button>':"")+'</div>';}
@@ -9649,10 +9651,9 @@ function bkDupBox(it,i){var s=it.s,id=s.same||s.arch,c=id&&state.contracts[id];i
   var a=s.arch?["Wieder aktivieren","Neu anlegen"]:["Ja, schon erfasst","Nein, neu"];
   return '<div class="bkdup"><p>'+txt+'</p><div class="bkyn"><button type="button" data-bkdupy="'+i+'" aria-pressed="'+(it.q==="y")+'">'+a[0]+'</button><button type="button" data-bkdupn="'+i+'" aria-pressed="'+(it.q==="n")+'">'+a[1]+'</button></div></div>';}
 function bkIncRow(it,i){var e=it.ed,cur=it.s.cur;
-  var sub=e.label&&lnorm(e.label)!==lnorm(e.name)?esc(e.name):esc(e.cat||"");
   return '<div class="bkr'+(it.on?"":" off")+'"><button type="button" class="bkck" data-ikon="'+i+'" role="checkbox" aria-checked="'+it.on+'" aria-label="'+esc(e.label||e.name)+' übernehmen"></button>'+
-    '<button type="button" class="bkmain wr" data-ikopen="'+i+'">'+bkMark(it,true)+
-      '<span class="bktx"><b>'+esc(e.label||e.name)+'</b><small>'+sub+'</small></span>'+
+    '<button type="button" class="bkmain wr" data-ikopen="'+i+'">'+bkMark(it)+
+      '<span class="bktx"><b>'+esc(e.label||e.name)+'</b><small>'+bkSub(it)+'</small></span>'+
       '<span class="bkam">'+money(e.amount,cur)+'<small>'+esc(cur)+" "+bkPer(e.cycle)+'</small></span><span class="bkchev" aria-hidden="true">›</span>'+bkChips(it,true,i)+'</button>'+bkPayList(it,"i"+i)+'</div>';}
 function bkKnownRow(s){var c=state.contracts[s.match&&s.match.id];if(!c)return "";
   return '<div class="bkr bkkn"><span class="bkok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>'+
@@ -9695,7 +9696,6 @@ function paintBank(){
     /* kurzer Zeitraum: Jahresverträge fehlen womöglich */
     var spanM=r.from&&r.to?Math.round((parseD(r.to)-parseD(r.from))/864e5/30.4):0;
     if(spanM&&spanM<11)h+='<p class="bki bkspan">Der Auszug umfasst nur '+(spanM<1?"wenige Wochen":spanM+" Monate")+'. Jahresbeiträge (Versicherungen, Steuern, Mitgliedschaften) fehlen womöglich – am besten die letzten 12 Monate exportieren.</p>';
-    /* Kacheln (23.10.2026): Anzahl gefundener Verträge; «Preise aktualisiert» nur bei erfassten Verträgen mit neuem Preis */
     /* Karte oben (23.10.2026, Variante J1): Symbole der gefundenen Kategorien, «n Verträge erkannt»; neue Preise bei erfassten Verträgen als Zusatz */
     if(vis.length||bk.price.length)h+=bkHero(vis.map(function(i){return bk.items[i];}),false,bk.price.length);
     h+=bkLogoLine()+bkWhoBar();
@@ -9723,7 +9723,6 @@ function paintBank(){
   if(bk.step===st[st.length-1])h+='<p class="note bkpriv">Die Datei wurde nur auf diesem Gerät gelesen und nicht gespeichert.</p>';
   b.innerHTML=h;bkFoot();
 }
-/* Kacheln oben im Import: [[Zahl, Text, Messing?]] – 1 bis 3 nebeneinander, gleich gefüllt. SwiftUI: HStack aus Kacheln */
 /* Kopfkarte im Import: überlappende Kategorie-Symbole (max. 4, sonst «+n»), neutrale Zahl, Kategorien als Satz. SwiftUI: HStack mit Kreisen, negativer Abstand */
 function bkHero(L,inc,np){var cats=[],cn={};L.forEach(function(it){var c=it.ed.cat||"Sonstiges";if(!cn[c]){cn[c]=1;cats.push(c);}});
   var n=L.length,word=inc?"Einkommen":(n===1?"Vertrag":"Verträge"),t=n?n+" "+word+" erkannt":"";
@@ -9734,9 +9733,8 @@ function bkHero(L,inc,np){var cats=[],cn={};L.forEach(function(it){var c=it.ed.c
   /* Logos der gefundenen Vertragspartner (Wunsch 23.10.2026): mit Logo zuerst, dann nach Betrag; je Vertragspartner einmal; ohne Logo Kategorie-Symbol */
   var seen={},U=L.slice().sort(function(a,b){return (b.logo?1:0)-(a.logo?1:0)||((+b.ed.amount||0)/(+b.ed.cycle||1))-((+a.ed.amount||0)/(+a.ed.cycle||1));})
     .filter(function(it){var k=lnorm(it.ed.name||"");if(seen[k])return false;seen[k]=1;return true;});
-  var ic=U.slice(0,U.length>4?3:4).map(function(it){return bkMark(it,inc);}).join("")+(U.length>4?'<span class="more">+'+(U.length-3)+"</span>":"");
+  var ic=U.slice(0,U.length>4?3:4).map(function(it){return bkMark(it);}).join("")+(U.length>4?'<span class="more">+'+(U.length-3)+"</span>":"");
   return '<div class="bkhero'+(inc?" inc":"")+'"><div class="bkstk">'+(ic||'<span class="more">✓</span>')+'</div><div><b>'+t+'</b><small>'+sub+"</small></div></div>";}
-function bkTiles(L){return '<div class="bktiles n'+L.length+'">'+L.map(function(t){return '<div class="'+(t[2]?"br":"")+'"><b>'+t[0]+'</b><span>'+t[1]+'</span></div>';}).join("")+'</div>';}
 function bkCounts(){
   var n=bk.items.filter(function(it){return it.on&&(bk.showIgn||!it.s.ignored);}).length,p=bk.price.filter(function(x){return x.on;}).length,i=bk.inc.filter(function(x){return x.on;}).length;
   return {n:n,p:p,i:i,all:n+p+i};}
@@ -9787,7 +9785,7 @@ function bankMerge(rs){
   Object.keys(by).forEach(function(k){var e=by[k],best=null;Object.keys(e).forEach(function(fi){if(!best||e[fi].length>best.length)best=e[fi];});tx=tx.concat(best);});
   tx.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
   var ow=rs.map(function(r){return r.owner||"";}).filter(Boolean);
-  return {fmt:rs.map(function(r){return r.fmt;}).join(", "),bank:"",tx:tx,from:tx[0].d,to:tx[tx.length-1].d,files:rs.length,owner:ow.length===rs.length&&ow.every(function(o){return lnorm(o)===lnorm(ow[0]);})?ow[0]:""};
+  return {fmt:rs.map(function(r){return r.fmt;}).join(", "),bank:"",tx:tx,from:tx[0].d,to:tx[tx.length-1].d,owner:ow.length===rs.length&&ow.every(function(o){return lnorm(o)===lnorm(ow[0]);})?ow[0]:""};
 }
 /* Excel (.xlsx) direkt lesen: ZIP entpacken (DecompressionStream, auf dem Gerät), erstes Tabellenblatt → CSV-Text für bankRead.
    Datumszellen sind Zahlen (Tage seit 1899-12-30) → TT.MM.JJJJ in Spalten, deren Überschrift nach Datum klingt. SwiftUI: CoreXLSX o.ä. */
@@ -9798,10 +9796,12 @@ async function zipOpen(buf){var u=new Uint8Array(buf),dv=new DataView(buf),e=-1;
     F[td.decode(u.subarray(p+46,p+46+nl)).replace(/\\/g,"/").replace(/^\/+/,"")]={m:m,cs:cs,lo:lo};p+=46+nl+xl+cl;}
   /* Namen ohne Rücksicht auf Gross/Klein finden (manche Excel-Exporte: «xl/worksheets/Sheet1.xml», «/xl/…») */
   var low={};Object.keys(F).forEach(function(k){low[k.toLowerCase()]=k;});
-  var get=async function(name){var f=F[name]||F[low[String(name).replace(/^\/+/,"").toLowerCase()]];if(!f)return "";var o=f.lo+30+dv.getUint16(f.lo+26,true)+dv.getUint16(f.lo+28,true),d=u.subarray(o,o+f.cs);
-    if(f.m===0)return td.decode(d);if(f.m!==8||typeof DecompressionStream==="undefined")throw new Error("inflate");
-    return await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();};
-  return {names:Object.keys(F),get:get};}
+  /* Rohbytes eines Eintrags; get = als UTF-8 (XML), getBytes für Auszüge (Zeichensatz über bankDecode wie bei der Einzeldatei) */
+  var getBytes=async function(name){var f=F[name]||F[low[String(name).replace(/^\/+/,"").toLowerCase()]];if(!f)return new ArrayBuffer(0);var o=f.lo+30+dv.getUint16(f.lo+26,true)+dv.getUint16(f.lo+28,true),d=u.subarray(o,o+f.cs);
+    if(f.m===0)return d.slice().buffer;if(f.m!==8||typeof DecompressionStream==="undefined")throw new Error("inflate");
+    return await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer();};
+  var get=async function(name){return td.decode(await getBytes(name));};
+  return {names:Object.keys(F),get:get,getBytes:getBytes};}
 /* xlsx → je Tabellenblatt ein CSV-Text (alle Blätter, Reihenfolge wie in der Mappe); Kopfzeile = erste Zeile, die bankHead erkennt (Titelzeile davor ok) */
 async function xlsxTexts(buf){var Z=await zipOpen(buf),get0=Z.get;
   /* .NET/OpenXML-SDK schreiben Präfixe (<x:row>, <x:c>) → entfernen */
@@ -9841,27 +9841,27 @@ async function odsTexts(Z){var xml=(await Z.get("content.xml")).replace(/<(\/?)[
   return out;}
 /* ZIP-Datei: Excel (alle Blätter), camt-Sammlung (CH-Banken liefern camt.053/054 gezippt) oder Apple Numbers → Ergebnis + Grund */
 async function bankZip(buf){var Z=await zipOpen(buf);
-  if(Z.names.some(function(n){return /^xl\/(workbook\.xml|worksheets\/)/i.test(n);})){var ts,d0="";try{ts=await xlsxTexts(buf);}catch(e){return {r:null,diag:"xlsxerr",xlsx:true};}
-    for(var i=0;i<ts.length;i++){var r=bankRead(ts[i]);if(r)return {r:r};if(!d0||bkLastDiag==="date")d0=bkLastDiag;}return {r:null,diag:d0||"nohead",xlsx:true};}
+  if(Z.names.some(function(n){return /^xl\/(workbook\.xml|worksheets\/)/i.test(n);})){var ts,d0="";try{ts=await xlsxTexts(buf);}catch(e){return {r:null,diag:"xlsxerr"};}
+    for(var i=0;i<ts.length;i++){var r=bankRead(ts[i]);if(r)return {r:r};if(!d0||bkLastDiag==="date")d0=bkLastDiag;}return {r:null,diag:d0||"nohead"};}
   if(Z.names.some(function(n){return /^index\/|\.iwa$/i.test(n);}))return {r:null,diag:"numbers"};
   if(Z.names.indexOf("content.xml")>=0&&/opendocument\.spreadsheet/.test(await Z.get("mimetype"))){var to=await odsTexts(Z),d1="";
     for(var o=0;o<to.length;o++){var ro=bankRead(to[o]);if(ro)return {r:ro};if(!d1||bkLastDiag==="date")d1=bkLastDiag;}return {r:null,diag:d1||"nohead"};}
   /* gezippte Exporte: camt/MT940 (XML, STA) oder CSV/TXT */
   var xs=Z.names.filter(function(n){return /\.(xml|txt|sta|940|csv|tsv|mt940|camt)$/i.test(n)&&!/__macosx|\/\._|^\._/i.test(n);}),rs=[];
   for(var j=0;j<xs.length&&j<200;j++){try{var r2=null;
-      r2=bankRead(await Z.get(xs[j]));if(r2)rs.push(r2);}catch(e){}}
+      r2=bankRead(await Z.getBytes(xs[j]));if(r2)rs.push(r2);}catch(e){}}
   if(rs.length)return {r:rs.length===1?rs[0]:bankMerge(rs)};
   return {r:null,diag:"zip"};}
-function bankReadFile(f){return new Promise(function(res){if(f.size>20e6){res({f:f,r:null,head:"",big:true});return;}var rd=new FileReader();
+function bankReadFile(f){return new Promise(function(res){if(f.size>20e6){res({f:f,r:null,big:true});return;}var rd=new FileReader();
   rd.onload=async function(){var r=null,b=new Uint8Array(rd.result,0,Math.min(8,rd.result.byteLength));
-    if(b[0]===0x50&&b[1]===0x4B&&b[2]===3&&b[3]===4){var z=null;try{z=await bankZip(rd.result);}catch(e){z={r:null,diag:"zip"};}res({f:f,r:z.r,head:"",diag:z.diag||"",xlsx:!!z.xlsx});return;}
-    if(b[0]===0x25&&b[1]===0x50&&b[2]===0x44&&b[3]===0x46){res({f:f,r:null,head:"",diag:"pdf"});return;}
-    if(b[0]===0xD0&&b[1]===0xCF&&b[2]===0x11&&b[3]===0xE0){res({f:f,r:null,head:"",xls:true});return;}
+    if(b[0]===0x50&&b[1]===0x4B&&b[2]===3&&b[3]===4){var z=null;try{z=await bankZip(rd.result);}catch(e){z={r:null,diag:"zip"};}res({f:f,r:z.r,diag:z.diag||""});return;}
+    if(b[0]===0x25&&b[1]===0x50&&b[2]===0x44&&b[3]===0x46){res({f:f,r:null,diag:"pdf"});return;}
+    if(b[0]===0xD0&&b[1]===0xCF&&b[2]===0x11&&b[3]===0xE0){res({f:f,r:null,xls:true});return;}
     try{r=bankRead(rd.result);}catch(e){r=null;}
     /* Format erkannt (Kopfzeile mit Datum + Betrag), aber keine Buchungen: eigene Meldung statt «nicht erkannt» */
     var em=false;if(!r){try{var tx0=bankDecode(rd.result);em=/(buchungs?tag|buchungsdatum|datum|valuta|date)/i.test(tx0)&&/(betrag|soll|haben|belastung|gutschrift|amount)/i.test(tx0);}catch(e){}}
-    res({f:f,r:r,head:bkLastHead,empty:em&&bkLastDiag!=="date",diag:r?"":bkLastDiag});};
-  rd.onerror=function(){res({f:f,r:null,head:""});};rd.readAsArrayBuffer(f);});}
+    res({f:f,r:r,empty:em&&bkLastDiag!=="date",diag:r?"":bkLastDiag});};
+  rd.onerror=function(){res({f:f,r:null});};rd.readAsArrayBuffer(f);});}
 /* Ladeanzeige: Fenster sofort öffnen, Schritte nacheinander abhaken (Variante 2, 09.10.2026) */
 var bkRun=0;
 /* Logo für die Ladeanzeige: gleiche Grafik wie im Intro, beim Laden dreht nur das Messing-Segment (Splash wird später entfernt, daher hier kopieren) */
@@ -9919,8 +9919,7 @@ document.getElementById("bankFile").addEventListener("change",async function(ev)
   try{res.inc=bankFindInc(r);}catch(e){res.inc=null;}
   res.owner=r.owner||"";
   res.sugg.forEach(function(s){if(BK_CUR.indexOf(s.cur)<0)s.cur=state.settings.home;});
-  var label=ok.length>1?ok.length+" Dateien":(ok[0].r.bank||"");
-  openBank(res,label,true);bk.loading=true;bk.nTx=r.tx.length;
+  openBank(res);bk.loading=true;bk.nTx=r.tx.length;
   /* Logos schon jetzt suchen; höchstens ~8 s warten, der Rest kommt in der Liste nach */
   bkLoad(3,r.tx.length,{done:0,total:0});var lp=bkLogos().catch(function(){});await Promise.race([lp,bkWait(8000)]);
   if(run!==bkRun||!sh.classList.contains("on")||!bk)return;
@@ -9944,7 +9943,7 @@ function bkContractOf(it){if(it.over)return Object.assign({},it.over);
 function bkOpenForm(i){var it=bk.items[i];fBank={i:i,scroll:document.getElementById("sheetBank").scrollTop};
   document.getElementById("sheetBank").classList.remove("on");openForm(bkContractOf(it),false,"Vorschlag");}
 /* Einnahme: Anfangsbetrag + Änderungen aus den Zahlungen (Lohnerhöhung), letzter Betrag = gewählter Betrag */
-function bkIncPrices(it){var ph=bankPriceHist(it.s,BK_INCH),a=it.ed.amount;if(!ph||!ph.prices.length)return {amount:a,prices:[]};
+function bkIncPrices(it){var ph=bankPriceHist(it.s,true),a=it.ed.amount;if(!ph||!ph.prices.length)return {amount:a,prices:[]};
   var pr=ph.prices.map(function(p){return {from:p.from,amount:p.amount};});if(pr[pr.length-1].amount>0)pr[pr.length-1].amount=a;return {amount:ph.base,prices:pr};}
 function bkOpenInc(i){var it=bk.inc[i],e=it.ed;fBank={i:i,inc:true,scroll:document.getElementById("sheetBank").scrollTop};
   document.getElementById("sheetBank").classList.remove("on");
@@ -10089,12 +10088,6 @@ var OB_PAGES=[
   {k:"tab",tab:"term",t:"Nie mehr zu spät kündigen",b:["Deine Fristen automatisch berechnet","Behalten oder kündigen – du entscheidest","Kündigungsschreiben mit einem Tipp"]},
   {k:"setup",first:true},
   {k:"start",first:true}];
-var OB_TIPS=[ /* [Farbe, Symbol, Titel, Text, bald verfügbar] – Farben aus der Kategorie-Palette */
-  ["#C0392B",'<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8v12M3 12h18"/><path d="M12 8c-2-4-6-4-6-1s4 1 6 1c2 0 6 2 6-1s-4-3-6 1"/>',"Probeabos im Blick","Du wirst erinnert, bevor es etwas kostet."],
-  ["#2E8B57",'<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a4.5 4.5 0 0 1 5 4.8"/>',"Kosten teilen","Für Familie oder WG – jeder sieht seinen Anteil."],
-  ["#6A4FB3",'<path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.3-8.3a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6"/>',"Dokumente am Vertrag","Rechnung und Vertrag immer griffbereit."],
-  ["#3B8BC9",'<path d="M7 18a4.5 4.5 0 0 1-.6-9 6 6 0 0 1 11.5 1.2A3.9 3.9 0 0 1 17.5 18z"/><path d="M9.5 13.5l2 2 3.5-3.5"/>',"iCloud-Sync","Deine Verträge auf iPhone und iPad.",true],
-  ["#D0692B",'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',"Erinnerung vor jeder Frist","Kontivo meldet sich, bevor es zu spät ist.",true]];
 /* Schnellstart: Bezeichnung → Kategorie (fällt auf «Sonstiges» zurück, falls umbenannt/gelöscht) */
 var OB_QUICK=[["Miete","Wohnen"],["Strom","Energie & Wasser"],["Handy","Mobilfunk & Internet"],["Internet","Mobilfunk & Internet"],
   ["Streaming","Abos & Medien"],["Versicherung","Versicherung"]];
@@ -10116,7 +10109,6 @@ function obNext(label){return '<button type="button" class="obbtn" data-ob="next
 /* Platzhalter in Höhe des Zweitknopfs, damit «Weiter» auf allen Seiten gleich hoch steht */
 var OB_PH='<button type="button" class="obghost ph" tabindex="-1" aria-hidden="true">&nbsp;</button>';
 function obPage(p){
-  var last=ob.i===ob.pages.length-1;
   if(p.k==="welcome"){var ck='<i>'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</i>';
     return '<div class="obscr obwel"><img class="oblogo" src="'+esc(LOGO)+'" alt="">'+
       '<p class="obslogan">Deine Verträge, ganz entspannt.</p>'+
@@ -10129,7 +10121,7 @@ function obPage(p){
      PDF/Foto erst nativ (Vision/PDFKit), im Web «bald». SwiftUI: eigene Onboarding-Seite mit Beispielliste. */
   if(p.k==="auto"){
     /* Immer EUR wie die Screenshots der Tour (Entscheid 15.10.2026). Quellen als Kacheln, jede Zeile nennt ihre Quelle. */
-    var ck2='<span class="obcb">'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+'</span>',SP='<path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/>';
+    var SP='<path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/>';
     var SRC=[["bank",'<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',"Kontoauszug laden","CSV-Datei aus dem E-Banking",false,"Kontoauszug"],
       ["pdf",'<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 13h6M9 17h4"/>',"PDF hochladen","Kontoauszug, Rechnung oder Vertrag",true,"PDF"],
       ["foto",'<path d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.4"/>',"Foto machen","Kontoauszug, Rechnung oder Brief",true,"Foto"]];
@@ -10148,10 +10140,6 @@ function obPage(p){
     return '<div class="obscr">'+obTop(obTabName(p.tab))+'<p class="obt">'+esc(p.t)+'</p><ul class="obpts">'+p.b.map(function(x){return '<li>'+obSvg('<path d="M5 12.5l4.5 4.5L19 7.5"/>')+esc(x)+'</li>';}).join("")+'</ul>'+
       '<div class="obshot"><img class="obimgL" src="onb/'+p.tab+'-light.webp" alt=""><img class="obimgD" src="onb/'+p.tab+'-dark.webp" alt="">'+
       '<div class="obfade"></div><div class="obbar" aria-hidden="true">'+bar+'</div></div>'+obNext()+OB_PH+'</div>';}
-  if(p.k==="tips"){
-    return '<div class="obscr">'+obTop('<span class="obtab">'+obSvg(OB_ICON.set)+'Gut zu wissen</span>')+'<p class="obt">Clever bis ins Detail</p>'+
-      '<div class="oblist">'+OB_TIPS.map(function(t){return '<div class="obli"><span class="mk" style="--c:'+t[0]+'">'+obSvg(t[1])+'</span><span class="tx"><b>'+esc(t[2])+(t[4]?'<em>Bald</em>':'')+'</b><small>'+esc(t[3])+'</small></span></div>';}).join("")+'</div>'+
-      obNext(last?"Fertig":"Weiter")+OB_PH+'</div>';}
   if(p.k==="setup"){
     var nm=(state.settings.holders||[]).filter(function(h){return h!=="Ich";})[0]||"";
     return '<div class="obscr">'+obTop('<span class="obtab">Fast geschafft</span>')+'<p class="obt">Noch zwei Angaben</p>'+
@@ -10167,7 +10155,7 @@ function obPage(p){
       '<button type="button" class="obauto" data-ob="bank"><span class="ic">'+obSvg('<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>')+'</span>'+
         '<span><b>Automatisch erfassen</b><small>Kontoauszug wählen, Verträge bestätigen</small></span></button>'+
       '<div class="obor"><span>oder</span></div><p class="obsec">Selbst erfassen – tipp an, was du hast</p><div class="obchips row">'+
-      OB_QUICK.map(function(q,j){var cat=obCat(q[1]),e=catEntry(cat);
+      OB_QUICK.map(function(q,j){var cat=obCat(q[1]);
         return '<button type="button" class="obchip" data-obq="'+j+'" aria-pressed="'+(ob.quick===j)+'"><span class="mk" style="--c:'+esc(catColor(cat))+'">'+catIcon(cat)+'</span>'+
           '<span class="tx"><b>'+esc(obQn(q)).replace("versicherung","&shy;versicherung")+'</b><small>'+esc(cat)+'</small></span></button>';}).join("")+'</div>'+
       '<div class="obgrow"></div><button type="button" class="obbtn" data-ob="create"'+(ob.quick<0?' disabled':'')+'>'+(ob.quick<0?'Vertrag erfassen':esc(obQn(OB_QUICK[ob.quick]))+' erfassen')+'</button>'+
@@ -10225,7 +10213,7 @@ document.getElementById("onb").addEventListener("click",function(ev){
     formSnap.c=formSig("sheetForm",draft);/* Vorlage gilt als Ausgangszustand, nicht als Änderung */}
 });
 /* Wischen links/rechts */
-document.getElementById("onb").addEventListener("touchstart",function(e){if(e.target.closest("input,.obtiles"))return;ob.x0=e.touches[0].clientX;ob.y0=e.touches[0].clientY;},{passive:true});
+document.getElementById("onb").addEventListener("touchstart",function(e){if(e.target.closest("input"))return;ob.x0=e.touches[0].clientX;ob.y0=e.touches[0].clientY;},{passive:true});
 document.getElementById("onb").addEventListener("touchend",function(e){if(ob.x0==null)return;
   var dx=e.changedTouches[0].clientX-ob.x0,dy=e.changedTouches[0].clientY-ob.y0;ob.x0=null;
   if(Math.abs(dx)<50||Math.abs(dy)>Math.abs(dx))return;
@@ -10268,7 +10256,8 @@ function vkRingHtml(p,cls){return '<span class="vkring'+(cls?" "+cls:"")+'" styl
 /* Zeile unter «Mehr» */
 /* Hinweis im Vertragsdetail, nur wenn etwas fehlt */
 function vkHintHtml(id){var c=state.contracts[id];if(!c||!isActiveC(c)||c.cancelPer)return "";var r=(vkNeeds(id).per[id])||[];if(!r.length)return "";
-  var L={logo:"Logo",term:"Kündigungsfrist",snd:"Absender-Adresse"},why=r.indexOf("term")>=0?"dann zeigt Kontivo die Frist rechtzeitig":r.indexOf("snd")>=0?"dann ist die Kündigung startklar":"dann sieht der Vertrag komplett aus";
+  /* vkNeeds legt pro Vertrag nur «term» und «snd» ab */
+  var L={term:"Kündigungsfrist",snd:"Absender-Adresse"},why=r.indexOf("term")>=0?"dann zeigt Kontivo die Frist rechtzeitig":"dann ist die Kündigung startklar";
   return '<button type="button" class="vkhint" data-act="vk"><span aria-hidden="true">✨</span><span><b>'+(r.length===1?"1 Angabe fehlt noch":r.length+" Angaben fehlen noch")+"</b><small>"+r.map(function(x){return L[x];}).join(" · ")+" – "+why+"</small></span><em>Ergänzen ›</em></button>";}
 /* Zeile «Kontoauszug einlesen» unter Mehr → Daten: Zeitraum (TT.MM.JJJJ – TT.MM.JJJJ) + wann eingelesen */
 function fmtDot(s){var d=parseD(s);return d?String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear():"";}
@@ -10296,7 +10285,7 @@ function vkAutoPlan(){var plan=tplFillPlan(),ids={};plan.forEach(function(x){ids
   return plan;}
 function openVk(only){
   var n=vkNeeds(only);
-  vk={only:only||null,n0:n,step:"start",auto:only?[]:vkAutoPlan(),logos:[],li:-1,terms:n.term.slice(),ti:0,snds:n.snd.slice(),si:0,tmode:"",busy:false};
+  vk={only:only||null,step:"start",auto:only?[]:vkAutoPlan(),logos:[],li:-1,terms:n.term.slice(),ti:0,snds:n.snd.slice(),si:0,tmode:"",busy:false};
   var sh=document.getElementById("sheetVk");
   if(only){vk.auto=[];vkNext("start");}else paintVk();
   openSheet(sh);
