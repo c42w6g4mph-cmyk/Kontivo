@@ -9,6 +9,15 @@ Zweck: Die SwiftUI-Version muss Fristen, Termine und Kosten genau gleich berechn
 
 In Swift: XCTest, das `cases.json` lädt, das Datum auf den Stichtag fixiert und jedes Feld mit `golden.json` vergleicht.
 
+## Summen, Budget, Duplikate (`cases_budget.json`)
+- `cases_budget.json`: ein Haushalt mit zwei Personen (14 Verträge, 5 Einnahmen, 3 variable Kosten) an drei Stichtagen. Enthält Aufteilung (60/40, 70/30), Preisänderungen, Sonderzahlung und Gutschrift, Probeabo, Pause, Fremdwährungen EUR/USD, gekündigt, nicht kündbar, Beginn in der Zukunft, Leasing mit Ende, einmalige Einnahme, variable Kosten mit Beginn/Ende, zwei Verträge desselben Vertragspartners («Swisscom AG»/«Swisscom») und Abfragen für den Duplikat-Hinweis (`dupQueries`).
+- `golden_budget.json`: erwartete Werte je Stichtag für Vorjahr, Stichtagsjahr und Folgejahr, je Person (alle, Sinan, Lara) und Kostenart (`all`, `fix`, `none`): Fixkosten pro Monat (Kopfzeile), Kosten-Tab je Monat (Summe, bezahlt, offen, Anzahl), Budget je Monat (Einnahmen, Fixkosten, variable, verfügbar), Vorjahresmonat, «Fair geteilt?», Einnahmen und variable Kosten pro Monat, Duplikat-Treffer, Vertragspartner-Dubletten. Beträge in CHF auf Rappen gerundet.
+- `make_golden_budget.py`: erzeugt `golden_budget.json` aus `index.html` (wie `make_golden.py`). `git diff tests/golden_budget.json` muss nach Änderungen leer bleiben, ausser die Rechnung soll sich bewusst ändern.
+- Die Funktionen dazu stehen im Abschnitt «Rechnen» von index.html und sind über `window.KontivoCalc()` erreichbar: `fixMonthSum`, `costMonths`, `paySum`, `budgetYear`, `budgetMonth`, `fairShare`, `varMonth`, `incMonthNow`, `dupOf`, `partnerGroups`.
+
+## Datenmodell (`check_model.py`)
+- `python3 tests/check_model.py [Datei.json …]` prüft Daten (Backup, localStorage-Inhalt, Testdaten) gegen `docs/datenmodell.md`: unbekannte Felder und falsche Typen. Ohne Angabe wird `cases_budget.json` geprüft. Kein Server nötig.
+
 # Prüfungen für den Kontoauszug-Import (`tests/bank/`)
 
 ## Voraussetzungen
@@ -43,6 +52,8 @@ In Swift: XCTest, das `cases.json` lädt, das Datum auf den Stichtag fixiert und
 ```
 python3 -m http.server 8765 &
 python3 tests/make_golden.py && git diff --stat tests/golden.json
+python3 tests/make_golden_budget.py && git diff --stat tests/golden_budget.json
+python3 tests/check_model.py
 for t in check edge multi real zipfmt ui_flow; do python3 tests/bank/$t.py | tail -2; done
 python3 tests/bank/stress/run_stress.py | tail -2
 ```
