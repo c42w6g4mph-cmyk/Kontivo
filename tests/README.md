@@ -15,6 +15,12 @@ In Swift: XCTest, das `cases.json` lädt, das Datum auf den Stichtag fixiert und
 - `make_golden_budget.py`: erzeugt `golden_budget.json` aus `index.html` (wie `make_golden.py`). `git diff tests/golden_budget.json` muss nach Änderungen leer bleiben, ausser die Rechnung soll sich bewusst ändern.
 - Die Funktionen dazu stehen im Abschnitt «Rechnen» von index.html und sind über `window.KontivoCalc()` erreichbar: `fixMonthSum`, `costMonths`, `paySum`, `budgetYear`, `budgetMonth`, `fairShare`, `varMonth`, `incMonthNow`, `dupOf`, `partnerGroups`.
 
+## Ansichten und Formular (aus der laufenden App abgelesen, ohne Eingriff in den Code)
+- `make_golden_ui.py` → `golden_ui.json`: Haushalt aus `cases_budget.json` plus alle Verträge aus `cases.json` an 7 Stichtagen. Je Stichtag: Zahl am Tab «Fristen», Kopf und alle Zeilen des Fristen-Tabs (Gruppe, Titel, Unterzeile, Chip mit Farbe, Knöpfe; Klappgruppen geöffnet), der sichtbare Text jeder Vertrags- und Einnahmenansicht, «Vollständigkeit» (Zeile unter Mehr und Startseite) und die Kopfzeile im Tab «Verträge».
+- `make_golden_form.py` → `golden_form.json`: 17 Vertrags- und 3 Einnahmen-Formulare werden im Browser ausgefüllt (Vertragsart, Frist, Kündbar per, Kündigungsweg, Pflichtvertrag, Währung, Zahlungsart, Personen, Preisänderung, Sonderzahlung/Gutschrift, Fehlerfälle). Ergebnis = gespeicherter Eintrag ohne Zeitstempel bzw. die Fehlermeldung.
+- Beide sind deterministisch (zweimal erzeugt = byte-gleich). Nach Änderungen an Texten oder Formularregeln neu erzeugen und den Unterschied bewusst prüfen.
+- In Swift: Fristen- und Formular-Logik als Funktionen, deren Ergebnis mit diesen Dateien verglichen wird (Texte als Snapshot, Formular als Modellvergleich).
+
 ## Datenmodell (`check_model.py`)
 - `python3 tests/check_model.py [Datei.json …]` prüft Daten (Backup, localStorage-Inhalt, Testdaten) gegen `docs/datenmodell.md`: unbekannte Felder und falsche Typen. Ohne Angabe wird `cases_budget.json` geprüft. Kein Server nötig.
 
@@ -53,6 +59,7 @@ In Swift: XCTest, das `cases.json` lädt, das Datum auf den Stichtag fixiert und
 python3 -m http.server 8765 &
 python3 tests/make_golden.py && git diff --stat tests/golden.json
 python3 tests/make_golden_budget.py && git diff --stat tests/golden_budget.json
+python3 tests/make_golden_ui.py && python3 tests/make_golden_form.py && git diff --stat tests/golden_ui.json tests/golden_form.json
 python3 tests/check_model.py
 for t in check edge multi real zipfmt ui_flow; do python3 tests/bank/$t.py | tail -2; done
 python3 tests/bank/stress/run_stress.py | tail -2

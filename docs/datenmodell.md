@@ -155,7 +155,7 @@ Swift: Migrationen nur im Importer für Web-Backups, das native Modell kennt nur
 ## 7 Regeln und Normalisierung
 
 - Import (`sanitizeImport`): Texte nur als Text (Zahlen → Text), `amount` auf 2 Stellen, ungültiger Rhythmus → 1, unbekannte Währung → Hauptwährung, `notice`/`renew` 0–1200, Listen müssen Listen sein, Personen nicht leer, Farben nur Hex/rgb, Unterschriften nur Bild-Data-URLs, Prototyp-Schlüssel entfernt.
-- Sichern im Formular: `end`/`renew` nur bei Mindestlaufzeit; `cancTerm` nur bei Flexibel/Probeabo; `notice` 0 bei Nicht kündbar; `noWatch` false bei Probeabo; `cancUrl` leer bei E-Mail/Brief; `split` nur, wenn ungleich verteilt; Felder ausserhalb des Formulars (Kündigung, Pause, Behalten, unbekannte) bleiben erhalten.
+- Sichern im Formular (Prüffälle: tests/golden_form.json): `end`/`renew` nur bei Mindestlaufzeit (Verlängerung ist dort mit 1 Monat vorbelegt, «nicht automatisch» muss bewusst gewählt werden); Probeabo setzt `due` auf das Probe-Ende; Jahresrhythmus bei Flexibel setzt `cancTerm` = `p`; `cancTerm` nur bei Flexibel/Probeabo; `notice` 0 bei Nicht kündbar; `noWatch` false bei Probeabo; `cancUrl` leer bei E-Mail/Brief; `split` nur, wenn ungleich verteilt; Felder ausserhalb des Formulars (Kündigung, Pause, Behalten, unbekannte) bleiben erhalten.
 - Vertragspartner-Schlüssel `pkey(name)`: Kleinbuchstaben, Akzente entfernt, ß → ss, & → und, nur a–z/0–9, Wörter < 2 Zeichen und Füllwörter (LSTOP: AG, GmbH, SA …) weg. Gleicher Schlüssel = gleicher Vertragspartner (Duplikat-Hinweis, «Dubletten» in Verwalten).
 - Duplikat-Hinweis (`dupOf`): gleicher Schlüssel und (gleiche Bezeichnung nach `lnorm` oder gleicher aktueller Betrag in gleicher Währung). Nur Hinweis, Sichern bleibt möglich.
 
@@ -176,6 +176,8 @@ Rechenkern im Abschnitt «Rechnen» von index.html, öffentlich über `window.Ko
 | Fair geteilt | `fairShare` | cases_budget.json |
 | Einnahmen/variable Kosten pro Monat | `incMonthNow`, `varMonth` | cases_budget.json |
 | Duplikat-Hinweis, Dubletten | `dupOf`, `partnerIds`, `partnerGroups` | cases_budget.json |
+| Fristen-Tab (Kopf, Zeilen, Gruppen, Knöpfe), Ansicht je Vertrag/Einnahme, Vollständigkeit | Ansichten (Texte) | golden_ui.json |
+| Gespeicherter Vertrag/Einnahme aus dem Formular | saveForm, iSave | golden_form.json |
 
 ## 9 Vorschlag Swift-Typen
 
