@@ -150,7 +150,12 @@ final class TextGoldenTests: XCTestCase {
               let today = Day(iso: JS.str(o["today"])) else { return XCTFail("texts fehlt") }
         o["app"] = .string("vertraege")
         let r = WebImport.importObject(o, today: today, now: Date())
-        let data = r.data
+        var data = r.data
+        // Web liest das Test-Backup direkt aus dem Speicher (ohne Bereinigung beim Einspielen): Zahlungsrhythmus 0 bei Verträgen bleibt
+        // dort stehen, der Import setzt ihn (wie Web `sanitizeImport`) auf monatlich – für die Datenqualität den Rohwert nachbilden
+        for (k, v) in r.contractIDs {
+            if let c = JS.obj(JS.obj(o["contracts"])?[k]), case .number(0)? = c["cycle"], let i = data.contractIndex(v) { data.contracts[i].cycle = 0 }
+        }
         let calc = Calc(data: data, today: today)
         var webC: [UUID: String] = [:]
         for (k, v) in r.contractIDs { webC[v] = k }

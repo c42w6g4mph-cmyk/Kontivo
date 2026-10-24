@@ -1,0 +1,593 @@
+{
+ "generated_from": "Kontivo Web-App sanitizeImport (make_golden_import.py)",
+ "backup": {
+  "app": "vertraege",
+  "version": 2,
+  "settings": {
+   "home": "CHF",
+   "holders": [
+    "Sinan",
+    "",
+    7,
+    "Lara"
+   ],
+   "bankIgn": [
+    "a|1",
+    5
+   ],
+   "bankAlias": {
+    "k1": {
+     "n": "  Muster AG ",
+     "c": "Wohnen"
+    },
+    "k2": {
+     "n": ""
+    },
+    "k3": "x"
+   },
+   "catList": [
+    {
+     "n": "Wohnen",
+     "c": "#ABC",
+     "k": "Wohnen",
+     "i": "Wohnen"
+    },
+    {
+     "n": "",
+     "c": "#fff"
+    },
+    {
+     "c": "#000"
+    },
+    {
+     "n": "Hobby",
+     "c": "red",
+     "i": "tag"
+    },
+    "x"
+   ],
+   "avatars": {
+    "Sinan": "0123456789abcdef0123456789abcdef",
+    "Lara": "nope"
+   }
+  },
+  "contracts": {
+   "c1": {
+    "partner": "",
+    "label": "Zyklus 5",
+    "cat": "Sonstiges",
+    "amount": "12.345",
+    "cur": "CHF",
+    "cycle": 5,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ]
+   },
+   "c2": {
+    "partner": "",
+    "label": "Zyklus 0",
+    "cat": "Sonstiges",
+    "amount": -3.2,
+    "cur": "CHF",
+    "cycle": 0,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ]
+   },
+   "c3": {
+    "partner": "",
+    "label": "Betrag riesig",
+    "cat": "Sonstiges",
+    "amount": 5000000000.0,
+    "cur": "XYZ",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ]
+   },
+   "c4": {
+    "partner": "",
+    "label": "Logo rgb",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ],
+    "logoId": "logo_1:ab",
+    "logoBg": "rgb(10,20,30)"
+   },
+   "c5": {
+    "partner": "",
+    "label": "Logo kaputt",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ],
+    "logoId": "../../etc",
+    "logoBg": "javascript:x"
+   },
+   "c6": {
+    "partner": "",
+    "label": "Logo leer",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ],
+    "logoId": "",
+    "logoBg": "#fff"
+   },
+   "c7": {
+    "partner": "",
+    "label": "Dokumente",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ],
+    "docs": [
+     {
+      "id": "doc_1",
+      "name": "a.pdf",
+      "type": "application/pdf"
+     },
+     {
+      "id": "bad id!",
+      "name": "b"
+     },
+     {
+      "id": "",
+      "name": "c"
+     },
+     "x"
+    ]
+   },
+   "c8": {
+    "partner": "",
+    "label": "Frist",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ],
+    "notice": "3",
+    "renew": 1300,
+    "noticeU": "m",
+    "cancTerm": "m",
+    "prices": [
+     {
+      "from": "2026-12-01",
+      "amount": "15"
+     },
+     {
+      "from": 5,
+      "amount": 1
+     },
+     {
+      "amount": 2
+     }
+    ],
+    "extras": [
+     {
+      "date": "2026-03-01",
+      "amount": "-4",
+      "note": 7
+     },
+     {
+      "date": "x",
+      "amount": "a"
+     }
+    ]
+   },
+   "c9": {
+    "partner": "",
+    "label": "Split",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan",
+     "Lara"
+    ],
+    "split": {
+     "Sinan": 70,
+     "Lara": "30",
+     "Mia": 200
+    }
+   },
+   "bad key!": {
+    "partner": "",
+    "label": "Schlüssel neu",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ]
+   },
+   "c10": {
+    "partner": "",
+    "label": "Farbe",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ],
+    "color": "url(x)"
+   }
+  },
+  "incomes": {
+   "i1": {
+    "name": "Bonus einmalig",
+    "label": "Bonus",
+    "cat": "Bonus",
+    "amount": 1000,
+    "cur": "CHF",
+    "cycle": 0,
+    "due": "2026-12-20",
+    "holders": [
+     "Sinan"
+    ],
+    "status": "active"
+   },
+   "i2": {
+    "name": "Lohn",
+    "label": "Lohn",
+    "cat": "Lohn",
+    "amount": "5000.555",
+    "cur": "EUR",
+    "cycle": 7,
+    "due": "2026-11-25",
+    "holders": [
+     "Lara"
+    ],
+    "status": "active",
+    "logoId": "i_1",
+    "logoBg": "rgb(1,2,3)"
+   }
+  },
+  "vars": {
+   "v1": {
+    "label": "Essen",
+    "ic": "essen",
+    "amount": 900,
+    "cur": "CHF",
+    "holders": [
+     "Sinan"
+    ],
+    "start": "",
+    "end": "",
+    "t": 1,
+    "logoId": "ok_1",
+    "logoBg": "rgb(255,255,255)"
+   },
+   "v2": {
+    "label": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "ic": "??",
+    "amount": 20000000.0,
+    "cur": "USD",
+    "holders": "Sinan",
+    "start": "2026-02-30",
+    "end": "2026-12-31",
+    "logoId": "bad id",
+    "logoBg": "rgb(1, 2, 3)"
+   }
+  },
+  "files": {
+   "doc_1": "data:application/pdf;base64,AAAA",
+   "bad key": "x",
+   "__proto__": "y"
+  }
+ },
+ "sanitized": {
+  "app": "vertraege",
+  "version": 2,
+  "settings": {
+   "home": "CHF",
+   "holders": [
+    "Sinan",
+    "Lara"
+   ],
+   "bankIgn": [
+    "a|1"
+   ],
+   "bankAlias": {
+    "k1": {
+     "n": "Muster AG",
+     "c": "Wohnen"
+    }
+   },
+   "catList": [
+    {
+     "n": "Wohnen",
+     "c": "#ABC",
+     "k": "Wohnen",
+     "i": "Wohnen"
+    },
+    {
+     "n": "Hobby",
+     "i": "tag"
+    }
+   ],
+   "avatars": {
+    "Sinan": "0123456789abcdef0123456789abcdef"
+   }
+  },
+  "contracts": {
+   "c1": {
+    "partner": "",
+    "label": "Zyklus 5",
+    "cat": "Sonstiges",
+    "amount": 12.35,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ]
+   },
+   "c2": {
+    "partner": "",
+    "label": "Zyklus 0",
+    "cat": "Sonstiges",
+    "amount": -3.2,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ]
+   },
+   "c3": {
+    "partner": "",
+    "label": "Betrag riesig",
+    "cat": "Sonstiges",
+    "amount": 0,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ]
+   },
+   "c4": {
+    "partner": "",
+    "label": "Logo rgb",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ],
+    "logoId": "logo_1:ab",
+    "logoBg": "rgb(10,20,30)"
+   },
+   "c5": {
+    "partner": "",
+    "label": "Logo kaputt",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ]
+   },
+   "c6": {
+    "partner": "",
+    "label": "Logo leer",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ],
+    "logoId": "",
+    "logoBg": "#fff"
+   },
+   "c7": {
+    "partner": "",
+    "label": "Dokumente",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ],
+    "docs": [
+     {
+      "id": "doc_1",
+      "name": "a.pdf",
+      "type": "application/pdf"
+     }
+    ]
+   },
+   "c8": {
+    "partner": "",
+    "label": "Frist",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ],
+    "notice": 3,
+    "noticeU": "m",
+    "cancTerm": "m",
+    "prices": [
+     {
+      "from": "2026-12-01",
+      "amount": 15
+     }
+    ],
+    "extras": [
+     {
+      "date": "2026-03-01",
+      "amount": -4,
+      "note": "7"
+     }
+    ]
+   },
+   "c9": {
+    "partner": "",
+    "label": "Split",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan",
+     "Lara"
+    ],
+    "split": {
+     "Sinan": 70,
+     "Lara": 30
+    }
+   },
+   "mvn1l92q02c0l": {
+    "partner": "",
+    "label": "Schlüssel neu",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ]
+   },
+   "c10": {
+    "partner": "",
+    "label": "Farbe",
+    "cat": "Sonstiges",
+    "amount": 10,
+    "cur": "CHF",
+    "cycle": 1,
+    "due": "2026-11-01",
+    "status": "active",
+    "holders": [
+     "Sinan"
+    ]
+   }
+  },
+  "incomes": {
+   "i1": {
+    "name": "Bonus einmalig",
+    "label": "Bonus",
+    "cat": "Bonus",
+    "amount": 1000,
+    "cur": "CHF",
+    "cycle": 0,
+    "due": "2026-12-20",
+    "holders": [
+     "Sinan"
+    ],
+    "status": "active"
+   },
+   "i2": {
+    "name": "Lohn",
+    "label": "Lohn",
+    "cat": "Lohn",
+    "amount": 5000.56,
+    "cur": "EUR",
+    "cycle": 1,
+    "due": "2026-11-25",
+    "holders": [
+     "Lara"
+    ],
+    "status": "active",
+    "logoId": "i_1",
+    "logoBg": "rgb(1,2,3)"
+   }
+  },
+  "vars": {
+   "v1": {
+    "label": "Essen",
+    "ic": "essen",
+    "amount": 900,
+    "cur": "CHF",
+    "holders": [
+     "Sinan"
+    ],
+    "t": 1,
+    "start": "",
+    "end": "",
+    "logoId": "ok_1",
+    "logoBg": "rgb(255,255,255)"
+   },
+   "v2": {
+    "label": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "ic": "sonst",
+    "amount": 0,
+    "cur": "USD",
+    "holders": [],
+    "t": 0,
+    "start": "2026-02-30",
+    "end": "2026-12-31",
+    "logoId": "",
+    "logoBg": ""
+   }
+  },
+  "files": {
+   "doc_1": "data:application/pdf;base64,AAAA",
+   "bad key": "x"
+  }
+ }
+}

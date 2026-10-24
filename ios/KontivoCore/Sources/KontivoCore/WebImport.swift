@@ -103,7 +103,7 @@ public enum WebImport {
         // Dateien
         var files: [String: ImportedFile] = [:]
         var failed = 0
-        for k in filesObj.orderedKeys {
+        for k in filesObj.orderedKeys where fileIdOk(.string(k)) {
             guard let f = JS.obj(filesObj[k]) else { failed += 1; continue }
             let b64 = JS.str(f["data"])
             // Wie Web (`!f.data` → fehlt): leere Datei zählt als nicht gelesen
@@ -118,10 +118,11 @@ public enum WebImport {
         // Personen
         var names: [String] = []
         func addName(_ n: String) { if !n.isEmpty && !names.contains(n) { names.append(n) } }
-        for h in JS.arr(s["holders"]) { addName(JS.str(h)) }
+        func strs(_ v: JSValue?) -> [String] { JS.arr(v).compactMap { if case .string(let t) = $0 { return t } else { return nil } } }
+        for h in strs(s["holders"]) { addName(h) }
         for (_, c) in cObjs { for h in JS.arr(c["holders"]) { addName(JS.str(h)) } }
         for (_, c) in iObjs { for h in JS.arr(c["holders"]) { addName(JS.str(h)) } }
-        for (_, c) in vObjs { for h in JS.arr(c["holders"]) { addName(JS.str(h)) } }
+        for (_, c) in vObjs { for h in strs(c["holders"]) { addName(h) } }
         let senders = JS.obj(s["senders"]) ?? JSObject()
         let sigs = JS.obj(s["sigs"]) ?? JSObject()
         let avatars = JS.obj(s["avatars"]) ?? JSObject()
@@ -377,11 +378,11 @@ public enum WebImport {
             x.holderIDs = vh
             x.start = Day(iso: JS.str(c["start"]))
             x.end = Day(iso: JS.str(c["end"]))
-            let l = JS.str(c["logoId"])
-            if !l.isEmpty {
-                x.logoID = l
+            // Logo nur mit gültiger Datei-ID, Hintergrund #RGB oder rgb(r,g,b) (Web sanitizeImport)
+            if fileIdOk(c["logoId"]) {
+                x.logoID = JS.str(c["logoId"])
                 let bg = JS.str(c["logoBg"])
-                x.logoBg = bg.isEmpty ? nil : bg
+                x.logoBg = RX.test("^#[0-9A-Fa-f]{3,8}$", bg) || RX.test(rgbBg, bg) ? bg : nil
             }
             x.createdAt = createdAt(c["t"])
             varsOut.append(x)
@@ -625,19 +626,82 @@ public enum WebImport {
             if case .string(let t) = v, t.isEmpty { return false }
             return !RX.test("^#[0-9A-Fa-f]{3,8}$", JS.str(v))
         }
-        func fixColors(_ m: inout JSObject) {
-            for k in m.orderedKeys {
-                guard var c = JS.obj(m[k]) else { continue }
-                var ch = false
-                for f in ["color", "logoBg"] where badCol(c[f]) {
-                    c[f] = nil
-                    ch = true
+        // logoBg kommt aus dem Logo-Zuschnitt auch als rgb(r,g,b) (Web C26)
+        func badBg(_ v: JSValue?) -> Bool { badCol(v) && !RX.test(rgbBg, JS.str(v)) }
+        // Felder auf Typ und erlaubte Werte prüfen (Web `typ`), einmalige Einnahmen (Zyklus 0) nur bei Einnahmen
+        func typ(_ c: inout JSObject, incomes inc: Bool) {
+            for f in strFields {
+                guard let v = c[f] else { continue }
+                switch v {
+                case .null: continue
+                case .string: continue
+                case .number(let n): c[f] = .string(JS.numberString(n))
+                default: c[f] = nil
                 }
-                if ch { m[k] = .object(c) }
+            }
+            if case .string("Einschreiben")? = c["cancF"] { c["cancF"] = .string("Brief") }
+            let a = webNum(c["amount"])
+            c["amount"] = .number(a == nil || Swift.abs(a!) > 1e9 ? 0 : (a! * 100).rounded() / 100)
+            let y = webNum(c["cycle"])
+            let allowed = inc ? [0] + webCycles : webCycles
+            c["cycle"] = .number(y.map { allowed.contains($0) ? $0 : 1 } ?? 1)
+            if !webCurrencies.contains(JS.str(c["cur"])) { c["cur"] = .string(webCurrencies.contains(JS.str(s["home"])) ? JS.str(s["home"]) : "CHF") }
+            for f in ["notice", "renew"] where c[f] != nil {
+                let n = webNum(c[f])
+                if let n = n, n >= 0 && n <= 1200 { c[f] = .number(n) } else { c[f] = nil }
+            }
+            if case .array(let ps)? = c["prices"] {
+                c["prices"] = .array(ps.compactMap { p -> JSValue? in
+                    guard var o = JS.obj(p), let n = webNum(o["amount"]), case .string? = o["from"] else { return nil }
+                    o["amount"] = .number(n)
+                    return .object(o)
+                })
+            }
+            if case .array(let xs)? = c["extras"] {
+                c["extras"] = .array(xs.compactMap { p -> JSValue? in
+                    guard var o = JS.obj(p), let n = webNum(o["amount"]), case .string? = o["date"] else { return nil }
+                    o["amount"] = .number(n)
+                    if let nt = o["note"] { if case .null = nt {} else if case .string = nt {} else { o["note"] = .string(JS.str(nt)) } }
+                    return .object(o)
+                })
+            }
+            // Datei-IDs prüfen ("" = kein Logo, so speichert das Formular)
+            if JS.truthy(c["logoId"]) && !fileIdOk(c["logoId"]) { c["logoId"] = nil }
+            if case .array(let ds)? = c["docs"] { c["docs"] = .array(ds.filter { fileIdOk(JS.obj($0)?["id"]) }) }
+            if var sp = JS.obj(c["split"]) {
+                for h in sp.orderedKeys {
+                    if let n = webNum(sp[h]), n >= 0 && n <= 100 { sp[h] = .number(n) } else { sp[h] = nil }
+                }
+                c["split"] = .object(sp)
             }
         }
-        fixColors(&contracts)
-        fixColors(&incomes)
+        func clean(_ m: inout JSObject, incomes inc: Bool) {
+            for k in m.orderedKeys {
+                guard var c = JS.obj(m[k]) else { continue }
+                if badCol(c["color"]) { c["color"] = nil }
+                if badBg(c["logoBg"]) { c["logoBg"] = nil }
+                // Listenfelder müssen Listen sein, Inhaber Texte
+                for f in ["holders", "docs", "prices", "extras"] {
+                    if let v = c[f] { if case .array = v {} else { c[f] = nil } }
+                }
+                if case .array(let hs)? = c["holders"] {
+                    c["holders"] = .array(hs.filter { if case .string(let t) = $0 { return !t.trimmingCharacters(in: .whitespaces).isEmpty } else { return false } })
+                }
+                for f in ["docs", "prices", "extras"] {
+                    if case .array(let xs)? = c[f] { c[f] = .array(xs.filter { JS.obj($0) != nil }) }
+                }
+                if let sp = c["split"], JS.obj(sp) == nil { if case .null = sp {} else { c["split"] = nil } }
+                typ(&c, incomes: inc)
+                m[k] = .object(c)
+            }
+        }
+        clean(&contracts, incomes: false)
+        clean(&incomes, incomes: true)
+        if case .array(let hs)? = s["holders"] {
+            let f = hs.filter { if case .string(let t) = $0 { return !t.trimmingCharacters(in: .whitespaces).isEmpty } else { return false } }
+            s["holders"] = f.isEmpty ? nil : .array(f)
+        }
+        if case .array(let hs)? = s["lastHolders"] { s["lastHolders"] = .array(hs.filter { if case .string = $0 { return true } else { return false } }) }
         let sigRX = "^data:image/(jpeg|png);base64,[A-Za-z0-9+/]*={0,2}$"
         if var sg = JS.obj(s["sigs"]), case .object = s["sigs"]! {
             for h in sg.orderedKeys where !RX.test(sigRX, JS.str(sg[h])) { sg[h] = nil }
@@ -647,8 +711,9 @@ public enum WebImport {
         }
         if s["sig"] != nil && !RX.test(sigRX, JS.str(s["sig"])) { s["sig"] = nil }
         if case .array(let list)? = s["catList"] {
+            // Einträge ohne gültigen Namen verwerfen (Web Bereinigung E, B2)
             s["catList"] = .array(list.compactMap { item -> JSValue? in
-                guard case .object(var x) = item else { return nil }
+                guard case .object(var x) = item, case .string(let n)? = x["n"], !n.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
                 if badCol(x["c"]) { x["c"] = nil }
                 return .object(x)
             })
@@ -659,6 +724,36 @@ public enum WebImport {
         } else {
             s["avatars"] = nil
         }
+    }
+
+    // MARK: Prüfwerte wie Web `sanitizeImport`
+
+    static let webCycles: [Double] = [1, 2, 3, 6, 12, 24]
+    static let webCurrencies = ["CHF", "EUR", "USD", "GBP", "TRY"]
+    static let rgbBg = "^rgb\\(\\d{1,3},\\d{1,3},\\d{1,3}\\)$"
+    static let strFields = ["partner", "label", "name", "cat", "due", "start", "end", "noticeU", "cancTerm", "custNo", "contrNo", "payM", "payA", "cancF",
+                            "trial", "cancUrl", "web", "addr", "tel", "mail", "note", "logoId", "status", "cancelledAt", "cancelPer", "cancelledOn",
+                            "keptFor", "pausedAt", "pausedUntil", "cred", "mref"]
+
+    /// Web `num`: Zahl oder nicht leerer Text mit Zahl, sonst nil
+    static func webNum(_ v: JSValue?) -> Double? {
+        guard let v = v else { return nil }
+        switch v {
+        case .number(let n): return n.isFinite ? n : nil
+        case .string(let t):
+            if t.trimmingCharacters(in: .whitespaces).isEmpty { return nil }
+            let n = JS.num(v)
+            return n.isFinite ? n : nil
+        default: return nil
+        }
+    }
+
+    /// Datei-ID (Logo, Dokument, Schlüssel im Datei-Speicher), Web `fileIdOk`
+    static func fileIdOk(_ v: JSValue?) -> Bool {
+        guard case .string(let id)? = v else { return false }
+        return RX.test("^[A-Za-z0-9_.:-]{1,80}$", id) && !["constructor", "__proto__", "toString", "valueOf", "hasOwnProperty", "isPrototypeOf",
+                                                           "propertyIsEnumerable", "toLocaleString", "__defineGetter__", "__defineSetter__",
+                                                           "__lookupGetter__", "__lookupSetter__"].contains(id)
     }
 
     static func senderObject(_ a: SenderAddress) -> JSObject {

@@ -463,6 +463,19 @@ extension AppData {
         persons[i].name = n
     }
 
+    /// Platzhalter-Person «Ich» (auch «me», «du») bekommt den Vornamen aus der Absender-Adresse, nur wenn der Name noch frei ist
+    /// (Web 3fc86ed `holderAutoName`). Gibt true zurück, wenn umbenannt wurde.
+    @discardableResult
+    public mutating func autoNamePerson(_ id: UUID, first: String) -> Bool {
+        guard let i = personIndex(id) else { return false }
+        let v = first.trimmingCharacters(in: .whitespacesAndNewlines).split(whereSeparator: { $0.isWhitespace }).first.map(String.init) ?? ""
+        let h = persons[i].name
+        if v.isEmpty || !["ich", "me", "du"].contains(h.lowercased()) { return false }
+        if persons.contains(where: { $0.id != id && $0.name.lowercased() == v.lowercased() }) { return false }
+        persons[i].name = v
+        return true
+    }
+
     /// Zusammenführen: alle Einträge von `from` gehen an `to`, `from` wird entfernt. Absender, Unterschrift und Bild wandern mit,
     /// wenn `to` noch keine eigenen hat (`sndRename`/`avMove`). Wer «gleiche Adresse wie from» hatte, zeigt auf `to`.
     public mutating func mergePerson(_ from: UUID, into to: UUID) {
@@ -540,6 +553,7 @@ extension AppData {
     /// (keine Ketten); zeigte Y selbst auf sie, bekommt Y ihre bisherige Adresse.
     public mutating func setSender(_ id: UUID, _ s: SenderAddress, sameAs: UUID?) {
         guard let i = personIndex(id) else { return }
+        defer { autoNamePerson(id, first: s.first) }
         let old = persons[i].sender
         let t = { (x: String) in Format.collapseSpaces(x) }
         persons[i].sender = SenderAddress(first: t(s.first), last: t(s.last), street: t(s.street), zip: t(s.zip), city: t(s.city), country: t(s.country))

@@ -15,12 +15,12 @@ import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-SRC = os.path.join(ROOT, "index.html")
+SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "index.html")  # Web-Repo (main): python3 Scripts/make_catalog.py <main>/index.html
 OUT = os.path.join(HERE, "..", "Sources", "KontivoCore", "Resources", "catalog.json")
 
 html = open(SRC, encoding="utf-8").read()
 start = html.index("/* ---------- Anbieterkatalog Schweiz / Deutschland ---------- */")
-end = html.index("var TPLI=", start)
+end = html.index("TPLI", start)  # «var TPLI=» bzw. seit Web C11 nur noch Kommentar «/* TPLI – …»
 block = html[start:end]
 
 consts = {}

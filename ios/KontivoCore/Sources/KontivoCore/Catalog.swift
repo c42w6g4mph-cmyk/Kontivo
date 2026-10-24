@@ -86,7 +86,7 @@ public struct CatalogEntry: Codable, Hashable, Sendable, Identifiable {
     public var countryName: String { country == "CH" ? "Schweiz" : country == "DE" ? "Deutschland" : country }
 
     /// Kurzinfo zur Kündigung (Web `tplTerm`, v211): «nicht kündbar» (Steuern & Gebühren), «Pflichtvertrag», «jederzeit kündbar»,
-    /// sonst «1 Monat Frist», «60 Tage Frist», «2 Wochen Frist» («bis zum n.» zählt als Monate wie im Web).
+    /// sonst «1 Monat Frist», «60 Tage Frist», «2 Wochen Frist», «bis 10. im Monat» (Web C23).
     public var termShort: String {
         if category == "Steuern & Gebühren" { return "nicht kündbar" }
         if mandatory { return "Pflichtvertrag" }
@@ -94,9 +94,10 @@ public struct CatalogEntry: Codable, Hashable, Sendable, Identifiable {
         if n == 0 { return "jederzeit kündbar" }
         let u: (String, String)
         switch noticeUnit {
+        case .dayOfMonth: return "bis \(n). im Monat"   // Web C23: tplTerm über noticeTxt
         case .days: u = ("Tag", "Tage")
         case .weeks: u = ("Woche", "Wochen")
-        default: u = ("Monat", "Monate")
+        case .months: u = ("Monat", "Monate")
         }
         return "\(n) " + (n == 1 ? u.0 : u.1) + " Frist"
     }
@@ -181,8 +182,11 @@ public enum Catalog {
 
     /// Katalog-Eintrag zu einem bestehenden Vertrag (Web `tplMatch`): exakter Name (Vertragspartner, sonst Bezeichnung);
     /// bei Länder-Varianten (AXA / AXA Deutschland) entscheidet die Währung (EUR → DE, CHF → CH). Kein unscharfer Treffer.
-    public static func match(names: [String], currency: Currency) -> CatalogEntry? {
+    /// Gleicher Name mehrfach (CSS Krankenkasse/Zusatzversicherung): Eintrag mit gleicher Bezeichnung wie der Vertrag (Web C16);
+    /// `label` = Bezeichnung des Vertrags (Standard: zweiter Name).
+    public static func match(names: [String], currency: Currency, label: String? = nil) -> CatalogEntry? {
         let cc = currency == .EUR ? "DE" : (currency == .CHF ? "CH" : "")
+        let lab = (label ?? (names.count > 1 ? names[1] : "")).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         for raw in names {
             let n = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             if n.isEmpty { continue }
@@ -190,6 +194,7 @@ public enum Catalog {
             if exact.isEmpty { continue }
             let pref = entries.filter { $0.name.lowercased().hasPrefix(n + " ") }
             let same = (exact + pref).filter { $0.country.isEmpty || $0.country == cc }
+            if !lab.isEmpty, let byLab = same.first(where: { $0.label.lowercased() == lab }) { return byLab }
             return same.first ?? exact.first
         }
         return nil

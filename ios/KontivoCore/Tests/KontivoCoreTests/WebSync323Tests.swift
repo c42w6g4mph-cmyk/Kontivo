@@ -73,3 +73,22 @@ extension WebSync323Tests {
         XCTAssertEqual(cmp?.trend, .up)
     }
 }
+
+extension WebSync323Tests {
+    // MARK: Person «Ich» bekommt den Vornamen aus dem Absender (Web 3fc86ed)
+
+    func testAutoNamePerson() throws {
+        var d = AppData.initial()
+        let me = d.persons[0].id
+        XCTAssertEqual(d.persons[0].name, "Ich")
+        d.setSender(me, SenderAddress(first: " Sinan  Ali ", last: "Muster", street: "Weg 1", zip: "8280", city: "Kreuzlingen"), sameAs: nil)
+        XCTAssertEqual(d.person(me)?.name, "Sinan")
+        // nur Platzhalter-Namen, und nur wenn der Name frei ist
+        XCTAssertFalse(d.autoNamePerson(me, first: "Max"))
+        let du = try d.addPerson("Du")
+        _ = try d.addPerson("Lara")
+        XCTAssertFalse(d.autoNamePerson(du, first: "lara"))
+        XCTAssertTrue(d.autoNamePerson(du, first: "Mia"))
+        XCTAssertEqual(d.person(du)?.name, "Mia")
+    }
+}
