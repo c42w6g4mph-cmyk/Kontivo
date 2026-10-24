@@ -4,7 +4,7 @@ from xml.sax.saxutils import escape as x
 sys.path.insert(0, os.path.dirname(__file__))
 from scenario import *
 
-OUT = "/root/kontivo/tests/bank/real/ch"
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ch")
 TX = build()
 OWN = OWN_IBAN.replace(" ", "")
 

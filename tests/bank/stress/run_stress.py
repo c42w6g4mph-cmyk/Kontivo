@@ -1,9 +1,9 @@
 """Prüft die Stress-Auszüge: erwartete Vorschläge (Name, Turnus, Betrag, Preisänderung), Einnahmen, nichts Überflüssiges.
-Aufruf im Repo-Ordner: python3 tests/bank/stress/run_stress.py [-v]"""
-import base64, json, os, sys
+Aufruf im Repo-Ordner: python3 -m http.server 8765 &  python3 tests/bank/stress/run_stress.py [-v]"""
+import base64, json, os, sys, re
 from playwright.sync_api import sync_playwright
-D = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(D, "..", "..", ".."))
-URL = os.environ.get("KONTIVO_URL", "file://" + os.path.join(ROOT, "index.html")); V = "-v" in sys.argv
+D = os.path.dirname(os.path.abspath(__file__))
+URL = os.environ.get("KONTIVO_URL", "http://localhost:8765/index.html"); V = "-v" in sys.argv
 # erwartet: Name enthält → (Turnus, aktueller Betrag, Preisänderung ab JJJJ-MM oder None)
 DE = {"Wohnbau": (1, 1215, "2026-04"), "Telekom": (1, 44.95, "2026-07"), "Netflix": (1, 13.99, None), "Spotify": (1, 12.99, "2026-01"),
       "Disney": (1, 9.99, None), "Rundfunk": (3, 55.08, None), "Allianz": (12, 89.40, None), "HUK": (6, 214.30, None),
@@ -15,15 +15,16 @@ CH = {"Immo Seeblick": (1, 1850, None), "CSS": (1, 412.30, "2026-01"), "Helsana"
 CH_OPT = ("SBB",)
 INC = {"de": ("Muster Pharma",), "ch": ("Muster Pharma",)}
 JS = """(b64)=>{var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
-  var B=window.KontivoBank(),r=B.read(u.buffer);if(!r)return null;var f=B.find(r,[]);var inc=B.findInc?B.findInc(r,[]):null;
+  var B=window.KontivoBank(),r=B.read(u.buffer);if(!r)return null;var f=B.find(r,[]);var inc=B.findInc(r);
   return {fmt:f.fmt,bank:f.bank,n:f.n,from:f.from,to:f.to,neg:r.tx.filter(function(t){return t.a<0}).length,pos:r.tx.filter(function(t){return t.a>0}).length,
    sugg:f.sugg.map(function(s){return {cur:s.cur,name:s.name,cycle:s.cycle,amount:s.amount,conf:s.conf,change:s.change,kind:s.kind,n:s.n};}),
-   inc:((f.inc&&f.inc.sugg)||(inc&&inc.sugg)||[]).map(function(s){return {name:s.name,cycle:s.cycle,amount:s.amount,conf:s.conf,change:s.change};})};}"""
+   inc:((inc&&inc.sugg)||[]).map(function(s){return {name:s.name,cycle:s.cycle,amount:s.amount,conf:s.conf,change:s.change};})};}"""
 fails = 0
 with sync_playwright() as p:
     b = p.chromium.launch(); ctx = b.new_context(); ctx.add_init_script("window.__KONTIVO_TODAY='2026-10-17';")
+    ctx.route(re.compile(r"frankfurter\.|open\.er-api\.com"), lambda r: r.abort())  # kein Live-Kursabruf: feste Testkurse
     pg = ctx.new_page(); pg.goto(URL)
-    pg.evaluate("s=>localStorage.setItem('vertraege.v1',s)", json.dumps({"settings": {"home": "CHF", "onboarded": 9, "holders": ["Max"], "rateTs": 9999999999999}, "contracts": {}, "incomes": {}}))
+    pg.evaluate("s=>localStorage.setItem('vertraege.v1',s)", json.dumps({"settings": {"home": "CHF", "onboarded": 9, "holders": ["Max"], "rateCheckedAt": 9999999999999}, "contracts": {}, "incomes": {}}))
     pg.reload(); pg.wait_for_timeout(500)
     for fn in sorted(f for f in os.listdir(D) if f.endswith(".csv")):
         cc = fn[:2]; exp, opt = (DE, DE_OPT) if cc == "de" else (CH, CH_OPT)
