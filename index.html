@@ -1778,8 +1778,6 @@ body{background:var(--paper)!important}
     <div class="big"><span id="hMonth">0.00</span><span class="u" id="hCur">CHF</span></div>
     <div class="heroSub" id="hSub"></div>
     <div class="hchips" id="hChips"></div>
-    <button class="flag" id="hFlag" hidden></button>
-    <div id="reviewCard"></div>
   </div>
   <!-- Ansicht im Verträge-Tab: Verträge · Einnahmen · Variabel (state.lm c|i|v). SwiftUI: Picker(.segmented) -->
   <div class="lmseg" id="lmSeg" role="group" aria-label="Ansicht"><button type="button" data-lm="c">Verträge</button><button type="button" data-lm="i">Einnahmen</button><button type="button" data-lm="v">Variabel</button></div>
@@ -1804,7 +1802,7 @@ body{background:var(--paper)!important}
     <button class="srowbtn mgr" data-md="holder" type="button"><span class="mgi i2" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c2.4.2 4.2 1.9 5 4.8"/></svg></span><b>Personen</b><em id="mdSumH"></em><i aria-hidden="true">›</i></button>
     <button class="srowbtn mgr" data-md="cat" type="button"><span class="mgi i3" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg></span><b>Kategorien</b><em id="mdSumC"></em><i aria-hidden="true">›</i></button>
     <button class="srowbtn mgr" id="vkOpen" type="button"><span class="mgi i4" id="vkIc" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7"/></svg></span><b>Vollständigkeit</b><em id="vkSub" class="mgp"></em><i aria-hidden="true">›</i></button>
-    <button class="srowbtn" data-md="qual" type="button" hidden><span class="mdt"><b>Datenqualität</b><small id="mdSumQs">Was bei deinen Verträgen noch fehlt</small></span><em id="mdSumQ"></em></button></div>
+</div>
   <div class="sgroup"><div class="sgh">Daten</div>
     <input type="file" id="bankFile" multiple accept=".csv,.txt,.xml,.sta,.mt940,.940,.xlsx,.xls,text/csv,text/plain,text/xml,application/xml,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
     <!-- Kontoauszug (22.10.2026): Einstieg + Zeitraum der letzten Import-Sitzung (settings.bankLast). SwiftUI: Button-Zeile in «Daten» -->
@@ -1849,7 +1847,7 @@ body{background:var(--paper)!important}
 </div>
 
 <div id="onb" hidden role="dialog" aria-modal="true" aria-label="Einführung"><div class="obin"><div class="obprog" id="obProg"></div><div id="obHost"></div></div></div>
-<nav class="tabbar" role="tablist" aria-label="Bereiche"><button role="tab" data-tab="list" aria-selected="true"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h5"/></svg><span class="cnt" id="cList" hidden></span><span class="cnt" id="cArch" hidden></span></span><span class="tl">Verträge</span></button><button role="tab" data-tab="stat" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/></svg></span><span class="tl">Kosten</span></button><button role="tab" data-tab="budget" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><path d="M15.5 14.5h2.5"/></svg></span><span class="tl">Budget</span></button><button role="tab" data-tab="term" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12.5" r="8"/><path d="M12 8.5v4l2.8 1.8"/><path d="M9.5 2.8h5"/></svg><span class="badge" id="cTerm"></span></span><span class="tl">Fristen</span></button><button role="tab" data-tab="set" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg></span><span class="tl">Mehr</span></button></nav>
+<nav class="tabbar" role="tablist" aria-label="Bereiche"><button role="tab" data-tab="list" aria-selected="true"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h5"/></svg></span><span class="tl">Verträge</span></button><button role="tab" data-tab="stat" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/></svg></span><span class="tl">Kosten</span></button><button role="tab" data-tab="budget" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><path d="M15.5 14.5h2.5"/></svg></span><span class="tl">Budget</span></button><button role="tab" data-tab="term" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12.5" r="8"/><path d="M12 8.5v4l2.8 1.8"/><path d="M9.5 2.8h5"/></svg><span class="badge" id="cTerm"></span></span><span class="tl">Fristen</span></button><button role="tab" data-tab="set" aria-selected="false"><span class="ti"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg></span><span class="tl">Mehr</span></button></nav>
 
 <div class="scrim" id="scrim"></div>
 
@@ -1869,9 +1867,9 @@ body{background:var(--paper)!important}
 
 <!-- Dokument-Betrachter -->
 <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Dokument">
-  <div class="vbar"><button class="vback" id="vClose" type="button"><i></i><span id="vBackL">Schliessen</span></button><span class="vt" id="vTitle"></span><span class="vsp"></span></div>
+  <div class="vbar"><button class="vback" id="vClose" type="button"><i></i><span id="vBackL">Schliessen</span></button><span class="vt" id="vTitle"></span><span></span></div>
   <div class="vbody" id="vBody"></div>
-  <div class="vacts" id="vActs">
+  <div class="vacts">
     <button class="vact" id="vEdit" type="button" hidden><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M13.5 6.5l3 3"/></svg><span>Text ändern</span></button>
     <button class="vact" id="vMailTxt" type="button" hidden><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg><span>Als E-Mail-Text</span></button>
     <button class="vact main" id="vSave" type="button"><svg viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg><span>Teilen</span></button>
@@ -1918,7 +1916,7 @@ body{background:var(--paper)!important}
   <div class="sugg" id="fSugg"></div>
   <div class="fkz" id="fKz" hidden></div>
 
-  <h3 class="fsec" id="fsCost">Kosten</h3>
+  <h3 class="fsec">Kosten</h3>
   <div class="fcard">
     <div id="fChart"></div>
     <div class="frow fgr fgr0"><label for="fAmt" id="fAmtL">Betrag</label><span class="fv"><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><select id="fCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
@@ -1934,7 +1932,7 @@ body{background:var(--paper)!important}
       <option value="6">halbjährlich</option><option value="12">jährlich</option><option value="24">alle 2 Jahre</option></select></div>
     <!-- Zahlung am: Tag im Monat (bei selteneren Zahlungen + Monat); gespeichert bleibt c.due als Datum (nächste Zahlung) -->
     <button type="button" class="frow" id="fDueBtn"><span class="fl">Zahlung am</span><span class="fdv" id="fDueT"></span><span class="chev">›</span></button>
-    <div class="fwhw dgw" id="fDueW" hidden></div>
+    <div class="fwhw" id="fDueW" hidden></div>
     <input id="fDue" type="date" hidden>
     <!-- Zahlungsart und «Belastet über» in einer Zeile (z.B. Kreditkarte · Visa …4417) -->
     <div class="frow fwrap"><label for="fPayM">Zahlung via</label><select id="fPayM">
@@ -1958,7 +1956,7 @@ body{background:var(--paper)!important}
     </div>
   </div>
 
-  <h3 class="fsec" id="fsTerm">Laufzeit &amp; Kündigung</h3>
+  <h3 class="fsec">Laufzeit &amp; Kündigung</h3>
   <div class="fcard">
     <!-- Art des Vertrags als 2×2-Leiste (wie Kündigungsweg), Logik über #termSeg/setTermMode -->
     <div class="frow fcol"><span class="fl">Vertragsart</span><div class="chips fchq fg2" id="termSeg" role="group" aria-label="Art des Vertrags">
@@ -1970,14 +1968,14 @@ body{background:var(--paper)!important}
     <!-- Mindestlaufzeit in Monaten rechnet das Vertragsende aus (gespeichert wird nur c.end) -->
     <div class="frow fcol tmfixed"><span class="fl">Mindestlaufzeit</span>
       <div class="chips fchq" id="fTermMC" role="group" aria-label="Mindestlaufzeit"><button type="button" class="chip" data-tmm="12">1 Jahr</button><button type="button" class="chip" data-tmm="24">2 Jahre</button><button type="button" class="chip" data-tmm="36">3 Jahre</button><button type="button" class="chip" data-tmm="x">Andere …</button></div></div>
-    <div class="frow fwhr" id="fTermMW" hidden><div class="whl" id="fTermMWh"><i class="whsel"></i><div class="whc" data-whc="n"></div><div class="whc whu">Monate</div></div><button type="button" class="fok" id="fTermMOk">Übernehmen</button>
+    <div class="frow fwhr" id="fTermMW" hidden><div class="whl"><i class="whsel"></i><div class="whc" data-whc="n"></div><div class="whc whu">Monate</div></div><button type="button" class="fok" id="fTermMOk">Übernehmen</button>
       <select id="fTermM" hidden><option value=""></option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option><option value="60">60</option><option value="61">61</option><option value="62">62</option><option value="63">63</option><option value="64">64</option><option value="65">65</option><option value="66">66</option><option value="67">67</option><option value="68">68</option><option value="69">69</option><option value="70">70</option><option value="71">71</option><option value="72">72</option><option value="73">73</option><option value="74">74</option><option value="75">75</option><option value="76">76</option><option value="77">77</option><option value="78">78</option><option value="79">79</option><option value="80">80</option><option value="81">81</option><option value="82">82</option><option value="83">83</option><option value="84">84</option><option value="85">85</option><option value="86">86</option><option value="87">87</option><option value="88">88</option><option value="89">89</option><option value="90">90</option><option value="91">91</option><option value="92">92</option><option value="93">93</option><option value="94">94</option><option value="95">95</option><option value="96">96</option><option value="97">97</option><option value="98">98</option><option value="99">99</option><option value="100">100</option><option value="101">101</option><option value="102">102</option><option value="103">103</option><option value="104">104</option><option value="105">105</option><option value="106">106</option><option value="107">107</option><option value="108">108</option><option value="109">109</option><option value="110">110</option><option value="111">111</option><option value="112">112</option><option value="113">113</option><option value="114">114</option><option value="115">115</option><option value="116">116</option><option value="117">117</option><option value="118">118</option><option value="119">119</option><option value="120">120</option></select></div>
     <div class="frow tmfixed"><label for="fEnd">Vertragsende</label><input id="fEnd" type="date"></div>
     <div class="frow tmfixed"><label for="fRenew">Verlängert sich um</label><select id="fRenew">
       <option value="">nicht automatisch</option><option value="1">1 Monat</option><option value="3">3 Monate</option>
       <option value="6">6 Monate</option><option value="12">12 Monate</option><option value="24">24 Monate</option></select></div>
     <div class="frow fcol tmnotice"><span class="fl">Kündigungsfrist</span>
-      <div class="chips fchq" id="fNoticeC" role="group" aria-label="Kündigungsfrist"><button type="button" class="chip" data-nc="1">1 Monat</button><button type="button" class="chip" data-nc="2">2 Monate</button><button type="button" class="chip" data-nc="3">3 Monate</button><button type="button" class="chip" data-nc="x" id="fNoticeX">Andere …</button></div>
+      <div class="chips fchq" id="fNoticeC" role="group" aria-label="Kündigungsfrist"><button type="button" class="chip" data-nc="1">1 Monat</button><button type="button" class="chip" data-nc="2">2 Monate</button><button type="button" class="chip" data-nc="3">3 Monate</button><button type="button" class="chip" data-nc="x">Andere …</button></div>
       <div class="fwhw" id="fNoticeWh" hidden><div class="whl"><i class="whsel"></i><div class="whc" data-whc="n"></div><div class="whc" data-whc="u"></div></div><button type="button" class="fok" id="fNoticeOk">Übernehmen</button></div>
       <div hidden><select id="fNotice" aria-label="Kündigungsfrist"><option value="">keine</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option><option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option><option>32</option><option>33</option><option>34</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option><option>46</option><option>47</option><option>48</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>57</option><option>58</option><option>59</option><option>60</option><option>61</option><option>62</option><option>63</option><option>64</option><option>65</option><option>66</option><option>67</option><option>68</option><option>69</option><option>70</option><option>71</option><option>72</option><option>73</option><option>74</option><option>75</option><option>76</option><option>77</option><option>78</option><option>79</option><option>80</option><option>81</option><option>82</option><option>83</option><option>84</option><option>85</option><option>86</option><option>87</option><option>88</option><option>89</option><option>90</option><option>91</option><option>92</option><option>93</option><option>94</option><option>95</option><option>96</option><option>97</option><option>98</option><option>99</option><option>100</option><option>101</option><option>102</option><option>103</option><option>104</option><option>105</option><option>106</option><option>107</option><option>108</option><option>109</option><option>110</option><option>111</option><option>112</option><option>113</option><option>114</option><option>115</option><option>116</option><option>117</option><option>118</option><option>119</option><option>120</option><option>121</option><option>122</option><option>123</option><option>124</option><option>125</option><option>126</option><option>127</option><option>128</option><option>129</option><option>130</option><option>131</option><option>132</option><option>133</option><option>134</option><option>135</option><option>136</option><option>137</option><option>138</option><option>139</option><option>140</option><option>141</option><option>142</option><option>143</option><option>144</option><option>145</option><option>146</option><option>147</option><option>148</option><option>149</option><option>150</option><option>151</option><option>152</option><option>153</option><option>154</option><option>155</option><option>156</option><option>157</option><option>158</option><option>159</option><option>160</option><option>161</option><option>162</option><option>163</option><option>164</option><option>165</option><option>166</option><option>167</option><option>168</option><option>169</option><option>170</option><option>171</option><option>172</option><option>173</option><option>174</option><option>175</option><option>176</option><option>177</option><option>178</option><option>179</option><option>180</option><option>181</option><option>182</option><option>183</option><option>184</option><option>185</option><option>186</option><option>187</option><option>188</option><option>189</option><option>190</option><option>191</option><option>192</option><option>193</option><option>194</option><option>195</option><option>196</option><option>197</option><option>198</option><option>199</option><option>200</option><option>201</option><option>202</option><option>203</option><option>204</option><option>205</option><option>206</option><option>207</option><option>208</option><option>209</option><option>210</option><option>211</option><option>212</option><option>213</option><option>214</option><option>215</option><option>216</option><option>217</option><option>218</option><option>219</option><option>220</option><option>221</option><option>222</option><option>223</option><option>224</option><option>225</option><option>226</option><option>227</option><option>228</option><option>229</option><option>230</option><option>231</option><option>232</option><option>233</option><option>234</option><option>235</option><option>236</option><option>237</option><option>238</option><option>239</option><option>240</option><option>241</option><option>242</option><option>243</option><option>244</option><option>245</option><option>246</option><option>247</option><option>248</option><option>249</option><option>250</option><option>251</option><option>252</option><option>253</option><option>254</option><option>255</option><option>256</option><option>257</option><option>258</option><option>259</option><option>260</option><option>261</option><option>262</option><option>263</option><option>264</option><option>265</option><option>266</option><option>267</option><option>268</option><option>269</option><option>270</option><option>271</option><option>272</option><option>273</option><option>274</option><option>275</option><option>276</option><option>277</option><option>278</option><option>279</option><option>280</option><option>281</option><option>282</option><option>283</option><option>284</option><option>285</option><option>286</option><option>287</option><option>288</option><option>289</option><option>290</option><option>291</option><option>292</option><option>293</option><option>294</option><option>295</option><option>296</option><option>297</option><option>298</option><option>299</option><option>300</option><option>301</option><option>302</option><option>303</option><option>304</option><option>305</option><option>306</option><option>307</option><option>308</option><option>309</option><option>310</option><option>311</option><option>312</option><option>313</option><option>314</option><option>315</option><option>316</option><option>317</option><option>318</option><option>319</option><option>320</option><option>321</option><option>322</option><option>323</option><option>324</option><option>325</option><option>326</option><option>327</option><option>328</option><option>329</option><option>330</option><option>331</option><option>332</option><option>333</option><option>334</option><option>335</option><option>336</option><option>337</option><option>338</option><option>339</option><option>340</option><option>341</option><option>342</option><option>343</option><option>344</option><option>345</option><option>346</option><option>347</option><option>348</option><option>349</option><option>350</option><option>351</option><option>352</option><option>353</option><option>354</option><option>355</option><option>356</option><option>357</option><option>358</option><option>359</option><option>360</option><option>361</option><option>362</option><option>363</option><option>364</option><option>365</option></select><select id="fNoticeU" aria-label="Einheit"><option value="m">Monate</option><option value="w">Wochen</option><option value="d">Tage</option><option value="k">. im Monat</option></select></div></div>
     <div class="frow tmopen"><label for="fTermP">Kündbar per</label><select id="fTermP">
@@ -1986,11 +1984,10 @@ body{background:var(--paper)!important}
       <option value="a">Ende Vertragsjahr</option></select></div>
     <!-- Kündigungsweg: Online · E-Mail · Brief (Einschreiben = Brief, Tipp steht im Kündigungsschreiben); darunter genau ein passendes Folgefeld -->
     <div class="frow fcol tmcanc"><span class="fl">Kündigungsweg</span>
-      <div class="seg2 fseg" id="fCancT" role="group" aria-label="Kündigungsweg"><button type="button" data-cv="Online / Kundenkonto" aria-pressed="false">Online</button><button type="button" data-cv="E-Mail" aria-pressed="false">E-Mail</button><button type="button" data-cv="Brief" aria-pressed="false">Brief</button><button type="button" data-cv="Telefon" aria-pressed="false">Telefon</button></div>
+      <div class="seg2" id="fCancT" role="group" aria-label="Kündigungsweg"><button type="button" data-cv="Online / Kundenkonto" aria-pressed="false">Online</button><button type="button" data-cv="E-Mail" aria-pressed="false">E-Mail</button><button type="button" data-cv="Brief" aria-pressed="false">Brief</button><button type="button" data-cv="Telefon" aria-pressed="false">Telefon</button></div>
       <div hidden><select id="fCancF"><option value="">—</option><option>Online / Kundenkonto</option><option>E-Mail</option><option>Brief</option><option>Telefon</option></select></div></div>
     <div class="frow tmcanc" id="fCancUrlW" hidden><label for="fCancUrl">Kündigungslink</label><input id="fCancUrl" type="url" inputmode="url" placeholder="optional" autocomplete="off"></div>
     <div class="frow tmcanc" id="fCancMailW" hidden><label for="fCancMail">E-Mail für Kündigung</label><input id="fCancMail" type="email" placeholder="hinzufügen" autocomplete="off"></div>
-    <div class="frow tmcanc cvaddr" id="fCancAddrW" hidden><span class="t"><b id="fCancAddrT"></b><small id="fCancAddrS"></small></span><button type="button" class="mdlink" id="fCancAddrB">Erfassen</button></div>
     <label class="frow fsw tmcanc" id="fRemindW"><span class="t"><b>An Frist erinnern</b><small>Erscheint unter «Fristen»</small></span><input type="checkbox" class="swi" id="fRemind"></label>
     <label class="frow fsw tmcanc"><span class="t"><b>Pflichtvertrag<span class="catinfo" role="button" tabindex="0" data-mandinfo aria-label="Info: Pflichtvertrag">i</span></b><small>Kündigen nur mit neuem Anbieter</small></span><input type="checkbox" class="swi" id="fMand"></label>
     <!-- nur bei gekündigten Verträgen: Daten korrigieren (c.cancelledOn, c.cancelPer) -->
@@ -2000,7 +1997,7 @@ body{background:var(--paper)!important}
   <p class="note fnote2" id="tmHint"></p>
   <div hidden><input type="checkbox" id="fNoCancel"><input type="checkbox" id="fNoWatch"></div>
 
-  <h3 class="fsec" id="fsAssign">Zuordnung</h3>
+  <h3 class="fsec">Zuordnung</h3>
   <div class="fcard">
     <button type="button" class="frow catfield" id="fCats"><span class="fl">Kategorie</span><span class="cfi" id="fCatIcon"></span><span class="cfn" id="fCatName">wählen</span><span class="chev">›</span></button>
     <div class="frow fcol" id="fHoldWrap" hidden><span class="fl">Personen</span><div class="chips" id="fHolders"></div>
@@ -2010,7 +2007,7 @@ body{background:var(--paper)!important}
     <div class="frow"><label for="fContrNo" id="fContrL">Vertragsnummer</label><input id="fContrNo" type="text" placeholder="hinzufügen" autocomplete="off"></div>
   </div>
 
-  <h3 class="fsec" id="fsContact">Kontakt</h3>
+  <h3 class="fsec">Kontakt</h3>
   <div class="fcard">
     <button type="button" class="frow" id="fAddrAdd"><span class="fl">Adresse</span><span class="fadda">hinzufügen</span></button>
     <div class="frow fcol" id="fAddrW"><div class="flrow"><span class="fl">Adresse</span><button type="button" class="mdlink" id="fAddrPaste">Einfügen</button></div>
@@ -2069,7 +2066,7 @@ body{background:var(--paper)!important}
       <option value="12">jährlich</option><option value="24">alle 2 Jahre</option><option value="0">einmalig</option></select></div>
     <!-- Zahltag wie beim Vertrag: Tag im Monat (Drehrad); bei «einmalig» ein Datum -->
     <button type="button" class="frow" id="iDueBtn"><span class="fl">Zahlung am</span><span class="fdv" id="iDueT"></span><span class="chev">›</span></button>
-    <div class="fwhw dgw" id="iDueW" hidden></div>
+    <div class="fwhw" id="iDueW" hidden></div>
     <div class="frow" id="iDueRow"><label for="iDue">Datum</label><input id="iDue" type="date"></div>
   </div>
   <p class="note fnote2">Netto eintragen, also was auf dem Konto ankommt. Einen 13. Monatslohn oder Bonus am besten als eigene jährliche Einnahme erfassen.</p>
@@ -2162,7 +2159,7 @@ body{background:var(--paper)!important}
   <p class="note" id="ltSender" style="margin:4px 0 12px"></p>
   <div class="field"><label for="ltTo">Empfänger</label><textarea id="ltTo" style="min-height:92px" placeholder="Firma AG&#10;Strasse Nr.&#10;PLZ Ort"></textarea>
     <div class="ltrow"><button type="button" class="mini" id="ltAddr">Adresse suchen</button><span class="note" id="ltAddrMsg"></span></div>
-    <div class="ltwin"><span>Kuvert-Fenster</span><div class="seg2 sm" id="ltWin"><button type="button" data-ltwin="l">Links</button><button type="button" data-ltwin="r">Rechts</button></div></div></div>
+    <div class="ltwin"><span>Kuvert-Fenster</span><div class="seg2 sm"><button type="button" data-ltwin="l">Links</button><button type="button" data-ltwin="r">Rechts</button></div></div></div>
   <p id="ltKvg" hidden style="margin:0 0 12px;font-size:13px;line-height:1.4;color:var(--ink2)">Grundversicherung (KVG): Die Kündigung wird erst gültig, wenn die neue Krankenkasse deine Aufnahme bestätigt hat – sonst bleibst du beim bisherigen Versicherer.</p>
   <div id="ltMiss" hidden><div class="flabel">Fehlt noch — wird beim Vertrag gespeichert</div>
     <div class="two"><div class="field" id="ltMissC"><label for="ltCust">Kundennummer</label><input id="ltCust" type="text" autocomplete="off"></div>
@@ -2665,8 +2662,8 @@ function endIfToday(c,t){var n=+c.notice||0,u=c.noticeU;if(!n)return t;
   if(u==="k")return new Date(t.getFullYear(),t.getMonth()+(t.getDate()<=n?1:2),0);return addMonths(t,n);}
 /* Kündigungstermine bei unbefristeten Verträgen */
 var TERMS={"":"jederzeit","p":"Ende der Zahlungsperiode","m":"Monatsende","q":"Quartalsende","h":"Halbjahresende","y":"Jahresende","a":"Ende Vertragsjahr"};
-/* 2. Parameter ungenutzt (Aufrufer: nextTerm(c) bzw. nextTerm(c,null,T)); after = erster Termin nach diesem Datum */
-function nextTerm(c,_unused,after){
+/* after (optional) = erster Termin nach diesem Datum */
+function nextTerm(c,after){
   if(c.end||!c.cancTerm)return null;
   /* Vertrag beginnt erst später: Kündigungsfrist frühestens ab Beginn (sonst stünde ein neuer Vertrag schon vor Beginn unter «Fristen») */
   var t=today(),st0=parseD(c.start);if(!after&&st0&&st0>t)t=st0;var T,ok=function(x){return after?x>after:nDl(c,x)>=t;};
@@ -3054,7 +3051,7 @@ function renderView(){
       if(isP(c))return;
       if(endsSelf(c)){var ee=parseD(c.end);if(ee&&ee>=t1)items.push({c:c,d:ee,k:"end"});return;}
       var T=termEnd(c);if(!T)return;
-      if(isKept(c)){var T2=c.end?renewAfter(c,T):nextTerm(c,null,T),d2=T2?nDl(c,T2):null;items.push({c:c,d:d2||T,k:d2?"kept":"keptEnd",e:T2});return;}
+      if(isKept(c)){var T2=c.end?renewAfter(c,T):nextTerm(c,T),d2=T2?nDl(c,T2):null;items.push({c:c,d:d2||T,k:d2?"kept":"keptEnd",e:T2});return;}
       var dl=nDl(c,T);if(dl<t1)return;
       items.push({c:c,d:dl,k:"open",e:T});
     });
@@ -3690,7 +3687,7 @@ function renderBudget(v){
   if(incs.length){
     o+='<div class="grp"><div class="grphead"><span>Einnahmen '+MON[sel]+'</span><span>'+money(M[sel].inc)+" "+H+'</span></div><div class="ilist">'+
       (nowM.length?nowM.map(function(it){var c=it.c;
-        return '<button class="irow" data-inc="'+esc(c._id)+'">'+incMark(c)+'<span class="it">'+esc(c.label||c.name||"Einnahme")+(function(){var s=[];if((state.settings.holders||[]).length>1&&holdersOf(c).length)s.push(holdersOf(c).join(", "));var cy=+c.cycle;if(cy!==1)s.push(cy===0?"einmalig":(ICYCLE[cy]||"")+(cy>=12&&c.due?" im "+MONS[(parseD(c.due)||today()).getMonth()]:""));return s.length?'<small>'+esc(s.join(" · "))+'</small>':"";})()+'</span><b>'+money(it.a,c.cur)+(c.cur!==H?'<u>'+esc(c.cur)+"</u>":"")+"</b></button>";}).join("")
+        return '<button class="irow" data-inc="'+esc(c._id)+'">'+incMark(c)+'<span class="it">'+esc(c.label||c.name||"Einnahme")+(function(){var s=[];if((state.settings.holders||[]).length>1&&holdersOf(c).length)s.push(holdersOf(c).join(", "));var cy=+c.cycle;if(cy!==1)s.push(cy===0?"einmalig":(ICYCLE[cy]||"")+(cy>=12&&c.due?" im "+MON[(parseD(c.due)||today()).getMonth()]:""));return s.length?'<small>'+esc(s.join(" · "))+'</small>':"";})()+'</span><b>'+money(it.a,c.cur)+(c.cur!==H?'<u>'+esc(c.cur)+"</u>":"")+"</b></button>";}).join("")
         :'<div class="iempty">Keine Einnahmen im '+MON[sel]+"</div>")+
       '</div></div>';
   }
@@ -3922,7 +3919,7 @@ function openForm(c,asCopy,title){clearCands();webWaitClear();document.getElemen
   var ft=document.getElementById("formTitle");ft.textContent=title||(asCopy?"Duplizieren":(c?"Bearbeiten":"Neuer Vertrag"));
   document.getElementById("fPartner").value=(c&&c.partner)||"";
   document.getElementById("fLabel").value=(c&&c.label)||"";
-  document.getElementById("fAmt").value=c?amtIn(c.amount,c.cur):"";setTimeout(amtPh);
+  document.getElementById("fAmt").value=c?amtIn(c.amount,c.cur):"";
   document.getElementById("fCur").value=(c&&c.cur)||state.settings.home;
   document.getElementById("fCycle").value=(c&&c.cycle)||"1";
   document.getElementById("fDue").value=(c&&c.due)||iso(today());setTimeout(updPayHint,0);setTimeout(paintDue,0);
@@ -4819,8 +4816,7 @@ document.getElementById("fNoticeC").addEventListener("click",function(e){var b=e
   if(b.dataset.nc==="x"){noticeOpen=!noticeOpen;paintNotice();return;}
   noticeOther=false;noticeOpen=false;noticeSet(b.dataset.nc,"m");});
 /* Zahlung am: Tag im Monat (monatlich), sonst Tag + Monat; setzt c.due auf die nächste passende Zahlung ab heute */
-/* MONS: frühere Kopie von MON; Alias bleibt, bis alle Verwendungen ausserhalb des Formulars auf MON umgestellt sind */
-var MONS=MON,dueOpen=false;
+var dueOpen=false;
 function dueTxt(){var v=parseD(document.getElementById("fDue").value),cy=+document.getElementById("fCycle").value||1;if(!v)return "wählen";
   var d=v.getDate()+".";if(cy===1)return d+" im Monat";
   if(cy<12){var ms=[];for(var k=0;k<12;k+=cy)ms.push((v.getMonth()+k)%12);ms.sort(function(a,b){return a-b;});return d+" "+ms.map(function(m){return MON[m].slice(0,3);}).join(", ");}
@@ -5056,8 +5052,6 @@ document.getElementById("fCur").addEventListener("change",paintExtras);
 document.getElementById("fCur").addEventListener("change",paintPrices);
 /* Platzhalter im Zahlenformat der Hauptwährung */
 /* Betragsfelder: Platzhalter «hinzufügen» (wie alle Felder) statt Beispielbetrag – ein Beispiel wirkte wie ein schon erfasster Wert (16.10.2026) */
-function amtPh(){["fAmt","iAmt","pAmt","xAmt"].forEach(function(i){var e=document.getElementById(i);if(e)e.placeholder="hinzufügen";});}
-document.getElementById("fCur").addEventListener("change",amtPh);
 
 document.getElementById("saveForm").addEventListener("click",function(){
   /* Eingetippt, aber nicht «hinzufügen» gedrückt: jetzt übernehmen; klappt das nicht (Fehler/Rückfrage), Sichern abbrechen */
@@ -5996,7 +5990,7 @@ function openDetail(idv,opt){var dTrial=!!(opt&&opt.trial);
   var u=gone||fixd?{lvl:"",days:null,date:null}:urgency(c),nd=nextDue(c),e=effEnd(c);
   var rt=gone?null:renewTo(c);
   /* «Behalten»: Detail zeigt wie «Fristen» schon den nächsten Termin danach */
-  var kT=null;if(!gone&&!fixd&&isKept(c)){var T0=termEnd(c);kT=c.end?renewAfter(c,T0):nextTerm(c,null,T0);
+  var kT=null;if(!gone&&!fixd&&isKept(c)){var T0=termEnd(c);kT=c.end?renewAfter(c,T0):nextTerm(c,T0);
     if(kT){var kd=nDl(c,kT);u={lvl:"",days:daysBetween(today(),kd),date:kd,T:kT};rt=c.end?renewAfter(c,kT):null;}}
   /* beendet (Kündigung wirksam oder Laufzeit vorbei): keine Verlängerung, Kündigung, Pause mehr – nur Duplizieren/Reaktivieren/Löschen */
   var ended=endedByNotice(c)||endedByTerm(c);
@@ -6263,7 +6257,7 @@ function openSkr(idv){var c=state.contracts[idv],x=c&&skrInfo(c);if(!x)return;va
     '<div class="skrc">'+rows+"</div>"+
     '<p class="skrh">Gut zu wissen</p><div class="skrc skrt">'+r.tips.map(function(s){return "<p>"+esc(s)+"</p>";}).join("")+"</div>"+
     '<p class="fqf"><span>'+(r.src?"Grundlage: "+esc(r.src)+" · ":"")+"Massgebend sind dein Vertrag und die Mitteilung. Keine Rechtsberatung.</span></p></div>";
-  var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;}
+  openPickOver();}
 function openDocsPick(idv){
   var c=state.contracts[idv];if(!c)return;docsFor=idv;var ds=c.docs||[];
   document.getElementById("pickTitle").textContent="Dokumente";
@@ -6272,7 +6266,7 @@ function openDocsPick(idv){
       :'<p class="note" style="margin:0 2px 6px">Noch keine Dokumente, zum Beispiel Vertrag, Police oder Rechnung.</p>')+
     (assets?'<button class="lbtn main" type="button" data-dadd style="margin-top:6px">Datei anhängen · PDF oder Bild</button>':"")+
     '<p class="note" style="margin:10px 2px 0">Dateien bleiben auf diesem Gerät.'+(ds.length?' Löschen unter «Bearbeiten».':'')+'</p>';
-  var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
+  openPickOver();
 }
 document.getElementById("pickList").addEventListener("click",function(ev){if(this.dataset.dim!=="docs")return;
   var c=state.contracts[docsFor];if(!c)return;var b=ev.target.closest("[data-dopen]");
@@ -6293,7 +6287,7 @@ function openCancViaPick(idv,trial){
   l.innerHTML=[["online","Online","Kundenkonto, Kündigungsbutton"],["mail","Per E-Mail","Mail mit fertigem Text"],["post","Per Brief","PDF mit Unterschrift"],["tel","Per Telefon","Kundendienst anrufen"]].map(function(o){
     return '<button class="pick" data-pv="'+o[0]+'"><span>'+o[1]+'</span><span>'+o[2]+'</span></button>';}).join("")+
     '<p class="note" style="margin:10px 2px 0">Wird beim Vertrag gespeichert. Miete braucht immer einen Brief mit Unterschrift.</p>';
-  var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;
+  openPickOver();
 }
 
 /* ---------- Ereignisse ---------- */
@@ -6604,8 +6598,8 @@ document.getElementById("iPAdd").addEventListener("click",function(){
 /* Zahltag: Tag im Monat (+ Monat bei seltener Zahlung), «einmalig» = Datum */
 var iDueOpen=false;
 function iDueTxt(){var v=parseD(document.getElementById("iDue").value),cy=+document.getElementById("iCycle").value;if(!v)return "wählen";
-  if(!cy)return fmtD(iso(v));var d=v.getDate()+".";if(cy===1)return d+" im Monat";if(cy===12||cy===24)return d+" "+MONS[v.getMonth()]+(cy===24?" (alle 2 Jahre)":"");
-  var ms=[];for(var k=0;k<12;k+=cy)ms.push((v.getMonth()+k)%12);ms.sort(function(a,b){return a-b;});return d+" "+ms.map(function(m){return MONS[m].slice(0,3);}).join(", ");}
+  if(!cy)return fmtD(iso(v));var d=v.getDate()+".";if(cy===1)return d+" im Monat";if(cy===12||cy===24)return d+" "+MON[v.getMonth()]+(cy===24?" (alle 2 Jahre)":"");
+  var ms=[];for(var k=0;k<12;k+=cy)ms.push((v.getMonth()+k)%12);ms.sort(function(a,b){return a-b;});return d+" "+ms.map(function(m){return MON[m].slice(0,3);}).join(", ");}
 function iPaintDue(){var cy=+document.getElementById("iCycle").value,one=cy===0,w=document.getElementById("iDueW");
   document.getElementById("iDueRow").hidden=!one;document.getElementById("iDueBtn").hidden=one;if(one)iDueOpen=false;
   document.getElementById("iDueT").textContent=iDueTxt();w.hidden=!iDueOpen;
@@ -6620,7 +6614,7 @@ document.getElementById("iDueW").addEventListener("click",function(ev){var b=ev.
 document.getElementById("iCycle").addEventListener("change",function(){iDueOpen=false;iPaintDue();iPaintKz();});
 ["iStart","iAmt"].forEach(function(i){document.getElementById(i).addEventListener("change",iPaintPrices);});
 document.getElementById("iAmt").addEventListener("input",iPaintPrices);
-document.getElementById("iCur").addEventListener("change",iPaintPrices);document.getElementById("iCur").addEventListener("change",amtPh);
+document.getElementById("iCur").addEventListener("change",iPaintPrices);
 /* Einnahme ansehen (wie Vertragsansicht): Kopf, Kacheln, Preisverlauf, Angaben; Bearbeiten öffnet das Formular. SwiftUI: IncomeDetailView */
 /* laufende Einnahmen pro Monat in Hauptwährung (heute aktiv, mit Rhythmus) */
 function incMonthNow(){var t=today(),s=0;incList().forEach(function(x){var e2=parseD(x.end),s2=parseD(x.start);if(+x.cycle&&!(e2&&e2<t)&&!(s2&&s2>t))s+=conv(curPrice(x),x.cur)/(+x.cycle);});return s;}
@@ -6663,7 +6657,7 @@ function openIncome(idv){clearCands();document.getElementById("oILogo").open=fal
   document.getElementById("incTitle").textContent=fBank?"Vorschlag":(incId?"Bearbeiten":"Neue Einnahme");
   document.getElementById("iName").value=(c&&c.name)||"";
   document.getElementById("iLabel").value=(c&&c.label)||"";
-  document.getElementById("iAmt").value=c?amtIn(c.amount,c.cur):"";setTimeout(amtPh);
+  document.getElementById("iAmt").value=c?amtIn(c.amount,c.cur):"";
   document.getElementById("iCur").value=(c&&c.cur)||state.settings.home;
   document.getElementById("iCycle").value=c?String(c.cycle):"1";
   document.getElementById("iDue").value=(c&&c.due)||iso(today());
@@ -7549,7 +7543,7 @@ function openAddrPick(gq,emptyMsg,withNote){if(!gq)return;var c0=state.contracts
     document.getElementById("pickTitle").textContent="Adresse wählen";var l=document.getElementById("pickList");l.dataset.dim="addrpe";l._cands=cs;l._pk=gq.key;
     l.innerHTML=cs.map(function(c,i){return '<button class="pick pickcat" data-ap="'+i+'" type="button"><span class="pcn">'+c.lines.map(esc).join("<br>")+'<em class="tsub">'+esc(c.src)+'</em></span></button>';}).join("")+
       (withNote?'<p class="note" style="margin:10px 2px 0">Quellen: Wikidata und OpenStreetMap, ohne Gewähr. Bei mehreren Standorten den Hauptsitz oder Kundendienst wählen.</p>':"");
-    var sh=document.getElementById("sheetPick");sh.classList.add("on","over");sh.scrollTop=0;}).catch(function(){toast("Suche nicht möglich");});}
+    openPickOver();}).catch(function(){toast("Suche nicht möglich");});}
 document.addEventListener("click",function(ev){
   var t=ev.target,x;
   if((x=t.closest("[data-md]"))){openMd(x.dataset.md);return;}
