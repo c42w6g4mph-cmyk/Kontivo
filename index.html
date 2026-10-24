@@ -1362,6 +1362,9 @@ input[type=file]{display:none}
 .swd{position:absolute;right:0;top:1px;bottom:0;width:88px;background:var(--alert);color:#fff;font-size:15px;font-weight:600}
 .tlon .tlr.cur .pdl>span{font-weight:700}.tlon .tlstart.cur>label>span{font-weight:700}
 .tlbase .tlstart>label{grid-column:1}.tlcur{border-top:0}.tlcur .fv{margin-left:auto}
+.tlbase .pnew>.tlr{grid-template-columns:minmax(0,1fr) 7.4em;border-top:1px solid var(--line)}.tlbase .pnew .pai{grid-column:2}
+.tlon .pnew>.tlr::before{top:50%}.tlon .tlr.new>.tld{border-style:dashed;border-color:var(--teal)}
+.pnew .pdl>span{color:var(--teal);font-weight:600}
 .tlbase .fadd.fpill{width:100%;margin:0;padding:0;min-height:46px;border-top:1px solid var(--line);border-radius:0;background:none;font-size:15px;gap:8px}
 .tlbase .fadd.fpill svg{width:16px;height:16px}
 .fsw{cursor:pointer;padding:9px 0}.fsw .t{flex:1;min-width:0;display:grid;gap:2px}.fsw b{font-size:15px;font-weight:500;color:var(--ink)}.fsw small{font-size:12.5px;color:var(--ink2);line-height:1.35}
@@ -1670,7 +1673,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v319</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v320</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -1751,11 +1754,8 @@ input[type=file]{display:none}
     <div id="pList"></div>
     <div class="frow fgr fgr0 tlstart" id="fAmtR"><i class="tld"></i><label for="fAmt"><span id="fAmtL">Betrag</span><small class="tls" id="fAmtS"></small></label><span class="fv"><input id="fAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><select id="fCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
     <button type="button" class="fadd fpill" id="pOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Preisänderung</button>
-    <div class="fsub" id="pForm" hidden>
-      <div class="frow"><label for="pFrom">Gültig ab</label><input id="pFrom" type="date"></div>
-      <div class="frow"><label for="pAmt">Neuer Betrag</label><input id="pAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"></div>
-      <button class="fok" id="pAdd" type="button">Preisänderung hinzufügen</button><button class="fcan" id="pCancel" type="button">Abbrechen</button>
-    </div>
+    <div class="swr pnew" id="pForm" hidden><button type="button" class="swd" id="pCancel">Verwerfen</button><div class="frow fpr fgr tlr new"><i class="tld"></i><label class="fl pdl"><span id="pFromT">Datum</span><small class="tls">neu</small><input id="pFrom" class="pdi" type="date" aria-label="Gültig ab"></label><input id="pAmt" class="num pai" type="text" inputmode="decimal" placeholder="Betrag" aria-label="Neuer Betrag"></div>
+      <button id="pAdd" type="button" hidden>Preisänderung hinzufügen</button></div>
     <div class="frow"><label for="fCycle">Zahlungsrhythmus</label><select id="fCycle">
       <option value="1">monatlich</option><option value="2">alle 2 Monate</option><option value="3">quartalsweise</option>
       <option value="6">halbjährlich</option><option value="12">jährlich</option><option value="24">alle 2 Jahre</option></select></div>
@@ -1885,11 +1885,8 @@ input[type=file]{display:none}
     <div id="iPList"></div>
     <div class="frow fgr fgr0 tlstart" id="iAmtR"><i class="tld"></i><label for="iAmt"><span id="iAmtL">Betrag netto</span><small class="tls" id="iAmtS"></small></label><span class="fv"><input id="iAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"><select id="iCur" class="fcur" aria-label="Währung"><option>CHF</option><option>EUR</option><option>USD</option><option>GBP</option><option>TRY</option></select></span></div>
     <button type="button" class="fadd fpill" id="iPOpen" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Änderung</button>
-    <div class="fsub" id="iPForm" hidden>
-      <div class="frow"><label for="iPFrom">Gültig ab</label><input id="iPFrom" type="date"></div>
-      <div class="frow"><label for="iPAmt">Neuer Betrag</label><input id="iPAmt" class="num" type="text" inputmode="decimal" placeholder="hinzufügen"></div>
-      <button class="fok" id="iPAdd" type="button">Änderung hinzufügen</button><button class="fcan" id="iPCancel" type="button">Abbrechen</button>
-    </div>
+    <div class="swr pnew" id="iPForm" hidden><button type="button" class="swd" id="iPCancel">Verwerfen</button><div class="frow fpr fgr tlr new"><i class="tld"></i><label class="fl pdl"><span id="iPFromT">Datum</span><small class="tls">neu</small><input id="iPFrom" class="pdi" type="date" aria-label="Gültig ab"></label><input id="iPAmt" class="num pai" type="text" inputmode="decimal" placeholder="Betrag" aria-label="Neuer Betrag"></div>
+      <button id="iPAdd" type="button" hidden>Änderung hinzufügen</button></div>
     <div class="frow"><label for="iCycle">Zahlungsrhythmus</label><select id="iCycle">
       <option value="1">monatlich</option><option value="2">alle 2 Monate</option><option value="3">quartalsweise</option><option value="6">halbjährlich</option>
       <option value="12">jährlich</option><option value="24">alle 2 Jahre</option><option value="0">einmalig</option></select></div>
@@ -4861,7 +4858,16 @@ function openSub(k,on){var f=document.getElementById(k+"Form"),b=document.getEle
 /* Plakette «+ Preisänderung» erst, wenn ein Betrag da ist (oder schon Preisänderungen erfasst sind) */
 function syncPOpen(){var b=document.getElementById("pOpen"),f=document.getElementById("pForm");if(!b||!f)return;
   b.hidden=!f.hidden||(!document.getElementById("fAmt").value.trim()&&!(draft.prices||[]).length);}
-document.getElementById("pOpen").addEventListener("click",function(){openSub("p",true);var i=document.getElementById("pFrom");try{i.focus();}catch(e){}});
+/* Neue Änderung als Zeile wie in der Liste (24.10.2026): links Datum (vorbelegt heute), rechts Betrag; sobald beides da ist, wird sie übernommen.
+   Verwerfen: Zeile nach links wischen. SwiftUI: Zeile mit DatePicker(.compact) + TextField, onSubmit → hinzufügen */
+function newRowBind(pre,open,add){var F=document.getElementById(pre+"From"),A=document.getElementById(pre+"Amt"),T=document.getElementById(pre+"FromT");
+  var paint=function(){T.textContent=F.value?"ab "+fmtShort(parseD(F.value)):"Datum";};
+  document.getElementById(pre+"Open").addEventListener("click",function(){if(!F.value)F.value=iso(today());paint();open();try{A.focus();}catch(e){}});
+  F.addEventListener("input",paint);F.addEventListener("change",function(){paint();if(A.value.trim())add();});
+  A.addEventListener("change",function(){if(F.value&&A.value.trim())add();});
+  A.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();A.blur();}});
+  swipeDel(document.getElementById(pre+"Form"));}
+newRowBind("p",function(){openSub("p",true);},function(){document.getElementById("pAdd").click();});
 document.getElementById("xOpen").addEventListener("click",function(){openSub("x",true);var i=document.getElementById("xDate");try{i.focus();}catch(e){}});
 /* Unterformular nur noch für neue Preisänderungen; bestehende werden direkt in der Zeile geändert */
 document.getElementById("pCancel").addEventListener("click",function(){
@@ -6439,7 +6445,7 @@ function iOpenSub(on){document.getElementById("iPForm").hidden=!on;var b=documen
 /* «+ Änderung» wie beim Vertrag: kleine Plakette unter dem Betrag, erst sichtbar mit Betrag oder vorhandenen Änderungen */
 function iSyncPOpen(){var b=document.getElementById("iPOpen"),f=document.getElementById("iPForm");if(!b||!f)return;
   b.hidden=!f.hidden||(!document.getElementById("iAmt").value.trim()&&!(idraft.prices||[]).length);}
-document.getElementById("iPOpen").addEventListener("click",function(){iOpenSub(true);try{document.getElementById("iPFrom").focus();}catch(e){}});
+newRowBind("iP",function(){iOpenSub(true);},function(){document.getElementById("iPAdd").click();});
 document.getElementById("iPCancel").addEventListener("click",function(){
   document.getElementById("iPFrom").value="";document.getElementById("iPAmt").value="";iOpenSub(false);iPaintPrices();});
 bindPriceList("iPList",function(){return idraft.prices||[];},function(a){idraft.prices=a;},function(){iPaintPrices();},"iStart");
