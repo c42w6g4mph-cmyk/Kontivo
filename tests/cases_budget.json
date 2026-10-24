@@ -1,0 +1,45 @@
+{
+ "about": "Prüffälle für Summen, Kosten, Budget, «Fair geteilt?» und Duplikat-Hinweise. Ein ganzer Haushalt (zwei Personen, Verträge, Einnahmen, variable Kosten) an mehreren Stichtagen. Erwartete Ergebnisse in golden_budget.json (aus der Web-App erzeugt mit make_golden_budget.py). Beträge in Hauptwährung CHF, auf Rappen gerundet.",
+ "settings": {"home": "CHF", "rates": {"EUR": 0.94, "USD": 0.8}, "holders": ["Sinan", "Lara"]},
+ "todays": ["2026-02-28", "2026-10-24", "2027-01-15"],
+ "persons": [null, "Sinan", "Lara"],
+ "costKinds": ["all", "fix", "none"],
+ "contracts": {
+  "miete": {"partner": "Immobilien Seeblick AG", "label": "Miete", "cat": "Wohnen", "amount": 2400, "cur": "CHF", "cycle": 1, "due": "2025-01-01", "start": "2023-04-01", "notice": 3, "noticeU": "m", "cancTerm": "q", "holders": ["Sinan", "Lara"], "split": {"Sinan": 60, "Lara": 40}, "prices": [{"from": "2026-04-01", "amount": 2460}], "status": "active"},
+  "kk-sinan": {"partner": "CSS", "label": "Krankenkasse Sinan", "cat": "Versicherung", "amount": 412.35, "cur": "CHF", "cycle": 1, "due": "2026-01-01", "start": "2020-01-01", "notice": 1, "noticeU": "m", "cancTerm": "y", "holders": ["Sinan"], "prices": [{"from": "2027-01-01", "amount": 438.1}], "status": "active"},
+  "kk-lara": {"partner": "Helsana", "label": "Krankenkasse Lara", "cat": "Versicherung", "amount": 389.9, "cur": "CHF", "cycle": 1, "due": "2026-01-01", "start": "2021-01-01", "notice": 1, "noticeU": "m", "cancTerm": "y", "holders": ["Lara"], "status": "active"},
+  "strom": {"partner": "EKZ", "label": "Strom", "cat": "Energie & Wasser", "amount": 95, "cur": "CHF", "cycle": 3, "due": "2026-02-28", "start": "2023-04-01", "holders": ["Sinan", "Lara"], "extras": [{"date": "2026-03-15", "amount": 182.4, "note": "Nachzahlung"}, {"date": "2026-09-30", "amount": -45, "note": "Gutschrift"}], "status": "active"},
+  "netflix": {"partner": "Netflix", "label": "Netflix", "cat": "Abos & Medien", "amount": 13.99, "cur": "EUR", "cycle": 1, "due": "2026-10-10", "start": "2026-10-10", "trial": "2026-11-10", "cancTerm": "m", "holders": ["Sinan", "Lara"], "status": "active"},
+  "fitness": {"partner": "Activ Fitness", "label": "Fitness", "cat": "Freizeit & Sport", "amount": 79, "cur": "CHF", "cycle": 1, "due": "2026-01-05", "start": "2025-01-05", "notice": 1, "noticeU": "m", "cancTerm": "m", "holders": ["Lara"], "paused": true, "pausedAt": "2026-07-01", "pausedUntil": "2026-12-01", "status": "active"},
+  "leasing": {"partner": "AMAG Leasing", "label": "Auto-Leasing", "cat": "Mobilität", "amount": 349, "cur": "EUR", "cycle": 1, "due": "2024-07-01", "start": "2024-07-01", "end": "2027-06-30", "holders": ["Sinan"], "status": "active"},
+  "jahresabo": {"partner": "NZZ", "label": "Zeitung", "cat": "Abos & Medien", "amount": 120, "cur": "CHF", "cycle": 12, "due": "2026-05-20", "start": "2022-05-20", "cancTerm": "a", "notice": 1, "noticeU": "m", "holders": ["Sinan"], "status": "active"},
+  "handy-alt": {"partner": "Salt", "label": "Handy alt", "cat": "Mobilfunk & Internet", "amount": 39, "cur": "CHF", "cycle": 1, "due": "2026-01-10", "start": "2023-01-10", "cancelPer": "2026-08-31", "cancelledOn": "2026-06-15", "holders": ["Sinan"], "status": "active"},
+  "steuern": {"partner": "Steueramt Zürich", "label": "Steuern", "cat": "Steuern & Gebühren", "amount": 5400, "cur": "CHF", "cycle": 12, "due": "2026-03-31", "holders": ["Sinan", "Lara"], "split": {"Sinan": 70, "Lara": 30}, "noCancel": true, "status": "active"},
+  "versicherung-neu": {"partner": "Smile", "label": "Hausrat", "cat": "Versicherung", "amount": 28.5, "cur": "CHF", "cycle": 1, "due": "2027-01-01", "start": "2027-01-01", "notice": 3, "noticeU": "m", "cancTerm": "y", "holders": ["Lara"], "status": "active"},
+  "internet": {"partner": "Swisscom AG", "label": "Internet", "cat": "Mobilfunk & Internet", "amount": 59, "cur": "CHF", "cycle": 1, "due": "2026-01-20", "start": "2024-01-20", "cancTerm": "m", "notice": 2, "noticeU": "m", "holders": ["Sinan", "Lara"], "status": "active"},
+  "mobile": {"partner": "Swisscom", "label": "Mobile", "cat": "Mobilfunk & Internet", "amount": 45, "cur": "CHF", "cycle": 1, "due": "2026-01-20", "start": "2025-01-20", "cancTerm": "m", "notice": 2, "noticeU": "m", "holders": ["Lara"], "status": "active"},
+  "software": {"partner": "GitHub", "label": "Software", "cat": "Abos & Medien", "amount": 10, "cur": "USD", "cycle": 1, "due": "2026-01-03", "start": "2025-06-03", "cancTerm": "m", "holders": ["Sinan"], "status": "active"}
+ },
+ "incomes": {
+  "lohn-sinan": {"name": "Arbeitgeber A", "label": "Lohn", "cat": "Lohn", "amount": 6800, "cur": "CHF", "cycle": 1, "due": "2026-01-25", "start": "2024-01-01", "holders": ["Sinan"], "prices": [{"from": "2026-07-01", "amount": 7000}], "status": "active"},
+  "lohn-lara": {"name": "Arbeitgeber B", "label": "Lohn", "cat": "Lohn", "amount": 5200, "cur": "CHF", "cycle": 1, "due": "2026-01-25", "start": "2024-01-01", "holders": ["Lara"], "status": "active"},
+  "bonus": {"name": "Arbeitgeber A", "label": "Bonus", "cat": "Bonus", "amount": 4000, "cur": "CHF", "cycle": 12, "due": "2026-03-25", "holders": ["Sinan"], "status": "active"},
+  "rueckerstattung": {"name": "Krankenkasse", "label": "Rückerstattung", "cat": "Rückerstattung", "amount": 350, "cur": "CHF", "cycle": 0, "due": "2026-06-10", "holders": ["Lara"], "status": "active"},
+  "vermietung": {"name": "Ferienwohnung", "label": "Vermietung", "cat": "Vermietung", "amount": 800, "cur": "EUR", "cycle": 1, "due": "2026-05-01", "start": "2026-05-01", "end": "2027-04-30", "holders": ["Sinan", "Lara"], "status": "active"}
+ },
+ "vars": {
+  "essen": {"label": "Lebensmittel", "ic": "essen", "amount": 900, "cur": "CHF", "holders": ["Sinan", "Lara"], "start": "", "end": "", "t": 1},
+  "benzin": {"label": "Benzin", "ic": "benzin", "amount": 180, "cur": "CHF", "holders": ["Sinan"], "start": "2026-03-01", "end": "", "t": 2},
+  "ferien": {"label": "Ferien", "ic": "ferien", "amount": 300, "cur": "EUR", "holders": ["Sinan", "Lara"], "start": "", "end": "2026-08-31", "t": 3}
+ },
+ "dupQueries": [
+  {"id": "gleiche-bezeichnung", "partner": "Swisscom", "label": "Internet", "amount": null, "cur": "CHF"},
+  {"id": "gleicher-betrag", "partner": "swisscom ag", "label": "Neu", "amount": 45, "cur": "CHF"},
+  {"id": "anderer-betrag", "partner": "Swisscom", "label": "TV", "amount": 30, "cur": "CHF"},
+  {"id": "andere-waehrung", "partner": "Swisscom", "label": "TV", "amount": 45, "cur": "EUR"},
+  {"id": "akzent", "partner": "Hélsana", "label": "krankenkasse lara", "amount": null, "cur": "CHF"},
+  {"id": "ohne-partner", "partner": "", "label": "Miete", "amount": 2460, "cur": "CHF"},
+  {"id": "eigener-vertrag", "partner": "CSS", "label": "Krankenkasse Sinan", "amount": null, "cur": "CHF", "skip": "kk-sinan"},
+  {"id": "preis-heute", "partner": "Immobilien Seeblick", "label": "Wohnung", "amount": 2460, "cur": "CHF"}
+ ]
+}
