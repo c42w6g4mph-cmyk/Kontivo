@@ -1,18 +1,13 @@
-branch=swift-k1 run=180 sha=adb144ed17307bf2334f9a91155d0623f1682be1
-core=failure app=cancelled ui=skipped
+branch=swift-k1 run=181 sha=810b126864d8701d0fac3cae13c633f37626e6b9
+core=success app=cancelled ui=skipped
 
 ===== KERN: Fehler =====
-/Users/runner/work/Kontivo/Kontivo/ios/KontivoCore/Tests/KontivoCoreTests/WebSync160Tests.swift:540: error: -[KontivoCoreTests.WebSync160Tests testLetterSalutationKvgAndChecks] : XCTAssertEqual failed: ("Sehr geehrte Damen und Herren,
-Test Case '-[KontivoCoreTests.WebSync160Tests testLetterSalutationKvgAndChecks]' failed (0.294 seconds).
-Test Suite 'WebSync160Tests' failed at 2026-10-24 23:26:31.961.
-Test Suite 'KontivoCorePackageTests.xctest' failed at 2026-10-24 23:26:32.015.
-Test Suite 'All tests' failed at 2026-10-24 23:26:32.015.
 
 ===== KERN: Abweichungen (Details) =====
 
 ===== KERN: Ende =====
-Freundliche Grüsse")
-Test Case '-[KontivoCoreTests.WebSync160Tests testLetterSalutationKvgAndChecks]' failed (0.294 seconds).
+Test Case '-[KontivoCoreTests.WebSync160Tests testLetterSalutationKvgAndChecks]' started.
+Test Case '-[KontivoCoreTests.WebSync160Tests testLetterSalutationKvgAndChecks]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testNumberFormatFollowsHomeCurrency]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testNumberFormatFollowsHomeCurrency]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testParseAmountTolerant]' started.
@@ -20,7 +15,7 @@ Test Case '-[KontivoCoreTests.WebSync160Tests testParseAmountTolerant]' passed (
 Test Case '-[KontivoCoreTests.WebSync160Tests testPriceChartDropLabels]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testPriceChartDropLabels]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testRemindersUseTrialLast]' started.
-Test Case '-[KontivoCoreTests.WebSync160Tests testRemindersUseTrialLast]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.WebSync160Tests testRemindersUseTrialLast]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testSaveRulesAndHolderSplit]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testSaveRulesAndHolderSplit]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testTermHint]' started.
@@ -29,13 +24,13 @@ Test Case '-[KontivoCoreTests.WebSync160Tests testTermMonthsAndNotice]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testTermMonthsAndNotice]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' passed (0.000 seconds).
-Test Suite 'WebSync160Tests' failed at 2026-10-24 23:26:31.961.
-	 Executed 25 tests, with 1 failure (0 unexpected) in 0.314 (0.317) seconds
-Test Suite 'WebSync224Tests' started at 2026-10-24 23:26:31.961.
+Test Suite 'WebSync160Tests' passed at 2026-10-24 23:29:38.753.
+	 Executed 25 tests, with 0 failures (0 unexpected) in 0.026 (0.029) seconds
+Test Suite 'WebSync224Tests' started at 2026-10-24 23:29:38.753.
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogHits]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogHits]' passed (0.047 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogSameNames]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogSameNames]' passed (0.002 seconds).
+Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogSameNames]' passed (0.003 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogTermShort]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogTermShort]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testCategoryColors]' started.
@@ -43,7 +38,7 @@ Test Case '-[KontivoCoreTests.WebSync224Tests testCategoryColors]' passed (0.000
 Test Case '-[KontivoCoreTests.WebSync224Tests testFormTexts]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testFormTexts]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testMissingFields]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testMissingFields]' passed (0.000 seconds).
+Test Case '-[KontivoCoreTests.WebSync224Tests testMissingFields]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testPhoneChannel]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testPhoneChannel]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testRateCheckedAtRoundTrip]' started.
@@ -54,19 +49,19 @@ Test Case '-[KontivoCoreTests.WebSync224Tests testRememberSinglePerson]' started
 Test Case '-[KontivoCoreTests.WebSync224Tests testRememberSinglePerson]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testSwissPowerAndLeasing]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testSwissPowerAndLeasing]' passed (0.000 seconds).
-Test Suite 'WebSync224Tests' passed at 2026-10-24 23:26:32.014.
-	 Executed 11 tests, with 0 failures (0 unexpected) in 0.052 (0.053) seconds
-Test Suite 'WebSync323Tests' started at 2026-10-24 23:26:32.014.
+Test Suite 'WebSync224Tests' passed at 2026-10-24 23:29:38.811.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.056 (0.059) seconds
+Test Suite 'WebSync323Tests' started at 2026-10-24 23:29:38.811.
 Test Case '-[KontivoCoreTests.WebSync323Tests testEndAsOfAndCancelledOn]' started.
 Test Case '-[KontivoCoreTests.WebSync323Tests testEndAsOfAndCancelledOn]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync323Tests testLetterCountry]' started.
 Test Case '-[KontivoCoreTests.WebSync323Tests testLetterCountry]' passed (0.001 seconds).
-Test Suite 'WebSync323Tests' passed at 2026-10-24 23:26:32.015.
-	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'KontivoCorePackageTests.xctest' failed at 2026-10-24 23:26:32.015.
-	 Executed 251 tests, with 1 failure (0 unexpected) in 55.434 (55.473) seconds
-Test Suite 'All tests' failed at 2026-10-24 23:26:32.015.
-	 Executed 251 tests, with 1 failure (0 unexpected) in 55.434 (55.474) seconds
+Test Suite 'WebSync323Tests' passed at 2026-10-24 23:29:38.813.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'KontivoCorePackageTests.xctest' passed at 2026-10-24 23:29:38.813.
+	 Executed 251 tests, with 0 failures (0 unexpected) in 66.371 (66.422) seconds
+Test Suite 'All tests' passed at 2026-10-24 23:29:38.813.
+	 Executed 251 tests, with 0 failures (0 unexpected) in 66.371 (66.423) seconds
 ◇ Test run started.
 ↳ Testing Library Version: 1501
 ↳ Target Platform: arm64e-apple-macos14.0
@@ -75,6 +70,34 @@ Test Suite 'All tests' failed at 2026-10-24 23:26:32.015.
 ===== APP: Fehler =====
 
 ===== APP: Ende =====
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_SwiftConcurrencyShims-B8SEYLZF9G6BQWQLCUJQBHT5M.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/ptrauth-4KYTQ1UX159FBS8L9JOLEE3G4.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_SwiftConcurrencyShims-25FBLFTLYW4CZPIVOBJ7LCJID.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/ptrauth-ZEBCBG6QBKQB0XWM8BLCM010.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_Builtin_stddef-ADO25AJE5PLML6W55Q8ZL92HW.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_Builtin_stdbool-682FIHMNUB4P8WUEV6GU55YHA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/SwiftShims-LE1AB2D2387I5T3K1DQ6JJE0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_Builtin_stdbool-B7GTIS1AIVWUPM18GOSGBMSDU.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_Builtin_stddef-AT32T9PUM2UV51FBZZZG5S78F.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_Builtin_stdarg-7H26P1V0WRF1B9S05Y9JYNMPJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_Builtin_float-A9YOQZVHYH461WRO4ZIX27VVM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_AvailabilityInternal-DR9WD20X2C647B3D43T1IBILE.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/ptrcheck-AJWVHMZPFQZCJJMG3OP0GLP3G.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_DarwinFoundation1-DQZ38BOU12ZT8A7GY99ENBEC3.pcm
 
 SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_DarwinFoundation1-1PEHBDWANAYCKIS8QKD1RHEWH.pcm
 
@@ -86,35 +109,7 @@ SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/bui
 
 SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_DarwinFoundation2-2F7SAHZSFB82EX42SJS25CJBY.pcm
 
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/sys_types-8GMF05XAIIX766PDL5AKPW1ID.pcm
-
 SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_Builtin_stdint-5NCSAEZRCSFAWN8P7418FBXT2.pcm
-
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_DarwinFoundation3-8Z8YB8IZAOJ4KLK7RBJ734YKX.pcm
-
-SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_Builtin_stdint-2Y3EF5UMXREP50QTVXBJBSF28.pcm
-
-SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/sys_types-JY7IEZL35F4E2LZJPV8JMHNE.pcm
-
-SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_DarwinFoundation3-2W104I5D13AFE8SPDSEVVZI34.pcm
-
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_Builtin_inttypes-323GPFGXUFKLLD3180YIWHWO3.pcm
-
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/Darwin-F3ORJ2CY0THBOO1EK7RW3ATD0.pcm
-
-SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/_Builtin_inttypes-98Q3XS5OQVMM4W1I1QKU89L46.pcm
-
-SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/Darwin-9OW2X1GOP0QDUJB9SWJZS9S4I.pcm
-
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/ObjectiveC-CAW72TYJT1N852J4M884H3MXI.pcm
-
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/os_object-3P365IBCULVAZ104JCC79S3RO.pcm
-
-SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/ObjectiveC-DBEZMUGA4QJE1OOJ4P379W90R.pcm
-
-SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/os_object-BPC6VN8EJ5KURESGK2S16EETD.pcm
-
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Kontivo/Kontivo/build/ModuleCache.noindex/os_workgroup-6L96E9QNIK8J62DOK23Z9TF47.pcm
 
 ===== UI-TESTS =====
 ui=skipped
