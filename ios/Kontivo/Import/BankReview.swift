@@ -392,8 +392,11 @@ final class BankReview {
     func incomeDraft(_ it: IncItem) -> Income {
         if let o = it.over { return o }
         let e = it.ed
-        return Income(name: e.name, label: e.label, kind: e.kind, amount: e.amount, currency: Currency(rawValue: it.s.currency) ?? .CHF,
-                      cycle: e.cycle, due: e.due, holderID: e.holderIDs.first, logoID: it.logo?.id, logoBg: it.logo?.bg)
+        // Lohnverlauf aus den Zahlungen (Web v273 `bkIncPrices`), Beginn = erste Gutschrift, wenn deutlich nach Auszugsbeginn (`bankStart`)
+        let ip = BankImport.incomePrices(it.s, amount: e.amount)
+        return Income(name: e.name, label: e.label, kind: e.kind, amount: ip.amount, currency: Currency(rawValue: it.s.currency) ?? .CHF,
+                      cycle: e.cycle, due: e.due, start: BankImport.start(it.s, statementFrom: file.from), holderID: e.holderIDs.first,
+                      prices: ip.prices, logoID: it.logo?.id, logoBg: it.logo?.bg)
     }
 
     func incFormDone(_ id: String, _ x: Income, model: AppModel) {
@@ -492,6 +495,8 @@ final class BankReview {
                 if let l = n.learn { BankBridge.learn(l.0, name: l.1, category: l.2, in: &d) }
                 if let id = try? d.saveContract(c, today: today) { out.created.append(id) }
             }
+            // schon erfasste Verträge: Gläubiger-ID/Mandat nachtragen (Web v273)
+            BankImport.rememberCreditorIDs(result, in: &d)
             for p in chosenPrices {
                 BankImport.applyPrice(p.m, to: &d)
                 out.priced += 1
@@ -500,6 +505,10 @@ final class BankReview {
                 if (try? d.saveIncome(x, today: today)) != nil { out.incomes += 1 }
             }
             if let h = firstHolders, h.count == 1, d.persons.count > 1 { d.settings.lastHolderIDs = h }
+            // Zeitraum des Auszugs merken, aber nur wenn etwas übernommen wurde (Web v274, Mehr → Daten)
+            if !out.created.isEmpty || out.incomes > 0 || out.priced > 0, let fr = file.from, let to = file.to {
+                d.settings.lastBankImport = BankImportInfo(from: fr, to: to, at: today, files: Swift.max(1, file.files))
+            }
         }
         for id in drop { BankLogos.drop(id, model: model) }
         return out

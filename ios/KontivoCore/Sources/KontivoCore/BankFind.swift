@@ -1113,6 +1113,31 @@ public enum BankImport {
         }
     }
 
+    /// Schon erfasste Verträge: Gläubiger-ID/Mandat nachtragen, wenn noch keine gespeichert ist – der nächste Import trifft dann sicher
+    /// (Web v273 `bkGo`). Gilt für «schon in Kontivo» und Preisänderungen.
+    public static func rememberCreditorIDs(_ r: BankFindResult, in data: inout AppData) {
+        let pairs = r.known.map { ($0.contractID, $0.suggestion) } + r.prices.map { ($0.contractID, $0.suggestion) }
+        for (id, s) in pairs {
+            guard let i = data.contractIndex(id), data.contracts[i].creditorID.isEmpty, !s.cred.isEmpty else { continue }
+            data.contracts[i].creditorID = BU.slice(s.cred, 0, 40)
+            if !s.mref.isEmpty { data.contracts[i].mandateRef = BU.slice(s.mref, 0, 40) }
+        }
+    }
+
+    /// Archivierten Vertrag wieder aktivieren (Web v287 «Wieder aktivieren» bei `s.archived`): aktiv, ohne Kündigung, abgelaufenes Ende
+    /// entfernt; weicht der Betrag ab, gilt er als neuer Preis ab der letzten Zahlung.
+    public static func reactivate(_ id: UUID, amount: Double, from: Day, in data: inout AppData, today: Day) {
+        guard let i = data.contractIndex(id) else { return }
+        var c = data.contracts[i]
+        c.status = .active
+        c.cancelledAt = nil
+        c.cancelPer = nil
+        if let e = c.end, e < today { c.end = nil }
+        let rp = Calc(data: data, today: today).curPrice(c)
+        if Swift.abs(rp - amount) > Swift.max(0.05, rp * 0.01) { c.prices.append(PriceChange(from: from, amount: amount)) }
+        data.contracts[i] = c
+    }
+
     /// Neuen Preis übernehmen (Web: Preisstufe am gleichen Datum ersetzen, nach Datum sortiert).
     public static func applyPrice(_ p: BankPriceMatch, to data: inout AppData) {
         guard let i = data.contractIndex(p.contractID) else { return }

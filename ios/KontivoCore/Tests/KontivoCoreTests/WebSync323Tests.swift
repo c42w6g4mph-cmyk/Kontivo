@@ -92,3 +92,39 @@ extension WebSync323Tests {
         XCTAssertEqual(d.person(du)?.name, "Mia")
     }
 }
+
+extension WebSync323Tests {
+    // MARK: Kontoauszug: Gläubiger-ID am erfassten Vertrag nachtragen (Web v273)
+
+    func testRememberCreditorIDs() throws {
+        let csv = "Buchungstag;Auftraggeber / Begünstigter;Verwendungszweck;Gläubiger-ID;Mandatsreferenz;Betrag (EUR)\n"
+            + (1...12).map { String(format: "03.%02d.2026;Telekom Deutschland GmbH;Festnetz;DE11TEL00000012345;M-1;-39,95", (($0 + 8) % 12) + 1) }.joined(separator: "\n")
+        let f = try BankImport.read(Data(csv.utf8))
+        var d = AppData.initial(homeCurrency: .EUR)
+        let pid = d.partnerID(forName: "Telekom")
+        d.contracts = [Contract(label: "Festnetz", partnerID: pid, amount: 39.95, currency: .EUR, cycle: 1, due: Day(2026, 11, 3))]
+        let r = BankImport.find(f, data: d, today: Day(2026, 10, 8))
+        XCTAssertEqual(r.known.count, 1)
+        BankImport.rememberCreditorIDs(r, in: &d)
+        XCTAssertEqual(d.contracts[0].creditorID, "DE11TEL00000012345")
+        XCTAssertEqual(d.contracts[0].mandateRef, "M-1")
+    }
+}
+
+extension WebSync323Tests {
+    func testReactivateArchived() {
+        var d = AppData.initial()
+        var c = Contract(label: "Fitness", amount: 79, cycle: 1, due: Day(2026, 1, 15), end: Day(2026, 3, 31))
+        c.status = .cancelled
+        c.cancelPer = Day(2026, 3, 31)
+        c.cancelledAt = Day(2026, 4, 1)
+        d.contracts = [c]
+        BankImport.reactivate(c.id, amount: 85, from: Day(2026, 9, 15), in: &d, today: Day(2026, 10, 8))
+        let x = d.contracts[0]
+        XCTAssertEqual(x.status, .active)
+        XCTAssertNil(x.cancelPer)
+        XCTAssertNil(x.cancelledAt)
+        XCTAssertNil(x.end)
+        XCTAssertEqual(x.prices.map { $0.amount }, [85])
+    }
+}
