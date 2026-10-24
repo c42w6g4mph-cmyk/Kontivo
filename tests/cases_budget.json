@@ -1,5 +1,5 @@
 {
- "about": "Prüffälle für Summen, Kosten, Budget, «Fair geteilt?» und Duplikat-Hinweise. Ein ganzer Haushalt (zwei Personen, Verträge, Einnahmen, variable Kosten) an mehreren Stichtagen. Erwartete Ergebnisse in golden_budget.json (aus der Web-App erzeugt mit make_golden_budget.py). Beträge in Hauptwährung CHF, auf Rappen gerundet.",
+ "about": "Prüffälle für Summen, Kosten, Budget, «Fair geteilt?» und Duplikat-Hinweise. Ein ganzer Haushalt (zwei Personen, Verträge, Einnahmen mit je einem Empfänger wie in der App, variable Kosten) an mehreren Stichtagen. Erwartete Ergebnisse in golden_budget.json (aus der Web-App erzeugt mit make_golden_budget.py). Beträge in Hauptwährung CHF, auf Rappen gerundet.",
  "settings": {"home": "CHF", "rates": {"EUR": 0.94, "USD": 0.8}, "holders": ["Sinan", "Lara"]},
  "todays": ["2026-02-28", "2026-10-24", "2027-01-15"],
  "persons": [null, "Sinan", "Lara"],
@@ -25,7 +25,7 @@
   "lohn-lara": {"name": "Arbeitgeber B", "label": "Lohn", "cat": "Lohn", "amount": 5200, "cur": "CHF", "cycle": 1, "due": "2026-01-25", "start": "2024-01-01", "holders": ["Lara"], "status": "active"},
   "bonus": {"name": "Arbeitgeber A", "label": "Bonus", "cat": "Bonus", "amount": 4000, "cur": "CHF", "cycle": 12, "due": "2026-03-25", "holders": ["Sinan"], "status": "active"},
   "rueckerstattung": {"name": "Krankenkasse", "label": "Rückerstattung", "cat": "Rückerstattung", "amount": 350, "cur": "CHF", "cycle": 0, "due": "2026-06-10", "holders": ["Lara"], "status": "active"},
-  "vermietung": {"name": "Ferienwohnung", "label": "Vermietung", "cat": "Vermietung", "amount": 800, "cur": "EUR", "cycle": 1, "due": "2026-05-01", "start": "2026-05-01", "end": "2027-04-30", "holders": ["Sinan", "Lara"], "status": "active"}
+  "vermietung": {"name": "Ferienwohnung", "label": "Vermietung", "cat": "Vermietung", "amount": 800, "cur": "EUR", "cycle": 1, "due": "2026-05-01", "start": "2026-05-01", "end": "2027-04-30", "holders": ["Lara"], "status": "active"}
  },
  "vars": {
   "essen": {"label": "Lebensmittel", "ic": "essen", "amount": 900, "cur": "CHF", "holders": ["Sinan", "Lara"], "start": "", "end": "", "t": 1},
