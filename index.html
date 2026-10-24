@@ -2845,7 +2845,7 @@ function renderView(){
     var isP=isAnytime;
     var ddmm=function(d){return ("0"+d.getDate()).slice(-2)+"."+("0"+(d.getMonth()+1)).slice(-2)+"."+(d.getFullYear()===t1.getFullYear()?"":String(d.getFullYear()).slice(-2));};
     /* Frist und Monatskosten je Vertrag einmal rechnen (nicht im Sort-Komparator) */
-    var NDL={},MC={},mc=function(c){var k=c._id;return k in MC?MC[k]:(MC[k]=monthlyCost(c));};
+    var NDL={},MC=Object.create(null),mc=function(c){var k=c._id;return k in MC?MC[k]:(MC[k]=monthlyCost(c));};
     var todo=a.filter(function(c){return needsAction(c)&&!trialNeeds(c);});todo.forEach(function(c){NDL[c._id]=noticeDeadline(c);});
     todo.sort(function(x,y){return NDL[x._id]-NDL[y._id];});
     var triTodo=a.filter(trialNeeds).sort(function(x,y){return parseD(x.trial)-parseD(y.trial);});
@@ -2902,7 +2902,7 @@ function renderView(){
     /* Flexibel: kurzfristig kündbare Verträge als eine Karte mit Logostapel, aufklappbar */
     if(anytime.length){var fOp=!!(state.tfold||{}).any;
       /* Ende bei Kündigung heute: Kündbar-auf-Termin (nextTerm) oder bei «jederzeit mit Frist» heute + Frist */
-      var FE={},fEnd=function(c){var k=c._id;return k in FE?FE[k]:(FE[k]=nextTerm(c)||endIfToday(c,today()));};
+      var FE=Object.create(null),fEnd=function(c){var k=c._id;return k in FE?FE[k]:(FE[k]=nextTerm(c)||endIfToday(c,today()));};
       var fRow=function(c){var T=fEnd(c),nt=noticeText(c);
         return '<button class="mrow trow" data-open="'+esc(c._id)+'">'+markHtml(c)+'<span class="mt"><span class="mn">'+titleP(c)+'</span><span class="mm">'+(nt?(c.noticeU==="k"?"Kündigung "+nt:"Frist "+nt):"Ohne Frist")+'</span></span>'+
           '<span class="tchip">'+(T?"endet "+ddmm(T):"offen")+"</span></button>";};
@@ -4875,9 +4875,6 @@ document.getElementById("xAdd").addEventListener("click",function(){
 });
 document.getElementById("fCur").addEventListener("change",paintExtras);
 document.getElementById("fCur").addEventListener("change",paintPrices);
-/* Platzhalter im Zahlenformat der Hauptwährung */
-/* Betragsfelder: Platzhalter «hinzufügen» (wie alle Felder) statt Beispielbetrag – ein Beispiel wirkte wie ein schon erfasster Wert (16.10.2026) */
-
 document.getElementById("saveForm").addEventListener("click",function(){
   /* Eingetippt, aber nicht «hinzufügen» gedrückt: jetzt übernehmen; klappt das nicht (Fehler/Rückfrage), Sichern abbrechen */
   var $v=function(i){return document.getElementById(i).value.trim();};
@@ -8110,7 +8107,7 @@ function sanitizeImport(o){
     if(Array.isArray(c.prices))c.prices=c.prices.filter(function(p){var n=num(p.amount);if(n==null||typeof p.from!=="string")return false;p.amount=n;return true;});
     if(Array.isArray(c.extras))c.extras=c.extras.filter(function(p){var n=num(p.amount);if(n==null||typeof p.date!=="string")return false;p.amount=n;if(p.note!=null&&typeof p.note!=="string")p.note=String(p.note);return true;});
     /* Datei-IDs wie bei vars prüfen (Schlüssel im Datei-Speicher) */
-    if("logoId" in c&&!fileIdOk(c.logoId))delete c.logoId;
+    if(c.logoId&&!fileIdOk(c.logoId))delete c.logoId;/* "" = kein Logo (so speichert das Formular) */
     if(Array.isArray(c.docs))c.docs=c.docs.filter(function(d){return fileIdOk(d.id);});
     if(obj(c.split)){noProto(c.split);Object.keys(c.split).forEach(function(h){var n=num(c.split[h]);if(n==null||n<0||n>100)delete c.split[h];else c.split[h]=n;});}
     if(c.review!=null&&!obj(c.review))delete c.review;
