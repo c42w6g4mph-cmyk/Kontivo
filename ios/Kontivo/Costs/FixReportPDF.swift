@@ -244,19 +244,26 @@ enum FixReportPDF {
             var mx = R.months.map(\.value).max() ?? 0
             if mx == 0 { mx = 1 }
             let gx = LM + 12, gw = RM - LM - 24, slot = gw / 12, bwd2 = slot - 8, base = y3 - ch + 44, maxH: CGFloat = 110
+            // jeder Balken mit Wert (Summe der Zahlungen im Monat); Jahr beim ersten Monat und im Januar (Web v228)
             for (i, m) in R.months.enumerated() {
                 let hgt = max(1.5, CGFloat(m.value / mx) * maxH), x = gx + CGFloat(i) * slot + 4
                 cv.rr(x, base, bwd2, hgt, 3, m.high ? "#A88437" : "#E3D7BC")
-                cv.tx(String(Format.monthNames[m.date.month - 1].prefix(3)), x + bwd2 / 2, base - 11, pt: 6.8, c: "#6A6C70", al: .center)
-                if m.high { cv.tx(num(m.value), x + bwd2 / 2, base + hgt + 4, pt: 6.4, c: "#86671F", al: .center) }
+                let yr = (i == 0 || m.date.month == 1) ? " " + String(String(m.date.year).suffix(2)) : ""
+                cv.tx(String(Format.monthNames[m.date.month - 1].prefix(3)) + yr, x + bwd2 / 2, base - 11, pt: 6.8, c: "#6A6C70", al: .center)
+                if m.high {
+                    cv.tx(num(m.value), x + bwd2 / 2, base + hgt + 4, f: .bold, pt: 6.6, c: "#86671F", al: .center)
+                } else {
+                    cv.tx(num(m.value), x + bwd2 / 2, base + hgt + 4, pt: 6.4, c: "#4A4C50", al: .center)
+                }
             }
             let ly = y3 - ch + 14
-            cv.rr(LM + 12, ly, 7, 7, 1.5, "#E3D7BC")
-            let lw2 = cv.tx("regulär ~" + num(R.total) + " / Mt.", LM + 23, ly + 0.5, pt: 7, c: "#6A6C70")
-            let pk = R.months.filter(\.high).map { String(Format.monthNames[$0.date.month - 1].prefix(3)) + " (" + ($0.bigName ?? "") + ")" }
+            var lx = LM + 12
+            cv.rr(lx, ly, 7, 7, 1.5, "#E3D7BC")
+            lx += 11 + cv.tx("Monat mit den regelmässigen Zahlungen", lx + 11, ly + 0.5, pt: 7, c: "#6A6C70") + 14
+            let pk = R.months.filter(\.high).map { String(Format.monthNames[$0.date.month - 1].prefix(3)) + " " + ($0.bigName ?? "") }
             if !pk.isEmpty {
-                cv.rr(LM + 35 + lw2, ly, 7, 7, 1.5, "#A88437")
-                cv.tx(fit("Spitzen: " + pk.joined(separator: " · "), .regular, 7, RM - LM - 70 - lw2), LM + 46 + lw2, ly + 0.5, pt: 7, c: "#6A6C70")
+                cv.rr(lx, ly, 7, 7, 1.5, "#A88437")
+                cv.tx(fit("Höher wegen Jahres- oder Sonderzahlung: " + pk.joined(separator: " · "), .regular, 7, RM - 12 - lx - 11), lx + 11, ly + 0.5, pt: 7, c: "#6A6C70")
             }
             if !R.rows.isEmpty {
                 cv.tx("Ab Seite 2: alle Verträge mit Kündigungsregel" + (R.showIDs ? ", Kunden-Nr." : "") + " und Kontakt – zum Ablegen oder Weitergeben.",
