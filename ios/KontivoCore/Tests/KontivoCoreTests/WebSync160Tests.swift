@@ -538,7 +538,7 @@ final class WebSync160Tests: XCTestCase {
         d.contracts = [c]
         calc = Calc(data: d, today: today)
         XCTAssertEqual(Letter.parts(c, calc: calc).body,
-                       "Sehr geehrte Damen und Herren,\n\nhiermit kündige ich den oben genannten Vertrag ordentlich zum nächstmöglichen Termin, nach meiner Berechnung zum 30. Juni 2027.\n\nBitte bestätigen Sie mir die Kündigung und das Vertragsende schriftlich.\n\nFreundliche Grüsse")
+                       "Sehr geehrte Damen und Herren,\n\nhiermit kündige ich den oben genannten Vertrag ordentlich zum nächstmöglichen Termin, nach meiner Berechnung zum 30. Juni 2027.\n\nBitte bestätigen Sie mir die Kündigung und das Vertragsende schriftlich.\n\nMit freundlichen Grüßen")
         XCTAssertEqual(Letter.salutation(.CHF), "Sehr geehrte Damen und Herren")
         // KVG-Hinweis nur CHF und Krankenkasse/Grundversicherung/KVG
         let cssID = d.partnerID(forName: "CSS")
