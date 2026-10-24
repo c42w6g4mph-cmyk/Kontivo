@@ -1673,7 +1673,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v324</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v325</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8950,9 +8950,22 @@ function bankFind(r,ign){
     if(BKSKIP.test(hay)||BKSHOP.test(lnorm(nm)))return;
     var tk=bankTok(nm),key=tp?"tpl:"+tp[0]+(TPL.some(function(o){return o!==tp&&o[0]===tp[0];})?"·"+tp[3]:""):(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
     if(!key)return;if(t.memo){var mk=lnorm(t.memo).replace(/\d+/g," ").replace(/\b(januar|februar|marz|maerz|april|mai|juni|juli|august|september|oktober|november|dezember|jan|feb|mar|apr|jun|jul|aug|sep|sept|okt|oct|nov|dez|dec)\b/g," ").replace(/ /g,"").slice(0,24);if(mk)key+="~"+mk;}key=key+"|"+(t.cur||home);
-    (groups[key]=groups[key]||{key:key,tpl:tp,tx:[],names:{},cur:t.cur||home}).tx.push(t);
+    var gq=groups[key]=groups[key]||{key:key,tpl:tp,tx:[],names:{},cur:t.cur||home};
+    /* dieselbe Zahlung in zwei Dateien (z.B. Sparkasse- und N26-Export desselben Kontos, Konto + Kreditkarte): beim selben Vertragspartner nur einmal (25.10.2026) */
+    if(t._fi!=null&&gq.tx.some(function(o){return o._fi!==t._fi&&o.d===t.d&&o.a===t.a;}))return;
+    gq.tx.push(t);
     groups[key].names[nm]=(groups[key].names[nm]||0)+1;t._nm=nm;
   });
+  /* Mehrere Dateien (25.10.2026): derselbe Vertragspartner in zwei Exporten unterschiedlich benannt (mit/ohne Gläubiger-ID) → zwei Gruppen
+     aus verschiedenen Dateien mit grösstenteils gleichen Zahlungen (Datum + Betrag) sind dieselbe → zusammenführen, doppelte Zahlungen weg */
+  (function(){var K=Object.keys(groups).filter(function(k){var g=groups[k];return g.tx.length>=2&&g.tx.every(function(t){return t._fi!=null;});});if(K.length<2)return;
+    var sig=function(g){var S={},F={};g.tx.forEach(function(t){S[t.d+"|"+t.a]=1;F[t._fi]=1;});return {S:S,F:F,n:Object.keys(S).length};},G={};K.forEach(function(k){G[k]=sig(groups[k]);});
+    K.forEach(function(a){if(!groups[a])return;K.forEach(function(b){if(a===b||!groups[a]||!groups[b]||groups[a].cur!==groups[b].cur)return;var A=G[a],B=G[b];
+      if(Object.keys(B.F).some(function(f){return A.F[f];}))return;var m=0;Object.keys(B.S).forEach(function(x){if(A.S[x])m++;});
+      if(m<Math.max(2,Math.min(A.n,B.n)*0.5))return;
+      groups[b].tx.forEach(function(t){if(!A.S[t.d+"|"+t.a]){groups[a].tx.push(t);A.S[t.d+"|"+t.a]=1;}});A.F=Object.assign(A.F,B.F);
+      Object.keys(groups[b].names).forEach(function(n){groups[a].names[n]=(groups[a].names[n]||0)+groups[b].names[n];});
+      if(!groups[a].tpl&&groups[b].tpl)groups[a].tpl=groups[b].tpl;groups[a].tx.sort(function(x,y){return x.d<y.d?-1:x.d>y.d?1:0;});delete groups[b];});});})();
   /* Nur eine Kartenzahlung und Katalogname aus einem Wort (Spiegel, Salt, Zeit): reicht nicht als Beleg.
      Katalog nur behalten, wenn die Website im Buchungstext steht («spiegel.de»), sonst als unbekannter Händler behandeln */
   Object.keys(groups).forEach(function(k){var g=groups[k];
@@ -9235,6 +9248,7 @@ function bankFindInc(r){
     if(bankTpl(nm,t.text,t.cur||home)&&cat==="Sonstiges")return;
     var key=(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)))+(cat==="Bonus"?"·bonus":"")+"|"+(t.cur||home);
     var g=groups[key]=groups[key]||{tx:[],names:{},cur:t.cur||home,cats:{}};
+    if(t._fi!=null&&g.tx.some(function(o){return o._fi!==t._fi&&o.d===t.d&&o.a===t.a;}))return;/* gleiche Gutschrift in zwei Dateien nur einmal */
     g.tx.push(t);g.names[nm]=(g.names[nm]||0)+1;g.cats[cat]=(g.cats[cat]||0)+1;
   });
   var out=[],known=[],used={};
@@ -9637,26 +9651,12 @@ function bankMerge(rs){
   if(rs.length===1)return rs[0];
   /* Ende je Datei an jeder Buchung: eine Datei, die früher endet, macht ihre Einnahmen/Verträge nicht «veraltet» (25.10.2026) */
   rs.forEach(function(r){r.tx.forEach(function(t){t._end=r.to;});});
-  /* Dateien mit Konto-IBAN zuerst; Dateien ohne Konto (N26, Buchhaltungs-CSV) werden gegen die anderen abgeglichen */
-  rs=rs.slice().sort(function(a,b){return (b.acct?1:0)-(a.acct?1:0);});
   /* gleiche Buchung in zwei Exporten desselben Kontos (überlappende Zeiträume) nur einmal. Konto (IBAN) im Schlüssel, damit zwei Konten
      derselben Bank sich nicht gegenseitig Buchungen wegnehmen; gleiche Buchung mehrfach (2× 45.– am selben Tag): die Datei mit den meisten zählt */
   var tx=[],by={};
   rs.forEach(function(r,fi){r.tx.forEach(function(t){
     var k=(r.acct||r.bank||r.fmt)+"|"+t.d+"|"+t.a+"|"+lnorm(t.name+" "+t.text).slice(0,60),e=by[k]=by[k]||{};(e[fi]=e[fi]||[]).push(t);});});
   Object.keys(by).forEach(function(k){var e=by[k],best=null,bf=-1;Object.keys(e).forEach(function(fi){if(!best||e[fi].length>best.length){best=e[fi];bf=+fi;}});best.forEach(function(t){t._fi=bf;});tx=tx.concat(best);});
-  /* gleiche Buchung in zwei Formaten (Text unterschiedlich): Datei ohne Konto-IBAN, gleiches Datum + Betrag + gleiches Namenswort wie in einer anderen Datei → doppelt */
-  var ix={},tok=function(t){return bankTok(t.name||bankNameFrom(t.text||"")||"").slice(0,3);};
-  tx.sort(function(a,b){return (a._fi-b._fi)||(a.d<b.d?-1:a.d>b.d?1:0);});
-  /* nur wenn zwei Dateien grösstenteils dieselben Buchungen enthalten (≥ 50 % gleiche Datum+Betrag) – zwei verschiedene Konten derselben Bank
-     (z.B. Privat- und Sparkonto, beide ohne IBAN im Export) teilen nur einzelne Buchungen (Spesen, Überträge) und bleiben vollständig */
-  var da={};rs.forEach(function(r,fi){var S={};r.tx.forEach(function(t){S[t.d+"|"+t.a]=1;});da[fi]=S;});
-  var dup=function(f1,f2){var A=da[f1],B=da[f2],na=Object.keys(A).length,nb=Object.keys(B).length,m=0;if(!na||!nb)return false;
-    Object.keys(A).forEach(function(k){if(B[k])m++;});return m>=Math.min(na,nb)*0.5;},dc={};
-  tx=tx.filter(function(t){var k2=t.d+"|"+t.a,L=ix[k2]||(ix[k2]=[]),tk=tok(t);
-    if(!rs[t._fi].acct&&L.some(function(o){if(o._fi===t._fi)return false;var pk=o._fi+"-"+t._fi;if(dc[pk]==null)dc[pk]=dup(o._fi,t._fi);
-        return dc[pk]&&(!tk.length||tok(o).some(function(x){return tk.indexOf(x)>=0;}));}))return false;
-    L.push(t);return true;});
   tx.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
   var ow=rs.map(function(r){return r.owner||"";}).filter(Boolean);
   return {fmt:rs.map(function(r){return r.fmt;}).join(", "),bank:"",tx:tx,from:tx[0].d,to:tx[tx.length-1].d,owner:ow.length===rs.length&&ow.every(function(o){return lnorm(o)===lnorm(ow[0]);})?ow[0]:""};
