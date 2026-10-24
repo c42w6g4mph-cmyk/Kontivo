@@ -124,8 +124,8 @@ final class BankImportSession: Identifiable {
     private struct Read {
         var name: String
         var file: BankFile?
-        /// erste Zeile (Fehlermeldung «nicht erkannt»)
-        var head: String = ""
+        /// Grund «nicht erkannt» (Web `bkLastDiag`)
+        var diag: BankReadDiag = .none
         var big = false
         /// PDF/Foto: kein Text oder keine Buchungen erkannt
         var visual = false
@@ -200,9 +200,10 @@ final class BankImportSession: Identifiable {
         if !bad.isEmpty && bad.allSatisfy({ $0.visual }) {
             return "Im Auszug wurden keine Buchungen mit Datum und Betrag gefunden. Fotografiere den Auszug gerade und gut beleuchtet oder nimm den CSV-Export aus dem E-Banking."
         }
-        let h = bad.count == 1 ? bad[0].head : ""
+        if bad.count == 1 && bad[0].diag == .dateFormat {
+            return "Kontivo kennt das Datum nicht. Exportiere mit Datum im Format TT.MM.JJJJ oder JJJJ-MM-TT."
+        }
         return "Kontivo liest Kontoauszüge als CSV, camt.053 (XML), MT940, PDF oder Foto. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren»."
-            + (h.isEmpty ? "" : " Erste Zeile deiner Datei: «\(h)».")
     }
 
     // MARK: Lesen (im Hintergrund)
@@ -258,8 +259,8 @@ final class BankImportSession: Identifiable {
         do {
             let f = try BankImport.read(d)
             return Read(name: name, file: f)
-        } catch BankReadError.notRecognized(let first) {
-            return Read(name: name, file: nil, head: String(first.prefix(80)))
+        } catch BankReadError.notRecognized(let diag) {
+            return Read(name: name, file: nil, diag: diag)
         } catch BankReadError.tooBig {
             return Read(name: name, file: nil, big: true)
         } catch {

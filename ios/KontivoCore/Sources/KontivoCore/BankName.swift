@@ -28,13 +28,14 @@ enum BankName {
     /// Rechtsform am Anfang («Genossenschaft Migros Ostschweiz») ist Teil des Namens: nur abschneiden, wenn davor schon ein Name steht (Web v223)
     static let rxLegal = BRX("^(.+?\\s(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\\.V\\.|e\\.\\s?V\\.|Genossenschaft))(?:\\s|$)", i: true)
     static let rxCoopStart = BRX("^Genossenschaft\\s+(?=\\S)", i: true)
+    static let rxEllipsis = BRX("\\s*(?:\\.{2,}|…)$")
 
     /// Leerzeichen zusammenfassen (JS `.replace(/\s+/g," ").trim()`).
     static func squash(_ s: String) -> String { BU.trim(rxSpaces.replaceAll(s, " ")) }
 
     /// Name kürzen: bis vor Mitteilung/Referenz/IBAN/PLZ Ort, bis zur Rechtsform, höchstens 5 Wörter (Web `bankNameClean`).
     static func clean(_ raw: String) -> String {
-        var n = squash(raw)
+        var n = rxEllipsis.replaceFirst(squash(raw), "")
         if let m = rxCleanCut.match(n) { n = BU.slice(n, 0, m.index) }
         if let lg = rxLegal.match(n) { n = lg.s(1) }
         n = rxCoopStart.replaceFirst(n, "")
@@ -42,7 +43,7 @@ enum BankName {
     }
 
     static let rxNameLabel = BRX("(?:Empf(?:ä|ae)nger|Auftraggeber|Beg(?:ü|ue)nstigter|Bezugsort|Zahlungsempf(?:ä|ae)nger)\\s*:\\s*(.+?)(?=\\s+(?:Kto/IBAN|IBAN|Konto|BLZ|Buchungstext|Verwendungszweck|Transaktionsdatum|Karten-?Nr|Referenz)\\b|\\s*,|$)", i: true)
-    static let rxNameTo = BRX("(?:issued by|sent money to|received money from|payment to|zahlung an|ebill-zahlung an|e-bill-zahlung an)\\s+(.+?)(?=\\s+with reference|\\s*,|$)", i: true)
+    static let rxNameTo = BRX("(?:issued by|sent money to|received money from|payment to|\\bzahlung an|ebill-zahlung an|e-bill-zahlung an)\\s+(.+?)(?=\\s+with reference|\\s*,|$)", i: true)
     static let rxNameAfterTime = BRX("\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}[ \\t]*/?[ \\t]*\\d{1,2}:\\d{2}(?::\\d{2})?[ \\t]+([A-Za-zÄÖÜäöü][^,]+)")
     static let rxComma = BRX("\\s*,\\s*")
     static let rxParts = BRX("\\s*,\\s*|\\s+/\\s+|\\s·\\s")
@@ -55,16 +56,82 @@ enum BankName {
     static let rxPreDigits = BRX("^\\d{6,}\\s*")
     static let rxPreDate = BRX("^\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}(\\s+\\d{1,2}:\\d{2}(:\\d{2})?)?\\s*")
 
+    static let rxMitteilung = BRX("\\s*,\\s*Mitteilung\\b", i: true)
+    static let rxPLZLine = BRX("^(?:[A-Z]{1,2}-?)?\\d{4,5}\\s+[A-Za-zÄÖÜäöü]")
+    static let rxHeadLine = BRX("ref\\.?-?\\s?nr|e-?banking|e-?rechnung|^(belastung|gutschrift|zahlungsauftrag|dauerauftrag|lastschrift|vergutung|verguetung)\\b", i: true)
+    static let BKDEPT = BRX("^(postfach|case postale|casella postale|po box|c/o|contact ?cent(er|re)|kundendienst|kundenservice|kundencenter|service ?cent(er|re)|customer (care|service)|finanzabteilung|finanzen|abteilung|buchhaltung|debitoren|debitorenbuchhaltung|inkasso|ordnungsbussen|steueramt|zentrale|hauptsitz|miete|mietzins|nebenkosten|prämie|praemie|rechnung)\\b", i: true)
+    static let rxColonEnd = BRX(":\\s*$")
+
+    /// Land als ganze Zeile (Web `BKLAND`)
+    static let BKLAND = BRX("^(schweiz|suisse|svizzera|switzerland|deutschland|germany|osterreich|oesterreich|austria|liechtenstein|frankreich|france|italien|italia|litauen|niederlande)$")
+    static let rxStreetEnd = BRX("(strasse|str\\.|gasse|weg|platz|allee|quai)$", i: true)
+
+    /// Strasse oder Hausnummer (Web `bankStreet`)
+    static func street(_ x: String) -> Bool { rxDigit.test(x) || rxStreetEnd.test(x) }
+
+    static let rxMitteilungColon = BRX("mitteilung\\s*:", i: true)
+    static let rxLegalEnd = BRX("\\b(ag|gmbh|sa|sarl|kg|ohg|ug|genossenschaft|verein|stiftung|e ?v)\\.?$", i: true)
+    static let rxPLZStart = BRX("^\\d{4,5}\\s")
+    static let rxLetters3 = BRX("[A-Za-zÄÖÜäöü]{3}")
+    static let rxColon = BRX(":")
+
+    /// Einzelposten im Sammelauftrag (Web v272 `bankSubMemo`, TKB): «Vollkasko Audi / Schweizerische Mobiliar …» = Mitteilung, dann Empfänger.
+    /// Nur wenn die 2. Zeile ein Name ist (keine Strasse, PLZ, Land) und die 1. Zeile kein Firmenname.
+    static func subMemo(_ text: String) -> (memo: String, name: String)? {
+        let tl = rxNewlines.split(text.replacingOccurrences(of: "\r", with: "")).map { squash($0) }.filter { !$0.isEmpty }
+        if tl.count < 2 || rxMitteilungColon.test(text) { return nil }
+        let a = tl[0], b = tl[1]
+        if rxLegalEnd.test(a) { return nil }
+        if street(b) || rxPLZStart.test(b) || BKLAND.test(Partners.lnorm(b)) || !rxLetters3.test(b) || rxColon.test(a) { return nil }
+        return (BU.slice(a, 0, 60), b)
+    }
+
+    /// Name einer Buchung (Kosten und Einnahmen gleich, Web v272 `bankTxName`): Empfänger/Auftraggeber, sonst aus dem Buchungstext;
+    /// nur der erste Teil vor «;» / « · »
+    static func txName(_ t: BankTx) -> String {
+        let nm = !t.name.isEmpty && !isType(t.name) ? clean(rxComma.split(t.name)[0]) : from(t.text)
+        return BU.trim(rxNameCut.split(nm)[0])
+    }
+
+    static let rxNameCut = BRX(";|\\s·\\s")
+
     /// Vertragspartner aus dem Buchungstext (Web `bankNameFrom`).
     static func from(_ t: String) -> String {
         let full = rxNewlines.split(t.replacingOccurrences(of: "\r", with: "")).map { squash($0) }.filter { !$0.isEmpty }.joined(separator: " , ")
         // ausdrückliche Bezeichnungen
         if let m = rxNameLabel.match(full), !isType(m.s(1)) { return clean(m.s(1)) }
-        if let m = rxNameTo.match(full) { return clean(m.s(1)) }
+        if let m = rxNameTo.match(rxMitteilung.split(full)[0]) { return clean(m.s(1)) }
         // Kartenzahlung «… 12.09.2026 03:14 NETFLIX.COM …»: Händler steht nach Datum und Uhrzeit
         if let m = rxNameAfterTime.match(full) {
             let mm = clean(rxComma.split(m.s(1))[0])
             if !mm.isEmpty && !isType(mm) { return mm }
+        }
+        // Adressblock (Web v272): Name = erste Zeile zwischen Kopfzeile (Ref.-Nr.) und «PLZ Ort». Strasse, Postfach, Abteilung
+        // («Contact Center», «Finanzabteilung») und Zweckwörter («Miete») davor werden übersprungen: «Sunrise GmbH / Postfach / 8050 Zürich» → Sunrise GmbH
+        let ln = rxNewlines.split(t.replacingOccurrences(of: "\r", with: "")).map { squash($0) }.filter { !$0.isEmpty }
+        var pli = -1
+        var li = 1
+        while li < ln.count {
+            if rxPLZLine.test(ln[li]) {
+                pli = li
+                break
+            }
+            li += 1
+        }
+        if pli > 0 {
+            var st0 = 0
+            for hi in 0..<pli where rxHeadLine.test(ln[hi]) { st0 = hi + 1 }
+            var bi = st0
+            while bi < pli {
+                let cand = ln[bi]
+                if street(cand) || BKDEPT.test(cand) || rxColonEnd.test(cand) || isType(cand) {
+                    bi += 1
+                    continue
+                }
+                let cn = clean(cand)
+                if !cn.isEmpty && !isType(cn) && BU.len(cn) > 2 { return cn }
+                break
+            }
         }
         for part in rxParts.split(full) {
             var x = part

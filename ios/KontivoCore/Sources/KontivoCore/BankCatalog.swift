@@ -46,26 +46,36 @@ enum BankCatalog {
         return dup
     }()
 
-    /// Katalog mit vorberechneten Wörtern (TPL-Reihenfolge).
+    /// Banken schreiben Umlaute als ae/oe/ue (Suedkurier): auf beiden Seiten gleich reduzieren (Katalog und Buchung), nach lnorm (Web v272 `bankDeU`)
+    static func deU(_ x: String) -> String {
+        x.replacingOccurrences(of: "ae", with: "a").replacingOccurrences(of: "oe", with: "o").replacingOccurrences(of: "ue", with: "u")
+    }
+
+    /// Katalog mit vorberechneten Wörtern (TPL-Reihenfolge, Web v272 `tplIdx`).
     struct Item {
         let entry: CatalogEntry
-        /// `ltok(t[0])`
+        /// `ltok(t[0]).map(bankDeU)`
         let tok: [String]
-        /// Länder, in denen es einen anderen Eintrag mit gleichem ersten Wort gibt (AXA / AXA Deutschland)
-        let otherIn: Set<String>
+        /// Land hat einen Eintrag mit diesem ersten Wort (Web `first[cc][tk[0]]`)
+        let firstIn: Set<String>
     }
 
     static let items: [Item] = {
         let es = Catalog.entries
-        let toks = es.map { Partners.ltok($0.name) }
+        let toks = es.map { Partners.ltok($0.name).map(deU) }
+        // erstes Wort je Land (Web `first`): nur Einträge mit Land
+        var first: [String: Set<String>] = [:]
+        for (i, e) in es.enumerated() where !e.country.isEmpty {
+            if let f = toks[i].first { first[f, default: []].insert(e.country) }
+        }
         return es.indices.map { (i: Int) -> Item in
-            var other = Set<String>()
-            if let f = toks[i].first {
-                for j in es.indices where j != i && toks[j].first == f { other.insert(es[j].country) }
-            }
-            return Item(entry: es[i], tok: toks[i], otherIn: other)
+            Item(entry: es[i], tok: toks[i], firstIn: toks[i].first.flatMap { first[$0] } ?? [])
         }
     }()
+
+    /// Ergebnisse je (Name, Text, Währung) zwischenspeichern (Web `TPLC`, höchstens 5000)
+    private static let cacheLock = NSLock()
+    private static var cache: [String: CatalogEntry?] = [:]
 
     /// Eintrag zu einem Katalognamen. Gleicher Name in CH und DE (Rundfunkgebühr, Web v158): Eintrag passend zur Währung
     /// (EUR → DE, CHF → CH), sonst der erste.
@@ -82,15 +92,34 @@ enum BankCatalog {
 
     /// Katalog: alle markanten Wörter des Namens müssen vorkommen; kurze Namen (CSS, O2) nur im Namen, nicht im Freitext (Web `bankTpl`).
     static func tpl(_ name: String, _ text: String, _ cur: String) -> CatalogEntry? {
-        let nn = " " + Partners.lnorm(name) + " "
-        let nt = " " + Partners.lnorm(name + " " + text) + " "
+        let ck = name + "\u{1}" + text + "\u{1}" + cur
+        cacheLock.lock()
+        if let hit = cache[ck] {
+            cacheLock.unlock()
+            return hit
+        }
+        if cache.count > 5000 { cache.removeAll() }
+        cacheLock.unlock()
+        let res = tpl0(name, text, cur)
+        cacheLock.lock()
+        cache[ck] = .some(res)
+        cacheLock.unlock()
+        return res
+    }
+
+    static let rxFinanzOwner = BRX(" (pensionskasse|vorsorgestiftung|anlagestiftung|stiftung|immobilien|immo|liegenschaft|liegenschaften|verwaltung|wohnbau|baugenossenschaft) ")
+    static let rxRentWords = BRX(" (miete|mietzins|nebenkosten) ")
+
+    static func tpl0(_ name: String, _ text: String, _ cur: String) -> CatalogEntry? {
+        let nn = " " + deU(Partners.lnorm(name)) + " "
+        let nt = " " + deU(Partners.lnorm(name + " " + text)) + " "
         let cc = cur == "EUR" ? "DE" : (cur == "CHF" ? "CH" : "")
         let via = BKVIA.test(nn)
         var best: CatalogEntry? = nil
         var bestTok = 0
         // inN: 2 = Produkt-Alias im Text (Deutschlandticket über Stadtwerke, O2 über Telefónica), 1 = Name, 0 = nur Text
         var inN = 0
-        let nt2 = BankName.tok(name)
+        let nt2 = BankName.tok(name).map(deU)
         // spezifischer gewinnt: «Allianz Travel» vor «Allianz Suisse» (Web v213: Anzahl Wörter vor Länge)
         func better(_ t: CatalogEntry, _ tok: Int, _ n: Int) -> Bool {
             guard let b = best else { return true }
@@ -115,7 +144,7 @@ enum BankCatalog {
                 continue
             }
             let tk = it.tok
-            if tk.isEmpty || (!t.country.isEmpty && !cc.isEmpty && t.country != cc && it.otherIn.contains(cc)) { continue }
+            if tk.isEmpty || (!t.country.isEmpty && !cc.isEmpty && t.country != cc && it.firstIn.contains(cc)) { continue }
             // ein Wort (CSS, Zurich, Netflix): nur im Namen, sonst Fehltreffer über Ortsnamen; bei PayPal & Co. auch im Freitext
             let hay = tk.count == 1 && !via ? nn : nt
             // ein Wort: muss vorne im Namen stehen (davor nur Allerweltswörter) – «Garten Center Spiegel» ist nicht «Der Spiegel»
@@ -143,14 +172,16 @@ enum BankCatalog {
                 best = pick
             }
         }
+        // «Raiffeisen Pensionskasse» (Vermieterin) ist nicht die Bank Raiffeisen (Web v272)
+        if let b = best, b.category == "Finanzen", rxFinanzOwner.test(nn) || rxRentWords.test(nt) { return nil }
         return best
     }
 
-    static let BKSKIP = BRX("bancomat|geldautomat|bargeld|barauszahlung|\\batm\\b|\\bcash\\b|auszahlung gaa|\\bgaa\\b|\\bga \\d{4,}|^ga\\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\\bzinsen\\b|\\babschluss\\b")
+    static let BKSKIP = BRX("bancomat|geldautomat|bargeld|barauszahlung|\\batm\\b|\\bcash\\b|auszahlung gaa|\\bgaa\\b|\\bga \\d{4,}|^ga\\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\\bzinsen\\b|\\babschluss\\b|kontoubertrag")
     /// Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant)
-    static let BKSHOP = BRX("\\b(cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|blumen|baumarkt)\\b")
+    static let BKSHOP = BRX("\\b(gastro|gastronomie|badi beizli|cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|doner|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|gartnerei|blumen|baumarkt)\\b")
     /// Alltagseinkäufe (Detailhandel, Tankstellen, Fast Food): nie ein Vertrag, ausser ein Katalogeintrag passt (Migros Bank, Coop Mobile)
-    static let BKRETAIL = BRX("\\b(migros|migrolino|coop|denner|aldi|lidl|rewe|edeka|kaufland|netto|penny|spar|volg|landi|manor|globus|jumbo|obi|bauhaus|hornbach|ikea|dm|rossmann|mueller|douglas|zalando|galaxus|digitec|interdiscount|mediamarkt|media markt|saturn|fust|brack|shell|bp|avia|aral|esso|tamoil|agrola|socar|jet|starbucks|mcdonald s?|mcdonalds|burger king|subway|k kiosk|valora|avec|tchibo|decathlon|h und m|zara|c und a|tk maxx|primark)\\b")
+    static let BKRETAIL = BRX("\\b(migros|migrolino|coop|denner|aldi|lidl|rewe|edeka|kaufland|netto|penny|spar|volg|landi|manor|globus|jumbo|obi|bauhaus|hornbach|ikea|dm|rossmann|mueller|muller|douglas|zalando|galaxus|digitec|interdiscount|mediamarkt|media markt|saturn|fust|brack|shell|bp|avia|aral|esso|tamoil|agrola|socar|jet|starbucks|mcdonald s?|mcdonalds|burger king|subway|k kiosk|valora|avec|tchibo|decathlon|h und m|zara|c und a|tk maxx|primark)\\b")
     static let BKVIA = BRX("paypal|klarna|amazon|apple com bill|google|stripe|adyen|sumup|wero|twint")
     /// Kontoführung ohne Empfänger (Web v181 `BKFEE`) → Vertragspartner = die Bank
     static let BKFEE = BRX("entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt|kontogebuhr|kontogebuehr|kontoabschluss|abschluss entgelt")
@@ -161,12 +192,12 @@ enum BankCatalog {
         (BRX("miete|mietzins|immobilien|hausverwaltung|liegenschaft|wohnbau|wohnung|nebenkosten"), "Wohnen"),
         (BRX("kita|krippe|schule|kindergarten|musikschule|hort"), "Familie & Bildung"),
         (BRX("leasing|sbb|halbtax|deutschlandticket|bahn|bvg|parking|parkplatz|garage|tankstelle"), "Mobilität"),
-        (BRX("fitness|sport|verein|club|gym|mcfit|yoga"), "Freizeit & Sport"),
+        (BRX("fitness|sport|verein|club|gym|mcfit|yoga|\\be v\\b|\\b(sc|fc|tsv|sv|tus|vfb|vfl|djk|sg|turnverein|schwimmverein)\\b"), "Freizeit & Sport"),
         (BRX("versicherung|praemie|police|krankenkasse|kranken"), "Versicherung"),
-        (BRX("strom|energie|gas|wasser|stadtwerke|abschlag|akonto"), "Energie & Wasser"),
+        (BRX("strom|energie|\\bgas\\b|erdgas|gasversorg|wasser|stadtwerke|abschlag|akonto"), "Energie & Wasser"),
         (BRX("swisscom|sunrise|salt|telekom|vodafone|mobilfunk|internet|festnetz"), "Mobilfunk & Internet"),
-        (BRX("netflix|spotify|abo|zeitung|streaming|disney|apple com bill|youtube"), "Abos & Medien"),
-        (BRX("entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt"), "Finanzen"),
+        (BRX("netflix|spotify|abo|zeitung|streaming|disney|apple com bill|\\bapple\\b(?! store| retail)|itunes|app store|youtube|dropbox|icloud|google one|onedrive|\\bdomain|hosting|ionos|strato|hostpoint|infomaniak"), "Abos & Medien"),
+        (BRX("entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt|darlehen|kreditrate|\\bkredit\\b|hypothek|bausparvertrag|sparplan|depotgebuhr|depotgebuehr"), "Finanzen"),
     ]
 
     /// Zeitraum im Verwendungszweck → Rhythmus (Web v181 `bankPeriod`): «Rundfunk 07.2026 - 09.2026» = 3, «Jahresgebühr» = 12, sonst 0

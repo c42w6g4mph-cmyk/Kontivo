@@ -11,6 +11,8 @@ struct BRawTx {
     var cur: String
     var name: String
     var text: String
+    /// Mitteilung eines Einzelpostens im Sammelauftrag (Web `bankSubMemo`, v272)
+    var memo: String = ""
     var type: String = ""
     var cred: String = ""
     var mref: String = ""
@@ -21,7 +23,7 @@ struct BRawTx {
     var coll = false
 
     var tx: BankTx {
-        BankTx(date: d, amount: a, currency: cur, name: name, text: text, type: type, kind: BankKind(web: kind), cred: cred, mref: mref, sub: sub)
+        BankTx(date: d, amount: a, currency: cur, name: name, text: text, type: type, kind: BankKind(web: kind), cred: cred, mref: mref, sub: sub, memo: memo)
     }
 }
 
@@ -76,6 +78,18 @@ enum BankReader {
     static let rxDateISO = BRX("^(\\d{4})-(\\d{1,2})-(\\d{1,2})")
     static let rxDateDMY = BRX("^(\\d{1,2})[./-](\\d{1,2})[./-](\\d{2}|\\d{4})\\b")
     static let rxDateCompact = BRX("^(\\d{4})(\\d{2})(\\d{2})$")
+    static let rxDateYMD = BRX("^(\\d{4})[/.](\\d{1,2})[/.](\\d{1,2})\\b")
+    static let rxDateDMonY = BRX("^(\\d{1,2})\\.?\\s+([A-Za-zÄÖÜäöü]{3,})\\.?\\s+(\\d{4})\\b")
+    static let rxDateMonDY = BRX("^([A-Za-z]{3,})\\.?\\s+(\\d{1,2}),?\\s+(\\d{4})\\b")
+    static let rxNotAZ = BRX("[^a-z]")
+    static let monthNames: [String: Int] = ["jan": 1, "feb": 2, "mar": 3, "mrz": 3, "maer": 3, "apr": 4, "mai": 5, "may": 5, "jun": 6, "jul": 7,
+                                            "aug": 8, "sep": 9, "okt": 10, "oct": 10, "nov": 11, "dez": 12, "dec": 12]
+
+    /// Monatsname → Monat (Web `mk`): «Okt.», «October», «März» … sonst 0
+    static func monthOf(_ w: String) -> Int {
+        let k = rxNotAZ.replaceAll(Partners.lnorm(w), "")
+        return monthNames[BU.slice(k, 0, 4)] ?? monthNames[BU.slice(k, 0, 3)] ?? 0
+    }
 
     /// Datum «2026-01-31», «31.01.2026», «31.01.26», «31/01/2026», «01/31/2026» (US), «20260131» → Tag, sonst nil (Web `bankDate`).
     static func date(_ raw: String) -> Day? {
@@ -99,6 +113,19 @@ enum BankReader {
         }
         if let m = rxDateCompact.match(s) {
             return jsDate(Int(m.s(1)) ?? 0, Int(m.s(2)) ?? 0, Int(m.s(3)) ?? 0)
+        }
+        // weitere Formate (Web v272): 2025/10/03, 2025.10.03, «3. Okt. 2025», «3 October 2025», «Oct 3, 2025»
+        if let m = rxDateYMD.match(s) {
+            let mo = Int(m.s(2)) ?? 0, d = Int(m.s(3)) ?? 0
+            return mo >= 1 && mo <= 12 && d >= 1 && d <= 31 ? jsDate(Int(m.s(1)) ?? 0, mo, d) : nil
+        }
+        if let m = rxDateDMonY.match(s), monthOf(m.s(2)) != 0 {
+            let d = Int(m.s(1)) ?? 0
+            return d <= 31 ? jsDate(Int(m.s(3)) ?? 0, monthOf(m.s(2)), d) : nil
+        }
+        if let m = rxDateMonDY.match(s), monthOf(m.s(1)) != 0 {
+            let d = Int(m.s(2)) ?? 0
+            return d <= 31 ? jsDate(Int(m.s(3)) ?? 0, monthOf(m.s(1)), d) : nil
         }
         return nil
     }
@@ -152,17 +179,17 @@ enum BankReader {
     // MARK: CSV-Spalten (BKCOL)
 
     static let BKCOL: [String: [String]] = [
-        "date": ["buchungsdatum", "buchungstag", "completeddate", "datumdesabschlusses", "abschlussdatum", "buchung", "bookingdate", "bookedat", "datum", "date", "transactiondate", "transaktionsdatum", "starteddate", "startdatum", "datumdesbeginns", "valutadatum", "valuta", "wertstellung", "wertstellungsdatum", "valuedate", "wert"],
+        "date": ["buchungsdatum", "buchungstag", "completeddate", "datumdesabschlusses", "abschlussdatum", "buchung", "bookingdate", "bookedat", "datum", "date", "transactiondate", "transaktionsdatum", "starteddate", "startdatum", "datumdesbeginns", "valutadatum", "valuta", "wertstellung", "wertstellungsdatum", "valuedate", "wert", "data", "datacontabile", "datadiregistrazione", "datevaleur", "datedecomptabilisation"],
         "amt": ["betrag", "umsatz", "amount", "transaktionsbetrag", "nettobetrag", "paymentamount", "buchungsbetrag", "betraginchf", "betragineur", "creditdebitamount", "betragchf", "betrageur", "umsatzineur", "umsatzinchf", "betraginchf", "betragineur", "montant", "importo", "betrag€", "einzelbetrag"],
-        "deb": ["belastung", "lastschrift", "soll", "debit", "ausgang", "lastschriftinchf", "belastungchf", "belastungeur", "belastungen", "sollbetrag", "debitamount", "debit chf"],
-        "cre": ["gutschrift", "haben", "credit", "eingang", "gutschriftinchf", "gutschriftchf", "gutschrifteur", "gutschriften", "habenbetrag", "creditamount"],
+        "deb": ["belastung", "lastschrift", "soll", "debit", "ausgang", "addebito", "addebitoinchf", "lastschriftinchf", "belastungchf", "belastungeur", "belastungen", "sollbetrag", "debitamount", "debit chf"],
+        "cre": ["gutschrift", "haben", "credit", "eingang", "accredito", "accreditoinchf", "gutschriftinchf", "gutschriftchf", "gutschrifteur", "gutschriften", "habenbetrag", "creditamount"],
         "cur": ["waehrung", "whg", "whr", "currency", "devise", "valuta waehrung"],
         "name": ["auftraggeberzahlungsempfaenger", "empfaengerzahlungspflichtiger", "senderempfaenger", "auftraggeberbeguenstigter", "nameauftraggeberbeguenstigter", "senderorrecipient", "counterpartyname", "activityname", "empfaenger1", "beguenstigterzahlungspflichtiger", "auftraggeberempfaenger", "namezahlungsbeteiligter", "partnername", "beguenstigterauftraggeber", "begunstigterauftraggeber",
                  "empfaengerauftraggeber", "zahlungsbeteiligter", "gegenpartei", "payee", "merchant", "haendler", "name", "counterparty", "beschreibung1", "empfaenger"],
         "payee": ["zahlungsempfaengerin", "zahlungsempfaenger", "empfaengerin", "beguenstigter", "beguenstigte", "payeename", "recipient"],
         "payer": ["zahlungspflichtiger", "zahlungspflichtigein", "zahlungspflichtige", "auftraggeber", "auftraggeberin", "payername", "sender"],
         "text": ["verwendungszweck", "vorgangverwendungszweck", "transaktionsbeschreibung", "transaktionsbeschreibungzusatz", "buchungsdetails", "reference", "paymentreference", "erscheintaufihrerabrechnungals", "avisierungstext", "buchungstext", "beschreibung2", "beschreibung3", "beschreibung", "description", "text", "zahlungszweck",
-                 "details", "mitteilung", "subject", "umsatzart", "vorgang", "texte de notification", "libelle"],
+                 "details", "mitteilung", "subject", "umsatzart", "vorgang", "texte de notification", "libelle", "testo di avviso", "descrizione", "causale", "notification text"],
         "cred": ["glaeubigerid", "glaubigerid", "creditorid", "glaeubigeridentifikation"],
         "mref": ["mandatsreferenz", "mandatereference", "mandatereferenz", "mandatsref", "mandateid", "mandatsid"],
         "sh": ["sollhaben", "sh", "dc", "debitcredit", "sollhabenkennzeichen", "kennzeichen", "belastunggutschrift", "gutschriftbelastung", "debitkredit"],
@@ -172,7 +199,7 @@ enum BankReader {
         "prod": ["product", "produkt"],
     ]
 
-    static let rxHeadBad = BRX("ursprung|original|saldo|balance|fremd|gebuehr|auslagen|kurs|rate|detail|nachbuchung|einzel|gutschriftbelastung|belastunggutschrift|sollhaben|debitkredit")
+    static let rxHeadBad = BRX("ursprung|original|saldo|solde|balance|fremd|gebuehr|auslagen|kurs|rate|detail|nachbuchung|einzel|gutschriftbelastung|belastunggutschrift|sollhaben|debitkredit|id$|nr$|nummer|number|karte|card|referenz|reference|mandat|datum|date")
     static let rxHeadDate = BRX("^(datum|date)|(datum|date)$")
     static let rxHeadNoDate = BRX("geburt|birth|saldo|balance")
     static let rxHeadCard = BRX("^(karte|card|cardnumber|kartennummer|kartennr)")
@@ -234,7 +261,7 @@ enum BankReader {
     static func bankOf(_ head: [String]) -> String {
         let s = "|" + head.map { CSV.norm($0) }.joined(separator: "|") + "|"
         func has(_ x: String) -> Bool { s.contains("|" + x + "|") }
-        if has("avisierungstext") { return "PostFinance" }
+        if has("avisierungstext") || has("textedenotification") || has("testodiavviso") || has("notificationtext") { return "PostFinance" }
         if has("beschreibung1") && has("abschlussdatum") { return "UBS" }
         if has("zkbreferenz") { return "ZKB" }
         if has("bookedat") { return "Raiffeisen" }
@@ -317,7 +344,11 @@ enum BankReader {
     static let rxCur3 = BRX("[A-Z]{3}")
     static let rxCardPay = BRX("zahlung|payment|dank|thank|gutschrift|ausgleich|lastschrift|einzug|erhalten", i: true)
     static let rxHeadCHF = BRX("\\bCHF\\b", i: true)
-    static let rxHeadEUR = BRX("EUR|€", i: true)
+    static let rxHeadEUR = BRX("\\bEUR\\b|€", i: true)
+    static let rxFoot = BRX("saldo|kontostand|\\btotal\\b|summe|endbetrag|anfangsbestand|schlussbestand|balance", i: true)
+    static let rxSaldoHead = BRX("saldo|balance|kontostand")
+    static let rxCardHint = BRX("kreditkart|credit ?card|karteninhaber|kartennummer|card ?number|kartenkonto|viseca|swisscard|cembra|cornercard|corner banca|american express|\\bamex\\b|mastercard|\\bvisa\\b|miles ?(and|&) ?more|barclaycard|advanzia|hanseatic|erscheint auf ihrer abrechnung|\\bcardid\\b|card ?id\\b", i: true)
+    static let rxAcctIban = BRX("\\b([A-Z]{2}\\d{2}(?: ?[A-Z0-9]){11,30})\\b")
     static let rxBodyCHF = BRX("\\bCHF\\b")
     static let rxBodyEUR = BRX("\\bEUR\\b|€")
     static let rxIbanCH = BRX("\\b(?:CH|LI)\\d{2}[ \\d]{4}")
@@ -328,14 +359,16 @@ enum BankReader {
         i >= 0 && i < row.count ? BU.trim(rxQuotesEnds.replaceAll(row[i], "")) : ""
     }
 
-    /// Ergebnis von `csv`: Buchungen und Bank, oder `head` (erste Zeile) wenn nicht erkannt.
+    /// Ergebnis von `csv`: Buchungen und Bank, sonst `diag` (Grund, Web `bkLastDiag`).
     struct CsvResult {
         var tx: [BRawTx]
         var bank: String
-        var head: String
+        var diag: BankReadDiag
         var ok: Bool
         /// Kontoinhaber (Web v180), sonst ""
         var owner: String = ""
+        /// Eigenes Konto (IBAN), für das Zusammenführen mehrerer Dateien (Web v272 `acct`)
+        var acct: String = ""
     }
 
     /// Letzte Buchung, die selbst kein Einzelposten ist (Web `bankParent`).
@@ -388,8 +421,7 @@ enum BankReader {
             }
         }
         guard var col = found else {
-            let fr = (rows ?? []).first { !BU.trim($0.joined()).isEmpty } ?? []
-            return CsvResult(tx: [], bank: "", head: BU.slice(fr.prefix(10).joined(separator: " · "), 0, 160), ok: false)
+            return CsvResult(tx: [], bank: "", diag: .noHeader, ok: false)
         }
         let allRows = rows ?? []
         let data = Array(allRows.dropFirst(hi + 1))
@@ -434,11 +466,17 @@ enum BankReader {
                 var sv = num(g(row, col.sub), dec)
                 if sv == nil { sv = num(g(row, col.deb), dec) }
                 if sv == nil { sv = num(g(row, col.amt), dec) }
-                if let li = last, BU.truthy(sv), !g(row, col.sub).isEmpty || rxCollective.test(tx[li].text + " " + tx[li].name),
+                // Fusszeile (Saldo, Total) ist kein Einzelposten (Web v272)
+                let foot = g(row, col.sub).isEmpty && rxFoot.test(row.joined(separator: " "))
+                if let li = last, BU.truthy(sv), !foot, Swift.abs(sv ?? 0) <= Swift.abs(tx[li].a) + 0.005,
+                   !g(row, col.sub).isEmpty || rxCollective.test(tx[li].text + " " + tx[li].name),
                    !BU.trim(row.joined()).isEmpty {
+                    var sn = g(row, nmCol)
+                    let sm = BankName.subMemo(text)
+                    if sn.isEmpty, let m = sm { sn = m.name }
                     tx[li].coll = true
                     let p = tx[li]
-                    tx.append(BRawTx(d: p.d, a: (p.a < 0 ? -1 : 1) * Swift.abs(sv ?? 0), cur: p.cur, name: g(row, nmCol), text: text,
+                    tx.append(BRawTx(d: p.d, a: (p.a < 0 ? -1 : 1) * Swift.abs(sv ?? 0), cur: p.cur, name: sn, text: text, memo: sm?.memo ?? "",
                                      type: "", cred: "", mref: "", kind: p.kind, sub: true))
                 }
                 continue   // sonst Fusszeilen wie «Kontostand;…»
@@ -481,10 +519,15 @@ enum BankReader {
         tx = tx.filter { !($0.coll && subDays.contains($0.d)) }
         // Kreditkarten-Abrechnungen führen Einkäufe positiv: fast alles positiv und die wenigen Belastungen sind Zahlungen an die Karte
         let negs = tx.filter { $0.a < 0 }
-        if pos > neg * 3 && !negs.isEmpty
+        // Umkehr nur, wenn die Datei nach Kreditkarte aussieht (Spalte «Karte», Kopfzeilen mit Kartenanbieter) – sonst würde ein Konto
+        // mit vielen Gutschriften (Mietkonto) umgedreht und Mieteingänge erschienen als Fixkosten (Web v272)
+        let hasSaldo = col.head.contains { rxSaldoHead.test(CSV.norm($0)) }
+        let cardHint = (col.card && !hasSaldo)
+            || rxCardHint.test(col.head.joined(separator: " ") + " " + preRows.map { $0.joined(separator: " ") }.joined(separator: " "))
+        if cardHint && pos > neg * 3 && !negs.isEmpty
             && Double(negs.filter { rxCardPay.test($0.name + " " + $0.text) }.count) >= Double(negs.count) * 0.6 {
             for i in tx.indices { tx[i].a = -tx[i].a }
-        } else if col.card && col.deb < 0 && pos > neg * 4 {
+        } else if col.card && !hasSaldo && col.deb < 0 && pos > neg * 4 {
             for i in tx.indices { tx[i].a = -tx[i].a }
         }
         let hc = col.head.joined(separator: "|")
@@ -527,9 +570,20 @@ enum BankReader {
                 if !v.isEmpty { ov[v] = (ov[v] ?? 0) + 1 }
             }
             let top = BU.sorted(ov.orderedKeys) { a, b in Double((ov[b] ?? 0) - (ov[a] ?? 0)) }.first
-            if let t = top, Double(ov[t] ?? 0) >= Double(data.count) * 0.6 { owner = t }
+            if let t = top, Double(ov[t] ?? 0) >= Double(Swift.min(data.count, 300)) * 0.6 { owner = t }
         }
-        return CsvResult(tx: tx, bank: col.guess ? "" : bankOf(col.head), head: "", ok: true, owner: owner)
+        var diag = BankReadDiag.none
+        if tx.isEmpty {
+            let dr = data.filter { !g($0, col.date).isEmpty }
+            diag = !dr.isEmpty && !dr.prefix(20).contains(where: { date(g($0, col.date)) != nil }) ? .dateFormat : .noBookings
+        }
+        // eigenes Konto (für das Zusammenführen mehrerer Dateien): IBAN im Vorspann oder Spalte «Auftragskonto»
+        var acct = ""
+        if let mI = rxAcctIban.match(preRows.map { $0.joined(separator: " ") }.joined(separator: " ")) { acct = mI.s(1).replacingOccurrences(of: " ", with: "") }
+        if acct.isEmpty, let ak = col.head.map({ CSV.norm($0) }).firstIndex(of: "auftragskonto"), let d0 = data.first {
+            acct = g(d0, ak).replacingOccurrences(of: " ", with: "")
+        }
+        return CsvResult(tx: tx, bank: col.guess ? "" : bankOf(col.head), diag: diag, ok: true, owner: owner, acct: acct)
     }
 
     static let rxLetters2 = BRX("[A-Za-z]{2}")
@@ -607,7 +661,7 @@ enum BankReader {
     static let rxCamtVer = BRX("camt\\.05[234]")
     static let rxXMLEnc = BRX("^(\\s*<\\?xml[^>]*?)encoding\\s*=\\s*[\"'][^\"']*[\"']")
 
-    static func camt(_ txt: String) -> (tx: [BRawTx], fmt: String, owner: String)? {
+    static func camt(_ txt: String) -> (tx: [BRawTx], fmt: String, owner: String, acct: String)? {
         // Text ist schon dekodiert: Kodierungsangabe im Kopf auf UTF-8 setzen (DOMParser ignoriert sie ebenso)
         let fixed = rxXMLEnc.replaceFirst(txt, "$1encoding=\"UTF-8\"")
         guard let doc = XNode.parse(Data(fixed.utf8)) else { return nil }
@@ -657,7 +711,8 @@ enum BankReader {
             }
         }
         let owner = BU.trim(doc.first("Acct")?.first("Ownr")?.first("Nm")?.textContent ?? "")
-        return (tx, rxCamtVer.match(txt)?.s(0) ?? "camt", owner)
+        let acct = BU.trim(doc.first("Acct")?.first("Id")?.first("IBAN")?.textContent ?? "")
+        return (tx, rxCamtVer.match(txt)?.s(0) ?? "camt", owner, acct)
     }
 
     // MARK: MT940
@@ -675,6 +730,14 @@ enum BankReader {
     static let rxMtTag = BRX("[A-Z]{4}\\+\\S*")
     static let rxMtMref = BRX("MREF\\+(\\S{1,35}?)(?=[A-Z]{4}\\+|$|\\s)")
     static let rxMtGvc = BRX("^(\\d{3})")
+
+    static let rxMt25 = BRX("(?:^|\\n):25:([^\\r\\n]+)")
+    static let rxWS = BRX("\\s")
+
+    /// Eigenes Konto aus Feld :25: (Web v272 `acct`)
+    static func mt940Account(_ txt: String) -> String {
+        rxMt25.match(txt).map { rxWS.replaceAll($0.s(1), "") } ?? ""
+    }
 
     static func mt940(_ txt: String) -> [BRawTx] {
         var cur = ""
@@ -748,25 +811,30 @@ enum BankReader {
         var fmt = ""
         var bank = ""
         var owner = ""
+        var acct = ""
         if rxIsCamt.test(txt) && rxCamtVer.test(txt) {
-            guard let r = camt(txt) else { throw BankReadError.notRecognized(firstLine: "") }
+            guard let r = camt(txt) else { throw BankReadError.notRecognized(.none) }
             raw = r.tx
             fmt = r.fmt
             owner = r.owner
+            acct = r.acct
         } else if rxIsMt1.test(txt) && rxIsMt2.test(txt) {
             raw = mt940(txt)
             fmt = "MT940"
+            acct = mt940Account(txt)
         } else {
             let r = csv(txt)
-            if !r.ok { throw BankReadError.notRecognized(firstLine: r.head) }
+            if !r.ok { throw BankReadError.notRecognized(r.diag) }
+            if r.tx.isEmpty { throw BankReadError.notRecognized(r.diag) }
             raw = r.tx
             bank = r.bank
             owner = r.owner
+            acct = r.acct
             fmt = "CSV"
         }
         if raw.isEmpty { throw BankReadError.empty }
         let tx = BU.sorted(raw.map { $0.tx }) { a, b in a.date < b.date ? -1 : (b.date < a.date ? 1 : 0) }
-        return BankFile(bank: bank, tx: tx, from: tx.first?.date, to: tx.last?.date, format: fmt, owner: owner)
+        return BankFile(bank: bank, tx: tx, from: tx.first?.date, to: tx.last?.date, format: fmt, owner: owner, account: acct)
     }
 
     // MARK: bankMerge
@@ -775,16 +843,23 @@ enum BankReader {
     /// desselben Kontos (überlappende Zeiträume) nur einmal.
     static func merge(_ rs: [BankFile]) -> BankFile {
         if rs.count == 1 { return rs[0] }
-        var tx: [BankTx] = []
-        var seen: [String: Int] = [:]
+        // Konto (IBAN) im Schlüssel, damit zwei Konten derselben Bank sich nicht gegenseitig Buchungen wegnehmen; gleiche Buchung
+        // mehrfach (2× 45.– am selben Tag): die Datei mit den meisten zählt (Web v272)
+        var by = BOrdered<[(fi: Int, tx: [BankTx])]>()
         for (fi, r) in rs.enumerated() {
             for t in r.tx {
-                let src = !r.bank.isEmpty ? r.bank : r.format
+                let src = !r.account.isEmpty ? r.account : (!r.bank.isEmpty ? r.bank : r.format)
                 let k = src + "|" + t.date.iso + "|" + String(t.amount) + "|" + BU.slice(Partners.lnorm(t.name + " " + t.text), 0, 60)
-                if let s = seen[k], s != fi { continue }
-                seen[k] = fi
-                tx.append(t)
+                var e = by[k] ?? []
+                if let i = e.firstIndex(where: { $0.fi == fi }) { e[i].tx.append(t) } else { e.append((fi, [t])) }
+                by[k] = e
             }
+        }
+        var tx: [BankTx] = []
+        for k in by.orderedKeys {
+            var best: [BankTx]? = nil
+            for e in by[k] ?? [] where best == nil || e.tx.count > best!.count { best = e.tx }
+            tx += best ?? []
         }
         tx = BU.sorted(tx) { a, b in a.date < b.date ? -1 : (b.date < a.date ? 1 : 0) }
         // Kontoinhaber nur, wenn alle Dateien denselben nennen

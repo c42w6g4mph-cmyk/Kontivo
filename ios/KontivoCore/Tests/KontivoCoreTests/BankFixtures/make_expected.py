@@ -53,7 +53,20 @@ EXTRA = {
  "x_lone_extra": rows(H, BASE + [f"{d};LASTSCHRIFT Muster Energie AG;-{a};Lastschrift;CHF" for d, a in zip(monthly(18, 12), ["95.00"] * 5 + ["148.35"] + ["95.00"] * 6)]),
  "x_retail_lsv": rows(H, BASE + [f"{d};LSV Genossenschaft Migros Ostschweiz Fitnesspark;-89.00;Lastschrift;CHF" for d in monthly(6, 12)]),
 }
+# v272 (Web 23.10.2026): 13. Monatslohn als eigene Einnahme, Lohnverlauf, weitere Datumsformate, gekündigter Vertrag weiter abgebucht
+SAL = [f"{d};GUTSCHRIFT Muster Pharma AG Lohn;{'5820.40' if i < 7 else '6020.00'};Gutschrift;CHF" for i, d in enumerate(monthly(25, 12))]
+EXTRA.update({
+ "x_bonus": rows(H, BASE + SAL + ["20.12.2025;GUTSCHRIFT Muster Pharma AG Lohn;5820.40;Gutschrift;CHF"]),
+ "x_bonus_same": rows(H, BASE + [f"{d};GUTSCHRIFT Muster Pharma AG Lohn;{'11640.80' if d.startswith('25.12') else '5820.40'};Gutschrift;CHF" for d in monthly(25, 12)]),
+ "x_dates_ymd": rows(H, [f"{d[6:]}/{d[3:5]}/{d[:2]};LASTSCHRIFT Sunrise GmbH;-39.00;Lastschrift;CHF" for d in monthly(5, 12)]),
+ "x_dates_words": rows(H, [f"{int(d[:2])}. {['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][int(d[3:5]) - 1]}. {d[6:]};LASTSCHRIFT Sunrise GmbH;-39.00;Lastschrift;CHF" for d in monthly(5, 12)]),
+ "x_dates_en": rows(H, [f"{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][int(d[3:5]) - 1]} {int(d[:2])}, {d[6:]};LASTSCHRIFT Sunrise GmbH;-39.00;Lastschrift;CHF" for d in monthly(5, 12)]),
+ "x_eom_due": rows(H, [f"{d};LASTSCHRIFT Muster Leasing AG;-410.00;Lastschrift;CHF" for d in ["31.10.2025", "28.11.2025", "31.12.2025", "30.01.2026", "27.02.2026", "31.03.2026", "30.04.2026", "29.05.2026", "30.06.2026", "31.07.2026", "31.08.2026", "30.09.2026"]]),
+})
 for k, t in EXTRA.items(): EDGE[k] = {"txt": t}
+EDGE["x_after"] = {"txt": rows(H, BASE[:6] + [f"{d};LASTSCHRIFT Muster Fitness AG;-79.00;Lastschrift;CHF" for d in monthly(15, 12)]),
+                   "contracts": {"f": {"partner": "Muster Fitness AG", "cat": "Freizeit & Sport", "amount": 79, "cur": "CHF", "cycle": 1, "due": "2026-05-15",
+                                       "cancelPer": "2026-05-31", "cancelledOn": "2026-02-10", "status": "cancelled", "holders": ["Sinan"]}}}
 MULTI = [["samples/ch_postfinance.csv", "samples/ch_postfinance.csv"],
          ["real/de/de_sparkasse_camt_v2.csv", "real/de/de_sparkasse_kreditkarte.csv"],
          ["samples/ch_postfinance.csv", "samples/ch_ubs.csv", "samples/ch_camt053.xml"]]
@@ -74,9 +87,11 @@ window.__bk=function(){var B=window.KontivoBank();
    notice:c.notice,noticeU:c.noticeU,cancTerm:c.cancTerm,mand:c.mand,cancF:c.cancF,cancUrl:c.cancUrl,web:c.web,tel:c.tel,mail:c.mail,addr:c.addr,
    prices:c.prices,noCancel:!!c.noCancel,holders:c.holders,payM:c.payM||"",custNo:c.custNo||"",contrNo:c.contrNo||"",bkLabel:B.label(s)};}
  function inc(r){var f=B.findInc(r);return {sugg:f.sugg.map(function(s){return {key:s.key,name:s.name,label:s.label,cat:s.cat,cur:s.cur,amount:s.amount,cycle:s.cycle,due:s.due,
-   n:s.n,first:s.first,last:s.last,dates:s.dates,amounts:s.amounts,lo:s.lo,hi:s.hi,varies:!!s.varies,skipped:s.skipped,raw:s.raw||"",text:s.text||"",conf:s.conf};}),
+   n:s.n,first:s.first,last:s.last,dates:s.dates,amounts:s.amounts,lo:s.lo,hi:s.hi,varies:!!s.varies,skipped:s.skipped,raw:s.raw||"",text:s.text||"",conf:s.conf,
+   once:!!s.once,hist:(function(){var h=B.priceHist(s,true);return h?{base:h.base,prices:h.prices}:null;})()};}),
    known:f.known.map(function(s){var c=B.state.incomes[s.match];return {key:s.key,name:s.name,income:c?(c.name||c.label):""};})};}
- function find(r,withTc){var f=B.find(r,[]);var o={sugg:f.sugg.map(sg),known:f.known.map(kn),inc:inc(r)};if(withTc)o.contracts=f.sugg.map(tc);return o;}
+ function find(r,withTc){var f=B.find(r,[]);var o={sugg:f.sugg.map(sg),known:f.known.map(kn),inc:inc(r),
+   after:(f.after||[]).map(function(a){return {partner:a.c.partner,n:a.n,last:a.last,amount:a.amount,cur:a.cur};})};if(withTc)o.contracts=f.sugg.map(tc);return o;}
  function read(r){return r?{bank:r.bank||"",fmt:r.fmt,n:r.tx.length,from:r.from,to:r.to,owner:r.owner||"",tx:tx(r)}:null;}
  return {
   file:function(b64,withTx,withTc){var r=B.read(u8(b64));if(!r)return null;var o=read(r);if(!withTx)delete o.tx;o.find=find(r,withTc);return o;},
@@ -97,7 +112,7 @@ with sync_playwright() as p:
             html = open(os.path.join(WEB, "index.html"), encoding="utf-8").read()
             hook = "window.KontivoBank=function(){return {"
             assert hook in html
-            html = html.replace(hook, hook + "label:bankLabel,payM:bankPayM,nums:bankNums,who:bkWho,", 1)
+            html = html.replace(hook, hook + "label:bankLabel,payM:bankPayM,nums:bankNums,who:bkWho,priceHist:bankPriceHist,", 1)
             # Tempo: lnorm/ltok sind reine Funktionen – Zwischenspeicher ändert kein Ergebnis (ltok liefert eine Kopie)
             ln = 'function lnorm(s){return String(s||"")'
             assert html.count(ln) == 1 and html.count("function ltok(s){") == 1

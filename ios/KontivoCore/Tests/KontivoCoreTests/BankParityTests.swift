@@ -2,7 +2,7 @@ import XCTest
 @testable import KontivoCore
 
 /// Kontoauszug-Import: Swift gegen Erwartungswerte aus der Web-App (BankFixtures/expected.json, erzeugt mit
-/// BankFixtures/make_expected.py über window.KontivoBank, heute = 2026-10-08). Geprüft werden gelesene Buchungen,
+/// BankFixtures/make_expected.py über window.KontivoBank, heute = 2026-10-08; Stand Web v323). Geprüft werden gelesene Buchungen,
 /// Vorschläge (Name, Betrag, Rhythmus, Sicherheit, Kategorie, Katalog, Preisänderung …), Abgleich mit erfassten
 /// Verträgen und Vorschlag → Vertrag, für alle Musterdateien, Grenzfälle und Mehrfach-Dateien.
 final class BankParityTests: XCTestCase {
@@ -111,6 +111,19 @@ final class BankParityTests: XCTestCase {
             D.eq(s.raw, BankParityTests.str(x["raw"]), p + "raw")
             D.eq(s.text, BankParityTests.str(x["text"]), p + "Text")
             D.eq(s.confidence.rawValue, BankParityTests.str(x["conf"]), p + "Sicherheit")
+            if x["once"] != nil { D.eq(s.once, (x["once"] as? Bool) ?? false, p + "einmal") }
+            // Lohnverlauf (Web v272 bankPriceHist(s, true))
+            if x.keys.contains("hist") {
+                let h = BankImport.incomeHistory(dates: s.dates, amounts: s.amounts)
+                if let eh = x["hist"] as? J {
+                    D.num(h?.base ?? .nan, eh["base"], p + "Verlauf Anfang")
+                    let ep = (eh["prices"] as? [J]) ?? []
+                    D.eq(h?.prices.map { $0.from.iso } ?? ["–"], ep.map { BankParityTests.str($0["from"]) }, p + "Verlauf ab")
+                    for (j, pc) in (h?.prices ?? []).enumerated() where j < ep.count { D.num(pc.amount, ep[j]["amount"], p + "Verlauf[\(j)]") }
+                } else {
+                    D.eq(h == nil, true, p + "kein Verlauf")
+                }
+            }
         }
         let ek = e["known"] as? [J] ?? []
         D.eq(r.known.map { $0.suggestion.key }, ek.map { BankParityTests.str($0["key"]) }, "Einnahmen bereits erfasst (Schlüssel)")
@@ -161,6 +174,16 @@ final class BankParityTests: XCTestCase {
                 D.eq(pm?.from.iso ?? "", BankParityTests.str(m["from"]), p + "Preisänderung ab")
             } else {
                 D.eq(pm == nil, true, p + "kein Vertragstreffer")
+            }
+        }
+        // gekündigt, aber weiter abgebucht (Web v272 `after`)
+        if let ea = e["after"] as? [J] {
+            D.eq(r.after.map { data.contract($0.contractID).map { data.partnerName(of: $0) } ?? "?" }, ea.map { BankParityTests.str($0["partner"]) }, "weiter abgebucht (Vertrag)")
+            for (i, a) in r.after.enumerated() where i < ea.count {
+                D.eq(a.count, (ea[i]["n"] as? Int) ?? -1, "weiter abgebucht[\(i)] Anzahl")
+                D.eq(a.last.iso, BankParityTests.str(ea[i]["last"]), "weiter abgebucht[\(i)] letzte")
+                D.num(a.amount, ea[i]["amount"], "weiter abgebucht[\(i)] Betrag")
+                D.eq(a.currency, BankParityTests.str(ea[i]["cur"]), "weiter abgebucht[\(i)] Währung")
             }
         }
         let ek = e["known"] as? [J] ?? []

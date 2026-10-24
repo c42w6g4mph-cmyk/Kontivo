@@ -184,7 +184,7 @@ final class BankStatementTextTests: XCTestCase {
         XCTAssertThrowsError(try BankImport.read(Data())) { XCTAssertEqual($0 as? BankReadError, .empty) }
         XCTAssertThrowsError(try BankImport.read(Data(count: 20_000_001))) { XCTAssertEqual($0 as? BankReadError, .tooBig) }
         XCTAssertThrowsError(try BankImport.read(Data("Hallo Welt\nkein Auszug".utf8))) {
-            XCTAssertEqual($0 as? BankReadError, .notRecognized(firstLine: "Hallo Welt"))
+            XCTAssertEqual($0 as? BankReadError, .notRecognized(.noHeader))
         }
     }
 

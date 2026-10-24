@@ -39,10 +39,15 @@ public struct BankTx: Equatable, Hashable, Sendable {
     public var mref: String
     /// Einzelposten einer Sammelbuchung (Web `t.sub`; Einnahmen-Suche überspringt sie)
     public var sub: Bool
+    /// Mitteilung eines Einzelpostens im Sammelauftrag («Vollkasko Audi», Web v272 `t.memo`): eigene Gruppe und Bezeichnung
+    public var memo: String
+    /// Name, unter dem die Buchung gruppiert wurde (intern, Web `t._nm`)
+    var groupName: String = ""
 
     public init(date: Day, amount: Double, currency: String = "", name: String = "", text: String = "", type: String = "",
-                kind: BankKind = .unknown, cred: String = "", mref: String = "", sub: Bool = false) {
+                kind: BankKind = .unknown, cred: String = "", mref: String = "", sub: Bool = false, memo: String = "") {
         self.sub = sub
+        self.memo = memo
         self.date = date
         self.amount = amount
         self.currency = currency
@@ -69,8 +74,12 @@ public struct BankFile: Equatable, Sendable {
     public var files: Int
     /// Kontoinhaber laut Datei (Web v180 `r.owner`: CSV-Vorspann «Kontoinhaber;…», konstante zweite Namensspalte, camt `Acct/Ownr/Nm`), sonst ""
     public var owner: String
+    /// Eigenes Konto (IBAN aus Vorspann, camt `Acct/Id/IBAN`, MT940 `:25:`), Web v272 `acct`; für das Zusammenführen mehrerer Dateien
+    public var account: String
 
-    public init(bank: String = "", tx: [BankTx], from: Day? = nil, to: Day? = nil, format: String = "", files: Int = 1, owner: String = "") {
+    public init(bank: String = "", tx: [BankTx], from: Day? = nil, to: Day? = nil, format: String = "", files: Int = 1, owner: String = "",
+                account: String = "") {
+        self.account = account
         self.bank = bank
         self.tx = tx
         self.from = from ?? tx.first?.date
@@ -81,9 +90,20 @@ public struct BankFile: Equatable, Sendable {
     }
 }
 
-/// Datei nicht lesbar. `notRecognized.firstLine`: erste Zeile der Datei für den Hinweis (Web `bkLastHead`), sonst "".
+/// Grund, wenn eine Datei nichts ergab (Web v272 `bkLastDiag`, für die Fehlermeldung).
+public enum BankReadDiag: String, Equatable, Sendable {
+    /// keine Kopfzeile mit Datum und Betrag erkannt
+    case noHeader = "nohead"
+    /// Kopfzeile erkannt, aber kein Datum lesbar («Datumsformat nicht erkannt»)
+    case dateFormat = "date"
+    /// Kopfzeile erkannt, keine Buchungen
+    case noBookings = "empty"
+    case none = ""
+}
+
+/// Datei nicht lesbar. `notRecognized`: mit Grund (Web `bkLastDiag`).
 public enum BankReadError: Error, Equatable {
-    case notRecognized(firstLine: String)
+    case notRecognized(BankReadDiag)
     case tooBig
     case empty
 }
@@ -175,6 +195,14 @@ public struct BankSuggestion: Identifiable, Equatable, Hashable, Sendable {
     public var alias: BankAlias?
     /// Vom Benutzer ausgeblendet («Nie mehr vorschlagen»)
     public var ignored: Bool
+    /// Mitteilung der letzten Buchung (Einzelposten im Sammelauftrag, Web v272 `memo`): wird zur Bezeichnung
+    public var memo: String = ""
+    /// Gleicher Betrag und Rhythmus wie dieser erfasste Vertrag, aber anderer Name (Web v272 `same`): nachfragen statt doppelt anlegen
+    public var sameAs: UUID? = nil
+    /// Gekündigter/beendeter Vertrag beim selben Vertragspartner (Web v272 `arch`)
+    public var archived: UUID? = nil
+    /// Beginn des Auszugs (Web `stFrom`): Vertragsbeginn nur, wenn die erste Zahlung deutlich danach liegt
+    public var statementFrom: Day? = nil
 
     /// Name des Katalogeintrags, falls Treffer (Web `s.tpl[0]`)
     public var catalogName: String? { catalog?.name }
@@ -210,6 +238,8 @@ public struct BankIncomeSuggestion: Identifiable, Equatable, Hashable, Sendable 
     public var skipped: Int
     public var raw: String
     public var text: String
+    /// Nur eine Gutschrift im Auszug (Web v272 `once`): unsicherer Vorschlag
+    public var once: Bool = false
     public var confidence: BankConfidence
 
     /// Art als `IncomeKind` (Web-Namen der Einnahmearten)
@@ -241,6 +271,18 @@ public struct BankKnown: Equatable, Sendable {
     public var suggestion: BankSuggestion
     /// Nur über den Namen und einen ungefähr passenden Betrag erkannt (Web `loose`: «im Auszug gefunden» statt «unverändert»)
     public var loose: Bool
+    /// Gekündigter Vertrag, letzte Abbuchung vor dem Kündigungstermin (Web v272 `match.arch`): als «gekündigt» zeigen
+    public var archived: Bool = false
+}
+
+/// Gekündigter Vertrag, der nach seinem Ende noch abgebucht wurde (Web v272 `after`): Hinweis statt neuer Vorschlag.
+public struct BankAfterEnd: Equatable, Sendable {
+    public var contractID: UUID
+    /// Anzahl Abbuchungen nach dem Ende
+    public var count: Int
+    public var last: Day
+    public var amount: Double
+    public var currency: String
 }
 
 /// Neuer Preis für einen erfassten Vertrag (Web `match.kind === "price"`).
@@ -264,6 +306,8 @@ public struct BankFindResult: Sendable {
     public var prices: [BankPriceMatch]
     /// Anzahl ausgeblendeter Vorschläge
     public var ignoredCount: Int
+    /// Gekündigte Verträge, die nach ihrem Ende noch abgebucht wurden
+    public var after: [BankAfterEnd] = []
     /// Alle Vorschläge in Web-Reihenfolge (Preisänderungen zuerst), wie `sugg`
     public var all: [BankSuggestion]
     public var from: Day?
