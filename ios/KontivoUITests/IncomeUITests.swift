@@ -107,8 +107,9 @@ final class IncomeUITests: KontivoUITestCase {
     }
 
     /// Menü ••• der Ansicht: Duplizieren öffnet das Formular der Kopie; «Einnahme löschen» entfernt sie wieder
+    /// (Liste: Verträge-Tab, Reiter «Einnahmen», Web v231)
     func testDuplizierenUndLoeschen() {
-        launch("-uiDemo", "-uiTab", "budget", "-uiSheet", "incomeDetail")
+        launch("-uiDemo", "-uiTab", "contracts", "-uiList", "i", "-uiSheet", "incomeDetail")
         wait(el("incomeDetail.kz.month"), "Ansicht Lohn", timeout: 12)
         tap(button("incomeDetail.menu"), "Menü •••")
         tap(button("Duplizieren"), "Duplizieren")
@@ -116,13 +117,10 @@ final class IncomeUITests: KontivoUITestCase {
         XCTAssertEqual(textField("income.label").value as? String, "Lohn")
         tapTop("Abbrechen")
         waitUntil("Formular geschlossen") { !self.incomeFormOpen("Bearbeiten") }
-        wait(buttonContaining("Alle Einnahmen (6)"), "Kopie zählt mit")
-
-        // Kopie wieder löschen: Alle Einnahmen → Ansicht → Bearbeiten → Einnahme löschen
-        tap(buttonContaining("Alle Einnahmen (6)"), "Alle Einnahmen")
-        wait(el("incomes.title"), "Fenster «Alle Einnahmen»")
         let copies = app.buttons.matching(pred("label BEGINSWITH %@ AND label CONTAINS %@", "Lohn", "7’600.00"))
-        waitUntil("zwei Zeilen «Lohn 7’600.00»") { copies.count >= 2 }
+        waitUntil("zwei Zeilen «Lohn 7’600.00» in «Einnahmen»") { copies.count >= 2 }
+
+        // Kopie wieder löschen: Zeile → Ansicht → Bearbeiten → Einnahme löschen
         tap(copies.element(boundBy: 1), "Kopie öffnen")
         wait(el("incomeDetail.kz.month"), "Ansicht Kopie")
         tapTop("Bearbeiten")
@@ -130,9 +128,7 @@ final class IncomeUITests: KontivoUITestCase {
         tap(button("income.delete"), "Einnahme löschen")
         tapAlertButton("Löschen")
         waitUntil("Formular und Ansicht geschlossen") { !self.incomeFormOpen("Bearbeiten") && !self.el("incomeDetail.kz.month").exists }
-        wait(el("incomes.title"), "zurück in «Alle Einnahmen»")
-        tapTop("Schliessen")
-        wait(buttonContaining("Alle Einnahmen (5)"), "Kopie gelöscht")
+        waitUntil("Kopie gelöscht") { copies.count == 1 }
     }
 }
 

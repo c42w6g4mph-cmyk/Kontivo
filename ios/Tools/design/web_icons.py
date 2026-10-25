@@ -1,7 +1,9 @@
 """Erzeugt ios/Kontivo/Resources/Assets.xcassets/Icons/ic.<name>.imageset aus den Inline-SVGs der Web-App (v224)."""
 import json, os, re, sys
 WEB = sys.argv[1]  # Web-Repo (main) mit index.html
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "Kontivo", "Resources", "Assets.xcassets", "Icons")
+OUT = os.environ.get("OUT") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "Kontivo", "Resources", "Assets.xcassets", "Icons")
+# ONLY=var. → nur Symbole mit diesem Namensanfang schreiben (z.B. neue Symbole ergänzen, ohne bestehende neu zu erzeugen)
+ONLY = os.environ.get("ONLY", "")
 html = open(os.path.join(WEB, "index.html"), encoding="utf-8").read()
 
 def jsmap(name):
@@ -68,6 +70,10 @@ ICONS = {
 for k, slug in CAT_SLUG.items():
     ICONS["cat." + slug] = (CAT[k], 1.6)
 ICONS["cat.tag"] = (TAG, 1.6)
+# Symbole der variablen Kosten (Web v226 `VAR_IC`: Schlüssel → [Name, SVG, Farbe])
+_i = html.index("var VAR_IC={"); _j = html.index("};", _i)
+for k, body in re.findall(r'(\w+):\["[^"]*",\'(.*?)\',"#\w+"\]', html[_i:_j + 1]):
+    ICONS["var." + k] = (body, 1.6)
 
 NUM = r"[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?"
 ARGC = {"M": 2, "L": 2, "H": 1, "V": 1, "C": 6, "S": 4, "Q": 4, "T": 2, "A": 7, "Z": 0}
@@ -114,6 +120,8 @@ os.makedirs(OUT, exist_ok=True)
 json.dump({"info": {"author": "xcode", "version": 1}, "properties": {"provides-namespace": False}},
           open(os.path.join(OUT, "Contents.json"), "w"), indent=2)
 for name, spec in ICONS.items():
+    if ONLY and not name.startswith(ONLY):
+        continue
     body, sw = spec[0], spec[1]
     vb = spec[2] if len(spec) > 2 else "0 0 24 24"
     filled = spec[3] if len(spec) > 3 else False

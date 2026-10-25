@@ -98,6 +98,12 @@ struct AppSheetView: View {
             IncomeDetailView(incomeID: id)
         case .incomesAll:
             IncomesAllView()
+        case .variableForm(let id):
+            VariableCostFormView(variableID: id)
+                .interactiveDismissDisabled(true)
+                .modifier(KPageSheetSizing())
+        case .variableDetail(let id):
+            VariableCostDetailView(variableID: id)
         case .letter(let id, let trial):
             LetterView(contractID: id, trial: trial)
         case .cancelChannelPick(let id, let trial):

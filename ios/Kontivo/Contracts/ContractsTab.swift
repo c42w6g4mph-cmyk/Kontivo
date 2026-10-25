@@ -11,9 +11,13 @@ struct ContractsTab: View {
     @State private var cancelledTarget: CTIDItem?
 
     var body: some View {
+        // Web `paintFab`: ohne Verträge, Einnahmen und variable Kosten nur die Leerseite (ohne Kopfzahl und Reiter)
+        let emptyApp = model.data.contracts.isEmpty && model.data.incomes.isEmpty && model.data.variableCosts.isEmpty
         Group {
-            if model.data.contracts.isEmpty {
+            if emptyApp {
                 CTEmptyContracts()
+            } else if model.listMode != .contracts {
+                AltListView(mode: model.listMode, showFilter: $showFilter)
             } else {
                 CTContractsList(showFilter: $showFilter, pauseTarget: $pauseTarget, cancelledTarget: $cancelledTarget)
             }
@@ -21,8 +25,14 @@ struct ContractsTab: View {
         // Titelzeile gehört zur Seite (scrollt mit, Web `.top`), keine Navigationsleiste, Mini-Kopfzeile beim Scrollen
         .kTabPage(title: "Verträge")
         .sheet(isPresented: $showFilter) {
-            CTFilterSheet()
-                .environment(model)
+            Group {
+                if model.listMode == .contracts {
+                    CTFilterSheet()
+                } else {
+                    AltFilterSheet(mode: model.listMode)
+                }
+            }
+            .environment(model)
         }
         .sheet(item: $pauseTarget) { t in
             CTPauseSheet(contractID: t.id)
@@ -77,20 +87,32 @@ extension View {
 // MARK: - Titelzeile (Web `.top`: min-height 57, padding-top 17, h1 30/600 −0.015em, Plus 40 Messing)
 
 /// Seitentitel mit Plus-Knopf: gemeinsame Titelzeile `KTabHeader` (Bereich design) mit dem Plus-Menü im `KAddButton`-Look.
+/// In den Ansichten Einnahmen/Variabel erfasst «+» direkt (Web `addBtn`: `openIncome(null)` bzw. `openVar(null)`).
 struct CTPageHeader: View {
+    @Environment(AppModel.self) private var model
     let title: String
 
     var body: some View {
         KTabHeader(title: title) {
-            // Plus-Menü: Vertrag erfassen | Aus Kontoauszug | Einnahme (Bereich import, Import/AddMenu.swift)
-            AddMenuButton()
-                .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(KColor.onBrass)
-                .tint(KColor.onBrass)
-                .frame(width: 40, height: 40)
-                .background(Circle().fill(KColor.brassFab))
-                .contentShape(Circle())
+            if model.listMode == .incomes {
+                KAddButton { model.present(.incomeForm(nil)) }
+            } else if model.listMode == .variable {
+                KAddButton { model.present(.variableForm(nil)) }
+            } else {
+                plusMenu
+            }
         }
+    }
+
+    private var plusMenu: some View {
+        // Plus-Menü: Vertrag erfassen | Aus Kontoauszug | Einnahme (Bereich import, Import/AddMenu.swift)
+        AddMenuButton()
+            .font(.system(size: 19, weight: .semibold))
+            .foregroundStyle(KColor.onBrass)
+            .tint(KColor.onBrass)
+            .frame(width: 40, height: 40)
+            .background(Circle().fill(KColor.brassFab))
+            .contentShape(Circle())
     }
 }
 
@@ -114,13 +136,17 @@ private struct CTContractsList: View {
             List {
                 CTPageHeader(title: "Verträge").ctPlainRow(side)
                 CTHeroView(width: geo.size.width - 2 * side).ctPlainRow(side)
+                CTModeTabs().ctPlainRow(side)
                 CTListControls(showFilter: $showFilter).ctPlainRow(side)
                 if !content.tags.isEmpty {
-                    CTFilterTagBar(tags: content.tags)
+                    CTFilterTagBar(tags: content.tags) { removeTag($0) }
                         .padding(.top, 10)
                         .ctPlainRow(side)
                 }
-                if content.groups.isEmpty {
+                if model.data.contracts.isEmpty {
+                    // Web: nur Einnahmen/variable Kosten erfasst → Leerseite der Verträge unter Kopfzahl und Reitern
+                    CTEmptyContractsContent().padding(.bottom, 32).ctPlainRow(side)
+                } else if content.groups.isEmpty {
                     CTNoHitsView(content: content).ctPlainRow(side)
                 }
                 ForEach(Array(content.groups.enumerated()), id: \.element.id) { gi, g in
@@ -148,6 +174,16 @@ private struct CTContractsList: View {
         .onChange(of: h) { _, new in syncHero(new) }
     }
 
+    private func removeTag(_ t: CTFilterTag) {
+        switch t.kind {
+        case .hero: model.heroFilter = nil
+        case .category: model.costFilter.category = nil
+        case .partner: model.costFilter.partner = nil
+        case .person: model.costFilter.person = nil
+        case .alt: break
+        }
+    }
+
     /// Ungültigen Hero-Filter auch im Modell entfernen (damit das Tag verschwindet)
     private func syncHero(_ h: Calc.Hero) {
         let e = CTListContent.effectiveHero(model.heroFilter, h)
@@ -173,7 +209,7 @@ private struct CTContractsList: View {
         Button {
             withAnimation(.easeInOut(duration: 0.15)) { model.showArchive.toggle() }
         } label: {
-            CTArchiveToggle(count: list.count, open: open)
+            CTArchiveToggle(text: "\(list.count)" + (list.count == 1 ? " beendeter Vertrag" : " beendete Verträge"), open: open)
         }
         .buttonStyle(.plain)
         .padding(.top, afterGroups ? 26 : 24)
@@ -213,36 +249,6 @@ struct CTCardButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Archiv-Knopf (Web `.archtoggle`)
-
-private struct CTArchiveToggle: View {
-    let count: Int
-    let open: Bool
-
-    var body: some View {
-        HStack(alignment: .center) {
-            Text("Archiv")
-                .font(.system(size: 14))
-                .foregroundStyle(KColor.ink)
-                .ctLine(20.3)
-            Spacer(minLength: 8)
-            HStack(spacing: 10) {
-                Text("\(count)" + (count == 1 ? " beendeter Vertrag" : " beendete Verträge"))
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(KColor.ink2)
-                CTChevron(up: open)
-                    .stroke(KColor.ink3, style: StrokeStyle(lineWidth: 1.6, lineCap: .square))
-                    .frame(width: 9.9, height: 4.95)
-            }
-        }
-        .padding(.horizontal, 15).padding(.vertical, 14)
-        .background(RoundedRectangle(cornerRadius: 13, style: .continuous).strokeBorder(KColor.line, lineWidth: 1))
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isButton)
-    }
-}
-
 /// Winkel «v» (Web: Rahmen rechts/unten eines 7×7-Quadrats, um 45° gedreht)
 struct CTChevron: Shape {
     var up = false
@@ -272,7 +278,7 @@ struct CTGroup: Identifiable {
 }
 
 struct CTFilterTag: Identifiable, Hashable {
-    enum Kind: Hashable { case hero, category, partner, person }
+    enum Kind: Hashable { case hero, category, partner, person, alt(AltDimension) }
     var kind: Kind
     var text: String
     var id: String { "\(kind)-\(text)" }
@@ -530,193 +536,21 @@ private struct CTHeroView: View {
     }
 }
 
-// MARK: - Suche, Filter- und Sortierknopf (Web `.searchrow`: 38 hoch, Abstand 6, Knöpfe nur Symbol 42 × 38)
-
-private struct CTListControls: View {
-    @Environment(AppModel.self) private var model
-    @Binding var showFilter: Bool
-    @FocusState private var focused: Bool
-    @State private var showSort = false
-
-    var body: some View {
-        @Bindable var model = model
-        let n = model.costFilter.count
-        let sort = model.data.settings.sort
-        HStack(alignment: .top, spacing: 6) {
-            // Suchfeld: 42 hoch mit Rahmen (ragt 4 pt unter die Knöpfe, wie im Web), Radius 12
-            HStack(spacing: 0) {
-                CTIcon.search(17)
-                    .foregroundStyle(KColor.ink3)
-                    .padding(.leading, 12)
-                    .padding(.trailing, 7)
-                TextField("", text: $model.searchText, prompt: Text("Suchen").foregroundColor(KColor.ink3))
-                    .font(.system(size: 16))
-                    .foregroundStyle(KColor.ink)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .submitLabel(.search)
-                    .focused($focused)
-                    .accessibilityLabel("Verträge durchsuchen")
-                    .accessibilityIdentifier("contracts.search")
-                if !model.searchText.isEmpty {
-                    Button {
-                        model.searchText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 15))
-                            .foregroundStyle(KColor.ink3)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Suche löschen")
-                    .padding(.leading, 6)
-                }
-                Spacer(minLength: 12)
-            }
-            .frame(height: 42)
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.surface))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(focused ? KColor.ink2 : KColor.line, lineWidth: 1))
-            .frame(height: 38, alignment: .top)
-            .contentShape(Rectangle())
-            .onTapGesture { focused = true }
-
-            Button {
-                showFilter = true
-            } label: {
-                // Web: aktiver Filter färbt den Knopf (Symbol weiss auf Fläche); hier Symbol in Messing, damit es sichtbar bleibt
-                CTIcon.filter(16)
-                    .foregroundStyle(n > 0 ? KColor.teal : KColor.ink2)
-                    .frame(width: 42, height: 38)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.surface))
-                    .overlay(alignment: .topTrailing) {
-                        if n > 0 {
-                            Circle().fill(KColor.brassFab).frame(width: 7, height: 7).offset(x: -8, y: 8)
-                        }
-                    }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Filter" + (n > 0 ? ", \(n) aktiv" : ""))
-            .accessibilityIdentifier("contracts.filter")
-
-            // Web: Auswahlblatt «Sortieren nach» (openPick("sort"))
-            Button {
-                showSort = true
-            } label: {
-                CTIcon.sort(16)
-                    .foregroundStyle(KColor.ink2)
-                    .frame(width: 42, height: 38)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.surface))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Sortierung ändern, sortiert nach " + sort.shortLabel)
-        }
-        .frame(height: 38, alignment: .top)
-        .padding(.top, 14)
-        .sheet(isPresented: $showSort) {
-            CTSortSheet()
-                .environment(model)
-        }
-    }
-}
-
-// MARK: - Aktive Filter (Web `.ftag`: 12.5/600, Innenabstand 6 8 6 12, Messing 12 %)
-
-private struct CTFilterTagBar: View {
-    @Environment(AppModel.self) private var model
-    let tags: [CTFilterTag]
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                ForEach(tags) { t in
-                    Button {
-                        remove(t)
-                    } label: {
-                        HStack(spacing: 6) {
-                            // Web max-width 170 (inkl. Innenabstand und ×)
-                            Text(t.text).lineLimit(1).truncationMode(.tail)
-                                .font(.system(size: 12.5, weight: .semibold))
-                                .frame(maxWidth: 170 - 20 - 16, alignment: .leading)
-                            Text("×").font(.system(size: 16, weight: .semibold))
-                        }
-                        .ctLine(18.1)
-                        .padding(.leading, 12).padding(.trailing, 8).padding(.vertical, 6)
-                        .foregroundStyle(KColor.teal)
-                        .background(Capsule().fill(KColor.teal.opacity(0.12)))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(t.kind == .hero ? "Filter entfernen" : "Filter \(t.text) entfernen")
-                }
-            }
-            .padding(.vertical, 2)
-        }
-        .scrollClipDisabled()
-    }
-
-    private func remove(_ t: CTFilterTag) {
-        withAnimation(.easeInOut(duration: 0.15)) {
-            switch t.kind {
-            case .hero: model.heroFilter = nil
-            case .category: model.costFilter.category = nil
-            case .partner: model.costFilter.partner = nil
-            case .person: model.costFilter.person = nil
-            }
-        }
-    }
-}
-
-// MARK: - Gruppenkopf (Web `.grphead`: 12 px, Titel 600 Tinte, Summe Tinte 2; ohne Titel nur Abstand)
-
-private struct CTGroupHeader: View {
-    let title: String?
-    let sum: String?
-
-    var body: some View {
-        if let title {
-            HStack(alignment: .firstTextBaseline) {
-                Text(title)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(KColor.ink)
-                Spacer(minLength: 8)
-                if let s = sum, !s.isEmpty {
-                    Text(s)
-                        .font(.system(size: 12))
-                        .monospacedDigit()
-                        .foregroundStyle(KColor.ink2)
-                }
-            }
-            .ctLine(17.4)
-            .padding(.bottom, 6)
-            .accessibilityElement(children: .combine)
-            .accessibilityAddTraits(.isHeader)
-        } else {
-            Color.clear.frame(height: 0)
-        }
-    }
-}
-
 // MARK: - Keine Treffer / Keine laufenden Verträge (Web `.empty`: 46 6, 14 px, Titel 16/600)
 
 private struct CTNoHitsView: View {
     let content: CTListContent
 
     var body: some View {
-        let (title, text): (String, String) = {
-            if !content.query.isEmpty {
-                return ("Keine Treffer", "Für «" + content.query + "» gibt es keinen aktiven Vertrag.")
-            } else if !content.filterLabel.isEmpty {
-                return ("Keine Treffer", "Für «" + content.filterLabel + "» gibt es keinen aktiven Vertrag.")
-            }
+        if !content.query.isEmpty {
+            CTEmptyText(title: "Keine Treffer", text: "Für «" + content.query + "» gibt es keinen aktiven Vertrag.")
+        } else if !content.filterLabel.isEmpty {
+            CTEmptyText(title: "Keine Treffer", text: "Für «" + content.filterLabel + "» gibt es keinen aktiven Vertrag.")
+        } else {
             // Keine Suche, kein Filter, keine aktiven Verträge: alle liegen im Archiv
-            return ("Keine laufenden Verträge",
-                    "Alle Verträge sind gekündigt oder abgelaufen und liegen im Archiv. Tippe oben auf + für einen neuen Vertrag.")
-        }()
-        VStack(alignment: .leading, spacing: 5) {
-            Text(title).font(.system(size: 16, weight: .semibold)).foregroundStyle(KColor.ink)
-            Text(text).font(.system(size: 14)).foregroundStyle(KColor.ink2).lineSpacing(5.7)
+            CTEmptyText(title: "Keine laufenden Verträge",
+                        text: "Alle Verträge sind gekündigt oder abgelaufen und liegen im Archiv. Tippe oben auf + für einen neuen Vertrag.")
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 46).padding(.horizontal, 6)
     }
 }
 
@@ -731,23 +565,32 @@ private struct CTEmptyContracts: View {
                 VStack(spacing: 0) {
                     CTPageHeader(title: "Verträge")
                         .padding(.horizontal, CTListMetric.side(for: geo.size.width))
-                    EmptyHero(
-                        symbol: "doc.text",
-                        title: "Jeden Vertrag im Griff.\nJede Frist im Blick.",
-                        text: "Erfasse einen Vertrag, den Rest übernimmt Kontivo.",
-                        hooks: ["Nie wieder ein Jahr zu viel bezahlen",
-                                "Kein Vertrag verlängert sich mehr ungewollt",
-                                "Kündigungsschreiben in einer Minute"],
-                        buttonTitle: "Ersten Vertrag erfassen",
-                        action: { model.present(.contractForm(.new(prefill: nil))) },
-                        footer: AnyView(footer)
-                    )
-                    .padding(.bottom, 32)
-                    .kContentWidth()
+                    CTEmptyContractsContent()
+                        .padding(.bottom, 32)
+                        .kContentWidth()
                 }
             }
         }
         .kPageBackground()
+    }
+}
+
+/// Leerseite der Verträge (Web `emptyList`): auch unter Kopfzahl und Reitern, wenn nur Einnahmen/variable Kosten erfasst sind
+struct CTEmptyContractsContent: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        EmptyHero(
+            symbol: "doc.text",
+            title: "Jeden Vertrag im Griff.\nJede Frist im Blick.",
+            text: "Erfasse einen Vertrag, den Rest übernimmt Kontivo.",
+            hooks: ["Nie wieder ein Jahr zu viel bezahlen",
+                    "Kein Vertrag verlängert sich mehr ungewollt",
+                    "Kündigungsschreiben in einer Minute"],
+            buttonTitle: "Ersten Vertrag erfassen",
+            action: { model.present(.contractForm(.new(prefill: nil))) },
+            footer: AnyView(footer)
+        )
     }
 
     /// Web `.espriv` (12.5 pt `--ink2`, Schild 16 pt grün, Abstand 7, max. 36ch, 12 über) und `.eslink` (15 pt Medium Messing)
