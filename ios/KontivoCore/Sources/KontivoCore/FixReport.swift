@@ -19,6 +19,20 @@ public struct FixReport: Hashable, Sendable {
     public struct CategorySum: Hashable, Sendable {
         public var name: String
         public var value: Double
+        /// «Variable Kosten» (Messing, Web `e.vr`)
+        public var isVariable: Bool = false
+    }
+
+    /// Variable Ausgabe im Bericht (Web `R.V`, v239)
+    public struct VariableRow: Hashable, Identifiable, Sendable {
+        public var id: UUID
+        public var title: String
+        /// «Sinan, Lara (50 %)» bzw. «—»
+        public var persons: String
+        /// «ab 01.03.26», «01.03.26 – 31.12.26», «bis …», «unbefristet»
+        public var period: String
+        /// Monatsbetrag in Hauptwährung × Anteil
+        public var monthly: Double
     }
 
     /// Frist in den nächsten 90 Tagen
@@ -39,6 +53,10 @@ public struct FixReport: Hashable, Sendable {
         public var bigValue: Double
         /// Spitze: über Median × 1.12 und mit grosser Zahlung
         public var high: Bool
+        /// Variable Kosten im Monat (nur mit `includeVariable`)
+        public var variable: Double = 0
+        /// Balkenwert (Fixkosten + variable Kosten)
+        public var total: Double { value + variable }
     }
 
     public var home: Currency
@@ -62,9 +80,27 @@ public struct FixReport: Hashable, Sendable {
     public var diff: Double
     /// Kunden- und Vertragsnummern zeigen
     public var showIDs: Bool
+    /// «Inkl. variable Kosten» (Web `repOpt.vc`, v239)
+    public var includeVariable: Bool = false
+    /// Variable Kosten (nicht beendet), grösste zuerst
+    public var variables: [VariableRow] = []
+    /// Variable Kosten im aktuellen Monat
+    public var variableMonth: Double = 0
+    /// Variable Kosten der 12 Monate
+    public var variableYear: Double = 0
 
-    /// Anzahl Seiten (1 + Vertragsblätter zu je 10)
-    public var pageCount: Int { 1 + Swift.max(1, Int((Double(rows.count) / 10).rounded(.up))) }
+    /// Seiten mit Vertragsblättern (je 10; ohne Verträge keine leere Seite, Web C27)
+    public var sheetPages: Int { Int((Double(rows.count) / 10).rounded(.up)) }
+    /// Seite «Variable Kosten (geschätzt)»
+    public var hasVariablePage: Bool { includeVariable && !variables.isEmpty }
+    /// Anzahl Seiten (1 + Vertragsblätter + ggf. variable Kosten)
+    public var pageCount: Int { 1 + sheetPages + (hasVariablePage ? 1 : 0) }
+    /// Kosten pro Monat (Fixkosten + variable Kosten mit `includeVariable`)
+    public var totalWithVariable: Double { total + (includeVariable ? variableMonth : 0) }
+    /// Kosten der 12 Monate
+    public var yearWithVariable: Double { year + (includeVariable ? variableYear : 0) }
+    /// «Kostenbericht» bzw. «Fixkosten-Bericht»
+    public var title: String { includeVariable ? "Kostenbericht" : "Fixkosten-Bericht" }
 
     /// Vertragsblätter: Reihenfolge wie «Nach Kategorie», innerhalb nach Monatskosten
     public var sheetRows: [Row] {
@@ -78,7 +114,7 @@ public struct FixReport: Hashable, Sendable {
     }
 
     /// «Fixkosten-Bericht» Dateiname
-    public var fileName: String { "Kontivo-Fixkosten-" + today.iso + ".pdf" }
+    public var fileName: String { "Kontivo-" + (includeVariable ? "Kosten" : "Fixkosten") + "-" + today.iso + ".pdf" }
 }
 
 extension Calc {
@@ -89,7 +125,7 @@ extension Calc {
     public static let reportIntro = "PDF mit Übersicht, 12-Monats-Vorschau und allen Vertragsblättern – zum Teilen, Ablegen oder Drucken."
 
     /// Zahlen des Berichts (`repData`): `person` nil = alle Personen.
-    public func fixReport(person: UUID?, showIDs: Bool) -> FixReport {
+    public func fixReport(person: UUID?, showIDs: Bool, includeVariable vcIn: Bool = false) -> FixReport {
         let t = today
         func sh(_ c: Contract) -> Double { person == nil ? 1 : holderShare(c, person: person) }
         var L: [FixReport.Row] = []
@@ -164,8 +200,36 @@ extension Calc {
         }
         let who: String
         if let p = person, let pp = data.person(p) { who = pp.name } else { who = data.persons.map(\.name).joined(separator: " & ") }
-        return FixReport(home: home, today: t, who: who, rows: L, total: tot, categories: CL, top: top, deadlines: fr, months: M,
-                         year: year, income: inc, diff: tot - prev, showIDs: showIDs)
+        var R = FixReport(home: home, today: t, who: who, rows: L, total: tot, categories: CL, top: top, deadlines: fr, months: M,
+                          year: year, income: inc, diff: tot - prev, showIDs: showIDs)
+        // optional inkl. variable Kosten (geschätzt): pro Monat, in der 12-Monats-Vorschau und als eigene Kategorie/Seite (Web v239)
+        if vcIn && hasVariableCosts {
+            R.includeVariable = true
+            let V = variableCosts.filter { share($0, person: person) > 0 && !($0.end.map { $0 < t } ?? false) }
+            let t0 = Day(t.year, t.month, 1), t1 = Day(t.year, t.month + 1, 0)
+            func m(_ v: VariableCost) -> Double { conv(v.amount, v.currency) * share(v, person: person) }
+            R.variableMonth = V.filter { isActive($0, from: t0, to: t1) }.reduce(0.0) { $0 + m($1) }
+            for i in R.months.indices {
+                let a = R.months[i].date, b = Day(a.year, a.month + 1, 0)
+                R.months[i].variable = V.reduce(0.0) { $0 + (isActive($1, from: a, to: b) ? m($1) : 0) }
+                R.variableYear += R.months[i].variable
+            }
+            if R.variableMonth > 0.005 { R.categories.append(FixReport.CategorySum(name: "Variable Kosten", value: R.variableMonth, isVariable: true)) }
+            R.variables = V.map { v in
+                let f = share(v, person: person)
+                let names = v.holderIDs.compactMap { data.person($0)?.name }.joined(separator: ", ")
+                let ps = names + (f < 1 ? " (\(Int(Format.jsRound(f * 100))) %)" : "")
+                let zr: String
+                switch (v.start, v.end) {
+                case let (s?, e?): zr = Format.fmtShort(s) + " – " + Format.fmtShort(e)
+                case let (s?, nil): zr = "ab " + Format.fmtShort(s)
+                case let (nil, e?): zr = "bis " + Format.fmtShort(e)
+                default: zr = "unbefristet"
+                }
+                return FixReport.VariableRow(id: v.id, title: v.title, persons: ps.isEmpty ? "—" : ps, period: zr, monthly: m(v))
+            }.stableSorted { $0.monthly > $1.monthly }
+        }
+        return R
     }
 
     /// Neueste noch anfechtbare Preiserhöhung (Web `skrInfo`, nur Datum und Prozent für den Bericht) – aus

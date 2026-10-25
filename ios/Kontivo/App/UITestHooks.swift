@@ -9,7 +9,7 @@ import KontivoCore
 ///   -uiOnboarding      Einführung (Erststart)
 ///   -uiTab <name>      contracts | costs | budget | deadlines | more
 ///   -uiSheet <name>    detail | form | income | incomes | incomeDetail | incomeEdit | letter | manage | partners | persons | sender
-///                      | categories | quality | cancelpick | completeness | report | reportPDF
+///                      | categories | quality | cancelpick | completeness | report | reportPDF | reportVarPDF
 ///                      (incomeDetail/incomeEdit: Einnahme mit Änderungen, Beispiel «Lohn» mit Verlauf)
 ///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich import)
 ///   -uiBankStep <s>    mit -uiBankSample: nach dem Laden direkt zum Schritt inc | term (Bildschirmfotos)
@@ -90,11 +90,12 @@ extension AppModel {
             if let k = data.contracts.first(where: { $0.label == lab }) { present(.contractDetail(k.id)) }
         // Bereich costs: Fixkosten-Bericht (Auswahl bzw. fertiges PDF in der Dokumentansicht)
         case "report": present(.fixReport(person: nil, fromCosts: true))
-        case "reportPDF":
-            let r = calc.fixReport(person: nil, showIDs: true)
+        case "reportPDF", "reportVarPDF":
+            // reportVarPDF: inkl. variable Kosten (mit -uiCostSeed vars)
+            let r = calc.fixReport(person: nil, showIDs: true, includeVariable: s == "reportVarPDF")
             let d = data
             let pdf = FixReportPDF.render(r, calc: calc) { d.categoryDisplayColor(named: $0) }
-            present(.document(DocumentRef(fileID: nil, data: pdf, type: "application/pdf", title: "Fixkosten-Bericht", fileName: r.fileName)))
+            present(.document(DocumentRef(fileID: nil, data: pdf, type: "application/pdf", title: r.title, fileName: r.fileName)))
         default: break
         }
     }
