@@ -155,6 +155,8 @@ class KontivoUITestCase: XCTestCase {
         let bar = app.buttons["kMiniBar"].firstMatch
         // nur wenn sie wirklich eingeblendet ist (Wert «sichtbar»; ausgeblendet liegt sie unsichtbar im Baum)
         guard bar.exists, (bar.value as? String) == "sichtbar", e.exists else { return }
+        // Liegt ein Fenster (Sheet) darüber, ist die Leiste verdeckt; Ziehen würde das Fenster schliessen
+        guard bar.isHittable else { return }
         let limit = bar.frame.maxY + 8
         guard e.frame.minY < limit else { return }
         let dy = min(400, limit - e.frame.minY + 120)
