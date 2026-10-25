@@ -8,7 +8,7 @@ import KontivoCore
 ///   -uiToday <iso>     Stichtag (Standard 2026-10-03)
 ///   -uiOnboarding      Einführung (Erststart)
 ///   -uiTab <name>      contracts | costs | budget | deadlines | more
-///   -uiSheet <name>    detail | form | income | incomes | incomeDetail | incomeEdit | letter | manage | partners | persons | sender
+///   -uiSheet <name>    detail[:Bezeichnung] | form | edit[:Bezeichnung] | income | incomes | incomeDetail | incomeEdit | letter | manage | partners | persons | sender
 ///                      | categories | quality | cancelpick | completeness | report | reportPDF
 ///                      (incomeDetail/incomeEdit: Einnahme mit Änderungen, Beispiel «Lohn» mit Verlauf)
 ///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich import)
