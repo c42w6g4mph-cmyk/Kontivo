@@ -100,6 +100,14 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         ctShot("Formular – Katalog rückgängig")
     }
 
+    /// Tastatur schliessen; ist sie danach noch da (Animation), nochmals – das Verlassen des Felds übernimmt den Betrag
+    private func closeKeyboardSure() {
+        for _ in 0..<3 where app.keyboards.count > 0 {
+            closeKeyboard()
+            usleep(400_000)
+        }
+    }
+
     /// Feld leeren und neu tippen
     private func replace(_ f: XCUIElement, _ text: String, _ what: String) {
         tap(f, what)
@@ -136,7 +144,7 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         wait(el("neu"), "Neue Zeile «neu»")
         ctShot("Formular – neue Preisänderung als Zeile")
         enter(textField("form.priceAmount"), "45", "Neuer Betrag")
-        closeKeyboard()
+        closeKeyboardSure()
         wait(app.alerts["Preis bleibt gleich"], "Rückfrage «Preis bleibt gleich»")
         ctShot("Formular – Preis bleibt gleich")
         tapAlertButton("Trotzdem hinzufügen")
@@ -172,7 +180,7 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         usleep(500_000)
         tapOpen(button("form.priceOpen"), "+ Preisänderung", expect: textField("form.priceAmount"))
         enter(textField("form.priceAmount"), "50", "Neuer Betrag")
-        closeKeyboard()
+        closeKeyboardSure()
         wait(elContaining("Datum muss nach dem Vertragsbeginn liegen"), "Meldung Datum vor Beginn")
     }
 
