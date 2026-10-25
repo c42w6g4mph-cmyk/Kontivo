@@ -1481,7 +1481,7 @@ input[type=file]{display:none}
 .sheet h4.bkh2{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:600;color:var(--ink2);margin:16px 4px 6px;text-transform:none;letter-spacing:0}
 .bklist{background:var(--surface);border-radius:16px;overflow:hidden;margin:0 0 6px}
 .bkr{display:flex;align-items:center;gap:10px;padding:0 12px 0 14px;position:relative;flex-wrap:wrap}
-.bkr+.bkr:before{content:"";position:absolute;top:0;left:62px;right:0;height:1px;background:var(--line)}
+.bkr+.bkr:before{content:"";position:absolute;top:0;left:61px;right:0;height:1px;background:var(--line)}
 .bkr .bkmain{padding:11px 0;gap:11px;align-items:center}
 .bkr .bktx b{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25;overflow-wrap:anywhere;font-size:15.5px}
 .bkr .bktx small{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.3;margin-top:1px}
@@ -1495,7 +1495,7 @@ input[type=file]{display:none}
 .bkmain.wr .bkq{flex-basis:100%;margin:-3px 0 0 47px}
 .bkq i.tap{display:inline-flex;align-items:center;gap:3px;cursor:pointer}.bkq i.tap svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
 .bkq i.tap[aria-expanded="true"]{background:var(--ink);color:var(--paper)}.bkq i.tap[aria-expanded="true"] svg{transform:rotate(180deg)}
-.bkpay{flex-basis:100%;margin:0 0 12px 83px;padding:4px 12px;background:var(--sunken);border-radius:10px;font-variant-numeric:tabular-nums}
+.bkpay{flex-basis:100%;margin:0 0 12px 47px;padding:4px 12px;background:var(--sunken);border-radius:10px;font-variant-numeric:tabular-nums}
 .bkpay div{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:var(--ink2)}.bkpay div+div{border-top:1px solid var(--line)}
 .bkpay b{font-weight:500;color:var(--ink)}.bkpay b.ch{color:var(--teal);font-weight:600}.bkpay b.od{color:var(--ink3)}
 .bkpay button{display:block;width:100%;text-align:left;padding:7px 0 5px;font-size:13px;color:var(--teal);font-weight:600;border-top:1px solid var(--line)}.bkq i.pc{background:color-mix(in srgb,var(--brass) 18%,var(--surface));color:var(--teal)}
@@ -1511,7 +1511,18 @@ input[type=file]{display:none}
 .bkspan{color:var(--warn)!important}
 .bkr.off .bktx b,.bkr.off .bkam{color:var(--ink3)}.bkr.off .mark{opacity:.45}
 .bkyn{display:flex;gap:8px;width:100%;padding:0 0 12px 47px}.bkyn button{flex:1;padding:9px 6px;border-radius:11px;background:var(--sunken);font-size:14.5px;font-weight:600;color:var(--ink)}
-.bkdup p{margin:0 0 8px 47px;font-size:13.5px;line-height:1.35;color:var(--ink2);background:color-mix(in srgb,var(--warn) 10%,var(--field));border-radius:10px;padding:8px 10px}.bkdup p b{color:var(--ink);font-weight:600}
+/* Rückfrage im Import als Box unter der Zeile (25.10.2026): Titel, Erklärung, zwei Knöpfe. SwiftUI: Section mit Picker/Buttons */
+.bkdup{flex-basis:100%;margin:0 0 12px 47px;padding:10px 12px;background:var(--sunken);border-radius:10px}
+.bkdup p{margin:0;font-size:13.5px;line-height:1.35;color:var(--ink2)}.bkdup p b{color:var(--ink);font-weight:600}.bkdup p b.t{display:block;font-size:14px}
+.bkdup .bkyn{padding:0;margin-top:9px;gap:6px}.bkdup .bkyn button{padding:7px 6px;border-radius:9px;background:var(--surface);font-size:13.5px}
+/* Auswahl als Haken-Abzeichen unten rechts am Logo (25.10.2026) – Zeile nutzt die volle Breite; Trefferfläche deckt das ganze Logo. SwiftUI: Overlay(alignment:.bottomTrailing) */
+.bkr>.bkck,.bkr>.bkok{position:absolute;left:34px;top:31px;width:22px;height:22px;z-index:2;margin:0;border:2.5px solid var(--surface);background:var(--surface);box-shadow:inset 0 0 0 1.6px var(--ink3);box-sizing:border-box}
+.bkr>.bkck::before{content:"";position:absolute;inset:-22px -6px -6px -22px}
+.bkr>.bkck[aria-checked="true"]{background:var(--brassFab);border-color:var(--surface);box-shadow:none}
+.bkr>.bkck[aria-checked="true"]::after{width:8px;height:4.5px;border-width:2px;border-color:var(--onBrass)}
+.bkr>.bkok{background:color-mix(in srgb,var(--brass) 30%,var(--surface));box-shadow:none}.bkr>.bkok svg{width:11px;height:11px;stroke-width:3}
+.bkr>.bkck~.bkmain .mark,.bkr>.bkok~.bkmain .mark{align-self:flex-start}
+.bkr.off .bkmain .bkq,.bkr.off .bktx small{opacity:.6}
 .bkyn button[aria-pressed="true"]{background:var(--brassFab);color:var(--onBrass)}
 .bkterm{flex-direction:column;align-items:stretch}.bkterm .bkmain{padding-bottom:6px}
 .bkchips{display:flex;gap:6px;flex-wrap:wrap;padding:0 0 12px 47px}.bkchips button{font-size:13.5px;padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
@@ -1673,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v326</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v327</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9520,14 +9531,20 @@ function bkPayList(it,key){if(!it.pay)return "";var s=it.s,D=(s.dates||[]).map(f
 function bkDupBox(it,i){var s=it.s,id=s.same||s.arch,c=id&&state.contracts[id];if(!c)return "";
   var nm=esc(titleOf(c))+(c.label&&c.partner&&lnorm(c.label)!==lnorm(c.partner)?" · "+esc(c.partner):""),am=money(curPrice(c),c.cur)+" "+esc(c.cur||"CHF");
   var ae2=s.arch?archEnd(c):"";
-  var txt=s.arch?"<b>«"+nm+"»</b> ist im Archiv"+(ae2?" (gekündigt per "+fmtDot(ae2)+")":"")+", wurde aber am "+fmtDot(s.last)+" noch bezahlt.":"Gleicher Betrag wie <b>«"+nm+"»</b> ("+am+"). Derselbe Vertrag?";
+  var txt=s.arch?'<b class="t">«'+nm+'» ist im Archiv</b>'+(ae2?"Gekündigt per "+fmtDot(ae2)+", ":"")+(ae2?"wurde":"Wurde")+" aber am "+fmtDot(s.last)+" noch bezahlt.":'<b class="t">Gleicher Betrag wie «'+nm+'»</b>'+am+". Derselbe Vertrag?";
   var a=s.arch?["Wieder aktivieren","Neu anlegen"]:["Ja, schon erfasst","Nein, neu"];
   return '<div class="bkdup"><p>'+txt+'</p><div class="bkyn"><button type="button" data-bkdupy="'+i+'" aria-pressed="'+(it.q==="y")+'">'+a[0]+'</button><button type="button" data-bkdupn="'+i+'" aria-pressed="'+(it.q==="n")+'">'+a[1]+'</button></div></div>';}
-function bkIncRow(it,i){var e=it.ed,cur=it.s.cur;
+/* Letzte Zahlung weicht >2 % vom erkannten Betrag ab (Lohn 7'285.30, am 23.10. kamen 8'221.90): nachfragen statt still ignorieren (25.10.2026) */
+function bkIncDev(it){var s=it.s,e=it.ed,n=(s.dates||[]).length;if(it.over||!n||+e.cycle!==1||!(e.amount>0))return null;
+  var a=(s.amounts||[])[n-1];if(!(a>0)||Math.abs(a-e.amount)/e.amount<=0.02)return null;return {d:s.dates[n-1],a:a,diff:Math.round((a-e.amount)*100)/100};}
+function bkIncDevBox(it,i){var v=bkIncDev(it);if(!v)return "";var cur=it.s.cur,lohn=/lohn|gehalt|salär|salaer/.test(lnorm((it.ed.label||"")+" "+it.ed.name+" "+(it.ed.cat||"")));
+  return '<div class="bkdup"><p><b class="t">Am '+bkDay(v.d).slice(0,6)+' kamen '+money(v.a,cur)+'</b>'+money(Math.abs(v.diff),cur)+(v.diff>0?" mehr":" weniger")+(lohn?" als dein Lohn bisher.":" als bisher.")+'</p>'+
+    '<div class="bkyn"><button type="button" data-ikone="'+i+'" aria-pressed="'+!it.nl+'">Einmalig</button><button type="button" data-iknl="'+i+'" aria-pressed="'+!!it.nl+'">'+(lohn?"Neuer Lohn":"Neuer Betrag")+'</button></div></div>';}
+function bkIncRow(it,i){var e=it.ed,cur=it.s.cur,dv=it.nl&&bkIncDev(it);
   return '<div class="bkr'+(it.on?"":" off")+'"><button type="button" class="bkck" data-ikon="'+i+'" role="checkbox" aria-checked="'+it.on+'" aria-label="'+esc(e.label||e.name)+' übernehmen"></button>'+
     '<button type="button" class="bkmain wr" data-ikopen="'+i+'">'+bkMark(it)+
       '<span class="bktx"><b>'+esc(e.label||e.name)+'</b><small>'+bkSub(it)+'</small></span>'+
-      '<span class="bkam">'+money(e.amount,cur)+'<small>'+esc(cur)+" "+bkPer(e.cycle)+'</small></span><span class="bkchev" aria-hidden="true">›</span>'+bkChips(it,true,i)+'</button>'+bkPayList(it,"i"+i)+'</div>';}
+      '<span class="bkam">'+money(dv?dv.a:e.amount,cur)+'<small>'+esc(cur)+" "+bkPer(e.cycle)+'</small></span><span class="bkchev" aria-hidden="true">›</span>'+bkChips(it,true,i)+'</button>'+bkPayList(it,"i"+i)+bkIncDevBox(it,i)+'</div>';}
 function bkKnownRow(s){var c=state.contracts[s.match&&s.match.id];if(!c)return "";
   return '<div class="bkr bkkn"><span class="bkok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>'+
     '<div class="bkmain">'+markHtml(c)+'<span class="bktx"><b>'+esc(titleOf(c))+'</b><small>'+esc(s.match&&s.match.arch?"gekündigt per "+fmtDot(archEnd(c))+" · letzte Zahlung "+fmtDot(s.last):(s.loose?"im Auszug gefunden":"unverändert"))+'</small></span>'+
@@ -9825,7 +9842,8 @@ function bkContractOf(it){if(it.over)return Object.assign({},it.over);
 function bkOpenForm(i){var it=bk.items[i];fBank={i:i,scroll:document.getElementById("sheetBank").scrollTop};
   document.getElementById("sheetBank").classList.remove("on");openForm(bkContractOf(it),false,"Vorschlag");}
 /* Einnahme: Anfangsbetrag + Änderungen aus den Zahlungen (Lohnerhöhung), letzter Betrag = gewählter Betrag */
-function bkIncPrices(it){var ph=bankPriceHist(it.s,true),a=it.ed.amount;if(!ph||!ph.prices.length)return {amount:a,prices:[]};
+function bkIncPrices(it){var r=bkIncPrices0(it),v=it.nl&&bkIncDev(it);if(v)r.prices=r.prices.filter(function(p){return p.from<v.d;}).concat([{from:v.d,amount:v.a}]);return r;}
+function bkIncPrices0(it){var ph=bankPriceHist(it.s,true),a=it.ed.amount;if(!ph||!ph.prices.length)return {amount:a,prices:[]};
   var pr=ph.prices.map(function(p){return {from:p.from,amount:p.amount};});if(pr[pr.length-1].amount>0)pr[pr.length-1].amount=a;return {amount:ph.base,prices:pr};}
 function bkOpenInc(i){var it=bk.inc[i],e=it.ed;fBank={i:i,inc:true,scroll:document.getElementById("sheetBank").scrollTop};
   document.getElementById("sheetBank").classList.remove("on");
@@ -9868,7 +9886,8 @@ document.getElementById("bkBody").addEventListener("click",function(e){
       if(yes&&cc){AL[kk]={n:cc.partner,c:cc.cat};state.settings.bankAlias=AL;saveSettings();}else if(!yes&&AL[kk]&&cc&&AL[kk].n===cc.partner){delete AL[kk];saveSettings();}}
     paintBank();return;}
   if(t.dataset.bkyes!=null||t.dataset.bkno!=null){var iy=bk.items[+(t.dataset.bkyes!=null?t.dataset.bkyes:t.dataset.bkno)];iy.on=t.dataset.bkyes!=null;paintBank();return;}
-  if(t.dataset.bkpon!=null){var p=bk.price[+t.dataset.bkpon];p.on=!p.on;t.setAttribute("aria-checked",p.on);bkFoot();return;}
+  if(t.dataset.bkpon!=null){var p=bk.price[+t.dataset.bkpon];p.on=!p.on;t.setAttribute("aria-checked",p.on);t.parentNode.classList.toggle("off",!p.on);bkFoot();return;}
+  if(t.dataset.iknl!=null||t.dataset.ikone!=null){var iv=bk.inc[+(t.dataset.iknl!=null?t.dataset.iknl:t.dataset.ikone)];iv.nl=t.dataset.iknl!=null;paintBank();return;}
   if(t.dataset.bkopen!=null){bkOpenForm(+t.dataset.bkopen);return;}
   if(t.dataset.ikopen!=null){bkOpenInc(+t.dataset.ikopen);return;}
   if(t.dataset.bkterm!=null){var it4=bk.items[+t.dataset.bkterm];it4.term=t.dataset.v;
