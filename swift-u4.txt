@@ -1,5 +1,5 @@
-branch=swift-u4 run=205 sha=7015a046075efd55fc915fc3629176784b57dac8
-core=success app=failure ui=skipped
+branch=swift-u4 run=206 sha=476ebb7640329391d6445db9f67a04377797e7f3
+core=success app=success ui=skipped
 xcode=Xcode 26.2 Build version 17C52  runner=macos15/20260907.0337.1
 /Applications/Xcode_16.0.0.app
 /Applications/Xcode_16.0.app
@@ -39,11 +39,11 @@ Test Case '-[KontivoCoreTests.WebSync160Tests testTermMonthsAndNotice]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testTermMonthsAndNotice]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' started.
 Test Case '-[KontivoCoreTests.WebSync160Tests testTrialStates]' passed (0.000 seconds).
-Test Suite 'WebSync160Tests' passed at 2026-10-25 08:36:48.387.
-	 Executed 25 tests, with 0 failures (0 unexpected) in 0.027 (0.031) seconds
-Test Suite 'WebSync224Tests' started at 2026-10-25 08:36:48.387.
+Test Suite 'WebSync160Tests' passed at 2026-10-25 08:44:57.030.
+	 Executed 25 tests, with 0 failures (0 unexpected) in 0.024 (0.028) seconds
+Test Suite 'WebSync224Tests' started at 2026-10-25 08:44:57.030.
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogHits]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogHits]' passed (0.049 seconds).
+Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogHits]' passed (0.041 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogSameNames]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogSameNames]' passed (0.002 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testCatalogTermShort]' started.
@@ -57,16 +57,16 @@ Test Case '-[KontivoCoreTests.WebSync224Tests testMissingFields]' passed (0.000 
 Test Case '-[KontivoCoreTests.WebSync224Tests testPhoneChannel]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testPhoneChannel]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testRateCheckedAtRoundTrip]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testRateCheckedAtRoundTrip]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.WebSync224Tests testRateCheckedAtRoundTrip]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testRatePolicy]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testRatePolicy]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testRememberSinglePerson]' started.
-Test Case '-[KontivoCoreTests.WebSync224Tests testRememberSinglePerson]' passed (0.001 seconds).
+Test Case '-[KontivoCoreTests.WebSync224Tests testRememberSinglePerson]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync224Tests testSwissPowerAndLeasing]' started.
 Test Case '-[KontivoCoreTests.WebSync224Tests testSwissPowerAndLeasing]' passed (0.000 seconds).
-Test Suite 'WebSync224Tests' passed at 2026-10-25 08:36:48.443.
-	 Executed 11 tests, with 0 failures (0 unexpected) in 0.055 (0.056) seconds
-Test Suite 'WebSync323Tests' started at 2026-10-25 08:36:48.444.
+Test Suite 'WebSync224Tests' passed at 2026-10-25 08:44:57.076.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.045 (0.046) seconds
+Test Suite 'WebSync323Tests' started at 2026-10-25 08:44:57.076.
 Test Case '-[KontivoCoreTests.WebSync323Tests testAutoNamePerson]' started.
 Test Case '-[KontivoCoreTests.WebSync323Tests testAutoNamePerson]' passed (0.001 seconds).
 Test Case '-[KontivoCoreTests.WebSync323Tests testEndAsOfAndCancelledOn]' started.
@@ -78,64 +78,62 @@ Test Case '-[KontivoCoreTests.WebSync323Tests testPaymentStatusAndMonthCompariso
 Test Case '-[KontivoCoreTests.WebSync323Tests testReactivateArchived]' started.
 Test Case '-[KontivoCoreTests.WebSync323Tests testReactivateArchived]' passed (0.000 seconds).
 Test Case '-[KontivoCoreTests.WebSync323Tests testRememberCreditorIDs]' started.
-Test Case '-[KontivoCoreTests.WebSync323Tests testRememberCreditorIDs]' passed (0.009 seconds).
-Test Suite 'WebSync323Tests' passed at 2026-10-25 08:36:48.457.
-	 Executed 6 tests, with 0 failures (0 unexpected) in 0.012 (0.013) seconds
-Test Suite 'KontivoCorePackageTests.xctest' passed at 2026-10-25 08:36:48.457.
-	 Executed 264 tests, with 0 failures (0 unexpected) in 62.329 (62.374) seconds
-Test Suite 'All tests' passed at 2026-10-25 08:36:48.457.
-	 Executed 264 tests, with 0 failures (0 unexpected) in 62.329 (62.377) seconds
+Test Case '-[KontivoCoreTests.WebSync323Tests testRememberCreditorIDs]' passed (0.006 seconds).
+Test Suite 'WebSync323Tests' passed at 2026-10-25 08:44:57.086.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.009 (0.009) seconds
+Test Suite 'KontivoCorePackageTests.xctest' passed at 2026-10-25 08:44:57.086.
+	 Executed 264 tests, with 0 failures (0 unexpected) in 55.091 (55.129) seconds
+Test Suite 'All tests' passed at 2026-10-25 08:44:57.086.
+	 Executed 264 tests, with 0 failures (0 unexpected) in 55.091 (55.130) seconds
 ◇ Test run started.
 ↳ Testing Library Version: 1501
 ↳ Target Platform: arm64e-apple-macos14.0
 ✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
 
 ===== APP: Fehler =====
-/Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankMoreRow.swift:10:25: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
-/Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankReviewView.swift:268:31: error: the compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions
-** BUILD FAILED **
+** BUILD SUCCEEDED **
 
 ===== APP: Ende =====
+
+Ld /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Binary/Kontivo normal arm64 (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    
+    /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -isysroot /Applications/Xcode_26.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator -F/Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo-ExecutorLinkFileList-normal-arm64.txt /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Binary/Kontivo.debug.dylib -o /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Binary/Kontivo
 
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManageLogoBatch.swift (in target 'Kontivo' from project 'Kontivo')
+CreateUniversalBinary /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo normal arm64\ x86_64 (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    
+    /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Binary/Kontivo /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Binary/Kontivo -output /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo
 
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManagePartners.swift (in target 'Kontivo' from project 'Kontivo')
+CopySwiftLibs /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo.debug.dylib --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Frameworks --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/PlugIns --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/SystemExtensions --scan-folder /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Extensions --platform iphonesimulator --toolchain /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.4eWhcO/Metal.xctoolchain --toolchain /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os --back-deploy-swift-span
+Ignoring --strip-bitcode because --sign was not passed
 
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManagePersons.swift (in target 'Kontivo' from project 'Kontivo')
+ExtractAppIntentsMetadata (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    
+    /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.4eWhcO/Metal.xctoolchain --module-name Kontivo --sdk-root /Applications/Xcode_26.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk --xcode-version 17C52 --platform-family iOS --deployment-target 17.0 --bundle-identifier ch.kontivo.app --output /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app --target-triple arm64-apple-ios17.0-simulator --target-triple x86_64-apple-ios17.0-simulator --binary-file /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Kontivo --dependency-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo_dependency_info.dat --dependency-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo_dependency_info.dat --stringsdata-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --stringsdata-file /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo.SwiftFileList --source-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo.SwiftFileList --metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/arm64/Kontivo.SwiftConstValuesFileList --swift-const-vals-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Objects-normal/x86_64/Kontivo.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-25 08:46:50.321 appintentsmetadataprocessor[5479:19261] Starting appintentsmetadataprocessor export
+2026-10-25 08:46:50.325 appintentsmetadataprocessor[5479:19261] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
 
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManageQuality.swift (in target 'Kontivo' from project 'Kontivo')
+AppIntentsSSUTraining (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    
+    /Applications/Xcode_26.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Info.plist --temp-dir-path /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/ssu --bundle-id ch.kontivo.app --product-path /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app --extracted-metadata-path /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app/Metadata.appintents --metadata-file-list /Users/runner/work/Kontivo/Kontivo/build/Build/Intermediates.noindex/Kontivo.build/Debug-iphonesimulator/Kontivo.build/Kontivo.DependencyMetadataFileList --archive-ssu-assets
+2026-10-25 08:46:50.370 appintentsnltrainingprocessor[5480:19263] Parsing options for appintentsnltrainingprocessor
+2026-10-25 08:46:50.371 appintentsnltrainingprocessor[5480:19263] No AppShortcuts found - Skipping.
 
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Manage/ManageView.swift (in target 'Kontivo' from project 'Kontivo')
+RegisterExecutionPolicyException /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    
+    builtin-RegisterExecutionPolicyException /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app
 
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/More/MoreCurrencyPicker.swift (in target 'Kontivo' from project 'Kontivo')
+Validate /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    
+    builtin-validationUtility /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app -shallow-bundle -infoplist-subpath Info.plist
 
-SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/More/MoreDataFlow.swift (in target 'Kontivo' from project 'Kontivo')
+Touch /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app (in target 'Kontivo' from project 'Kontivo')
     cd /Users/runner/work/Kontivo/Kontivo/ios
-    
+    /usr/bin/touch -c /Users/runner/work/Kontivo/Kontivo/build/Build/Products/Debug-iphonesimulator/Kontivo.app
 
-** BUILD FAILED **
+** BUILD SUCCEEDED **
 
-
-The following build commands failed:
-	SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankMoreRow.swift (in target 'Kontivo' from project 'Kontivo')
-	SwiftCompile normal x86_64 /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankReviewView.swift (in target 'Kontivo' from project 'Kontivo')
-	SwiftCompile normal x86_64 Compiling\ AddMenu.swift,\ AddressSearch.swift,\ AppLock.swift,\ AppModel.swift,\ Appearance.swift,\ BankBridge.swift,\ BankFormBridge.swift,\ BankImportCenter.swift,\ BankImportSheet.swift,\ BankLoadingView.swift,\ BankLogos.swift,\ BankMoreRow.swift,\ BankPickers.swift,\ BankReview.swift,\ BankReviewApply.swift,\ BankReviewHero.swift,\ BankReviewParts.swift,\ BankReviewRows.swift,\ BankReviewTexts.swift,\ BankReviewView.swift,\ BankSample.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/AddMenu.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Shared/AddressSearch.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Native/AppLock.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/App/AppModel.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Design/Appearance.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankBridge.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankFormBridge.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankImportCenter.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankImportSheet.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankLoadingView.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankLogos.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankMoreRow.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankPickers.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankReview.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankReviewApply.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankReviewHero.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankReviewParts.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankReviewRows.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankReviewTexts.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankReviewView.swift /Users/runner/work/Kontivo/Kontivo/ios/Kontivo/Import/BankSample.swift (in target 'Kontivo' from project 'Kontivo')
-	Building project Kontivo with scheme Kontivo
-(4 failures)
 
 ===== UI-TESTS =====
 ui=skipped
