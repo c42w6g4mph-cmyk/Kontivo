@@ -42,14 +42,15 @@ final class CostsBudgetUITests: KontivoUITestCase {
         waitUntil("Alle gewählt") { self.button("Alle").isSelected }
     }
 
-    /// Web v190–v192: «Entwicklung und Preistreiber» – Säulen mit Jahrestotal, Treiber je Kategorie aufklappen, Säule setzt das Jahr
+    /// Web v190–v192, v252–v257: «Überblick» (Säulen mit Jahrestotal) und «Was sich verändert hat» (Chips, aufklappen), Säule setzt das Jahr
     func testKostenEntwicklungPreistreiber() {
         launch("-uiDemo", "-uiTab", "costs")
         wait(chart("Zahlungen pro Monat"), "Monatskarte", timeout: 12)
         let cat = button("costs.drivers.cat.Abos & Medien")
         reveal(cat, "Treiber «Abos & Medien»")
-        XCTAssertTrue(cat.label.contains("Wechsel: TV → Musik"), "Wechsel heben sich auf: \(cat.label)")
-        XCTAssertTrue(elContaining("Was sich verändert hat · \(currentYear - 1) → \(currentYear)").exists, "Titel der Treiberliste")
+        XCTAssertTrue(((cat.value as? String) ?? "").contains("TV beendet, Musik neu"), "Chips: \(String(describing: cat.value))")
+        XCTAssertTrue(el("Was sich verändert hat").exists, "Titel der Treiberliste")
+        XCTAssertTrue(el("\(currentYear - 1) → \(currentYear)").exists, "Jahre der Treiberliste")
         tap(cat, "Abos & Medien aufklappen")
         wait(elContaining("beendet im Juni"), "Vertrag mit Grund (TV)")
         wait(button("Nur Abos & Medien anzeigen ›"), "Filter-Link")
@@ -59,8 +60,41 @@ final class CostsBudgetUITests: KontivoUITestCase {
         XCTAssertTrue(next.label.contains("Prognose"), "Säule Folgejahr = Prognose: \(next.label)")
         tap(next, "Säule Folgejahr")
         wait(el("Jahr \(currentYear + 1)"), "Seite im Folgejahr")
-        wait(elContaining("Prognose · \(currentYear) → \(currentYear + 1)"), "Treiber als Prognose")
+        wait(el("\(currentYear) → \(currentYear + 1)"), "Treiber als Prognose")
         XCTAssertTrue(next.isHittable, "Bereich bleibt sichtbar (Säule an derselben Stelle)")
+    }
+
+    /// Web v234/v235/v254: Kostenart (Alle · Fixkosten · Variable), Filter-Blatt mit Etikett, Kategorien-Donut
+    func testKostenKostenartFilterDonut() {
+        launch("-uiDemo", "-uiTab", "costs", "-uiCostSeed", "vars,all")
+        wait(chart("Zahlungen pro Monat"), "Monatskarte", timeout: 12)
+        let kind = button("costs.kind")
+        wait(kind, "Knopf «Kostenart»")
+        XCTAssertEqual(kind.value as? String, "Alle Kosten")
+        wait(elContaining("variabel 942.80"), "Aufteilung Fixkosten · variabel")
+        reveal(el("costs.vars"), "Liste «Variable Kosten»")
+        XCTAssertTrue(elContaining("Variable Kosten Oktober").exists, "Titel der variablen Liste")
+        tap(kind, "Kostenart")
+        tap(button("costs.kind.var"), "Variable Kosten")
+        wait(elContaining("geschätzt · im Budget abgezogen"), "Variable Kosten gewählt")
+        XCTAssertFalse(elContaining("Fällig im").exists, "Ohne Liste der Fixkosten")
+        tap(button("costs.filter.more"), "Filter gesperrt")
+        wait(elContaining("keine Kategorie und keinen Vertragspartner"), "Hinweis bei variablen Kosten")
+        tap(kind, "Kostenart")
+        tap(button("costs.kind.fix"), "Fixkosten")
+        waitUntil("Fixkosten gewählt") { (kind.value as? String) == "Fixkosten" }
+        tap(button("costs.filter.more"), "Filter")
+        tap(button("costs.filter.category"), "Kategorie")
+        tap(buttonStarting("Wohnen"), "Wohnen")
+        let tag = button("costs.tag.category")
+        wait(tag, "Etikett «Wohnen»")
+        tap(tag, "Etikett entfernen")
+        waitGone(tag, "Etikett entfernt")
+        let donut = button("costs.overview.categories")
+        reveal(donut, "Reiter «Kategorien»")
+        tap(donut, "Kategorien")
+        wait(button("costs.donut.Wohnen"), "Legende «Wohnen»")
+        keepShot("costs-donut")
     }
 
     /// Web v220: Teilen-Symbol in «Kosten» → Auswahl → «PDF erstellen» → PDF in der Dokumentansicht

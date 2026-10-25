@@ -45,6 +45,8 @@ final class CompletenessFlowState {
     var draft = CompletenessTermDraft()
     /// Logo-Schritt schon gezeigt (Web `vk.logoDone`): kommt nur einmal, «Zurück» bzw. «Logos ergänzen» setzt zurück
     var logoDone = false
+    /// Einzelnen offenen Punkt aus dem Abschluss ergänzen (Web `vk.fix`): danach zurück zum Abschluss
+    var fix = false
     var offline = false
     /// Übernahme läuft (Schliessen gesperrt)
     var busy = false
@@ -81,7 +83,7 @@ final class CompletenessFlowState {
         }
     }
 
-    /// Weiter (Web `vkNext`, v143): Fristen → Adresse → optional Logos am Schluss → Abschluss.
+    /// Weiter (Web `vkNext`, v143, 01b0f3d): zuerst Adresse, dann Fristen → optional Logos am Schluss → Abschluss.
     /// `from: .logo` (Logos übernommen bzw. «Ohne Logos fertig») führt zum Abschluss.
     func next(from: Step, _ model: AppModel) {
         var from = from
@@ -94,6 +96,18 @@ final class CompletenessFlowState {
             let n = report(model)
             terms = n.termContracts
             senders = n.senderPersons
+            if !senders.isEmpty {
+                step = .sender
+                si = 0
+                return
+            }
+            from = .sender
+        }
+        if from == .sender {
+            if step == .sender && si < senders.count - 1 {
+                si += 1
+                return
+            }
             if !terms.isEmpty {
                 step = .term
                 ti = 0
@@ -106,18 +120,6 @@ final class CompletenessFlowState {
             if step == .term && ti < terms.count - 1 {
                 ti += 1
                 initTerm(model)
-                return
-            }
-            if !senders.isEmpty {
-                step = .sender
-                si = 0
-                return
-            }
-            from = .sender
-        }
-        if from == .sender {
-            if step == .sender && si < senders.count - 1 {
-                si += 1
                 return
             }
             if logoStep(model) { return }
@@ -141,6 +143,41 @@ final class CompletenessFlowState {
         return true
     }
 
+    /// Abschluss unter 100 %: einzelnen offenen Punkt direkt ergänzen (Web `data-vkfix`)
+    func fixItem(_ kind: CompletenessOpenItem.Kind, _ model: AppModel) {
+        let n = report(model)
+        fix = true
+        logoDone = true
+        switch kind {
+        case .sender:
+            senders = n.senderPersons
+            terms = []
+            si = 0
+            step = .sender
+        case .term(let id):
+            senders = []
+            terms = [id]
+            ti = 0
+            step = .term
+            initTerm(model)
+        }
+    }
+
+    /// Abschluss unter 100 %: «Jetzt ergänzen» geht alle offenen Fragen nochmals durch (Web `again`)
+    func again(_ model: AppModel) {
+        fix = false
+        logoDone = true
+        next(from: .start, model)
+    }
+
+    /// «Keine Erinnerung nötig» (Web `termnowatch`): Frist nicht überwachen, weiter
+    func noWatch(_ model: AppModel) {
+        guard ti < terms.count else { return }
+        let id = terms[ti]
+        model.update { $0.setNoWatch(id) }
+        next(from: .term, model)
+    }
+
     /// «Logos ergänzen» auf der Startseite «Alles startklar!» (Web data-vk="logos")
     func startLogos(_ model: AppModel) {
         logoDone = false
@@ -153,12 +190,13 @@ final class CompletenessFlowState {
         if step == .logo {
             logoDone = false
             searchTask?.cancel()
-            if !senders.isEmpty { step = .sender; si = senders.count - 1; return }
             if !terms.isEmpty { step = .term; ti = terms.count - 1; initTerm(model); return }
+            if !senders.isEmpty { step = .sender; si = senders.count - 1; return }
         }
         if step == .term && ti > 0 { ti -= 1; initTerm(model); return }
+        if step == .term && !senders.isEmpty { step = .sender; si = senders.count - 1; return }
         if step == .sender && si > 0 { si -= 1; return }
-        if step == .sender && !terms.isEmpty { step = .term; ti = terms.count - 1; initTerm(model); return }
+        if fix { fix = false; step = .end; return }
         if only == nil { step = .start }
     }
 
@@ -812,7 +850,7 @@ struct CFTermPage: View {
             let calc = model.calc
             let name = Completeness.termName(c, data: model.data)
             let t = Catalog.match(names: [model.data.partnerName(of: c), c.label], currency: c.currency)
-            let idx = flow.ti
+            let idx = flow.senders.count + flow.ti
             VStack(alignment: .leading, spacing: 0) {
                 CFProgress(index: idx, total: flow.questionCount, label: Completeness.questionLabel(idx + 1, of: flow.questionCount),
                            gain: Completeness.gainText(report, single: flow.only != nil))
@@ -836,6 +874,9 @@ struct CFTermPage: View {
                 }
                 CFLink(title: Completeness.termSkip) { flow.next(from: .term, model) }
                     .accessibilityIdentifier("vk.termSkip")
+                CFLink(title: Completeness.termNoWatch) { flow.noWatch(model) }
+                    .padding(.top, -14)
+                    .accessibilityIdentifier("vk.termNoWatch")
             }
         }
     }
@@ -998,7 +1039,7 @@ struct CFSenderPage: View {
 
     var body: some View {
         if flow.si < flow.senders.count, let p = model.data.person(flow.senders[flow.si]) {
-            let idx = flow.terms.count + flow.si
+            let idx = flow.si
             let others = model.data.completenessSameCandidates(for: p.id)
             VStack(alignment: .leading, spacing: 0) {
                 CFProgress(index: idx, total: flow.questionCount, label: Completeness.questionLabel(idx + 1, of: flow.questionCount),
@@ -1077,6 +1118,7 @@ struct CFEndPage: View {
     let flow: CompletenessFlowState
     let report: CompletenessReport
     let close: () -> Void
+    @Environment(AppModel.self) private var model
 
     var body: some View {
         let single = flow.only != nil
@@ -1101,6 +1143,9 @@ struct CFEndPage: View {
                 .frame(maxWidth: 320)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.bottom, 14)
+            if !report.isComplete {
+                CFOpenList(items: Completeness.openItems(report, data: model.data)) { flow.fixItem($0, model) }
+            }
             // Liste mit Haken nur, wenn alles startklar ist (Web v143)
             if Completeness.showsEndList(report) {
                 VStack(alignment: .leading, spacing: 9) {
@@ -1114,7 +1159,12 @@ struct CFEndPage: View {
                 .frame(maxWidth: 300, alignment: .leading)
                 .padding(.top, 6)
             }
-            CFButton(title: "Fertig", identifier: "vk.done") { close() }
+            if report.isComplete {
+                CFButton(title: "Fertig", identifier: "vk.done") { close() }
+            } else {
+                CFButton(title: Completeness.againTitle, identifier: "vk.again") { flow.again(model) }
+                CFButton(title: Completeness.laterTitle, secondary: true, identifier: "vk.done") { close() }
+            }
         }
         .frame(maxWidth: .infinity)
     }

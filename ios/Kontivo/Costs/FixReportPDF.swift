@@ -1,7 +1,7 @@
 import UIKit
 import KontivoCore
 
-/// Fixkosten-Bericht als PDF (Web v220 `reportPdf`, Design V3 «App-Look»): A4 595 × 842 pt, Seite 1 Zusammenfassung, ab Seite 2
+/// Fixkosten- bzw. Kostenbericht als PDF (Web v220/v239 `reportPdf`, Design V3 «App-Look»): A4 595 × 842 pt, Seite 1 Zusammenfassung, ab Seite 2
 /// Vertragsblätter (2 × 5 je Seite). Alle Masse 1:1 aus der Web-App; dort liegt der Ursprung unten links (PDF), hier wird mit
 /// `Y = 842 − y` umgerechnet. Schriften wie im Web-PDF: Helvetica, Helvetica-Bold, Times (Zahlen).
 enum FixReportPDF {
@@ -134,7 +134,7 @@ enum FixReportPDF {
 
     static func render(_ R: FixReport, calc: Calc, categoryColor: (String) -> String) -> Data {
         let format = UIGraphicsPDFRendererFormat()
-        format.documentInfo = [kCGPDFContextTitle as String: "Kontivo Fixkosten-Bericht", kCGPDFContextCreator as String: "Kontivo"]
+        format.documentInfo = [kCGPDFContextTitle as String: "Kontivo " + R.title, kCGPDFContextCreator as String: "Kontivo"]
         let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: W, height: H), format: format)
         let data = calc.data
         let home = R.home.rawValue
@@ -142,6 +142,8 @@ enum FixReportPDF {
         func num(_ v: Double) -> String { Format.money0(Format.jsRound(v)) }
         func title(_ id: UUID) -> String { data.contract(id).map { data.title(of: $0) } ?? "" }
         let foreign = R.rows.contains { data.contract($0.contractID)?.currency != R.home }
+        let vc = R.includeVariable
+        let TT = R.totalWithVariable
         return renderer.pdfData { pc in
             func foot(_ cv: Canvas, _ p: Int) {
                 cv.hl(LM, RM, 40, "#E6E6E3", 0.6)
@@ -161,21 +163,24 @@ enum FixReportPDF {
             // ---------- Seite 1 ----------
             pc.beginPage()
             var cv = Canvas(ctx: pc.cgContext)
-            head(cv, "Fixkosten-Bericht")
+            head(cv, vc ? "Kostenbericht inkl. variable Kosten" : "Fixkosten-Bericht")
             let top = H - 92, gap: CGFloat = 8, bw = RM - LM - gap * 2, c1 = bw * 0.42, c2 = (bw - c1) / 2, th: CGFloat = 54
             cv.rr(LM, top - th * 2 - gap, c1, th * 2 + gap, 12, "#F4F4F2")
-            cv.lab("Fixkosten pro Monat", LM + 14, top - 20)
-            let nw = cv.tx(num(R.total), LM + 14, top - 58, f: .times, pt: 34)
+            cv.lab(vc ? "Kosten pro Monat" : "Fixkosten pro Monat", LM + 14, top - 20)
+            let nw = cv.tx(num(TT), LM + 14, top - 58, f: .times, pt: 34)
             cv.tx(home, LM + 18 + nw, top - 58, pt: 9, c: "#6A6C70")
+            if vc {
+                cv.tx("Fixkosten " + num(R.total) + " · variabel " + num(R.variableMonth) + " (geschätzt)", LM + 14, top - 74, pt: 7.2, c: "#6A6C70")
+            }
             if R.income > 0 {
-                let q = Int(Format.jsRound(R.total / R.income * 100)), bx = LM + 14, bwid = c1 - 28
+                let q = Int(Format.jsRound(TT / R.income * 100)), bx = LM + 14, bwid = c1 - 28
                 cv.rr(bx, top - th * 2 - gap + 30, bwid, 4.5, 2.2, "#E6E6E3")
-                cv.rr(bx, top - th * 2 - gap + 30, max(4.5, bwid * min(1, R.total / R.income)), 4.5, 2.2, "#A88437")
-                cv.tx("\(q) % der Einnahmen · " + num(max(0, R.income - R.total)) + " " + home + " bleiben", bx, top - th * 2 - gap + 16, pt: 7.2, c: "#6A6C70")
+                cv.rr(bx, top - th * 2 - gap + 30, max(4.5, bwid * min(1, TT / R.income)), 4.5, 2.2, "#A88437")
+                cv.tx("\(q) % der Einnahmen · " + num(max(0, R.income - TT)) + " " + home + " bleiben", bx, top - th * 2 - gap + 16, pt: 7.2, c: "#6A6C70")
             }
             let diffText = (R.diff >= 0.5 ? "+" : (R.diff <= -0.5 ? "-" : "±")) + num(abs(R.diff))
             let tiles: [(String, String, String)] = [
-                ("pro Jahr", num(R.year), "#121314"),
+                ("pro Jahr", num(R.yearWithVariable), "#121314"),
                 ("Verträge", String(R.rows.count), "#121314"),
                 ("Fristen in 90 Tagen", String(R.deadlines.count), R.deadlines.isEmpty ? "#121314" : "#A93227"),
                 ("Teurer seit Vorjahr", diffText, "#121314"),
@@ -195,14 +200,14 @@ enum FixReportPDF {
             var cy = y2 - 42
             let maxC = min(9, R.categories.count)
             for e in R.categories.prefix(maxC) {
-                let cc = categoryColor(e.name)
+                let cc = e.isVariable ? "#A88437" : categoryColor(e.name)
                 cv.rr(LM + 12, cy - 4, 13, 13, 3.5, cc)
                 cv.tx(String(e.name.prefix(1)).uppercased(), LM + 18.5, cy - 0.5, f: .bold, pt: 7, c: "#FFFFFF", al: .center)
                 cv.tx(fit(e.name, .regular, 8.4, hw - 110), LM + 31, cy, pt: 8.4)
                 cv.tx(num(e.value), LM + hw - 12, cy, pt: 8.4, al: .right)
                 let bx = LM + 31, bwd = hw - 43
                 cv.rr(bx, cy - 9, bwd, 2.6, 1.3, "#ECEBE7")
-                cv.rr(bx, cy - 9, max(2.6, bwd * CGFloat(e.value / (R.total == 0 ? 1 : R.total))), 2.6, 1.3, cc)
+                cv.rr(bx, cy - 9, max(2.6, bwd * CGFloat(e.value / (TT == 0 ? 1 : TT))), 2.6, 1.3, cc)
                 cy -= 21
             }
             if R.categories.count > maxC { cv.tx("+ \(R.categories.count - maxC) weitere", LM + 31, cy, pt: 7.2, c: "#6A6C70") }
@@ -239,31 +244,20 @@ enum FixReportPDF {
             // 12-Monats-Vorschau
             let y3 = y2 - bh - gap, ch: CGFloat = 200
             cv.rr(LM, y3 - ch, RM - LM, ch, 12, "#F9F9F7")
-            cv.tx("Fixkosten der nächsten 12 Monate", LM + 12, y3 - 20, f: .bold, pt: 9.2)
-            cv.tx("inkl. Jahreszahlungen und angekündigter Preise", RM - 12, y3 - 20, pt: 7.5, c: "#6A6C70", al: .right)
-            var mx = R.months.map(\.value).max() ?? 0
+            cv.tx(vc ? "Kosten der nächsten 12 Monate" : "Fixkosten der nächsten 12 Monate", LM + 12, y3 - 20, f: .bold, pt: 9.2)
+            cv.tx(vc ? "inkl. Jahreszahlungen und variabler Kosten (geschätzt)" : "inkl. Jahreszahlungen und angekündigter Preise",
+                  RM - 12, y3 - 20, pt: 7.5, c: "#6A6C70", al: .right)
+            func tv(_ m: FixReport.Month) -> Double { vc ? m.total : m.value }
+            var mx = R.months.map(tv).max() ?? 0
             if mx == 0 { mx = 1 }
-            let gx = LM + 12, gw = RM - LM - 24, slot = gw / 12, bwd2 = slot - 8, base = y3 - ch + 44, maxH: CGFloat = 110
-            // jeder Balken mit Wert (Summe der Zahlungen im Monat); Jahr beim ersten Monat und im Januar (Web v228)
+            let gx = LM + 12, gw = RM - LM - 24, slot = gw / 12, bwd2 = slot - 8, base = y3 - ch + 28, maxH: CGFloat = 124
+            // jeder Balken mit Wert (Summe der Zahlungen im Monat) in einer Farbe (Web v229); Jahr beim ersten Monat und im Januar (v228)
             for (i, m) in R.months.enumerated() {
-                let hgt = max(1.5, CGFloat(m.value / mx) * maxH), x = gx + CGFloat(i) * slot + 4
-                cv.rr(x, base, bwd2, hgt, 3, m.high ? "#A88437" : "#E3D7BC")
+                let hgt = max(1.5, CGFloat(tv(m) / mx) * maxH), x = gx + CGFloat(i) * slot + 4
+                cv.rr(x, base, bwd2, hgt, 3, "#D9C9A1")
                 let yr = (i == 0 || m.date.month == 1) ? " " + String(String(m.date.year).suffix(2)) : ""
                 cv.tx(String(Format.monthNames[m.date.month - 1].prefix(3)) + yr, x + bwd2 / 2, base - 11, pt: 6.8, c: "#6A6C70", al: .center)
-                if m.high {
-                    cv.tx(num(m.value), x + bwd2 / 2, base + hgt + 4, f: .bold, pt: 6.6, c: "#86671F", al: .center)
-                } else {
-                    cv.tx(num(m.value), x + bwd2 / 2, base + hgt + 4, pt: 6.4, c: "#4A4C50", al: .center)
-                }
-            }
-            let ly = y3 - ch + 14
-            var lx = LM + 12
-            cv.rr(lx, ly, 7, 7, 1.5, "#E3D7BC")
-            lx += 11 + cv.tx("Monat mit den regelmässigen Zahlungen", lx + 11, ly + 0.5, pt: 7, c: "#6A6C70") + 14
-            let pk = R.months.filter(\.high).map { String(Format.monthNames[$0.date.month - 1].prefix(3)) + " " + ($0.bigName ?? "") }
-            if !pk.isEmpty {
-                cv.rr(lx, ly, 7, 7, 1.5, "#A88437")
-                cv.tx(fit("Höher wegen Jahres- oder Sonderzahlung: " + pk.joined(separator: " · "), .regular, 7, RM - 12 - lx - 11), lx + 11, ly + 0.5, pt: 7, c: "#6A6C70")
+                cv.tx(num(tv(m)), x + bwd2 / 2, base + hgt + 4, pt: 6.4, c: "#4A4C50", al: .center)
             }
             if !R.rows.isEmpty {
                 cv.tx("Ab Seite 2: alle Verträge mit Kündigungsregel" + (R.showIDs ? ", Kunden-Nr." : "") + " und Kontakt – zum Ablegen oder Weitergeben.",
@@ -273,7 +267,7 @@ enum FixReportPDF {
 
             // ---------- Vertragsblätter: 2 Spalten × 5 Zeilen pro Seite ----------
             let S = R.sheetRows
-            for p in 0..<(N - 1) {
+            for p in 0..<R.sheetPages {
                 pc.beginPage()
                 cv = Canvas(ctx: pc.cgContext)
                 let py = H - 60
@@ -305,6 +299,35 @@ enum FixReportPDF {
                     }
                 }
                 foot(cv, p + 2)
+            }
+
+            // ---------- Variable Kosten (geschätzt) als Tabelle (Web v239) ----------
+            if R.hasVariablePage {
+                pc.beginPage()
+                cv = Canvas(ctx: pc.cgContext)
+                var vy = H - 60
+                cv.tx("Variable Kosten (geschätzt)", LM, vy, f: .bold, pt: 13)
+                cv.tx("Seite \(N) von \(N)", RM, vy, pt: 7.5, c: "#6A6C70", al: .right)
+                cv.hl(LM, RM, vy - 8, "#121314", 1)
+                vy -= 28
+                for (t, x) in [("Bezeichnung", LM), ("Person", LM + 200), ("Zeitraum", LM + 330)] {
+                    cv.tx(t, x, vy, f: .bold, pt: 7.2, c: "#6A6C70")
+                }
+                cv.tx("pro Monat", RM, vy, f: .bold, pt: 7.2, c: "#6A6C70", al: .right)
+                cv.hl(LM, RM, vy - 6, "#E6E6E3")
+                vy -= 20
+                for v in R.variables {
+                    cv.tx(fit(v.title, .bold, 8.4, 190), LM, vy, f: .bold, pt: 8.4)
+                    cv.tx(fit(v.persons, .regular, 8, 120), LM + 200, vy, pt: 8)
+                    cv.tx(v.period, LM + 330, vy, pt: 8)
+                    cv.tx(Format.money(v.monthly, R.home), RM, vy, pt: 8.4, al: .right)
+                    cv.hl(LM, RM, vy - 7, "#EFEEEA")
+                    vy -= 20
+                }
+                cv.tx("Summe pro Monat (aktuell)", LM, vy - 4, f: .bold, pt: 8.4)
+                cv.tx(Format.money(R.variableMonth, R.home) + " " + home, RM, vy - 4, f: .bold, pt: 8.4, al: .right)
+                cv.tx("Geschätzte Planwerte für schwankende Ausgaben, keine erfassten Zahlungen.", LM, vy - 24, pt: 7.2, c: "#6A6C70")
+                foot(cv, N)
             }
         }
     }

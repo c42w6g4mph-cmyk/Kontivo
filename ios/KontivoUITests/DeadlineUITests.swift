@@ -32,6 +32,9 @@ final class DeadlineUITests: KontivoUITestCase {
         let kill = buttons("Kündigen").firstMatch
         tap(kill, "Kündigen")
         tap(buttonStarting("Als gekündigt markieren"), "Als gekündigt markieren")
+        // Web v249: Rückfrage «Schon gekündigt» mit «Gekündigt am» / «Läuft bis»
+        waitNav("Schon gekündigt", timeout: 12)
+        tap(button("cancelled.yes"), "Ja, gekündigt")
         waitUntil("Noch ein Knopfpaar weniger") { self.keepButtons.count == b0 - 2 }
         if n0 - 2 > 0 {
             waitUntil("Status «\(n0 - 2) offen»") { self.openCount() == n0 - 2 }
@@ -48,6 +51,7 @@ final class DeadlineUITests: KontivoUITestCase {
         tap(buttonStarting("Krankenkasse"), "Karte Krankenkasse")
         startCancelFromDetail()
         waitNav("Kündigung")
+        XCTAssertTrue(el("letter.window").exists, "Schalter «Kuvert-Fenster» (Web v229)")
         let pdf = button("PDF erstellen")
         tap(pdf, "PDF erstellen")
         // Viewer
@@ -62,11 +66,11 @@ final class DeadlineUITests: KontivoUITestCase {
         tapTop("Schliessen")
         waitUntil("Kündigung geschlossen") { !self.navExists("Kündigung") }
         // Web v143: nach dem PDF fragt Kontivo beim Schliessen «Brief verschickt?»
-        let sent = app.alerts.firstMatch
-        wait(sent, "Rückfrage «Brief verschickt?»")
-        XCTAssertTrue(sent.label.contains("Brief verschickt") || elContaining("Brief verschickt").exists, "Titel: \(sent.label)")
-        tapAlertButton("Noch nicht")
-        waitGone(sent, "Rückfrage geschlossen", timeout: 20)
+        // Web v249: Rückfrage mit «Gekündigt am» und «Läuft bis»
+        waitNav("Brief verschickt?", timeout: 15)
+        XCTAssertTrue(el("cancelled.per").exists, "Feld «Läuft bis»")
+        tap(button("cancelled.no"), "Noch nicht")
+        waitUntil("Rückfrage geschlossen", timeout: 20) { !self.navExists("Brief verschickt?") }
     }
 
     /// Hausrat: keine Empfängeradresse, zweiter Inhaber ohne Absender → beide Rückfragen, dann Viewer
@@ -105,11 +109,13 @@ final class DeadlineUITests: KontivoUITestCase {
         waitUntil("Kündigung geschlossen") { !self.navExists("Kündigung") }
     }
 
-    /// Pflichtvertrag «Wechseln» → «Gekündigt, neuen Vertragspartner erfassen» → Formular «Neuer Vertragspartner» (Web v145)
+    /// Pflichtvertrag «Wechseln» → «Gekündigt, neuen Vertragspartner erfassen» → «Schon gekündigt» (v249) → Formular «Neuer Vertragspartner» (Web v145)
     func testPflichtvertragWechseln() {
         launch("-uiDemo", "-uiTab", "deadlines")
         tap(buttons("Wechseln").firstMatch, "Wechseln")
         tap(buttonStarting("Gekündigt, neuen Vertragspartner erfassen"), "Gekündigt, neuen Vertragspartner erfassen")
+        waitNav("Schon gekündigt", timeout: 12)
+        tap(button("cancelled.yes"), "Ja, gekündigt")
         waitNav("Neuer Vertragspartner", timeout: 12)
         XCTAssertEqual(textField("form.label").value as? String, "Krankenkasse")
         tapTop("Abbrechen")

@@ -355,10 +355,9 @@ public enum Completeness {
         return p >= 75 ? "Fast geschafft!" : (p >= 40 ? "Gute Basis!" : "Ein Anfang ist gemacht")
     }
 
-    /// «Deine Verträge sind bereit.» bzw. «2 Verträge sind noch nicht startklar. Den Rest kannst du …»
+    /// «Deine Verträge sind bereit.» bzw. «Bis 100 % fehlt noch:» mit der Liste `openItems` (Web 01b0f3d)
     public static func endText(_ r: CompletenessReport) -> String {
-        r.isComplete ? "Deine Verträge sind bereit."
-            : Format.count(r.open, "Vertrag ist", "Verträge sind") + " noch nicht startklar. Den Rest kannst du jederzeit unter Mehr → Vollständigkeit ergänzen."
+        r.isComplete ? "Deine Verträge sind bereit." : "Bis 100 % fehlt noch:"
     }
 
     /// Liste mit Haken nur, wenn alles startklar ist (Web v143)

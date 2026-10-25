@@ -816,7 +816,8 @@ private struct DeadlineKillModifier: ViewModifier {
         case .start:
             model.startCancel(a.target.contractID, trial: a.target.trial)
         case .done:
-            model.cancelFlowMarkCancelled(a.target.contractID, trial: a.target.trial)
+            // Web v249: «Schon gekündigt» fragt «Gekündigt am» und «Läuft bis»
+            model.presentAlreadyCancelled(a.target.contractID, trial: a.target.trial)
         }
     }
 }

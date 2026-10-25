@@ -58,6 +58,7 @@ enum KBYearCache {
     }
 
     private static let driverMemo = KBMemo<DriverKey, Calc.CostDrivers>()
+    private static let donutMemo = KBMemo<DriverKey, Calc.CostDonut>()
     private static let costYears = KBMemo<CostKey, Calc.CostYear>()
     private static let costCompares = KBMemo<CostCompareKey, (text: String, trend: Calc.Trend)?>()
     private static let budgetYears = KBMemo<BudgetKey, Calc.BudgetYear>()
@@ -82,6 +83,13 @@ enum KBYearCache {
     static func drivers(_ calc: Calc, year: Int, filter: Calc.CostFilter) -> Calc.CostDrivers {
         driverMemo.get(calc.data, DriverKey(today: calc.today, year: year, filter: filter)) {
             calc.costDrivers(year: year, filter: filter)
+        }
+    }
+
+    /// Kategorien-Donut (`Calc.costDonut`) zwischengespeichert
+    static func donut(_ calc: Calc, year: Int, filter: Calc.CostFilter) -> Calc.CostDonut {
+        donutMemo.get(calc.data, DriverKey(today: calc.today, year: year, filter: filter)) {
+            calc.costDonut(year: year, filter: filter)
         }
     }
 

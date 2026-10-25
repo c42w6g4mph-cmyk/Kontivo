@@ -203,7 +203,20 @@ jobs:
           shoot $PHONE a-v7-budget-variabel-liste -uiDemo -uiTab budget -uiBudgetKind all -uiScrollTo kbVariable
           shoot $PHONE d1-import-zahlungen -uiEmpty -uiBankSample -uiBankStep pay
           shoot $PHONE d2-import-nicht-lesbar -uiEmpty -uiBankSample -uiBankStep fail
+          shoot $PHONE b01-kosten-alle -uiDemo -uiTab costs -uiCostSeed vars,all
+          shoot $PHONE b02-kosten-alle-liste -uiDemo -uiTab costs -uiCostSeed vars,all -uiScrollTo kbList
+          shoot $PHONE b03-kosten-variabel -uiDemo -uiTab costs -uiCostSeed vars,var
+          shoot $PHONE b04-kosten-kostenart -uiDemo -uiTab costs -uiCostSeed vars,all -uiCostOpen kind
+          shoot $PHONE b05-kosten-filter -uiDemo -uiTab costs -uiCostOpen filter
+          shoot $PHONE b06-kosten-filter-aktiv -uiDemo -uiTab costs -uiCostSeed vars,all,flt
+          shoot $PHONE b07-kosten-ueberblick -uiDemo -uiTab costs -uiScrollTo kbDrivers
+          shoot $PHONE b08-kosten-kategorien -uiDemo -uiTab costs -uiCostOpen categories -uiScrollTo kbDrivers
+          shoot $PHONE b09-kosten-veraendert -uiDemo -uiTab costs -uiCostOpen cat -uiScrollTo kbChanges
+          shoot $PHONE b10-bericht-vars -uiDemo -uiTab costs -uiCostSeed vars -uiSheet report
+          shoot $PHONE b11-bericht-pdf-vars -uiDemo -uiTab costs -uiCostSeed vars -uiSheet reportVarPDF
           xcrun simctl ui $PHONE appearance dark
+          shoot $PHONE b20-dunkel-kosten-alle -uiDemo -uiTab costs -uiCostSeed vars,all
+          shoot $PHONE b21-dunkel-kategorien -uiDemo -uiTab costs -uiCostOpen categories -uiScrollTo kbDrivers
           for P in 0 1 2 3 4 5 6 7; do shoot $PHONE 43-dunkel-onb-$P -uiOnboarding -uiOnbPage $P; done
           shoot $PHONE 44-dunkel-fristen -uiDemo -uiTab deadlines
           shoot $PHONE 45-dunkel-fristen-offen -uiDemo -uiTab deadlines -uiDeadlines review,folds,end

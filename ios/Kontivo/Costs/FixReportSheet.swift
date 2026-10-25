@@ -11,9 +11,12 @@ struct FixReportOptionsSheet: View {
     /// Web `repOpt`: Auswahl bleibt während der Sitzung erhalten
     @MainActor static var lastPerson: UUID?
     @MainActor static var lastIDs = true
+    /// «Inkl. variable Kosten» (Web `repOpt.vc`, v239)
+    @MainActor static var lastVariable = false
 
     @State private var person: UUID?
     @State private var ids: Bool
+    @State private var variable: Bool
     @State private var busy = false
 
     init(initialPerson: UUID?, fromCosts: Bool) {
@@ -21,10 +24,12 @@ struct FixReportOptionsSheet: View {
         self.fromCosts = fromCosts
         _person = State(initialValue: initialPerson)
         _ids = State(initialValue: FixReportOptionsSheet.lastIDs)
+        _variable = State(initialValue: FixReportOptionsSheet.lastVariable)
     }
 
     var body: some View {
         let persons = model.data.persons
+        let hasVars = model.calc.hasVariableCosts
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // Web `h2#pickTitle`: 22 px Semibold, Zeilenhöhe 31.9, rechts 44 frei für «×»
@@ -49,6 +54,12 @@ struct FixReportOptionsSheet: View {
                     // Web `.seg2` margin 2/10 plus Abstand 6 der Liste (flex gap)
                     segment(persons)
                         .padding(.top, 2 + 6)
+                        .padding(.bottom, hasVars ? 0 : 10 + 6)
+                }
+                if hasVars {
+                    // Web `#repVc` (margin-top 8): Umfang des Berichts
+                    scopeSegment
+                        .padding(.top, persons.count > 1 ? 8 + 6 : 2 + 6)
                         .padding(.bottom, 10 + 6)
                 }
                 Toggle(isOn: $ids) {
@@ -68,7 +79,7 @@ struct FixReportOptionsSheet: View {
                 .padding(.horizontal, 13)
                 .padding(.vertical, 11)
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(KColor.field))
-                .padding(.top, persons.count > 1 ? 0 : 6)
+                .padding(.top, persons.count > 1 || hasVars ? 0 : 6)
                 .padding(.bottom, 12 + 6)
                 .accessibilityIdentifier("report.ids")
                 Button {
@@ -116,7 +127,7 @@ struct FixReportOptionsSheet: View {
         .background(KColor.paper.ignoresSafeArea())
         // Web: Blatthöhe = Inhalt (391 pt mit Personenwahl, 333 ohne); das iOS-26-Blatt schwebt über dem
         // Home-Indikator, darum ohne die 34 pt Sicherheitsabstand des Web-Blatts
-        .presentationDetents([.height(persons.count > 1 ? 391 : 333), .large])
+        .presentationDetents([.height((persons.count > 1 ? 391 : 333) + (hasVars ? 46 : 0)), .large])
         .presentationDragIndicator(.visible)
         .onAppear {
             // aus «Kosten»: aktiver Personenfilter; aus «Mehr»: letzte Auswahl
@@ -137,6 +148,19 @@ struct FixReportOptionsSheet: View {
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.sunken))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Personen")
+    }
+
+    /// «Nur Fixkosten | Inkl. variable Kosten» (nur mit erfassten variablen Kosten)
+    private var scopeSegment: some View {
+        HStack(spacing: 0) {
+            segButton("Nur Fixkosten", on: !variable) { variable = false }
+            segButton("Inkl. variable Kosten", on: variable) { variable = true }
+        }
+        .padding(3)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(KColor.sunken))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Umfang")
+        .accessibilityIdentifier("report.scope")
     }
 
     private func segButton(_ t: String, on: Bool, action: @escaping () -> Void) -> some View {
@@ -160,11 +184,12 @@ struct FixReportOptionsSheet: View {
         busy = true
         FixReportOptionsSheet.lastPerson = person
         FixReportOptionsSheet.lastIDs = ids
+        FixReportOptionsSheet.lastVariable = variable
         let calc = model.calc
-        let r = calc.fixReport(person: person, showIDs: ids)
+        let r = calc.fixReport(person: person, showIDs: ids, includeVariable: variable && calc.hasVariableCosts)
         let data = calc.data
         let pdf = FixReportPDF.render(r, calc: calc) { data.categoryDisplayColor(named: $0) }
-        let ref = DocumentRef(fileID: nil, data: pdf, type: "application/pdf", title: "Fixkosten-Bericht", fileName: r.fileName)
+        let ref = DocumentRef(fileID: nil, data: pdf, type: "application/pdf", title: r.title, fileName: r.fileName)
         let m = model
         m.dismissTop { m.present(.document(ref)) }
     }

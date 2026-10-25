@@ -316,7 +316,7 @@ struct CTFormTermSection: View {
         .id(ContractFormField.cancelWay)
         switch ch {
         case .online:
-            CTFormTextRow(title: "Kündigungslink", text: $form.cancelURL, placeholder: "sonst Website", keyboard: .URL,
+            CTFormTextRow(title: "Kündigungslink", text: $form.cancelURL, placeholder: "optional", keyboard: .URL,
                           contentType: .URL, identifier: "form.cancelURL", field: .cancelURL, focus: focus)
         case .email:
             CTFormTextRow(title: "E-Mail für Kündigung", text: $form.mail, placeholder: ContractFormRules.placeholder, keyboard: .emailAddress,

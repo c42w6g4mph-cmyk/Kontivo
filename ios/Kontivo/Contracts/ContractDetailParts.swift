@@ -357,11 +357,25 @@ private struct CTAlreadyCancelledModifier: ViewModifier {
     @State private var chosen: (id: UUID, day: Day)?
 
     func body(content: Content) -> some View {
-        content.sheet(item: $target, onDismiss: run) { t in
+        content
+            // Web v249: kündbare Verträge fragen «Gekündigt am» / «Läuft bis» (Rückfrage `CancelledAskSheet`),
+            // nicht kündbare («Beendet …») weiter nur «Läuft bis»
+            .onChange(of: target?.id) { _, id in
+                guard let id, let c = model.data.contract(id), !model.calc.isFixed(c) else { return }
+                target = nil
+                model.presentAlreadyCancelled(id, trial: model.calc.trialOn(c))
+            }
+            .sheet(item: Binding(get: { fixedTarget }, set: { target = $0 }), onDismiss: run) { t in
             CTAlreadyCancelledSheet(contractID: t.id) { d in chosen = (id: t.id, day: d) }
                 .environment(model)
                 .environment(\.locale, Locale(identifier: "de_CH"))
         }
+    }
+
+    /// Nur nicht kündbare Verträge im Fenster «Vertrag beendet»
+    private var fixedTarget: CTIDItem? {
+        guard let t = target, let c = model.data.contract(t.id), model.calc.isFixed(c) else { return nil }
+        return t
     }
 
     private func run() {

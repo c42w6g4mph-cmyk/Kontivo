@@ -57,7 +57,14 @@ final class CompletenessTests: XCTestCase {
         XCTAssertEqual(Completeness.accessibilityLabel(rep), "Vollständigkeit: 3 Verträge noch nicht startklar")
         XCTAssertEqual(Completeness.gainText(rep, single: false), "40 % startklar")
         XCTAssertEqual(Completeness.endHeadline(rep, single: false), "Gute Basis!")
-        XCTAssertEqual(Completeness.endText(rep), "3 Verträge sind noch nicht startklar. Den Rest kannst du jederzeit unter Mehr → Vollständigkeit ergänzen.")
+        XCTAssertEqual(Completeness.endText(rep), "Bis 100 % fehlt noch:")
+        // Web 01b0f3d: offene Punkte – zuerst die Adresse, dann je Vertrag die Frist
+        XCTAssertEqual(Completeness.openItems(rep, data: d).map { $0.title + " | " + $0.subtitle },
+                       ["Adresse von Lara | für Kündigungsbriefe · 2 Verträge", "Abo | Kündigungsfrist fehlt · Fitnesspark Muster",
+                        "Box | Kündigungsfrist fehlt · Online Shop Abo"])
+        var d2 = d
+        d2.setNoWatch(id("c6"))
+        XCTAssertFalse(Completeness.report(d2, today: today).termContracts.contains(id("c6")))
         XCTAssertFalse(Completeness.showsEndList(rep))
 
         // Katalog ergänzt still: Swisscom (Adresse, Telefon, Website)
