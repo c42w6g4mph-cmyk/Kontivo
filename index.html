@@ -1684,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v332</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v333</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8809,6 +8809,8 @@ function bankSubMemo(text){var tl=String(text||"").replace(/\r/g,"").split(/\n+/
   var a=tl[0],b=tl[1];
   if(/\b(ag|gmbh|sa|sarl|kg|ohg|ug|genossenschaft|verein|stiftung|e ?v)\.?$/i.test(a))return null;
   if(bankStreet(b)||/^\d{4,5}\s/.test(b)||BKLAND.test(lnorm(b))||!/[A-Za-zÄÖÜäöü]{3}/.test(b)||/:/.test(a))return null;
+  /* 2. Zeile setzt den Namen fort («Strassenverkehrsamt / des Kantons Thurgau»): keine Mitteilung (25.10.2026) */
+  if(/^(des|der|die|den|dem|von|vom|zur|zum|für|fur|du|de|des|di|del|della|of|for|and|und)\s/i.test(b))return null;
   return {memo:a.slice(0,60),name:b};}
 /* Name einer Buchung (Kosten und Einnahmen gleich): Empfänger/Auftraggeber, sonst aus dem Buchungstext; nur der erste Teil vor «;» / « · » */
 function bankTxName(t){var nm=t.name&&!bankIsType(t.name)?bankNameClean(t.name.split(/\s*,\s*/)[0]):bankNameFrom(t.text);nm=String(nm||"").split(/;|\s·\s/)[0].trim();
@@ -8910,11 +8912,11 @@ var BKRETAIL=/\b(migros|migrolino|coop|denner|aldi|lidl|rewe|edeka|kaufland|nett
 var BKFEE=/entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt|kontogebuhr|kontogebuehr|kontoabschluss|abschluss entgelt/;
 var BKVIA=/paypal|klarna|amazon|apple com bill|google|stripe|adyen|sumup|wero|twint/;
 /* Kategorie: Katalog, sonst Stichwörter, sonst Branchenregel, sonst Sonstiges */
-var BKCAT=[[/steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Steuern & Gebühren"],
+var BKCAT=[[/strassenverkehrsamt|steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Steuern & Gebühren"],
   [/kaution|caution|miete|mietzins|immobilien|hausverwaltung|liegenschaft|wohnbau|wohnung|nebenkosten/,"Wohnen"],
   [/kita|krippe|schule|kindergarten|musikschule|hort/,"Familie & Bildung"],
   [/leasing|sbb|halbtax|deutschlandticket|bahn|bvg|parking|parkplatz|garage|tankstelle/,"Mobilität"],
-  [/fitness|sport|verein|club|gym|mcfit|yoga|\be v\b|\b(sc|fc|tsv|sv|tus|vfb|vfl|djk|sg|turnverein|schwimmverein)\b/,"Freizeit & Sport"],
+  [/fitness|sport|verein|club|calcio|gym|mcfit|yoga|\be v\b|\b(sc|fc|tsv|sv|tus|vfb|vfl|djk|sg|turnverein|schwimmverein)\b/,"Freizeit & Sport"],
   [/versicherung|praemie|police|krankenkasse|kranken/,"Versicherung"],
   [/strom|energie|\bgas\b|erdgas|gasversorg|wasser|stadtwerke|abschlag|akonto/,"Energie & Wasser"],
   [/swisscom|sunrise|salt|telekom|vodafone|mobilfunk|internet|festnetz/,"Mobilfunk & Internet"],
@@ -9084,23 +9086,24 @@ function bankFind(r,ign){
       after.push({id:id,c:c,n:late.length,last:late[late.length-1].d,amount:Math.round(-late[late.length-1].a*100)/100,cur:g.cur});return true;}).length>0;};
   /* Erst alle Gruppen bewerten, dann zuordnen: exakte Treffer zuerst (23.10.2026) – zwei ähnliche Verträge beim selben Anbieter
      (Swisscom 29.90 + 32.90) dürfen nicht beide demselben erfassten Vertrag zugeordnet werden */
-  var EV=[];Object.keys(groups).forEach(function(k){
+  /* Grundschlüssel des Vertragspartners: ohne Datei-/Betragsstufe (#…); bei Namensschlüsseln nur das erste Wort
+     («Strassenverkehrsamt» und «Strassenverkehrsamt des Kantons Thurgau» in verschiedenen Jahren) */
+  function bankBase(k){var b=k.replace(/#[^|#]*/g,""),p=b.split("|");if(!/^(tpl|cred):/.test(p[0])&&p[0].indexOf("~")<0)p[0]=p[0].split(" ")[0];return p.join("|");}
+  var EV=[],FAIL={},OKB={};Object.keys(groups).forEach(function(k){
     if(cancelledHit(groups[k]))return;
     var s=bankEval(k,groups[k]);
     /* Kern-Reihe (23.10.2026): Abo mit gleichem Betrag am gleichen Tag, dazwischen Einzelkäufe beim selben Händler
        (Apple 10.– am 7., dazu App-Käufe 10.90/12.–) → nur die regelmässige Reihe bewerten, Einzelkäufe fallen weg */
     if(!s){var core=bankCore(groups[k]);if(core){s=bankEval(k,core);if(s)groups[k]=core;}}
-    /* Versicherer mit mehreren Policen ohne Bezeichnung (Mobiliar: Hausrat 404.10, andere 372.70, 383.20 – jedes Jahr andere Prämien): keine Reihe,
-       aber jede Zahlung der letzten 12 Monate ist eine mögliche Jahresprämie → einzeln als «gehört das dazu?» (25.10.2026) */
-    if(!s&&groups[k].tx.length>=2){var gk=groups[k],ref0=bankGEnd(gk.tx,r.to),seenA={},subs=[];
-      if(BKONCE.test(lnorm(Object.keys(gk.names).join(" ")+" "+(gk.tx[0].text||""))))gk.tx.forEach(function(t,ti){var a=t.a.toFixed(2);
-        if(seenA[a]||-t.a<50||dd(t.d,ref0)>366)return;seenA[a]=1;var k2=k+"@"+ti;groups[k2]={key:k2,tpl:gk.tpl,tx:[t],names:gk.names,cur:gk.cur};var s2=bankEval(k2,groups[k2]);if(s2)subs.push([k2,s2]);});
-      if(subs.length){subs.forEach(function(x){var s2=x[1];if(subs.length>1)s2.multi=1;bankApplyAlias(s2);s2.cat=bankCat(s2);if(s2.alias&&s2.alias.c&&allCats().indexOf(s2.alias.c)>=0)s2.cat=s2.alias.c;
-        s2.match=bankMatch(s2);EV.push({k:x[0],s:s2,q:!s2.match?5:s2.match.kind==="known"?0:2});});return;}}
+    /* keine Reihe gefunden: erst nach der Schleife gemeinsam mit den Schwestergruppen (gleicher Vertragspartner, andere Datei/Betragsstufe) als Jahresreihen bzw. Einzelprämien prüfen */
+    if(!s){(FAIL[bankBase(k)]=FAIL[bankBase(k)]||[]).push(k);return;}else OKB[bankBase(k)]=1;
     if(s)bankApplyAlias(s);
     if(!s){EV.push({k:k,s:null,q:9});return;}
     s.cat=bankCat(s);if(s.alias&&s.alias.c&&allCats().indexOf(s.alias.c)>=0)s.cat=s.alias.c;
     s.match=bankMatch(s);var q=!s.match?5:s.match.kind==="known"?(s.varies?1:0):2;EV.push({k:k,s:s,q:q});});
+  Object.keys(FAIL).forEach(function(b0){var ks=FAIL[b0],T=[];ks.forEach(function(k){groups[k].tx.forEach(function(t){if(T.indexOf(t)<0)T.push(t);});});
+    T.sort(function(x,y){return x.d<y.d?-1:x.d>y.d?1:0;});var g0=groups[ks[0]],mg={key:ks[0],tpl:g0.tpl,tx:T,names:{},cur:g0.cur};ks.forEach(function(k){Object.keys(groups[k].names).forEach(function(n){mg.names[n]=(mg.names[n]||0)+groups[k].names[n];});});
+    mg.hasSeries=!!OKB[b0];if(!bankFallback(ks[0],mg))ks.forEach(function(k){EV.push({k:k,s:null,q:9});});});
   EV.sort(function(a,b){return a.q-b.q;});
   EV.forEach(function(ev){var k=ev.k,s=ev.s;
     if(!s){var kn=bankLooseKnown(k,groups[k]);if(kn&&!used[kn.match.id]){used[kn.match.id]=1;known.push(kn);}return;}
@@ -9146,6 +9149,29 @@ function bankFind(r,ign){
     if(!am.some(function(v){return Math.abs(v-cp)<=cp*0.35;}))return null;
     s.match={id:c,kind:"known"};return s;
   }
+    /* Versicherer mit mehreren Policen ohne Bezeichnung (Mobiliar: Hausrat 404.10, andere 372.70, 383.20 – jedes Jahr andere Prämien): keine Reihe,
+       aber jede Zahlung der letzten 12 Monate ist eine mögliche Jahresprämie → einzeln als «gehört das dazu?» (25.10.2026) */
+  function bankFallback(k,gk){if(gk.tx.length<2)return false;var ref0=bankGEnd(gk.tx,r.to),seenA={},subs=[],useT=[];
+      var onceW=BKONCE.test(lnorm(Object.keys(gk.names).join(" ")+" "+(gk.tx[0].text||"")));
+      /* Jahresreihen nach Kalendermonat (25.10.2026): Prämien, die jedes Jahr etwas anders sind (Mobiliar 501.90 / 403.10 / 504.95 / 404.10 jeweils Feb/März).
+         Nur mit Vertragssignal (Vertragswort, Katalog, Gläubiger-ID, Lastschrift/Dauerauftrag), keine Kartenkäufe; Abstand 330–400 Tage = höchstens eine Zahlung pro Jahr;
+         Betrag ±35 % zur letzten Zahlung der Reihe (trennt Policen im selben Monat); 2 Jahre = Rückfrage, ab 3 Jahren normaler Vorschlag */
+      /* nur bei dünn besetzten Gruppen (höchstens jeder zweite Monat mit Zahlung): beendete Monatsverträge (Miete, Kita) und Kartenaufladungen sind keine Jahresreihen */
+      var gm={};gk.tx.forEach(function(t){gm[t.d.slice(0,7)]=1;});var gspan=Math.max(1,Math.round(dd(gk.tx[0].d,gk.tx[gk.tx.length-1].d)/30.44)+1);
+      if(Object.keys(gm).length<=gspan*0.5&&(onceW||gk.tpl||gk.tx.some(function(t){return t.cred||t.kind==="dd"||t.kind==="so";}))){var SR=[];
+        /* je Buchungstag: beste Paare (Betrag am nächsten) zuerst – zwei Fahrzeuge am selben Tag (168 / 153.15) nicht vertauschen */
+        var byD={};gk.tx.filter(function(t){return -t.a>=20&&t.kind!=="card";}).forEach(function(t){(byD[t.d]=byD[t.d]||[]).push(t);});
+        Object.keys(byD).sort().forEach(function(d0){var P=[],usedS=[],usedT=[];byD[d0].forEach(function(t){SR.forEach(function(S){var L=S[S.length-1],g0=dd(L.d,t.d);if(g0<330||g0>400)return;
+            var rr=Math.abs(-t.a+L.a)/(-L.a);if(rr<=0.35)P.push([rr,t,S]);});});
+          P.sort(function(x,y){return x[0]-y[0];});P.forEach(function(x){if(usedT.indexOf(x[1])>=0||usedS.indexOf(x[2])>=0)return;usedT.push(x[1]);usedS.push(x[2]);x[2].push(x[1]);});
+          byD[d0].forEach(function(t){if(usedT.indexOf(t)<0)SR.push([t]);});});
+        SR.forEach(function(S,si){if(S.length<2||dd(S[S.length-1].d,ref0)>400)return;var k2=k+"%"+si;groups[k2]={key:k2,tpl:gk.tpl,tx:S,names:gk.names,cur:gk.cur,yearly:1};
+          var s2=bankEval(k2,groups[k2]);if(s2){subs.push([k2,s2]);useT=useT.concat(S);}});}
+      /* Vertragspartner hat schon eine erkannte Reihe (Steuerraten): übrige Zahlungen sind frühere Raten/Nachzahlungen, keine eigenen Verträge */
+      if(onceW&&!gk.hasSeries)gk.tx.forEach(function(t,ti){var a=t.a.toFixed(2);
+        if(useT.indexOf(t)>=0||seenA[a]||-t.a<50||dd(t.d,ref0)>366)return;seenA[a]=1;var k2=k+"@"+ti;groups[k2]={key:k2,tpl:gk.tpl,tx:[t],names:gk.names,cur:gk.cur};var s2=bankEval(k2,groups[k2]);if(s2)subs.push([k2,s2]);});
+      if(subs.length){subs.forEach(function(x){var s2=x[1];if(subs.length>1)s2.multi=1;bankApplyAlias(s2);s2.cat=bankCat(s2);if(s2.alias&&s2.alias.c&&allCats().indexOf(s2.alias.c)>=0)s2.cat=s2.alias.c;
+        s2.match=bankMatch(s2);EV.push({k:x[0],s:s2,q:!s2.match?5:s2.match.kind==="known"?0:2});});return true;}return false;}
   function bankEval(k,g){
     var ref=bankGEnd(g.tx,r.to);/* Stichtag = Ende der Datei, aus der die Buchungen stammen (mehrere Dateien, 25.10.2026) */
     var tx=[],seen={},kc={};g.tx.forEach(function(t){if(t.kind)kc[t.kind]=(kc[t.kind]||0)+1;});
@@ -9183,7 +9209,8 @@ function bankFind(r,ign){
       /* ohne Katalog/Gläubiger-ID braucht der Name ein markantes Wort (nicht «M», «SB 12») */
       if(!g.tpl&&!tx[0].cred&&!lusable(name))return;
       var nlv=function(v){return am.filter(function(x){return Math.abs(x-v)<=0.004;}).length;};
-      if(Object.keys(dist).length<=2&&lv.length<=2){
+      if(g.yearly){varies=Object.keys(dist).length>1;last=am[n-1];}   /* Jahresreihe nach Kalendermonat: Betrag darf jährlich wechseln */
+      else if(Object.keys(dist).length<=2&&lv.length<=2){
         if(lv.length===2){
           /* Preisänderung nur, wenn der alte Preis mindestens zweimal vorkommt und sich höchstens um 35 % ändert;
              zwei verschiedene Beträge allein sind eher Einkäufe */
@@ -9219,6 +9246,7 @@ function bankFind(r,ign){
       conf=(n>=3||cyc>=3)?(varies?"mittel":"hoch"):((kind==="dd"||kind==="so")?"mittel":"niedrig");
       /* Jährlich gleicher runder Betrag ohne Mitteilung, Gläubiger-ID oder Katalog (Bussen 100.– an die Stadtverwaltung): nur nachfragen (25.10.2026) */
       if(cyc===12&&!g.tpl&&kind!=="dd"&&kind!=="so"&&!tx.some(function(t){return t.cred||t.memo;})&&am.every(function(v){return Math.abs(v-am[0])<0.005&&v%50===0;}))conf="niedrig";
+      if(g.yearly&&n<3)conf="niedrig";
     } else {
       /* Einzelzahlung nur bei bekanntem Anbieter oder SEPA-Lastschrift mit Gläubiger-ID; Rhythmus vermutlich jährlich */
       /* … oder mit eindeutigem Vertragswort im Text (Versicherung, Prämie, Kfz-Steuer, Mitgliedsbeitrag …), auch per Überweisung/Karte */
@@ -9485,7 +9513,7 @@ function bankNums(s){var t=String(s.text||"")+" "+String(s.raw||""),o={cust:"",c
   return o;}
 /* Bezeichnung ohne Katalog aus dem Zahlungsgrund («Miete Wohnung 3.OG» → Miete) */
 /* Einzelzahlung trotzdem vorschlagen, wenn der Text klar nach Vertrag klingt (lnorm-Schreibweise: Umlaute ohne e) */
-var BKONCE=/versicherung|jahresmitgliedschaft|amazon prime|amzn prime|bahncard|\bpraemie|\bpramie|\bpolice|kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|hundesteuer|grundsteuer|rundfunk|serafe|mitgliedsbeitrag|mitgliederbeitrag|jahresbeitrag|vereinsbeitrag|jahresabo|jahresgebuehr|jahresgebuhr|abonnement|\bvignette|haftpflicht|hausrat|rechtsschutz|kaution|caution/;/* Mietkautionsversicherung (SwissCaution, 25.10.2026) */
+var BKONCE=/versicherung|jahresmitgliedschaft|amazon prime|amzn prime|bahncard|\bpraemie|\bpramie|\bpolice|kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|hundesteuer|grundsteuer|rundfunk|serafe|mitgliedsbeitrag|mitgliederbeitrag|jahresbeitrag|vereinsbeitrag|jahresabo|jahresgebuehr|jahresgebuhr|abonnement|\bvignette|haftpflicht|hausrat|rechtsschutz|kaution|caution|strassenverkehrsamt|verkehrsamt|bundessteuer|steuer bund\b|staatssteuer|gemeindesteuer|kantonssteuer|kirchensteuer|steuerverwaltung|calcio|fussballclub|turnverein|sportverein|skiclub|tennisclub|schwimmclub|\b(fc|sc|hc|ehc|tsv|svg|stv|tv|ev)\b(?= [a-z])/;/* Mietkautionsversicherung (SwissCaution, 25.10.2026) */
 var BKONCENO=/erstattung|ruckzahlung|rueckzahlung|storno|gutschrift|schaden|selbstbehalt|franchise|arzt|apotheke|rechnung nr .* behandlung/;
 var BKLABEL=[[/hundesteuer/,"Hundesteuer"],[/grundsteuer/,"Grundsteuer"],[/bahncard/,"BahnCard"],[/amazon prime|amzn prime/,"Amazon Prime"],[/kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|strassenverkehrsamt/,"Kfz-Steuer"],
   [/kfz|autoversicherung|motorfahrzeugversicherung|fahrzeugversicherung|kasko/,"Autoversicherung"],[/rechtsschutz/,"Rechtsschutz"],

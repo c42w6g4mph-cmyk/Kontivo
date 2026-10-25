@@ -53,6 +53,10 @@ E = {
  "jahr_frueh": dict(s=[("Sunrise", 1, 39), ("Muster Abgabestelle", 12, 187.4)]),
  "kk_einmal": dict(s=[("Sunrise", 1, 39), ("Muster Krankenkasse", 1, 456.8)]),
  "pause_monat": dict(s=[("Sunrise", 1, 39), ("Muster Sportclub", 1, 64)]),
+ "jahresreihe": dict(s=[("Sunrise", 1, 39), ("Muster Versicherung", 12, 404.1, "mittel"), ("Muster Versicherung", 12, 383.2, "mittel"), ("Muster Versicherung", 12, 372.7, "niedrig")]),
+ "beendet_monat": dict(s=[("Sunrise", 1, 39)]),
+ "zwei_fahrzeuge": dict(s=[("Sunrise", 1, 39), ("Strassenverkehrsamt", 12, 168), ("Strassenverkehrsamt", 12, 153.15)]),
+ "verein_einmal": dict(s=[("Sunrise", 1, 39), ("FC Muster", 12, 230)]),
  "policen": dict(s=[("Sunrise", 1, 39), ("Muster Versicherung", 12, 404.1), ("Muster Versicherung", 12, 383.2), ("Muster Versicherung", 12, 372.7)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);
