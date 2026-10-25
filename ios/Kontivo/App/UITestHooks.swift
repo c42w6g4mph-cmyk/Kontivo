@@ -14,6 +14,9 @@ import KontivoCore
 ///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich import)
 ///   -uiBankStep <s>    mit -uiBankSample: nach dem Laden direkt zum Schritt inc | term (Bildschirmfotos)
 ///   -uiSplash          Intro beim Start auch im UI-Test zeigen
+///   -uiList <m>        Verträge-Tab in der Ansicht i (Einnahmen) | v (Variabel) | c (Verträge)
+///   -uiBudgetKind <k>  Kostenart im Budget: all | fix | none
+///   -uiSheet varForm | varEdit | varDetail   variable Kosten erfassen / bearbeiten / ansehen (grösster Eintrag)
 extension AppModel {
     /// Start mit UI-Test-/Bildschirmfoto-Argumenten (dann eigener Dateiordner, nichts Echtes wird gelesen oder geschrieben)
     nonisolated static var isUITestLaunch: Bool {
@@ -45,6 +48,8 @@ extension AppModel {
         }
         onboarding = onb ? .firstRun : nil
         if let t = value("-uiTab"), let tab = AppTab(rawValue: t) { self.tab = tab }
+        if let m = value("-uiList"), let lm = ListMode(rawValue: m) { listMode = lm }
+        if let k = value("-uiBudgetKind"), let bk = BudgetKind(rawValue: k) { data.settings.budgetKind = bk }
         if args.contains("-uiBankSample") {
             let bankStep = value("-uiBankStep")
             Task { @MainActor [weak self] in
@@ -76,6 +81,9 @@ extension AppModel {
         case "incomeDetail": if let inc { present(.incomeDetail(inc.id)) }
         case "incomeEdit": if let inc { present(.incomeForm(inc.id)) }
         case "completeness": present(.completeness(only: nil))
+        case "varForm": present(.variableForm(nil))
+        case "varEdit": if let v = calc.variableCosts.first { present(.variableForm(v.id)) }
+        case "varDetail": if let v = calc.variableCosts.first { present(.variableDetail(v.id)) }
         case "letter": if let p = post { present(.letter(p.id, trial: false)) }
         case "cancelpick": if let o = open { present(.cancelChannelPick(o.id, trial: false)) }
         case "manage": present(.manage(.overview))

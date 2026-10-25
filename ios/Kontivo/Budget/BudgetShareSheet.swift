@@ -18,21 +18,22 @@ struct BudgetShareInfo: Identifiable, Hashable {
 /// «verfügbar nach Fixkosten · x % der Einnahmen ⓘ» in einer Zeile (Web v175 `.kh .ksub`, 12.5 px Tinte 3); öffnet die Einordnung.
 /// Web: .kfq / openFq. Passt die Zeile nicht, bricht der Teil «x % der Einnahmen ⓘ» als Ganzes um (white-space: nowrap).
 struct KBBudgetSubline: View {
-    let bm: Calc.BudgetMonth
+    /// «verfügbar nach Fixkosten», «… nach Fix- und variablen Kosten» bzw. «Einnahmen, ohne Kosten» (`Calc.budgetSubline`, Web v238)
+    let text: String
     let info: BudgetShareInfo?
     @State private var shown: BudgetShareInfo?
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
             HStack(spacing: 0) {
-                Text("verfügbar nach Fixkosten").lineLimit(1)
+                Text(verbatim: text).lineLimit(1)
                 if info != nil {
                     Text(verbatim: " · ")
                     link
                 }
             }
             VStack(alignment: .leading, spacing: 0) {
-                Text("verfügbar nach Fixkosten").lineLimit(1)
+                Text(verbatim: text).lineLimit(1)
                 link
             }
         }

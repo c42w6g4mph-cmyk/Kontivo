@@ -35,6 +35,9 @@ final class AppModel {
     var searchText = ""
     var heroFilter: HeroFilter?
     var showArchive = false
+    /// Ansicht im Verträge-Tab (Web `state.lm`) und Zustand der Ansichten Einnahmen/Variabel (Contracts/AltListView.swift)
+    var listMode: ListMode = .contracts
+    var alt = CTAltState()
 
     /// Kündigung über Website/E-Mail gestartet: beim Zurückkehren fragen «Gekündigt?»
     var pendingCancel: PendingCancel?

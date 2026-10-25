@@ -1,7 +1,8 @@
 import SwiftUI
 import KontivoCore
 
-/// Tab «Budget»: Einnahmen − Fixkosten = verfügbar, pro Monat und Person.
+/// Tab «Budget»: Einnahmen − Fixkosten (− variable Kosten) = verfügbar, pro Monat und Person. Nur Auswertung: Einnahmen und
+/// variable Kosten werden seit Web v231 im Verträge-Tab erfasst.
 struct BudgetTab: View {
     @Environment(AppModel.self) private var model
     /// «Alle n anzeigen» in «Ausgaben» (gilt für alle Monate)
@@ -23,41 +24,16 @@ struct BudgetTab: View {
             } else if !hasIncomes {
                 emptyPage(calc)
             } else {
-                KBBudgetContent(person: bh, incomeCount: incomes.count, showAllExpenses: $showAllExpenses)
+                KBBudgetContent(person: bh, showAllExpenses: $showAllExpenses)
             }
         }
         .kPageBackground()
     }
 
-    /// Filter aktiv, aber diese Person hat keine Einnahmen (Web `.empty` + «+ Einnahme erfassen»)
+    /// Filter aktiv, aber diese Person hat keine Einnahmen (Web `.empty`; Erfassen seit v231 nur im Verträge-Tab)
     private func noIncomeForPerson(_ p: Person) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 5) {
-                Text(verbatim: "Keine Einnahmen für " + p.name)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(KColor.ink)
-                Text("Weise einer Einnahme diese Person als Empfänger zu, dann erscheint hier ihr Budget.")
-                    .font(.system(size: 14))
-                    .lineSpacing(14 * 0.4)
-                    .foregroundStyle(KColor.ink2)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 46)
-            .padding(.horizontal, 6)
-            Button {
-                model.present(.incomeForm(nil))
-            } label: {
-                Text("+ Einnahme erfassen")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(KColor.teal)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .kbSurface(KBM.listRadius)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .padding(.top, 20)
-        }
+        CTEmptyText(title: "Keine Einnahmen für " + p.name,
+                    text: "Weise einer Einnahme diese Person als Empfänger zu, dann erscheint hier ihr Budget.")
     }
 
     /// Leerseite budgetEmpty
@@ -69,7 +45,12 @@ struct BudgetTab: View {
                           "Was bleibt dir übrig? Sofort sichtbar",
                           "Fair geteilt: wer zahlt wie viel im Haushalt"],
                   buttonTitle: "Einnahme erfassen",
-                  action: { model.present(.incomeForm(nil)) })
+                  action: {
+                      // Web `#incAdd`: zum Verträge-Tab, Ansicht «Einnahmen», Formular öffnen
+                      model.listMode = .incomes
+                      model.goTab(.contracts)
+                      model.present(.incomeForm(nil))
+                  })
             // Web `.esv.eh` direkt unter der Titelzeile (padding-top 36 steckt schon in EmptyHero)
             .padding(.bottom, 24)
     }
@@ -84,7 +65,9 @@ struct KBBudgetPersonBar: View {
     let selected: UUID?
 
     var body: some View {
-        let namer = KBHolderNamer(names: persons.map { $0.name }, width: 361)
+        // Mit variablen Kosten steht rechts die Kostenart (Web `personSeg(…, hasVars() ? 200 : 361)`)
+        let kind = model.calc.hasVariableCosts
+        let namer = KBHolderNamer(names: persons.map { $0.name }, width: kind ? 200 : 361)
         Group {
             if namer.ok {
                 KBFlexRow(equal: true) {
@@ -94,16 +77,20 @@ struct KBBudgetPersonBar: View {
                         KBPersonChip(title: namer.display(p.name), isOn: selected == p.id) { model.budgetPerson = p.id }
                             .kbFlexGrow(1)
                     }
+                    if kind { KBBudgetKindMenu().fixedSize() }
                 }
                 .padding(.top, 12)
             } else if persons.count > 1 {
-                selectRow(namer)
+                selectRow(namer, kind: kind)
+                    .padding(.top, 12)
+            } else if kind {
+                KBFlexRow { KBBudgetKindMenu().kbFlexGrow(1) }
                     .padding(.top, 12)
             }
         }
     }
 
-    private func selectRow(_ namer: KBHolderNamer) -> some View {
+    private func selectRow(_ namer: KBHolderNamer, kind: Bool) -> some View {
         let name = selected.flatMap { id in persons.first(where: { $0.id == id })?.name } ?? ""
         let binding = Binding<UUID?>(get: { model.budgetPerson }, set: { model.budgetPerson = $0 })
         return KBFlexRow {
@@ -127,6 +114,7 @@ struct KBBudgetPersonBar: View {
             if selected != nil {
                 KBClearButton(label: "Filter zurücksetzen") { model.budgetPerson = nil }
             }
+            if kind { KBBudgetKindMenu().fixedSize() }
         }
     }
 }
@@ -136,7 +124,6 @@ struct KBBudgetPersonBar: View {
 struct KBBudgetContent: View {
     @Environment(AppModel.self) private var model
     let person: UUID?
-    let incomeCount: Int
     @Binding var showAllExpenses: Bool
 
     var body: some View {
@@ -149,9 +136,17 @@ struct KBBudgetContent: View {
             KBBudgetCard(by: by, month: month, person: person)
                 .padding(.top, 14)
             if person == nil, let rows = calc.fairShare() { KBFairShareView(rows: rows) }
-            KBBudgetIncomeList(year: year, month: month, person: person, incomeCount: incomeCount, monthIncome: bm.income)
+            KBBudgetIncomeList(year: year, month: month, person: person, monthIncome: bm.income)
                 .id("kbIncomes")
-            KBBudgetExpenseList(year: year, month: month, person: person, bm: bm, showAll: $showAllExpenses)
+            // Web: Ausgaben, variable Kosten und Rechnung nur, wenn Kosten abgezogen werden (nicht bei «Ohne Kosten»)
+            if bm.countsFixed {
+                KBBudgetExpenseList(year: year, month: month, person: person, showAll: $showAllExpenses)
+                if calc.budgetKind == .all {
+                    KBBudgetVariableList(year: year, month: month, person: person)
+                        .id("kbVariable")
+                }
+                KBBudgetSumBlock(bm: bm)
+            }
         }
     }
 }
@@ -174,17 +169,12 @@ struct KBBudgetCard: View {
         KBPagingCard {
             KBCardHeader(year: by.year, month: month, trailing: pname.isEmpty ? "" : namer.display(pname))
             KBBigAmount(value: bm.free, currency: home, alert: bm.free < 0, signed: true)
-            KBBudgetSubline(bm: bm, info: shareInfo(bm, pname: pname))
+            KBBudgetSubline(text: calc.budgetSubline(bm), info: bm.countsFixed ? shareInfo(bm, pname: pname) : nil)
             if let c = cmp {
                 // mehr verfügbar = grüne Fläche (Web-Klasse «down»), weniger = Warnfarbe
                 KBCompareLine(text: c.text, arrow: c.trend.kbArrow, tone: c.trend == .up ? .down : (c.trend == .down ? .up : .same))
             }
-            KBCardRow {
-                HStack(alignment: .top, spacing: 12) {
-                    KBStatCell(label: "Einnahmen", value: Format.money(bm.income), muted: bm.income < 0.005)
-                    KBStatCell(label: "Fixkosten", value: Format.money(bm.fixed), trailing: true, muted: bm.fixed < 0.005)
-                }
-            }
+            KBBudgetCardRow(bm: bm)
             chartArea(home: home)
             KBCardRow(top: 16) {
                 HStack(alignment: .top, spacing: 12) {
@@ -204,16 +194,6 @@ struct KBBudgetCard: View {
         let avg: Int? = by.totalIncome > 0.005 ? Int(Format.jsRound(by.totalFree / by.totalIncome * 100)) : nil
         return BudgetShareInfo(percent: q, average: avg, year: by.year, monthLabel: Format.monthNames[month - 1] + " " + String(by.year),
                                personName: pname, person: person, income: bm.income, free: bm.free)
-    }
-
-    /// «verfügbar nach Fixkosten · 23 % der Einnahmen» (auch «−12 %»)
-    static func subline(_ bm: Calc.BudgetMonth) -> String {
-        var s = "verfügbar nach Fixkosten"
-        if bm.income > 0.005 {
-            let q = Int(Format.jsRound(bm.free / bm.income * 100))
-            s += " · " + BudgetShare.percentText(q).replacingOccurrences(of: "\u{00A0}", with: " ") + " der Einnahmen"
-        }
-        return s
     }
 
     /// Ganze Einheiten mit «−» bei negativem Wert
@@ -321,7 +301,6 @@ struct KBBudgetIncomeList: View {
     let year: Int
     let month: Int
     let person: UUID?
-    let incomeCount: Int
     let monthIncome: Double
 
     var body: some View {
@@ -342,35 +321,6 @@ struct KBBudgetIncomeList: View {
                         if idx > 0 { KBRowDivider() }
                         incomeRow(r, home: home)
                     }
-                }
-                KBRowDivider()
-                HStack {
-                    Button {
-                        model.present(.incomeForm(nil))
-                    } label: {
-                        Text("+ Einnahme")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(KColor.teal)
-                            .padding(.horizontal, 13)
-                            .padding(.vertical, 11 + KBM.pad(20.3, 14))
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Einnahme erfassen")
-                    .accessibilityIdentifier("budget.addIncome")
-                    Spacer(minLength: 8)
-                    Button {
-                        model.present(.incomesAll)
-                    } label: {
-                        Text(verbatim: "Alle Einnahmen (" + String(incomeCount) + ") ›")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(KColor.ink2)
-                            .padding(.horizontal, 13)
-                            .padding(.vertical, 11 + KBM.pad(20.3, 14))
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("budget.allIncomes")
                 }
             }
         }
@@ -441,14 +391,13 @@ struct KBIncomeRowLabel: View {
     }
 }
 
-// MARK: - «Ausgaben {Monat}» mit Summenblock
+// MARK: - «Ausgaben {Monat}» (Summenrechnung: BudgetVariable.swift)
 
 struct KBBudgetExpenseList: View {
     @Environment(AppModel.self) private var model
     let year: Int
     let month: Int
     let person: UUID?
-    let bm: Calc.BudgetMonth
     @Binding var showAll: Bool
 
     private static let limit = 5
@@ -483,45 +432,9 @@ struct KBBudgetExpenseList: View {
                     }
                 }
             }
-            sumBlock(home: home)
-                .padding(.top, 8)
         }
         // Web `.grp` padding-bottom 2
         .padding(.bottom, 2)
-    }
-
-    /// «Einnahmen» / «− Ausgaben» / «= Verfügbar» (Web `.xsum`, 14 px)
-    private func sumBlock(home: String) -> some View {
-        VStack(spacing: 0) {
-            sumLine("Einnahmen", KBBudgetExpenseList.moneyS(bm.income))
-            sumLine(Format.minus + " Ausgaben", KBBudgetExpenseList.moneyS(bm.fixed))
-            VStack(spacing: 0) {
-                Rectangle().fill(KColor.line).frame(height: 1)
-                sumLine("= Verfügbar", KBBudgetExpenseList.moneyS(bm.free) + " " + home, total: true)
-                    .padding(.top, 4)
-            }
-            .padding(.top, 4)
-        }
-        .padding(.horizontal, 13)
-        .padding(.vertical, 10)
-        .kbSurface(KBM.listRadius)
-        .accessibilityElement(children: .combine)
-    }
-
-    /// Web `moneyS`: typografisches Minus
-    static func moneyS(_ v: Double) -> String { (v < -0.004 ? Format.minus : "") + Format.money(abs(v)) }
-
-    private func sumLine(_ label: String, _ value: String, total: Bool = false) -> some View {
-        HStack {
-            Text(verbatim: label)
-                .font(.system(size: 14, weight: total ? .semibold : .regular))
-                .foregroundStyle(total ? KColor.ink : KColor.ink2)
-            Spacer(minLength: 8)
-            Text(verbatim: value)
-                .font(.system(size: 14, weight: total ? .bold : .medium).monospacedDigit())
-                .foregroundStyle(KColor.ink)
-        }
-        .padding(.vertical, 3 + KBM.pad(20.3, 14))
     }
 }
 
@@ -582,92 +495,5 @@ extension Contract {
     func categoryNameOrDefault(_ data: AppData) -> String {
         let n = data.category(categoryID)?.name ?? ""
         return n.isEmpty ? "Sonstiges" : n
-    }
-}
-
-// MARK: - «Fair geteilt?» (Web .fgcard): Balken = Anteil an den Fixkosten, Strich = Anteil an den Einnahmen
-
-struct KBFairShareView: View {
-    @Environment(AppModel.self) private var model
-    let rows: [Calc.FairRow]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            KBGroupHeader(title: Calc.fairTitle, amount: Calc.fairSubtitle)
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(rows.enumerated()), id: \.element.personID) { idx, r in
-                    if idx > 0 { KBRowDivider() }
-                    HStack(spacing: 12) {
-                        KBFairAvatar(person: model.data.person(r.personID))
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(verbatim: r.name)
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(KColor.ink)
-                                .lineLimit(1)
-                                .frame(height: 21.75)
-                            Text(verbatim: r.subline)
-                                .font(.system(size: 12.5).monospacedDigit())
-                                .foregroundStyle(KColor.ink3)
-                                .lineLimit(1)
-                                .frame(height: 18.1)
-                            // Web `.fgbar`: 8 hoch, 6 oben; Strich 3 × 16 ragt oben und unten 4 heraus (ohne Platz zu belegen)
-                            GeometryReader { g in
-                                let w = g.size.width
-                                ZStack(alignment: .leading) {
-                                    Capsule().fill(KColor.line).frame(height: 8)
-                                    Capsule().fill(KColor.teal.opacity(0.45)).frame(width: w * CGFloat(r.fixedPercent) / 100, height: 8)
-                                }
-                                .frame(height: 8)
-                                .overlay(alignment: .leading) {
-                                    RoundedRectangle(cornerRadius: 2).fill(KColor.ink).frame(width: 3, height: 16)
-                                        .offset(x: w * CGFloat(r.incomePercent) / 100 - 1.5)
-                                }
-                            }
-                            .frame(height: 8)
-                            .padding(.top, 6)
-                            .accessibilityHidden(true)
-                        }
-                    }
-                    .padding(.vertical, 10)
-                    .accessibilityElement(children: .combine)
-                }
-                Text(verbatim: Calc.fairHint)
-                    .font(.system(size: 12.5))
-                    .kLineHeight(12.5, 18.125)
-                    .foregroundStyle(KColor.ink3)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 8)
-                    .padding(.bottom, 4)
-            }
-            .padding(.horizontal, 14)
-            .padding(.top, 6)
-            .padding(.bottom, 8)
-            .kbSurface(KBM.listRadius)
-        }
-        // Web `.grp` padding-bottom 2
-        .padding(.bottom, 2)
-        .accessibilityIdentifier("budget.fair")
-    }
-}
-
-/// Personenbild in «Fair geteilt?» (Web `avHtml`/`.mdav`): 38 pt Kreis Messing mit weisser Initiale 15 px Bold, sonst Foto
-struct KBFairAvatar: View {
-    @Environment(AppModel.self) private var model
-    let person: Person?
-
-    var body: some View {
-        ZStack {
-            if let img = model.image(person?.avatarID) {
-                Image(uiImage: img).resizable().scaledToFill()
-            } else {
-                Circle().fill(KColor.tealFill)
-                Text(verbatim: String((person?.name ?? "?").prefix(1)).uppercased())
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(.white)
-            }
-        }
-        .frame(width: 38, height: 38)
-        .clipShape(Circle())
-        .accessibilityHidden(true)
     }
 }

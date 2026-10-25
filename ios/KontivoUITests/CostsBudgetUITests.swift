@@ -78,23 +78,29 @@ final class CostsBudgetUITests: KontivoUITestCase {
         keepShot("costs-bericht-pdf")
     }
 
+    /// Web v231: Einnahmen werden im Verträge-Tab (Reiter «Einnahmen», «+») erfasst; das Budget zeigt sie nur noch
     func testBudgetEinnahmeErfassen() {
-        launch("-uiDemo", "-uiTab", "budget")
-        wait(chart("Verfügbar pro Monat"), "Budget-Karte", timeout: 12)
-        tap(button("Einnahme erfassen"), "+ Einnahme")
+        launch("-uiDemo", "-uiTab", "contracts")
+        tap(button("listMode.i"), "Reiter Einnahmen", timeout: 12)
+        waitUntil("Kopf «Einnahmen pro Monat»") { self.elContaining("Einnahmen pro Monat").exists }
+        tap(button("Hinzufügen"), "+ (Einnahme erfassen)")
         waitIncomeForm("Neue Einnahme")
         enter(textField("income.label"), "QA Nebenjob", "Bezeichnung")
         enter(textField("income.amount"), "800", "Betrag")
         tapTop("Sichern")
         waitUntil("Formular geschlossen") { !self.incomeFormOpen("Neue Einnahme") }
         let row = buttonStarting("QA Nebenjob")
-        wait(row, "Einnahme in der Liste")
+        wait(row, "Einnahme in der Liste «Einnahmen»")
         XCTAssertTrue(row.label.contains("800.00"), "Betrag der Einnahme: \(row.label)")
-        // Beispieldaten: 5 Einnahmen (Lohn ×2, Kinderzulage, Steuerrückerstattung, Unterstützung) + neue
-        wait(buttonContaining("Alle Einnahmen (6)"), "Alle Einnahmen (6)")
+        tapTab("Budget")
+        wait(chart("Verfügbar pro Monat"), "Budget-Karte", timeout: 12)
+        XCTAssertFalse(buttonContaining("Alle Einnahmen").exists, "kein «Alle Einnahmen» mehr im Budget (Web v231)")
+        let brow = buttonStarting("QA Nebenjob")
+        scrollTo(brow)
+        wait(brow, "Einnahme im Budget")
 
         // Einnahme öffnen (Ansicht, Web v155) → Bearbeiten (Formular «Bearbeiten», Web v154) → Abbrechen → Schliessen
-        tap(row, "Einnahme öffnen")
+        tap(brow, "Einnahme öffnen")
         wait(el("incomeDetail.kz.month"), "Ansicht der Einnahme")
         tapTop("Bearbeiten")
         waitIncomeForm("Bearbeiten")

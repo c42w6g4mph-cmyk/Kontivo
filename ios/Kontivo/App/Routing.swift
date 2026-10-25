@@ -14,6 +14,10 @@ enum AppSheet: Identifiable, Hashable {
     case incomeDetail(UUID)
     /// Fenster «Alle Einnahmen»
     case incomesAll
+    /// Variable Kosten erfassen (nil) oder bearbeiten (Web v227 `openVar`)
+    case variableForm(UUID?)
+    /// Variable Kosten ansehen (Web v227 `openVarDetail`): Kacheln, Angaben, Bearbeiten, Menü Duplizieren/Löschen
+    case variableDetail(UUID)
     /// Kündigungsschreiben (Brief) für einen Vertrag; trial = Kündigung des Probeabos
     case letter(UUID, trial: Bool)
     /// Auswahl des Kündigungswegs (Online / E-Mail / Brief)
@@ -38,6 +42,8 @@ enum AppSheet: Identifiable, Hashable {
         case .incomeForm(let u): return "income-\(u?.uuidString ?? "neu")"
         case .incomeDetail(let u): return "incdetail-\(u)"
         case .incomesAll: return "incomes"
+        case .variableForm(let u): return "var-\(u?.uuidString ?? "neu")"
+        case .variableDetail(let u): return "vardetail-\(u)"
         case .letter(let u, let t): return "letter-\(u)-\(t)"
         case .cancelChannelPick(let u, let t): return "cvia-\(u)-\(t)"
         case .mail(let m): return "mail-\(m.id)"
@@ -57,6 +63,8 @@ enum AppSheet: Identifiable, Hashable {
         case .incomeForm: return .incomeForm
         case .incomeDetail: return .incomeDetail
         case .incomesAll: return .incomesAll
+        case .variableForm: return .variableForm
+        case .variableDetail: return .variableDetail
         case .letter: return .letter
         case .cancelChannelPick: return .cancelChannelPick
         case .mail: return .mail
@@ -72,6 +80,7 @@ enum AppSheet: Identifiable, Hashable {
 enum AppSheetKind: Hashable {
     case contractDetail, contractForm, incomeForm, incomeDetail, incomesAll, letter, cancelChannelPick, mail, document, manage, bankImport, completeness
     case fixReport
+    case variableForm, variableDetail
 
     /// Darf nicht zweimal direkt übereinander liegen (Doppeltippen öffnet sonst z.B. zwei Mail-Fenster).
     /// Vertragsdetail und Verwalten dürfen übereinander liegen (z.B. Vertragspartner → anderer Vertrag).
