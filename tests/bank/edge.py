@@ -48,6 +48,10 @@ E = {
  "jahr_kurz": dict(s=[("Sunrise", 1, 39), ("Helvetia", 12, 480)]),
  "kernreihe": dict(s=[("Apple", 1, 10)]),
  "stabilkey": dict(s=[("Haftpflicht Muster", 1, 25), ("Muster Assekuranz", 1, 12), ("Muster Assekuranz", 1, 8)]),
+ # Review 25.10.2026: Kürzel vor Komma, Jahresrechnung früher bezahlt (339 Tage), Versicherer mit mehreren Policen ohne Bezeichnung
+ "kuerzel": dict(s=[("Sunrise", 1, 39), ("Muster Kautionsservice", 12, 320)]),
+ "jahr_frueh": dict(s=[("Sunrise", 1, 39), ("Muster Abgabestelle", 12, 187.4)]),
+ "policen": dict(s=[("Sunrise", 1, 39), ("Muster Versicherung", 12, 404.1), ("Muster Versicherung", 12, 383.2), ("Muster Versicherung", 12, 372.7)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);
  return {sugg:f.sugg.map(function(s){return [s.name,s.cycle,s.amount,s.due,!!s.match,s.conf]}),

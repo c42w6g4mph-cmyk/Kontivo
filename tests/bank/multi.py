@@ -21,5 +21,13 @@ with sync_playwright() as p:
     names = lambda r: sorted(x[0] for x in r["s"])
     ok = both["n"] == acc["n"] + card["n"] and set(names(acc)) | set(names(card)) == set(names(both))
     print(("✓" if ok else "✗"), "Konto + Kreditkarte ergänzen sich", "" if ok else (names(acc), names(card), names(both))); fails += not ok
+    # Review 25.10.2026: derselbe Vertragspartner gleichzeitig auf zwei Konten (zwei Handyabos) = zwei Verträge, nicht einer mit schwankendem Betrag
+    H = "Datum;Buchungstext;Betrag\n"
+    ka = H + "".join(f"{d}.2026;LASTSCHRIFT Muster Mobil AG;-27.95\n" for d in ["25.06", "27.07", "26.08", "25.09"])
+    kb = H + "".join(f"{d}.2026;LASTSCHRIFT Muster Mobil AG;-28.95\n" for d in ["28.07", "31.08", "30.09"])
+    enc = lambda t: base64.b64encode(t.encode()).decode()
+    par = pg.evaluate(JS, [enc(ka), enc(kb)])
+    mm = sorted(x[2] for x in par["s"] if x[0].startswith("Muster Mobil"))
+    ok = mm == [27.95, 28.95]; print(("✓" if ok else "✗"), "zwei Konten, gleicher Vertragspartner = zwei Verträge", "" if ok else par["s"]); fails += not ok
     b.close()
 print("Alles gut" if not fails else f"{fails} Fehler"); sys.exit(1 if fails else 0)
