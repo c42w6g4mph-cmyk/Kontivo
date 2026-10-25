@@ -31,6 +31,17 @@ def person_ch(r):
     rent = r.choice([1450, 1850, 2200, 2700]); dd = r.choice([25, 28, 30])
     for y, m in months(START, END): p.add(day(y, m, dd), "DAUERAUFTRAG Seeblick Immobilien AG Mitteilung: Miete Wohnung", -rent, "so")
     p.truth_("Seeblick Immobilien", 1, rent, "Miete", "Wohnen")
+    # gleiches erstes Wort, andere Firma (Parkplatz beim selben Vermieter-Namen)
+    if r.random() < 0.5:
+        for y, m in months(START, END): p.add(day(y, m, dd), "DAUERAUFTRAG Seeblick Garage AG Mitteilung: Einstellplatz", -120.0, "so")
+        p.truth_("Seeblick Garage", 1, 120.0, "Parkplatz")
+    # Streaming mit Gratismonat und Promo-Start
+    if r.random() < 0.5:
+        sp = 13.95; st = date(2024, r.randint(1, 12), 3); gm = (r.randint(2025, 2025), r.randint(1, 12))
+        for i, (y, m) in enumerate(months(st, END)):
+            if (y, m) == gm: continue
+            p.add(day(y, m, 3), "KARTENZAHLUNG SPOTIFY P1234", -(sp if i >= 2 else 0.99), "card")
+        p.truth_("Spotify", 1, sp)
     # Telecom mit Preiserhöhung
     tel = r.choice([39.9, 49.9, 59.0]); up = r.choice([0, 3.0, 5.0]); chg = date(2025, r.randint(2, 11), 1)
     for y, m in months(START, END):
@@ -62,14 +73,16 @@ def person_ch(r):
     hm = r.randint(1, 12); hb = r.choice([320, 410, 520])
     for y in (2023, 2024, 2025, 2026):
         if date(y, hm, 15) > END: continue
-        last_h = round(hb * r.uniform(0.9, 1.15), 2); p.add(date(y, hm, 15) + timedelta(days=r.randint(-25, 25)), "ZAHLUNG Bodensee Versicherung AG", -last_h)
+        v = round(hb * r.uniform(0.9, 1.15), 2); dh = date(y, hm, 15) + timedelta(days=r.randint(-25, 25))
+        if START <= dh <= END: last_h = v; p.add(dh, "ZAHLUNG Bodensee Versicherung AG", -v)
     p.truth_("Bodensee Versicherung", 12, last_h, None, "Versicherung", tol=0.2)
     # zweite Police beim selben Versicherer, anderer Monat, anderer Betrag
     if r.random() < 0.5:
         vm = (hm + 5) % 12 + 1; vb = r.choice([780, 1150, 1390])
         for y in (2023, 2024, 2025, 2026):
             if date(y, vm, 20) > END: continue
-            last_v = round(vb * r.uniform(0.93, 1.07), 2); p.add(date(y, vm, 20) + timedelta(days=r.randint(-15, 15)), "ZAHLUNG Bodensee Versicherung AG", -last_v)
+            v = round(vb * r.uniform(0.93, 1.07), 2); dv = date(y, vm, 20) + timedelta(days=r.randint(-15, 15))
+            if START <= dv <= END: last_v = v; p.add(dv, "ZAHLUNG Bodensee Versicherung AG", -v)
         p.truth_("Bodensee Versicherung", 12, last_v, None, "Versicherung", tol=0.2)
     # Halbjahresprämie
     if r.random() < 0.5:
