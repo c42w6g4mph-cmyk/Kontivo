@@ -40,7 +40,12 @@ final class BankImportCenter {
 
     /// Einlesen starten: Fenster sofort öffnen (Ladeanzeige), dann lesen, suchen, abgleichen, Logos suchen
     /// `step`: nur Bildschirmfotos/UI-Tests – nach dem Laden direkt zu diesem Schritt («inc», «term»)
+    /// Zusätzlich «pay» (erste Zahlungsliste aufgeklappt) und «fail» (nicht lesbare Datei statt Beispiel)
     func start(_ input: BankInput, model: AppModel, step: String? = nil) {
+        var input = input
+        #if DEBUG
+        if step == "fail" { input = .data(Data("Kontoauszug\nkeine Buchungen".utf8), name: "auszug.csv") }
+        #endif
         let s = BankImportSession(input: input)
         s.jumpTo = step
         sessions[s.id] = s
@@ -69,6 +74,14 @@ enum BankInput {
     /// Testdaten (UI-Tests): Inhalt und Dateiname
     case data(Data, name: String)
 
+    /// Quelle für «Andere Datei wählen» (Web v278)
+    var source: BankPickSource {
+        switch self {
+        case .images(_, let scanned): return scanned ? .camera : .photos
+        default: return .file
+        }
+    }
+
     /// Datenschutz-Hinweis im letzten Schritt (Web `.bkpriv`)
     var privacyNote: String {
         switch self {
@@ -93,8 +106,8 @@ final class BankImportSession: Identifiable {
     enum Phase: Equatable {
         /// Ladeanzeige: Schritt 0 = lesen, 1 = suchen, 2 = abgleichen, 3 = Logos suchen; nTx = gelesene Buchungen
         case loading(step: Int, nTx: Int?)
-        /// Nichts lesbar: Titel und Erklärung (statt Web-Rückfrage), Fenster bleibt mit «OK»
-        case failed(title: String, text: String)
+        /// Nichts lesbar: Titel, Dateikarten und Erklärung (Web v278 Rückfrage), Fenster bleibt mit «Andere Datei wählen»
+        case failed(BankFailure)
         case review
     }
 
@@ -147,7 +160,7 @@ final class BankImportSession: Identifiable {
                     model.dismissTop { model.toast("Die Datei ist zu gross (über 20 MB)", seconds: 3.2) }
                     return
                 }
-                self.phase = .failed(title: bad.count > 1 ? "Dateien nicht erkannt" : "Datei nicht erkannt", text: Self.failText(bad))
+                self.phase = .failed(Self.failure(bad))
                 return
             }
             let merged = ok.count == 1 ? ok[0].file! : BankImport.merge(ok.compactMap { $0.file })
@@ -174,6 +187,9 @@ final class BankImportSession: Identifiable {
             guard !Task.isCancelled else { return }
             #if DEBUG
             if let j = self.jumpTo, let st = BankReview.Step(rawValue: j) { r.step = st }
+            if self.jumpTo == "pay", let f = r.items.max(by: { $0.ed.amount / Double(Swift.max(1, $0.ed.cycle)) < $1.ed.amount / Double(Swift.max(1, $1.ed.cycle)) }) {
+                r.togglePay(f.id)
+            }
             #endif
             withAnimation(.easeInOut(duration: 0.25)) { self.phase = .review }
             if !bad.isEmpty {
@@ -195,15 +211,30 @@ final class BankImportSession: Identifiable {
         if left > 0 { try? await Task.sleep(nanoseconds: UInt64(left * 1_000_000_000)) }
     }
 
-    /// Erklärung «Datei nicht erkannt» (Web-Text, ergänzt um PDF/Foto, die es nativ gibt)
-    private static func failText(_ bad: [Read]) -> String {
-        if !bad.isEmpty && bad.allSatisfy({ $0.visual }) {
-            return "Im Auszug wurden keine Buchungen mit Datum und Betrag gefunden. Fotografiere den Auszug gerade und gut beleuchtet oder nimm den CSV-Export aus dem E-Banking."
+    /// Nicht lesbar (Web v278): «Keine Buchungen» (alle ohne Buchungen im Zeitraum), «Kein Kontoauszug» bzw. «Keine Kontoauszüge»;
+    /// je Datei eine Karte mit Grund, darunter der Rat zur einen Datei (nativ zusätzlich PDF/Foto über die Texterkennung)
+    private static func failure(_ bad: [Read]) -> BankFailure {
+        let allEmpty = !bad.isEmpty && bad.allSatisfy { $0.diag == .noBookings }
+        let one = bad.count == 1
+        func reason(_ x: Read) -> String {
+            if x.big { return "Zu gross (über 20 MB)" }
+            if x.visual { return "Keine Buchungen gefunden" }
+            return x.diag.fileSubtitle
         }
-        if bad.count == 1 && bad[0].diag != .none && bad[0].diag != .noHeader {
-            return bad[0].diag.advice
+        let text: String
+        if allEmpty {
+            text = BankReadDiag.noBookings.advice
+        } else if one && bad[0].big {
+            text = "Wähle einen kürzeren Zeitraum, z.B. die letzten 12 Monate."
+        } else if !bad.isEmpty && bad.allSatisfy({ $0.visual }) {
+            text = "Im Auszug wurden keine Buchungen mit Datum und Betrag gefunden. Fotografiere den Auszug gerade und gut beleuchtet oder nimm den CSV-Export aus dem E-Banking."
+        } else if one {
+            text = bad[0].diag.advice
+        } else {
+            text = "Diese Dateien enthalten keine Buchungen mit Datum und Betrag."
         }
-        return "Kontivo liest Kontoauszüge als CSV, camt.053 (XML), MT940, PDF oder Foto. Im E-Banking findest du den Export meist unter «Kontobewegungen» oder «Umsätze» → «Exportieren»."
+        return BankFailure(title: allEmpty ? "Keine Buchungen" : one ? "Kein Kontoauszug" : "Keine Kontoauszüge", text: text,
+                           files: bad.map { BankFailure.File(name: $0.name, reason: reason($0)) })
     }
 
     // MARK: Lesen (im Hintergrund)

@@ -7,9 +7,10 @@ struct BankLogo: Equatable {
     var bg: String
 }
 
-/// Zustand des Fensters «Kontoauszug» (Web `bk`, v177–v223): geführte Schritte Fixkosten → Einnahmen → Fristen.
+/// Zustand des Fensters «Kontoauszug» (Web `bk`, Stand v330): geführte Schritte Fixkosten → Einnahmen → Fristen.
 /// `items` = neue Verträge, `prices` = neuer Preis bei erfassten Verträgen, `inc` = Einnahmen. Bearbeiten öffnet das normale
 /// Vertrags- bzw. Einnahmenformular (Titel «Vorschlag», `BankFormBridge`); «Sichern» schreibt zurück in den Vorschlag (`over`).
+/// Formular und Übernehmen: `BankReviewApply.swift`.
 @MainActor
 @Observable
 final class BankReview {
@@ -35,6 +36,13 @@ final class BankReview {
         var ed: Edit
         /// Im Formular gesichert (Web `it.over`)
         var over: BankFormDraft?
+        /// Zahlungen aufgeklappt bzw. alle gezeigt (Web `it.pay`, `it.payAll`)
+        var pay = false
+        var payAll = false
+        /// Antwort auf die Rückfrage «Derselbe Vertrag?» / «Im Archiv»: "y", "n" oder "" (Web `it.q`)
+        var q = ""
+        /// «Wieder aktivieren»: archivierter Vertrag (Web `it.react`)
+        var react: UUID?
         var id: String { s.id }
     }
 
@@ -55,6 +63,10 @@ final class BankReview {
         var logo: BankLogo?
         var ed: IncEdit
         var over: Income?
+        var pay = false
+        var payAll = false
+        /// «Neuer Lohn» statt «Einmalig» bei abweichender letzter Gutschrift (Web `it.nl`)
+        var nl = false
         var id: String { s.key }
     }
 
@@ -102,7 +114,8 @@ final class BankReview {
             if Currency(rawValue: s.currency) == nil { s.currency = home }
             let ed = Edit(name: s.name, label: BankImport.label(s), amount: s.amount, cycle: s.cycle,
                           categoryID: data.category(named: s.category)?.id, holderIDs: H, due: s.due)
-            return Item(s: s, on: s.confidence != .low && !s.ignored, ed: ed)
+            // Rückfrage (gleicher Betrag / im Archiv) offen: erst nach der Antwort übernehmen
+            return Item(s: s, on: s.confidence != .low && !s.ignored && s.sameAs == nil && s.archived == nil, ed: ed)
         }
         prices = result.prices.map { PriceRow(m: $0, on: true) }
         inc = income.items.map { s in
@@ -126,6 +139,9 @@ final class BankReview {
 
     var fixCount: Int { items.filter { showIgnored || !$0.s.ignored }.count }
 
+    /// Schon erfasste Einnahmen (Web `res.inc.known`)
+    var incKnown: [BankIncomeKnown] { incResult.known }
+
     func categoryName(_ it: Item, _ d: AppData) -> String {
         d.category(it.ed.categoryID)?.name ?? (d.otherCategory?.name ?? "Sonstiges")
     }
@@ -142,10 +158,6 @@ final class BankReview {
         return noCancel(it, d) || it.s.catalog != nil
     }
 
-    func hasTerm(_ it: Item, _ d: AppData) -> Bool {
-        hasTermBase(it, d) || it.term == "1" || it.term == "3" || it.term == "x"
-    }
-
     /// Im Formular steht schon eine Kündigungsregel (Web `bkOverTerm`)
     static func overTerm(_ c: Contract) -> Bool { c.noCancel || c.notice > 0 || c.end != nil || c.mandatory }
 
@@ -156,10 +168,13 @@ final class BankReview {
         }
     }
 
+    /// Fixkosten-Schritt auch ohne neue Vorschläge, wenn es Hinweise gibt (weiter abgebucht, schon erfasst); Einnahmen-Schritt auch,
+    /// wenn alle Einnahmen schon erfasst sind (Web v281)
     func steps(_ d: AppData) -> [Step] {
         var l: [Step] = []
-        if fixCount > 0 || !prices.isEmpty || inc.isEmpty { l.append(.fix) }
-        if !inc.isEmpty { l.append(.inc) }
+        let hasInc = !inc.isEmpty || !incKnown.isEmpty
+        if fixCount > 0 || !prices.isEmpty || !result.after.isEmpty || !result.known.isEmpty || !hasInc { l.append(.fix) }
+        if hasInc { l.append(.inc) }
         if !termList(d).isEmpty { l.append(.term) }
         return l
     }
@@ -191,14 +206,25 @@ final class BankReview {
         return false
     }
 
+    /// Etwas gefunden, das beim Schliessen verloren ginge (Web: Rückfrage «Import abbrechen?»)
+    var hasResults: Bool { !items.isEmpty || !inc.isEmpty || !prices.isEmpty }
+
     // MARK: Zählen (Web bkCounts, bkFoot)
 
     var counts: (n: Int, p: Int, i: Int) {
         (items.filter { $0.on && (showIgnored || !$0.s.ignored) }.count, prices.filter { $0.on }.count, inc.filter { $0.on }.count)
     }
 
+    /// Nichts Neues gefunden (alles schon erfasst): «Fertig» schliesst nur
+    func isDoneOnly(_ d: AppData) -> Bool { isLastStep(d) && fixCount == 0 && inc.isEmpty && prices.isEmpty }
+
     func footerTitle(_ d: AppData) -> String {
-        if !isLastStep(d) { return "Weiter" }
+        if !isLastStep(d) {
+            let st = steps(d)
+            let nx = st[Swift.min(stepIndex(d) + 1, st.count - 1)]
+            return nx == .inc ? "Weiter zu Einnahmen" : nx == .term ? "Weiter zu Kündigungsfristen" : "Weiter"
+        }
+        if isDoneOnly(d) { return "Fertig" }
         let k = counts
         let all = k.n + k.p + k.i
         if all == 0 { return "Nichts ausgewählt" }
@@ -206,48 +232,9 @@ final class BankReview {
     }
 
     func footerEnabled(_ d: AppData) -> Bool {
-        if !isLastStep(d) { return true }
+        if !isLastStep(d) || isDoneOnly(d) { return true }
         let k = counts
         return k.n + k.p + k.i > 0
-    }
-
-    // MARK: Texte (Web bkTitle, bkSub, bkPer, bkDay)
-
-    func title(_ it: Item) -> String {
-        let l = it.ed.label
-        return !l.isEmpty && Partners.lnorm(l) != Partners.lnorm(it.ed.name) ? l : it.ed.name
-    }
-
-    /// Zweite Zeile: Vertragspartner (falls oben die Bezeichnung steht) · Beleg; Hinweis in Messing separat
-    func sub(_ it: Item) -> (text: String, em: String?) {
-        let s = it.s, e = it.ed
-        var t: [String] = []
-        if !e.label.isEmpty && Partners.lnorm(e.label) != Partners.lnorm(e.name) { t.append(e.name) }
-        t.append(s.confidence == .low ? "einmal am " + Self.day(s.last) : "\(s.count)× im Auszug")
-        var em: String? = nil
-        if let ch = s.change, Swift.abs(e.amount - ch.amount) < 0.005 {
-            em = "neuer Preis ab " + Self.day(ch.from)
-        } else if s.varies {
-            em = "Betrag schwankt"
-        }
-        return (t.joined(separator: " · "), em)
-    }
-
-    func incTitle(_ it: IncItem) -> String { it.ed.label.isEmpty ? it.ed.name : it.ed.label }
-
-    func incSub(_ it: IncItem) -> (text: String, em: String?) {
-        var t: [String] = []
-        if !it.ed.label.isEmpty && Partners.lnorm(it.ed.label) != Partners.lnorm(it.ed.name) { t.append(it.ed.name) }
-        t.append("\(it.s.count)× im Auszug")
-        return (t.joined(separator: " · "), it.s.varies ? "Betrag schwankt" : nil)
-    }
-
-    static let periods: [Int: String] = [1: "pro Monat", 2: "alle 2 Monate", 3: "pro Quartal", 6: "pro Halbjahr", 12: "pro Jahr", 24: "alle 2 Jahre"]
-    static func per(_ c: Int) -> String { periods[c] ?? "alle \(c) Monate" }
-
-    /// «5.9.26» (Web `bkDay`)
-    static func day(_ d: Day) -> String {
-        "\(d.day).\(d.month)." + String(format: "%02d", d.year % 100)
     }
 
     // MARK: Ändern
@@ -270,6 +257,11 @@ final class BankReview {
         inc[i].on.toggle()
     }
 
+    func setNewLevel(_ id: String, _ nl: Bool) {
+        guard let i = incIndex(id) else { return }
+        inc[i].nl = nl
+    }
+
     func togglePrice(_ id: String) {
         guard let i = prices.firstIndex(where: { $0.id == id }) else { return }
         prices[i].on.toggle()
@@ -278,6 +270,44 @@ final class BankReview {
     func setTerm(_ id: String, _ v: String) {
         guard let i = index(id) else { return }
         items[i].term = v
+    }
+
+    /// Zahlungen auf-/zuklappen bzw. alle zeigen (Web `data-bkpay`, `data-bkpayall`)
+    func togglePay(_ id: String) {
+        if let i = index(id) {
+            items[i].pay.toggle()
+            items[i].payAll = false
+        } else if let i = incIndex(id) {
+            inc[i].pay.toggle()
+            inc[i].payAll = false
+        }
+    }
+
+    func showAllPay(_ id: String) {
+        if let i = index(id) { items[i].payAll = true } else if let i = incIndex(id) { inc[i].payAll = true }
+    }
+
+    /// Antwort auf die Rückfrage in der Zeile (Web `data-bkdupy` / `data-bkdupn`): Archiv → «Wieder aktivieren» / «Neu anlegen»;
+    /// gleicher Betrag → «Ja, schon erfasst» (nicht anlegen, Zuordnung merken) / «Nein, neu»
+    func answerDup(_ id: String, yes: Bool, model: AppModel) {
+        guard let i = index(id) else { return }
+        items[i].q = yes ? "y" : "n"
+        let s = items[i].s
+        if let a = s.archived {
+            items[i].on = true
+            items[i].react = yes ? a : nil
+            return
+        }
+        items[i].on = !yes
+        guard let sid = s.sameAs, let cc = model.data.contract(sid) else { return }
+        let k = BankImport.ignoreKey(s), pn = model.data.partnerName(of: cc), cn = model.data.category(cc.categoryID)?.name ?? ""
+        model.update { d in
+            if yes {
+                d.settings.bankAlias[k] = BankAlias(n: pn, c: cn)
+            } else if let a = d.settings.bankAlias[k], a.n == pn {
+                d.settings.bankAlias[k] = nil
+            }
+        }
     }
 
     /// «Zuordnen an» für alle Einträge (Web `data-bkall`)
@@ -314,209 +344,13 @@ final class BankReview {
         model.toast("«\(name)» wird nicht mehr vorgeschlagen")
     }
 
-    // MARK: Formular (Web bkContractOf, bkOpenForm, bkFormDone, bkOpenInc, bkIncFormDone)
-
-    /// Vorschlag mit den Werten aus der Liste (Betrag ggf. als neuer Preis)
-    private func edited(_ it: Item, _ d: AppData) -> BankSuggestion {
-        var s = it.s
-        s.name = it.ed.name
-        s.cycle = it.ed.cycle
-        s.category = categoryName(it, d)
-        s.due = it.ed.due
-        if let ch = s.change, Swift.abs(it.ed.amount - ch.amount) > 0.004 {
-            if Swift.abs(it.ed.amount - ch.prev) < 0.005 { s.change = nil } else { s.change?.amount = it.ed.amount }
-        }
-        s.amount = it.ed.amount
-        return s
-    }
-
-    /// Schnellwahl Kündigungsfrist anwenden (Web: jederzeit kündbar mit 1 bzw. 3 Monaten Frist, oder nicht kündbar)
-    private static func applyTerm(_ term: String, to c: inout Contract, full: Bool) {
-        if term == "1" || term == "3" {
-            c.notice = Int(term) ?? 0
-            c.noticeUnit = .months
-            c.cancelTerm = .anytime
-        } else if term == "x" {
-            c.noCancel = true
-            if full {
-                c.mandatory = false
-                c.cancelTerm = .anytime
-            }
-        }
-    }
-
-    /// Entwurf für das Vertragsformular (Web `bkContractOf`)
-    func draft(_ it: Item, _ d: AppData, today: Day) -> BankFormDraft {
-        if let o = it.over { return o }
-        let s = edited(it, d)
-        var c = BankImport.toContract(s, persons: [], data: d, today: today)
-        c.holderIDs = it.ed.holderIDs
-        c.categoryID = it.ed.categoryID ?? d.otherCategory?.id
-        c.label = it.ed.label
-        c.cycle = it.ed.cycle
-        c.due = it.ed.due
-        c.currency = Currency(rawValue: s.currency) ?? d.settings.homeCurrency
-        if let l = it.logo {
-            c.logoID = l.id
-            c.logoBg = l.bg
-        }
-        if !hasTermBase(it, d) { Self.applyTerm(it.term, to: &c, full: true) }
-        let t = s.catalogEntry
-        let p = d.partner(c.partnerID)
-        let addrText = (t?.address ?? "").replacingOccurrences(of: "\r\n", with: "\n")
-        let addr = p?.address.isEmpty == false ? p!.address
-            : (addrText.isEmpty ? PostalAddress() : WebImport.addrSplit(addrText, partnerName: it.ed.name))
-        let web = !(p?.web ?? "").isEmpty ? p!.web : (t?.web ?? "")
-        return BankFormDraft(contract: c, partnerName: it.ed.name, web: web, address: addr, logoID: it.logo?.id, logoBg: it.logo?.bg)
-    }
-
-    /// Formular gesichert: Werte in den Vorschlag übernehmen (Web `bkFormDone`)
-    func formDone(_ id: String, _ r: BankFormDraft, model: AppModel) {
-        guard let i = index(id) else { return }
-        let c = r.contract
-        items[i].over = r
-        items[i].on = true
-        items[i].ed.name = r.partnerName.isEmpty ? items[i].ed.name : r.partnerName
-        items[i].ed.label = c.label
-        items[i].ed.amount = model.calc.curPrice(c)
-        items[i].ed.cycle = c.cycle == 0 ? 1 : c.cycle
-        items[i].ed.categoryID = c.categoryID
-        items[i].ed.holderIDs = c.holderIDs
-        if let due = c.due { items[i].ed.due = due }
-        if let old = items[i].logo, old.id != r.logoID { BankLogos.drop(old.id, model: model) }
-        items[i].logo = r.logoID.map { BankLogo(id: $0, bg: r.logoBg ?? "#FFFFFF") }
-        if Self.overTerm(c) { items[i].term = "" }
-    }
-
-    /// Entwurf für das Einnahmenformular
-    func incomeDraft(_ it: IncItem) -> Income {
-        if let o = it.over { return o }
-        let e = it.ed
-        // Lohnverlauf aus den Zahlungen (Web v273 `bkIncPrices`), Beginn = erste Gutschrift, wenn deutlich nach Auszugsbeginn (`bankStart`)
-        let ip = BankImport.incomePrices(it.s, amount: e.amount)
-        return Income(name: e.name, label: e.label, kind: e.kind, amount: ip.amount, currency: Currency(rawValue: it.s.currency) ?? .CHF,
-                      cycle: e.cycle, due: e.due, start: BankImport.start(it.s, statementFrom: file.from), holderID: e.holderIDs.first,
-                      prices: ip.prices, logoID: it.logo?.id, logoBg: it.logo?.bg)
-    }
-
-    func incFormDone(_ id: String, _ x: Income, model: AppModel) {
-        guard let i = incIndex(id) else { return }
-        inc[i].over = x
-        inc[i].on = true
-        inc[i].ed.name = x.name
-        inc[i].ed.label = x.label
-        inc[i].ed.amount = x.amount
-        inc[i].ed.cycle = x.cycle == 0 ? 1 : x.cycle
-        inc[i].ed.kind = x.kind
-        inc[i].ed.holderIDs = x.holderID.map { [$0] } ?? []
-        if let due = x.due { inc[i].ed.due = due }
-        if let old = inc[i].logo, old.id != x.logoID { BankLogos.drop(old.id, model: model) }
-        inc[i].logo = x.logoID.map { BankLogo(id: $0, bg: x.logoBg ?? "#FFFFFF") }
-    }
-
-    /// Abbrechen: gefundene Logos wieder löschen (Web `bkCancel`)
-    func cancel(model: AppModel) {
-        for it in items { if let l = it.logo { BankLogos.drop(l.id, model: model) } }
-        for it in inc { if let l = it.logo { BankLogos.drop(l.id, model: model) } }
-    }
-
-    // MARK: Übernehmen (Web bkGo)
-
-    struct Outcome {
-        var created: [UUID] = []
-        var priced = 0
-        var incomes = 0
-    }
-
-    func apply(model: AppModel) -> Outcome {
-        var out = Outcome()
-        let today = model.today
-        let data0 = model.data
-        var drop: [String] = []
-        // Werte vorab berechnen (Zugriff auf self ausserhalb des Datenblocks)
-        struct NewC {
-            var c: Contract
-            var name: String
-            var catalog: CatalogEntry?
-            var web: String
-            var address: PostalAddress
-            var logo: BankLogo?
-            var learn: (BankSuggestion, String, String)?
-        }
-        var newCs: [NewC] = []
-        for it in items {
-            if !it.on || (it.s.ignored && !showIgnored) {
-                if let l = it.logo { drop.append(l.id) }
-                continue
-            }
-            if let o = it.over {
-                var c = o.contract
-                if !Self.overTerm(c) { Self.applyTerm(it.term, to: &c, full: false) }
-                newCs.append(NewC(c: c, name: o.partnerName, catalog: nil, web: o.web, address: o.address,
-                                  logo: o.logoID.map { BankLogo(id: $0, bg: o.logoBg ?? "#FFFFFF") }, learn: nil))
-                continue
-            }
-            let f = draft(it, data0, today: today)
-            let cat = categoryName(it, data0)
-            let learn: (BankSuggestion, String, String)? = (it.ed.name != it.s.name || cat != it.s.category) ? (it.s, it.ed.name, cat) : nil
-            newCs.append(NewC(c: f.contract, name: it.ed.name, catalog: it.s.catalogEntry, web: "", address: PostalAddress(),
-                              logo: it.logo, learn: learn))
-        }
-        let chosenPrices = prices.filter { $0.on }
-        var newIncomes: [Income] = []
-        for it in inc {
-            if !it.on {
-                if let l = it.logo { drop.append(l.id) }
-                continue
-            }
-            var x = incomeDraft(it)
-            x.id = UUID()
-            newIncomes.append(x)
-        }
-        let firstHolders = items.first { $0.on }?.ed.holderIDs
-        model.update { d in
-            for n in newCs {
-                var c = n.c
-                c.id = UUID()
-                if n.catalog != nil || n.web.isEmpty {
-                    c.partnerID = BankImport.partnerID(named: n.name, current: c.partnerID, catalog: n.catalog, in: &d)
-                } else {
-                    c.partnerID = d.partnerID(forName: n.name, web: n.web)
-                }
-                if let pid = c.partnerID, let pi = d.partnerIndex(pid) {
-                    if d.partners[pi].address.isEmpty && !n.address.isEmpty { d.setPartnerAddress(pid, n.address) }
-                    // Logo gehört zum Vertragspartner; ein vorhandenes bleibt
-                    if let l = n.logo, (d.partners[pi].logoID ?? "").isEmpty {
-                        d.setPartnerLogo(pid, logoID: l.id, background: l.bg)
-                        c.logoID = nil
-                        c.logoBg = nil
-                    }
-                }
-                if let l = n.learn { BankBridge.learn(l.0, name: l.1, category: l.2, in: &d) }
-                if let id = try? d.saveContract(c, today: today) { out.created.append(id) }
-            }
-            // schon erfasste Verträge: Gläubiger-ID/Mandat nachtragen (Web v273)
-            BankImport.rememberCreditorIDs(result, in: &d)
-            for p in chosenPrices {
-                BankImport.applyPrice(p.m, to: &d)
-                out.priced += 1
-            }
-            for x in newIncomes {
-                if (try? d.saveIncome(x, today: today)) != nil { out.incomes += 1 }
-            }
-            if let h = firstHolders, h.count == 1, d.persons.count > 1 { d.settings.lastHolderIDs = h }
-            // Zeitraum des Auszugs merken, aber nur wenn etwas übernommen wurde (Web v274, Mehr → Daten)
-            if !out.created.isEmpty || out.incomes > 0 || out.priced > 0, let fr = file.from, let to = file.to {
-                d.settings.lastBankImport = BankImportInfo(from: fr, to: to, at: today, files: Swift.max(1, file.files))
-            }
-        }
-        for id in drop { BankLogos.drop(id, model: model) }
-        return out
-    }
-
-    /// Neue Verträge, bei denen noch Angaben fehlen – Anlass für «Fast fertig!» (Web `vkNeeds().per` der neuen Verträge)
-    static func incompleteCount(_ ids: [UUID], data: AppData, today: Day) -> Int {
-        let r = Completeness.report(data, today: today)
-        return ids.filter { !(r.per[$0] ?? []).isEmpty }.count
+    /// Kürzerer Auszug als 11 Monate: Jahresverträge fehlen womöglich (Web `.bkspan`)
+    var shortSpanText: String? {
+        guard let f = file.from, let t = file.to else { return nil }
+        let m = Int((Double(f.days(to: t)) / 30.4).rounded())
+        // Web: `spanM && spanM < 11` (0 Monate zeigt nichts)
+        guard m > 0 && m < 11 else { return nil }
+        return "Der Auszug umfasst nur " + (m < 1 ? "wenige Wochen" : "\(m) Monate")
+            + ". Jahresbeiträge (Versicherungen, Steuern, Mitgliedschaften) fehlen womöglich – am besten die letzten 12 Monate exportieren."
     }
 }

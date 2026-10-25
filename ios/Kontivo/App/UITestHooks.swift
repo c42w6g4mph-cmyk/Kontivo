@@ -12,7 +12,7 @@ import KontivoCore
 ///                      | categories | quality | cancelpick | completeness | report | reportPDF
 ///                      (incomeDetail/incomeEdit: Einnahme mit Änderungen, Beispiel «Lohn» mit Verlauf)
 ///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich import)
-///   -uiBankStep <s>    mit -uiBankSample: nach dem Laden direkt zum Schritt inc | term (Bildschirmfotos)
+///   -uiBankStep <s>    mit -uiBankSample: nach dem Laden direkt zum Schritt inc | term | pay (Zahlungen aufgeklappt) | fail (nicht lesbar)
 ///   -uiSplash          Intro beim Start auch im UI-Test zeigen
 extension AppModel {
     /// Start mit UI-Test-/Bildschirmfoto-Argumenten (dann eigener Dateiordner, nichts Echtes wird gelesen oder geschrieben)

@@ -41,6 +41,11 @@ extension BankImport {
         Day.pad(d.day, 2) + "." + Day.pad(d.month, 2) + "." + String(d.year)
     }
 
+    /// Ende eines archivierten Vertrags (Web `archEnd`): gekündigt per, sonst festes Ende ohne Verlängerung
+    public static func archiveEnd(_ c: Contract) -> Day? {
+        c.cancelPer ?? (c.renewMonths == 0 ? c.end : nil)
+    }
+
     /// Preisverlauf eines Vorschlags: Kosten nach Stufen, Einnahmen nach Lohnstufen (Web `bankPriceHist(s, inc)`)
     static func history(dates: [Day], amounts: [Double], cycle: Int, income: Bool) -> PriceHistory? {
         income ? incomeHistory(dates: dates, amounts: amounts) : priceHistory(dates: dates, amounts: amounts, cycle: cycle)
