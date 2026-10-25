@@ -43,9 +43,9 @@ with sync_playwright() as p:
         if theme == "light":
             pg.click("#saveForm"); pg.wait_for_timeout(400)  # Sichern → zurück zur Liste
             check(pg.is_visible("#sheetBank.on") and not pg.is_visible("#sheetForm.on"), "Sichern führt zurück zur Liste")
-            # Rundfunkgebühr (Vielleicht) öffnen → Nie mehr vorschlagen
-            pg.click('#bkBody .bkmain:has-text("Rundfunkgebühr")'); pg.wait_for_timeout(400); pg.click("#fBankIgn"); pg.wait_for_timeout(300)
-            check("Rundfunkgebühr" not in pg.inner_text("#bkBody"), "Rundfunkgebühr ausgeblendet")
+            # Serafe (Vielleicht) öffnen → Nie mehr vorschlagen
+            pg.click('#bkBody .bkmain:has-text("Serafe")'); pg.wait_for_timeout(400); pg.click("#fBankIgn"); pg.wait_for_timeout(300)
+            check("Serafe" not in pg.inner_text("#bkBody"), "Serafe ausgeblendet")
             # Mobiliar ankreuzen
             pg.click('#bkBody .bkr:has-text("Die Mobiliar") [data-bkyes]'); pg.wait_for_timeout(200)
             # geführte Schritte: Weiter bis «… übernehmen»
@@ -69,17 +69,17 @@ with sync_playwright() as p:
             check(sw["amount"] == 81.5 and sw["cycle"] == 1 and sw["holders"] == ["Sinan"], "Swisscom mit bearbeitetem Betrag 81.50, monatlich, Sinan")
             print("  CSS prices:", cs["a"].get("prices"))
             check(cs["a"].get("prices") == [{"from": "2026-01-01", "amount": 412.3}], "CSS: neuer Preis ab 01.01.2026")
-            check(d["settings"].get("bankIgn") and any("rundfunk" in k.lower() for k in d["settings"]["bankIgn"]), "Rundfunkgebühr in bankIgn")
+            check(d["settings"].get("bankIgn") and any("serafe" in k.lower() for k in d["settings"]["bankIgn"]), "Serafe in bankIgn")
             imm = [c for c in cs.values() if c["partner"].startswith("Immo")][0]; print("  Immo:", imm["cat"], imm["amount"], imm["holders"])
             check(imm["cat"] == "Wohnen" and imm["amount"] == 1850, "Immo Seeblick: Wohnen 1850")
             stv = [c for c in cs.values() if c["partner"].startswith("Steuer")][0]; print("  Steuer:", stv["cat"], stv.get("noCancel"))
             check(stv["cat"] == "Steuern & Gebühren", "Steuer: Kategorie Steuern & Gebühren")
-            # zweiter Import: Rundfunkgebühr ausgeblendet, angelegte jetzt «bereits erfasst»
+            # zweiter Import: Serafe ausgeblendet, angelegte jetzt «bereits erfasst»
             pg.click('.tabbar button[data-tab="set"]'); load(pg, S + "ch_postfinance.csv")
             pg.screenshot(path=f"{OUT}/4_zweiter_import.png")
             t2 = pg.inner_text("#bkBody"); print("  Zweiter Import:", t2[:400].replace("\n", " | "))
-            check("Keine neuen Fixkosten" in t2 and "8 Verträge sind schon in Kontivo" in t2 and "1 ausgeblendeter Vorschlag" in t2 and "Rundfunkgebühr" not in t2,
-                  "zweiter Import: nichts Neues, 8 erfasst, Rundfunkgebühr bleibt ausgeblendet")
+            check("Keine neuen Fixkosten" in t2 and "8 Verträge sind schon in Kontivo" in t2 and "1 ausgeblendeter Vorschlag" in t2 and "Serafe" not in t2,
+                  "zweiter Import: nichts Neues, 8 erfasst, Serafe bleibt ausgeblendet")
             # Abbrechen: wegen des ausgeblendeten Vorschlags fragt Kontivo nach
             pg.click("#bkX"); pg.wait_for_selector("#sheetAsk.on", timeout=5000)
             check(pg.inner_text("#askT") == "Import abbrechen?", "Abbrechen fragt nach")
