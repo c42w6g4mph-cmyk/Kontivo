@@ -1,6 +1,6 @@
 # Kontivo in Xcode starten (eigener Mac, ohne bezahltes Apple-Konto)
 
-Stand: Branch `swift-final` (Tag `kontivo-swift-final`), Web-Referenz v225.
+Stand: Branch `swift` (25.10.2026). Rechenkern nach Web v323; Oberfläche noch auf Stand Web v225 (Nachzug siehe Projekt-Dokument `kontivo-swift-nachzug`).
 
 ## Voraussetzungen
 - Mac mit **Xcode 26.2** (so baut und testet auch die CI, siehe `.github/workflows/ios.yml`). Ältere Xcode-Versionen können am iOS-26-SDK scheitern.
@@ -9,8 +9,8 @@ Stand: Branch `swift-final` (Tag `kontivo-swift-final`), Web-Referenz v225.
 - XcodeGen ist **nicht** nötig: das fertige Projekt `ios/Kontivo.xcodeproj` liegt im Repo.
 
 ## 1. Projekt herunterladen
-- GitHub → Repo `kontivo` → Branch **swift-final** wählen → **Code** → **Download ZIP**, entpacken.
-- oder im Terminal: `git clone -b swift-final https://github.com/c42w6g4mph-cmyk/kontivo.git`
+- GitHub → Repo `Kontivo` → Branch **swift** wählen → **Code** → **Download ZIP**, entpacken.
+- oder im Terminal: `git clone -b swift https://github.com/c42w6g4mph-cmyk/Kontivo.git`
 
 ## 2. Öffnen
 `ios/Kontivo.xcodeproj` doppelklicken. Xcode lädt das lokale Paket `KontivoCore` selbst (kein Internet nötig).
