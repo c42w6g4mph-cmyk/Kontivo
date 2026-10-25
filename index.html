@@ -9310,6 +9310,11 @@ function bankFind(r,ign){
         if(!ramp&&amR.filter(function(v){return Math.abs(v-mR)<=mR*tol;}).length<amR.length*0.7)return;
         /* aktueller Betrag: Median der letzten 3 Rechnungen (Abo-Wechsel bei Wingo 44.95 → 27.95), nicht des ganzen Auszugs */
         varies=true;var l3=am.slice(-3).sort(function(a,b){return a-b;});last=cyc>=6?am[n-1]:l3[Math.floor(l3.length/2)];/* Jahres-/Halbjahresprämie: aktuelle Rechnung zählt */
+        /* Verbrauch (Strom, Gas, Wasser) schwankt mit der Jahreszeit: Durchschnitt der Rechnungen der letzten 12 Monate statt Median der letzten 3
+           (Energie Kreuzlingen Quartal 231.30/216.50/254.25/253.30 → 238.84 statt 253.30); mind. ¾ der Rechnungen eines Jahres nötig.
+           Nur Rechnungen alle 2–3 Monate (monatliche Abschläge sind fix), Ausreisser ausserhalb ±20 % um den Median (Jahresabrechnung) zählen nicht (25.10.2026) */
+        if(tol===0.20&&cyc>=2&&cyc<6&&!ramp){var aY=tx.map(function(t,i){return dd(t.d,ref)<=365&&Math.abs(am[i]-mR)<=mR*tol?am[i]:null;}).filter(function(v){return v!=null;});
+          if(aY.length>=Math.max(2,Math.ceil(12/cyc*0.75)))last=Math.round(aY.reduce(function(a,b){return a+b;},0)/aY.length*100)/100;}
       }}
       if(!ch&&g.prevC&&cyc===1&&Math.abs(g.prevC.amount-last)>0.004){ch={from:tx[0].d,prev:g.prevC.amount,amount:last};var prevTx=g.prevC.tx||[];}
       /* beendet? letzte Zahlung deutlich länger her als der Rhythmus */

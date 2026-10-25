@@ -57,6 +57,8 @@ E = {
  "beendet_monat": dict(s=[("Sunrise", 1, 39)]),
  "zwei_fahrzeuge": dict(s=[("Sunrise", 1, 39), ("Strassenverkehrsamt", 12, 168), ("Strassenverkehrsamt", 12, 153.15)]),
  "verein_einmal": dict(s=[("Sunrise", 1, 39), ("FC Muster", 12, 230)]),
+ # Verbrauchsrechnung mit Jahreszeit: Durchschnitt der letzten 12 Monate statt Median der letzten 3 (25.10.2026)
+ "strom_saison": dict(s=[("Sunrise", 1, 39), ("Energie Kreuzlingen", 3, 238.84)]),
  "rund_jaehrlich": dict(s=[("Sunrise", 1, 39), ("Stadtverwaltung Musterstadt", 12, 100, "hoch")]),
  "rund_zweimal": dict(s=[("Sunrise", 1, 39), ("Stadtverwaltung Musterstadt", 12, 100, "niedrig")]),
  "faelligkeit": dict(s=[("Sunrise", 1, 39)], k=["Muster Versicherung", "Muster Versicherung"]),
