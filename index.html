@@ -1684,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v330</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v331</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8217,6 +8217,10 @@ function sanitizeImport(o){
   if(Array.isArray(s.bankIgn))s.bankIgn=s.bankIgn.filter(function(h){return typeof h==="string";});else delete s.bankIgn;
   if(s.bankAlias&&typeof s.bankAlias==="object"&&!Array.isArray(s.bankAlias)){var BA={};Object.keys(s.bankAlias).forEach(function(k){var v=s.bankAlias[k];
     if(v&&typeof v.n==="string"&&v.n.trim())BA[k]={n:v.n.trim().slice(0,80),c:typeof v.c==="string"?v.c:""};});s.bankAlias=BA;}else delete s.bankAlias;
+  /* gelernte Korrekturen je Vertragspartner und Betrag: {a: Betrag, l: Bezeichnung, x: 1 = abgewählt} (25.10.2026) */
+  if(s.bankLearn&&typeof s.bankLearn==="object"&&!Array.isArray(s.bankLearn)){var BL={};Object.keys(s.bankLearn).slice(0,500).forEach(function(k){var v=s.bankLearn[k];if(k==="__proto__"||!Array.isArray(v))return;
+    var L=v.filter(function(e){return e&&isFinite(+e.a)&&+e.a>0;}).slice(-12).map(function(e){var o={a:Math.round(+e.a*100)/100};if(typeof e.l==="string"&&e.l.trim())o.l=e.l.trim().slice(0,60);if(e.x)o.x=1;return o;}).filter(function(o){return o.l||o.x;});
+    if(L.length)BL[k]=L;});s.bankLearn=BL;}else delete s.bankLearn;
   if(obj(s.sigs)){Object.keys(s.sigs).forEach(function(h){if(!SIG.test(String(s.sigs[h])))delete s.sigs[h];});}else delete s.sigs;
   if("sig" in s&&!SIG.test(String(s.sig)))delete s.sig;  /* alte globale Unterschrift (migModel) */
   if(Array.isArray(s.catList))s.catList=s.catList.filter(function(x){return obj(x)&&typeof x.n==="string"&&x.n.trim();}).map(function(x){if(badCol(x.c))delete x.c;return x;});
@@ -8788,7 +8792,8 @@ var BKTYPEW=("belastung gutschrift zahlung zahlungen einkauf warenbezug und dien
   "kartennummer kartenverfuegung verfuegung verfugung vergutungsauftrag vergutung lastschriftverfahren standing order ihr ihre karten xxxx xx x").split(" ");
 function bankIsType(p){var w=lnorm(p).split(" ").filter(Boolean);return !w.length||w.every(function(x){return /^\d+$/.test(x)||(x.length<2&&w.length>1)||BKTYPEW.indexOf(x)>=0;});}
 function bankNameClean(n){
-  n=String(n||"").replace(/\s+/g," ").trim().replace(/\s*(?:\.{2,}|…)$/,"");
+  /* von der Bank abgeschnitten («Raiffeisen Pensionskasse Genosse...»): das angeschnittene letzte Wort weglassen (25.10.2026) */
+  n=String(n||"").replace(/\s+/g," ").trim();if(/(?:\.{2,}|…)$/.test(n))n=/\S\s+\S+(?:\.{2,}|…)$/.test(n)?n.replace(/\s+\S+(?:\.{2,}|…)$/,""):n.replace(/\s*(?:\.{2,}|…)$/,"");
   n=n.split(/\s(?:MITTEILUNGEN?|Mitteilungen?:|REFERENZ|Referenz(?:-Nr\.?)?:?|QR-Referenz|Transaktions(?:-Nr\.?|datum)|Karten?-?Nr\.?|Kartennummer|IBAN|Kto\/IBAN|Kto|BLZ|Konto-Nr\.?|CH\d{2}\s?\d|DE\d{2}\s?\d|\d{4,5}\s+[A-ZÄÖÜa-zäöü]{2}|Ref\.|Buchungstext:|Verwendungszweck)/)[0];
   /* Rechtsform am Anfang («Genossenschaft Migros Ostschweiz») ist Teil des Namens: nur abschneiden, wenn davor schon ein Name steht (17.10.2026) */
   var lg=n.match(/^(.+?\s(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\.V\.|e\.\s?V\.|Genossenschaft))(?:\s|$)/i);if(lg)n=lg[1];
@@ -9335,6 +9340,14 @@ function bankFindInc(r){
 }
 function bankIgnKey(s){return s.key.split("|")[0];}
 /* Gelernte Korrekturen (lokal): Gruppenschlüssel → {n: Vertragspartner, c: Kategorie}; gesetzt beim Anlegen, wenn du Name/Kategorie änderst */
+/* Gelernte Korrektur zum Vorschlag: gleicher Vertragspartner, Betrag ±35 % (Prämie ändert sich jährlich), nächster Betrag gewinnt. SwiftUI: BankLearnStore */
+function bankLearnKey(s){return bankIgnKey(s).replace(/#\d+$/,"");}
+/* Zuordnung eins zu eins: mehrere Vorschläge beim selben Vertragspartner (zwei Handyabos, drei Policen) – jede Korrektur gilt nur für den nächstgelegenen Betrag */
+function bankLearnAssign(list){var B=state.settings.bankLearn||{},by={};list.forEach(function(s){s.learn=null;var k=bankLearnKey(s);if(B[k])(by[k]=by[k]||[]).push(s);});
+  Object.keys(by).forEach(function(k){var P=[];B[k].forEach(function(e,ei){by[k].forEach(function(s){var d=Math.abs(e.a-s.amount)/Math.max(e.a,0.01);if(d<=0.35)P.push([d,ei,s]);});});
+    P.sort(function(a,b){return a[0]-b[0];});var ue={};P.forEach(function(x){if(ue[x[1]]||x[2].learn)return;ue[x[1]]=1;x[2].learn=B[k][x[1]];});});}
+function bankLearnSet(s,o){var B=state.settings.bankLearn=state.settings.bankLearn||{},k=bankLearnKey(s),L=(B[k]||[]).filter(function(e){return e!==s.learn&&Math.abs(e.a-s.amount)>0.004;});
+  if(o)L.push(Object.assign({a:Math.round(s.amount*100)/100},o));if(L.length)B[k]=L.slice(-12);else delete B[k];}
 function bankApplyAlias(s){var A=state.settings.bankAlias||{},a=A[bankIgnKey(s)]||A[bankIgnKey(s).split("·")[0]];if(a&&a.n){s.alias=a;s.name=a.n;}return s;}
 /* Abgleich mit erfassten Verträgen: gleicher Vertragspartner (Katalogname oder gemeinsames markantes Wort) und gleiche Währung */
 /* markantes Wort eines Namens: erstes Wort ≥ 3 Zeichen, nicht generisch (Versicherung, Stadt …) */
@@ -9476,7 +9489,11 @@ var BKLABEL=[[/hundesteuer/,"Hundesteuer"],[/grundsteuer/,"Grundsteuer"],[/bahnc
   [/risikoleben|lebensversicherung/,"Lebensversicherung"],[/reiseversicherung|reiseruecktritt|reiseruckritt|reiseruecktritt/,"Reiseversicherung"],
   [/tierhalter|hundehaftpflicht|tierkranken/,"Tierversicherung"],
   [/\bmiete\b|mietzins|wohnungsmiete/,"Miete"],[/nebenkosten|heizkosten/,"Nebenkosten"],[/parkplatz|einstellplatz|tiefgarage|garage/,"Parkplatz"],
-  [/hypothek|darlehen|kreditrate|\bkredit\b/,"Kredit"],[/leasing/,"Leasing"],[/steuer|steuerverwaltung|finanzamt/,"Steuern"],
+  [/hypothek|darlehen|kreditrate|\bkredit\b/,"Kredit"],[/leasing/,"Leasing"],[/kaution|caution/,"Mietkaution"],
+  /* Steuerart aus der Mitteilung (25.10.2026): CH Staats-/Gemeinde-/Bundessteuer, DE Einkommen-/Kirchen-/Gewerbesteuer */
+  [/bundessteuer|steuer bund\b|direkte bundes/,"Direkte Bundessteuer"],[/staats und gemeindesteuer|staatssteuer|gemeindesteuer|kantonssteuer/,"Staats- und Gemeindesteuern"],
+  [/kirchensteuer/,"Kirchensteuer"],[/gewerbesteuer/,"Gewerbesteuer"],[/einkommensteuer|einkommenssteuer|est vorauszahlung/,"Einkommensteuer"],
+  [/steuer|steuerverwaltung|finanzamt/,"Steuern"],
   [/krankenkasse|krankenversicherung|grundversicherung/,"Krankenkasse"],[/hausrat/,"Hausrat"],[/haftpflicht/,"Haftpflicht"],
   [/fitness|\bgym\b/,"Fitness"],[/mitgliederbeitrag|mitgliedsbeitrag|jahresbeitrag|vereinsbeitrag/,"Mitgliedschaft"],[/spende/,"Spende"],
   [/kita|krippe|tagesmutter|hort/,"Kinderbetreuung"],[/schulgeld|studiengebuehr|semestergebuehr/,"Ausbildung"]];
@@ -9502,8 +9519,9 @@ function bkWho(txt){var HL=state.settings.holders||[];if(HL.length<2||!txt)retur
 function openBank(res){
   var H=bkHolders(),ow=bkWho(res.owner||"");if(ow.length===1)H=ow;
   bk={res:res,step:"fix",showIgn:false,
-    items:res.sugg.filter(function(s){return !s.match;}).map(function(s){s.stFrom=res.from;
-      return {s:s,on:s.conf!=="niedrig"&&!s.ignored&&!s.same&&!s.arch,q:"",logo:null,term:"",ed:{name:s.name,label:bankLabel(s),amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
+    items:(function(L){bankLearnAssign(L);return L;})(res.sugg.filter(function(s){return !s.match;})).map(function(s){s.stFrom=res.from;
+      var lr=s.learn;
+      return {s:s,on:s.conf!=="niedrig"&&!s.ignored&&!s.same&&!s.arch&&!(lr&&lr.x),q:"",logo:null,term:"",ed:{name:s.name,label:lr&&lr.l?lr.l:bankLabel(s),amount:s.amount,cycle:s.cycle,cat:s.cat,holders:H.slice(),due:s.due}};}),
     price:res.sugg.filter(function(s){return s.match&&s.match.kind==="price";}).map(function(s){return {s:s,on:true};}),
     inc:((res.inc&&res.inc.sugg)||[]).map(function(s){s.stFrom=res.from;var w=bkWho(s.text+" "+(s.raw||""));return {s:s,on:s.conf==="hoch",logo:null,
       ed:{label:s.label,name:s.name,amount:s.amount,cycle:s.cycle,cat:s.cat,holders:w.length===1?w:H.slice(),due:s.due}};}),
@@ -9517,7 +9535,7 @@ function bkPer(c){return BKPER[c]||"alle "+c+" Monate";}
 /* Untertitel: Vertragspartner (falls oben die Bezeichnung steht) · Beleg · Hinweis in Messing */
 function bkSub(it){var e=it.ed;return e.label&&lnorm(e.label)!==lnorm(e.name)?esc(e.name):esc(e.cat||"");}
 /* Chips unter der Zeile (Entscheid 23.10.2026, Variante Q): Anzahl Zahlungen, Preisänderung im Auszug, schwankender Betrag – keine Kategorie, keine Frist (kommt am Schluss) */
-function bkChips(it,inc,idx){var s=it.s,e=it.ed,c=[];
+function bkChips(it,inc,idx){var s=it.s,e=it.ed,c=[];if(!inc&&s.learn&&s.learn.x)c.push('<i>letztes Mal nicht übernommen</i>');
   /* Anzahl antippen → Zahlungen aus dem Auszug aufklappen (23.10.2026) */
   c.push(s.conf==="niedrig"&&s.n===1?'<i>einmal am '+bkDay(s.last)+'</i>':'<i class="tap" role="button" tabindex="0" data-bkpay="'+(inc?"i":"c")+idx+'" aria-expanded="'+!!it.pay+'">'+s.n+(s.n===1?" Zahlung":" Zahlungen")+'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></i>');
   var ph=bankPriceHist(s,inc),lc=ph&&ph.chg.length?{prev:ph.chg.length>1?ph.chg[ph.chg.length-2].amount:ph.base,amount:ph.cur,from:ph.chg[ph.chg.length-1].from}:(!inc&&s.change)||null;
@@ -9898,7 +9916,7 @@ document.getElementById("bkBody").addEventListener("click",function(e){
     if(pk.dataset.bkpayall!=null)ip.payAll=true;else{ip.pay=!ip.pay;ip.payAll=false;}paintBank();return;}
   var t=e.target.closest("button");if(!t||!bk)return;
   if(t.classList.contains("bkwarn")){closeSheetEl("sheetBank");openDetail(t.dataset.open);return;}
-  if(t.dataset.bkon!=null){var it=bk.items[+t.dataset.bkon];it.on=!it.on;t.setAttribute("aria-checked",it.on);t.parentNode.classList.toggle("off",!it.on);bkFoot();return;}
+  if(t.dataset.bkon!=null){var it=bk.items[+t.dataset.bkon];it.on=!it.on;it.touched=true;t.setAttribute("aria-checked",it.on);t.parentNode.classList.toggle("off",!it.on);bkFoot();return;}
   if(t.dataset.ikon!=null){var ii=bk.inc[+t.dataset.ikon];ii.on=!ii.on;t.setAttribute("aria-checked",ii.on);t.parentNode.classList.toggle("off",!ii.on);bkFoot();return;}
   if(t.dataset.bkdupy!=null||t.dataset.bkdupn!=null){var yes=t.dataset.bkdupy!=null,id2=+(yes?t.dataset.bkdupy:t.dataset.bkdupn),iq=bk.items[id2];iq.q=yes?"y":"n";
     if(iq.s.arch){iq.on=true;iq.react=yes?iq.s.arch:"";}
@@ -9907,7 +9925,7 @@ document.getElementById("bkBody").addEventListener("click",function(e){
       var AL=state.settings.bankAlias||{},kk=bankIgnKey(iq.s),cc=state.contracts[iq.s.same];
       if(yes&&cc){AL[kk]={n:cc.partner,c:cc.cat};state.settings.bankAlias=AL;saveSettings();}else if(!yes&&AL[kk]&&cc&&AL[kk].n===cc.partner){delete AL[kk];saveSettings();}}
     paintBank();return;}
-  if(t.dataset.bkyes!=null||t.dataset.bkno!=null){var iy=bk.items[+(t.dataset.bkyes!=null?t.dataset.bkyes:t.dataset.bkno)];iy.on=t.dataset.bkyes!=null;paintBank();return;}
+  if(t.dataset.bkyes!=null||t.dataset.bkno!=null){var iy=bk.items[+(t.dataset.bkyes!=null?t.dataset.bkyes:t.dataset.bkno)];iy.on=t.dataset.bkyes!=null;iy.touched=true;paintBank();return;}
   if(t.dataset.bkpon!=null){var p=bk.price[+t.dataset.bkpon];p.on=!p.on;t.setAttribute("aria-checked",p.on);t.parentNode.classList.toggle("off",!p.on);bkFoot();return;}
   if(t.dataset.iknl!=null||t.dataset.ikone!=null){var iv=bk.inc[+(t.dataset.iknl!=null?t.dataset.iknl:t.dataset.ikone)];iv.nl=t.dataset.iknl!=null;paintBank();return;}
   if(t.dataset.bkopen!=null){bkOpenForm(+t.dataset.bkopen);return;}
@@ -9924,6 +9942,9 @@ document.getElementById("bkGo").addEventListener("click",function(){
   if(mode==="next"){var st=bkSteps();bk.step=st[st.indexOf(bk.step)+1]||st[st.length-1];paintBank();document.getElementById("bkBody").scrollTop=0;return;}
   var n=0,p=0,ni=0,stamp=uid(),drop=[];
   bk.items.forEach(function(it,k){
+    /* Lernen (25.10.2026): bewusst abgewählt → nächstes Mal vorab abgewählt; Bezeichnung geändert → nächstes Mal übernommen */
+    if(!it.s.ignored&&!it.react){if(!it.on){if(it.touched||(it.s.learn&&it.s.learn.x))bankLearnSet(it.s,{x:1});}
+      else{var lb=it.over?(it.over.label||""):(it.ed.label||"");if(lb&&lb!==bankLabel(it.s))bankLearnSet(it.s,{l:lb});else if(it.touched||it.s.learn)bankLearnSet(it.s,null);}}
     if(!it.on||(it.s.ignored&&!bk.showIgn)){if(it.logo)drop.push(it.logo.id);return;}
     if(it.react&&state.contracts[it.react]){var rc=state.contracts[it.react];rc.status="active";rc.cancelledAt="";delete rc.cancelPer;
       if(rc.end&&parseD(rc.end)<today())rc.end="";var rp=curPrice(rc);
