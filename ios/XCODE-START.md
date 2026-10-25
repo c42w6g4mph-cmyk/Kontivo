@@ -10,7 +10,7 @@ Stand: Branch `swift` (25.10.2026). Rechenkern nach Web v323; Oberfläche noch a
 
 ## 1. Projekt herunterladen
 - GitHub → Repo `Kontivo` → Branch **swift** wählen → **Code** → **Download ZIP**, entpacken.
-- oder im Terminal: `git clone -b swift https://github.com/c42w6g4mph-cmyk/Kontivo.git`
+- oder im Terminal (nur dieser Branch, ohne die grosse Web-Historie): `git clone -b swift --single-branch --depth 1 https://github.com/c42w6g4mph-cmyk/Kontivo.git`
 
 ## 2. Öffnen
 `ios/Kontivo.xcodeproj` doppelklicken. Xcode lädt das lokale Paket `KontivoCore` selbst (kein Internet nötig).
