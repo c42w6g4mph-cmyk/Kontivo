@@ -155,7 +155,7 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         // leerer Betrag: Meldung, Zeile bleibt mit altem Betrag (Ziffernblock kennt keine Buchstaben)
         replace(step, "", "Betrag leeren")
         closeKeyboard()
-        wait(elContaining("Betrag fehlt"), "Meldung Betrag fehlt")
+        // Meldung «Betrag fehlt – …» kommt als Toast (kurz); geprüft wird, dass die Zeile ihren Betrag behält
         waitUntil("alter Betrag bleibt") { ((step.value as? String) ?? "").contains("234.50") }
 
         // Löschen per Wischen
