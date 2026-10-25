@@ -19,7 +19,6 @@ struct CFOpenList: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .padding(.top, 6)
         .padding(.bottom, 16)
-        .accessibilityIdentifier("vk.openList")
     }
 
     private func row(_ it: CompletenessOpenItem) -> some View {
