@@ -147,6 +147,10 @@ Formulare bearbeiten eine Kopie (`Contract`) und übernehmen beim Sichern nur di
 | Service Worker, Manifest | entfällt |
 | Kalender auf Entscheidungskarten | seit 07.10.2026: Kalender-Knopf in der Knopfzeile der Fristen-Liste (nur bei Zeilen mit Behalten/Kündigen) |
 | Adresse «Einfügen» (Zwischenablage lesen) | `PasteButton` (keine Rückfrage nötig), Aufteilung `WebImport.addrFromPaste` |
+| Rückfrage «Gekündigt am» / «Läuft bis» (v249, `ask` mit Datumsfeldern) | Fenster `CancelledAskSheet` (Form mit zwei `DatePicker`, «Noch nicht» / «Ja, gekündigt») |
+| Kosten: Blätter «Kostenart» und «Filter» (`#sheetPick`) | `.sheet` mit denselben Zeilen; «Filter» öffnet die Werteliste im selben Fenster |
+| Build-Nummer «Version 1.0 · v330» (Web-Stand) | «Version 1.0 · Build N» (`CFBundleVersion`) |
+| Betragsfelder: Cursor ans Ende (`focusin`) | `AmountCursor` (Beobachter auf `UITextField.textDidBeginEditingNotification`, Zahlentastatur) |
 
 ## Nachzug Web v70–v88 (07.10.2026)
 - Fristen-Tab Variante 1: `Calc.deadlineOverview()` liefert `status`, `items` (eine Liste nach Datum, `showActions` = Probeabo, needsAction oder ≤ 61 Tage vor Vertragsende), `flexible` (Ende bei Kündigung heute, `endIfCancelledToday`), `flexStack`, Klappgruppen; Golden-Test gegen das gerenderte DOM (ios/Tools/golden/make_golden_texts.py)
