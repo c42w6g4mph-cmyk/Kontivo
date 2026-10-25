@@ -1,5 +1,5 @@
 import SwiftUI
-import UserNotifications
+@preconcurrency import UserNotifications
 import KontivoCore
 
 /// Lokale Mitteilungen vor Fristen (ohne Server). Der Plan (welche Verträge, Daten, Texte, Kennungen) kommt aus

@@ -153,7 +153,7 @@ extension BankPickers: UIDocumentPickerDelegate {
     }
 }
 
-extension BankPickers: VNDocumentCameraViewControllerDelegate {
+extension BankPickers: @preconcurrency VNDocumentCameraViewControllerDelegate {
     func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFinishWith scan: VNDocumentCameraScan) {
         var images: [UIImage] = []
         for i in 0..<scan.pageCount { images.append(scan.imageOfPage(at: i)) }

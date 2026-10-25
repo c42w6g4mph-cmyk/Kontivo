@@ -207,7 +207,7 @@ final class CompletenessFlowState {
                 while let r = await group.next() {
                     if Task.isCancelled { break }
                     let (i, cands) = r
-                    await self?.found(i, cands)
+                    self?.found(i, cands)
                     if nextIndex < items.count {
                         let j = nextIndex, it = items[j]
                         group.addTask { (j, await LogoFinder.allCandidates(name: it.name, currency: it.cur, alt: nil, web: it.web, manual: false).cands) }
