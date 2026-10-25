@@ -152,10 +152,11 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         XCTAssertTrue(((step.value as? String) ?? "").contains("1"), "Betrag: \(String(describing: step.value))")
         ctShot("Formular – Zeitstrahl")
 
-        // ungültiger Betrag: Meldung, Zeile bleibt
-        replace(step, "abc", "Betrag ungültig")
+        // leerer Betrag: Meldung, Zeile bleibt mit altem Betrag (Ziffernblock kennt keine Buchstaben)
+        replace(step, "", "Betrag leeren")
         closeKeyboard()
-        wait(elContaining("Betrag prüfen"), "Meldung Betrag prüfen")
+        wait(elContaining("Betrag fehlt"), "Meldung Betrag fehlt")
+        waitUntil("alter Betrag bleibt") { ((step.value as? String) ?? "").contains("234.50") }
 
         // Löschen per Wischen
         swipeDelete(step, dx: -0.6, "Stufe")
