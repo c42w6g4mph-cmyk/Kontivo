@@ -74,7 +74,7 @@ struct KBIncomeForm: View {
     /// Trefferliste unter «Quelle» (Web v222 `iSug`)
     @State private var sugWeb: [WebPartnerHit] = []
     @State private var sugLoading = false
-    @State private var sugSelected = ""
+    @State private var sugSelected: String
     @State private var sugHidden = true
     @State private var sugTask: Task<Void, Never>?
 

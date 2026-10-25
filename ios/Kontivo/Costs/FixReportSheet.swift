@@ -13,7 +13,7 @@ struct FixReportOptionsSheet: View {
     @MainActor static var lastIDs = true
 
     @State private var person: UUID?
-    @State private var ids = true
+    @State private var ids: Bool
     @State private var busy = false
 
     init(initialPerson: UUID?, fromCosts: Bool) {
