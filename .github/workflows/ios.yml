@@ -14,10 +14,19 @@ env:
   DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
 jobs:
   build:
-    runs-on: macos-15
+    # Standard: macOS 15 + Xcode 26.2. Mit «[xc27]» in der Commit-Nachricht: macOS 26 + neuestes Xcode 27 (Prüfung für das aktuelle Xcode)
+    runs-on: ${{ contains(github.event.head_commit.message, '[xc27]') && 'macos-26' || 'macos-15' }}
     timeout-minutes: 130
     steps:
       - uses: actions/checkout@v4
+      - name: Xcode wählen
+        run: |
+          mkdir -p ci-out
+          if ${{ contains(github.event.head_commit.message, '[xc27]') }}; then
+            X=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -1)
+            if [ -n "$X" ]; then echo "DEVELOPER_DIR=$X/Contents/Developer" >> "$GITHUB_ENV"; fi
+          fi
+          ls -d /Applications/Xcode*.app > ci-out/xcode.txt 2>&1 || true
       - name: Kern testen (swift test)
         id: core
         continue-on-error: true
@@ -53,7 +62,7 @@ jobs:
         timeout-minutes: 72
         run: |
           mkdir -p ci-out
-          RT=$(xcrun simctl list runtimes | grep -o 'com.apple.CoreSimulator.SimRuntime.iOS-26-[0-9]*' | tail -1)
+          RT=$(xcrun simctl list runtimes | grep -o 'com.apple.CoreSimulator.SimRuntime.iOS-2[6-9]-[0-9]*' | sort -V | tail -1)
           UDID=$(xcrun simctl create kqa-ui "iPhone 17 Pro" "$RT" 2>/dev/null || true)
           if [ -n "$UDID" ]; then
             xcrun simctl boot "$UDID" >/dev/null 2>&1 || true
@@ -121,7 +130,7 @@ jobs:
         run: |
           mkdir -p ci-out/shots
           APP=build/Build/Products/Debug-iphonesimulator/Kontivo.app
-          RT=$(xcrun simctl list runtimes | grep -o 'com.apple.CoreSimulator.SimRuntime.iOS-26-[0-9]*' | tail -1)
+          RT=$(xcrun simctl list runtimes | grep -o 'com.apple.CoreSimulator.SimRuntime.iOS-2[6-9]-[0-9]*' | sort -V | tail -1)
           PHONE=$(xcrun simctl create kphone "iPhone 17 Pro" "$RT")
           PADTYPE=$(xcrun simctl list devicetypes | grep -o 'iPad Pro 13-inch[^(]*([^)]*)' | head -1)
           PAD=$(xcrun simctl create kpad "$PADTYPE" "$RT" 2>/dev/null || true)
@@ -214,6 +223,9 @@ jobs:
           {
             echo "branch=$BR run=$GITHUB_RUN_NUMBER sha=$GITHUB_SHA"
             echo "core=${{ steps.core.outcome }} app=${{ steps.app.outcome }} ui=${{ steps.ui.outcome }}"
+            echo "xcode=$(xcodebuild -version 2>/dev/null | tr '\n' ' ') runner=$ImageOS/$ImageVersion"; cat ci-out/xcode.txt 2>/dev/null || true
+            echo; echo "===== WARNUNGEN (Kern + App) ====="
+            grep -h " warning: " ci-out/core.txt ci-out/app.txt 2>/dev/null | grep -v appintentsmetadataprocessor | sort -u | head -100 || true
             echo; echo "===== KERN: Fehler ====="
             grep -E "error:|failed|FAIL|Test Case .* failed|XCTAssert|Issue recorded|✘" ci-out/core.txt | head -300 || true
             echo; echo "===== KERN: Abweichungen (Details) ====="
