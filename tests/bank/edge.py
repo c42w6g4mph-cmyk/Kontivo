@@ -51,6 +51,8 @@ E = {
  # Review 25.10.2026: Kürzel vor Komma, Jahresrechnung früher bezahlt (339 Tage), Versicherer mit mehreren Policen ohne Bezeichnung
  "kuerzel": dict(s=[("Sunrise", 1, 39), ("Muster Kautionsservice", 12, 320)]),
  "jahr_frueh": dict(s=[("Sunrise", 1, 39), ("Muster Abgabestelle", 12, 187.4)]),
+ "kk_einmal": dict(s=[("Sunrise", 1, 39), ("Muster Krankenkasse", 1, 456.8)]),
+ "pause_monat": dict(s=[("Sunrise", 1, 39), ("Muster Sportclub", 1, 64)]),
  "policen": dict(s=[("Sunrise", 1, 39), ("Muster Versicherung", 12, 404.1), ("Muster Versicherung", 12, 383.2), ("Muster Versicherung", 12, 372.7)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);

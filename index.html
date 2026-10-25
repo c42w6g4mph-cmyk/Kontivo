@@ -1684,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v331</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v332</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9155,7 +9155,9 @@ function bankFind(r,ign){
     for(var gi=tx.length-1;gi>0;gi--)if(dd(tx[gi-1].d,tx[gi].d)>400){var pre=tx.slice(0,gi);tx=tx.slice(gi);
       /* nur eine Zahlung nach der Pause: zählt nur, wenn es davor einen regelmässigen Vertrag gab (SWICA), nicht bei sporadischen Zahlungen (Sunrise) */
       if(tx.length===1){var pi=[];for(var pj=1;pj<pre.length;pj++)pi.push(bankCycle(dd(pre[pj-1].d,pre[pj].d)));
-        if(pre.length<3||pi.filter(Boolean).length<pi.length*0.7)return;}
+        if(pre.length<3||pi.filter(Boolean).length<pi.length*0.7)return;
+        /* Rhythmus der früheren Phase übernehmen (SWICA monatlich per LSV, Pause, wieder eine Abbuchung → monatlich, 25.10.2026) */
+        var pc={};pi.forEach(function(c){if(c)pc[c]=(pc[c]||0)+1;});var preCyc=+Object.keys(pc).sort(function(a,b){return pc[b]-pc[a];})[0]||0;}
       break;}
     var name=g.tpl?g.tpl[0]:bankPretty(Object.keys(g.names).sort(function(a,b){return g.names[b]-g.names[a];})[0]);
     var am=tx.map(function(t){return Math.round(-t.a*100)/100;}),last=am[am.length-1],n=tx.length;
@@ -9231,6 +9233,9 @@ function bankFind(r,ign){
       /* Vertragswort (Versicherung, Prämie, Steuer, Mitgliedsbeitrag …): eher Jahreszahlung, auch am Ende eines kurzen Auszugs (23.10.2026);
          kleine Lastschrift (< 150) bleibt bei der Monatsvermutung */
       if(!per&&!yr&&BKONCE.test(h0)&&!(kind==="dd"&&Math.abs(t0.a)<150))yr=true;
+      /* Krankenkasse: Prämie wird praktisch immer monatlich bezahlt (CH Grundversicherung, DE private KV) – auch bei nur einer Zahlung (25.10.2026) */
+      var kk=/krankenkasse|krankenversicherung|gesundheitsorganisation|grundversicherung|\bkvg\b|krankenkassenpramie|krankenkassenpraemie/.test(h0)||!!(g.tpl&&/krankenkasse|krankenversicherung/i.test((g.tpl[3]||"")+" "+(g.tpl[2]||"")));
+      if(!per&&!/jahres|jaehrlich|jahrlich|annual|yearly/.test(h0)){if(typeof preCyc!=="undefined"&&preCyc)per=preCyc;else if(kk)per=1;}
       cyc=per||(yr?12:((dd(t0.d,ref)<40&&span>40&&(span<=300||/lastschriftverfahren|\blsv\b/.test(lnorm((t0.text||"")+" "+(t0.type||"")))))?1:12));
       if(!per&&!yr&&g.tpl&&!g.tpl[1]&&cyc===12&&dd(t0.d,ref)>45)return;
       /* langer Auszug: eine Jahreszahlung, die über 13 Monate zurückliegt, hätte sich wiederholt → kein laufender Vertrag (SWICA 2022) */
