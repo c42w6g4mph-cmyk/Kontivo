@@ -67,6 +67,11 @@ E = {
  "zwei_abos_bekannt": dict(s=[("Sunrise", 1, 39), ("Muster Mobil", 1, 27.95)], k=["Muster Mobil"]),  # 27.95 = Preisänderung beim zweiten Abo, nicht neuer Vertrag
  "exakt_zuerst": dict(s=[("Sunrise", 1, 39)], k=["Muster Versicherung", "Muster Versicherung"]),
  "faelligkeit_falsch": dict(s=[("Sunrise", 1, 39)], k=["Muster Versicherung"]),  # falsches Fälligkeitsdatum darf die Zuordnung nicht verhindern
+ # Review 25.10.2026 (Testgenerator)
+ "preisstufen": dict(s=[("Sunrise", 1, 39), ("Gemeinde Musterdorf", 1, 520)]),
+ "busse_jaehrlich": dict(s=[("Sunrise", 1, 39)]),
+ "revolut_aufladung": dict(s=[("Sunrise", 1, 39)]),
+ "police_ausreisser": dict(s=[("Sunrise", 1, 39), ("Bodensee Versicherung", 12, 746.42), ("Bodensee Versicherung", 12, 303.69)]),
  "policen": dict(s=[("Sunrise", 1, 39), ("Muster Versicherung", 12, 404.1), ("Muster Versicherung", 12, 383.2), ("Muster Versicherung", 12, 372.7)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);

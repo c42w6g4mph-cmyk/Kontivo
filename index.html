@@ -1684,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v342</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v343</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8905,7 +8905,8 @@ function bankTpl0(name,text,cur){var X=tplIdx();
   return best;
 }
 var BKLABTPL={"Bausparvertrag":/bauspar/,"Reiseversicherung":/reise|\beti\b|schutzbrief|travel|annullation/,"Rechtsschutz":/rechtsschutz|assista/,"Leasing":/leasing/,"Säule 3a":/\b3a\b|vorsorge|saeule|saule|pillar/,"Zusatzversicherung":/zusatz|\bvvg\b|spitalvers|ambulant|halbprivat|\bprivat\b/,"Krankenkasse":/grundvers|\bkvg\b|obligatorisch|\bokp\b/};
-var BKSKIP=/bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlung gaa|\bgaa\b|\bga \d{4,}|^ga\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b|kontoubertrag/;
+/* + Bussen, Arzt-/Spitalrechnungen (25.10.2026, Testgenerator): zufällig ähnliche Beträge im Halbjahres-/Jahresabstand sind keine Verträge */
+var BKSKIP=/\bbusse\b|bussgeld|ordnungsbusse|parkbusse|verwarnungsgeld|\bpraxis\b|arztpraxis|zahnarzt|spital|klinik|tierarzt|physiotherap|bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlung gaa|\bgaa\b|\bga \d{4,}|^ga\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b|kontoubertrag/;
 /* Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant) */
 var BKSHOP=/\b(gastro|gastronomie|badi beizli|cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|doner|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|gartnerei|blumen|baumarkt)\b/;
 /* Alltagseinkäufe (Detailhandel, Tankstellen, Fast Food): nie ein Vertrag, ausser ein Katalogeintrag passt (Migros Bank, Coop Mobile) */
@@ -8985,6 +8986,8 @@ function bankFind(r,ign){
     /* Kartenbezug am Automaten einer Bank («Sparkasse Konstanz», «UBS») = Bargeld */
     if((t.kind==="card"||(!t.kind&&Math.abs(t.a)%10===0))&&!/\b3a\b|vorsorge|saeule|saule|leasing/.test(hay)&&/^(sparkasse|volksbank|raiffeisen|commerzbank|deutsche bank|postbank|hypovereinsbank|targobank|santander|ubs|postfinance|zkb|kantonalbank|migros bank|valiant|atm|geldautomat)\b/.test(lnorm(nm)))return;
     if(BKSKIP.test(hay)||BKSHOP.test(lnorm(nm)))return;
+    /* Aufladung eines E-Geld-Kontos per Karte mit rundem Betrag (Revolut, Wise): Umbuchung, kein Vertrag (25.10.2026) */
+    if(t.kind==="card"&&Math.abs(t.a)%5===0&&/^(revolut|wise|transferwise|curve|skrill|neteller)\b/.test(lnorm(nm)))return;
     var tk=bankTok(nm),key=tp?"tpl:"+tp[0]+(TPL.some(function(o){return o!==tp&&o[0]===tp[0];})?"·"+tp[3]:""):(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
     if(!key)return;if(t.memo){var mk=lnorm(t.memo).replace(/\d+/g," ").replace(/\b(januar|februar|marz|maerz|april|mai|juni|juli|august|september|oktober|november|dezember|jan|feb|mar|apr|jun|jul|aug|sep|sept|okt|oct|nov|dez|dec)\b/g," ").replace(/ /g,"").slice(0,24);if(mk)key+="~"+mk;}key=key+"|"+(t.cur||home);
     var gq=groups[key]=groups[key]||{key:key,tpl:tp,tx:[],names:{},cur:t.cur||home};
@@ -9010,6 +9013,9 @@ function bankFind(r,ign){
         return F[a].filter(function(t){return t.d>=R[0]&&t.d<=R[1];}).length>=2&&F[b].filter(function(t){var Q=rg(F[a]);return t.d>=Q[0]&&t.d<=Q[1];}).length>=2;});});
       if(!par)return;delete groups[k];
       fs.forEach(function(f){var nk=k+"#"+f,ng=groups[nk]={key:nk,tpl:g.tpl,tx:F[f],names:{},cur:g.cur};F[f].forEach(function(t){ng.names[t._nm]=(ng.names[t._nm]||0)+1;});});});})();
+  /* alle Zahlungen je Vertragspartner merken, bevor Betrags-Cluster Ausreisser verwerfen (25.10.2026): die Rückfallebene (Jahresreihen) braucht sie
+     (Police 300.50 / 362.94 / 303.69 – die mittlere fiel sonst als Ausreisser weg) */
+  var ALLB={};Object.keys(groups).forEach(function(k){var b=bankBase(k);(ALLB[b]=ALLB[b]||[]);groups[k].tx.forEach(function(t){if(ALLB[b].indexOf(t)<0)ALLB[b].push(t);});});
   /* Nur eine Kartenzahlung und Katalogname aus einem Wort (Spiegel, Salt, Zeit): reicht nicht als Beleg.
      Katalog nur behalten, wenn die Website im Buchungstext steht («spiegel.de»), sonst als unbekannter Händler behandeln */
   Object.keys(groups).forEach(function(k){var g=groups[k];
@@ -9111,12 +9117,14 @@ function bankFind(r,ign){
        (Apple 10.– am 7., dazu App-Käufe 10.90/12.–) → nur die regelmässige Reihe bewerten, Einzelkäufe fallen weg */
     if(!s){var core=bankCore(groups[k]);if(core){s=bankEval(k,core);if(s)groups[k]=core;}}
     /* keine Reihe gefunden: erst nach der Schleife gemeinsam mit den Schwestergruppen (gleicher Vertragspartner, andere Datei/Betragsstufe) als Jahresreihen bzw. Einzelprämien prüfen */
-    if(!s){(FAIL[bankBase(k)]=FAIL[bankBase(k)]||[]).push(k);return;}else OKB[bankBase(k)]=1;
+    if(!s){(FAIL[bankBase(k)]=FAIL[bankBase(k)]||[]).push(k);return;}else (OKB[bankBase(k)]=OKB[bankBase(k)]||[]).push(k);
     if(s)bankApplyAlias(s);
     if(!s){EV.push({k:k,s:null,q:9});return;}
     s.cat=bankCat(s);if(s.alias&&s.alias.c&&allCats().indexOf(s.alias.c)>=0)s.cat=s.alias.c;
     s.match=bankMatch(s);var q=!s.match?5:s.match.kind==="known"?(s.varies?1:0):2;EV.push({k:k,s:s,q:q});});
-  Object.keys(FAIL).forEach(function(b0){var ks=FAIL[b0],T=[];ks.forEach(function(k){groups[k].tx.forEach(function(t){if(T.indexOf(t)<0)T.push(t);});});
+  Object.keys(FAIL).forEach(function(b0){var ks=FAIL[b0],T=[],OT=[];(OKB[b0]||[]).forEach(function(k){OT=OT.concat(groups[k].tx);});
+    ks.forEach(function(k){groups[k].tx.forEach(function(t){if(T.indexOf(t)<0)T.push(t);});});
+    (ALLB[b0]||[]).forEach(function(t){if(T.indexOf(t)<0&&OT.indexOf(t)<0)T.push(t);});
     T.sort(function(x,y){return x.d<y.d?-1:x.d>y.d?1:0;});var g0=groups[ks[0]],mg={key:ks[0],tpl:g0.tpl,tx:T,names:{},cur:g0.cur};ks.forEach(function(k){Object.keys(groups[k].names).forEach(function(n){mg.names[n]=(mg.names[n]||0)+groups[k].names[n];});});
     mg.hasSeries=!!OKB[b0];if(!bankFallback(ks[0],mg))ks.forEach(function(k){EV.push({k:k,s:null,q:9});});});
   /* exakter Betrag + gleiches Wort zuerst (Protekta «Rechtschutz» 341.10 = erfasster «Rechtsschutz» 341.10), danach die unscharfen Treffer (25.10.2026) */
@@ -9182,7 +9190,7 @@ function bankFind(r,ign){
       if(Object.keys(gm).length<=gspan*0.5&&(onceW||gk.tpl||gk.tx.some(function(t){return t.cred||t.kind==="dd"||t.kind==="so";}))){var SR=[];
         /* je Buchungstag: beste Paare (Betrag am nächsten) zuerst – zwei Fahrzeuge am selben Tag (168 / 153.15) nicht vertauschen */
         var byD={};gk.tx.filter(function(t){return -t.a>=20&&t.kind!=="card";}).forEach(function(t){(byD[t.d]=byD[t.d]||[]).push(t);});
-        Object.keys(byD).sort().forEach(function(d0){var P=[],usedS=[],usedT=[];byD[d0].forEach(function(t){SR.forEach(function(S){var L=S[S.length-1],g0=dd(L.d,t.d);if(g0<330||g0>400)return;
+        Object.keys(byD).sort().forEach(function(d0){var P=[],usedS=[],usedT=[];byD[d0].forEach(function(t){SR.forEach(function(S){var L=S[S.length-1],g0=dd(L.d,t.d);if(g0<300||g0>430)return;/* Jahresrechnung ±1 Monat früher/später bezahlt */
             var rr=Math.abs(-t.a+L.a)/(-L.a);if(rr<=0.35)P.push([rr,t,S]);});});
           P.sort(function(x,y){return x[0]-y[0];});P.forEach(function(x){if(usedT.indexOf(x[1])>=0||usedS.indexOf(x[2])>=0)return;usedT.push(x[1]);usedS.push(x[2]);x[2].push(x[1]);});
           byD[d0].forEach(function(t){if(usedT.indexOf(t)<0)SR.push([t]);});});
@@ -9216,7 +9224,7 @@ function bankFind(r,ign){
     var kind=Object.keys(kc).sort(function(a,b){return kc[b]-kc[a];})[0]||"";
     g.tx.forEach(function(t){var id=t.d+"|"+t.a;if(seen[id])return;seen[id]=1;tx.push(t);});
     /* Pause über 13 Monate (SWICA 2023–24 per LSV, dann 2 Jahre nichts, jetzt wieder): nur die laufende Phase zählt (23.10.2026) */
-    for(var gi=tx.length-1;gi>0;gi--)if(dd(tx[gi-1].d,tx[gi].d)>400){var pre=tx.slice(0,gi);tx=tx.slice(gi);
+    for(var gi=tx.length-1;gi>0;gi--)if(dd(tx[gi-1].d,tx[gi].d)>(g.yearly||g.period?460:400)){var pre=tx.slice(0,gi);tx=tx.slice(gi);
       /* nur eine Zahlung nach der Pause: zählt nur, wenn es davor einen regelmässigen Vertrag gab (SWICA), nicht bei sporadischen Zahlungen (Sunrise) */
       if(tx.length===1){var pi=[];for(var pj=1;pj<pre.length;pj++)pi.push(bankCycle(dd(pre[pj-1].d,pre[pj].d)));
         if(pre.length<3||pi.filter(Boolean).length<pi.length*0.7)return;
@@ -9240,7 +9248,7 @@ function bankFind(r,ign){
       var dbl={1:2,2:4,3:6,6:12};cyc=0;
       Object.keys(cnt).map(Number).sort(function(a,b){return a-b;}).some(function(c0){
         var h=cs.filter(function(c){return c===c0||c===dbl[c0];}).length;if(h>=iv.length*0.7&&cnt[c0]>=Math.max(1,iv.length*0.3)){cyc=c0;return true;}return false;});
-      if(g.period)cyc=12;if(g.half)cyc=6;/* Rechnungen je Steuer-/Abrechnungsjahr: Zahldatum beliebig (Nachzahlung fürs Vorjahr), Rhythmus jährlich */
+      if(g.period||(g.yearly&&!g.half))cyc=12;if(g.half)cyc=6;/* Jahresreihe ist schon über 300–430 Tage geprüft *//* Rechnungen je Steuer-/Abrechnungsjahr: Zahldatum beliebig (Nachzahlung fürs Vorjahr), Rhythmus jährlich */
       if(!cyc)return;
       /* Beträge: höchstens zwei Stufen (Preisänderung) oder ±5 % um den Median, sonst variabel (Einkäufe) */
       var lv=[];am.forEach(function(v){if(!lv.length||Math.abs(lv[lv.length-1]-v)>0.004)lv.push(v);});
@@ -9262,6 +9270,11 @@ function bankFind(r,ign){
         }
       } else {
         if(n<3)return;
+        /* Preisstufen (25.10.2026): mehr als zwei Stufen, aber die letzten ≥ 3 Zahlungen gleich (Steuerraten je Jahr neu, Krankenkasse jeden Januar)
+           → fester Vertrag mit aktuellem Preis, Änderung ab Beginn der letzten Stufe; nicht bei Kartenzahlungen ohne Katalog */
+        var tr=1;while(tr<n&&Math.abs(am[n-1-tr]-am[n-1])<=am[n-1]*0.005)tr++;
+        if(tr>=3&&tr<n&&(kind!=="card"||g.tpl)&&dd(tx[n-tr].d,tx[n-1].d)>=(tr-1)*cyc*25){ch={from:tx[n-tr].d,prev:am[n-tr-1],amount:am[n-1]};last=am[n-1];}
+        else{
         /* schwankende Beträge nur bei Rechnungen/Lastschriften (Strom, Handy); Kartenabos haben einen festen Preis */
         /* Ausnahme: Kartenabo in Fremdwährung (USD/GBP) – Betrag schwankt nur durch den Kurs: monatlich, eng (±5 %), mind. 3× */
         var fx=kind==="card"&&n>=3&&cyc===1&&(function(){var s0=am.slice().sort(function(a,b){return a-b;}),m0=s0[Math.floor(s0.length/2)];return am.every(function(v){return Math.abs(v-m0)<=m0*0.05;});})()&&
@@ -9275,8 +9288,8 @@ function bankFind(r,ign){
         var l2=am.slice(-2),ramp=n>=3&&Math.abs(l2[0]-l2[1])<0.005&&am.every(function(v){return v<=l2[1]+0.005;});
         if(!ramp&&amR.filter(function(v){return Math.abs(v-mR)<=mR*tol;}).length<amR.length*0.7)return;
         /* aktueller Betrag: Median der letzten 3 Rechnungen (Abo-Wechsel bei Wingo 44.95 → 27.95), nicht des ganzen Auszugs */
-        varies=true;var l3=am.slice(-3).sort(function(a,b){return a-b;});last=l3[Math.floor(l3.length/2)];
-      }
+        varies=true;var l3=am.slice(-3).sort(function(a,b){return a-b;});last=cyc>=6?am[n-1]:l3[Math.floor(l3.length/2)];/* Jahres-/Halbjahresprämie: aktuelle Rechnung zählt */
+      }}
       if(!ch&&g.prevC&&cyc===1&&Math.abs(g.prevC.amount-last)>0.004){ch={from:tx[0].d,prev:g.prevC.amount,amount:last};var prevTx=g.prevC.tx||[];}
       /* beendet? letzte Zahlung deutlich länger her als der Rhythmus */
       if(dd(tx[n-1].d,ref)>cyc*30.5*1.5+7)return;
@@ -9285,6 +9298,8 @@ function bankFind(r,ign){
       conf=(n>=3||cyc>=3)?(varies?"mittel":"hoch"):((kind==="dd"||kind==="so")?"mittel":"niedrig");
       /* Jährlich gleicher runder Betrag ohne Mitteilung, Gläubiger-ID oder Katalog: bei nur 2 Jahren nachfragen (könnte Busse sein);
          ab 3 Jahren im gleichen Zeitraum ist es eine Gebühr (Hundesteuer 100.– jeden März/April, 25.10.2026) */
+      /* Kartenzahlung nur zweimal im Jahresabstand (App-Kauf 7.– zweimal im Februar): Zufall möglich → nur nachfragen */
+      if(kind==="card"&&n<3&&cyc>=3)conf="niedrig";
       if(n<3&&cyc===12&&!g.tpl&&kind!=="dd"&&kind!=="so"&&!tx.some(function(t){return t.cred||t.memo;})&&am.every(function(v){return Math.abs(v-am[0])<0.005&&v%50===0;}))conf="niedrig";
       if(g.yearly&&n<3)conf="niedrig";
     } else {
