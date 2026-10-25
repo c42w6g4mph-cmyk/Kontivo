@@ -9,7 +9,7 @@ final class ContractDetailUITests: KontivoUITestCase {
 
     /// 1) Laufendes Probeabo: Kasten «Probeabo bis 19. Oktober» · «danach kostenpflichtig …», Zeile «Probeabo: gratis bis …»;
     ///    «Behalten» setzt das Probeabo auf behalten, danach kein Kasten mehr.
-    /// 2) Menü ••• → «Schon gekündigt …» → Chip «30.11.26 (Termin)» → «Sichern»: Karte «gekündigt per 30.11.26», Detail mit
+    /// 2) Menü ••• → «Schon gekündigt …» → «Gekündigt am» heute, «Läuft bis» 30.11.26 → «Ja, gekündigt»: Karte «gekündigt per 30.11.26», Detail mit
     ///    Pille «Gekündigt · läuft bis …» und «Kündigung zurücknehmen» statt «Schon gekündigt …» (Web v154)
     func testProbeaboBehaltenUndSchonGekuendigt() {
         launch("-uiDemo", "-uiTab", "contracts")
@@ -33,14 +33,13 @@ final class ContractDetailUITests: KontivoUITestCase {
         tap(buttonStarting("Fitnessabo"), "Karte Fitnessabo")
         tap(button("detail.menu"), "Menü •••")
         tap(buttonStarting("Schon gekündigt"), "Schon gekündigt …")
+        // Web v249: «Gekündigt am» (heute) und «Läuft bis» (ab diesem Tag gerechnet: 30.11.26)
         waitNav("Schon gekündigt")
-        XCTAssertTrue(elContaining("Vorgeschlagen ist der nächste mögliche Termin").exists, "Text der Rückfrage")
-        XCTAssertTrue(button("heute").exists, "Chip heute")
-        let termin = buttonStarting("30.11.26")
-        wait(termin, "Chip «30.11.26 (Termin)»")
+        XCTAssertTrue(elContaining("Das Vertragsende rechnet Kontivo ab diesem Tag").exists, "Text der Rückfrage")
+        wait(el("cancelled.on"), "Feld «Gekündigt am»")
+        wait(el("cancelled.per"), "Feld «Läuft bis»")
         ctShot("Detail – Schon gekündigt")
-        tap(termin, "Chip Termin")
-        tap(button("detail.cancelled.save"), "Sichern")
+        tap(button("cancelled.yes"), "Ja, gekündigt")
         waitGone(button("detail.menu"), "Detail nach dem Sichern")
         waitUntil("Karte «gekündigt per 30.11.26»") { self.buttonStarting("Fitnessabo").label.contains("gekündigt per 30.11.26") }
         tap(buttonStarting("Fitnessabo"), "Karte Fitnessabo")

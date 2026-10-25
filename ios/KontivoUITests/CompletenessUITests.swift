@@ -1,6 +1,6 @@
 import XCTest
 
-/// Vollständigkeit (Web v120–v134, v143): Mehr → Vollständigkeit → Start → Fristen-Frage → Adresse → optional Logos
+/// Vollständigkeit (Web v120–v134, v143, 01b0f3d): Mehr → Vollständigkeit → Start → Adresse → Fristen-Frage → optional Logos
 /// («Ohne Logo», «Ohne Logos fertig») → Abschluss (Ring/Überschrift nach Prozent, Liste nur bei komplett).
 /// Zweiter Durchgang mit Adresse von Lara → komplett; dritter Start «Alles startklar!» mit «Logos ergänzen».
 /// Start mit «-uiVkTerm»: bei «Stadtwerke Konstanz» fehlt die Kündigungsfrist (sonst stellen die Beispieldaten keine Fristen-Frage).
@@ -33,23 +33,24 @@ final class CompletenessUITests: KontivoUITestCase {
         shot("1-Start")
         tap(go, "Los geht’s")
 
-        // 1 Fristen-Frage für Stadtwerke Konstanz (Web v143: Fristen zuerst)
+        // 1 Adresse von Lara (Web 01b0f3d: Adresse zuerst): überspringen
+        waitNav("Adresse")
+        wait(el("Adresse von Lara"), "Frage Adresse")
+        XCTAssertTrue(el("Frage 1 von 2").exists, "Fortschritt «Frage 1 von 2»")
+        shot("3-Adresse")
+        tap(button("vk.senderSkip"), "Später eintragen")
+
+        // 2 Fristen-Frage für Stadtwerke Konstanz, mit «Keine Erinnerung nötig»
         waitNav("Fristen")
         wait(el("Wie ist «Stadtwerke Konstanz» kündbar?"), "Frage Fristen")
-        XCTAssertTrue(el("Frage 1 von 2").exists, "Fortschritt «Frage 1 von 2»")
+        XCTAssertTrue(el("Frage 2 von 2").exists, "Fortschritt «Frage 2 von 2»")
+        XCTAssertTrue(button("vk.termNoWatch").exists, "Knopf «Keine Erinnerung nötig»")
         tap(button("vk.mode.open"), "Jederzeit kündbar")
         let notice = textField("vk.notice")
         wait(notice, "Feld Kündigungsfrist")
         replace(notice, "1", "Kündigungsfrist")
         shot("2-Frist")
         tap(button("vk.termSave"), "Weiter")
-
-        // 2 Adresse von Lara: überspringen
-        waitNav("Adresse")
-        wait(el("Adresse von Lara"), "Frage Adresse")
-        XCTAssertTrue(el("Frage 2 von 2").exists, "Fortschritt «Frage 2 von 2»")
-        shot("3-Adresse")
-        tap(button("vk.senderSkip"), "Später eintragen")
 
         // 3 optional Logos am Schluss: im Test ohne Netz → «Logos ergänzen», Kachel antippen → «Ohne Logo»
         waitNav("Logos")
@@ -73,10 +74,18 @@ final class CompletenessUITests: KontivoUITestCase {
         waitUntil("Abschluss") {
             self.el("Fast geschafft!").exists || self.el("Gute Basis!").exists || self.el("Ein Anfang ist gemacht").exists
         }
-        XCTAssertTrue(elContaining("noch nicht startklar").exists, "Text «… noch nicht startklar»")
+        XCTAssertTrue(el("Bis 100 % fehlt noch:").exists, "Text «Bis 100 % fehlt noch:»")
         XCTAssertFalse(el("Kontivo erinnert dich vor jeder Frist").exists, "Liste nur, wenn alles startklar ist")
+        // offener Punkt direkt ergänzbar: Adresse öffnen, zurück zum Abschluss
+        let fixSnd = button("vk.fix.snd")
+        wait(fixSnd, "Offener Punkt «Adresse von Lara»")
+        XCTAssertTrue(button("vk.again").exists, "Knopf «Jetzt ergänzen»")
         shot("5-Ende")
-        tap(button("vk.done"), "Fertig")
+        tap(fixSnd, "Adresse ergänzen")
+        waitNav("Adresse")
+        tap(button("vk.back"), "Zurück")
+        wait(button("vk.fix.snd"), "Wieder im Abschluss")
+        tap(button("vk.done"), "Später")
         waitUntil("Vollständigkeit geschlossen") { !self.navExists("Vollständigkeit") }
 
         // Zweiter Durchgang: Stadtwerke hat jetzt eine Frist → nur noch die Adresse; ausfüllen → komplett

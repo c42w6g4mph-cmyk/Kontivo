@@ -479,8 +479,9 @@ struct MoreDataGroup: View {
             MoreICloudSection() // iCloud-Sync (Bereich sync: More/MoreICloudSection.swift)
             VStack(spacing: 8) {
                 HStack(spacing: 8) {
-                    MoreTile(symbol: "ic.upload", title: "Backup erstellen") { flow.exportBackup(model: model) }
+                    // Web b30ea02: laden links, erstellen rechts (wie CSV)
                     MoreTile(symbol: "ic.download", title: "Backup laden") { flow.startImport(.backup) }
+                    MoreTile(symbol: "ic.upload", title: "Backup erstellen") { flow.exportBackup(model: model) }
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 HStack(spacing: 8) {
@@ -616,10 +617,15 @@ struct MoreLegalItem: View {
 // MARK: - Fuss
 
 /// Fusszeile (Web `.brandfoot`, `.bfeat`, `.bver`, `.foot`): App-Symbol 40 pt, Wortmarke 17 pt (v170/v171), Slogan 14 pt,
-/// drei Merkmale mit Messing-Haken, Version, «Made with ❤️ in 🇨🇭».
+/// drei Merkmale mit Messing-Haken, Version mit Build-Nummer, «Made with ❤️ in 🇨🇭».
 struct MoreBrandFooter: View {
     private var version: String {
         (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "1.0"
+    }
+
+    /// Build-Nummer (Web v246 «Version 1.0 · v246»: sichtbar, welcher Stand auf dem Gerät läuft)
+    private var build: String {
+        (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "1"
     }
 
     var body: some View {
@@ -644,7 +650,7 @@ struct MoreBrandFooter: View {
             MoreFeatureFlow(texts: ["Ohne Bankanbindung", "Keine Werbung", "Daten bleiben privat"])
                 .padding(.top, 14)
 
-            Text("Version " + version)
+            Text(verbatim: "Version " + version + " · Build " + build)
                 .font(KFont.text(11))
                 .foregroundStyle(KColor.ink3)
                 .kLineHeight(11, 15.95)

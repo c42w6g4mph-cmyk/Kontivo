@@ -210,6 +210,7 @@ struct LetterView: View {
                 }
             }
             .padding(.top, 4)
+            LetterWindowRow()
         }
     }
 

@@ -7,7 +7,10 @@ struct KontivoApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     /// Bereich native: Empfänger für Mitteilungen vor dem Ende des Starts setzen (Tippen auf eine Erinnerung)
-    init() { NativeBoot.start() }
+    init() {
+        NativeBoot.start()
+        AmountCursor.install()
+    }
 
     var body: some Scene {
         WindowGroup {

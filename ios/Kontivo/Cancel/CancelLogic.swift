@@ -38,14 +38,12 @@ extension AppModel {
         }
     }
 
-    /// Rückfrage nach der Kündigung (Web v143): «Gekündigt?» (Online/E-Mail, «Ja, gekündigt» / «Abbrechen») bzw.
-    /// «Brief verschickt?» (nach dem Kündigungsschreiben, «Ja, gekündigt» / «Noch nicht»). Entfällt, wenn schon gekündigt.
+    /// Rückfrage nach der Kündigung (Web v143/v249): «Gekündigt?» (Online/E-Mail) bzw. «Brief verschickt?» (nach dem
+    /// Kündigungsschreiben) mit «Gekündigt am» und «Läuft bis» («Ja, gekündigt» / «Noch nicht»). Entfällt, wenn schon gekündigt.
     func askCancelled(_ contractID: UUID, trial: Bool, letter: Bool) {
         guard let c = data.contract(contractID), let q = calc.cancelledQuestion(c, trial: trial, letter: letter) else { return }
         CancelQuestionLog.note(contractID)
-        ask(title: q.title, message: q.text, ok: q.ok, cancel: q.no, action: { [weak self] in
-            self?.cancelFlowMarkCancelled(contractID, trial: trial)
-        })
+        presentCancelledAsk(contractID, trial: trial, title: q.title)
     }
 
     /// Text der alten Rückfrage `cancelQuestion` (RootView, Übergang): wie «Gekündigt?» aus dem Kern.
@@ -67,10 +65,11 @@ extension AppModel {
     /// zeigt den Toast («Gekündigt — läuft bis …», «Endet heute – danach im Archiv», «Beendet – steht jetzt im Archiv»).
     /// `per`: «Läuft bis» aus «Schon gekündigt …» (sonst Termin bzw. letzter Gratistag).
     /// «Nur Anbieter wechseln»: öffnet danach das Formular «Neuer Vertragspartner» mit dem Entwurf aus markCancelled.
-    func cancelFlowMarkCancelled(_ contractID: UUID, trial: Bool, per: Day? = nil) {
+    /// `on`: «Gekündigt am» (Web v249; ohne Angabe heute).
+    func cancelFlowMarkCancelled(_ contractID: UUID, trial: Bool, per: Day? = nil, on: Day? = nil) {
         var result: CancelResult?
         let day = today
-        let ok = update { d in result = d.markCancelled(contractID, trial: trial, per: per, today: day) }
+        let ok = update { d in result = d.markCancelled(contractID, trial: trial, per: per, on: on, today: day) }
         guard ok, let r = result else { return }
         toast(r.toast)
         if let draft = r.replacement {

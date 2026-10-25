@@ -119,6 +119,8 @@ struct AppSheetView: View {
         case .fixReport(let person, let fromCosts):
             // Fixkosten-Bericht (Bereich costs)
             FixReportOptionsSheet(initialPerson: person, fromCosts: fromCosts)
+        case .cancelledAsk(let a):
+            CancelledAskSheet(ask: a)
         }
     }
 }
