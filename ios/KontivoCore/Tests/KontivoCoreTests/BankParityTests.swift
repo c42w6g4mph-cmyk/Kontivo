@@ -264,7 +264,7 @@ final class BankParityTests: XCTestCase {
         }
     }
 
-    /// Gleiche Dateien gegen erfasste Verträge (CSS 389.60 → Preisänderung, Netflix 18.90 → bereits erfasst), wie tests/bank/check.py.
+    /// Gleiche Dateien gegen erfasste Verträge (CSS 389.60 → Preisänderung, Netflix 18.90 → bereits erfasst), wie main/tests/bank/check.py.
     func testFilesWithContracts() throws {
         let files = try XCTUnwrap(BankParityTests.expected["check"] as? J)
         let data = try appData(BankParityTests.str(BankParityTests.expected["checkBackup"]))
@@ -289,7 +289,7 @@ final class BankParityTests: XCTestCase {
         XCTAssertTrue(r.known.contains { data.contract($0.contractID).map { data.partnerName(of: $0) } == "Netflix" })
     }
 
-    /// Grenzfälle aus tests/bank/edge_cases.json (mit Verträgen und gelernten Korrekturen) und zusätzliche Regeln.
+    /// Grenzfälle aus main/tests/bank/edge_cases.json (mit Verträgen und gelernten Korrekturen) und zusätzliche Regeln.
     func testEdgeCases() throws {
         let exp = try XCTUnwrap(BankParityTests.expected["edge"] as? J)
         let inp = try XCTUnwrap(BankParityTests.expected["edgeInput"] as? J)
@@ -315,7 +315,7 @@ final class BankParityTests: XCTestCase {
         }
     }
 
-    /// Mehrere Dateien: gleiche Datei doppelt zählt einmal, Konto + Kreditkarte ergänzen sich (wie tests/bank/multi.py).
+    /// Mehrere Dateien: gleiche Datei doppelt zählt einmal, Konto + Kreditkarte ergänzen sich (wie main/tests/bank/multi.py).
     func testMultipleFiles() throws {
         let list = try XCTUnwrap(BankParityTests.expected["multi"] as? [J])
         let data = try appData(BankParityTests.str(BankParityTests.expected["emptyBackup"]))

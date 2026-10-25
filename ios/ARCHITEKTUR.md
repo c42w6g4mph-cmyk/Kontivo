@@ -31,7 +31,7 @@ ios/
       CSV.swift               CSV-Export/-Import
       Partners.swift          Gruppen (Name), regDom, Dubletten, similar
       Mutations.swift         Fachaktionen auf AppData (kündigen, behalten, pausieren, duplizieren, umbenennen, zusammenführen …)
-    Tests/KontivoCoreTests/   golden-Tests (Resources: cases.json, golden.json aus ../../tests/)
+    Tests/KontivoCoreTests/   golden-Tests (Resources: cases.json, golden.json aus ios/Tools/golden/)
   Kontivo/                    App-Target
     App/                      KontivoApp, AppModel (@Observable, Laden/Speichern), RootView (TabView)
     Design/                   Farben, Schriften, wiederverwendbare Bausteine (Mark/Logo, Karten, Chips, Segment, Leerzustand)
@@ -121,8 +121,8 @@ Eingabe: Backup-Datei der Web-App (`{app:"vertraege", version, exported, setting
 - Vertrag ohne Vertragspartner: die Bezeichnung erscheint als erste Empfängerzeile im Brief (Web: Freitext-Adresse am Vertrag).
 
 ## Vergleichstests gegen die Web-App
-- `GoldenTests` (Rechenkern, `tests/golden.json` aus `make_golden.py`).
-- `TextGoldenTests` (Fristen-Tab, CSV-Export, Datenqualität, Kündigungsschreiben – am gerenderten DOM gemessen, `tests/golden_texts.json` aus `make_golden_texts.py`). Nach Web-Änderungen beide Skripte neu laufen lassen und die JSON-Dateien nach `KontivoCore/Tests/KontivoCoreTests/Resources/` kopieren.
+- `GoldenTests` (Rechenkern, `golden.json` aus `ios/Tools/golden/make_golden.py`).
+- `TextGoldenTests` (Fristen-Tab, CSV-Export, Datenqualität, Kündigungsschreiben – am gerenderten DOM gemessen, `golden_texts.json` aus `ios/Tools/golden/make_golden_texts.py`). Nach Web-Änderungen beide Skripte mit `WEB=<main-Repo>` neu laufen lassen; sie schreiben direkt nach `KontivoCore/Tests/KontivoCoreTests/Resources/`.
 
 ## App-Zustand
 `@Observable final class AppModel` (App-Target): hält `AppData`, speichert nach jeder Änderung (entprellt) als JSON in `Application Support/Kontivo/data.json`, Dateien in `Application Support/Kontivo/Files/<id>`. `calc` liefert `Calc(data:today:)`. Alle Änderungen laufen über Methoden, die `Mutations` aus dem Kern aufrufen (Ansichten ändern `data` nie direkt an mehreren Stellen).
@@ -149,7 +149,7 @@ Formulare bearbeiten eine Kopie (`Contract`) und übernehmen beim Sichern nur di
 | Adresse «Einfügen» (Zwischenablage lesen) | `PasteButton` (keine Rückfrage nötig), Aufteilung `WebImport.addrFromPaste` |
 
 ## Nachzug Web v70–v88 (07.10.2026)
-- Fristen-Tab Variante 1: `Calc.deadlineOverview()` liefert `status`, `items` (eine Liste nach Datum, `showActions` = Probeabo, needsAction oder ≤ 61 Tage vor Vertragsende), `flexible` (Ende bei Kündigung heute, `endIfCancelledToday`), `flexStack`, Klappgruppen; Golden-Test gegen das gerenderte DOM (tests/make_golden_texts.py)
+- Fristen-Tab Variante 1: `Calc.deadlineOverview()` liefert `status`, `items` (eine Liste nach Datum, `showActions` = Probeabo, needsAction oder ≤ 61 Tage vor Vertragsende), `flexible` (Ende bei Kündigung heute, `endIfCancelledToday`), `flexStack`, Klappgruppen; Golden-Test gegen das gerenderte DOM (ios/Tools/golden/make_golden_texts.py)
 - Nicht kündbar: `Contract.noCancel`, `Calc.isFixed` (= Steuern & Gebühren oder noCancel) ersetzt `isTax` bei allem, was Kündbarkeit betrifft
 - Aufteilung: `SplitShare.percent` ist `Double` (4 Nachkommastellen); Formular mit Beträgen pro Zahlung (`setSplitAmount`), bei 2 Inhabern Slider in 0.50-Schritten (Wert = Betrag der rechten Person)
 - Katalog: Felder `address`, `mail`, `tel`, `confirmed` (make_catalog.py liest TPL[12–15]); `Catalog.match` (Währung → Land), `AppData.catalogFillPlan/applyCatalogFill` («Kontaktdaten ergänzen» in Verwalten); Vorlage füllt Adresse/E-Mail/Telefon nur leer

@@ -174,7 +174,7 @@ struct KWordmarkBrass: Shape {
     }
 }
 
-/// Glyphen «ntivo» (Inter Display Bold, OFL) aus brand/kontivo-wortmarke-hell.svg, umgerechnet mit ios/design-tools/wordmark_glyphs.py
+/// Glyphen «ntivo» (Inter Display Bold, OFL) aus main/brand/kontivo-wortmarke-hell.svg, umgerechnet mit ios/Tools/design/wordmark_glyphs.py
 enum KWordmarkGlyphs {
     /// «n»
     static func glyphN(_ p: inout Path) {

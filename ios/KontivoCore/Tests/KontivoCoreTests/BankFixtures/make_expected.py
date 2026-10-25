@@ -1,7 +1,7 @@
 """Erwartungswerte für BankParityTests.swift direkt aus der Web-App (index.html, window.KontivoBank).
 Aufruf:  cd <web-repo> && python3 -m http.server 8765 &   python3 -I make_expected.py [<web-repo>]
-Kopiert tests/bank/samples und tests/bank/real/{ch,de} hierher und schreibt expected.json
-(Grenzfälle aus tests/bank/edge_cases.json und EXTRA unten samt Eingabe unter «edgeInput»)."""
+Kopiert main/tests/bank/samples und main/tests/bank/real/{ch,de} hierher und schreibt expected.json
+(Grenzfälle aus main/tests/bank/edge_cases.json und EXTRA unten samt Eingabe unter «edgeInput»)."""
 import base64, json, os, shutil, sys
 from playwright.sync_api import sync_playwright
 HERE = os.path.dirname(os.path.abspath(__file__))

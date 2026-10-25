@@ -1,7 +1,7 @@
 import XCTest
 @testable import KontivoCore
 
-/// Backup mit Grenzwerten wie die Web-App beim Einspielen bereinigt (golden_import.json aus `sanitizeImport`, tests/make_golden_import.py):
+/// Backup mit Grenzwerten wie die Web-App beim Einspielen bereinigt (golden_import.json aus `sanitizeImport`, ios/Tools/golden/make_golden_import.py):
 /// Zyklus (einmalig nur bei Einnahmen), Beträge, Währung, Frist, Preise/Sonderzahlungen, Aufteilung, Logo (Datei-ID, rgb()-Hintergrund),
 /// Dokumente, Farben, Personen, Kategorien ohne Namen, gelernte Korrekturen, variable Kosten (Web Bereinigung E, Gegenprüfung).
 final class WebImportSanitizeTests: XCTestCase {

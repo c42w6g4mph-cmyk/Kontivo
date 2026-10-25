@@ -1,7 +1,7 @@
 import Foundation
 
 #if DEBUG
-/// Beispiel-Kontoauszug für UI-Tests (`-uiBankSample`): gekürzte PostFinance-CSV aus tests/bank/samples/ch_postfinance.csv
+/// Beispiel-Kontoauszug für UI-Tests (`-uiBankSample`): gekürzte PostFinance-CSV aus main/tests/bank/samples/ch_postfinance.csv
 /// (Miete, Krankenkasse, Swisscom, Strom quartalsweise, Fitness, Lohn, einige Einkäufe). Web-Ergebnis (v141, 08.10.2026):
 /// 4 Vorschläge – Immo Seeblick AG 1850.00 monatlich, CSS 412.30, Energie Kreuzlingen 180.50 quartalsweise, Swisscom 79.00.
 enum BankSample {

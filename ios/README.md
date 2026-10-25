@@ -3,7 +3,7 @@
 Native Version der Web-App Kontivo, 1:1 nachgebaut. Stand: 10.10.2026 (Web v142); Kern (KontivoCore) 11.10.2026 auf Web v160 – Oberfläche folgt. iCloud-Sync eingebaut (11.10.2026), im Build ausgeschaltet bis zum Apple Developer Program.
 
 ## Stand
-- **Kern (KontivoCore):** Datenmodell, Rechenkern, Datenqualität, Kündigungsschreiben, Katalog, Import/Export, Fachaktionen. 46 automatische Tests, darunter der Abgleich mit der Web-App (`tests/golden.json`: 4 Stichtage × 25 Verträge × 17 Werte, 100 % gleich).
+- **Kern (KontivoCore):** Datenmodell, Rechenkern, Datenqualität, Kündigungsschreiben, Katalog, Import/Export, Fachaktionen. 46 automatische Tests, darunter der Abgleich mit der Web-App (`KontivoCore/Tests/KontivoCoreTests/Resources/golden.json`: 4 Stichtage × 25 Verträge × 17 Werte, 100 % gleich).
 - **App:** alle Bereiche der Web-App (Verträge, Kosten, Budget, Fristen, Mehr, Verwalten mit Vollständigkeit, Kündigung mit Brief/PDF/Unterschrift, Einführung mit Intro, Kontoauszug-Import, Backup/CSV).
 - **Kontoauszug:** Erkennung 1:1 wie Web, geprüft gegen Erwartungswerte aus der Web-App (84 Bankdateien, 37 Grenzfälle, 3 Kombinationen).
 - **Geprüft:** Jede Änderung wird auf einem Mac von GitHub gebaut (Xcode 26.2), getestet und im Simulator fotografiert (iPhone 17 Pro hell/dunkel, iPad Pro 13″). Auf einem echten Gerät lief die App noch nicht.

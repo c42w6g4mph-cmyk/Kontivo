@@ -1,7 +1,7 @@
 import XCTest
 @testable import KontivoCore
 
-/// Vergleicht Texte und Regeln mit golden_texts.json (aus der Web-App erzeugt mit tests/make_golden_texts.py):
+/// Vergleicht Texte und Regeln mit golden_texts.json (aus der Web-App erzeugt mit ios/Tools/golden/make_golden_texts.py):
 /// Dringlichkeit, Tab «Fristen», CSV-Export (je Stichtag aus cases.json) sowie Datenqualität und Kündigungsschreiben
 /// für das Test-Backup cases_texts.json.
 final class TextGoldenTests: XCTestCase {

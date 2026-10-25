@@ -1,4 +1,4 @@
-"""ZIP-Formate für BankZipTests.swift (Web v261/v272, tests/bank/zipfmt.py): xlsx (Standard, mit Präfixen x:/Sheet1.xml,
+"""ZIP-Formate für BankZipTests.swift (Web v261/v272, main/tests/bank/zipfmt.py): xlsx (Standard, mit Präfixen x:/Sheet1.xml,
 Titelzeile + zweites Blatt), ODS (LibreOffice), ZIP mit CSV, ZIP mit zwei camt-Dateien, ZIP ohne Auszug. Ergebnis jeder Datei aus der
 Web-App (window.KontivoBank().readFile) → zip/expected.json.
 Aufruf:  cd <web-repo> && python3 -m http.server 8765 &   python3 -I make_zip.py [<web-repo>]   (braucht openpyxl, soffice für ODS)"""

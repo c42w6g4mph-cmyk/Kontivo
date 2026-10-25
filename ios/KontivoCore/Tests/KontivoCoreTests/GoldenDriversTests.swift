@@ -2,7 +2,7 @@ import XCTest
 @testable import KontivoCore
 
 /// Tab «Kosten» → «Überblick» und «Was sich verändert hat» gegen golden_drivers.json (Web v247–v257, erzeugt mit
-/// tests/make_golden_drivers.py): Säulen mit Veränderung, Kategorien mit Betrag, Chips, Verträge mit Grund, Hinweise, Donut.
+/// ios/Tools/golden/make_golden_drivers.py): Säulen mit Veränderung, Kategorien mit Betrag, Chips, Verträge mit Grund, Hinweise, Donut.
 /// Haushalt aus cases_budget.json (3 Stichtage), Beispieldaten costs_demo_backup.json und Wechsel-Fälle (in golden_drivers.json). Tausendertrennung: Web ' = Swift ’.
 final class GoldenDriversTests: XCTestCase {
     func web(_ s: String) -> String { s.replacingOccurrences(of: "'", with: Format.thousandsSeparator) }

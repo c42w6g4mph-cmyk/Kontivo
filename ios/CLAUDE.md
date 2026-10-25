@@ -19,7 +19,7 @@ Native Kontivo-App (SwiftUI, iOS 17+, iPhone zuerst, iPad mit) auf dem Funktions
 
 ## Prüfungen (müssen grün sein)
 - Kern: `golden.json`, `golden_budget.json`, `golden_ui.json`, `golden_form.json`, Kontoauszug-Erwartungswerte. Erzeugt in `main/tests` (siehe dortiges README), danach nach `KontivoCore/Tests/KontivoCoreTests/Resources/` kopieren.
-- Oberfläche: UI-Tests; Bildvergleich Web gegen Simulator (`tests/visual/compare.py`) am Ende jedes Bereichs.
+- Oberfläche: UI-Tests; Bildvergleich Web gegen Simulator (`ios/Tools/visual/compare.py`) am Ende jedes Bereichs.
 
 ## Arbeitsweise
 - Push auf den Zweig `swift` nur nach Freigabe durch Sinan («Swift pushen»).

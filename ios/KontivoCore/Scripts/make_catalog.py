@@ -14,8 +14,9 @@ Gleiche Namen (z.B. «CSS» Krankenkasse + Zusatzversicherung, Web v210) bleiben
 import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "index.html")  # Web-Repo (main): python3 Scripts/make_catalog.py <main>/index.html
+if len(sys.argv) < 2:
+    sys.exit("Aufruf: python3 Scripts/make_catalog.py <main-Repo>/index.html")
+SRC = sys.argv[1]  # index.html aus dem Web-Repo (main)
 OUT = os.path.join(HERE, "..", "Sources", "KontivoCore", "Resources", "catalog.json")
 
 html = open(SRC, encoding="utf-8").read()
