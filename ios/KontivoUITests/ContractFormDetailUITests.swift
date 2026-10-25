@@ -104,6 +104,9 @@ final class ContractFormDetailUITests: KontivoUITestCase {
     private func replace(_ f: XCUIElement, _ text: String, _ what: String) {
         tap(f, what)
         usleep(300_000)
+        // Schreibmarke ans Ende setzen (rechtsbündiges Feld), dann alles löschen
+        f.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5)).tap()
+        usleep(300_000)
         let n = (f.value as? String)?.count ?? 0
         f.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: n + 2) + text)
     }

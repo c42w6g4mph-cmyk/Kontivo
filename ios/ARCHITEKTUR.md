@@ -147,6 +147,9 @@ Formulare bearbeiten eine Kopie (`Contract`) und übernehmen beim Sichern nur di
 | Service Worker, Manifest | entfällt |
 | Kalender auf Entscheidungskarten | seit 07.10.2026: Kalender-Knopf in der Knopfzeile der Fristen-Liste (nur bei Zeilen mit Behalten/Kündigen) |
 | Adresse «Einfügen» (Zwischenablage lesen) | `PasteButton` (keine Rückfrage nötig), Aufteilung `WebImport.addrFromPaste` |
+| Wischen zum Löschen `swipeDel` (Preisänderungen, Sonderzahlungen, v317/v318) | eigene Geste `CTSwipeDelete` (Formular ist `ScrollView`, keine `List` → kein `.swipeActions`); gleiche Regeln: 88 pt «Löschen», über 55 % löscht direkt; Bedienungshilfen-Aktion «Löschen» |
+| unsichtbares `input[type=date]` über «ab TT.MM.JJ» (Zeitstrahl v277) | kompakter `DatePicker` fast durchsichtig über dem Text (`CTTimelineDateLabel`) |
+| «mehr» im Katalog-Hinweis (v243) | Link im `AttributedString`, Aufklappen über `openURL`-Aktion |
 
 ## Nachzug Web v70–v88 (07.10.2026)
 - Fristen-Tab Variante 1: `Calc.deadlineOverview()` liefert `status`, `items` (eine Liste nach Datum, `showActions` = Probeabo, needsAction oder ≤ 61 Tage vor Vertragsende), `flexible` (Ende bei Kündigung heute, `endIfCancelledToday`), `flexStack`, Klappgruppen; Golden-Test gegen das gerenderte DOM (ios/Tools/golden/make_golden_texts.py)

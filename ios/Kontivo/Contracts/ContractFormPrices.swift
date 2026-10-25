@@ -69,7 +69,7 @@ struct CTTimelineDateLabel<Label: View>: View {
             .overlay(alignment: .leading) {
                 DatePicker("Gültig ab", selection: Binding(get: { day.date() }, set: { onPick(Day(date: $0)) }), displayedComponents: .date)
                     .labelsHidden()
-                    .opacity(0.02)
+                    .opacity(0.011)
                     .accessibilityLabel("Gültig ab")
                     .accessibilityIdentifier(identifier)
             }

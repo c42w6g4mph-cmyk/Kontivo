@@ -26,7 +26,8 @@ final class IncomeUITests: KontivoUITestCase {
         // Bearbeiten: Formular im Vertragsstil, Änderungsliste mit % und «aktuell»
         tapTop("Bearbeiten")
         waitIncomeForm("Bearbeiten")
-        XCTAssertEqual(textField("income.amount").value as? String, "7200.00")
+        // Web v316: Betragsfelder mit Tausendertrennung
+        XCTAssertEqual(textField("income.amount").value as? String, "7\u{2019}200.00")
         let current = button("income.price.2026-01-01")
         reveal(current, "Änderung ab 01.01.26")
         XCTAssertTrue(current.label.contains("aktuell"), "Plakette «aktuell»: \(current.label)")
