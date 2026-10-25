@@ -88,8 +88,14 @@ LIB = r"""
 window.__bk=function(){var B=window.KontivoBank();
  function u8(b64){var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u.buffer;}
  function tx(r){return r.tx.map(function(t){return [t.d,t.a,t.cur||"",t.name||"",t.text||"",t.type||"",t.kind||"",t.cred||"",t.mref||""];});}
+ /* Liste (Web v330): Plaketten und aufgeklappte Zahlungen je Vorschlag als Text (BankReviewRules.swift) */
+ function ui(s,inc){var it={s:s,ed:{amount:s.amount},pay:true,payAll:true},d=document.createElement("div");d.innerHTML=B.chips(it,inc,0);
+   var chips=Array.prototype.map.call(d.querySelectorAll("i"),function(i){return [i.textContent,i.classList.contains("tap")?"payments":i.classList.contains("pc")?"price":"plain"];});
+   d.innerHTML=B.payList(it,inc?"i0":"c0");
+   var pay=Array.prototype.map.call(d.querySelectorAll(".bkpay div"),function(r){var b=r.querySelector("b");return [r.querySelector("span").textContent,b.textContent,b.className];});
+   return {chips:chips,pay:pay};}
  function sg(s){var m=s.match,c=m?B.state.contracts[m.id]:null;
-   return {key:s.key,name:s.name,raw:s.raw||"",text:s.text||"",cur:s.cur,amount:s.amount,cycle:s.cycle,due:s.due,first:s.first,last:s.last,n:s.n,
+   return {ui:ui(s,false),key:s.key,name:s.name,raw:s.raw||"",text:s.text||"",cur:s.cur,amount:s.amount,cycle:s.cycle,due:s.due,first:s.first,last:s.last,n:s.n,
      dates:s.dates,amounts:s.amounts,conf:s.conf,varies:!!s.varies,change:s.change||null,tpl:s.tpl?s.tpl[0]:null,cat:s.cat,kind:s.kind||"",
      cred:s.cred||"",mref:s.mref||"",ignored:!!s.ignored,
      match:m?{kind:m.kind,partner:c?c.partner:"",amount:m.amount==null?null:m.amount,old:m.old==null?null:m.old,from:m.from||null}:null};}
@@ -99,7 +105,7 @@ window.__bk=function(){var B=window.KontivoBank();
    prices:c.prices,noCancel:!!c.noCancel,holders:c.holders,payM:c.payM||"",custNo:c.custNo||"",contrNo:c.contrNo||"",bkLabel:B.label(s)};}
  function inc(r){var f=B.findInc(r);return {sugg:f.sugg.map(function(s){return {key:s.key,name:s.name,label:s.label,cat:s.cat,cur:s.cur,amount:s.amount,cycle:s.cycle,due:s.due,
    n:s.n,first:s.first,last:s.last,dates:s.dates,amounts:s.amounts,lo:s.lo,hi:s.hi,varies:!!s.varies,skipped:s.skipped,raw:s.raw||"",text:s.text||"",conf:s.conf,
-   once:!!s.once,hist:(function(){var h=B.priceHist(s,true);return h?{base:h.base,prices:h.prices}:null;})()};}),
+   once:!!s.once,ui:ui(s,true),hist:(function(){var h=B.priceHist(s,true);return h?{base:h.base,prices:h.prices}:null;})()};}),
    known:f.known.map(function(s){var c=B.state.incomes[s.match];return {key:s.key,name:s.name,income:c?(c.name||c.label):""};})};}
  function find(r,withTc){var f=B.find(r,[]);var o={sugg:f.sugg.map(sg),known:f.known.map(kn),inc:inc(r),
    after:(f.after||[]).map(function(a){return {partner:a.c.partner,n:a.n,last:a.last,amount:a.amount,cur:a.cur};})};if(withTc)o.contracts=f.sugg.map(tc);return o;}
@@ -123,7 +129,7 @@ with sync_playwright() as p:
             html = open(os.path.join(WEB, "index.html"), encoding="utf-8").read()
             hook = "window.KontivoBank=function(){return {"
             assert hook in html
-            html = html.replace(hook, hook + "label:bankLabel,payM:bankPayM,nums:bankNums,who:bkWho,priceHist:bankPriceHist,", 1)
+            html = html.replace(hook, hook + "chips:bkChips,payList:bkPayList,label:bankLabel,payM:bankPayM,nums:bankNums,who:bkWho,priceHist:bankPriceHist,", 1)
             # Tempo: lnorm/ltok sind reine Funktionen – Zwischenspeicher ändert kein Ergebnis (ltok liefert eine Kopie)
             ln = 'function lnorm(s){return String(s||"")'
             assert html.count(ln) == 1 and html.count("function ltok(s){") == 1

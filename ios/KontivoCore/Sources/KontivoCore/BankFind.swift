@@ -940,6 +940,8 @@ public enum BankImport {
         public var changes: [PriceChange]
         public var free: [Day]
         public var current: Double
+        /// Stufenwerte (Web `levels[].a`): Zahlungen nahe an keiner Stufe gelten in der Zahlungsliste als «einmalig»
+        public var levels: [Double] = []
     }
 
     /// Kosten (Web `bankPriceHist`): Stufen = mind. 2 aufeinanderfolgende gleiche Beträge (±0,5 %); einzelne Ausreisser zählen nicht.
@@ -1000,7 +1002,8 @@ public enum BankImport {
             pr.append(e)
             last = e.amount
         }
-        return PriceHistory(base: BU.r2(lv[0].a), prices: pr, changes: Array(chg), free: free, current: BU.r2(lv[lv.count - 1].a))
+        return PriceHistory(base: BU.r2(lv[0].a), prices: pr, changes: Array(chg), free: free, current: BU.r2(lv[lv.count - 1].a),
+                            levels: lv.map { $0.a })
     }
 
     /// Einnahmen (Web `bankIncHist`): Ausreisser (> 15 % vom Stufenwert: 13. Lohn, Bonus, Spesen) zählen nicht; neue Stufe erst, wenn
@@ -1039,7 +1042,8 @@ public enum BankImport {
         if Double(cov) < Double(n) * 0.6 { return nil }
         let L = lv.map { (a: BU.r2(med($0.v)), from: $0.from, last: $0.v[$0.v.count - 1]) }
         let chg = L.dropFirst().map { PriceChange(from: $0.from, amount: $0.a) }
-        return PriceHistory(base: L[0].a, prices: Array(chg), changes: Array(chg), free: [], current: BU.r2(L[L.count - 1].last))
+        return PriceHistory(base: L[0].a, prices: Array(chg), changes: Array(chg), free: [], current: BU.r2(L[L.count - 1].last),
+                            levels: L.map { $0.a })
     }
 
     /// Einnahme aus dem Auszug: Anfangsbetrag und Preisstufen (Web `bkIncPrices`); `amount` = gewählter (ggf. geänderter) Betrag.
