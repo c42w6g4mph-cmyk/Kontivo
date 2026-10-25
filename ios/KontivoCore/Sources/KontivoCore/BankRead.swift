@@ -854,7 +854,10 @@ enum BankReader {
         // mehrfach (2× 45.– am selben Tag): die Datei mit den meisten zählt (Web v272)
         var by = BOrdered<[(fi: Int, tx: [BankTx])]>()
         for (fi, r) in rs.enumerated() {
-            for t in r.tx {
+            for t0 in r.tx {
+                // Ende je Datei an jeder Buchung: eine Datei, die früher endet, macht ihre Einnahmen/Verträge nicht «veraltet» (Web v325)
+                var t = t0
+                t.end = r.to
                 let src = !r.account.isEmpty ? r.account : (!r.bank.isEmpty ? r.bank : r.format)
                 let k = src + "|" + t.date.iso + "|" + String(t.amount) + "|" + BU.slice(Partners.lnorm(t.name + " " + t.text), 0, 60)
                 var e = by[k] ?? []
@@ -865,8 +868,17 @@ enum BankReader {
         var tx: [BankTx] = []
         for k in by.orderedKeys {
             var best: [BankTx]? = nil
-            for e in by[k] ?? [] where best == nil || e.tx.count > best!.count { best = e.tx }
-            tx += best ?? []
+            var bf = -1
+            for e in by[k] ?? [] where best == nil || e.tx.count > best!.count {
+                best = e.tx
+                bf = e.fi
+            }
+            // Datei-Index: dieselbe Zahlung aus einer anderen Datei gilt beim selben Vertragspartner nur einmal (Web v325)
+            tx += (best ?? []).map { t in
+                var x = t
+                x.fi = bf
+                return x
+            }
         }
         tx = BU.sorted(tx) { a, b in a.date < b.date ? -1 : (b.date < a.date ? 1 : 0) }
         // Kontoinhaber nur, wenn alle Dateien denselben nennen

@@ -25,11 +25,19 @@ public enum BankImport {
         ignoreKey(s).components(separatedBy: "·")[0]
     }
 
-    /// Zahlungsrhythmus aus einem Abstand in Tagen (Web `bankCycle`), 0 = keiner.
+    /// Zahlungsrhythmus aus einem Abstand in Tagen (Web `bankCycle`), 0 = keiner. Jährlich 330–400 Tage: Jahresrechnungen per QR
+    /// werden mal früher, mal später bezahlt (Web v328).
     static func cycle(_ days: Int) -> Int {
-        let C = [(1, 25, 36), (2, 55, 66), (3, 80, 105), (6, 170, 195), (12, 350, 380)]
+        let C = [(1, 25, 36), (2, 55, 66), (3, 80, 105), (6, 170, 195), (12, 330, 400)]
         for c in C where days >= c.1 && days <= c.2 { return c.0 }
         return 0
+    }
+
+    /// Jüngstes Dateiende der Buchungen einer Gruppe (beim Zusammenführen gesetzt), sonst Ende des Gesamtzeitraums (Web v325 `bankGEnd`)
+    static func gEnd(_ tx: [BankTx], _ fb: Day) -> Day {
+        var m: Day? = nil
+        for t in tx { if let e = t.end, m == nil || e > m! { m = e } }
+        return m ?? fb
     }
 
     /// Markantes Wort eines Namens: erstes Wort ≥ 3 Zeichen, nicht generisch (Versicherung, Stadt …) (Web `bankKey1`).
@@ -46,7 +54,7 @@ public enum BankImport {
         var names: BOrdered<Int>
         var cur: String
         /// Vorgänger-Stufe (Web v272 `prevC`): letzte Zahlung und Betrag der vorherigen Preisstufe
-        var prevC: (d: Day, amount: Double)? = nil
+        var prevC: (d: Day, amount: Double, tx: [BankTx])? = nil
     }
 
     /// Laufender Vertrag für den Abgleich (vorberechnet).
@@ -164,10 +172,17 @@ public enum BankImport {
             key += "|" + cur
             t.groupName = nm
             var g = groups[key] ?? Group(key: key, tpl: tp, tx: [], names: BOrdered<Int>(), cur: cur)
+            // dieselbe Zahlung in zwei Dateien (Sparkasse- und N26-Export desselben Kontos, Konto + Kreditkarte): beim selben
+            // Vertragspartner nur einmal (Web v325)
+            if let fi = t.fi, g.tx.contains(where: { $0.fi != fi && $0.date == t.date && $0.amount == t.amount }) {
+                groups[key] = g
+                continue
+            }
             g.tx.append(t)
             g.names[nm] = (g.names[nm] ?? 0) + 1
             groups[key] = g
         }
+        mergeFiles(&groups)
         // Nur eine Kartenzahlung und Katalogname aus einem Wort (Spiegel, Salt, Zeit): reicht nicht als Beleg.
         // Katalog nur behalten, wenn die Website im Buchungstext steht («spiegel.de»), sonst als unbekannter Händler behandeln
         for k in groups.orderedKeys {
@@ -269,7 +284,7 @@ public enum BankImport {
             // Stufe, die direkt auf eine andere folgt (Steuerraten 760 bis Juni, ab Juli 340): Vorgänger merken → Preisänderung
             for (i, c) in cl.enumerated() {
                 let f0 = c.tx[0].date
-                var best: (d: Day, amount: Double)? = nil
+                var best: (d: Day, amount: Double, tx: [BankTx])? = nil
                 for (j, o) in cl.enumerated() where j != i && o.tx.count >= 2 {
                     let lo = o.tx[o.tx.count - 1].date, gap = lo.days(to: f0)
                     // nur plausible Vorgänger: Betrag höchstens Faktor 3 daneben und selbst regelmässig (letzter Abstand 20–40 Tage)
@@ -278,7 +293,7 @@ public enum BankImport {
                     let g2 = o.tx[o.tx.count - 2].date.days(to: lo)
                     let reg = g2 >= 20 && g2 <= 40
                     if gap > 0 && gap <= 45 && o.tx[0].date < f0 && rt <= 3 && reg && (best == nil || lo > best!.d) {
-                        best = (lo, BU.r2(o.v))
+                        best = (lo, BU.r2(o.v), o.tx)
                     }
                 }
                 if let b = best, c.tx.count >= 2 { groups[ckeys[i]]?.prevC = b }
@@ -492,13 +507,36 @@ public enum BankImport {
         for k in groups.orderedKeys {
             guard var g = groups[k] else { continue }
             if cancelledHit(g) { continue }
-            var s = eval(k, g, ref: to, span: span, today: today)
+            var s = eval(k, g, fallbackEnd: to, span: span, today: today)
             // Kern-Reihe: Abo mit gleichem Betrag am gleichen Tag, dazwischen Einzelkäufe beim selben Händler → nur die regelmässige Reihe
             if s == nil, let core = core(g) {
-                s = eval(k, core, ref: to, span: span, today: today)
+                s = eval(k, core, fallbackEnd: to, span: span, today: today)
                 if s != nil {
                     g = core
                     groups[k] = core
+                }
+            }
+            // Versicherer mit mehreren Policen ohne Bezeichnung: jede Prämie der letzten 12 Monate einzeln als «gehört das dazu?» (Web v330)
+            if s == nil {
+                let subs = policies(k, g, fallbackEnd: to, span: span, today: today)
+                if !subs.isEmpty {
+                    for x in subs {
+                        groups[x.k] = x.g
+                        var s2 = x.s
+                        applyAlias(&s2)
+                        s2.statementFrom = from
+                        s2.category = BankCatalog.category(catalog: x.g.tpl, name: s2.name, text: s2.text, data: data)
+                        if let a = s2.alias, !a.c.isEmpty, data.categories.contains(where: { $0.name == a.c }) { s2.category = a.c }
+                        let m2 = match(s2, x.g.tpl)
+                        let q2: Int
+                        switch m2 {
+                        case nil: q2 = 5
+                        case .known?: q2 = 0
+                        case .price?: q2 = 2
+                        }
+                        EV.append((x.k, s2, m2, q2))
+                    }
+                    continue
                 }
             }
             guard var sv = s else {
@@ -700,7 +738,7 @@ public enum BankImport {
                               cred: lt.cred, mref: lt.mref, alias: nil, ignored: false)
     }
 
-    static let BKONCE = BRX("versicherung|jahresmitgliedschaft|amazon prime|amzn prime|bahncard|\\bpraemie|\\bpramie|\\bpolice|kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|hundesteuer|grundsteuer|rundfunk|serafe|mitgliedsbeitrag|mitgliederbeitrag|jahresbeitrag|vereinsbeitrag|jahresabo|jahresgebuehr|jahresgebuhr|abonnement|\\bvignette|haftpflicht|hausrat|rechtsschutz")
+    static let BKONCE = BRX("versicherung|jahresmitgliedschaft|amazon prime|amzn prime|bahncard|\\bpraemie|\\bpramie|\\bpolice|kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|hundesteuer|grundsteuer|rundfunk|serafe|mitgliedsbeitrag|mitgliederbeitrag|jahresbeitrag|vereinsbeitrag|jahresabo|jahresgebuehr|jahresgebuhr|abonnement|\\bvignette|haftpflicht|hausrat|rechtsschutz|kaution|caution")
     static let BKONCENO = BRX("erstattung|ruckzahlung|rueckzahlung|storno|gutschrift|schaden|selbstbehalt|franchise|arzt|apotheke|rechnung nr .* behandlung")
     static let rxOnceYearWord = BRX("jahresrechnung|jahresgebuhr|jahresgebuehr|jahresabo|jahresmitglied|\\byearly\\b|\\bannual\\b|12 monate|\\be v\\b|\\bev\\b")
     static let rxOnceContractWord = BRX("beitrag|abo|rechnung|yearly|annual|plus|premium|mitglied|domain|hosting")
@@ -710,7 +748,9 @@ public enum BankImport {
     static let rxEnergyName = BRX("energie|strom|\\bgas\\b|wasser|stadtwerk|elektrizit|\\bekz\\b|\\bewz\\b|\\bewb\\b|\\biwb\\b")
 
     /// Gruppe bewerten: Rhythmus, Betrag, Preisänderung, Sicherheit, nächste Zahlung (Web `bankEval`).
-    static func eval(_ k: String, _ g: Group, ref: Day, span: Int, today: Day) -> BankSuggestion? {
+    static func eval(_ k: String, _ g: Group, fallbackEnd: Day, span: Int, today: Day) -> BankSuggestion? {
+        // Stichtag = Ende der Datei, aus der die Buchungen stammen (mehrere Dateien, Web v325)
+        let ref = gEnd(g.tx, fallbackEnd)
         var kc = BOrdered<Int>()
         for t in g.tx where t.kind != .unknown { kc[t.kind.rawValue] = (kc[t.kind.rawValue] ?? 0) + 1 }
         let kind = BU.sorted(kc.orderedKeys) { a, b in Double((kc[b] ?? 0) - (kc[a] ?? 0)) }.first ?? ""
@@ -763,6 +803,7 @@ public enum BankImport {
         var conf = BankConfidence.low
         var varies = false
         var ch: BankPriceChange? = nil
+        var prevTx: [BankTx] = []
         if n >= 2 {
             let cs = iv.map { cycle($0) }
             var cnt: [Int: Int] = [:]
@@ -831,6 +872,7 @@ public enum BankImport {
             }
             if ch == nil, let p = g.prevC, cyc == 1, Swift.abs(p.amount - last) > 0.004 {
                 ch = BankPriceChange(from: tx[0].date, prev: p.amount, amount: last)
+                prevTx = p.tx
             }
             // beendet? letzte Zahlung deutlich länger her als der Rhythmus
             if Double(tx[n - 1].date.days(to: ref)) > Double(cyc) * 30.5 * 1.5 + 7 { return nil }
@@ -839,6 +881,11 @@ public enum BankImport {
                 conf = varies ? .medium : .high
             } else {
                 conf = (kind == "dd" || kind == "so") ? .medium : .low
+            }
+            // Jährlich gleicher runder Betrag ohne Mitteilung, Gläubiger-ID oder Katalog (Bussen 100.– an die Stadtverwaltung): nur nachfragen (Web v329)
+            if cyc == 12 && g.tpl == nil && kind != "dd" && kind != "so" && !tx.contains(where: { !$0.cred.isEmpty || !$0.memo.isEmpty })
+                && am.allSatisfy({ Swift.abs($0 - am[0]) < 0.005 && $0.truncatingRemainder(dividingBy: 50) == 0 }) {
+                conf = .low
             }
         } else {
             // Einzelzahlung nur bei bekanntem Anbieter, SEPA-Lastschrift mit Gläubiger-ID oder eindeutigem Vertragswort im Text
@@ -871,6 +918,15 @@ public enum BankImport {
                                amounts: am, confidence: conf, varies: varies, change: ch, catalog: g.tpl, category: "",
                                kind: BankKind(web: kind), cred: lt.cred, mref: lt.mref, alias: nil, ignored: false)
         s.memo = lt.memo
+        // Vorpreis-Stufe (Steuerraten 760 bis Juni, ab Juli 340): deren Zahlungen gehören zum selben Vertrag → in Zahlungsliste
+        // und Preisverlauf (Web v326)
+        let pt = prevTx.filter { $0.date < tx[0].date }
+        if !pt.isEmpty {
+            s.dates = pt.map { $0.date } + s.dates
+            s.amounts = pt.map { BU.r2(-$0.amount) } + s.amounts
+            s.count = s.dates.count
+            s.first = s.dates[0]
+        }
         return s
     }
 
@@ -1022,7 +1078,8 @@ public enum BankImport {
         if var h = ph, !h.prices.isEmpty {
             if Swift.abs(h.current - s.amount) > 0.004 && h.prices[h.prices.count - 1].amount > 0 { h.prices[h.prices.count - 1].amount = s.amount }
             ph = h
-        } else if let h = ph, Swift.abs(h.base - s.amount) > 0.004 && s.change == nil {
+        } else if let h = ph, s.change != nil || Swift.abs(h.base - s.amount) > 0.004 {
+            // kein Verlauf erkannt: die eine Preisänderung (s.change) gilt (Web v326)
             ph = nil
         }
         let base = ph?.base ?? s.change?.prev ?? s.amount

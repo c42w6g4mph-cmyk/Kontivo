@@ -72,6 +72,11 @@ extension BankImport {
             }
             key += (cat == "Bonus" ? "·bonus" : "") + "|" + cur
             var g = groups[key] ?? G(cur: cur)
+            // gleiche Gutschrift in zwei Dateien nur einmal (Web v325)
+            if let fi = t.fi, g.tx.contains(where: { $0.fi != fi && $0.date == t.date && $0.amount == t.amount }) {
+                groups[key] = g
+                continue
+            }
             g.tx.append(t)
             g.names[nm] = (g.names[nm] ?? 0) + 1
             g.cats[cat] = (g.cats[cat] ?? 0) + 1
@@ -130,7 +135,7 @@ extension BankImport {
             let tol = cat == "Sonstiges" ? 0.05 : 0.2
             if Double(core.filter({ Swift.abs($0 - med) <= med * tol }).count) < Double(core.count) * 0.7 { continue }
             let last = tx[n - 1]
-            if Double(last.date.days(to: ref)) > Double(cyc) * 30.5 * 1.5 + 7 { continue }
+            if Double(last.date.days(to: gEnd(tx, ref))) > Double(cyc) * 30.5 * 1.5 + 7 { continue }
             let recent = Array(core.suffix(3))
             let typ = recent.sorted()[recent.count / 2]
             let lo = core.min() ?? 0, hi = core.max() ?? 0
@@ -258,6 +263,8 @@ extension BankImport {
             t = l
             break
         }
+        // mehrere Policen beim selben Versicherer: Katalog-Bezeichnung (Hausrat) wäre geraten → leer lassen (Web v330)
+        if s.multi { return t }
         if let c = s.catalog, !c.label.isEmpty, !(!t.isEmpty && BK_GENERIC.test(c.label)) { return c.label }
         return t
     }

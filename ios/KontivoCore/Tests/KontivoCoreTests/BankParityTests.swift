@@ -2,7 +2,7 @@ import XCTest
 @testable import KontivoCore
 
 /// Kontoauszug-Import: Swift gegen Erwartungswerte aus der Web-App (BankFixtures/expected.json, erzeugt mit
-/// BankFixtures/make_expected.py über window.KontivoBank, heute = 2026-10-08; Stand Web v323). Geprüft werden gelesene Buchungen,
+/// BankFixtures/make_expected.py über window.KontivoBank, heute = 2026-10-08; Stand Web v330). Geprüft werden gelesene Buchungen,
 /// Vorschläge (Name, Betrag, Rhythmus, Sicherheit, Kategorie, Katalog, Preisänderung …), Abgleich mit erfassten
 /// Verträgen und Vorschlag → Vertrag, für alle Musterdateien, Grenzfälle und Mehrfach-Dateien.
 final class BankParityTests: XCTestCase {

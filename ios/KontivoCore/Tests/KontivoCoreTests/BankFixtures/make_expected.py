@@ -9,9 +9,10 @@ WEB = sys.argv[1] if len(sys.argv) > 1 else "/home/claude/kontivo"
 URL = os.environ.get("KONTIVO_URL", "http://localhost:8765/index.html")
 SRC = os.path.join(WEB, "tests", "bank")
 FILES = []
-for sub in ("samples", "real/ch", "real/de", "stress"):
+for sub in ("samples", "real/ch", "real/de", "stress", "muster"):
     os.makedirs(os.path.join(HERE, sub), exist_ok=True)
     for fn in sorted(os.listdir(os.path.join(SRC, sub))):
+        if os.path.isdir(os.path.join(SRC, sub, fn)): continue
         if fn.endswith(".md") or fn.endswith(".py"): continue
         shutil.copyfile(os.path.join(SRC, sub, fn), os.path.join(HERE, sub, fn)); FILES.append(sub + "/" + fn)
 EDGE = json.load(open(os.path.join(SRC, "edge_cases.json")))   # Texte landen in expected.json (edgeInput)
@@ -67,7 +68,17 @@ for k, t in EXTRA.items(): EDGE[k] = {"txt": t}
 EDGE["x_after"] = {"txt": rows(H, BASE[:6] + [f"{d};LASTSCHRIFT Muster Fitness AG;-79.00;Lastschrift;CHF" for d in monthly(15, 12)]),
                    "contracts": {"f": {"partner": "Muster Fitness AG", "cat": "Freizeit & Sport", "amount": 79, "cur": "CHF", "cycle": 1, "due": "2026-05-15",
                                        "cancelPer": "2026-05-31", "cancelledOn": "2026-02-10", "status": "cancelled", "holders": ["Sinan"]}}}
-MULTI = [["samples/ch_postfinance.csv", "samples/ch_postfinance.csv"],
+# Web v325–v328 (main/tests/bank/multi.py, multi2.py): gleiche Buchungen in zwei Formaten, Dateien mit unterschiedlichem Ende,
+# gleicher Vertragspartner gleichzeitig in zwei Konten (zwei Handyabos)
+os.makedirs(os.path.join(HERE, "multi"), exist_ok=True)
+for fn, amt, days in (("konto_a.csv", "27.95", ["25.06", "27.07", "26.08", "25.09"]), ("konto_b.csv", "28.95", ["28.07", "31.08", "30.09"]),
+                       ("konto_c.csv", "28.95", ["20.07", "28.08", "29.10"])):
+    open(os.path.join(HERE, "multi", fn), "w").write("Datum;Buchungstext;Betrag\n" + "".join(f"{d}.2026;LASTSCHRIFT Muster Mobil AG;-{amt}\n" for d in days)
+        + ("".join(f"{d}.2026;LASTSCHRIFT Muster Strom AG;-60.00\n" for d in days) if fn == "konto_c.csv" else ""))
+MULTI = [["muster/sparkasse.csv", "muster/n26.csv"], ["muster/format1.csv", "muster/format3.csv"],
+         ["muster/sparkasse.csv", "muster/n26.csv", "muster/dkb.csv", "muster/format1.csv", "muster/format2.csv", "muster/format3.csv"],
+         ["muster/sparkasse.csv", "samples/ch_zkb.csv"], ["multi/konto_a.csv", "multi/konto_b.csv"], ["multi/konto_a.csv", "multi/konto_c.csv"],
+         ["samples/ch_postfinance.csv", "samples/ch_postfinance.csv"],
          ["real/de/de_sparkasse_camt_v2.csv", "real/de/de_sparkasse_kreditkarte.csv"],
          ["samples/ch_postfinance.csv", "samples/ch_ubs.csv", "samples/ch_camt053.xml"]]
 CHECK_CONTRACTS = {"a": {"partner": "CSS", "cat": "Versicherung", "amount": 389.60, "cur": "CHF", "cycle": 1, "due": "2026-11-01", "status": "active", "holders": ["Sinan"]},

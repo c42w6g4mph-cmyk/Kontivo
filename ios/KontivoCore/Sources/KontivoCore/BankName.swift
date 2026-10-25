@@ -89,9 +89,18 @@ enum BankName {
     /// Name einer Buchung (Kosten und Einnahmen gleich, Web v272 `bankTxName`): Empfänger/Auftraggeber, sonst aus dem Buchungstext;
     /// nur der erste Teil vor «;» / « · »
     static func txName(_ t: BankTx) -> String {
-        let nm = !t.name.isEmpty && !isType(t.name) ? clean(rxComma.split(t.name)[0]) : from(t.text)
-        return BU.trim(rxNameCut.split(nm)[0])
+        let nm0 = !t.name.isEmpty && !isType(t.name) ? clean(rxComma.split(t.name)[0]) : from(t.text)
+        var nm = BU.trim(rxNameCut.split(nm0)[0])
+        // Kürzel vor dem Komma («SC, SwissCaution SA»): der eigentliche Name kommt danach (Web v329)
+        if rxShort.test(nm), let m = BRX("(?:^|\\n)\\s*" + nm + "\\s*,\\s*([^,\\n]{4,})").match(!t.name.isEmpty ? t.name : t.text),
+           !isType(m.s(1)) {
+            let c = clean(m.s(1))
+            if !c.isEmpty { nm = c }
+        }
+        return nm
     }
+
+    static let rxShort = BRX("^[A-Za-z]{1,3}$")
 
     static let rxNameCut = BRX(";|\\s·\\s")
 
