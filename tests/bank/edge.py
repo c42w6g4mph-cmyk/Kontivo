@@ -59,6 +59,7 @@ E = {
  "verein_einmal": dict(s=[("Sunrise", 1, 39), ("FC Muster", 12, 230)]),
  "rund_jaehrlich": dict(s=[("Sunrise", 1, 39), ("Stadtverwaltung Musterstadt", 12, 100, "hoch")]),
  "rund_zweimal": dict(s=[("Sunrise", 1, 39), ("Stadtverwaltung Musterstadt", 12, 100, "niedrig")]),
+ "faelligkeit": dict(s=[("Sunrise", 1, 39), ("Muster Versicherung", 12, 372.7)], k=["Muster Versicherung", "Muster Versicherung"]),
  "policen": dict(s=[("Sunrise", 1, 39), ("Muster Versicherung", 12, 404.1), ("Muster Versicherung", 12, 383.2), ("Muster Versicherung", 12, 372.7)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);
