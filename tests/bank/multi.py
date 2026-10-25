@@ -29,5 +29,12 @@ with sync_playwright() as p:
     par = pg.evaluate(JS, [enc(ka), enc(kb)])
     mm = sorted(x[2] for x in par["s"] if x[0].startswith("Muster Mobil"))
     ok = mm == [27.95, 28.95]; print(("✓" if ok else "✗"), "zwei Konten, gleicher Vertragspartner = zwei Verträge", "" if ok else par["s"]); fails += not ok
+    # Review 25.10.2026: Steuerraten über zwei Konten (Vorjahr + Januar auf dem einen, Rest auf dem anderen) = ein Vertrag, nicht zusätzlich ein Jahresvertrag
+    T = "DAUERAUFTRAG Stadtverwaltung Musterstadt Mitteilung: Staats- und Gemeindesteuern Steuerperiode {y};-{a}\n"
+    sa = H + "".join(f"28.{m:02d}.2025;" + T.format(y=2025, a="900.00") for m in range(1, 7)) + "".join(f"28.{m:02d}.2025;" + T.format(y=2025, a="410.00") for m in (10, 11)) + "28.01.2026;" + T.format(y=2026, a="760.00")
+    sb = H + "".join(f"28.{m:02d}.2025;" + T.format(y=2025, a="410.00") for m in (7, 8, 9)) + "".join(f"27.{m:02d}.2026;" + T.format(y=2026, a="760.00") for m in range(2, 7)) + "".join(f"27.{m:02d}.2026;" + T.format(y=2026, a="340.00") for m in range(7, 10))
+    st = pg.evaluate(JS, [enc(sa), enc(sb)])
+    sv = [x for x in st["s"] if x[0].startswith("Stadtverwaltung")]
+    ok = len(sv) == 1 and sv[0][2] == 340; print(("✓" if ok else "✗"), "Steuerraten über zwei Konten = ein Vertrag", "" if ok else st["s"]); fails += not ok
     b.close()
 print("Alles gut" if not fails else f"{fails} Fehler"); sys.exit(1 if fails else 0)
