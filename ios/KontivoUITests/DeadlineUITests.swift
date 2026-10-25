@@ -48,6 +48,7 @@ final class DeadlineUITests: KontivoUITestCase {
         tap(buttonStarting("Krankenkasse"), "Karte Krankenkasse")
         startCancelFromDetail()
         waitNav("Kündigung")
+        XCTAssertTrue(el("letter.window").exists, "Schalter «Kuvert-Fenster» (Web v229)")
         let pdf = button("PDF erstellen")
         tap(pdf, "PDF erstellen")
         // Viewer

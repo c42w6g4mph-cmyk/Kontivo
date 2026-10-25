@@ -206,6 +206,8 @@ jobs:
           shoot $PHONE b10-bericht-vars -uiDemo -uiTab costs -uiCostSeed vars -uiSheet report
           shoot $PHONE b11-bericht-pdf-vars -uiDemo -uiTab costs -uiCostSeed vars -uiSheet reportVarPDF
           xcrun simctl ui $PHONE appearance dark
+          shoot $PHONE b20-dunkel-kosten-alle -uiDemo -uiTab costs -uiCostSeed vars,all
+          shoot $PHONE b21-dunkel-kategorien -uiDemo -uiTab costs -uiCostOpen categories -uiScrollTo kbDrivers
           for P in 0 1 2 3 4 5 6 7; do shoot $PHONE 43-dunkel-onb-$P -uiOnboarding -uiOnbPage $P; done
           shoot $PHONE 44-dunkel-fristen -uiDemo -uiTab deadlines
           shoot $PHONE 45-dunkel-fristen-offen -uiDemo -uiTab deadlines -uiDeadlines review,folds,end
@@ -218,8 +220,6 @@ jobs:
           shoot $PHONE i34-dunkel-import -uiDemo -uiBankSample
           shoot $PHONE i35-dunkel-import-fristen -uiEmpty -uiBankSample -uiBankStep term
           shoot $PHONE 29-dunkel-mehr -uiDemo -uiTab more
-          shoot $PHONE b20-dunkel-kosten-alle -uiDemo -uiTab costs -uiCostSeed vars,all
-          shoot $PHONE b21-dunkel-kategorien -uiDemo -uiTab costs -uiCostOpen categories -uiScrollTo kbDrivers
           shoot $PHONE 30-dunkel-verwalten -uiDemo -uiTab more -uiSheet partners
           xcrun simctl ui $PHONE appearance light
           shoot $PHONE 31-splash -uiEmpty -uiSplashHold
