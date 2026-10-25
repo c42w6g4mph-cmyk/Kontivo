@@ -145,6 +145,9 @@ final class ImportUITests: KontivoUITestCase {
         let no = app.buttons.matching(pred("identifier BEGINSWITH %@", "bankAskNo-")).firstMatch
         let yes = app.buttons.matching(pred("identifier BEGINSWITH %@", "bankAskYes-")).firstMatch
         wait(no, "Knopf «Nein, neu»")
+        // Box liegt sonst unter dem Knopf unten («Weiter zu Einnahmen») – ganz nach oben schieben
+        app.swipeUp(velocity: .slow)
+        waitUntil("Knopf «Nein, neu» frei") { no.isHittable && no.frame.maxY < self.el("bankApply").frame.minY }
         XCTAssertEqual(no.label, "Nein, neu")
         XCTAssertEqual(yes.label, "Ja, schon erfasst")
         let name = String(no.identifier.dropFirst("bankAskNo-".count))

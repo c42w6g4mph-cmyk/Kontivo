@@ -114,7 +114,8 @@ struct BankChipsRow: View {
                                 p.addLine(to: CGPoint(x: 17, y: 10))
                             }
                             .applying(CGAffineTransform(scaleX: 11 / 24, y: 11 / 24))
-                            .stroke(style: StrokeStyle(lineWidth: 2.4, lineCap: .round, lineJoin: .round))
+                            // Web stroke-width 2.4 im 24er-Raster bei 11 pt → 1.1 pt
+                            .stroke(style: StrokeStyle(lineWidth: 1.1, lineCap: .round, lineJoin: .round))
                             .frame(width: 11, height: 11)
                             .rotationEffect(.degrees(expanded ? 180 : 0))
                         }
