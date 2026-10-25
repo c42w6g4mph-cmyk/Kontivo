@@ -1684,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v336</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v337</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9168,6 +9168,16 @@ function bankFind(r,ign){
         SR.forEach(function(S,si){if(S.length<2||dd(S[S.length-1].d,ref0)>400)return;var k2=k+"%"+si;groups[k2]={key:k2,tpl:gk.tpl,tx:S,names:gk.names,cur:gk.cur,yearly:1};
           var s2=bankEval(k2,groups[k2]);if(s2){subs.push([k2,s2]);useT=useT.concat(S);}});}
       /* Vertragspartner hat schon eine erkannte Reihe (Steuerraten): übrige Zahlungen sind frühere Raten/Nachzahlungen, keine eigenen Verträge */
+      /* Rechnungen mit Jahr in der Mitteilung (25.10.2026): «Ordentliche Steuer Bund 2023 / 2024 / 2025» = ein Vertrag, auch wenn zwei Jahre kurz
+         nacheinander bezahlt werden (Nachzahlung). Gleicher Text ohne Jahr/Datum, mind. 2 verschiedene Jahre; Betrag = Rechnung des neusten Jahres */
+      var PR={};if(onceW||gk.tpl)gk.tx.forEach(function(t){if(useT.indexOf(t)>=0)return;var mm=String(t.text||"").match(/mitteilung:\s*([\s\S]+)/i);if(!mm)return;
+        var tx0=mm[1].replace(/\d{1,2}\.\d{1,2}\.\d{2,4}/g," "),y=tx0.match(/\b(19|20)\d{2}\b/);if(!y)return;
+        var pk=lnorm(tx0.replace(/\b(19|20)\d{2}(\/\d{2,4})?\b/g," ").replace(/\d+/g," ")).replace(/\s+/g," ").trim();if(pk.length<6)return;(PR[pk]=PR[pk]||[]).push({t:t,y:+y[0]});});
+      Object.keys(PR).forEach(function(pk,pi){var L=PR[pk],ys={};L.forEach(function(x){ys[x.y]=1;});if(Object.keys(ys).length<2)return;
+        var T=L.map(function(x){return x.t;}).sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});if(dd(T[T.length-1].d,ref0)>400)return;
+        var ny=Math.max.apply(null,L.map(function(x){return x.y;})),la=L.filter(function(x){return x.y===ny;}).pop();
+        var k2=k+"^"+pi;groups[k2]={key:k2,tpl:gk.tpl,tx:T,names:gk.names,cur:gk.cur,period:1,periodAmt:Math.round(-la.t.a*100)/100};
+        var s2=bankEval(k2,groups[k2]);if(s2){s2.text=la.t.text;subs.push([k2,s2]);useT=useT.concat(T);}});
       if(onceW&&!gk.hasSeries)gk.tx.forEach(function(t,ti){var a=t.a.toFixed(2);
         if(useT.indexOf(t)>=0||seenA[a]||-t.a<50||dd(t.d,ref0)>366)return;seenA[a]=1;var k2=k+"@"+ti;groups[k2]={key:k2,tpl:gk.tpl,tx:[t],names:gk.names,cur:gk.cur};var s2=bankEval(k2,groups[k2]);if(s2)subs.push([k2,s2]);});
       if(subs.length){subs.forEach(function(x){var s2=x[1];if(subs.length>1)s2.multi=1;bankApplyAlias(s2);s2.cat=bankCat(s2);if(s2.alias&&s2.alias.c&&allCats().indexOf(s2.alias.c)>=0)s2.cat=s2.alias.c;
@@ -9202,6 +9212,7 @@ function bankFind(r,ign){
       var dbl={1:2,2:4,3:6,6:12};cyc=0;
       Object.keys(cnt).map(Number).sort(function(a,b){return a-b;}).some(function(c0){
         var h=cs.filter(function(c){return c===c0||c===dbl[c0];}).length;if(h>=iv.length*0.7&&cnt[c0]>=Math.max(1,iv.length*0.3)){cyc=c0;return true;}return false;});
+      if(g.period)cyc=12;/* Rechnungen je Steuer-/Abrechnungsjahr: Zahldatum beliebig (Nachzahlung fürs Vorjahr), Rhythmus jährlich */
       if(!cyc)return;
       /* Beträge: höchstens zwei Stufen (Preisänderung) oder ±5 % um den Median, sonst variabel (Einkäufe) */
       var lv=[];am.forEach(function(v){if(!lv.length||Math.abs(lv[lv.length-1]-v)>0.004)lv.push(v);});
@@ -9209,7 +9220,7 @@ function bankFind(r,ign){
       /* ohne Katalog/Gläubiger-ID braucht der Name ein markantes Wort (nicht «M», «SB 12») */
       if(!g.tpl&&!tx[0].cred&&!lusable(name))return;
       var nlv=function(v){return am.filter(function(x){return Math.abs(x-v)<=0.004;}).length;};
-      if(g.yearly){varies=Object.keys(dist).length>1;last=am[n-1];}   /* Jahresreihe nach Kalendermonat: Betrag darf jährlich wechseln */
+      if(g.yearly||g.period){varies=Object.keys(dist).length>1;last=g.period?g.periodAmt:am[n-1];}   /* Jahresreihe nach Kalendermonat: Betrag darf jährlich wechseln */
       else if(Object.keys(dist).length<=2&&lv.length<=2){
         if(lv.length===2){
           /* Preisänderung nur, wenn der alte Preis mindestens zweimal vorkommt und sich höchstens um 35 % ändert;
