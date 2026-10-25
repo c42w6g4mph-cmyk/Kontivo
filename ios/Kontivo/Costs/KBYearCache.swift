@@ -92,10 +92,11 @@ enum KBYearCache {
         }
     }
 
-    /// Vorjahresvergleich «verfügbar» (`kbBudgetComparison`) zwischengespeichert
+    /// Vorjahresvergleich «verfügbar» zwischengespeichert: Web v236 «ganz einfach» (`Calc.budgetMonthComparison`, Kostenart
+    /// wie gewählt), ohne die frühere Sperre bei Verträgen ohne Vertragsbeginn
     static func budgetComparison(_ calc: Calc, year: Int, month: Int, person: UUID?, free: Double) -> (text: String, trend: Calc.Trend)? {
         budgetCompares.get(calc.data, BudgetCompareKey(today: calc.today, year: year, month: month, person: person, free: free)) {
-            calc.kbBudgetComparison(year: year, month: month, person: person, free: free)
+            calc.budgetMonthComparison(year: year, month: month, person: person, free: free)
         }
     }
 }
