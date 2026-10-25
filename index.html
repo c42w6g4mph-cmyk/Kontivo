@@ -1684,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v341</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v342</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9475,8 +9475,9 @@ function bankDueOk(s,c){var cy=+c.cycle||1;if(cy<3||(s.cycle||1)!==cy||!c.due||!
   var P=cy*30.4375,x=(a-b)/864e5;x=((x%P)+P)%P;return Math.min(x,P-x)<=45;}
 function bankMatch(s,excl){
   var best=null;
-  bankCands(s).forEach(function(id){if(excl&&excl[id])return;var c=state.contracts[id],ok=bankDueOk(s,c);if(ok===false)return;/* anderer Fälligkeitsmonat = anderer Vertrag */
-    var dm=Math.abs(curPrice(c)/(+c.cycle||1)-s.amount/s.cycle)-(ok?1e6:0);
+  /* Fälligkeit nur als Vorrang, nie als Ausschluss: das Datum kann aus dem Vertragsbeginn geschätzt und falsch sein (25.10.2026) */
+  bankCands(s).forEach(function(id){if(excl&&excl[id])return;var c=state.contracts[id],ok=bankDueOk(s,c);
+    var dm=Math.abs(curPrice(c)/(+c.cycle||1)-s.amount/s.cycle)-(ok?1e6:0)+(ok===false?1e5:0);
     if(!best||dm<best.dm)best={id:id,dm:dm,c:c,due:ok};
   });
   if(!best)return null;
