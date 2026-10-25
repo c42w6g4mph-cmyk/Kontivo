@@ -268,17 +268,20 @@ struct BankReviewView: View {
     @ViewBuilder private func afterWarning(_ a: BankAfterEnd, _ d: AppData) -> some View {
         if let c = d.contract(a.contractID) {
             let pn = d.partnerName(of: c)
+            let title: String = (pn.isEmpty ? d.title(of: c) : pn) + " bucht weiter ab"
+            let per: String = c.cancelPer.map { BankReview.day($0) } ?? ""
+            let cnt: String = a.count == 1 ? "eine Abbuchung" : "\(a.count) Abbuchungen"
+            let amt: String = Format.money(a.amount, Currency(rawValue: a.currency)) + " " + a.currency
+            let text: String = "Gekündigt per \(per), trotzdem \(cnt) danach, zuletzt \(BankReview.day(a.last)) (\(amt)). Beim Vertragspartner nachfragen."
             Button {
                 let m = model, id = c.id
                 m.dismissTop { m.present(.contractDetail(id)) }
             } label: {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text((pn.isEmpty ? d.title(of: c) : pn) + " bucht weiter ab")
+                    Text(title)
                         .font(.system(size: 14.5, weight: .bold))
                         .foregroundStyle(KColor.warn)
-                    Text("Gekündigt per " + (c.cancelPer.map { BankReview.day($0) } ?? "") + ", trotzdem "
-                         + (a.count == 1 ? "eine Abbuchung" : "\(a.count) Abbuchungen") + " danach, zuletzt " + BankReview.day(a.last)
-                         + " (" + Format.money(a.amount, Currency(rawValue: a.currency)) + " " + a.currency + "). Beim Vertragspartner nachfragen.")
+                    Text(text)
                         .font(.system(size: 12.5))
                         .lineSpacing(BankType.extra(12.5, 16.875))
                         .foregroundStyle(KColor.ink2)

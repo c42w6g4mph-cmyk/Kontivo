@@ -47,9 +47,14 @@ struct BankMoreRow: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(last.map { "Kontoauszug einlesen. Zuletzt eingelesen: " + BankImport.dot($0.from) + " bis " + BankImport.dot($0.to) + ", " + $0.agoText(today: model.today) }
-                            ?? "Kontoauszug einlesen")
+        .accessibilityLabel(a11y(last))
         .accessibilityAddTraits(.isButton)
         .accessibilityIdentifier("bankMoreRow")
+    }
+
+    private func a11y(_ last: BankImportInfo?) -> String {
+        guard let l = last else { return "Kontoauszug einlesen" }
+        let range = BankImport.dot(l.from) + " bis " + BankImport.dot(l.to)
+        return "Kontoauszug einlesen. Zuletzt eingelesen: " + range + ", " + l.agoText(today: model.today)
     }
 }

@@ -93,12 +93,13 @@ struct BankItemRow: View {
         let maybe = it.s.confidence == .low
         let title = review.title(it)
         let cat = d.category(it.ed.categoryID) ?? d.otherCategory
+        let color: String = cat?.displayColorHex ?? KCategory.displayFallbackColor
+        let mark = MarkView(logoID: it.logo?.id, logoBg: it.logo?.bg, colorHex: color, symbol: KIcon.symbol(for: cat), size: 36)
+        let r = review, id = it.id
+        let toggle: (() -> Void)? = maybe ? nil : { r.toggle(id) }
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top, spacing: 11) {
-                BankMarkBadge(mark: MarkView(logoID: it.logo?.id, logoBg: it.logo?.bg, colorHex: cat?.displayColorHex ?? KCategory.displayFallbackColor,
-                                             symbol: KIcon.symbol(for: cat), size: 36),
-                              on: it.on, dim: !it.on, badge: !maybe, label: title + " übernehmen",
-                              toggle: maybe ? nil : ({ review.toggle(it.id) } as () -> Void))
+                BankMarkBadge(mark: mark, on: it.on, dim: !it.on, badge: !maybe, label: title + " übernehmen", toggle: toggle)
                     .accessibilityIdentifier("bankCheck-" + it.s.name)
                 Button(action: open) {
                     HStack(alignment: .top, spacing: 11) {
@@ -141,14 +142,15 @@ struct BankItemRow: View {
     /// Rückfrage «Derselbe Vertrag?» bzw. «ist im Archiv» (Web `bkDupBox`)
     @ViewBuilder private func dupBox(_ d: AppData) -> some View {
         if let cid = it.s.archived ?? it.s.sameAs, let c = d.contract(cid) {
-            let pn = d.partnerName(of: c)
-            let nm = d.title(of: c) + (!c.label.isEmpty && !pn.isEmpty && Partners.lnorm(c.label) != Partners.lnorm(pn) ? " · " + pn : "")
-            let arch = it.s.archived != nil
-            let ae = BankImport.archiveEnd(c)
-            let title = arch ? "«\(nm)» ist im Archiv" : "Gleicher Betrag wie «\(nm)»"
-            let text = arch
-                ? (ae.map { "Gekündigt per " + BankReview.day($0) + ", wurde" } ?? "Wurde") + " aber am " + BankReview.day(it.s.last) + " noch bezahlt."
-                : Format.money(model.calc.curPrice(c), c.currency) + " " + c.currency.rawValue + ". Derselbe Vertrag?"
+            let pn: String = d.partnerName(of: c)
+            let both: Bool = !c.label.isEmpty && !pn.isEmpty && Partners.lnorm(c.label) != Partners.lnorm(pn)
+            let nm: String = both ? "\(d.title(of: c)) · \(pn)" : d.title(of: c)
+            let arch: Bool = it.s.archived != nil
+            let lastDay: String = BankReview.day(it.s.last)
+            let head: String = BankImport.archiveEnd(c).map { "Gekündigt per \(BankReview.day($0)), wurde" } ?? "Wurde"
+            let price: String = Format.money(model.calc.curPrice(c), c.currency)
+            let title: String = arch ? "«\(nm)» ist im Archiv" : "Gleicher Betrag wie «\(nm)»"
+            let text: String = arch ? "\(head) aber am \(lastDay) noch bezahlt." : "\(price) \(c.currency.rawValue). Derselbe Vertrag?"
             BankAskBox(title: title, text: text, yes: arch ? "Wieder aktivieren" : "Ja, schon erfasst", no: arch ? "Neu anlegen" : "Nein, neu",
                        answer: it.q == "y" ? true : it.q == "n" ? false : nil, id: it.s.name,
                        onYes: { withAnimation { review.answerDup(it.id, yes: true, model: model) } },
@@ -198,9 +200,12 @@ struct BankIncRow: View {
             }
             if let v = review.deviation(it) {
                 let cur = Currency(rawValue: it.s.currency)
-                let wage = review.isWage(it)
-                BankAskBox(title: "Am " + String(BankReview.day(v.date).prefix(6)) + " kamen " + Format.money(v.amount, cur),
-                           text: Format.money(Swift.abs(v.diff), cur) + (v.diff > 0 ? " mehr" : " weniger") + (wage ? " als dein Lohn bisher." : " als bisher."),
+                let wage: Bool = review.isWage(it)
+                let day6: String = String(BankReview.day(v.date).prefix(6))
+                let got: String = Format.money(v.amount, cur), diff: String = Format.money(Swift.abs(v.diff), cur)
+                let more: String = v.diff > 0 ? "mehr" : "weniger"
+                let than: String = wage ? "als dein Lohn bisher." : "als bisher."
+                BankAskBox(title: "Am \(day6) kamen \(got)", text: "\(diff) \(more) \(than)",
                            yes: "Einmalig", no: wage ? "Neuer Lohn" : "Neuer Betrag", answer: !it.nl, id: it.s.name,
                            onYes: { withAnimation { review.setNewLevel(it.id, false) } },
                            onNo: { withAnimation { review.setNewLevel(it.id, true) } })
@@ -222,12 +227,13 @@ struct BankPriceRowView: View {
         let d = model.data
         if let c = d.contract(p.m.contractID) {
             let cur = c.currency
+            let title: String = d.title(of: c) + (p.m.amount > p.m.old ? " ist teurer" : " ist günstiger")
+            let old: String = Format.money(p.m.old, cur), new: String = Format.money(p.m.amount, cur)
+            let sub: String = "\(old) → \(new) \(cur.rawValue) ab \(BankReview.day(p.m.from))"
             HStack(alignment: .top, spacing: 11) {
                 BankMarkBadge(mark: MarkView(contract: c, data: d, size: 36), on: p.on, dim: !p.on,
                               label: "Neuen Preis für \(d.partnerName(of: c)) übernehmen", toggle: { review.togglePrice(p.id) })
-                BankRowText(title: d.title(of: c) + (p.m.amount > p.m.old ? " ist teurer" : " ist günstiger"),
-                            sub: Format.money(p.m.old, cur) + " → " + Format.money(p.m.amount, cur) + " " + cur.rawValue + " ab " + BankReview.day(p.m.from),
-                            off: !p.on)
+                BankRowText(title: title, sub: sub, off: !p.on)
             }
             .padding(.vertical, 11)
             .padding(.leading, 14)
@@ -244,8 +250,8 @@ struct BankKnownRow: View {
     var body: some View {
         let d = model.data
         if let c = d.contract(k.contractID) {
-            let sub = k.archived
-                ? "gekündigt per " + (BankImport.archiveEnd(c).map { BankReview.day($0) } ?? "") + " · letzte Zahlung " + BankReview.day(k.suggestion.last)
+            let end: String = BankImport.archiveEnd(c).map { BankReview.day($0) } ?? ""
+            let sub: String = k.archived ? "gekündigt per \(end) · letzte Zahlung \(BankReview.day(k.suggestion.last))"
                 : (k.loose ? "im Auszug gefunden" : "unverändert")
             HStack(alignment: .top, spacing: 11) {
                 BankMarkBadge(mark: MarkView(contract: c, data: d, size: 36), badge: false, known: true)
@@ -267,8 +273,9 @@ struct BankKnownIncRow: View {
 
     var body: some View {
         if let c = model.data.income(k.incomeID) {
-            let t = c.label.isEmpty ? c.name : c.label
-            let sub = (!c.label.isEmpty && !c.name.isEmpty && Partners.lnorm(c.label) != Partners.lnorm(c.name) ? c.name + " · " : "") + "bereits erfasst"
+            let t: String = c.label.isEmpty ? c.name : c.label
+            let both: Bool = !c.label.isEmpty && !c.name.isEmpty && Partners.lnorm(c.label) != Partners.lnorm(c.name)
+            let sub: String = both ? "\(c.name) · bereits erfasst" : "bereits erfasst"
             HStack(alignment: .top, spacing: 11) {
                 BankMarkBadge(mark: MarkView(income: c, size: 36), badge: false, known: true)
                 BankRowText(title: t, sub: sub, known: true)
