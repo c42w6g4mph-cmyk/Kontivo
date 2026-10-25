@@ -1684,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v340</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v341</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -9119,10 +9119,13 @@ function bankFind(r,ign){
   Object.keys(FAIL).forEach(function(b0){var ks=FAIL[b0],T=[];ks.forEach(function(k){groups[k].tx.forEach(function(t){if(T.indexOf(t)<0)T.push(t);});});
     T.sort(function(x,y){return x.d<y.d?-1:x.d>y.d?1:0;});var g0=groups[ks[0]],mg={key:ks[0],tpl:g0.tpl,tx:T,names:{},cur:g0.cur};ks.forEach(function(k){Object.keys(groups[k].names).forEach(function(n){mg.names[n]=(mg.names[n]||0)+groups[k].names[n];});});
     mg.hasSeries=!!OKB[b0];if(!bankFallback(ks[0],mg))ks.forEach(function(k){EV.push({k:k,s:null,q:9});});});
+  /* exakter Betrag + gleiches Wort zuerst (Protekta «Rechtschutz» 341.10 = erfasster «Rechtsschutz» 341.10), danach die unscharfen Treffer (25.10.2026) */
+  EV.forEach(function(ev){var s=ev.s;if(!s||s.match)return;var sa=bankSameAmount(s,{});if(sa&&bankSameWord(s,state.contracts[sa]))ev.q=-1;});
   EV.sort(function(a,b){return a.q-b.q;});
   EV.forEach(function(ev){var k=ev.k,s=ev.s;
     if(!s){var kn=bankLooseKnown(k,groups[k]);if(kn&&!used[kn.match.id]){used[kn.match.id]=1;known.push(kn);}return;}
-    if(s.match&&used[s.match.id])s.match=null;   /* Vertrag schon von einer anderen Reihe belegt → eigener Vorschlag */
+    /* Vertrag schon von einer anderen Reihe belegt → nächstbesten freien Vertrag desselben Vertragspartners prüfen (zwei Handyabos), sonst eigener Vorschlag */
+    if(s.match&&used[s.match.id])s.match=bankMatch(s,used);
     if(s.match&&s.match.kind==="known"){used[s.match.id]=1;known.push(s);return;}
     if(s.match)used[s.match.id]=1;
     if(!s.match){var ar=bankArchMatch(s),ae=ar&&parseD(archEnd(state.contracts[ar]));
@@ -9130,10 +9133,7 @@ function bankFind(r,ign){
       if(ar&&ae&&dd(iso(ae),s.last)<=BK_GRACE){s.match={id:ar,kind:"known",arch:true};known.push(s);return;}
       if(ar)s.arch=ar;else{var sa=bankSameAmount(s,used);if(sa){used[sa]=1;
       /* gleicher Betrag + gemeinsames markantes Wort («Gemeinde Kreuzlingen» / «Stadtverwaltung Kreuzlingen»): schon erfasst, ohne Rückfrage */
-      var sc=state.contracts[sa],GEN=/^(gemeinde|stadt|stadtverwaltung|verwaltung|kanton|finanzabteilung|steueramt|steuerverwaltung|ag|gmbh|sa|kg|co|und|der|die|das|schweiz|schweizerische|deutschland|versicherung|versicherungen|bank|genossenschaft)$/,
-        tw=function(x){return bankTok(x).filter(function(w){return w.length>=4&&!GEN.test(w);});},A1=tw(s.name+" "+(s.raw||"")+" "+(s.memo||"")+" "+bankLabel(s)),B1=tw((sc.partner||"")+" "+(sc.label||""));
-      var catOk=!s.cat||!sc.cat||s.cat==="Sonstiges"||sc.cat==="Sonstiges"||catKey(s.cat)===catKey(sc.cat);
-      if(catOk&&A1.some(function(w){return B1.some(function(v){return bankWordSim(w,v);});})){s.match={id:sa,kind:"known"};known.push(s);return;}
+      if(bankSameWord(s,state.contracts[sa])){s.match={id:sa,kind:"known"};known.push(s);return;}
       s.same=sa;}}}
     if(ign.indexOf(bankIgnKey(s))>=0||ign.indexOf(bankIgnKey(s).split("·")[0])>=0){s.ignored=true;}/* «·Bezeichnung» seit v212: alte Einträge «tpl:CSS» gelten weiter */
     out.push(s);
@@ -9455,9 +9455,15 @@ function bankArchMatch(s){var k1=bankKey1(s.name),k2=bankKey1(s.raw||""),best=nu
 function bankWordSim(a,b){if(a===b)return true;if(a.length<6||b.length<6||Math.abs(a.length-b.length)>1)return false;
   var i=0,j=0,e=0;while(i<a.length&&j<b.length){if(a[i]===b[j]){i++;j++;continue;}if(++e>1)return false;if(a.length>b.length)i++;else if(b.length>a.length)j++;else{i++;j++;}}
   return e+(a.length-i)+(b.length-j)<=1;}
+/* gleicher Betrag + gemeinsames markantes Wort («Gemeinde Kreuzlingen» / «Stadtverwaltung Kreuzlingen», «Rechtschutz» / «Rechtsschutz»): derselbe Vertrag */
+function bankSameWord(s,sc){if(!sc)return false;var GEN=/^(gemeinde|stadt|stadtverwaltung|verwaltung|kanton|finanzabteilung|steueramt|steuerverwaltung|ag|gmbh|sa|kg|co|und|der|die|das|schweiz|schweizerische|deutschland|versicherung|versicherungen|bank|genossenschaft)$/,
+    tw=function(x){return bankTok(x).filter(function(w){return w.length>=4&&!GEN.test(w);});},A1=tw(s.name+" "+(s.raw||"")+" "+(s.memo||"")+" "+bankLabel(s)),B1=tw((sc.partner||"")+" "+(sc.label||""));
+  var catOk=!s.cat||!sc.cat||s.cat==="Sonstiges"||sc.cat==="Sonstiges"||catKey(s.cat)===catKey(sc.cat);
+  return catOk&&A1.some(function(w){return B1.some(function(v){return bankWordSim(w,v);});});}
 function bankSameAmount(s,used){var best=null;
   Object.keys(state.contracts).forEach(function(id){var c=state.contracts[id];if(c.status==="cancelled"||isEnded(c)||(c.cur||"CHF")!==s.cur)return;
-    var cp=curPrice(c),cy=+c.cycle||1,d=cy===s.cycle?Math.abs(cp-s.amount):Math.abs(cp/cy-s.amount/s.cycle)*cy;
+    /* nur gleicher Rhythmus: Wingo 27.95 monatlich ist nicht «gleicher Betrag» wie Serafe 335.– jährlich (= 27.92 pro Monat), 25.10.2026 */
+    var cp=curPrice(c),cy=+c.cycle||1;if(cy!==s.cycle)return;var d=Math.abs(cp-s.amount);
     if(d>Math.max(0.05,cp*0.01))return;d+=used[id]?1000:0;if(!best||d<best.d)best={id:id,d:d};});
   return best?best.id:null;}
 function bankMatchName(s){var ids=bankCands(s);if(!ids.length)return null;
@@ -9467,9 +9473,9 @@ function bankMatchName(s){var ids=bankCands(s);if(!ids.length)return null;
    (im Rhythmus des Vertrags). Mobiliar: Februar-Reihe = Hausrat (fällig Feb), November-Reihe = Vollkasko Ford (fällig Nov). null = nicht prüfbar */
 function bankDueOk(s,c){var cy=+c.cycle||1;if(cy<3||(s.cycle||1)!==cy||!c.due||!(s.due||s.last))return null;var a=parseD(s.due||s.last),b=parseD(c.due);if(!a||!b)return null;
   var P=cy*30.4375,x=(a-b)/864e5;x=((x%P)+P)%P;return Math.min(x,P-x)<=45;}
-function bankMatch(s){
+function bankMatch(s,excl){
   var best=null;
-  bankCands(s).forEach(function(id){var c=state.contracts[id],ok=bankDueOk(s,c);if(ok===false)return;/* anderer Fälligkeitsmonat = anderer Vertrag */
+  bankCands(s).forEach(function(id){if(excl&&excl[id])return;var c=state.contracts[id],ok=bankDueOk(s,c);if(ok===false)return;/* anderer Fälligkeitsmonat = anderer Vertrag */
     var dm=Math.abs(curPrice(c)/(+c.cycle||1)-s.amount/s.cycle)-(ok?1e6:0);
     if(!best||dm<best.dm)best={id:id,dm:dm,c:c,due:ok};
   });

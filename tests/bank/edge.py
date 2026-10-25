@@ -64,6 +64,8 @@ E = {
  "teilzahlung": dict(s=[("Sunrise", 1, 39)], k=["Muster Versicherung"]),
  "steuerjahre": dict(s=[("Sunrise", 1, 39), ("Steuerverwaltung Musterkanton", 12, 549)]),
  "vereine": dict(s=[("Sunrise", 1, 39), ("TV Musterdorf", 12, 120), ("Musikgesellschaft Musterdorf", 12, 80), ("STV Musterberg", 12, 150)]),
+ "zwei_abos_bekannt": dict(s=[("Sunrise", 1, 39), ("Muster Mobil", 1, 27.95)], k=["Muster Mobil"]),  # 27.95 = Preisänderung beim zweiten Abo, nicht neuer Vertrag
+ "exakt_zuerst": dict(s=[("Sunrise", 1, 39)], k=["Muster Versicherung", "Muster Versicherung"]),
  "policen": dict(s=[("Sunrise", 1, 39), ("Muster Versicherung", 12, 404.1), ("Muster Versicherung", 12, 383.2), ("Muster Versicherung", 12, 372.7)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);
