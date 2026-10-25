@@ -1684,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v344</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v345</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8793,7 +8793,8 @@ var BKTYPEW=("belastung gutschrift zahlung zahlungen einkauf warenbezug und dien
 function bankIsType(p){var w=lnorm(p).split(" ").filter(Boolean);return !w.length||w.every(function(x){return /^\d+$/.test(x)||(x.length<2&&w.length>1)||BKTYPEW.indexOf(x)>=0;});}
 function bankNameClean(n){
   /* von der Bank abgeschnitten («Raiffeisen Pensionskasse Genosse...»): das angeschnittene letzte Wort weglassen (25.10.2026) */
-  n=String(n||"").replace(/\s+/g," ").trim();if(/(?:\.{2,}|…)$/.test(n))n=/\S\s+\S+(?:\.{2,}|…)$/.test(n)?n.replace(/\s+\S+(?:\.{2,}|…)$/,""):n.replace(/\s*(?:\.{2,}|…)$/,"");
+  n=String(n||"").replace(/\s+/g," ").trim().replace(/\s+(?:EUR|USD|GBP|CHF|SEK|NOK|DKK|PLN|CZK|HUF|TRY)\s*[\d.,]+$/i,"");/* Originalbetrag in Fremdwährung am Ende weg */
+  if(/(?:\.{2,}|…)$/.test(n))n=/\S\s+\S+(?:\.{2,}|…)$/.test(n)?n.replace(/\s+\S+(?:\.{2,}|…)$/,""):n.replace(/\s*(?:\.{2,}|…)$/,"");
   n=n.split(/\s(?:MITTEILUNGEN?|Mitteilungen?:|REFERENZ|Referenz(?:-Nr\.?)?:?|QR-Referenz|Transaktions(?:-Nr\.?|datum)|Karten?-?Nr\.?|Kartennummer|IBAN|Kto\/IBAN|Kto|BLZ|Konto-Nr\.?|CH\d{2}\s?\d|DE\d{2}\s?\d|\d{4,5}\s+[A-ZÄÖÜa-zäöü]{2}|Ref\.|Buchungstext:|Verwendungszweck)/)[0];
   /* Rechtsform am Anfang («Genossenschaft Migros Ostschweiz») ist Teil des Namens: nur abschneiden, wenn davor schon ein Name steht (17.10.2026) */
   var lg=n.match(/^(.+?\s(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\.V\.|e\.\s?V\.|Genossenschaft))(?:\s|$)/i);if(lg)n=lg[1];
@@ -8815,7 +8816,7 @@ function bankSubMemo(text){var tl=String(text||"").replace(/\r/g,"").split(/\n+/
 /* Name einer Buchung (Kosten und Einnahmen gleich): Empfänger/Auftraggeber, sonst aus dem Buchungstext; nur der erste Teil vor «;» / « · » */
 function bankTxName(t){var nm=t.name&&!bankIsType(t.name)?bankNameClean(t.name.split(/\s*,\s*/)[0]):bankNameFrom(t.text);nm=String(nm||"").split(/;|\s·\s/)[0].trim();
   /* Kürzel vor dem Komma («SC, SwissCaution SA»): der eigentliche Name kommt danach (25.10.2026) */
-  if(/^[A-Za-z]{1,3}$/.test(nm)){var m=String(t.name||t.text||"").match(new RegExp("(?:^|\\n)\\s*"+nm+"\\s*,\\s*([^,\\n]{4,})"));if(m&&!bankIsType(m[1]))nm=bankNameClean(m[1])||nm;}
+  if(/^[A-Za-z]{1,3}$/.test(nm)&&!bankTpl(nm,"",(state.settings&&state.settings.home)||"CHF")){var m=String(t.name||t.text||"").match(new RegExp("(?:^|\\n)\\s*"+nm+"\\s*,\\s*([^,\\n]{4,})"));if(m&&!bankIsType(m[1]))nm=bankNameClean(m[1])||nm;}
   return nm;}
 function bankNameFrom(t){
   var full=String(t||"").replace(/\r/g,"").split(/\n+/).map(function(x){return x.replace(/\s+/g," ").trim();}).filter(Boolean).join(" , ");
@@ -8906,7 +8907,8 @@ function bankTpl0(name,text,cur){var X=tplIdx();
 }
 var BKLABTPL={"Bausparvertrag":/bauspar/,"Reiseversicherung":/reise|\beti\b|schutzbrief|travel|annullation/,"Rechtsschutz":/rechtsschutz|assista/,"Leasing":/leasing/,"Säule 3a":/\b3a\b|vorsorge|saeule|saule|pillar/,"Zusatzversicherung":/zusatz|\bvvg\b|spitalvers|ambulant|halbprivat|\bprivat\b/,"Krankenkasse":/grundvers|\bkvg\b|obligatorisch|\bokp\b/};
 /* + Bussen, Arzt-/Spitalrechnungen (25.10.2026, Testgenerator): zufällig ähnliche Beträge im Halbjahres-/Jahresabstand sind keine Verträge */
-var BKSKIP=/\bbusse\b|bussgeld|ordnungsbusse|parkbusse|verwarnungsgeld|\bpraxis\b|arztpraxis|zahnarzt|spital|klinik|tierarzt|physiotherap|bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlung gaa|\bgaa\b|\bga \d{4,}|^ga\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\bzinsen\b|\babschluss\b|kontoubertrag/;
+var BKNOCON=/\bbusse\b|bussgeld|ordnungsbusse|parkbusse|verwarnungsgeld|\bpraxis\b|arztpraxis|zahnarzt|\bspital\b|kantonsspital|\bklinik\b|tierarzt|physiotherap|dentalhygiene/;
+var BKSKIP=/u?e?bertrag (auf|von|an)|twint (geld )?(senden|gesendet|an|send)|geld senden|kreditkarten ?abrechnung|aufladung|top ?up\b|bancomat|geldautomat|bargeld|barauszahlung|\batm\b|\bcash\b|auszahlung gaa|\bgaa\b|\bga \d{4,}|^ga\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\babschluss\b|kontoubertrag/;
 /* Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant) */
 var BKSHOP=/\b(gastro|gastronomie|badi beizli|cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|doner|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|gartnerei|blumen|baumarkt)\b/;
 /* Alltagseinkäufe (Detailhandel, Tankstellen, Fast Food): nie ein Vertrag, ausser ein Katalogeintrag passt (Migros Bank, Coop Mobile) */
@@ -8936,7 +8938,7 @@ function bankPeriod(txt){var t=String(txt||""),m=t.match(/\b(\d{1,2})[.\/](\d{4}
    («FC Paradies», «TV Konstanz», «AS Calcio») und ohne Firmenform (AG/GmbH), damit «TV Media AG» oder Kantonskürzel nicht treffen. SwiftUI: BankClub */
 var BKCLUBW=/\b(verein|vereins|club|klub|turnverein|turngemeinde|turnerschaft|turnerbund|sportverein|sportclub|sportgemeinschaft|spielvereinigung|fussballclub|fussballverein|fussball club|calcio|futbol|tennisclub|tennis club|tischtennis|schwimmclub|schwimmverein|skiclub|ski club|eishockey|handballclub|handball|volleyball|basketball|unihockey|floorball|leichtathletik|judo|karate|taekwondo|ringerclub|boxclub|reitverein|reitclub|golfclub|golf club|schutzenverein|schuetzenverein|schutzengesellschaft|schuetzengesellschaft|ruderclub|segelclub|yachtclub|kanuclub|wassersport|radsport|veloclub|velo club|radfahrverein|alpenverein|alpenclub|bergsteiger|samariterverein|lebensrettung|slrg|dlrg|musikverein|musikgesellschaft|stadtmusik|feldmusik|harmonie|blasmusik|brass band|guggenmusik|chor|mannerchor|maennerchor|frauenchor|kirchenchor|gesangverein|jodlerklub|jodlerclub|theaterverein|trachtenverein|narrenzunft|fasnachtsgesellschaft|zunft|kulturverein|forderverein|foerderverein|elternverein|quartierverein|dorfverein|frauenverein|pfadi|pfadfinder|jungwacht|blauring|cevi|tierschutzverein|kleingartenverein|gartenverein|imkerverein|kynologisch|hundesportverein|modellflug|schachclub|schachverein|jassclub)\b/;
 var BKCLUBA=/^(fc|sc|sv|sg|spvgg|tsv|tus|tsg|tv|vfb|vfl|vfr|mtv|esv|psv|bsc|bsv|ssv|fsv|djk|asv|atsv|ksv|ttc|ttv|tc|thc|hc|ehc|uhc|ihc|rc|rsc|rsv|bc|vc|bbc|stv|dtv|etv|ktv|btv|mtv|lc|lg|lac|sac|dav|oav|ssc|skc|kc|fv|ffc|jfv|sfv|satus|cevi)\s+[a-z]/;
-function bankClub(name,hay){var n=lnorm(name||"");if(BKRETAIL.test(n)||/\b(bank|store|shop|online|versand|hotel|resort|reisen)\b/.test(n))return false;if(/\b(ag|gmbh|sa|sarl|ltd|inc|kg|ug|ohg|se)\b/.test(n))return BKCLUBW.test(lnorm(hay||n))&&/verein|club|klub/.test(n);return BKCLUBA.test(n)||BKCLUBW.test(lnorm(hay||n));}
+function bankClub(name,hay){var n=lnorm(name||"");if(BKRETAIL.test(n)||/\b(bank|store|shop|online|versand|hotel|resort|reise|reisen|ferien|urlaub|travel)\b|club med/.test(n))return false;if(/\b(ag|gmbh|sa|sarl|ltd|inc|kg|ug|ohg|se)\b/.test(n))return BKCLUBW.test(lnorm(hay||n))&&/verein|club|klub/.test(n);return BKCLUBA.test(n)||BKCLUBW.test(lnorm(hay||n));}
 /* Bezeichnung aus der Vereinsart; sonst «Mitgliedschaft» */
 var BKCLUBL=[[/fussball|calcio|futbol|^(fc|fv|ffc|jfv|sfv)\s/,"Fussball"],[/tischtennis|^(ttc|ttv)\s/,"Tischtennis"],[/tennis|^tc\s/,"Tennis"],[/eishockey|^(ehc|ihc)\s/,"Eishockey"],
   [/unihockey|floorball|^uhc\s/,"Unihockey"],[/handball/,"Handball"],[/volleyball|^vc\s/,"Volleyball"],[/basketball|^bbc\s/,"Basketball"],[/turn|^(tv|stv|dtv|etv|ktv|btv|mtv|satus)\s/,"Turnverein"],
@@ -8972,6 +8974,10 @@ function bankFind(r,ign){
   ign=ign||state.settings.bankIgn||[];
   var D=function(s){return parseD(s);},dd=function(a,b){return Math.round((D(b)-D(a))/864e5);};
   var groups={},home=state.settings.home;
+  /* eigene Namen: Halter mit Nachnamen aus der Absender-Adresse bzw. dem Kontoinhaber der Datei; Halter nur mit Vornamen zählen nur zusammen mit einem Nachnamen */
+  var ME=(function(){var full=[(state.settings.sender&&state.settings.sender.name)||"",r.owner||""].map(function(x){return bankTok(x).filter(function(w){return w.length>=3;});}).filter(function(w){return w.length>=2;});
+    var sur={};full.forEach(function(w){sur[w[w.length-1]]=1;});var out=full.slice();
+    (state.settings.holders||[]).forEach(function(h){var w=bankTok(h).filter(function(x){return x.length>=3;});if(w.length>=2)out.push(w);else if(w.length===1){Object.keys(sur).forEach(function(sn){out.push([w[0],sn]);});out.push(["^"+w[0]]);}});return out;})();
   r.tx.forEach(function(t){
     if(t.a>=0)return;
     var nm=bankTxName(t);
@@ -8984,15 +8990,23 @@ function bankFind(r,ign){
     /* Detailhändler (Migros, Coop …) nur bei Kartenkäufen ausfiltern – Lastschrift/Dauerauftrag/Abo (z.B. «Migros Fitnesspark») bleibt (17.10.2026) */
     if(!tp&&BKRETAIL.test(lnorm(nm))&&!(t.kind==="dd"||t.kind==="so"||t.cred||/fitness|mitglied|abo\b|abonnement/.test(hay)))return;
     /* Kartenbezug am Automaten einer Bank («Sparkasse Konstanz», «UBS») = Bargeld */
-    if((t.kind==="card"||(!t.kind&&Math.abs(t.a)%10===0))&&!/\b3a\b|vorsorge|saeule|saule|leasing/.test(hay)&&/^(sparkasse|volksbank|raiffeisen|commerzbank|deutsche bank|postbank|hypovereinsbank|targobank|santander|ubs|postfinance|zkb|kantonalbank|migros bank|valiant|atm|geldautomat)\b/.test(lnorm(nm)))return;
+    if((t.kind==="card"||(!t.kind&&Math.abs(t.a)%10===0)||/bezug|automat|bancomat|\batm\b|\bgaa\b|bargeld/.test(hay))&&!/\b3a\b|vorsorge|saeule|saule|leasing|hypothek|amortisation|darlehen|sparplan|bauspar|kredit|zins/.test(hay)&&/^(sparkasse|volksbank|raiffeisen|commerzbank|deutsche bank|postbank|hypovereinsbank|targobank|santander|ubs|postfinance|zkb|kantonalbank|migros bank|valiant|atm|geldautomat)\b/.test(lnorm(nm)))return;
     if(BKSKIP.test(hay)||BKSHOP.test(lnorm(nm)))return;
+    /* Konto-/Habenzinsen sind kein Vertrag, Hypothekar-/Darlehenszinsen schon (Review B-M5) */
+    if(/\bzinsen\b|habenzins|sollzins|kontozins/.test(hay)&&!/hypothek|darlehen|kredit|leasing/.test(hay))return;
+    /* Arzt, Spital, Bussen: nur am Namen erkannt und nicht, wenn es um eine Versicherung geht (Spitalzusatz, Review B-H3) */
+    if(BKNOCON.test(lnorm(nm))&&!/versicherung|praemie|pramie|zusatz|\bkvg\b|\bvvg\b|krankenkasse|assekuranz/.test(hay))return;
+    /* Zahlung an dich selbst oder an eine andere erfasste Person (Dauerauftrag «Sinan Bayat Sparen», Review B-H2): Name einer Person ohne Firmenform */
+    if(ME.length&&!/\b(ag|gmbh|sa|sarl|kg|ohg|ug|se|ltd|inc|genossenschaft|verein|stiftung|e v|ev)\b/.test(lnorm(nm))&&ME.some(function(w){var nt=bankTok(nm);if(w.length===1&&w[0].charAt(0)==="^")return nt.length>=2&&nt.length<=4&&nt[0]===w[0].slice(1)&&(t.kind==="so"||/dauerauftrag|ubertrag|uebertrag|sparen/.test(hay));return w.length&&w.every(function(x){return nt.indexOf(x)>=0;});}))return;/* nur Vorname bekannt: Dauerauftrag an «Vorname …» */
     /* Aufladung eines E-Geld-Kontos per Karte mit rundem Betrag (Revolut, Wise): Umbuchung, kein Vertrag (25.10.2026) */
     if(t.kind==="card"&&Math.abs(t.a)%5===0&&/^(revolut|wise|transferwise|curve|skrill|neteller)\b/.test(lnorm(nm)))return;
+    /* Zahlungsdienst (PayPal, Klarna …): alle Händler teilen dieselbe Gläubiger-ID → nicht als Vertragsmerkmal verwenden (Review B-H1) */
+    if(t.cred&&BKVIA.test(lnorm((t.name||"")+" "+(t.cred||""))))t.cred="";
     var tk=bankTok(nm),key=tp?"tpl:"+tp[0]+(TPL.some(function(o){return o!==tp&&o[0]===tp[0];})?"·"+tp[3]:""):(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)));
     if(!key)return;if(t.memo){var mk=lnorm(t.memo).replace(/\d+/g," ").replace(/\b(januar|februar|marz|maerz|april|mai|juni|juli|august|september|oktober|november|dezember|jan|feb|mar|apr|jun|jul|aug|sep|sept|okt|oct|nov|dez|dec)\b/g," ").replace(/ /g,"").slice(0,24);if(mk)key+="~"+mk;}key=key+"|"+(t.cur||home);
     var gq=groups[key]=groups[key]||{key:key,tpl:tp,tx:[],names:{},cur:t.cur||home};
     /* dieselbe Zahlung in zwei Dateien (z.B. Sparkasse- und N26-Export desselben Kontos, Konto + Kreditkarte): beim selben Vertragspartner nur einmal (25.10.2026) */
-    if(t._fi!=null&&gq.tx.some(function(o){return o._fi!==t._fi&&o.d===t.d&&o.a===t.a;}))return;
+    if(t._fi!=null&&gq.tx.some(function(o){return o._fi!==t._fi&&o._acc===t._acc&&o.d===t.d&&o.a===t.a;}))return;/* nur bei Exporten desselben Kontos (Review B-H5) */
     gq.tx.push(t);
     groups[key].names[nm]=(groups[key].names[nm]||0)+1;t._nm=nm;
   });
@@ -9037,6 +9051,8 @@ function bankFind(r,ign){
     var A=groups[a],B=groups[b];if(a===b||!A||!B||A.tpl||B.tpl||A.cur!==B.cur||/^cred:/.test(a)||/^cred:/.test(b))return;
     var fa=a.split("|")[0].split(" ")[0],fb=b.split("|")[0].split(" ")[0];if(fa!==fb||fa.length<4||LGEN.indexOf(fa)>=0||LPLACE.indexOf(fa)>=0||/^(stadt|gemeinde|kanton|steuer)/.test(fa))return;
     var ma=A.tx[A.tx.length-1].a,mb=B.tx[B.tx.length-1].a;if(Math.abs(ma-mb)>Math.abs(ma)*0.1)return;
+    /* zahlen beide im selben Monat (Hans Mueller Garage und Hans Meier Putzhilfe je 150.–), sind es zwei Verträge (25.10.2026, Review B-M3) */
+    var MA={};A.tx.forEach(function(t){MA[t.d.slice(0,7)]=1;});if(B.tx.filter(function(t){return MA[t.d.slice(0,7)];}).length>=2)return;
     A.tx=A.tx.concat(B.tx).sort(function(x,y){return x.d<y.d?-1:1;});Object.keys(B.names).forEach(function(n){A.names[n]=(A.names[n]||0)+B.names[n];});delete groups[b];
   });});
   /* Gleicher Vertragspartner mit mehreren Verträgen (Hausrat + Haftpflicht, Strom + Gas): Beträge, die sich zeitlich
@@ -9046,6 +9062,9 @@ function bankFind(r,ign){
     var g=groups[k],by={};g.tx.forEach(function(t){if(t.mref)(by[t.mref]=by[t.mref]||[]).push(t);});
     /* auch Einzelzahlungen je Mandat (Hausrat im Januar, Kfz im Februar bei derselben Versicherung): sonst würden sie zusammengelegt und verworfen */
     var ms=Object.keys(by);if(ms.length<2)return;
+    /* Mandate nacheinander (neues Mandat beim selben Anbieter, Review B-M4) = ein Vertrag; nur trennen, wenn sie sich zeitlich überschneiden */
+    var rg=ms.map(function(m){var L=by[m];return [L[0].d,L[L.length-1].d];});
+    if(!rg.some(function(a,i){return rg.some(function(b,j){return i!==j&&a[0]<b[1]&&b[0]<a[1];});}))return;
     var rest=g.tx.filter(function(t){return !t.mref;});delete groups[k];
     ms.forEach(function(m,i){var nk=k.replace("|","~"+lnorm(m).replace(/ /g,"")+"|");groups[nk]={key:nk,tpl:g.tpl,cur:g.cur,names:Object.assign({},g.names),mref:m,tx:by[m]};});
     if(rest.length)groups[k]={key:k,tpl:g.tpl,cur:g.cur,names:g.names,tx:rest};
@@ -9109,7 +9128,9 @@ function bankFind(r,ign){
      (Swisscom 29.90 + 32.90) dürfen nicht beide demselben erfassten Vertrag zugeordnet werden */
   /* Grundschlüssel des Vertragspartners: ohne Datei-/Betragsstufe (#…); bei Namensschlüsseln nur das erste Wort
      («Strassenverkehrsamt» und «Strassenverkehrsamt des Kantons Thurgau» in verschiedenen Jahren) */
-  function bankBase(k){var b=k.replace(/#[^|#]*/g,""),p=b.split("|");if(!/^(tpl|cred):/.test(p[0])&&p[0].indexOf("~")<0)p[0]=p[0].split(" ")[0];return p.join("|");}
+  function bankBase(k){var b=k.replace(/#[^|#]*/g,""),p=b.split("|"),f=p[0].split(" ")[0];
+    /* erstes Wort nur, wenn es markant ist («Strassenverkehrsamt» / «Strassenverkehrsamt des Kantons»), nicht bei Gemeinde, Stadt, Orten oder kurzen Vornamen (Review B-M3) */
+    if(!/^(tpl|cred):/.test(p[0])&&p[0].indexOf("~")<0&&f.length>=8&&LGEN.indexOf(f)<0&&LPLACE.indexOf(f)<0&&!/^(stadt|gemeinde|kanton|steuer|verwaltung|stiftung|verein|genossenschaft|schweiz|deutsch)/.test(f))p[0]=f;return p.join("|");}/* ganzer Vertragspartner-Schlüssel ohne Betrags-/Dateizusatz; nicht nur das erste Wort (Gemeinde Kreuzlingen ≠ Gemeinde Tägerwilen, Review B-M3) */
   var EV=[],FAIL={},OKB={};Object.keys(groups).forEach(function(k){
     if(cancelledHit(groups[k]))return;
     var s=bankEval(k,groups[k]);
@@ -9143,7 +9164,7 @@ function bankFind(r,ign){
       /* gleicher Betrag + gemeinsames markantes Wort («Gemeinde Kreuzlingen» / «Stadtverwaltung Kreuzlingen»): schon erfasst, ohne Rückfrage */
       if(bankSameWord(s,state.contracts[sa])){s.match={id:sa,kind:"known"};known.push(s);return;}
       s.same=sa;}}}
-    if(ign.indexOf(bankIgnKey(s))>=0||ign.indexOf(bankIgnKey(s).split("·")[0])>=0){s.ignored=true;}/* «·Bezeichnung» seit v212: alte Einträge «tpl:CSS» gelten weiter */
+    if(ign.indexOf(bankIgnKey(s))>=0||ign.indexOf(bankIgnKey(s).split("~")[0])>=0||ign.indexOf(bankIgnKey(s).split("·")[0])>=0){s.ignored=true;}/* «·Bezeichnung» seit v212: alte Einträge «tpl:CSS» gelten weiter */
     out.push(s);
   });
   /* Teilzahlung (25.10.2026): einzelne Zahlung + letzte Zahlung eines schon zugeordneten Vertrags beim selben Vertragspartner = dessen Jahresbetrag (±3 %)
@@ -9215,7 +9236,7 @@ function bankFind(r,ign){
         var k2=k+"^"+pi;groups[k2]={key:k2,tpl:gk.tpl,tx:T,names:gk.names,cur:gk.cur,period:1,periodAmt:Math.round(-la.t.a*100)/100};
         var s2=bankEval(k2,groups[k2]);if(s2){s2.text=la.t.text;subs.push([k2,s2]);useT=useT.concat(T);}});
       if(onceW&&!gk.hasSeries)gk.tx.forEach(function(t,ti){var a=t.a.toFixed(2);
-        if(useT.indexOf(t)>=0||seenA[a]||-t.a<50||dd(t.d,ref0)>366)return;seenA[a]=1;var k2=k+"@"+ti;groups[k2]={key:k2,tpl:gk.tpl,tx:[t],names:gk.names,cur:gk.cur};var s2=bankEval(k2,groups[k2]);if(s2)subs.push([k2,s2]);});
+        if(useT.indexOf(t)>=0||seenA[a]||-t.a<50||dd(t.d,ref0)>366)return;seenA[a]=1;var k2=k+"@"+ti,nn={};nn[t._nm||Object.keys(gk.names)[0]]=1;groups[k2]={key:k2,tpl:gk.tpl,tx:[t],names:nn,cur:gk.cur};var s2=bankEval(k2,groups[k2]);if(s2)subs.push([k2,s2]);});
       if(subs.length){subs.forEach(function(x){var s2=x[1];if(subs.length>1)s2.multi=1;bankApplyAlias(s2);s2.cat=bankCat(s2);if(s2.alias&&s2.alias.c&&allCats().indexOf(s2.alias.c)>=0)s2.cat=s2.alias.c;
         s2.match=bankMatch(s2);EV.push({k:x[0],s:s2,q:!s2.match?5:s2.match.kind==="known"?0:2});});return true;}return false;}
   function bankEval(k,g){
@@ -9278,7 +9299,7 @@ function bankFind(r,ign){
         /* schwankende Beträge nur bei Rechnungen/Lastschriften (Strom, Handy); Kartenabos haben einen festen Preis */
         /* Ausnahme: Kartenabo in Fremdwährung (USD/GBP) – Betrag schwankt nur durch den Kurs: monatlich, eng (±5 %), mind. 3× */
         var fx=kind==="card"&&n>=3&&cyc===1&&(function(){var s0=am.slice().sort(function(a,b){return a-b;}),m0=s0[Math.floor(s0.length/2)];return am.every(function(v){return Math.abs(v-m0)<=m0*0.05;});})()&&
-          (lnorm(tx.map(function(t){return (t.text||"")+" "+(t.type||"");}).join(" ")).match(/\busd\b|\bgbp\b|\bchf\b|fremdw|kurs|wechselkurs|auslandseinsatz|devisen/)||tx.some(function(t){return t.fx;}));
+          (lnorm(tx.map(function(t){return (t.text||"")+" "+(t.type||"");}).join(" ")).match(/\busd\b|\bgbp\b|\bchf\b|fremdw|kurs|wechselkurs|auslandseinsatz|devisen|\beur\b|€|\bsek\b|\bnok\b|\bdkk\b|\bpln\b|\bczk\b|\bhuf\b/)||tx.some(function(t){return t.fx;}));
         if(kind==="card"&&!g.tpl&&!fx)return;
         /* Schwankung nur über die letzten 13 Monate prüfen (lange Auszüge driften); Strom/Energie schwankt mit dem Verbrauch: ±20 % */
         var amR=tx.map(function(t,i){return dd(t.d,ref)<=400?am[i]:null;}).filter(function(v){return v!=null;});if(amR.length<3)amR=am;
@@ -9300,14 +9321,18 @@ function bankFind(r,ign){
          ab 3 Jahren im gleichen Zeitraum ist es eine Gebühr (Hundesteuer 100.– jeden März/April, 25.10.2026) */
       /* Kartenzahlung nur zweimal im Jahresabstand (App-Kauf 7.– zweimal im Februar): Zufall möglich → nur nachfragen */
       if(kind==="card"&&n<3&&cyc>=3)conf="niedrig";
-      if(n<3&&cyc===12&&!g.tpl&&kind!=="dd"&&kind!=="so"&&!tx.some(function(t){return t.cred||t.memo;})&&am.every(function(v){return Math.abs(v-am[0])<0.005&&v%50===0;}))conf="niedrig";
+      /* nur zwei Zahlungen im Quartals-/Halbjahres-/Jahresabstand ohne Vertragssignal (Katalog, Gläubiger-ID, Lastschrift/Dauerauftrag, Mitteilung,
+         Vertragswort, Verein): Zufall möglich (Dentalhygiene 2× 140.–, Geschenk 2× 80.–) → nur nachfragen (Review B-M1, ersetzt die 50er-Regel) */
+      if(n<3&&cyc>=3&&!g.tpl&&kind!=="dd"&&kind!=="so"&&!tx.some(function(t){return t.cred||t.memo;})&&!BKONCE.test(lnorm(name+" "+(tx[n-1].text||"")))&&!bankClub(name,name))conf="niedrig";
       if(g.yearly&&n<3)conf="niedrig";
     } else {
       /* Einzelzahlung nur bei bekanntem Anbieter oder SEPA-Lastschrift mit Gläubiger-ID; Rhythmus vermutlich jährlich */
       /* … oder mit eindeutigem Vertragswort im Text (Versicherung, Prämie, Kfz-Steuer, Mitgliedsbeitrag …), auch per Überweisung/Karte */
       /* … oder Jahreswort + Vertragswort (IONOS «Domain Jahresrechnung», Dropbox «Plus yearly», Verein «e.V. … Beitrag 2026») */
       var t0=tx[0],h0=lnorm(name+" "+(t0.text||"")),ow=(BKONCE.test(h0)||bankClub(name,name)||(/jahresrechnung|jahresgebuhr|jahresgebuehr|jahresabo|jahresmitglied|\byearly\b|\bannual\b|12 monate|\be v\b|\bev\b/.test(h0)&&/beitrag|abo|rechnung|yearly|annual|plus|premium|mitglied|domain|hosting/.test(h0)))&&!BKONCENO.test(h0)&&lusable(name);
-      if(!g.tpl&&!ow&&((!t0.cred&&kind!=="dd")||BKVIA.test(lnorm(name))))return;
+      /* einzelne eBill/Lastschrift ohne Gläubiger-ID, Mandat oder Vertragswort ist meist ein Einkauf (Digitec, Maler, Zalando auf Rechnung; Review B-M2) */
+      var ddSig=kind==="dd"&&(t0.cred||t0.mref||/lastschrift|\blsv\b|einzug/.test(lnorm((t0.text||"")+" "+(t0.type||"")))&&!/e ?rechnung|ebill/.test(lnorm((t0.text||"")+" "+(t0.type||""))));
+      if(!g.tpl&&!ow&&(!(t0.cred||ddSig)||BKVIA.test(lnorm(name))))return;
       /* Schadenzahlung, Selbstbehalt, Arztrechnung: auch beim bekannten Versicherer keine Prämie */
       if(BKONCENO.test(lnorm(name+" "+(t0.text||""))))return;
       /* kurzer Auszug und Zahlung ganz am Ende: eher monatlich; bei langem Auszug (> 10 Monate) wäre eine Monatszahlung mehrfach drin */
@@ -9318,7 +9343,9 @@ function bankFind(r,ign){
       if(!per&&!yr&&(BKONCE.test(h0)||bankClub(name,name))&&!(kind==="dd"&&Math.abs(t0.a)<150))yr=true;
       /* Krankenkasse: Prämie wird praktisch immer monatlich bezahlt (CH Grundversicherung, DE private KV) – auch bei nur einer Zahlung (25.10.2026) */
       var kk=/krankenkasse|krankenversicherung|gesundheitsorganisation|grundversicherung|\bkvg\b|krankenkassenpramie|krankenkassenpraemie/.test(h0)||!!(g.tpl&&/krankenkasse|krankenversicherung/i.test((g.tpl[3]||"")+" "+(g.tpl[2]||"")));
-      if(!per&&!/jahres|jaehrlich|jahrlich|annual|yearly/.test(h0)){if(typeof preCyc!=="undefined"&&preCyc)per=preCyc;else if(kk)per=1;}
+      if(!per&&!/jahres|jaehrlich|jahrlich|annual|yearly/.test(h0)){if(typeof preCyc!=="undefined"&&preCyc)per=preCyc;
+        /* Krankenkasse: monatlich nur bei plausibler Monatsprämie (< 2'500) und jüngerer Zahlung; sonst Jahresprämie (Skonto bei Jahreszahlung, Review B-H4) */
+        else if(kk){if(-t0.a<2500&&dd(t0.d,ref)<=45)per=1;else yr=true;}}
       cyc=per||(yr?12:((dd(t0.d,ref)<40&&span>40&&(span<=300||/lastschriftverfahren|\blsv\b/.test(lnorm((t0.text||"")+" "+(t0.type||"")))))?1:12));
       if(!per&&!yr&&g.tpl&&!g.tpl[1]&&cyc===12&&dd(t0.d,ref)>45)return;
       /* langer Auszug: eine Jahreszahlung, die über 13 Monate zurückliegt, hätte sich wiederholt → kein laufender Vertrag (SWICA 2022) */
@@ -9344,7 +9371,7 @@ function bankFind(r,ign){
    Lohn, Rente, Zulagen: gleiche Quelle, fester Rhythmus, ähnlicher Betrag. Umbuchungen, TWINT, Rückerstattungen,
    Zinsen und Zahlungen von dir selbst (Name einer Person) werden ausgeschlossen. Nur Vorschläge – übernommen wird erst nach Bestätigung.
    SwiftUI: gleiche Regeln in BankIncomeFinder. */
-var BKINSKIP=/umbuchung|uebertrag|kontouebertrag|eigene?s? konto|sparkonto|twint|paypal|revolut|wise\b|rueckerstattung|ruckerstattung|erstattung|refund|retoure?|storno|gutschrift karte|bargeld|einzahlung|bancomat|geldautomat|\batm\b|leistungsabrechnung|kostenbeteiligung|cashback|\bausgleich\b|saldoausgleich|steuerrueck|kontoubertrag|steuerruck/;
+var BKINSKIP=/schaden|versicherungsleistung|leistungsabrechnung|umbuchung|uebertrag|kontouebertrag|eigene?s? konto|sparkonto|twint|paypal|revolut|wise\b|rueckerstattung|ruckerstattung|erstattung|refund|retoure?|storno|gutschrift karte|bargeld|einzahlung|bancomat|geldautomat|\batm\b|leistungsabrechnung|kostenbeteiligung|cashback|\bausgleich\b|saldoausgleich|steuerrueck|kontoubertrag|steuerruck/;
 function bankIncCat(h){
   /* h ist mit lnorm normalisiert: Umlaute ohne e (Bezüge → bezuge, Salär → salar) */
   h=String(h).replace(/(zins|ruck|rueck|aufwands|spesen|kosten)verg(ue|u)tung/g," ");
@@ -9426,17 +9453,19 @@ function bankFindInc(r){
   out.sort(function(a,b){return (a.conf==="hoch"?0:1)-(b.conf==="hoch"?0:1)||b.amount/b.cycle-a.amount/a.cycle;});
   return {sugg:out,known:known};
 }
-function bankIgnKey(s){return s.key.split("|")[0];}
+/* Schlüssel für «nicht mehr vorschlagen» und Alias. Unterreihen eines Vertragspartners (Policen, zwei Abos, Datei-Trennung) bekommen einen
+   inhaltlichen Zusatz – Rhythmus und Fälligkeitsmonat bzw. Zahltag –, damit eine Korrektur nicht alle trifft (Review B-H6) */
+function bankIgnKey(s){var p=s.key.split("|"),b=p[0];if(/[%@^#]/.test(p.slice(1).join("|"))){var d=String(s.due||s.last||""),c=+s.cycle||1;b+="~c"+c+"-"+(c>=3?d.slice(5,7):String(Math.round((+d.slice(8,10)||1)/7)));}return b;}
 /* Gelernte Korrekturen (lokal): Gruppenschlüssel → {n: Vertragspartner, c: Kategorie}; gesetzt beim Anlegen, wenn du Name/Kategorie änderst */
 /* Gelernte Korrektur zum Vorschlag: gleicher Vertragspartner, Betrag ±35 % (Prämie ändert sich jährlich), nächster Betrag gewinnt. SwiftUI: BankLearnStore */
-function bankLearnKey(s){return bankIgnKey(s).replace(/#\d+$/,"");}
+function bankLearnKey(s){return s.key.split("|")[0].replace(/#\d+$/,"");}
 /* Zuordnung eins zu eins: mehrere Vorschläge beim selben Vertragspartner (zwei Handyabos, drei Policen) – jede Korrektur gilt nur für den nächstgelegenen Betrag */
 function bankLearnAssign(list){var B=state.settings.bankLearn||{},by={};list.forEach(function(s){s.learn=null;var k=bankLearnKey(s);if(B[k])(by[k]=by[k]||[]).push(s);});
   Object.keys(by).forEach(function(k){var P=[];B[k].forEach(function(e,ei){by[k].forEach(function(s){var d=Math.abs(e.a-s.amount)/Math.max(e.a,0.01);if(d<=0.35)P.push([d,ei,s]);});});
     P.sort(function(a,b){return a[0]-b[0];});var ue={};P.forEach(function(x){if(ue[x[1]]||x[2].learn)return;ue[x[1]]=1;x[2].learn=B[k][x[1]];});});}
 function bankLearnSet(s,o){var B=state.settings.bankLearn=state.settings.bankLearn||{},k=bankLearnKey(s),L=(B[k]||[]).filter(function(e){return e!==s.learn&&Math.abs(e.a-s.amount)>0.004;});
   if(o)L.push(Object.assign({a:Math.round(s.amount*100)/100},o));if(L.length)B[k]=L.slice(-12);else delete B[k];}
-function bankApplyAlias(s){var A=state.settings.bankAlias||{},a=A[bankIgnKey(s)]||A[bankIgnKey(s).split("·")[0]];if(a&&a.n){s.alias=a;s.name=a.n;}return s;}
+function bankApplyAlias(s){var A=state.settings.bankAlias||{},a=A[bankIgnKey(s)]||A[bankIgnKey(s).split("~")[0]]||A[bankIgnKey(s).split("·")[0]];if(a&&a.n){s.alias=a;s.name=a.n;}return s;}
 /* Abgleich mit erfassten Verträgen: gleicher Vertragspartner (Katalogname oder gemeinsames markantes Wort) und gleiche Währung */
 /* markantes Wort eines Namens: erstes Wort ≥ 3 Zeichen, nicht generisch (Versicherung, Stadt …) */
 function bankKey1(n){var t=bankTok(n).filter(function(x){return x.length>=3&&LGEN.indexOf(x)<0&&LPLACE.indexOf(x)<0;});return t[0]||"";}
@@ -9582,8 +9611,8 @@ function bankNums(s){var t=String(s.text||"")+" "+String(s.raw||""),o={cust:"",c
   return o;}
 /* Bezeichnung ohne Katalog aus dem Zahlungsgrund («Miete Wohnung 3.OG» → Miete) */
 /* Einzelzahlung trotzdem vorschlagen, wenn der Text klar nach Vertrag klingt (lnorm-Schreibweise: Umlaute ohne e) */
-var BKONCE=/versicherung|jahresmitgliedschaft|amazon prime|amzn prime|bahncard|\bpraemie|\bpramie|\bpolice|kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|hundesteuer|grundsteuer|rundfunk|serafe|mitgliedsbeitrag|mitgliederbeitrag|jahresbeitrag|vereinsbeitrag|jahresabo|jahresgebuehr|jahresgebuhr|abonnement|\bvignette|haftpflicht|hausrat|rechtsschutz|kaution|caution|strassenverkehrsamt|verkehrsamt|bundessteuer|steuer bund\b|staatssteuer|gemeindesteuer|kantonssteuer|kirchensteuer|steuerverwaltung/;/* Mietkautionsversicherung (SwissCaution, 25.10.2026) */
-var BKONCENO=/erstattung|ruckzahlung|rueckzahlung|storno|gutschrift|schaden|selbstbehalt|franchise|arzt|apotheke|rechnung nr .* behandlung/;
+var BKONCE=/versicherung|jahresmitgliedschaft|amazon prime|amzn prime|bahncard|\bpraemie|\bpramie|\bpolice|kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|hundesteuer|grundsteuer|rundfunk|serafe|mitgliedsbeitrag|mitgliederbeitrag|jahresbeitrag|vereinsbeitrag|jahresabo|jahresgebuehr|jahresgebuhr|abonnement|\bvignette|haftpflicht|hausrat|rechtsschutz|kautionsversicherung|kautionsservice|kautionskasse|kautionsfrei|caution|strassenverkehrsamt|verkehrsamt|bundessteuer|steuer bund\b|staatssteuer|gemeindesteuer|kantonssteuer|kirchensteuer|steuerverwaltung/;/* Mietkautionsversicherung (SwissCaution, 25.10.2026) */
+var BKONCENO=/erstattung|ruckzahlung|rueckzahlung|storno|gutschrift|schaden|selbstbehalt|franchise|arzt|apotheke|rechnung nr .* behandlung|kostenbeteiligung|leistungsabrechnung|ruckforderung|rueckforderung|pruefung|prufung|\bmfk\b|fahrzeugkontrolle|mietkaution|kautionskonto/;
 var BKLABEL=[[/hundesteuer/,"Hundesteuer"],[/grundsteuer/,"Grundsteuer"],[/bahncard/,"BahnCard"],[/amazon prime|amzn prime/,"Amazon Prime"],[/kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|strassenverkehrsamt/,"Kfz-Steuer"],
   [/kfz|autoversicherung|motorfahrzeugversicherung|fahrzeugversicherung|kasko/,"Autoversicherung"],[/rechtsschutz/,"Rechtsschutz"],
   [/wohngebaeude|wohngebaude|gebaeudeversicherung|gebaudeversicherung/,"Gebäudeversicherung"],[/unfallversicherung/,"Unfallversicherung"],
@@ -9818,9 +9847,17 @@ function bankMerge(rs){
   rs.forEach(function(r){r.tx.forEach(function(t){t._end=r.to;});});
   /* gleiche Buchung in zwei Exporten desselben Kontos (überlappende Zeiträume) nur einmal. Konto (IBAN) im Schlüssel, damit zwei Konten
      derselben Bank sich nicht gegenseitig Buchungen wegnehmen; gleiche Buchung mehrfach (2× 45.– am selben Tag): die Datei mit den meisten zählt */
+  /* Konto je Datei (Review B-H5): bekannte IBAN entscheidet; ohne IBAN gelten zwei Dateien nur als dasselbe Konto, wenn sich ihre Buchungen stark überschneiden
+     (≥ 30 % gleiche Datum+Betrag+Text). Sonst sind gleiche Zahlungen am selben Tag zwei echte Zahlungen (Sinan und Lara je 29.90 an denselben Anbieter) */
+  var sig=rs.map(function(r){var S={};r.tx.forEach(function(t){S[t.d+"|"+t.a]=1;});return S;})/* nur Datum+Betrag: zwei Exportformate desselben Kontos haben andere Texte */,acc=rs.map(function(r,i){return i;});
+  /* nur im gemeinsamen Zeitraum vergleichen: dasselbe Konto deckt sich dort fast vollständig (≥ 60 %), zwei Konten nur zufällig */
+  var same=function(i,j){if(rs[i].acct&&rs[j].acct)return rs[i].acct===rs[j].acct;var lo=rs[i].from>rs[j].from?rs[i].from:rs[j].from,hi=rs[i].to<rs[j].to?rs[i].to:rs[j].to;if(!lo||!hi||lo>hi)return false;
+    var inR=function(k){var d=k.slice(0,10);return d>=lo&&d<=hi;},A=Object.keys(sig[i]).filter(inR),B=Object.keys(sig[j]).filter(inR),sm=A.length<B.length?A:B,big=A.length<B.length?sig[j]:sig[i],m=0;
+    sm.forEach(function(k){if(big[k])m++;});return sm.length>0&&m>=sm.length*0.6;};
+  for(var ai=0;ai<rs.length;ai++)for(var aj=0;aj<ai;aj++)if(acc[ai]===ai&&same(ai,aj))acc[ai]=acc[aj];
   var tx=[],by={};
-  rs.forEach(function(r,fi){r.tx.forEach(function(t){
-    var k=(r.acct||r.bank||r.fmt)+"|"+t.d+"|"+t.a+"|"+lnorm(t.name+" "+t.text).slice(0,60),e=by[k]=by[k]||{};(e[fi]=e[fi]||[]).push(t);});});
+  rs.forEach(function(r,fi){r.tx.forEach(function(t){t._acc=acc[fi];
+    var k=acc[fi]+"|"+t.d+"|"+t.a+"|"+lnorm(t.name+" "+t.text).slice(0,60),e=by[k]=by[k]||{};(e[fi]=e[fi]||[]).push(t);});});
   Object.keys(by).forEach(function(k){var e=by[k],best=null,bf=-1;Object.keys(e).forEach(function(fi){if(!best||e[fi].length>best.length){best=e[fi];bf=+fi;}});best.forEach(function(t){t._fi=bf;});tx=tx.concat(best);});
   tx.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
   var ow=rs.map(function(r){return r.owner||"";}).filter(Boolean);
@@ -10085,7 +10122,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
       text:"Bei "+cntTxt(open0,"neuem Vertrag","neuen Verträgen")+" fehlen noch Angaben wie Kündigungsfrist, Logo oder Absender. In einer Minute erledigt – dann erinnert Kontivo dich rechtzeitig."}).then(function(y){if(y)openVk();});},900);}
 });
 /* Test-Haken (tests/bank/check.py) */
-window.KontivoBank=function(){return {tileFix:tileFix,tileDraw:tileDraw,bk:function(){return bk;},steps:function(){return bkSteps();},findInc:bankFindInc,read:bankRead,readFile:bankReadFile,merge:bankMerge,head:bankHead,find:bankFind,tpl:bankTpl,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
+window.KontivoBank=function(){return {ignKey:bankIgnKey,tileFix:tileFix,tileDraw:tileDraw,bk:function(){return bk;},steps:function(){return bkSteps();},findInc:bankFindInc,read:bankRead,readFile:bankReadFile,merge:bankMerge,head:bankHead,find:bankFind,tpl:bankTpl,toContract:bankToContract,nameFrom:bankNameFrom,mark:markHtml,money:money,state:state};};
 document.getElementById("csvImp").addEventListener("click",function(){document.getElementById("csvFile").click();});
 document.getElementById("csvFile").addEventListener("change",function(ev){
   var f=ev.target.files&&ev.target.files[0];ev.target.value="";if(!f)return;

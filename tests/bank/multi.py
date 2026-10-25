@@ -36,5 +36,18 @@ with sync_playwright() as p:
     st = pg.evaluate(JS, [enc(sa), enc(sb)])
     sv = [x for x in st["s"] if x[0].startswith("Stadtverwaltung")]
     ok = len(sv) == 1 and sv[0][2] == 340; print(("✓" if ok else "✗"), "Steuerraten über zwei Konten = ein Vertrag", "" if ok else st["s"]); fails += not ok
+    # Review 25.10.2026 (B-H5): zwei Konten zahlen am selben Tag denselben Betrag an denselben Anbieter = zwei Verträge (mit und ohne IBAN in der Datei)
+    mob = lambda: "".join(f"28.{m:02d}.2026;LASTSCHRIFT Muster Mobil AG;-29.90\n" for m in range(1, 10))
+    xa = H + mob() + "".join(f"{d:02d}.03.2026;KARTENZAHLUNG Laden Nord;-{d+3}.50\n" for d in range(1, 20))
+    xb = H + mob() + "".join(f"{d:02d}.04.2026;KARTENZAHLUNG Laden Sued;-{d+7}.20\n" for d in range(1, 20))
+    two = pg.evaluate(JS, [enc(xa), enc(xb)]); mm = [x for x in two["s"] if x[0].startswith("Muster Mobil")]
+    ok = len(mm) == 2; print(("✓" if ok else "✗"), "zwei Konten, gleicher Betrag am selben Tag = zwei Verträge", "" if ok else two["s"]); fails += not ok
+    one = pg.evaluate(JS, [enc(xa), enc(xa)]); mm1 = [x for x in one["s"] if x[0].startswith("Muster Mobil")]
+    ok = len(mm1) == 1 and mm1[0][3] == 9; print(("✓" if ok else "✗"), "gleiche Datei zweimal bleibt ein Vertrag", "" if ok else one["s"]); fails += not ok
+    # B-H6: Unterreihen (mehrere Policen) haben verschiedene Schlüssel für «nicht mehr vorschlagen»
+    import json as _j
+    C = _j.load(open(os.path.join(D, "edge_cases.json")))
+    keys = pg.evaluate("(t)=>{var B=window.KontivoBank(),f=B.find(B.read(t),[]);return f.sugg.filter(function(s){return /Muster Versicherung/.test(s.name)}).map(function(s){return B.ignKey(s)});}", C["jahresreihe"]["txt"])
+    ok = len(keys) >= 2 and len(set(keys)) == len(keys); print(("✓" if ok else "✗"), "Policen: eigene Schlüssel zum Ausblenden", "" if ok else keys); fails += not ok
     b.close()
 print("Alles gut" if not fails else f"{fails} Fehler"); sys.exit(1 if fails else 0)
