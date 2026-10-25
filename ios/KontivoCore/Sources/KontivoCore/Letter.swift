@@ -169,6 +169,15 @@ public enum Letter {
         return lp
     }
 
+    /// Empfängeradresse, die beim Vertrag gemerkt wird (Web «ltPdf», C25): ohne die Namenszeile und ohne die automatisch
+    /// angehängte Länderzeile (`countryLine`), sofern noch weitere Zeilen bleiben.
+    public static func addressToSave(_ to: [String], partnerName: String, countryLine: String) -> String {
+        let pn = partnerName.trimmingCharacters(in: .whitespaces).lowercased()
+        var aL = (to.first?.lowercased() == pn) ? Array(to.dropFirst()) : to
+        if !countryLine.isEmpty && aL.count > 1 && aL.last == countryLine { aL.removeLast() }
+        return aL.joined(separator: "\n")
+    }
+
     // MARK: Land für Brief-Konventionen (Web v229)
 
     static let countryName = ["CH": "Schweiz", "DE": "Deutschland"]

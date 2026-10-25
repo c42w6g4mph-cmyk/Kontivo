@@ -110,7 +110,8 @@ final class CTFormState {
     var autoP = false
     /// Unterbereiche «+ Preisänderung» / «+ Sonderzahlung» offen (Web `openSub`); angetippte Preisänderung (Web `pBak`)
     var priceOpen = false
-    var priceBackup: PriceChange?
+    /// Beträge der Stufen, wie gerade in der Zeile getippt (Web v277: Bearbeiten direkt in der Zeile), Schlüssel = «ab»-Datum
+    var priceRowTexts: [Day: String] = [:]
     var extraOpen = false
     /// Sprung zu einem Feld (Web `formGo`), wird von der Seite ausgeführt und zurückgesetzt
     var goTo: ContractFormField?
@@ -131,7 +132,7 @@ final class CTFormState {
     /// Katalog-Zusammenfassung: Stand vor/nach dem Übernehmen, Liste der Änderungen, vorgeschlagenes Logo (Web tplUndo/tplAfter/tplSum/tplLogo)
     var tplUndo: CTTplSnap?
     var tplAfter: CTTplSnap?
-    var tplSum: [String]?
+    var tplSum: [CatalogSumItem]?
     var tplLogoID: String?
     /// Vorschläge unter dem Kopf erst nach einer Eingabe (Web: `openForm` leert #fSugg, `paintSugg` erst bei «input»)
     var sugActive = false
@@ -381,6 +382,8 @@ final class CTFormState {
     /// Sonst (Katalog) mit Zusammenfassung und «Rückgängig» (tplUndo/tplAfter/tplSum).
     func applyTemplate(_ t: CatalogEntry, keepName: Bool, onlyEmpty: Bool, data: AppData) {
         let snap = tplSnapshot()
+        // Web C15: neue Vorlage gilt sofort (sonst hält chPowerDefault über categoryChanged einen früheren Eintrag für aktiv)
+        tplEntry = t
         sugActive = true
         if !keepName {
             partnerName = t.name
@@ -465,49 +468,13 @@ final class CTFormState {
                   logoID: logoID, logoBg: logoBg, logoTouched: logoTouched)
     }
 
-    /// Was hat der Katalog geändert? (Web tplSumItems)
-    static func tplSumItems(_ a: CTTplSnap, _ b: CTTplSnap, data: AppData) -> [String] {
-        var items: [String] = []
-        if a.categoryID != b.categoryID, let c = data.category(b.categoryID) { items.append(c.name) }
-        let nt = b.noticeText.ctTrimmed
-        if (a.noticeText != b.noticeText || a.noticeUnit != b.noticeUnit) && !nt.isEmpty {
-            let n = Int(nt) ?? 0
-            switch b.noticeUnit {
-            case .dayOfMonth: items.append("Frist bis zum \(n).")
-            case .months: items.append("Frist \(n) " + (n == 1 ? "Monat" : "Monate"))
-            case .weeks: items.append("Frist \(n) " + (n == 1 ? "Woche" : "Wochen"))
-            case .days: items.append("Frist \(n) " + (n == 1 ? "Tag" : "Tage"))
-            }
-        }
-        if a.cancelTerm != b.cancelTerm && b.cancelTerm != .anytime { items.append("per " + CTFormState.termOptionText(b.cancelTerm)) }
-        if a.cancelChannel != b.cancelChannel, let ch = b.cancelChannel {
-            let w: [CancelChannel: String] = [.online: "online", .email: "per E-Mail", .letter: "per Brief", .phone: "per Telefon"]
-            items.append("Kündigung " + (w[ch] ?? ch.webText))
-        }
-        var k: [String] = []
-        if a.web != b.web && !b.web.ctTrimmed.isEmpty { k.append("Website") }
-        if a.cancelURL != b.cancelURL && !b.cancelURL.ctTrimmed.isEmpty { k.append("Kündigungslink") }
-        if a.tel != b.tel && !b.tel.ctTrimmed.isEmpty { k.append("Telefon") }
-        if a.mail != b.mail && !b.mail.ctTrimmed.isEmpty { k.append("E-Mail") }
-        if a.address != b.address && !b.address.isEmpty { k.append("Adresse") }
-        if !k.isEmpty { items.append(k.count > 2 ? "Kontaktdaten" : k.joined(separator: ", ")) }
-        if !a.mandatory && b.mandatory { items.append("Pflichtvertrag") }
-        if !a.noCancel && b.noCancel { items.append("nicht kündbar") }
-        return items
+    /// Was hat der Katalog geändert? [Feld, Wert] (Web tplSumItems v241, Regel im Kern `CatalogCard.items`)
+    static func tplSumItems(_ a: CTTplSnap, _ b: CTTplSnap, data: AppData) -> [CatalogSumItem] {
+        CatalogCard.items(a.sumSnap(data), b.sumSnap(data))
     }
 
     /// Optionstext «Kündbar per» (Web #fTermP)
-    static func termOptionText(_ t: CancelTerm) -> String {
-        switch t {
-        case .anytime: return "jederzeit"
-        case .period: return "Ende Periode"
-        case .monthEnd: return "Monatsende"
-        case .quarterEnd: return "Quartalsende"
-        case .halfYearEnd: return "Halbjahresende"
-        case .yearEnd: return "Jahresende"
-        case .contractYear: return "Ende Vertragsjahr"
-        }
-    }
+    static func termOptionText(_ t: CancelTerm) -> String { CatalogCard.termText(t) }
 
     /// Karte «Aus dem Katalog übernommen» sichtbar?
     var showsTplSummary: Bool { tplUndo != nil && tplSum != nil }
@@ -518,8 +485,8 @@ final class CTFormState {
         logoBg = bg
         logoTouched = true
         tplLogoID = id
-        if var s = tplSum, !s.contains("Logo") {
-            s.insert("Logo", at: 0)
+        if var s = tplSum, !s.contains(where: { $0.field == "Logo" }) {
+            s.insert(CatalogCard.logoItem, at: 0)
             tplSum = s
         }
     }
@@ -592,7 +559,7 @@ final class CTFormState {
         /// Exakter Katalog-Treffer (z.B. «CSS», «O2»), noch nicht übernommen: Chip «‹Name› übernehmen»
         case exact(CatalogEntry)
         /// Katalog übernommen: Karte «Aus dem Katalog übernommen» mit Liste und «Rückgängig»
-        case summary(CatalogEntry, items: [String])
+        case summary(CatalogEntry, items: [CatalogSumItem])
     }
 
     var suggest: Suggest {
@@ -768,11 +735,6 @@ final class CTFormState {
         tmp.prices = prices
         let mon = calc.curPrice(tmp) / Double(max(1, cycle))
         return (Format.money(mon, currency), Format.money0(mon * 12, currency))
-    }
-
-    /// Preisverlauf des Entwurfs (Web `priceChart(draftPC())`, ab 1 Preisänderung)
-    func priceChart(calc: Calc) -> PriceChart? {
-        calc.priceChart(amount: CTNumber.parse(amountText) ?? 0, prices: prices, start: start, currency: currency, income: false)
     }
 
     /// Beschriftung der Vertragsnummer (Web `contrLbl`): Rufnummer, Versichertennummer, Policennummer oder Vertragsnummer
@@ -1097,32 +1059,17 @@ final class CTFormState {
         case confirmSame(title: String, message: String)
     }
 
-    /// «+ Preisänderung»
-    func openPriceForm() {
+    /// «+ Preisänderung» (Web v320 `newRowBind`): neue Zeile im Zeitstrahl, Datum heute vorbelegt
+    func openPriceForm(today: Day) {
+        if priceFrom == nil { priceFrom = today }
         priceOpen = true
     }
 
-    /// «Abbrechen» im Unterbereich: angetippte Preisänderung zurücklegen (Web `pCancel`)
+    /// Neue Zeile verwerfen (Wischen «Verwerfen», Web `pCancel`)
     func cancelPriceForm() {
-        if let b = priceBackup {
-            prices.append(b)
-            priceBackup = nil
-        }
         priceFrom = nil
         priceAmountText = ""
         priceOpen = false
-    }
-
-    /// Zeile der Preisliste angetippt: zum Ändern in den Unterbereich laden (Web `data-pedit`). Rückgabe: Toast.
-    func editPrice(_ p: PriceChange) -> String {
-        // eine schon geladene Zeile nicht verlieren
-        if let b = priceBackup { prices.append(b) }
-        prices.removeAll { $0.from == p.from }
-        priceBackup = p
-        priceFrom = p.from
-        priceAmountText = CTNumber.field(p.amount, currency)
-        priceOpen = true
-        return "Ändern und «hinzufügen» tippen"
     }
 
     /// Preisänderung vormerken (Web pAdd). `force`: Rückfrage «Preis bleibt gleich» wurde bestätigt.
@@ -1149,7 +1096,6 @@ final class CTFormState {
         prices.append(PriceChange(from: f, amount: Format.round2(a)))
         priceFrom = nil
         priceAmountText = ""
-        priceBackup = nil
         priceOpen = false
         var prevA = CTNumber.parse(amountText) ?? 0
         for p in sortedPrices where p.from < f { prevA = p.amount }
@@ -1159,6 +1105,49 @@ final class CTFormState {
 
     func removePrice(_ from: Day) {
         prices.removeAll { $0.from == from }
+        priceRowTexts[from] = nil
+    }
+
+    /// Zeitstrahl des Entwurfs (Kern `PriceTimelineRules`)
+    func priceTimeline(today: Day) -> PriceTimeline {
+        PriceTimelineRules.make(prices: prices, base: CTNumber.parse(amountText) ?? 0, start: start, today: today, income: false)
+    }
+
+    /// Text im Betragsfeld einer Stufe (getippt oder gespeichert, mit Tausendertrennung)
+    func priceRowText(_ p: PriceTimelineRow) -> String {
+        priceRowTexts[p.from] ?? CTNumber.field(p.amount, currency)
+    }
+
+    /// Betrag einer Stufe übernehmen (Feld verlassen, Web v277 `change`); Rückgabe: Meldung bei ungültigem Betrag (Zeile zurückgesetzt)
+    @discardableResult
+    func commitPriceRow(_ from: Day) -> String? {
+        guard let t = priceRowTexts[from] else { return nil }
+        priceRowTexts[from] = nil
+        let e = PriceTimelineRules.editAmount(t)
+        if case .reject(let m) = e { return m }
+        prices = PriceTimelineRules.apply(e, to: from, in: prices)
+        return nil
+    }
+
+    /// Alle getippten Stufen übernehmen (vor dem Sichern); Rückgabe: erste Meldung
+    func commitPriceRows() -> String? {
+        var msg: String?
+        for d in Array(priceRowTexts.keys) {
+            if let m = commitPriceRow(d), msg == nil { msg = m }
+        }
+        return msg
+    }
+
+    /// Datum einer Stufe geändert (Web v277 `change .pdi`); Rückgabe: Meldung, wenn abgelehnt
+    func setPriceRowDate(_ old: Day, to new: Day) -> String? {
+        let e = PriceTimelineRules.editDate(new, old: old, start: start, prices: prices)
+        if case .reject(let m) = e { return m }
+        if let t = priceRowTexts[old] {
+            priceRowTexts[old] = nil
+            priceRowTexts[new] = t
+        }
+        prices = PriceTimelineRules.apply(e, to: old, in: prices)
+        return nil
     }
 
     var sortedPrices: [PriceChange] {
@@ -1282,6 +1271,8 @@ final class CTFormState {
     /// Eingetippte Preisänderung bzw. Sonderzahlung beim Sichern übernehmen (Web v143). false = Sichern abbrechen
     /// (Fehler oder Rückfrage «Preis bleibt gleich»; der Unterbereich bleibt offen).
     private func commitPendingInputs(model: AppModel) -> Bool {
+        // in der Zeile geänderte Beträge (Feld noch nicht verlassen) zuerst übernehmen
+        if let m = commitPriceRows() { model.toast(m) }
         if priceFrom != nil || !priceAmountText.ctTrimmed.isEmpty {
             switch addPrice() {
             case .toast(let t, let long, let added):
@@ -1449,6 +1440,13 @@ struct CTFormSnapshot: Hashable {
 
 /// Stand der Felder, die eine Katalog-Vorlage ändern kann (Web tplSnap), für Zusammenfassung und «Rückgängig»
 struct CTTplSnap: Hashable {
+    /// Felder für die Erfolgskarte (Kern `CatalogSumSnap`)
+    func sumSnap(_ data: AppData) -> CatalogSumSnap {
+        CatalogSumSnap(category: data.category(categoryID)?.name ?? "", noticeText: noticeText, noticeUnit: noticeUnit,
+                       fixedTerm: termMode == .fixed, renewMonths: renewMonths, cancelTerm: cancelTerm, cancelChannel: cancelChannel,
+                       web: web, cancelURL: cancelURL, tel: tel, mail: mail, address: address.lines, mandatory: mandatory, noCancel: noCancel)
+    }
+
     var partnerName: String
     var label: String
     var noticeText: String

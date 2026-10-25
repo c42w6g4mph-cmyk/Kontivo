@@ -8,6 +8,11 @@ public enum PriceChartTone: String, Hashable, Sendable {
     case neutral, up, down
 }
 
+/// Ausrichtung einer Beschriftung im Preisverlauf (SVG text-anchor)
+public enum PriceChartAnchor: String, Hashable, Sendable {
+    case middle, start, end
+}
+
 /// Ein Punkt des Preisverlaufs (Index 0 = Anfangspreis).
 public struct PriceChartPoint: Hashable, Sendable, Identifiable {
     public var index: Int
@@ -22,8 +27,11 @@ public struct PriceChartPoint: Hashable, Sendable, Identifiable {
     /// Beschriftungen zeigen (von hinten nach vorn, nur mit genug Abstand zum nächsten beschrifteten Punkt)
     public var labeled: Bool
     /// Preissenkung (Betrag kleiner als der vorherige): Zahl links bündig rechts neben die senkrechte Linie setzen,
-    /// sonst läge sie darauf (Web v153 `dropL`, text-anchor start, x + 5)
+    /// sonst läge sie darauf (Web v153 `dropL`, text-anchor start, x + 5); nur bei mittiger Beschriftung
     public var labelTrailing: Bool = false
+    /// Ausrichtung der Beschriftung (Web v321): mittig; liegt der nächste (geplante) Punkt nah am aktuellen,
+    /// steht der aktuelle rechtsbündig (`end`) und der geplante linksbündig (`start`)
+    public var anchor: PriceChartAnchor = .middle
     /// «59.90» bzw. «59,90» (EUR); Preis 0 → «gratis»
     public var valueText: String
     /// «01.03.27»; beim Anfangspreis ohne Vertragsbeginn «Anfang»
@@ -60,11 +68,9 @@ public struct PriceChart: Hashable, Sendable {
 }
 
 extension Calc {
-    /// Breite der Web-Grafik (viewBox 320, Rand 4) für die Abstandsregel der Beschriftungen (Web v153: Lage mindestens 26
-    /// vom linken Rand, Abstand 54 Einheiten).
+    /// Breite der Web-Grafik (viewBox 320, Rand 4) für die Abstandsregel der Beschriftungen (Web v321: Abstand 58 Einheiten).
     static let priceChartWidth = 312.0
-    static let priceChartLabelGap = 54.0
-    static let priceChartLabelMinX = 26.0
+    static let priceChartLabelGap = 58.0
 
     /// Preisverlauf eines Vertrags (nur mit mindestens einer Preisänderung), 1:1 wie Web `priceChart`:
     /// Preise nach echtem Datum, Plakette = heute gegenüber dem Anfang (Entscheid: auch «unverändert», wenn zwischendurch geändert),
@@ -124,14 +130,23 @@ extension Calc {
         mn -= pad
         mx += pad
 
-        // Beschriftung: von hinten nach vorn, nur mit genug Abstand (Lage frühestens 26 vom Rand, Abstand 54)
-        var show = Set<Int>()
-        var lastX = 1e9
-        for k in stride(from: raw.count - 1, through: 0, by: -1) {
-            let ck = Swift.max(X(raw[k].n) * Calc.priceChartWidth, Calc.priceChartLabelMinX)
-            if lastX - ck >= Calc.priceChartLabelGap {
+        // Beschriftung (Web v321): aktueller Punkt immer; liegt der nächste (geplante) nah daran, beide (aktuell rechts-,
+        // geplant linksbündig); übrige von hinten nach vorn, nur mit mindestens 58 Einheiten Abstand
+        func sx(_ k: Int) -> Double { 4 + Calc.priceChartWidth * X(raw[k].n) }
+        var show = Set<Int>([ni])
+        var anc: [Int: PriceChartAnchor] = [:]
+        var xs = [sx(ni)]
+        if ni + 1 < raw.count && sx(ni + 1) - xs[0] < Calc.priceChartLabelGap {
+            show.insert(ni + 1)
+            anc[ni] = .end
+            anc[ni + 1] = .start
+            xs.append(sx(ni + 1))
+        }
+        for k in stride(from: raw.count - 1, through: 0, by: -1) where !show.contains(k) {
+            let xk = sx(k)
+            if xs.allSatisfy({ Swift.abs($0 - xk) >= Calc.priceChartLabelGap }) {
                 show.insert(k)
-                lastX = ck
+                xs.append(xk)
             }
         }
         var points: [PriceChartPoint] = []
@@ -148,7 +163,8 @@ extension Calc {
                                      valueText: p.a != 0 ? Format.money(p.a, currency) : "gratis",
                                      dateText: i > 0 || hasSt ? Format.fmtShort(p.d) : "Anfang",
                                      pctText: pct, pctTone: tone)
-            pt.labelTrailing = i > 0 && p.a < raw[i - 1].a
+            pt.anchor = anc[i] ?? .middle
+            pt.labelTrailing = pt.anchor == .middle && i > 0 && p.a < raw[i - 1].a
             points.append(pt)
         }
 

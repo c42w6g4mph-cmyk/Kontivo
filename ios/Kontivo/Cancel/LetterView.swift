@@ -388,12 +388,11 @@ struct LetterView: View {
         model.toast("Adresse eingesetzt — bitte prüfen")
     }
 
-    /// Empfängeradresse beim Vertragspartner merken (ohne die Namenszeile); leer ändert nichts.
-    private func saveRecipient(_ to: [String], contract c: Contract) {
+    /// Empfängeradresse beim Vertragspartner merken (ohne die Namenszeile und ohne die automatisch angehängte Länderzeile,
+    /// Web C25 `base.cLine`); leer ändert nichts.
+    private func saveRecipient(_ to: [String], contract c: Contract, countryLine: String = "") {
         guard let pid = c.partnerID, let p = model.data.partner(pid) else { return }
-        let pn = p.name.trimmingCharacters(in: .whitespaces).lowercased()
-        let rest = (to.first?.lowercased() == pn) ? Array(to.dropFirst()) : to
-        let text = rest.joined(separator: "\n")
+        let text = Letter.addressToSave(to, partnerName: p.name, countryLine: countryLine)
         guard !text.isEmpty, text != p.address.text else { return }
         let addr = WebImport.addrSplit(text, partnerName: p.name)
         model.update { $0.setPartnerAddress(pid, addr) }
@@ -425,7 +424,7 @@ struct LetterView: View {
             model.toast("Der Text ist leer")
             return
         }
-        saveRecipient(to, contract: c)
+        saveRecipient(to, contract: c, countryLine: base.countryLine)
         // Referenzzeilen aus dem Text lösen; nachgetragene Nummern speichern und als Referenz einsetzen
         let split = Letter.splitReferences(text)
         var refs = split.references

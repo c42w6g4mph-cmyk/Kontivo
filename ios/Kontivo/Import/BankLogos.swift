@@ -75,7 +75,11 @@ enum BankLogos {
             cur = Currency(rawValue: r.inc[i].s.currency) ?? .CHF
         }
         var got: (id: String, bg: String)?
-        if let t = tpl {
+        // festes Logo zuerst (Web baab11e `logoPin` mit Katalogname/-website, sonst Vertragspartner)
+        if let pn = LogoFinder.pinCand(tpl?.name ?? name, web: tpl?.web ?? "") ?? LogoFinder.pinCand(name) {
+            got = await store(pn, model: model)
+        }
+        if got == nil, let t = tpl {
             if !t.web.isEmpty, let sc = await LogoFinder.siteCand(Partners.regDom(Format.domain(of: t.web)), score: 3) {
                 got = await store(sc, model: model)
             }

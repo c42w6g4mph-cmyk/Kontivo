@@ -15,8 +15,11 @@ struct CTFormExtrasSection: View {
     var body: some View {
         let today = model.today
         CTSection {
-            ForEach(form.extras) { x in
-                extraRow(x, today: today)
+            // Web v318: Sonderzahlung per Wischen nach links löschen (statt ×)
+            ForEach(Array(form.extras.enumerated()), id: \.element.id) { i, x in
+                CTSwipeDelete(identifier: "form.extraRow.\(i)", onDelete: { form.extras.removeAll { $0.id == x.id } }) {
+                    extraRow(x, today: today)
+                }
             }
             if form.extraOpen {
                 Picker("Art", selection: $form.extraCredit) {
@@ -72,7 +75,7 @@ struct CTFormExtrasSection: View {
         .listRowBackground(KColor.surface)
     }
 
-    /// Zeile (Web .fpr): Bezeichnung bzw. «Sonderzahlung»/«Gutschrift», Plaketten, Datum klein; Betrag; × entfernt
+    /// Zeile (Web .fpr): Bezeichnung bzw. «Sonderzahlung»/«Gutschrift», Plaketten, Datum klein; Betrag (Löschen per Wischen)
     private func extraRow(_ x: ExtraPayment, today: Day) -> some View {
         let cr = x.amount < 0
         return HStack(spacing: 8) {
@@ -92,18 +95,9 @@ struct CTFormExtrasSection: View {
             Text(verbatim: (cr ? Format.minus : "") + Format.money(abs(x.amount), form.currency))
                 .font(.body.monospacedDigit())
                 .foregroundStyle(cr ? KColor.ok : KColor.teal)
-            Button {
-                form.extras.removeAll { $0.id == x.id }
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(KColor.ink3)
-                    .frame(width: 28, height: 28)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.borderless)
-            .accessibilityLabel("Sonderzahlung entfernen")
         }
+        .padding(.vertical, 4)
+        .frame(minHeight: 47)
         .accessibilityElement(children: .contain)
     }
 }

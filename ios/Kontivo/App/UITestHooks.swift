@@ -88,6 +88,10 @@ extension AppModel {
         case let x where x.hasPrefix("detail:"):
             let lab = String(x.dropFirst("detail:".count))
             if let k = data.contracts.first(where: { $0.label == lab }) { present(.contractDetail(k.id)) }
+        // Bereich c: Formular eines bestimmten Vertrags: «edit:<Bezeichnung>»
+        case let x where x.hasPrefix("edit:"):
+            let lab = String(x.dropFirst("edit:".count))
+            if let k = data.contracts.first(where: { $0.label == lab }) { present(.contractForm(.edit(k.id))) }
         // Bereich costs: Fixkosten-Bericht (Auswahl bzw. fertiges PDF in der Dokumentansicht)
         case "report": present(.fixReport(person: nil, fromCosts: true))
         case "reportPDF":
