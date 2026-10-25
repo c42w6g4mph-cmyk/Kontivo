@@ -43,6 +43,9 @@ public struct BankTx: Equatable, Hashable, Sendable {
     public var memo: String
     /// Name, unter dem die Buchung gruppiert wurde (intern, Web `t._nm`)
     var groupName: String = ""
+    /// Mehrere Dateien (Web v325 `t._fi`, `t._end`): Index der Datei, aus der die Buchung stammt, und Ende dieser Datei
+    var fi: Int? = nil
+    var end: Day? = nil
 
     public init(date: Day, amount: Double, currency: String = "", name: String = "", text: String = "", type: String = "",
                 kind: BankKind = .unknown, cred: String = "", mref: String = "", sub: Bool = false, memo: String = "") {
@@ -243,6 +246,8 @@ public struct BankSuggestion: Identifiable, Equatable, Hashable, Sendable {
     public var archived: UUID? = nil
     /// Beginn des Auszugs (Web `stFrom`): Vertragsbeginn nur, wenn die erste Zahlung deutlich danach liegt
     public var statementFrom: Day? = nil
+    /// Versicherer mit mehreren Policen ohne Bezeichnung (Web v330 `s.multi`): jede Prämie einzeln, Bezeichnung nicht raten
+    public var multi: Bool = false
 
     /// Name des Katalogeintrags, falls Treffer (Web `s.tpl[0]`)
     public var catalogName: String? { catalog?.name }

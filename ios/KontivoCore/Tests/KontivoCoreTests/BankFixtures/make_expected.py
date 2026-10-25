@@ -9,9 +9,10 @@ WEB = sys.argv[1] if len(sys.argv) > 1 else "/home/claude/kontivo"
 URL = os.environ.get("KONTIVO_URL", "http://localhost:8765/index.html")
 SRC = os.path.join(WEB, "tests", "bank")
 FILES = []
-for sub in ("samples", "real/ch", "real/de", "stress"):
+for sub in ("samples", "real/ch", "real/de", "stress", "muster"):
     os.makedirs(os.path.join(HERE, sub), exist_ok=True)
     for fn in sorted(os.listdir(os.path.join(SRC, sub))):
+        if os.path.isdir(os.path.join(SRC, sub, fn)): continue
         if fn.endswith(".md") or fn.endswith(".py"): continue
         shutil.copyfile(os.path.join(SRC, sub, fn), os.path.join(HERE, sub, fn)); FILES.append(sub + "/" + fn)
 EDGE = json.load(open(os.path.join(SRC, "edge_cases.json")))   # Texte landen in expected.json (edgeInput)
@@ -67,7 +68,17 @@ for k, t in EXTRA.items(): EDGE[k] = {"txt": t}
 EDGE["x_after"] = {"txt": rows(H, BASE[:6] + [f"{d};LASTSCHRIFT Muster Fitness AG;-79.00;Lastschrift;CHF" for d in monthly(15, 12)]),
                    "contracts": {"f": {"partner": "Muster Fitness AG", "cat": "Freizeit & Sport", "amount": 79, "cur": "CHF", "cycle": 1, "due": "2026-05-15",
                                        "cancelPer": "2026-05-31", "cancelledOn": "2026-02-10", "status": "cancelled", "holders": ["Sinan"]}}}
-MULTI = [["samples/ch_postfinance.csv", "samples/ch_postfinance.csv"],
+# Web v325–v328 (main/tests/bank/multi.py, multi2.py): gleiche Buchungen in zwei Formaten, Dateien mit unterschiedlichem Ende,
+# gleicher Vertragspartner gleichzeitig in zwei Konten (zwei Handyabos)
+os.makedirs(os.path.join(HERE, "multi"), exist_ok=True)
+for fn, amt, days in (("konto_a.csv", "27.95", ["25.06", "27.07", "26.08", "25.09"]), ("konto_b.csv", "28.95", ["28.07", "31.08", "30.09"]),
+                       ("konto_c.csv", "28.95", ["20.07", "28.08", "29.10"])):
+    open(os.path.join(HERE, "multi", fn), "w").write("Datum;Buchungstext;Betrag\n" + "".join(f"{d}.2026;LASTSCHRIFT Muster Mobil AG;-{amt}\n" for d in days)
+        + ("".join(f"{d}.2026;LASTSCHRIFT Muster Strom AG;-60.00\n" for d in days) if fn == "konto_c.csv" else ""))
+MULTI = [["muster/sparkasse.csv", "muster/n26.csv"], ["muster/format1.csv", "muster/format3.csv"],
+         ["muster/sparkasse.csv", "muster/n26.csv", "muster/dkb.csv", "muster/format1.csv", "muster/format2.csv", "muster/format3.csv"],
+         ["muster/sparkasse.csv", "samples/ch_zkb.csv"], ["multi/konto_a.csv", "multi/konto_b.csv"], ["multi/konto_a.csv", "multi/konto_c.csv"],
+         ["samples/ch_postfinance.csv", "samples/ch_postfinance.csv"],
          ["real/de/de_sparkasse_camt_v2.csv", "real/de/de_sparkasse_kreditkarte.csv"],
          ["samples/ch_postfinance.csv", "samples/ch_ubs.csv", "samples/ch_camt053.xml"]]
 CHECK_CONTRACTS = {"a": {"partner": "CSS", "cat": "Versicherung", "amount": 389.60, "cur": "CHF", "cycle": 1, "due": "2026-11-01", "status": "active", "holders": ["Sinan"]},
@@ -77,8 +88,14 @@ LIB = r"""
 window.__bk=function(){var B=window.KontivoBank();
  function u8(b64){var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u.buffer;}
  function tx(r){return r.tx.map(function(t){return [t.d,t.a,t.cur||"",t.name||"",t.text||"",t.type||"",t.kind||"",t.cred||"",t.mref||""];});}
+ /* Liste (Web v330): Plaketten und aufgeklappte Zahlungen je Vorschlag als Text (BankReviewRules.swift) */
+ function ui(s,inc){var it={s:s,ed:{amount:s.amount},pay:true,payAll:true},d=document.createElement("div");d.innerHTML=B.chips(it,inc,0);
+   var chips=Array.prototype.map.call(d.querySelectorAll("i"),function(i){return [i.textContent,i.classList.contains("tap")?"payments":i.classList.contains("pc")?"price":"plain"];});
+   d.innerHTML=B.payList(it,inc?"i0":"c0");
+   var pay=Array.prototype.map.call(d.querySelectorAll(".bkpay div"),function(r){var b=r.querySelector("b");return [r.querySelector("span").textContent,b.textContent,b.className];});
+   return {chips:chips,pay:pay};}
  function sg(s){var m=s.match,c=m?B.state.contracts[m.id]:null;
-   return {key:s.key,name:s.name,raw:s.raw||"",text:s.text||"",cur:s.cur,amount:s.amount,cycle:s.cycle,due:s.due,first:s.first,last:s.last,n:s.n,
+   return {ui:ui(s,false),key:s.key,name:s.name,raw:s.raw||"",text:s.text||"",cur:s.cur,amount:s.amount,cycle:s.cycle,due:s.due,first:s.first,last:s.last,n:s.n,
      dates:s.dates,amounts:s.amounts,conf:s.conf,varies:!!s.varies,change:s.change||null,tpl:s.tpl?s.tpl[0]:null,cat:s.cat,kind:s.kind||"",
      cred:s.cred||"",mref:s.mref||"",ignored:!!s.ignored,
      match:m?{kind:m.kind,partner:c?c.partner:"",amount:m.amount==null?null:m.amount,old:m.old==null?null:m.old,from:m.from||null}:null};}
@@ -88,7 +105,7 @@ window.__bk=function(){var B=window.KontivoBank();
    prices:c.prices,noCancel:!!c.noCancel,holders:c.holders,payM:c.payM||"",custNo:c.custNo||"",contrNo:c.contrNo||"",bkLabel:B.label(s)};}
  function inc(r){var f=B.findInc(r);return {sugg:f.sugg.map(function(s){return {key:s.key,name:s.name,label:s.label,cat:s.cat,cur:s.cur,amount:s.amount,cycle:s.cycle,due:s.due,
    n:s.n,first:s.first,last:s.last,dates:s.dates,amounts:s.amounts,lo:s.lo,hi:s.hi,varies:!!s.varies,skipped:s.skipped,raw:s.raw||"",text:s.text||"",conf:s.conf,
-   once:!!s.once,hist:(function(){var h=B.priceHist(s,true);return h?{base:h.base,prices:h.prices}:null;})()};}),
+   once:!!s.once,ui:ui(s,true),hist:(function(){var h=B.priceHist(s,true);return h?{base:h.base,prices:h.prices}:null;})()};}),
    known:f.known.map(function(s){var c=B.state.incomes[s.match];return {key:s.key,name:s.name,income:c?(c.name||c.label):""};})};}
  function find(r,withTc){var f=B.find(r,[]);var o={sugg:f.sugg.map(sg),known:f.known.map(kn),inc:inc(r),
    after:(f.after||[]).map(function(a){return {partner:a.c.partner,n:a.n,last:a.last,amount:a.amount,cur:a.cur};})};if(withTc)o.contracts=f.sugg.map(tc);return o;}
@@ -112,7 +129,7 @@ with sync_playwright() as p:
             html = open(os.path.join(WEB, "index.html"), encoding="utf-8").read()
             hook = "window.KontivoBank=function(){return {"
             assert hook in html
-            html = html.replace(hook, hook + "label:bankLabel,payM:bankPayM,nums:bankNums,who:bkWho,priceHist:bankPriceHist,", 1)
+            html = html.replace(hook, hook + "chips:bkChips,payList:bkPayList,label:bankLabel,payM:bankPayM,nums:bankNums,who:bkWho,priceHist:bankPriceHist,", 1)
             # Tempo: lnorm/ltok sind reine Funktionen – Zwischenspeicher ändert kein Ergebnis (ltok liefert eine Kopie)
             ln = 'function lnorm(s){return String(s||"")'
             assert html.count(ln) == 1 and html.count("function ltok(s){") == 1

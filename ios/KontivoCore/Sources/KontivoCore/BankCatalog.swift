@@ -189,7 +189,7 @@ enum BankCatalog {
     /// Kategorie: Stichwörter → Standardkategorie (Web `BKCAT`)
     static let BKCAT: [(BRX, String)] = [
         (BRX("steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer"), "Steuern & Gebühren"),
-        (BRX("miete|mietzins|immobilien|hausverwaltung|liegenschaft|wohnbau|wohnung|nebenkosten"), "Wohnen"),
+        (BRX("kaution|caution|miete|mietzins|immobilien|hausverwaltung|liegenschaft|wohnbau|wohnung|nebenkosten"), "Wohnen"),
         (BRX("kita|krippe|schule|kindergarten|musikschule|hort"), "Familie & Bildung"),
         (BRX("leasing|sbb|halbtax|deutschlandticket|bahn|bvg|parking|parkplatz|garage|tankstelle"), "Mobilität"),
         (BRX("fitness|sport|verein|club|gym|mcfit|yoga|\\be v\\b|\\b(sc|fc|tsv|sv|tus|vfb|vfl|djk|sg|turnverein|schwimmverein)\\b"), "Freizeit & Sport"),

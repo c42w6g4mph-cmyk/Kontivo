@@ -147,6 +147,8 @@ Formulare bearbeiten eine Kopie (`Contract`) und übernehmen beim Sichern nur di
 | Service Worker, Manifest | entfällt |
 | Kalender auf Entscheidungskarten | seit 07.10.2026: Kalender-Knopf in der Knopfzeile der Fristen-Liste (nur bei Zeilen mit Behalten/Kündigen) |
 | Adresse «Einfügen» (Zwischenablage lesen) | `PasteButton` (keine Rückfrage nötig), Aufteilung `WebImport.addrFromPaste` |
+| Kontoauszug nicht lesbar: Rückfrage mit Dateikarte (v278) | Import-Fenster bleibt offen mit Dateikarten, «Andere Datei wählen» / «Abbrechen» (`BankFailedView`) |
+| Kontoauszug: Tippen daneben schliesst nicht (v280), Rückfrage «Import abbrechen?» (v285) | `.interactiveDismissDisabled`, `.alert` beim «Abbrechen» mit Vorschlägen |
 
 ## Nachzug Web v70–v88 (07.10.2026)
 - Fristen-Tab Variante 1: `Calc.deadlineOverview()` liefert `status`, `items` (eine Liste nach Datum, `showActions` = Probeabo, needsAction oder ≤ 61 Tage vor Vertragsende), `flexible` (Ende bei Kündigung heute, `endIfCancelledToday`), `flexStack`, Klappgruppen; Golden-Test gegen das gerenderte DOM (ios/Tools/golden/make_golden_texts.py)

@@ -2,7 +2,7 @@ import XCTest
 @testable import KontivoCore
 
 /// Kontoauszug-Import: Swift gegen Erwartungswerte aus der Web-App (BankFixtures/expected.json, erzeugt mit
-/// BankFixtures/make_expected.py über window.KontivoBank, heute = 2026-10-08; Stand Web v323). Geprüft werden gelesene Buchungen,
+/// BankFixtures/make_expected.py über window.KontivoBank, heute = 2026-10-08; Stand Web v330). Geprüft werden gelesene Buchungen,
 /// Vorschläge (Name, Betrag, Rhythmus, Sicherheit, Kategorie, Katalog, Preisänderung …), Abgleich mit erfassten
 /// Verträgen und Vorschlag → Vertrag, für alle Musterdateien, Grenzfälle und Mehrfach-Dateien.
 final class BankParityTests: XCTestCase {
@@ -104,6 +104,10 @@ final class BankParityTests: XCTestCase {
             let ea = (x["amounts"] as? [Double]) ?? []
             D.eq(s.amounts.count, ea.count, p + "Beträge (Anzahl)")
             for (j, v) in s.amounts.enumerated() where j < ea.count { D.num(v, ea[j], p + "Betrag[\(j)]") }
+            BankParityTests.compareUI(
+                BankImport.chips(dates: s.dates, amounts: s.amounts, count: s.count, last: s.last, lowConfidence: s.confidence == .low, change: nil,
+                                 varies: s.varies, cycle: s.cycle, currency: s.currency, amount: s.amount, income: true),
+                BankImport.payRows(dates: s.dates, amounts: s.amounts, cycle: s.cycle, income: true), s.currency, x, p, D)
             D.num(s.lo, x["lo"], p + "tiefster")
             D.num(s.hi, x["hi"], p + "höchster")
             D.eq(s.varies, (x["varies"] as? Bool) ?? false, p + "schwankt")
@@ -129,6 +133,18 @@ final class BankParityTests: XCTestCase {
         D.eq(r.known.map { $0.suggestion.key }, ek.map { BankParityTests.str($0["key"]) }, "Einnahmen bereits erfasst (Schlüssel)")
     }
 
+    /// Plaketten und Zahlungsliste der Vorschlagsliste (Web v330 bkChips, bkPayList)
+    static func compareUI(_ chips: [BankChip], _ pay: [BankPayRow], _ cur: String, _ x: J, _ p: String, _ D: Diff) {
+        guard let u = x["ui"] as? J else { return }
+        func n(_ t: String) -> String { t.replacingOccurrences(of: "\u{2019}", with: "'").replacingOccurrences(of: "\u{2212}", with: "−") }
+        let ec = (u["chips"] as? [[String]]) ?? []
+        let kind: (BankChip.Kind) -> String = { k in k == .payments ? "payments" : k == .price ? "price" : "plain" }
+        D.eq(chips.map { n($0.text) + "|" + kind($0.kind) }, ec.map { n($0[0]) + "|" + $0[1] }, p + "Plaketten")
+        let ep = (u["pay"] as? [[String]]) ?? []
+        let cls: (BankPayRow) -> String = { r in r.amount == nil ? "od" : r.changed ? "ch" : r.odd ? "od" : "" }
+        D.eq(pay.map { n($0.label) + "|" + n($0.value(cur)) + "|" + cls($0) }, ep.map { n($0[0]) + "|" + n($0[1]) + "|" + $0[2] }, p + "Zahlungsliste")
+    }
+
     func compareFind(_ r: BankFindResult, _ e: J, _ data: AppData, _ D: Diff, contracts: Bool) {
         let es = e["sugg"] as? [J] ?? []
         D.eq(r.all.map { $0.key }, es.map { BankParityTests.str($0["key"]) }, "Vorschläge (Schlüssel, Reihenfolge)")
@@ -152,6 +168,10 @@ final class BankParityTests: XCTestCase {
             for (j, v) in s.amounts.enumerated() where j < ea.count { D.num(v, ea[j], p + "Betrag[\(j)]") }
             D.eq(s.confidence.rawValue, BankParityTests.str(x["conf"]), p + "Sicherheit")
             D.eq(s.varies, (x["varies"] as? Bool) ?? false, p + "schwankt")
+            BankParityTests.compareUI(
+                BankImport.chips(dates: s.dates, amounts: s.amounts, count: s.count, last: s.last, lowConfidence: s.confidence == .low, change: s.change,
+                                 varies: s.varies, cycle: s.cycle, currency: s.currency, amount: s.amount, income: false),
+                BankImport.payRows(dates: s.dates, amounts: s.amounts, cycle: s.cycle, income: false), s.currency, x, p, D)
             if let ch = x["change"] as? J {
                 D.eq(s.change?.from.iso ?? "", BankParityTests.str(ch["from"]), p + "Preisänderung ab")
                 D.num(s.change?.prev ?? .nan, ch["prev"], p + "Preis bisher")

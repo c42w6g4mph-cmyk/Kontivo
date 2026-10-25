@@ -255,6 +255,18 @@ def v_bank(step=None):
     return f
 
 
+def v_bank_pay(c):
+    """Swift -uiBankStep pay: Zahlungen des grössten Vorschlags aufgeklappt (erste Zeile der sortierten Liste)."""
+    v_bank()(c)
+    c.click("#bkBody .bkq i.tap", 700)
+
+
+def v_bank_fail(c):
+    """Swift -uiBankStep fail: nicht lesbare Datei → Meldung mit Dateikarte."""
+    c.pg.set_input_files("#bankFile", files=[{"name": "auszug.csv", "mimeType": "text/csv", "buffer": b"Kontoauszug\nkeine Buchungen"}])
+    c.wait(1500)
+
+
 def v_onb(page):
     def f(c):
         for _ in range(page):
@@ -338,6 +350,8 @@ VIEWS = {
     "i33-import-zuordnen": dict(steps=v_bank()),
     "i34-dunkel-import": dict(steps=v_bank()),
     "i35-dunkel-import-fristen": dict(data="empty", steps=v_bank("term")),
+    "d1-import-zahlungen": dict(data="empty", steps=v_bank_pay),
+    "d2-import-nicht-lesbar": dict(data="empty", steps=v_bank_fail),
 }
 for _p in range(1, 8):
     VIEWS["40-onb-%d" % _p] = dict(data="onb", steps=v_onb(_p))

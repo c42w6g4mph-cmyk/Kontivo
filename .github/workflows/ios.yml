@@ -201,6 +201,8 @@ jobs:
           shoot $PHONE a-v5-variabel-bearbeiten -uiDemo -uiTab contracts -uiList v -uiSheet varEdit
           shoot $PHONE a-v6-budget-alle-kosten -uiDemo -uiTab budget -uiBudgetKind all
           shoot $PHONE a-v7-budget-variabel-liste -uiDemo -uiTab budget -uiBudgetKind all -uiScrollTo kbVariable
+          shoot $PHONE d1-import-zahlungen -uiEmpty -uiBankSample -uiBankStep pay
+          shoot $PHONE d2-import-nicht-lesbar -uiEmpty -uiBankSample -uiBankStep fail
           xcrun simctl ui $PHONE appearance dark
           for P in 0 1 2 3 4 5 6 7; do shoot $PHONE 43-dunkel-onb-$P -uiOnboarding -uiOnbPage $P; done
           shoot $PHONE 44-dunkel-fristen -uiDemo -uiTab deadlines
