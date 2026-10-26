@@ -28,10 +28,11 @@ final class IncomeUITests: KontivoUITestCase {
         waitIncomeForm("Bearbeiten")
         // Web v316: Betragsfelder mit Tausendertrennung
         XCTAssertEqual(textField("income.amount").value as? String, "7\u{2019}200.00")
-        let current = button("income.price.2026-01-01")
-        reveal(current, "Änderung ab 01.01.26")
-        XCTAssertTrue(current.label.contains("aktuell"), "Plakette «aktuell»: \(current.label)")
-        XCTAssertTrue(current.label.contains("+2 %"), "Veränderung «+2 %»: \(current.label)")
+        // Zeitstrahl (Web v314–v320): Stufe ab 01.01.26 «aktuell · +2 %», Betrag direkt in der Zeile
+        let current = elContaining("aktuell · +2 %")
+        reveal(current, "Stufe ab 01.01.26 «aktuell · +2 %»")
+        XCTAssertTrue(textField("income.priceAmt.0").exists, "Betrag der neuesten Stufe als Feld")
+        XCTAssertTrue(textField("Anfangsbetrag").exists, "Startzeile «Anfangsbetrag»")
         keepShot("inc-2-formular")
 
         // Zahlung am: Tagesraster (monatlich ohne Monatsreihe), Tag antippen übernimmt und klappt zu
@@ -130,6 +131,41 @@ final class IncomeUITests: KontivoUITestCase {
         tapAlertButton("Löschen")
         waitUntil("Formular und Ansicht geschlossen") { !self.incomeFormOpen("Bearbeiten") && !self.el("incomeDetail.kz.month").exists }
         waitUntil("Kopie gelöscht") { copies.count == 1 }
+    }
+
+    /// Web v314–v320 bei Einnahmen: «+ Änderung» öffnet eine neue Zeile (Datum heute), Betrag fertig → Stufe; Betrag in der Zeile
+    /// ändern; Stufe per Wischen löschen; kein Diagramm im Formular
+    func testEinnahmeZeitstrahl() {
+        launch("-uiDemo", "-uiTab", "budget")
+        let row = app.buttons.matching(pred("label BEGINSWITH %@ AND label CONTAINS %@", "Lohn", "Sinan")).firstMatch
+        wait(row, "Zeile Lohn (Sinan)", timeout: 12)
+        tap(row, "Lohn öffnen")
+        wait(el("incomeDetail.kz.month"), "Ansicht")
+        tapTop("Bearbeiten")
+        waitIncomeForm("Bearbeiten")
+        XCTAssertFalse(el("income.form.chart").exists, "Kein Diagramm im Formular (Web v314)")
+        wait(el("income.currency"), "Zeile Währung")
+        let add = button("income.addChange")
+        reveal(add, "+ Änderung")
+        tap(add, "+ Änderung")
+        let amt = textField("income.priceAmount")
+        wait(amt, "Neue Zeile")
+        keepShot("inc-5-neue-aenderung")
+        enter(amt, "8000", "Neuer Betrag")
+        closeKeyboard()
+        if app.keyboards.count > 0 { closeKeyboard() }
+        waitUntil("Neue Stufe «aktuell · +5 %»") { self.elContaining("aktuell · +5 %").exists }
+        XCTAssertTrue(textField("income.priceAmt.2").exists, "Drei Stufen")
+        keepShot("inc-6-zeitstrahl")
+        // neueste Stufe per Wischen löschen
+        let top = textField("income.priceAmt.0")
+        let a = top.coordinate(withNormalizedOffset: CGVector(dx: -0.6, dy: 0.5))
+        a.press(forDuration: 0.05, thenDragTo: a.withOffset(CGVector(dx: -300, dy: 0)))
+        usleep(500_000)
+        let del = app.buttons.matching(pred("label == %@", "Löschen")).firstMatch
+        if textField("income.priceAmt.2").exists && del.exists && del.isHittable { del.tap() }
+        waitGone(textField("income.priceAmt.2"), "Stufe nach dem Wischen")
+        tapTop("Abbrechen")
     }
 }
 

@@ -91,11 +91,16 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         reveal(reg, "Kachel Brief")
         XCTAssertTrue(reg.isSelected, "Katalog setzt Kündigungsweg Brief (Web v145: Einschreiben = Brief)")
 
+        // Karte ganz nach oben holen (Titel sichtbar), dann «Rückgängig»; geht der Tipp beim Nachscrollen verloren, nochmals
         let undo = button("form.tplUndo")
-        revealUp(undo, "Rückgängig")
-        tap(undo, "Rückgängig")
-        // Tipp kann während des Nachscrollens verloren gehen: einmal nachtippen
-        if !elContaining("Vertragsdaten ergänzt").waitForNonExistence(timeout: 3) && undo.exists && undo.isHittable { undo.tap() }
+        let title = elContaining("Vertragsdaten ergänzt")
+        closeKeyboard()
+        for _ in 0..<4 {
+            var n = 0
+            while !(title.exists && title.isHittable && undo.isHittable) && n < 8 { app.swipeDown(velocity: .slow); n += 1; usleep(300_000) }
+            if undo.exists && undo.isHittable { undo.tap() }
+            if title.waitForNonExistence(timeout: 3) { break }
+        }
         waitGone(elContaining("Vertragsdaten ergänzt"), "Karte nach Rückgängig")
         reveal(button("cancelWay.letter"), "Kachel Brief nach Rückgängig")
         waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.letter").isSelected }
