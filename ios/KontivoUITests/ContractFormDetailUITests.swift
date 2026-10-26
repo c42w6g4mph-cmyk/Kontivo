@@ -192,7 +192,10 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         tapOpen(button("form.priceOpen"), "+ Preisänderung", expect: textField("form.priceAmount"))
         enter(textField("form.priceAmount"), "50", "Neuer Betrag")
         closeKeyboardSure()
-        wait(elContaining("Datum muss nach dem Vertragsbeginn liegen"), "Meldung Datum vor Beginn")
+        // abgelehnt (Meldung als Toast, Feld wird wie im Web wieder fokussiert): neue Zeile bleibt offen, keine Stufe
+        usleep(1_000_000)
+        XCTAssertTrue(textField("form.priceAmount").exists, "Neue Zeile bleibt offen")
+        XCTAssertFalse(textField("form.priceAmt.0").exists, "Keine Stufe vor dem Vertragsbeginn")
     }
 
     /// Sonderzahlung erfassen und per Wischen löschen (Web v318: kein × mehr)
