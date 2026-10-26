@@ -1,6 +1,6 @@
 # Kontivo in Xcode starten (eigener Mac, ohne bezahltes Apple-Konto)
 
-Stand: Branch `swift` (26.10.2026). Oberfläche und Rechenkern nach Web v330 (Kontoauszug-Erkennung v330; spätere Web-Änderungen siehe Projekt-Dokument `kontivo-swift-nachzug`).
+Stand: Branch `swift` (26.10.2026). Oberfläche und Rechenkern nach Web v346 (Kontoauszug-Erkennung und Katalog v346; spätere Web-Änderungen siehe Projekt-Dokument `kontivo-swift-nachzug`).
 
 ## Voraussetzungen
 - Mac mit **Xcode 26.2 oder neuer**. Die CI baut und testet mit Xcode 26.2 (`.github/workflows/ios.yml`). Mit dem aktuellen **Xcode 27** (braucht macOS Tahoe 26.6) ist das Projekt noch ungeprüft: meldet Xcode beim ersten Build Fehler, diese an Claude geben. Ältere Xcode-Versionen als 26 scheitern am iOS-26-SDK.
