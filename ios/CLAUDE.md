@@ -6,7 +6,7 @@ Gilt für jede Claude-Sitzung am Swift-Code, auch für Claude in Xcode.
 Native Kontivo-App (SwiftUI, iOS 17+, iPhone zuerst, iPad mit) auf dem Funktions- und Designniveau der Web-Version. Massstab ist die Web-Version im Zweig `main` (`index.html`): alles, was dort ist, kommt in die App, inkl. variable Kosten. Dazu native Zusätze (Face ID/App-Sperre, Mitteilungen, Kalender, Mail/Drucken, iCloud-Sync, Kamera-Scan) und Kauf in der App (StoreKit 2: Abo oder Einmalkauf, Testphase, Käufe wiederherstellen).
 
 ## Stand und Plan
-- Rechenkern auf Stand Web v323, Oberfläche auf Stand Web v225. Alle Web-Änderungen v226–v323 stehen einzeln in der Nachzug-Checkliste (Projekt-Dokument `kontivo-swift-nachzug`); Kern und Oberfläche sind erst fertig, wenn dort alles abgehakt ist.
+- Rechenkern und Oberfläche auf Stand Web v330 (26.10.2026); offen: Kontoauszug-Erkennung Web v331 ff. Alle Web-Änderungen stehen einzeln in der Nachzug-Checkliste (Projekt-Dokument `kontivo-swift-nachzug`); Kern und Oberfläche sind erst fertig, wenn dort alles abgehakt ist.
 - Plan: `kontivo-swift-plan`; Bestandsaufnahme: `kontivo-swift-bestandsaufnahme`; Datenmodell: `main/docs/datenmodell.md`; Regeln aus dem Web-Code: `kontivo-swift-hinweise`.
 
 ## Regeln
