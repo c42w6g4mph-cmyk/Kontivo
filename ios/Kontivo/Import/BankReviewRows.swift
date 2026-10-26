@@ -11,6 +11,8 @@ struct BankRowText: View {
     let sub: String
     var off = false
     var known = false
+    /// keine Bezeichnung erkannt (Web `.bknol`): Titel «Ohne Bezeichnung» in Akzentfarbe, wird nie gespeichert
+    var noLabel = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -18,7 +20,7 @@ struct BankRowText: View {
                 .font(.system(size: 15.5, weight: .semibold))
                 .lineSpacing(BankType.extra(15.5, 19.375))
                 .padding(.vertical, BankType.halfLeading(15.5, 19.375))
-                .foregroundStyle(off ? KColor.ink3 : (known ? KColor.ink2 : KColor.ink))
+                .foregroundStyle(off ? KColor.ink3 : (noLabel ? KColor.teal : (known ? KColor.ink2 : KColor.ink)))
                 .fixedSize(horizontal: false, vertical: true)
             if !sub.isEmpty {
                 Text(sub)
@@ -103,7 +105,12 @@ struct BankItemRow: View {
                     .accessibilityIdentifier("bankCheck-" + it.s.name)
                 Button(action: open) {
                     HStack(alignment: .top, spacing: 11) {
-                        BankRowText(title: title, sub: review.sub(it, d), off: !it.on)
+                        // keine Bezeichnung erkannt (Web v331 ff., Entscheid Sinan): «Ohne Bezeichnung», Vertragspartner darunter
+                        if it.ed.label.isEmpty {
+                            BankRowText(title: "Ohne Bezeichnung", sub: it.ed.name, off: !it.on, noLabel: true)
+                        } else {
+                            BankRowText(title: title, sub: review.sub(it, d), off: !it.on)
+                        }
                         BankAmount(value: it.ed.amount, currency: it.s.currency, per: BankReview.per(it.ed.cycle) + (maybe ? "?" : ""), dim: !it.on)
                         BankChevron()
                     }

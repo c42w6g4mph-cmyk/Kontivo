@@ -43,6 +43,8 @@ final class BankReview {
         var q = ""
         /// «Wieder aktivieren»: archivierter Vertrag (Web `it.react`)
         var react: UUID?
+        /// Haken bzw. Ja/Nein selbst angetippt (Web `it.touched`): «abgewählt» wird für den nächsten Import gelernt
+        var touched = false
         var id: String { s.id }
     }
 
@@ -108,14 +110,18 @@ final class BankReview {
         owner = file.owner
         ownerHit = ow.count == 1 ? ow[0] : nil
         joint = ow.count > 1
-        items = result.items.map { s0 in
+        // gelernte Korrekturen (Web v331 ff. `bankLearnAssign`): letztes Mal abgewählt → vorab abgewählt, Bezeichnung übernehmen
+        var sugg = result.items
+        BankImport.learnAssign(&sugg, settings: data.settings)
+        items = sugg.map { s0 in
             var s = s0
             // unbekannte Währung → Hauptwährung (Web BK_CUR)
             if Currency(rawValue: s.currency) == nil { s.currency = home }
-            let ed = Edit(name: s.name, label: BankImport.label(s), amount: s.amount, cycle: s.cycle,
+            let lr = s.learn
+            let ed = Edit(name: s.name, label: !(lr?.l ?? "").isEmpty ? lr!.l : BankImport.label(s), amount: s.amount, cycle: s.cycle,
                           categoryID: data.category(named: s.category)?.id, holderIDs: H, due: s.due)
             // Rückfrage (gleicher Betrag / im Archiv) offen: erst nach der Antwort übernehmen
-            return Item(s: s, on: s.confidence != .low && !s.ignored && s.sameAs == nil && s.archived == nil, ed: ed)
+            return Item(s: s, on: s.confidence != .low && !s.ignored && s.sameAs == nil && s.archived == nil && lr?.x != true, ed: ed)
         }
         prices = result.prices.map { PriceRow(m: $0, on: true) }
         inc = income.items.map { s in
@@ -245,11 +251,13 @@ final class BankReview {
     func toggle(_ id: String) {
         guard let i = index(id) else { return }
         items[i].on.toggle()
+        items[i].touched = true
     }
 
     func setOn(_ id: String, _ on: Bool) {
         guard let i = index(id) else { return }
         items[i].on = on
+        items[i].touched = true
     }
 
     func toggleInc(_ id: String) {

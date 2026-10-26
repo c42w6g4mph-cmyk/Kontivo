@@ -161,6 +161,8 @@ public struct SyncSettings: Codable, Hashable, Sendable {
     public var logoSkip: [String]
     public var bankIgn: [String]
     public var bankAlias: [String: BankAlias]
+    /// gelernte Korrekturen je Vertragspartner und Betrag (Web `bankLearn`)
+    public var bankLearn: [String: [BankLearn]]
     public var lastReview: Day?
     public var reviewSnooze: Day?
 
@@ -177,6 +179,7 @@ public struct SyncSettings: Codable, Hashable, Sendable {
         logoSkip = s.logoSkip
         bankIgn = s.bankIgn
         bankAlias = s.bankAlias
+        bankLearn = s.bankLearn
         lastReview = s.lastReview
         reviewSnooze = s.reviewSnooze
     }
@@ -192,6 +195,7 @@ public struct SyncSettings: Codable, Hashable, Sendable {
         logoSkip = c.lossyArray(.logoSkip)
         bankIgn = c.lossyArray(.bankIgn)
         bankAlias = c.value(.bankAlias, [String: BankAlias]())
+        bankLearn = c.value(.bankLearn, [String: [BankLearn]]())
         lastReview = c.optional(.lastReview)
         reviewSnooze = c.optional(.reviewSnooze)
     }
@@ -205,6 +209,7 @@ public struct SyncSettings: Codable, Hashable, Sendable {
         s.logoSkip = logoSkip
         s.bankIgn = bankIgn
         s.bankAlias = bankAlias
+        s.bankLearn = bankLearn
         s.lastReview = lastReview
         s.reviewSnooze = reviewSnooze
     }
@@ -226,6 +231,7 @@ public struct SyncSettings: Codable, Hashable, Sendable {
         m.logoSkip = unique(remote.logoSkip + local.logoSkip)
         m.bankIgn = unique(remote.bankIgn + local.bankIgn)
         m.bankAlias = remote.bankAlias.merging(local.bankAlias) { r, l in preferLocal ? l : r }
+        m.bankLearn = remote.bankLearn.merging(local.bankLearn) { r, l in preferLocal ? l : r }
         m.lastReview = later(local.lastReview, remote.lastReview)
         m.reviewSnooze = later(local.reviewSnooze, remote.reviewSnooze)
         m.categoryOrder = unique(remote.categoryOrder + local.categoryOrder)
@@ -249,6 +255,9 @@ public struct SyncSettings: Codable, Hashable, Sendable {
         m.bankIgn = mergeList(base: base.bankIgn, local: local.bankIgn, remote: remote.bankIgn)
         for k in Set(base.bankAlias.keys).union(local.bankAlias.keys) where local.bankAlias[k] != base.bankAlias[k] {
             m.bankAlias[k] = local.bankAlias[k]
+        }
+        for k in Set(base.bankLearn.keys).union(local.bankLearn.keys) where local.bankLearn[k] != base.bankLearn[k] {
+            m.bankLearn[k] = local.bankLearn[k]
         }
         return m
     }

@@ -876,6 +876,9 @@ public struct Settings: Codable, Hashable, Sendable {
     public var bankIgn: [String] = []
     /// Kontoauszug: gelernte Korrekturen (Web `bankAlias`): Gruppenschlüssel → Vertragspartner/Kategorie
     public var bankAlias: [String: BankAlias] = [:]
+    /// Kontoauszug: gelernte Korrekturen je Vertragspartner und Betrag (Web `bankLearn`, 25.10.2026): Schlüssel `BankImport.learnKey`
+    /// → höchstens 12 Einträge (abgewählt bzw. Bezeichnung)
+    public var bankLearn: [String: [BankLearn]] = [:]
     /// Vollständigkeit: Vertragspartner bewusst «Ohne Logo» (Web `settings.logoSkip`, Schlüssel = Name klein, ohne Leerzeichen
     /// am Rand). Neu seit Web v120, fehlt in älteren Daten.
     public var logoSkip: [String] = []
@@ -933,6 +936,7 @@ public struct Settings: Codable, Hashable, Sendable {
         dataVersion = c.value(.dataVersion, Settings.currentDataVersion)
         bankIgn = c.lossyArray(.bankIgn)
         bankAlias = c.value(.bankAlias, [String: BankAlias]())
+        bankLearn = c.value(.bankLearn, [String: [BankLearn]]())
         logoSkip = c.lossyArray(.logoSkip)
         rateCheckedAt = c.optional(.rateCheckedAt)
         costKind = c.value(.costKind, CostKind.fix)

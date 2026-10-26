@@ -1,6 +1,6 @@
 import XCTest
 
-/// Plus-Menü und Kontoauszug-Import (Bereich import, Web v177–v330)
+/// Plus-Menü und Kontoauszug-Import (Bereich import, Web v177–v346)
 final class ImportUITests: KontivoUITestCase {
 
     /// Plus öffnet das Menü «Vertrag erfassen» | «Aus Kontoauszug» mit der Wahl der Quelle
@@ -158,6 +158,21 @@ final class ImportUITests: KontivoUITestCase {
         waitUntil("ausgewählt nach «Nein, neu»") { (check.value as? String) == "ausgewählt" && no.isSelected }
         tap(yes, "Ja, schon erfasst")
         waitUntil("abgewählt nach «Ja, schon erfasst»") { (check.value as? String) == "nicht ausgewählt" && yes.isSelected }
+    }
+
+    /// Lernt aus Korrekturen (Web v331 ff.): beim letzten Import bewusst abgewählt → vorab abgewählt mit Plakette
+    /// «letztes Mal nicht übernommen»; erneut angehakt ist der Vorschlag wieder ausgewählt
+    func testKontoauszugGelernt() {
+        launch("-uiEmpty", "-uiBankSample", "-uiBankLearned")
+        wait(el("Sind das deine Fixkosten?"), "Schritt Fixkosten", timeout: 25)
+        let check = button("bankCheck-Swisscom")
+        wait(check, "Häkchen Swisscom")
+        XCTAssertEqual(check.value as? String, "nicht ausgewählt", "letztes Mal abgewählt → vorab abgewählt")
+        wait(elContaining("letztes Mal nicht übernommen"), "Plakette «letztes Mal nicht übernommen»")
+        XCTAssertEqual(button("bankCheck-CSS").value as? String, "ausgewählt", "andere Vorschläge unverändert")
+        keepShot("bank-12-gelernt")
+        tap(check, "Häkchen Swisscom an")
+        waitUntil("Häkchen an") { (check.value as? String) == "ausgewählt" }
     }
 
     /// Mehr → Daten: Zeile «Kontoauszug einlesen» (Web v266, Zeitraum des letzten Imports erst nach einem Import)

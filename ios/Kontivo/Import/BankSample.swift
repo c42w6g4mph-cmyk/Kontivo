@@ -4,6 +4,7 @@ import Foundation
 /// Beispiel-Kontoauszug für UI-Tests (`-uiBankSample`): gekürzte PostFinance-CSV aus main/tests/bank/samples/ch_postfinance.csv
 /// (Miete, Krankenkasse, Swisscom, Strom quartalsweise, Fitness, Lohn, einige Einkäufe). Web-Ergebnis (v141, 08.10.2026):
 /// 4 Vorschläge – Immo Seeblick AG 1850.00 monatlich, CSS 412.30, Energie Kreuzlingen 180.50 quartalsweise, Swisscom 79.00.
+/// Dazu Disney+ 12.95 (Web v346: gleicher Betrag nur bei gleichem Rhythmus – mit den Beispieldaten Rückfrage «Gleicher Betrag wie Spotify»).
 enum BankSample {
     static var csv: Data { Data(text.utf8) }
 
@@ -20,16 +21,19 @@ Datum;Bewegungstyp;Avisierungstext;Gutschrift in CHF;Lastschrift in CHF;Label;Ka
 23.09.2026;Lastschrift;"KAUF/DIENSTLEISTUNG VOM 23.09.2026 KARTEN NR. XXXX1234 MIGROS KREUZLINGEN";;-39.89;;
 20.09.2026;Lastschrift;"E-RECHNUNG Swisscom (Schweiz) AG, Rechnung Kundennummer 9876543";;-79.00;;
 16.09.2026;Lastschrift;"KAUF/DIENSTLEISTUNG VOM 16.09.2026 KARTEN NR. XXXX1234 MIGROS KREUZLINGEN";;-89.44;;
+14.09.2026;Lastschrift;"KAUF/DIENSTLEISTUNG VOM 14.09.2026 KARTEN NR. XXXX1234 DISNEY PLUS";;-12.95;;
 09.09.2026;Lastschrift;"KAUF/DIENSTLEISTUNG VOM 09.09.2026 KARTEN NR. XXXX1234 MIGROS KREUZLINGEN";;-90.32;;
 01.09.2026;Lastschrift;"DAUERAUFTRAG Immo Seeblick AG MITTEILUNGEN: Miete Wohnung 3.OG Seestrasse 12";;-1850.00;;
 01.09.2026;Lastschrift;"LASTSCHRIFT CSS KRANKEN-VERSICHERUNG AG Prämie Grundversicherung Police 1234567";;-412.30;;
 25.08.2026;Gutschrift;"GUTSCHRIFT VON Muster Pharma AG Lohn";6850.00;;;
 20.08.2026;Lastschrift;"E-RECHNUNG Swisscom (Schweiz) AG, Rechnung Kundennummer 9876543";;-79.00;;
+14.08.2026;Lastschrift;"KAUF/DIENSTLEISTUNG VOM 14.08.2026 KARTEN NR. XXXX1234 DISNEY PLUS";;-12.95;;
 01.08.2026;Lastschrift;"DAUERAUFTRAG Immo Seeblick AG MITTEILUNGEN: Miete Wohnung 3.OG Seestrasse 12";;-1850.00;;
 01.08.2026;Lastschrift;"LASTSCHRIFT CSS KRANKEN-VERSICHERUNG AG Prämie Grundversicherung Police 1234567";;-412.30;;
 25.07.2026;Lastschrift;"E-RECHNUNG Energie Kreuzlingen, Akontorechnung Strom Messpunkt 4711";;-180.50;;
 25.07.2026;Gutschrift;"GUTSCHRIFT VON Muster Pharma AG Lohn";6850.00;;;
 20.07.2026;Lastschrift;"E-RECHNUNG Swisscom (Schweiz) AG, Rechnung Kundennummer 9876543";;-79.00;;
+14.07.2026;Lastschrift;"KAUF/DIENSTLEISTUNG VOM 14.07.2026 KARTEN NR. XXXX1234 DISNEY PLUS";;-12.95;;
 01.07.2026;Lastschrift;"DAUERAUFTRAG Immo Seeblick AG MITTEILUNGEN: Miete Wohnung 3.OG Seestrasse 12";;-1850.00;;
 01.07.2026;Lastschrift;"LASTSCHRIFT CSS KRANKEN-VERSICHERUNG AG Prämie Grundversicherung Police 1234567";;-412.30;;
 25.06.2026;Gutschrift;"GUTSCHRIFT VON Muster Pharma AG Lohn";6850.00;;;

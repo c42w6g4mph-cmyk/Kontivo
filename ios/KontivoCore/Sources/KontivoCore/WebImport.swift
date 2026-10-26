@@ -409,6 +409,29 @@ public enum WebImport {
             }
             st.bankAlias = out
         }
+        // gelernte Korrekturen je Vertragspartner und Betrag (Web v331 sanitizeImport): höchstens 500 Schlüssel, je 12 Einträge,
+        // Betrag > 0 auf Rappen, Bezeichnung getrimmt (max. 60), nur Einträge mit Bezeichnung oder «abgewählt»
+        if let bl = JS.obj(s["bankLearn"]) {
+            var out: [String: [BankLearn]] = [:]
+            for k in bl.orderedKeys.prefix(500) {
+                guard k != "__proto__", case .array(let arr)? = bl[k] else { continue }
+                let ok = arr.filter { e in
+                    guard case .object(let o) = e else { return false }
+                    let a = JS.num(o["a"])
+                    return a.isFinite && a > 0
+                }
+                let L: [BankLearn] = ok.suffix(12).compactMap { e in
+                    guard case .object(let o) = e else { return nil }
+                    var l = ""
+                    if case .string(let t)? = o["l"] { l = BU.slice(BU.trim(t), 0, 60) }
+                    let x = JS.truthy(o["x"])
+                    if l.isEmpty && !x { return nil }
+                    return BankLearn(a: BU.r2(JS.num(o["a"])), l: l, x: x)
+                }
+                if !L.isEmpty { out[k] = L }
+            }
+            st.bankLearn = out
+        }
         // Kontoauszug-Zeitraum nur mit ok:1 (Web v275: Altwerte aus Testläufen verwerfen)
         if let bl = JS.obj(s["bankLast"]), JS.num(bl["ok"]) == 1, let f = Day(iso: JS.str(bl["from"])), let t = Day(iso: JS.str(bl["to"])),
            let at = Day(iso: JS.str(bl["at"])) {

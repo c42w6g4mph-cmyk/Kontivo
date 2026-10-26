@@ -33,7 +33,8 @@ extension BankReview {
     func chips(_ it: Item) -> [BankChip] {
         let s = it.s
         return BankImport.chips(dates: s.dates, amounts: s.amounts, count: s.count, last: s.last, lowConfidence: s.confidence == .low,
-                                change: s.change, varies: s.varies, cycle: s.cycle, currency: s.currency, amount: it.ed.amount, income: false)
+                                change: s.change, varies: s.varies, cycle: s.cycle, currency: s.currency, amount: it.ed.amount, income: false,
+                                learnedOff: s.learn?.x == true)
     }
 
     func chips(_ it: IncItem) -> [BankChip] {

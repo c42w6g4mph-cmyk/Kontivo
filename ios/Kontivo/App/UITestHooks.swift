@@ -13,6 +13,7 @@ import KontivoCore
 ///                      (incomeDetail/incomeEdit: Einnahme mit Änderungen, Beispiel «Lohn» mit Verlauf)
 ///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich import)
 ///   -uiBankStep <s>    mit -uiBankSample: nach dem Laden direkt zum Schritt inc | term | pay (Zahlungen aufgeklappt) | fail (nicht lesbar)
+///   -uiBankLearned     mit -uiBankSample: Swisscom 79.– wurde beim letzten Import bewusst abgewählt (gelernte Korrektur, Web v331 ff.)
 ///   -uiSplash          Intro beim Start auch im UI-Test zeigen
 ///   -uiList <m>        Verträge-Tab in der Ansicht i (Einnahmen) | v (Variabel) | c (Verträge)
 ///   -uiBudgetKind <k>  Kostenart im Budget: all | fix | none
@@ -51,6 +52,7 @@ extension AppModel {
         if let m = value("-uiList"), let lm = ListMode(rawValue: m) { listMode = lm }
         if let k = value("-uiBudgetKind"), let bk = BudgetKind(rawValue: k) { data.settings.budgetKind = bk }
         if args.contains("-uiBankSample") {
+            if args.contains("-uiBankLearned") { data.settings.bankLearn["tpl:Swisscom"] = [BankLearn(a: 79, x: true)] }
             let bankStep = value("-uiBankStep")
             Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 800_000_000)

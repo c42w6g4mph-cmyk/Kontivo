@@ -137,6 +137,10 @@ extension BankReview {
         }
         var newCs: [NewC] = []
         var reacts: [(UUID, Double, Day)] = []
+        // Lernen (Web v331 ff.): bewusst abgewählt → nächstes Mal vorab abgewählt; Bezeichnung geändert → nächstes Mal übernommen
+        let learns: [(s: BankSuggestion, on: Bool, touched: Bool, label: String, react: Bool)] = items.map { it in
+            (it.s, it.on, it.touched, it.over.map { $0.contract.label } ?? it.ed.label, it.react != nil)
+        }
         for it in items {
             if !it.on || (it.s.ignored && !showIgnored) {
                 if let l = it.logo { drop.append(l.id) }
@@ -178,6 +182,7 @@ extension BankReview {
         let firstHolders = items.first { $0.on }?.ed.holderIDs
         let result = self.result, file = self.file
         model.update { d in
+            for l in learns { BankImport.learn(l.s, on: l.on, touched: l.touched, label: l.label, reactivate: l.react, in: &d.settings) }
             for r in reacts {
                 BankImport.reactivate(r.0, amount: r.1, from: r.2, in: &d, today: today)
                 out.reactivated += 1
