@@ -32,6 +32,8 @@ enum KBUITestSeed {
             let s = d.persons.first { $0.name == "Sinan" }?.id
             let l = d.persons.first { $0.name == "Lara" }?.id
             let t0 = Date(timeIntervalSince1970: 1_760_000_000)
+            // feste Testmenge statt der variablen Kosten aus den Beispieldaten (Beträge in UI-Tests und Fotos bleiben gleich)
+            d.variableCosts = []
             _ = d.putVariableCost(VariableCost(label: "", icon: .benzin, amount: 180, holderIDs: [s].compactMap { $0 }, createdAt: t0))
             _ = d.putVariableCost(VariableCost(label: "Lebensmittel", icon: .essen, amount: 650, holderIDs: [s, l].compactMap { $0 },
                                                createdAt: t0.addingTimeInterval(1)))
