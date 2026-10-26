@@ -214,6 +214,8 @@ jobs:
           shoot $PHONE b09-kosten-veraendert -uiDemo -uiTab costs -uiCostOpen cat -uiScrollTo kbChanges
           shoot $PHONE b10-bericht-vars -uiDemo -uiTab costs -uiCostSeed vars -uiSheet report
           shoot $PHONE b11-bericht-pdf-vars -uiDemo -uiTab costs -uiCostSeed vars -uiSheet reportVarPDF
+          shoot $PHONE c-zeitstrahl-halbtax -uiDemo -uiSheet edit:Halbtax
+          shoot $PHONE c-detail-preisverlauf -uiDemo -uiSheet detail:Halbtax
           xcrun simctl ui $PHONE appearance dark
           shoot $PHONE b20-dunkel-kosten-alle -uiDemo -uiTab costs -uiCostSeed vars,all
           shoot $PHONE b21-dunkel-kategorien -uiDemo -uiTab costs -uiCostOpen categories -uiScrollTo kbDrivers

@@ -60,7 +60,8 @@ final class WebSync141Tests: XCTestCase {
         XCTAssertEqual(Format.amountInput(59.9, .EUR), "59.90") // Web v144: nach der Hauptwährung
         Format.homeCurrency = .EUR
         XCTAssertEqual(Format.amountInput(59.9, .EUR), "59,90")
-        XCTAssertEqual(Format.amountInput(1234.5, .CHF), "1234,50")
+        XCTAssertEqual(Format.amountInput(1234.5, .CHF), "1.234,50") // Web v316: mit Tausendertrennung
+        XCTAssertEqual(Format.parseAmount(Format.amountInput(1234.5, .CHF)), 1234.5)
         Format.homeCurrency = .CHF
         // Geld hat nie 3 Nachkommastellen: «1.234» und «1,234» sind Tausender
         XCTAssertEqual(Format.parseAmount("1.234"), 1234)
@@ -154,7 +155,8 @@ final class WebSync141Tests: XCTestCase {
         let p4 = chart(Contract(amount: 20, cycle: 3, prices: [PriceChange(from: Day(2026, 1, 1), amount: 20), PriceChange(from: Day(2025, 1, 1), amount: 22)]))
         XCTAssertEqual(p4?.badgeText, "unverändert")
         XCTAssertEqual(p4?.points.map { $0.amount }, [20, 22, 20])
-        XCTAssertEqual(p4?.points.filter { $0.labeled }.map { $0.valueText }, ["22.00", "20.00"])
+        // Web v321: aktueller Punkt immer beschriftet, Abstand 58
+        XCTAssertEqual(p4?.points.filter { $0.labeled }.map { $0.valueText }, ["20.00", "22.00", "20.00"])
         XCTAssertEqual(p4?.points.compactMap { $0.pctText }, ["+10 %", "\u{2212}9 %"])
 
         let p5 = chart(Contract(amount: 1000, currency: .EUR, cycle: 1, prices: [PriceChange(from: Day(2026, 5, 1), amount: 1004.5)]))
@@ -167,7 +169,10 @@ final class WebSync141Tests: XCTestCase {
         XCTAssertEqual(p6?.badgeText, "↓ 100 % günstiger")
         XCTAssertEqual(p6?.badgeTone, .down)
         XCTAssertEqual(p6?.points.map { $0.valueText }, ["30.00", "gratis", "33.00"])
-        XCTAssertEqual(p6?.points.filter { $0.labeled }.map { $0.index }, [0, 2])
+        XCTAssertEqual(p6?.points.filter { $0.labeled }.map { $0.index }, [0, 1, 2])
+        // geplanter Punkt nah am aktuellen: aktuell rechtsbündig, geplant linksbündig (Web v321)
+        XCTAssertEqual(p6?.points.map { $0.anchor }, [.middle, .end, .start])
+        XCTAssertEqual(p6?.points.map { $0.labelTrailing }, [false, false, false])
         XCTAssertNil(p6?.points[2].pctText)
         XCTAssertEqual(p6?.nowIndex, 1)
 

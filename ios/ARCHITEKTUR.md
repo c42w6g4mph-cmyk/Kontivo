@@ -153,6 +153,9 @@ Formulare bearbeiten eine Kopie (`Contract`) und übernehmen beim Sichern nur di
 | Kosten: Blätter «Kostenart» und «Filter» (`#sheetPick`) | `.sheet` mit denselben Zeilen; «Filter» öffnet die Werteliste im selben Fenster |
 | Build-Nummer «Version 1.0 · v330» (Web-Stand) | «Version 1.0 · Build N» (`CFBundleVersion`) |
 | Betragsfelder: Cursor ans Ende (`focusin`) | `AmountCursor` (Beobachter auf `UITextField.textDidBeginEditingNotification`, Zahlentastatur) |
+| Wischen zum Löschen `swipeDel` (Preisänderungen, Sonderzahlungen, v317/v318) | eigene Geste `CTSwipeDelete` (Formular ist `ScrollView`, keine `List` → kein `.swipeActions`); gleiche Regeln: 88 pt «Löschen», über 55 % löscht direkt; Bedienungshilfen-Aktion «Löschen» |
+| unsichtbares `input[type=date]` über «ab TT.MM.JJ» (Zeitstrahl v277) | kompakter `DatePicker` fast durchsichtig über dem Text (`CTTimelineDateLabel`) |
+| «mehr» im Katalog-Hinweis (v243) | Link im `AttributedString`, Aufklappen über `openURL`-Aktion |
 
 ## Nachzug Web v70–v88 (07.10.2026)
 - Fristen-Tab Variante 1: `Calc.deadlineOverview()` liefert `status`, `items` (eine Liste nach Datum, `showActions` = Probeabo, needsAction oder ≤ 61 Tage vor Vertragsende), `flexible` (Ende bei Kündigung heute, `endIfCancelledToday`), `flexStack`, Klappgruppen; Golden-Test gegen das gerenderte DOM (ios/Tools/golden/make_golden_texts.py)

@@ -304,7 +304,7 @@ private struct CTSuggestHeader: View {
     }
 }
 
-/// Vorlage-Chips, Hinweistext bzw. Karte «Aus dem Katalog übernommen» unter dem Vertragspartner (paintSugg)
+/// Vorlage-Chips, Hinweistext bzw. Erfolgskarte «Vertragsdaten ergänzt» unter dem Vertragspartner (paintSugg)
 struct CTTemplateRow: View {
     @Environment(AppModel.self) private var model
     @Bindable var form: CTFormState
@@ -331,7 +331,7 @@ struct CTTemplateRow: View {
             }
             .padding(.vertical, 2)
         case .summary(let t, let items):
-            CTTemplateSummaryCard(form: form, hint: t.hintFull.ctTrimmed, items: items)
+            CTCatalogSuccessCard(form: form, hint: CatalogCard.hintShort(t.hint, confirmed: t.confirmed), items: items)
         case .exact(let t):
             VStack(alignment: .leading, spacing: 6) {
                 Text("Vorlage")
@@ -360,60 +360,6 @@ struct CTTemplateRow: View {
     }
 }
 
-/// Zusammenfassung statt stiller Feldänderungen (Web .tplsum): Liste der übernommenen Angaben, Hinweis, «Rückgängig»
-private struct CTTemplateSummaryCard: View {
-    @Environment(AppModel.self) private var model
-    @Bindable var form: CTFormState
-    let hint: String
-    let items: [String]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            HStack(spacing: 8) {
-                Text("Aus dem Katalog übernommen")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(KColor.ink)
-                Spacer(minLength: 8)
-                Button("Rückgängig") {
-                    form.tplUndoApply(data: model.data)
-                    model.toast("Katalogdaten entfernt")
-                }
-                .buttonStyle(.borderless)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(KColor.teal)
-                .accessibilityIdentifier("form.tplUndo")
-            }
-            if !items.isEmpty {
-                CTFlowLayout(spacing: 5, lineSpacing: 5) {
-                    ForEach(items, id: \.self) { x in
-                        Text(x)
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(KColor.teal)
-                            .padding(.horizontal, 8).padding(.vertical, 3)
-                            .background(Capsule().fill(KColor.teal.opacity(0.12)))
-                    }
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("form.tplTags")
-            }
-            if !hint.isEmpty {
-                Text(hint)
-                    .font(.footnote)
-                    .foregroundStyle(KColor.ink2)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Text("Bitte kurz prüfen – Angaben können sich ändern.")
-                .font(.caption)
-                .foregroundStyle(KColor.ink3)
-        }
-        .padding(.horizontal, 12).padding(.vertical, 10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(KColor.sunken, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .padding(.vertical, 2)
-        .accessibilityIdentifier("form.tplSummary")
-    }
-}
-
 /// Katalog-Vorlage übernehmen und – wie bei Internet-Treffern – ein Logo vorschlagen (Web tplLogo, 1ce25ad):
 /// zuerst das Website-Symbol der Katalog-Domain, sonst die normale Logo-Suche. Nur in den offenen Entwurf
 /// (gilt erst mit «Sichern»); kommt das Logo zu spät oder wurde der Vertragspartner geändert, wird es verworfen.
@@ -437,8 +383,10 @@ enum CTTplLogo {
         }
     }
 
-    /// siteCand(regDom(web)) → takeLogo, sonst autoLogo (bis 3 gute Vorschläge ab 3 Punkten)
+    /// logoPin → takeLogo, sonst siteCand(regDom(web)) → takeLogo, sonst autoLogo (bis 3 gute Vorschläge ab 3 Punkten)
     static func find(_ t: CatalogEntry, currency: Currency) async -> LogoImage? {
+        // festes Logo zuerst (Web baab11e `logoPin`, z.B. Apple)
+        if let pn = LogoFinder.pinCand(t.name, web: t.web), case .success(let img) = await LogoFinder.take(pn) { return img }
         let dom = Format.domain(of: t.web)
         if !dom.isEmpty, let sc = await LogoFinder.siteCand(Partners.regDom(dom), score: 3),
            case .success(let img) = await LogoFinder.take(sc) {

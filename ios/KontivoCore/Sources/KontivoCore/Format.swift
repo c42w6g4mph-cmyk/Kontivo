@@ -109,10 +109,10 @@ public enum Format {
         return sign + body + " %"
     }
 
-    /// Betrag für ein Eingabefeld (Web `amtIn`): «59.90», bei Hauptwährung EUR «59,90» (ohne Tausendertrennzeichen).
+    /// Betrag für ein Eingabefeld (Web `amtIn`, v316): gleiches Format wie überall, mit Tausendertrennung
+    /// («1’234.50», EUR «1.234,50»); `parseAmount` liest beides zurück.
     public static func amountInput(_ v: Double, _ currency: Currency? = nil) -> String {
-        let t = fixed2(v.isFinite ? v : 0)
-        return numberStyle(currency) == .de ? t.replacingOccurrences(of: ".", with: ",") : t
+        money(v.isFinite ? v : 0, currency)
     }
 
     /// Betrag aus einem Eingabefeld (Web `parseAmt`): Geld hat nie 3 Nachkommastellen, also ist «1.234» oder «1,234» ein

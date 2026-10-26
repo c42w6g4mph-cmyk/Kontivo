@@ -93,109 +93,123 @@ struct CTPriceChartCanvas: View {
         return max(L + hw, min(R - hw, x))
     }
 
-    /// Linie bis heute (durchgezogen) und danach (gestrichelt), als Eckpunkte (Web pathP/pathF)
-    private var lines: (past: [CGPoint], future: [CGPoint]) {
+    /// Stufen mit abgerundeten Ecken (Web v321 Variante A): waagrecht bis kurz vor den Wechsel, Bogen, senkrecht, Bogen
+    private func steps(_ path: inout Path, _ a: Int, _ b: Int, _ P: (CGPoint) -> CGPoint) {
         let pts = chart.points
-        guard let p0 = pts.first else { return ([], []) }
-        let xCut = X(chart.todayX)
-        var past: [CGPoint] = [CGPoint(x: X(p0.x), y: Y(p0.amount))]
-        var fut: [CGPoint] = []
-        for i in pts.indices.dropFirst() {
-            let x = X(pts[i].x), yPrev = Y(pts[i - 1].amount), y = Y(pts[i].amount)
-            if !pts[i].isFuture {
-                past.append(CGPoint(x: x, y: yPrev))
-                past.append(CGPoint(x: x, y: y))
+        guard a <= b else { return }
+        for i in a...b {
+            let x = X(pts[i].x), y0 = Y(pts[i - 1].amount), y1 = Y(pts[i].amount)
+            let rr = Swift.min(7, Swift.abs(y1 - y0) / 2, (x - X(pts[i - 1].x)) / 2)
+            let dy: CGFloat = y1 > y0 ? rr : -rr
+            if rr < 0.5 {
+                path.addLine(to: P(CGPoint(x: x, y: y0)))
+                path.addLine(to: P(CGPoint(x: x, y: y1)))
             } else {
-                if fut.isEmpty {
-                    past.append(CGPoint(x: xCut, y: yPrev))
-                    fut.append(CGPoint(x: xCut, y: yPrev))
-                }
-                fut.append(CGPoint(x: x, y: yPrev))
-                fut.append(CGPoint(x: x, y: y))
+                path.addLine(to: P(CGPoint(x: x - rr, y: y0)))
+                path.addQuadCurve(to: P(CGPoint(x: x, y: y0 + dy)), control: P(CGPoint(x: x, y: y0)))
+                path.addLine(to: P(CGPoint(x: x, y: y1 - dy)))
+                path.addQuadCurve(to: P(CGPoint(x: x + rr, y: y1)), control: P(CGPoint(x: x, y: y1)))
             }
         }
-        if fut.isEmpty {
-            if let l = past.last { past.append(CGPoint(x: CTPriceChartCanvas.R, y: l.y)) }
-        } else if let l = fut.last {
-            fut.append(CGPoint(x: CTPriceChartCanvas.R, y: l.y))
+    }
+
+    /// Linie bis heute (pathP) bzw. danach (pathF, gepunktet); `area` = Fläche unter der Linie bis heute
+    private func paths(_ P: (CGPoint) -> CGPoint) -> (past: Path, future: Path?, area: Path) {
+        let pts = chart.points
+        let ni = chart.nowIndex
+        let last = pts.count - 1
+        let xt = X(chart.todayX)
+        let x0 = X(pts.first?.x ?? 0)
+        var past = Path()
+        past.move(to: P(CGPoint(x: x0, y: Y(pts.first?.amount ?? 0))))
+        if ni >= 1 { steps(&past, 1, ni, P) }
+        let pastEnd = CGPoint(x: ni < last ? xt : CTPriceChartCanvas.R, y: Y(pts[ni].amount))
+        past.addLine(to: P(pastEnd))
+        var area = past
+        area.addLine(to: P(CGPoint(x: pastEnd.x, y: CTPriceChartCanvas.B)))
+        area.addLine(to: P(CGPoint(x: x0, y: CTPriceChartCanvas.B)))
+        area.closeSubpath()
+        var fut: Path?
+        if ni < last {
+            var f = Path()
+            f.move(to: P(CGPoint(x: xt, y: Y(pts[ni].amount))))
+            steps(&f, ni + 1, last, P)
+            f.addLine(to: P(CGPoint(x: CTPriceChartCanvas.R, y: Y(pts[last].amount))))
+            fut = f
         }
-        return (past, fut)
+        return (past, fut, area)
+    }
+
+    /// Text an einem Punkt: mittig (am Rand eingerückt), rechtsbündig (`end`, Ende bei x + 4) bzw. linksbündig (`start`, ab x − 4);
+    /// Preissenkung mit Zahl rechts neben der Linie (`trailing`, ab x + 5). `y` = Grundlinie wie im SVG.
+    @ViewBuilder
+    private func label(_ t: String, x: CGFloat, y: CGFloat, fs: CGFloat, anchor: PriceChartAnchor, trailing: Bool = false, s: CGFloat,
+                       weight: Font.Weight, color: Color) -> some View {
+        let w = CGFloat(t.count) * fs * 0.58
+        let text = Text(verbatim: t).font(.system(size: fs * s, weight: weight)).foregroundStyle(color).monospacedDigit().fixedSize()
+        let cy = (y - fs * 0.35) * s
+        if trailing {
+            text.frame(width: 0, alignment: .leading).position(x: Swift.min(CTPriceChartCanvas.R - w, x + 5) * s, y: cy)
+        } else {
+            switch anchor {
+            case .end:
+                text.frame(width: 0, alignment: .trailing).position(x: Swift.max(CTPriceChartCanvas.L + w, x + 4) * s, y: cy)
+            case .start:
+                text.frame(width: 0, alignment: .leading).position(x: Swift.min(CTPriceChartCanvas.R - w, x - 4) * s, y: cy)
+            case .middle:
+                text.position(x: CTPriceChartCanvas.cx(x, t, fs) * s, y: cy)
+            }
+        }
     }
 
     var body: some View {
         GeometryReader { g in
             let s = g.size.width / CTPriceChartCanvas.W
             let P = { (p: CGPoint) in CGPoint(x: p.x * s, y: p.y * s) }
-            let ln = lines
+            let pp = paths(P)
             let pts = chart.points
+            let ni = chart.nowIndex
             ZStack(alignment: .topLeading) {
-                // Fläche unter der Linie bis heute
-                Path { path in
-                    guard let f = ln.past.first, let l = ln.past.last else { return }
-                    path.move(to: P(f))
-                    for q in ln.past.dropFirst() { path.addLine(to: P(q)) }
-                    path.addLine(to: P(CGPoint(x: l.x, y: CTPriceChartCanvas.B)))
-                    path.addLine(to: P(CGPoint(x: f.x, y: CTPriceChartCanvas.B)))
-                    path.closeSubpath()
+                // Verlaufsfläche unter der Linie bis heute (Web .pg0 34 % → .pg1 4 %)
+                pp.area.fill(LinearGradient(colors: [KColor.teal.opacity(0.34), KColor.teal.opacity(0.04)],
+                                            startPoint: UnitPoint(x: 0.5, y: CTPriceChartCanvas.T / CTPriceChartCanvas.H),
+                                            endPoint: UnitPoint(x: 0.5, y: CTPriceChartCanvas.B / CTPriceChartCanvas.H)))
+                pp.past.stroke(KColor.teal, style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round, lineJoin: .round))
+                if let f = pp.future {
+                    f.stroke(KColor.teal.opacity(0.8), style: StrokeStyle(lineWidth: 2 * s, lineCap: .round, lineJoin: .round, dash: [1 * s, 5 * s]))
                 }
-                .fill(KColor.teal.opacity(0.12))
-                // Hilfslinien von den Punkten zur Grundlinie
-                ForEach(pts.filter { $0.index > 0 }) { p in
+                // Hilfslinie «heute», nur wenn noch Änderungen geplant sind
+                if ni < pts.count - 1 {
                     Path { path in
-                        path.move(to: P(CGPoint(x: X(p.x), y: Y(p.amount) + 5)))
-                        path.addLine(to: P(CGPoint(x: X(p.x), y: CTPriceChartCanvas.B)))
+                        path.move(to: P(CGPoint(x: X(chart.todayX), y: CTPriceChartCanvas.T - 8)))
+                        path.addLine(to: P(CGPoint(x: X(chart.todayX), y: CTPriceChartCanvas.B)))
                     }
-                    .stroke(KColor.line, style: StrokeStyle(lineWidth: 1, dash: [2, 3]))
-                }
-                polyline(ln.past, P).stroke(KColor.teal, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
-                if !ln.future.isEmpty {
-                    polyline(ln.future, P).stroke(KColor.teal.opacity(0.7), style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round, dash: [4, 4]))
-                }
-                ForEach(pts) { p in
-                    let r: CGFloat = (p.isNow ? 4.5 : 3.5) * s
-                    Circle()
-                        .fill(p.isNow ? KColor.teal : KColor.field)
-                        .overlay(Circle().strokeBorder(p.isFuture ? KColor.warn : KColor.teal, lineWidth: 2))
-                        .frame(width: r * 2, height: r * 2)
-                        .position(P(CGPoint(x: X(p.x), y: Y(p.amount))))
+                    .stroke(KColor.ink3.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [2, 3]))
                 }
                 ForEach(pts.filter { $0.labeled }) { p in
                     let x = X(p.x), y = Y(p.amount)
                     let fs: CGFloat = p.isNow ? 12.5 : 11
-                    // Preissenkung: Zahl links bündig rechts neben die senkrechte Linie (Web v153 `dropL`)
-                    let vx = p.labelTrailing
-                        ? min(CTPriceChartCanvas.R - CGFloat(p.valueText.count) * 11 * 0.58, x + 5) + CGFloat(p.valueText.count) * fs * 0.29
-                        : CTPriceChartCanvas.cx(x, p.valueText, fs)
-                    Text(verbatim: p.valueText)
-                        .font(.system(size: fs * s, weight: p.isNow ? .bold : .semibold))
-                        .foregroundStyle(p.isNow ? KColor.teal : KColor.ink2)
-                        .monospacedDigit()
-                        .fixedSize()
-                        .position(P(CGPoint(x: vx, y: y - 13)))
-                    Text(verbatim: p.dateText)
-                        .font(.system(size: 10.5 * s))
-                        .foregroundStyle(KColor.ink3)
-                        .monospacedDigit()
-                        .fixedSize()
-                        .position(P(CGPoint(x: CTPriceChartCanvas.cx(x, p.dateText, 10.5), y: CTPriceChartCanvas.B + 10)))
+                    label(p.valueText, x: x, y: y - 10, fs: fs, anchor: p.anchor, trailing: p.labelTrailing, s: s,
+                          weight: p.isNow ? .bold : .semibold, color: p.isNow ? KColor.teal : KColor.ink2)
+                    label(p.dateText, x: x, y: CTPriceChartCanvas.B + 14, fs: 10.5, anchor: p.anchor, s: s, weight: .regular, color: KColor.ink3)
                     if let pc = p.pctText {
-                        Text(verbatim: pc)
-                            .font(.system(size: 11 * s, weight: .bold))
-                            .foregroundStyle(p.pctTone == .up ? KColor.warn : (p.pctTone == .down ? KColor.ok : KColor.ink3))
-                            .monospacedDigit()
-                            .fixedSize()
-                            .position(P(CGPoint(x: CTPriceChartCanvas.cx(x, pc, 11), y: CTPriceChartCanvas.B + 25)))
+                        label(pc, x: x, y: CTPriceChartCanvas.B + 29, fs: 11, anchor: p.anchor, s: s, weight: .bold,
+                              color: p.pctTone == .up ? KColor.warn : (p.pctTone == .down ? KColor.ok : KColor.ink3))
                     }
                 }
+                ForEach(pts) { p in
+                    let c = P(CGPoint(x: X(p.x), y: Y(p.amount)))
+                    if p.isNow {
+                        Circle().fill(KColor.teal.opacity(0.18)).frame(width: 17 * s, height: 17 * s).position(c)
+                    }
+                    let r: CGFloat = (p.isNow ? 4.5 : 3.3) * s
+                    Circle()
+                        .fill(p.isNow ? KColor.teal : KColor.field)
+                        .overlay(Circle().strokeBorder(p.isFuture ? KColor.warn : KColor.teal, lineWidth: 2))
+                        .frame(width: r * 2, height: r * 2)
+                        .position(c)
+                }
             }
-        }
-    }
-
-    private func polyline(_ pts: [CGPoint], _ P: @escaping (CGPoint) -> CGPoint) -> Path {
-        Path { path in
-            guard let f = pts.first else { return }
-            path.move(to: P(f))
-            for q in pts.dropFirst() { path.addLine(to: P(q)) }
         }
     }
 }

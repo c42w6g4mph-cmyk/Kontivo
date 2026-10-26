@@ -70,7 +70,7 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         wait(textField("form.cancelURL"), "Feld Kündigungslink")
     }
 
-    /// Katalog-Treffer: Karte «Aus dem Katalog übernommen» mit Liste; «Rückgängig» setzt die Felder zurück
+    /// Katalog-Treffer: Erfolgskarte «Vertragsdaten ergänzt» (Web v240–v243) mit Feld/Wert-Liste, Fusszeile, «Rückgängig»
     func testKatalogZusammenfassungUndRueckgaengig() {
         launch("-uiEmpty")
         openNewForm()
@@ -80,68 +80,148 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         wait(hit, "Katalogtreffer CSS (Pflichtvertrag)")
         ctShot("Formular – Trefferliste")
         hit.tap()
-        wait(elContaining("Aus dem Katalog übernommen"), "Karte Katalog")
+        wait(elContaining("Vertragsdaten ergänzt"), "Erfolgskarte")
+        wait(elContaining("aus dem Kontivo-Katalog"), "Unterzeile n Angaben")
         wait(elContaining("Pflichtvertrag"), "Liste nennt Pflichtvertrag")
-        wait(elContaining("Bitte kurz prüfen"), "Prüfhinweis")
+        wait(elContaining("Stand 10/2026"), "Fusszeile Stand 10/2026")
+        XCTAssertFalse(elContaining("Bitte kurz prüfen").exists, "Satz «Bitte kurz prüfen» entfällt (v240)")
         closeKeyboard()
+        ctShot("Formular – Erfolgskarte Katalog")
         let reg = button("cancelWay.letter")
         reveal(reg, "Kachel Brief")
         XCTAssertTrue(reg.isSelected, "Katalog setzt Kündigungsweg Brief (Web v145: Einschreiben = Brief)")
-        ctShot("Formular – Katalog übernommen")
 
-        let card = elContaining("Aus dem Katalog übernommen")
-        revealUp(card, "Karte Katalog")
-        let undo = app.buttons.matching(NSPredicate(format: "identifier == %@ OR label == %@", "form.tplUndo", "Rückgängig")).firstMatch
-        if undo.exists && undo.isHittable {
-            undo.tap()
-        } else {
-            // Karte als ein Element zusammengefasst: «Rückgängig» rechts in der Titelzeile antippen
-            card.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.12)).tap()
-        }
-        waitGone(elContaining("Aus dem Katalog übernommen"), "Karte nach Rückgängig")
+        let undo = button("form.tplUndo")
+        revealUp(undo, "Rückgängig")
+        tap(undo, "Rückgängig")
+        // Tipp kann während des Nachscrollens verloren gehen: einmal nachtippen
+        if !elContaining("Vertragsdaten ergänzt").waitForNonExistence(timeout: 3) && undo.exists && undo.isHittable { undo.tap() }
+        waitGone(elContaining("Vertragsdaten ergänzt"), "Karte nach Rückgängig")
         reveal(button("cancelWay.letter"), "Kachel Brief nach Rückgängig")
-        ctShot("Formular – nach Rückgängig, Kündigungsweg")
         waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.letter").isSelected }
         ctShot("Formular – Katalog rückgängig")
     }
 
-    /// Preisänderung in der Karte «Kosten» (Web v145): «Preis bleibt gleich» fragt nicht blockierend nach; danach Preisliste,
-    /// Beschriftung «Anfangspreis» und Kacheln; Datum vor dem Vertragsbeginn wird abgelehnt
-    func testPreisaenderungWarnungen() {
+    /// Tastatur schliessen; ist sie danach noch da (Animation), nochmals – das Verlassen des Felds übernimmt den Betrag
+    private func closeKeyboardSure() {
+        closeKeyboard()
+        var n = 0
+        while app.keyboards.count > 0 && n < 3 {
+            // «Fertig» über der Tastatur direkt antippen, sonst nach unten wischen (scrollDismissesKeyboard)
+            let done = app.buttons.matching(pred("label == %@", "Fertig")).allElementsBoundByIndex.last
+            if let d = done, d.exists {
+                d.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            } else {
+                app.swipeDown(velocity: .slow)
+            }
+            usleep(600_000)
+            n += 1
+        }
+    }
+
+    /// Feld leeren und neu tippen
+    private func replace(_ f: XCUIElement, _ text: String, _ what: String) {
+        tap(f, what)
+        usleep(300_000)
+        // Schreibmarke ans Ende setzen (rechtsbündiges Feld), dann alles löschen
+        f.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5)).tap()
+        usleep(300_000)
+        let n = (f.value as? String)?.count ?? 0
+        f.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: n + 2) + text)
+    }
+
+    /// Zeile nach links wischen (Web v317/v318); ganz durchwischen löscht, sonst «Löschen» antippen
+    private func swipeDelete(_ e: XCUIElement, dx: CGFloat = 0.3, _ what: String) {
+        let a = e.coordinate(withNormalizedOffset: CGVector(dx: dx, dy: 0.5))
+        a.press(forDuration: 0.05, thenDragTo: a.withOffset(CGVector(dx: -300, dy: 0)))
+        usleep(500_000)
+        let del = app.buttons.matching(pred("label == %@ OR label == %@", "Löschen", "Verwerfen")).firstMatch
+        if e.exists && del.exists && del.isHittable { del.tap() }
+    }
+
+    /// Preisverlauf als Zeitstrahl (Web v314–v320): «+ Preisänderung» öffnet eine neue Zeile (Datum heute), Betrag fertig →
+    /// übernommen; «Preis bleibt gleich» fragt nach; Betrag direkt in der Zeile ändern (Tausendertrennung); Löschen per Wischen
+    func testPreisaenderungZeitstrahl() {
         launch("-uiEmpty")
         openNewForm()
         enter(textField("form.label"), "Preistest\n", "Bezeichnung")
+        wait(el("form.currency"), "Zeile Währung oben (v319)")
         enter(textField("form.amount"), "45", "Betrag")
         closeKeyboard()
         let kz = el("form.kz.month")
         wait(kz, "Kachel pro Monat (live aus dem Entwurf)")
         XCTAssertTrue(kz.label.contains("45.00"), "Kachel pro Monat: \(kz.label)")
-        tap(button("form.priceOpen"), "+ Preisänderung")
-        tap(button("Gültig ab wählen"), "Datum der Preisänderung")
+        tapOpen(button("form.priceOpen"), "+ Preisänderung", expect: textField("form.priceAmount"))
+        wait(el("neu"), "Neue Zeile «neu»")
+        ctShot("Formular – neue Preisänderung als Zeile")
         enter(textField("form.priceAmount"), "45", "Neuer Betrag")
-        closeKeyboard()
-        tap(button("form.priceAdd"), "Preisänderung hinzufügen")
+        closeKeyboardSure()
         wait(app.alerts["Preis bleibt gleich"], "Rückfrage «Preis bleibt gleich»")
         ctShot("Formular – Preis bleibt gleich")
         tapAlertButton("Trotzdem hinzufügen")
-        wait(button("form.priceRow.0"), "Preisänderung in der Liste")
-        wait(textField("Anfangspreis"), "Beschriftung «Anfangspreis»")
-        ctShot("Formular – Preisliste")
+        let step = textField("form.priceAmt.0")
+        wait(step, "Stufe im Zeitstrahl")
+        wait(textField("Anfangspreis"), "Startzeile «Anfangspreis»")
+        wait(elContaining("aktuell"), "Stufe «aktuell»")
 
-        // Vertragsbeginn heute → Preisänderung heute liegt nicht danach
-        tap(button("Vertragsbeginn wählen"), "Vertragsbeginn setzen")
+        // Betrag direkt in der Zeile ändern: 1234.5 → «1’234.50», +2’643 %
+        replace(step, "1234.5", "Betrag der Stufe")
+        closeKeyboard()
+        waitUntil("Betrag mit Tausendertrennung") { ((step.value as? String) ?? "").contains("234.50") }
+        XCTAssertTrue(((step.value as? String) ?? "").contains("1"), "Betrag: \(String(describing: step.value))")
+        ctShot("Formular – Zeitstrahl")
+
+        // leerer Betrag: Meldung, Zeile bleibt mit altem Betrag (Ziffernblock kennt keine Buchstaben)
+        replace(step, "", "Betrag leeren")
+        closeKeyboard()
+        // Meldung «Betrag fehlt – …» kommt als Toast (kurz); geprüft wird, dass die Zeile ihren Betrag behält
+        waitUntil("alter Betrag bleibt") { ((step.value as? String) ?? "").contains("234.50") }
+
+        // Löschen per Wischen
+        swipeDelete(step, dx: -0.6, "Stufe")
+        waitGone(textField("form.priceAmt.0"), "Stufe nach dem Wischen")
+        waitUntil("Startzeile wieder «Betrag»") { self.textField("Betrag").exists }
+
+        // Vertragsbeginn heute → neue Änderung heute liegt nicht danach
+        let st = button("Vertragsbeginn wählen")
+        reveal(st, "Vertragsbeginn")
+        tap(st, "Vertragsbeginn setzen")
         revealUp(button("form.priceOpen"), "+ Preisänderung")
-        // Plakette nicht direkt unter der Fensterleiste antippen
         app.swipeDown(velocity: .slow)
         usleep(500_000)
-        // Tipp kann während des Nachscrollens verloren gehen: dann ein zweiter Versuch
-        tapOpen(button("form.priceOpen"), "+ Preisänderung", expect: button("Gültig ab wählen"))
-        revealNear(button("Gültig ab wählen"), "Datum der Preisänderung")
-        tap(button("Gültig ab wählen"), "Datum der Preisänderung")
+        tapOpen(button("form.priceOpen"), "+ Preisänderung", expect: textField("form.priceAmount"))
         enter(textField("form.priceAmount"), "50", "Neuer Betrag")
+        closeKeyboardSure()
+        // abgelehnt (Meldung als Toast, Feld wird wie im Web wieder fokussiert): neue Zeile bleibt offen, keine Stufe
+        usleep(1_000_000)
+        XCTAssertTrue(textField("form.priceAmount").exists, "Neue Zeile bleibt offen")
+        XCTAssertFalse(textField("form.priceAmt.0").exists, "Keine Stufe vor dem Vertragsbeginn")
+    }
+
+    /// Sonderzahlung erfassen und per Wischen löschen (Web v318: kein × mehr)
+    func testSonderzahlungWischen() {
+        launch("-uiEmpty")
+        openNewForm()
+        enter(textField("form.label"), "Wischtest\n", "Bezeichnung")
+        enter(textField("form.amount"), "20", "Betrag")
         closeKeyboard()
-        tap(button("form.priceAdd"), "Preisänderung hinzufügen")
-        wait(elContaining("Datum muss nach dem Vertragsbeginn liegen"), "Meldung Datum vor Beginn")
+        let open = button("form.extraOpen")
+        reveal(open, "+ Sonderzahlung")
+        tap(open, "+ Sonderzahlung")
+        let pick = button("form.extraDate.pick")
+        reveal(pick, "Datum wählen")
+        tap(pick, "Datum")
+        enter(textField("form.extraAmount"), "99", "Betrag Sonderzahlung")
+        closeKeyboard()
+        let add = button("form.extraAdd")
+        reveal(add, "Sonderzahlung hinzufügen")
+        tap(add, "Sonderzahlung hinzufügen")
+        let money = elContaining("99.00")
+        reveal(money, "Zeile Sonderzahlung")
+        XCTAssertFalse(button("Sonderzahlung entfernen").exists, "Kein × mehr (v318)")
+        ctShot("Formular – Sonderzahlung")
+        swipeDelete(money, dx: 0.5, "Sonderzahlung")
+        waitGone(elContaining("99.00"), "Sonderzahlung nach dem Wischen")
     }
 
     /// Detail als reine Ansicht: Kennzahlen, Zahlungsregel, Dokumente-Knopf (Liste ohne Löschen), Menü •••

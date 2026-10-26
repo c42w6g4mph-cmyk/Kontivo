@@ -195,7 +195,9 @@ private struct CTFormPage: View {
         form.goTo = nil
         var f = f0
         switch f0 {
-        case .prices, .priceAmount: form.priceOpen = true
+        case .prices, .priceAmount:
+            form.openPriceForm(today: model.today)
+            f = .priceAmount
         case .extras, .extraDate, .extraAmount: form.extraOpen = true
         case .address: form.addressShown = true
         case .cancelURL: if form.cancelChannel != .online { f = .web }
@@ -514,24 +516,19 @@ private struct CTFormLogoPanel: View {
 
 // MARK: - Karte «Kosten» (Web #fsCost)
 
-private struct CTFormCostSection: View {
-    @Environment(AppModel.self) private var model
+struct CTFormCostSection: View {
+    @Environment(AppModel.self) var model
     @Bindable var form: CTFormState
     var focus: FocusState<ContractFormField?>.Binding
+    /// Betragsfeld einer Stufe im Zeitstrahl (Schlüssel = «ab»-Datum)
+    @FocusState var rowFocus: Day?
 
     var body: some View {
         let calc = model.calc
         let today = model.today
         CTSection {
-            if let chart = form.priceChart(calc: calc) {
-                CTPriceChart(chart: chart, identifier: "form.priceChart", framed: false)
-                    .listRowInsets(EdgeInsets(top: 6, leading: 14, bottom: 4, trailing: 14))
-            }
-            amountRow
-            priceRows(today: today)
-            if form.priceOpen {
-                priceForm(today: today)
-            }
+            // Web v314: im Formular kein Diagramm mehr (bleibt im Detail), Preisverlauf als Zeitstrahl
+            priceArea(today: today)
             CTMenuRow("Zahlungsrhythmus", value: Format.cycleTextOrMonthly(form.cycle), identifier: "form.cycle") {
                 Picker(selection: Binding(get: { form.cycle }, set: { v in
                     if let t = form.setCycle(v, today: model.today) { model.toast(t) }
@@ -562,167 +559,21 @@ private struct CTFormCostSection: View {
             }
         }
         .listRowBackground(KColor.surface)
+        // Stufe verlassen: Betrag übernehmen (Web v277 `change`)
+        .onChange(of: rowFocus) { old, new in
+            if let o = old, o != new, let m = form.commitPriceRow(o) { model.toast(m) }
+        }
+        // Neue Zeile: Betrag fertig getippt (Feld verlassen) und Datum da → übernehmen (Web v320)
+        .onChange(of: focus.wrappedValue) { old, new in
+            if old == .priceAmount && new != .priceAmount && form.priceOpen && form.priceFrom != nil
+                && !form.priceAmountText.ctTrimmed.isEmpty {
+                addPrice(force: false)
+            }
+        }
     }
 
     private var cycleOptions: [Int] {
         Format.cycleOptions.contains(form.cycle) ? Format.cycleOptions : Format.cycleOptions + [form.cycle]
-    }
-
-    /// Betrag (bzw. Anfangspreis) und Währung in einer Zeile (Web #fAmt + #fCur)
-    private var amountRow: some View {
-        VStack(alignment: .trailing, spacing: 0) {
-            amountLine
-                .frame(minHeight: 48)
-                .ctMiss(form, .amount)
-            // Web v215: «+ Preisänderung» als kleine Plakette rechts unter dem Betrag, erst mit Betrag (oder erfassten Preisen)
-            if !form.priceOpen && (!form.amountText.ctTrimmed.isEmpty || !form.prices.isEmpty) {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) { form.openPriceForm() }
-                } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 10, weight: .bold))
-                        Text("Preisänderung")
-                            .font(.system(size: 13, weight: .semibold))
-                            .ctLine(18.85)
-                    }
-                    .foregroundStyle(KColor.teal)
-                    .padding(.horizontal, 11).padding(.vertical, 5)
-                    .background(Capsule().fill(KColor.teal.opacity(0.13)))
-                    .contentShape(Capsule())
-                }
-                .buttonStyle(.borderless)
-                .padding(.top, -4)
-                .padding(.bottom, 10)
-                .accessibilityLabel("Preisänderung")
-                .accessibilityIdentifier("form.priceOpen")
-            }
-        }
-        .id(ContractFormField.amount)
-    }
-
-    private var amountLine: some View {
-        HStack(spacing: 8) {
-            CTRowLabel(form.prices.isEmpty ? "Betrag" : "Anfangspreis")
-                .layoutPriority(1)
-            TextField("", text: $form.amountText, prompt: Text(ContractFormRules.placeholder).foregroundColor(KColor.ink3))
-                .font(.system(size: 16, weight: .medium))
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .monospacedDigit()
-                .foregroundStyle(KColor.teal)
-                .focused(focus, equals: .amount)
-                .accessibilityLabel(form.prices.isEmpty ? "Betrag" : "Anfangspreis")
-                .accessibilityIdentifier("form.amount")
-            Menu {
-                Picker("Währung", selection: $form.currency) {
-                    ForEach(Currency.allCases, id: \.self) { c in
-                        Text(c.rawValue).tag(c)
-                    }
-                }
-            } label: {
-                CTMenuValue(text: form.currency.rawValue)
-            }
-            .accessibilityLabel("Währung, " + form.currency.rawValue)
-            .accessibilityIdentifier("form.currency")
-        }
-    }
-
-    /// Preisliste (Web #pList .fpr): «ab TT.MM.JJ», Plakette aktuell/geplant, Betrag, Veränderung in %, × entfernt,
-    /// Antippen lädt die Zeile zum Ändern
-    @ViewBuilder
-    private func priceRows(today: Day) -> some View {
-        let ps = form.sortedPrices
-        let nowIdx = ps.lastIndex { $0.from <= today } ?? -1
-        let base = CTNumber.parse(form.amountText) ?? 0
-        ForEach(Array(ps.enumerated()), id: \.offset) { i, p in
-            let prev = i == 0 ? base : ps[i - 1].amount
-            HStack(spacing: 8) {
-                Button {
-                    model.toast(form.editPrice(p))
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("ab " + Format.fmtShort(p.from))
-                            .foregroundStyle(KColor.ink)
-                            .monospacedDigit()
-                            .lineLimit(1)
-                        if i == nowIdx {
-                            CTMiniTag(text: "aktuell")
-                        } else if p.from > today {
-                            CTMiniTag(text: "geplant", tone: KColor.warn)
-                        }
-                        Spacer(minLength: 6)
-                        Text(verbatim: p.amount != 0 ? Format.money(p.amount, form.currency) : "gratis")
-                            .font(.body.monospacedDigit())
-                            .foregroundStyle(KColor.teal)
-                            .lineLimit(1)
-                        if prev != 0 {
-                            let pc = (p.amount - prev) / prev * 100
-                            CTPctPill(text: Format.pctText(pc), tone: pc > 0.05 ? 1 : (pc < -0.05 ? -1 : 0))
-                        }
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("form.priceRow.\(i)")
-                Button {
-                    form.removePrice(p.from)
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(KColor.ink3)
-                        .frame(width: 28, height: 28)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("Preisänderung entfernen")
-            }
-        }
-    }
-
-    /// Unterbereich «Preisänderung» (Web #pForm): Gültig ab, Neuer Betrag, hinzufügen / Abbrechen
-    @ViewBuilder
-    private func priceForm(today: Day) -> some View {
-        CTFormDateRow(title: "Gültig ab", day: form.priceFrom, fallback: today, identifier: "form.priceFrom") { form.priceFrom = $0 }
-            .ctMiss(form, .prices)
-            .id(ContractFormField.prices)
-        HStack(spacing: 12) {
-            CTRowLabel("Neuer Betrag")
-            TextField("", text: $form.priceAmountText, prompt: Text(ContractFormRules.placeholder).foregroundColor(KColor.ink3))
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .monospacedDigit()
-                .foregroundStyle(KColor.teal)
-                .focused(focus, equals: .priceAmount)
-                .accessibilityLabel("Neuer Betrag")
-                .accessibilityIdentifier("form.priceAmount")
-        }
-        .ctMiss(form, .priceAmount)
-        .id(ContractFormField.priceAmount)
-        HStack(spacing: 12) {
-            CTFormOKButton(title: "Preisänderung hinzufügen", identifier: "form.priceAdd") { add(force: false) }
-            Button("Abbrechen") {
-                withAnimation(.easeInOut(duration: 0.2)) { form.cancelPriceForm() }
-            }
-            .buttonStyle(.borderless)
-            .foregroundStyle(KColor.ink2)
-            .accessibilityIdentifier("form.priceCancel")
-        }
-        .padding(.vertical, 2)
-    }
-
-    /// Vormerken; «Preis bleibt gleich» fragt nicht blockierend nach («Trotzdem hinzufügen»)
-    private func add(force: Bool) {
-        switch form.addPrice(force: force) {
-        case .toast(let t, let long, _):
-            model.toast(t, seconds: long ? 4 : 2.4)
-        case .confirmSame(let title, let message):
-            let f = form
-            let m = model
-            model.ask(title: title, message: message, ok: "Trotzdem hinzufügen") {
-                if case .toast(let t, let long, _) = f.addPrice(force: true) { m.toast(t, seconds: long ? 4 : 2.4) }
-            }
-        }
     }
 
     /// «Zahlung am» als Zeile (Web #fDueBtn): «27. im Monat», «27. Jan, Apr, Jul, Okt», «27. Juni»
