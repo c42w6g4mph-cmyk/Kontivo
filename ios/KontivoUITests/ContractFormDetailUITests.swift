@@ -94,6 +94,8 @@ final class ContractFormDetailUITests: KontivoUITestCase {
         let undo = button("form.tplUndo")
         revealUp(undo, "Rückgängig")
         tap(undo, "Rückgängig")
+        // Tipp kann während des Nachscrollens verloren gehen: einmal nachtippen
+        if !elContaining("Vertragsdaten ergänzt").waitForNonExistence(timeout: 3) && undo.exists && undo.isHittable { undo.tap() }
         waitGone(elContaining("Vertragsdaten ergänzt"), "Karte nach Rückgängig")
         reveal(button("cancelWay.letter"), "Kachel Brief nach Rückgängig")
         waitUntil("Kündigungsweg zurückgesetzt") { !self.button("cancelWay.letter").isSelected }
@@ -102,9 +104,18 @@ final class ContractFormDetailUITests: KontivoUITestCase {
 
     /// Tastatur schliessen; ist sie danach noch da (Animation), nochmals – das Verlassen des Felds übernimmt den Betrag
     private func closeKeyboardSure() {
-        for _ in 0..<3 where app.keyboards.count > 0 {
-            closeKeyboard()
-            usleep(400_000)
+        closeKeyboard()
+        var n = 0
+        while app.keyboards.count > 0 && n < 3 {
+            // «Fertig» über der Tastatur direkt antippen, sonst nach unten wischen (scrollDismissesKeyboard)
+            let done = app.buttons.matching(pred("label == %@", "Fertig")).allElementsBoundByIndex.last
+            if let d = done, d.exists {
+                d.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            } else {
+                app.swipeDown(velocity: .slow)
+            }
+            usleep(600_000)
+            n += 1
         }
     }
 
