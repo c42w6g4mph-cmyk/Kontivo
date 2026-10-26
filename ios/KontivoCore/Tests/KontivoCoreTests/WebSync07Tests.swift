@@ -35,7 +35,7 @@ final class WebSync07Tests: XCTestCase {
         XCTAssertFalse(sunrise?.address.isEmpty ?? true)
         XCTAssertNotNil(Catalog.entries.first { !$0.confirmed })
         XCTAssertTrue(Catalog.entries.first { !$0.confirmed }?.hintFull.hasSuffix("vor dem Versand prüfen.") ?? false)
-        XCTAssertTrue(Catalog.find("Rundfunkgebühr")?.isFixed ?? false) // Web v158: «Serafe» → «Rundfunkgebühr»
+        XCTAssertTrue(Catalog.find("Serafe")?.isFixed ?? false) // Web v331 ff.: wieder «Serafe» (Bezeichnung Rundfunkgebühr)
         // Länder-Variante über die Währung
         XCTAssertEqual(Catalog.match(names: ["AXA"], currency: .EUR)?.country, "DE")
         XCTAssertEqual(Catalog.match(names: ["AXA"], currency: .CHF)?.country, "CH")

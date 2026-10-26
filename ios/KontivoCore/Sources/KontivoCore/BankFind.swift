@@ -15,9 +15,22 @@ public enum BankImport {
         BankReader.merge(files)
     }
 
-    /// Schlüssel für «Nie mehr vorschlagen» und gelernte Korrekturen (Web `bankIgnKey`): Gruppenschlüssel ohne Währung.
+    /// Schlüssel für «Nie mehr vorschlagen» und gelernte Korrekturen (Web `bankIgnKey`): Gruppenschlüssel ohne Währung. Unterreihen eines
+    /// Vertragspartners (Policen, zwei Abos, Datei-Trennung: Zusatz %, @, ^, # nach der Währung) bekommen einen inhaltlichen Zusatz –
+    /// Rhythmus und Fälligkeitsmonat bzw. Zahltag –, damit eine Korrektur nicht alle trifft (Web Review B-H6)
     public static func ignoreKey(_ s: BankSuggestion) -> String {
-        s.key.components(separatedBy: "|")[0]
+        let p = s.key.components(separatedBy: "|")
+        var b = p[0]
+        if p.dropFirst().joined(separator: "|").contains(where: { "%@^#".contains($0) }) {
+            let d = s.due.iso, c = Swift.max(1, s.cycle)
+            b += "~c" + String(c) + "-" + (c >= 3 ? BU.slice(d, 5, 7) : jsNum(BU.round(Double(Swift.max(1, s.due.day)) / 7)))
+        }
+        return b
+    }
+
+    /// Schlüssel ohne Unterreihen-/Mitteilungszusatz «~…» (Web: `bankIgnKey(s).split("~")[0]`)
+    static func ignoreKeyStem(_ s: BankSuggestion) -> String {
+        ignoreKey(s).components(separatedBy: "~")[0]
     }
 
     /// Schlüssel ohne «·Bezeichnung» (seit Web v212: alte Einträge «tpl:CSS» gelten weiter)
@@ -55,6 +68,13 @@ public enum BankImport {
         var cur: String
         /// Vorgänger-Stufe (Web v272 `prevC`): letzte Zahlung und Betrag der vorherigen Preisstufe
         var prevC: (d: Day, amount: Double, tx: [BankTx])? = nil
+        /// Rückfallebene (Web `bankFallback`): Jahresreihe nach Kalendermonat, davon halbjährlich; Rechnungen je Jahr mit Betrag
+        /// der neusten Rechnung; Vertragspartner hat schon eine erkannte Reihe
+        var yearly = false
+        var half = false
+        var period = false
+        var periodAmt: Double = 0
+        var hasSeries = false
     }
 
     /// Laufender Vertrag für den Abgleich (vorberechnet).
@@ -64,6 +84,8 @@ public enum BankImport {
         let cur: String
         let cycle: Int
         let price: Double
+        /// erfasster Zahltermin (Web `c.due`)
+        let due: Day?
         let tplName: String?
         let ck: String
         let cl: String
@@ -89,7 +111,17 @@ public enum BankImport {
     static let rxNameCut = BRX(";|\\s·\\s")
     static let rxVia = BRX("(?:einkauf bei|purchase at|payment to|zahlung an|abo bei|bei)\\s+([^,;·/]{3,40})", i: true)
     static let rxViaTail = BRX("\\s+\\d.*$")
-    static let rxATMKeep = BRX("\\b3a\\b|vorsorge|saeule|saule|leasing")
+    static let rxATMKeep = BRX("\\b3a\\b|vorsorge|saeule|saule|leasing|hypothek|amortisation|darlehen|sparplan|bauspar|kredit|zins")
+    static let rxATMHay = BRX("bezug|automat|bancomat|\\batm\\b|\\bgaa\\b|bargeld")
+    static let rxInterest = BRX("\\bzinsen\\b|habenzins|sollzins|kontozins")
+    static let rxInterestKeep = BRX("hypothek|darlehen|kredit|leasing")
+    static let rxNoConKeep = BRX("versicherung|praemie|pramie|zusatz|\\bkvg\\b|\\bvvg\\b|krankenkasse|assekuranz")
+    static let rxFirmME = BRX("\\b(ag|gmbh|sa|sarl|kg|ohg|ug|se|ltd|inc|genossenschaft|verein|stiftung|e v|ev)\\b")
+    static let rxSelfSo = BRX("dauerauftrag|ubertrag|uebertrag|sparen")
+    static let rxTopUp = BRX("^(revolut|wise|transferwise|curve|skrill|neteller)\\b")
+    static let rxBaseStop = BRX("^(stadt|gemeinde|kanton|steuer|verwaltung|stiftung|verein|genossenschaft|schweiz|deutsch)")
+    static let rxBaseTag = BRX("^(tpl|cred):")
+    static let rxBaseCut = BRX("#[^|#]*")
     static let rxRetailKeep = BRX("fitness|mitglied|abo\\b|abonnement")
     static let rxBankATM = BRX("^(sparkasse|volksbank|raiffeisen|commerzbank|deutsche bank|postbank|hypovereinsbank|targobank|santander|ubs|postfinance|zkb|kantonalbank|migros bank|valiant|atm|geldautomat)\\b")
     static let rxCardWords = BRX("\\bkarten?\\b|\\bcard\\b|kartenzahlung|kauf dienstleistung|\\bpos\\b|maestro|\\bvisa\\b|mastercard")
@@ -129,10 +161,12 @@ public enum BankImport {
         let ign = data.settings.bankIgn
         let home = data.settings.homeCurrency.rawValue
         var groups = BOrdered<Group>()
-        for t0 in r.tx {
+        let ME = selfNames(r, data)
+        for (ti, t0) in r.tx.enumerated() {
             if t0.amount >= 0 { continue }
             var t = t0
-            var nm = BankName.txName(t)
+            t.seq = ti
+            var nm = BankName.txName(t, home: home)
             // Kontoführung ohne Empfänger («ENTGELTABSCHLUSS · Entgeltabrechnung siehe Anlage») → Vertragspartner = die Bank
             if !(!t.name.isEmpty && !BankName.isType(t.name)) && BankCatalog.BKFEE.test(Partners.lnorm(t.type + " " + t.text)) {
                 nm = !r.bank.isEmpty ? r.bank : "Bank"
@@ -150,8 +184,29 @@ public enum BankImport {
             // Detailhändler (Migros, Coop …) nur bei Kartenkäufen ausfiltern – Lastschrift/Dauerauftrag/Abo (z.B. «Migros Fitnesspark») bleibt
             if tp == nil && BankCatalog.BKRETAIL.test(ln) && !(t.kind == .dd || t.kind == .so || !t.cred.isEmpty || rxRetailKeep.test(hay)) { continue }
             // Kartenbezug am Automaten einer Bank («Sparkasse Konstanz», «UBS») = Bargeld
-            if (t.kind == .card || (t.kind == .unknown && Swift.abs(t.amount).truncatingRemainder(dividingBy: 10) == 0)) && !rxATMKeep.test(hay) && rxBankATM.test(ln) { continue }
+            if (t.kind == .card || (t.kind == .unknown && Swift.abs(t.amount).truncatingRemainder(dividingBy: 10) == 0) || rxATMHay.test(hay))
+                && !rxATMKeep.test(hay) && rxBankATM.test(ln) { continue }
             if BankCatalog.BKSKIP.test(hay) || BankCatalog.BKSHOP.test(ln) { continue }
+            // Konto-/Habenzinsen sind kein Vertrag, Hypothekar-/Darlehenszinsen schon (Web Review B-M5)
+            if rxInterest.test(hay) && !rxInterestKeep.test(hay) { continue }
+            // Arzt, Spital, Bussen: nur am Namen erkannt und nicht, wenn es um eine Versicherung geht (Spitalzusatz, Web Review B-H3)
+            if BankCatalog.BKNOCON.test(ln) && !rxNoConKeep.test(hay) { continue }
+            // Zahlung an dich selbst oder an eine andere erfasste Person (Dauerauftrag «Sinan Bayat Sparen», Web Review B-H2)
+            if !ME.isEmpty && !rxFirmME.test(ln) {
+                let nt = BankName.tok(nm)
+                let me = ME.contains { w in
+                    // nur Vorname bekannt: Dauerauftrag an «Vorname …»
+                    if w.count == 1, w[0].hasPrefix("^") {
+                        return nt.count >= 2 && nt.count <= 4 && nt[0] == String(w[0].dropFirst()) && (t.kind == .so || rxSelfSo.test(hay))
+                    }
+                    return !w.isEmpty && w.allSatisfy { nt.contains($0) }
+                }
+                if me { continue }
+            }
+            // Aufladung eines E-Geld-Kontos per Karte mit rundem Betrag (Revolut, Wise): Umbuchung, kein Vertrag
+            if t.kind == .card && Swift.abs(t.amount).truncatingRemainder(dividingBy: 5) == 0 && rxTopUp.test(ln) { continue }
+            // Zahlungsdienst (PayPal, Klarna …): alle Händler teilen dieselbe Gläubiger-ID → kein Vertragsmerkmal (Web Review B-H1)
+            if !t.cred.isEmpty && BankCatalog.BKVIA.test(Partners.lnorm(t.name + " " + t.cred)) { t.cred = "" }
             let tk = BankName.tok(nm)
             var key: String
             if let tp = tp {
@@ -174,7 +229,8 @@ public enum BankImport {
             var g = groups[key] ?? Group(key: key, tpl: tp, tx: [], names: BOrdered<Int>(), cur: cur)
             // dieselbe Zahlung in zwei Dateien (Sparkasse- und N26-Export desselben Kontos, Konto + Kreditkarte): beim selben
             // Vertragspartner nur einmal (Web v325)
-            if let fi = t.fi, g.tx.contains(where: { $0.fi != fi && $0.date == t.date && $0.amount == t.amount }) {
+            // nur bei Exporten desselben Kontos (Web Review B-H5)
+            if let fi = t.fi, g.tx.contains(where: { $0.fi != fi && $0.acc == t.acc && $0.date == t.date && $0.amount == t.amount }) {
                 groups[key] = g
                 continue
             }
@@ -183,6 +239,16 @@ public enum BankImport {
             groups[key] = g
         }
         mergeFiles(&groups)
+        // alle Zahlungen je Vertragspartner merken, bevor Betrags-Cluster Ausreisser verwerfen: die Rückfallebene (Jahresreihen) braucht sie
+        // (Police 300.50 / 362.94 / 303.69 – die mittlere fiel sonst als Ausreisser weg)
+        var ALLB = BOrdered<[BankTx]>()
+        for k in groups.orderedKeys {
+            let b = base(k)
+            var L = ALLB[b] ?? []
+            var seen = Set(L.map { $0.seq })
+            for t in groups[k]?.tx ?? [] where seen.insert(t.seq).inserted { L.append(t) }
+            ALLB[b] = L
+        }
         // Nur eine Kartenzahlung und Katalogname aus einem Wort (Spiegel, Salt, Zeit): reicht nicht als Beleg.
         // Katalog nur behalten, wenn die Website im Buchungstext steht («spiegel.de»), sonst als unbekannter Händler behandeln
         for k in groups.orderedKeys {
@@ -222,6 +288,9 @@ public enum BankImport {
                 if fa != fb || BU.len(fa) < 4 || Partners.LGEN.contains(fa) || Partners.LPLACE.contains(fa) || rxMergeStop.test(fa) { continue }
                 let ma = A.tx[A.tx.count - 1].amount, mb = B.tx[B.tx.count - 1].amount
                 if Swift.abs(ma - mb) > Swift.abs(ma) * 0.1 { continue }
+                // zahlen beide im selben Monat (Hans Mueller Garage und Hans Meier Putzhilfe je 150.–), sind es zwei Verträge (Web Review B-M3)
+                let MA = Set(A.tx.map { BU.slice($0.date.iso, 0, 7) })
+                if B.tx.filter({ MA.contains(BU.slice($0.date.iso, 0, 7)) }).count >= 2 { continue }
                 A.tx = BU.sorted(A.tx + B.tx, byDate)
                 for n in B.names.orderedKeys { A.names[n] = (A.names[n] ?? 0) + (B.names[n] ?? 0) }
                 groups[a] = A
@@ -236,6 +305,13 @@ public enum BankImport {
             for t in g.tx where !t.mref.isEmpty { by[t.mref] = (by[t.mref] ?? []) + [t] }
             let ms = by.orderedKeys
             if ms.count < 2 { continue }
+            // Mandate nacheinander (neues Mandat beim selben Anbieter, Web Review B-M4) = ein Vertrag; nur trennen, wenn sie sich überschneiden
+            let rg: [(Day, Day)] = ms.map { m in
+                let L = by[m] ?? []
+                return (L[0].date, L[L.count - 1].date)
+            }
+            let ov = rg.indices.contains { i in rg.indices.contains { j in i != j && rg[i].0 < rg[j].1 && rg[j].0 < rg[i].1 } }
+            if !ov { continue }
             let rest = g.tx.filter { $0.mref.isEmpty }
             groups[k] = nil
             for m in ms {
@@ -374,7 +450,7 @@ public enum BankImport {
             let p = data.partnerName(of: c)
             let cat = data.category(c.categoryID)
             return Cand(c: c, partner: p, cur: c.currency.rawValue, cycle: c.cycleForCalc, price: calc.curPrice(c),
-                        tplName: BankCatalog.tpl(p, "", c.currency.rawValue)?.name, ck: key1(p), cl: key1(c.label),
+                        due: c.due, tplName: BankCatalog.tpl(p, "", c.currency.rawValue)?.name, ck: key1(p), cl: key1(c.label),
                         live: !(c.status == .cancelled || calc.isEnded(c)), catName: cat?.name ?? "", catKind: cat?.kind)
         }
         let alias = data.settings.bankAlias
@@ -390,7 +466,7 @@ public enum BankImport {
         let span = from.days(to: to)
 
         func applyAlias(_ s: inout BankSuggestion) {
-            if let a = alias[ignoreKey(s)] ?? alias[ignoreKeyBase(s)], !a.n.isEmpty {
+            if let a = alias[ignoreKey(s)] ?? alias[ignoreKeyStem(s)] ?? alias[ignoreKeyBase(s)], !a.n.isEmpty {
                 s.alias = a
                 s.name = a.n
             }
@@ -426,17 +502,33 @@ public enum BankImport {
             return BU.sorted(candidates(s, tpl)) { a, b in Swift.abs(a.price - v) - Swift.abs(b.price - v) }.first
         }
 
-        // Web `bankMatch`: gleicher Preis → bereits erfasst, sonst Preisänderung (höchstens 35 %)
-        func match(_ s: BankSuggestion, _ tpl: CatalogEntry?) -> Match? {
-            var best: (c: Cand, dm: Double)? = nil
-            for c in candidates(s, tpl) {
-                let dm = Swift.abs(c.price / Double(c.cycle) - s.amount / Double(s.cycle))
-                if best == nil || dm < best!.dm { best = (c, dm) }
+        // Fälligkeit passt? (Web `bankDueOk`) Bei Quartals-/Halbjahres-/Jahresverträgen mit erfasstem Zahltermin: nächste Zahlung laut
+        // Auszug ±45 Tage zum Termin (im Rhythmus des Vertrags). nil = nicht prüfbar
+        func dueOk(_ s: BankSuggestion, _ c: Cand) -> Bool? {
+            let cy = c.cycle
+            guard cy >= 3, Swift.max(1, s.cycle) == cy, let b = c.due else { return nil }
+            let P = Double(cy) * 30.4375
+            var x = Double(b.days(to: s.due))
+            x = (x.truncatingRemainder(dividingBy: P) + P).truncatingRemainder(dividingBy: P)
+            return Swift.min(x, P - x) <= 45
+        }
+
+        // Web `bankMatch`: gleicher Preis → bereits erfasst, sonst Preisänderung (höchstens 35 %). `excl`: schon belegte Verträge.
+        // Fälligkeit nur als Vorrang, nie als Ausschluss (das Datum kann aus dem Vertragsbeginn geschätzt und falsch sein)
+        func match(_ s: BankSuggestion, _ tpl: CatalogEntry?, excl: Set<UUID> = []) -> Match? {
+            var best: (c: Cand, dm: Double, due: Bool?)? = nil
+            for c in candidates(s, tpl) where !excl.contains(c.c.id) {
+                let ok = dueOk(s, c)
+                let dm = Swift.abs(c.price / Double(c.cycle) - s.amount / Double(s.cycle)) - (ok == true ? 1e6 : 0) + (ok == false ? 1e5 : 0)
+                if best == nil || dm < best!.dm { best = (c, dm, ok) }
             }
             guard let b = best else { return nil }
             let cp = b.c.price, cc = Double(b.c.cycle), same = b.c.cycle == s.cycle
             let diff = same ? Swift.abs(cp - s.amount) : Swift.abs(cp / cc - s.amount / Double(s.cycle)) * cc
             if diff <= Swift.max(0.05, cp * 0.01) || (s.varies && diff <= cp * 0.35) { return .known(b.c.c.id) }
+            // gleicher Vertragspartner und gleicher Fälligkeitsmonat: auch bei grösserer Abweichung derselbe Vertrag (Prämie neu);
+            // keine Preisänderung vorschlagen – der erfasste Betrag ist meist der neuere
+            if b.due == true && diff <= cp * 0.6 { return .known(b.c.c.id) }
             // nur als Preisänderung melden, wenn der neue Betrag nach dem letzten erfassten Preis beginnt
             let fromD = (s.change != nil && same) ? s.change!.from : s.last
             // grosser Sprung (> 35 %) ist eher ein zweiter Vertrag beim gleichen Vertragspartner als eine Preisänderung
@@ -460,17 +552,28 @@ public enum BankImport {
             return best?.c
         }
 
-        // Gleicher Betrag und Rhythmus, anderer Name (Web `bankSameAmount`)
-        func sameAmount(_ s: BankSuggestion) -> Cand? {
+        // Gleicher Betrag und Rhythmus, anderer Name (Web `bankSameAmount`); nur gleicher Rhythmus: Wingo 27.95 monatlich ist nicht
+        // «gleicher Betrag» wie Serafe 335.– jährlich
+        func sameAmount(_ s: BankSuggestion, _ used: Set<UUID>) -> Cand? {
             var best: (c: Cand, d: Double)? = nil
-            for c in cands where c.live && c.cur == s.currency {
-                let cp = c.price, cy = Double(c.cycle)
-                var d = c.cycle == s.cycle ? Swift.abs(cp - s.amount) : Swift.abs(cp / cy - s.amount / Double(s.cycle)) * cy
+            for c in cands where c.live && c.cur == s.currency && c.cycle == s.cycle {
+                let cp = c.price
+                var d = Swift.abs(cp - s.amount)
                 if d > Swift.max(0.05, cp * 0.01) { continue }
                 d += used.contains(c.c.id) ? 1000 : 0
                 if best == nil || d < best!.d { best = (c, d) }
             }
             return best?.c
+        }
+
+        // gleicher Betrag + gemeinsames markantes Wort («Gemeinde Kreuzlingen» / «Stadtverwaltung Kreuzlingen», «Rechtschutz» /
+        // «Rechtsschutz»): derselbe Vertrag (Web `bankSameWord`)
+        func sameWord(_ s: BankSuggestion, _ sa: Cand) -> Bool {
+            func tw(_ x: String) -> [String] { BankName.tok(x).filter { $0.count >= 4 && !rxSameGen.test($0) } }
+            let A1 = tw(s.name + " " + s.raw + " " + s.memo + " " + label(s)), B1 = tw(sa.partner + " " + sa.c.label)
+            let catOk = s.category.isEmpty || sa.catName.isEmpty || s.category == "Sonstiges" || sa.catName == "Sonstiges"
+                || catKind(s.category) == sa.catKind
+            return catOk && A1.contains(where: { w in B1.contains { wordSim(w, $0) } })
         }
 
         // gekündigter Vertrag, der nach seinem Ende («Läuft bis») noch abgebucht wurde → Hinweis, nicht als neuer Vertrag (Web `cancelledHit`)
@@ -504,6 +607,22 @@ public enum BankImport {
         // Erst alle Gruppen bewerten, dann zuordnen: exakte Treffer zuerst – zwei ähnliche Verträge beim selben Anbieter
         // (Swisscom 29.90 + 32.90) dürfen nicht beide demselben erfassten Vertrag zugeordnet werden
         var EV: [(k: String, s: BankSuggestion?, m: Match?, q: Int)] = []
+        func push(_ k: String, _ g: Group, _ s0: BankSuggestion, multi: Bool) {
+            var s2 = s0
+            applyAlias(&s2)
+            s2.statementFrom = from
+            s2.category = BankCatalog.category(catalog: g.tpl, name: s2.name, text: s2.text, memo: s2.memo, data: data)
+            if let a = s2.alias, !a.c.isEmpty, data.categories.contains(where: { $0.name == a.c }) { s2.category = a.c }
+            let m2 = match(s2, g.tpl)
+            let q2: Int
+            switch m2 {
+            case nil: q2 = 5
+            case .known?: q2 = multi ? 0 : (s2.varies ? 1 : 0)
+            case .price?: q2 = 2
+            }
+            EV.append((k, s2, m2, q2))
+        }
+        var FAIL = BOrdered<[String]>(), OKB = BOrdered<[String]>()
         for k in groups.orderedKeys {
             guard var g = groups[k] else { continue }
             if cancelledHit(g) { continue }
@@ -516,45 +635,46 @@ public enum BankImport {
                     groups[k] = core
                 }
             }
-            // Versicherer mit mehreren Policen ohne Bezeichnung: jede Prämie der letzten 12 Monate einzeln als «gehört das dazu?» (Web v330)
-            if s == nil {
-                let subs = policies(k, g, fallbackEnd: to, span: span, today: today)
-                if !subs.isEmpty {
-                    for x in subs {
-                        groups[x.k] = x.g
-                        var s2 = x.s
-                        applyAlias(&s2)
-                        s2.statementFrom = from
-                        s2.category = BankCatalog.category(catalog: x.g.tpl, name: s2.name, text: s2.text, data: data)
-                        if let a = s2.alias, !a.c.isEmpty, data.categories.contains(where: { $0.name == a.c }) { s2.category = a.c }
-                        let m2 = match(s2, x.g.tpl)
-                        let q2: Int
-                        switch m2 {
-                        case nil: q2 = 5
-                        case .known?: q2 = 0
-                        case .price?: q2 = 2
-                        }
-                        EV.append((x.k, s2, m2, q2))
-                    }
-                    continue
-                }
-            }
-            guard var sv = s else {
-                EV.append((k, nil, nil, 9))
+            // keine Reihe gefunden: erst nach der Schleife gemeinsam mit den Schwestergruppen (gleicher Vertragspartner, andere
+            // Datei/Betragsstufe) als Jahresreihen bzw. Einzelprämien prüfen (Web `bankFallback`)
+            guard let sv = s else {
+                FAIL[base(k)] = (FAIL[base(k)] ?? []) + [k]
                 continue
             }
-            applyAlias(&sv)
-            sv.statementFrom = from
-            sv.category = BankCatalog.category(catalog: g.tpl, name: sv.name, text: sv.text, data: data)
-            if let a = sv.alias, !a.c.isEmpty, data.categories.contains(where: { $0.name == a.c }) { sv.category = a.c }
-            let m = match(sv, g.tpl)
-            let q: Int
-            switch m {
-            case nil: q = 5
-            case .known?: q = sv.varies ? 1 : 0
-            case .price?: q = 2
+            OKB[base(k)] = (OKB[base(k)] ?? []) + [k]
+            push(k, g, sv, multi: false)
+        }
+        for b0 in FAIL.orderedKeys {
+            let ks = FAIL[b0] ?? []
+            var OT = Set<Int>()
+            for k in OKB[b0] ?? [] { for t in groups[k]?.tx ?? [] { OT.insert(t.seq) } }
+            var T: [BankTx] = []
+            var inT = Set<Int>()
+            for k in ks { for t in groups[k]?.tx ?? [] where inT.insert(t.seq).inserted { T.append(t) } }
+            for t in ALLB[b0] ?? [] where !inT.contains(t.seq) && !OT.contains(t.seq) {
+                inT.insert(t.seq)
+                T.append(t)
             }
-            EV.append((k, sv, m, q))
+            T = BU.sorted(T, byDate)
+            guard let g0 = groups[ks[0]] else { continue }
+            var names = BOrdered<Int>()
+            for k in ks { if let g = groups[k] { for n in g.names.orderedKeys { names[n] = (names[n] ?? 0) + (g.names[n] ?? 0) } } }
+            var mg = Group(key: ks[0], tpl: g0.tpl, tx: T, names: names, cur: g0.cur)
+            mg.hasSeries = OKB[b0] != nil
+            let subs = fallback(ks[0], mg, fallbackEnd: to, span: span, today: today)
+            if subs.isEmpty {
+                for k in ks { EV.append((k, nil, nil, 9)) }
+                continue
+            }
+            for x in subs {
+                groups[x.k] = x.g
+                push(x.k, x.g, x.s, multi: true)
+            }
+        }
+        // exakter Betrag + gleiches Wort zuerst (Protekta «Rechtschutz» 341.10 = erfasster «Rechtsschutz» 341.10), danach die unscharfen
+        for i in EV.indices {
+            guard let sv = EV[i].s, EV[i].m == nil, let sa = sameAmount(sv, []), sameWord(sv, sa) else { continue }
+            EV[i].q = -1
         }
         EV = BU.sorted(EV) { a, b in Double(a.q - b.q) }
         for ev in EV {
@@ -574,8 +694,9 @@ public enum BankImport {
                 continue
             }
             var m = ev.m
-            // Vertrag schon von einer anderen Reihe belegt → eigener Vorschlag
-            if let mm = m, used.contains(mm.id) { m = nil }
+            // Vertrag schon von einer anderen Reihe belegt → nächstbesten freien Vertrag desselben Vertragspartners prüfen (zwei Handyabos),
+            // sonst eigener Vorschlag
+            if let mm = m, used.contains(mm.id) { m = match(s, g.tpl, excl: used) }
             if case .known(let id)? = m {
                 used.insert(id)
                 known.append(BankKnown(contractID: id, suggestion: s, loose: false))
@@ -591,23 +712,35 @@ public enum BankImport {
                         continue
                     }
                     s.archived = ar.c.id
-                } else if let sa = sameAmount(s) {
+                } else if let sa = sameAmount(s, used) {
                     used.insert(sa.c.id)
-                    // gleicher Betrag + gemeinsames markantes Wort («Gemeinde Kreuzlingen» / «Stadtverwaltung Kreuzlingen»): schon erfasst
-                    func tw(_ x: String) -> [String] { BankName.tok(x).filter { $0.count >= 4 && !rxSameGen.test($0) } }
-                    let A1 = tw(s.name + " " + s.raw + " " + s.memo + " " + label(s)), B1 = tw(sa.partner + " " + sa.c.label)
-                    let catOk = s.category.isEmpty || sa.catName.isEmpty || s.category == "Sonstiges" || sa.catName == "Sonstiges"
-                        || catKind(s.category) == sa.catKind
-                    if catOk && A1.contains(where: { w in B1.contains { wordSim(w, $0) } }) {
+                    // gleicher Betrag + gemeinsames markantes Wort: schon erfasst, ohne Rückfrage
+                    if sameWord(s, sa) {
                         known.append(BankKnown(contractID: sa.c.id, suggestion: s, loose: false))
                         continue
                     }
                     s.sameAs = sa.c.id
                 }
             }
-            // «·Bezeichnung» seit v212: alte Einträge «tpl:CSS» gelten weiter
-            if ign.contains(ignoreKey(s)) || ign.contains(ignoreKeyBase(s)) { s.ignored = true }
+            // «·Bezeichnung» seit v212: alte Einträge «tpl:CSS» gelten weiter; «~…» (Unterreihe, Mitteilung) ebenso
+            if ign.contains(ignoreKey(s)) || ign.contains(ignoreKeyStem(s)) || ign.contains(ignoreKeyBase(s)) { s.ignored = true }
             out.append((s, m))
+        }
+        // Teilzahlung: einzelne Zahlung + letzte Zahlung eines schon zugeordneten Vertrags beim selben Vertragspartner = dessen
+        // Jahresbetrag (±3 %) → zweite Rate desselben Vertrags (Vollkasko halbjährlich 383.20 + 372.70 ≈ 746.70 jährlich), kein neuer Vorschlag
+        let candByID = Dictionary(cands.map { ($0.c.id, $0) }, uniquingKeysWith: { a, _ in a })
+        out = out.filter { o in
+            let s = o.s
+            if s.count != 1 || o.match != nil || s.sameAs != nil || s.archived != nil { return true }
+            let ids = Set(candidates(s, s.catalog).map { $0.c.id })
+            let hit = known.first { k in
+                guard !k.archived, ids.contains(k.contractID), let la = k.suggestion.amounts.last, let c = candByID[k.contractID] else { return false }
+                let yr = c.price * 12 / Double(c.cycle)
+                return c.cycle >= 6 && Swift.abs(s.amount + la - yr) <= yr * 0.03 && Swift.abs(k.suggestion.last.days(to: s.last)) <= 250
+            }
+            guard let h = hit else { return true }
+            known.append(BankKnown(contractID: h.contractID, suggestion: s, loose: false, part: true))
+            return false
         }
         out = BU.sorted(out) { a, b in
             let ma = a.match == nil ? 1 : 0, mb = b.match == nil ? 1 : 0
@@ -736,322 +869,6 @@ public enum BankImport {
                               cycle: 1, due: lt.date, first: ft.date, last: lt.date, count: tx.count, dates: tx.map { $0.date }, amounts: am,
                               confidence: .low, varies: false, change: nil, catalog: g.tpl, category: "", kind: .unknown,
                               cred: lt.cred, mref: lt.mref, alias: nil, ignored: false)
-    }
-
-    static let BKONCE = BRX("versicherung|jahresmitgliedschaft|amazon prime|amzn prime|bahncard|\\bpraemie|\\bpramie|\\bpolice|kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|hundesteuer|grundsteuer|rundfunk|serafe|mitgliedsbeitrag|mitgliederbeitrag|jahresbeitrag|vereinsbeitrag|jahresabo|jahresgebuehr|jahresgebuhr|abonnement|\\bvignette|haftpflicht|hausrat|rechtsschutz|kaution|caution")
-    static let BKONCENO = BRX("erstattung|ruckzahlung|rueckzahlung|storno|gutschrift|schaden|selbstbehalt|franchise|arzt|apotheke|rechnung nr .* behandlung")
-    static let rxOnceYearWord = BRX("jahresrechnung|jahresgebuhr|jahresgebuehr|jahresabo|jahresmitglied|\\byearly\\b|\\bannual\\b|12 monate|\\be v\\b|\\bev\\b")
-    static let rxOnceContractWord = BRX("beitrag|abo|rechnung|yearly|annual|plus|premium|mitglied|domain|hosting")
-    static let rxYearly = BRX("jahres|jaehrlich|jahrlich|bahncard|12 monate|annual|yearly")
-    static let rxLsv = BRX("lastschriftverfahren|\\blsv\\b")
-    static let rxFxWords = BRX("\\busd\\b|\\bgbp\\b|\\bchf\\b|fremdw|kurs|wechselkurs|auslandseinsatz|devisen")
-    static let rxEnergyName = BRX("energie|strom|\\bgas\\b|wasser|stadtwerk|elektrizit|\\bekz\\b|\\bewz\\b|\\bewb\\b|\\biwb\\b")
-
-    /// Gruppe bewerten: Rhythmus, Betrag, Preisänderung, Sicherheit, nächste Zahlung (Web `bankEval`).
-    static func eval(_ k: String, _ g: Group, fallbackEnd: Day, span: Int, today: Day) -> BankSuggestion? {
-        // Stichtag = Ende der Datei, aus der die Buchungen stammen (mehrere Dateien, Web v325)
-        let ref = gEnd(g.tx, fallbackEnd)
-        var kc = BOrdered<Int>()
-        for t in g.tx where t.kind != .unknown { kc[t.kind.rawValue] = (kc[t.kind.rawValue] ?? 0) + 1 }
-        let kind = BU.sorted(kc.orderedKeys) { a, b in Double((kc[b] ?? 0) - (kc[a] ?? 0)) }.first ?? ""
-        var tx: [BankTx] = []
-        var seen = Set<String>()
-        for t in g.tx {
-            let id = t.date.iso + "|" + String(t.amount)
-            if seen.contains(id) { continue }
-            seen.insert(id)
-            tx.append(t)
-        }
-        // Pause über 13 Monate (SWICA 2023–24 per LSV, dann 2 Jahre nichts, jetzt wieder): nur die laufende Phase zählt
-        var gi = tx.count - 1
-        while gi > 0 {
-            if tx[gi - 1].date.days(to: tx[gi].date) > 400 {
-                let pre = Array(tx[0..<gi])
-                tx = Array(tx[gi...])
-                // nur eine Zahlung nach der Pause: zählt nur, wenn es davor einen regelmässigen Vertrag gab (SWICA), nicht bei sporadischen Zahlungen
-                if tx.count == 1 {
-                    var pi: [Int] = []
-                    for pj in 1..<Swift.max(pre.count, 1) { pi.append(cycle(pre[pj - 1].date.days(to: pre[pj].date))) }
-                    if pre.count < 3 || Double(pi.filter { $0 != 0 }.count) < Double(pi.count) * 0.7 { return nil }
-                }
-                break
-            }
-            gi -= 1
-        }
-        let name = groupName(g)
-        var am = tx.map { BU.r2(-$0.amount) }
-        var last = am[am.count - 1]
-        var n = tx.count
-        // einmalige Zusatzzahlung mitten im Verlauf (Jahresabrechnung, Servicepauschale) nicht als Preis werten:
-        // genau ein Betrag kommt nur einmal vor und liegt nicht am Rand → herausnehmen (Web v223); nicht beim Anlauf (Teilbeträge, dann voll)
-        let rampUp = n >= 3 && Swift.abs(am[n - 1] - am[n - 2]) < 0.005 && am.allSatisfy { $0 <= am[n - 1] + 0.005 }
-        if n >= 5 && !rampUp {
-            var cA: [String: Int] = [:]
-            for v in am { cA[String(format: "%.2f", v), default: 0] += 1 }
-            let lone = am.indices.filter { cA[String(format: "%.2f", am[$0])] == 1 && $0 > 0 && $0 < n - 1 }
-            if lone.count == 1 && cA.count <= 3 {
-                let li = lone[0]
-                tx.remove(at: li)
-                am.remove(at: li)
-                n = tx.count
-                last = am[n - 1]
-            }
-        }
-        var iv: [Int] = []
-        for i in 1..<Swift.max(n, 1) { iv.append(tx[i - 1].date.days(to: tx[i].date)) }
-        var cyc = 0
-        var conf = BankConfidence.low
-        var varies = false
-        var ch: BankPriceChange? = nil
-        var prevTx: [BankTx] = []
-        if n >= 2 {
-            let cs = iv.map { cycle($0) }
-            var cnt: [Int: Int] = [:]
-            for c in cs where c != 0 { cnt[c, default: 0] += 1 }
-            // kleinster Rhythmus, bei dem ≥ 70 % der Abstände passen; eine fehlende Zahlung (doppelter Abstand) zählt mit
-            let dbl: [Int: Int] = [1: 2, 2: 4, 3: 6, 6: 12]
-            for c0 in cnt.keys.sorted() {
-                let h = cs.filter { $0 == c0 || $0 == dbl[c0] }.count
-                if Double(h) >= Double(iv.count) * 0.7 && Double(cnt[c0] ?? 0) >= Swift.max(1, Double(iv.count) * 0.3) {
-                    cyc = c0
-                    break
-                }
-            }
-            if cyc == 0 { return nil }
-            // Beträge: höchstens zwei Stufen (Preisänderung) oder ±5 % um den Median, sonst variabel (Einkäufe)
-            var lv: [Double] = []
-            for v in am where lv.isEmpty || Swift.abs(lv[lv.count - 1] - v) > 0.004 { lv.append(v) }
-            let dist = Set(am).count
-            // ohne Katalog/Gläubiger-ID braucht der Name ein markantes Wort (nicht «M», «SB 12»)
-            if g.tpl == nil && tx[0].cred.isEmpty && !Partners.lusable(name) { return nil }
-            func nlv(_ v: Double) -> Int { am.filter { Swift.abs($0 - v) <= 0.004 }.count }
-            if dist <= 2 && lv.count <= 2 {
-                if lv.count == 2 {
-                    // Preisänderung nur, wenn der alte Preis mindestens zweimal vorkommt und sich höchstens um 35 % ändert
-                    if nlv(lv[0]) < 2 || Swift.abs(lv[1] - lv[0]) > lv[0] * 0.35 {
-                        if nlv(lv[0]) == 1 && nlv(lv[1]) >= 3 && am[0] == lv[0] && Swift.abs(lv[1] - lv[0]) <= lv[0] * 0.35 {
-                            // alter Preis nur einmal ganz am Anfang des Auszugs: Vertrag mit dem neuen Preis vorschlagen
-                            tx = Array(tx.dropFirst())
-                            am = Array(am.dropFirst())
-                            n = tx.count
-                            last = lv[1]
-                        } else if nlv(lv[0]) >= 2 && nlv(lv[1]) >= 2, let i1 = am.firstIndex(of: lv[1]), let l0 = am.lastIndex(of: lv[0]), i1 > l0,
-                                  Swift.abs(lv[1] - lv[0]) <= lv[0] * 1.5 {
-                            // grosse Preisstufe, beide Preise mehrfach und nacheinander (Web v272)
-                            ch = BankPriceChange(from: tx[i1].date, prev: lv[0], amount: lv[1])
-                        } else if n < 3 || Swift.abs(lv[1] - lv[0]) > lv[0] * (kind == "card" ? 0.05 : 0.10) {
-                            return nil
-                        }
-                    } else if let j = am.firstIndex(of: lv[1]) {
-                        ch = BankPriceChange(from: tx[j].date, prev: lv[0], amount: lv[1])
-                    }
-                }
-            } else {
-                if n < 3 { return nil }
-                // schwankende Beträge nur bei Rechnungen/Lastschriften (Strom, Handy); Kartenabos haben einen festen Preis.
-                // Ausnahme: Kartenabo in Fremdwährung – Betrag schwankt nur durch den Kurs: monatlich, eng (±5 %), mind. 3×
-                var fx = false
-                if kind == "card" && n >= 3 && cyc == 1 {
-                    let s0 = am.sorted(), m0 = s0[s0.count / 2]
-                    fx = am.allSatisfy { Swift.abs($0 - m0) <= m0 * 0.05 }
-                        && rxFxWords.test(Partners.lnorm(tx.map { $0.text + " " + $0.type }.joined(separator: " ")))
-                }
-                if kind == "card" && g.tpl == nil && !fx { return nil }
-                // Schwankung nur über die letzten 13 Monate prüfen (lange Auszüge driften); Strom/Energie schwankt mit dem Verbrauch: ±20 %
-                var amR = tx.indices.filter { tx[$0].date.days(to: ref) <= 400 }.map { am[$0] }
-                if amR.count < 3 { amR = am }
-                let sR = amR.sorted(), mR = sR[sR.count / 2]
-                let tol = (g.tpl?.category == "Energie & Wasser") || rxEnergyName.test(Partners.lnorm(name)) ? 0.20 : 0.10
-                // Anlauf: anteilige erste Rechnungen, dann zweimal der volle Betrag → ok mit vollem Betrag
-                let ramp = n >= 3 && Swift.abs(am[n - 2] - am[n - 1]) < 0.005 && am.allSatisfy { $0 <= am[n - 1] + 0.005 }
-                if !ramp && Double(amR.filter({ Swift.abs($0 - mR) <= mR * tol }).count) < Double(amR.count) * 0.7 { return nil }
-                // aktueller Betrag: Median der letzten 3 Rechnungen (Abo-Wechsel), nicht des ganzen Auszugs
-                varies = true
-                let l3 = Array(am.suffix(3)).sorted()
-                last = l3[l3.count / 2]
-            }
-            if ch == nil, let p = g.prevC, cyc == 1, Swift.abs(p.amount - last) > 0.004 {
-                ch = BankPriceChange(from: tx[0].date, prev: p.amount, amount: last)
-                prevTx = p.tx
-            }
-            // beendet? letzte Zahlung deutlich länger her als der Rhythmus
-            if Double(tx[n - 1].date.days(to: ref)) > Double(cyc) * 30.5 * 1.5 + 7 { return nil }
-            // erst ab 3 Zahlungen sicher; Quartal/Jahr ab 2. Lastschrift/Dauerauftrag monatlich mit 2 Zahlungen «mittel»
-            if n >= 3 || cyc >= 3 {
-                conf = varies ? .medium : .high
-            } else {
-                conf = (kind == "dd" || kind == "so") ? .medium : .low
-            }
-            // Jährlich gleicher runder Betrag ohne Mitteilung, Gläubiger-ID oder Katalog (Bussen 100.– an die Stadtverwaltung): nur nachfragen (Web v329)
-            if cyc == 12 && g.tpl == nil && kind != "dd" && kind != "so" && !tx.contains(where: { !$0.cred.isEmpty || !$0.memo.isEmpty })
-                && am.allSatisfy({ Swift.abs($0 - am[0]) < 0.005 && $0.truncatingRemainder(dividingBy: 50) == 0 }) {
-                conf = .low
-            }
-        } else {
-            // Einzelzahlung nur bei bekanntem Anbieter, SEPA-Lastschrift mit Gläubiger-ID oder eindeutigem Vertragswort im Text
-            // (Versicherung, Prämie, Kfz-Steuer, Mitgliedsbeitrag …) bzw. Jahreswort + Vertragswort (IONOS «Domain Jahresrechnung»)
-            let t0 = tx[0]
-            let h0 = Partners.lnorm(name + " " + t0.text)
-            let ow = (BKONCE.test(h0) || (rxOnceYearWord.test(h0) && rxOnceContractWord.test(h0))) && !BKONCENO.test(h0) && Partners.lusable(name)
-            if g.tpl == nil && !ow && ((t0.cred.isEmpty && kind != "dd") || BankCatalog.BKVIA.test(Partners.lnorm(name))) { return nil }
-            // Schadenzahlung, Selbstbehalt, Arztrechnung: auch beim bekannten Versicherer keine Prämie
-            if BKONCENO.test(h0) { return nil }
-            // Zeitraum im Zahlungsgrund setzt den Rhythmus («Rundfunk 07.2026 - 09.2026», «Jahresgebühr»)
-            let per = BankCatalog.period(t0.text)
-            var yr = rxYearly.test(h0)
-            if Swift.abs(t0.amount) < 5 { return nil }
-            // Vertragswort: eher Jahreszahlung, auch am Ende eines kurzen Auszugs; kleine Lastschrift (< 150) bleibt bei der Monatsvermutung
-            if per == 0 && !yr && BKONCE.test(h0) && !(kind == "dd" && Swift.abs(t0.amount) < 150) { yr = true }
-            // kurzer Auszug und Zahlung ganz am Ende: eher monatlich; bei langem Auszug (> 10 Monate) wäre eine Monatszahlung mehrfach drin
-            let dRef = t0.date.days(to: ref)
-            cyc = per != 0 ? per : (yr ? 12 : ((dRef < 40 && span > 40 && (span <= 300 || rxLsv.test(Partners.lnorm(t0.text + " " + t0.type)))) ? 1 : 12))
-            // internationale Monatsabos (Netflix…) mit nur einer Zahlung: eher Einkauf
-            if per == 0 && !yr, let t = g.tpl, t.country.isEmpty, cyc == 12, dRef > 45 { return nil }
-            // langer Auszug: eine Jahreszahlung, die über 13 Monate zurückliegt, hätte sich wiederholt → kein laufender Vertrag
-            if Double(dRef) > Double(cyc) * 30.5 + 30 { return nil }
-            conf = .low
-        }
-        let due = nextDue(tx.map { $0.date }, cycle: cyc, today: today)
-        let lt = tx[n - 1]
-        var s = BankSuggestion(id: k, key: k, name: name, raw: !lt.name.isEmpty ? lt.name : BankName.from(lt.text), text: lt.text, currency: g.cur,
-                               amount: BU.r2(last), cycle: cyc, due: due, first: tx[0].date, last: lt.date, count: n, dates: tx.map { $0.date },
-                               amounts: am, confidence: conf, varies: varies, change: ch, catalog: g.tpl, category: "",
-                               kind: BankKind(web: kind), cred: lt.cred, mref: lt.mref, alias: nil, ignored: false)
-        s.memo = lt.memo
-        // Vorpreis-Stufe (Steuerraten 760 bis Juni, ab Juli 340): deren Zahlungen gehören zum selben Vertrag → in Zahlungsliste
-        // und Preisverlauf (Web v326)
-        let pt = prevTx.filter { $0.date < tx[0].date }
-        if !pt.isEmpty {
-            s.dates = pt.map { $0.date } + s.dates
-            s.amounts = pt.map { BU.r2(-$0.amount) } + s.amounts
-            s.count = s.dates.count
-            s.first = s.dates[0]
-        }
-        return s
-    }
-
-    // MARK: Preisverlauf aus den Zahlungen (Web v272)
-
-    /// Preisverlauf: Anfangspreis `base`, Preise ab Datum `prices` (inkl. gratis ausgelassener Monate), Preisänderungen `changes`,
-    /// gratis Monate `free`, aktueller Preis `current`.
-    public struct PriceHistory: Equatable, Sendable {
-        public var base: Double
-        public var prices: [PriceChange]
-        public var changes: [PriceChange]
-        public var free: [Day]
-        public var current: Double
-        /// Stufenwerte (Web `levels[].a`): Zahlungen nahe an keiner Stufe gelten in der Zahlungsliste als «einmalig»
-        public var levels: [Double] = []
-    }
-
-    /// Kosten (Web `bankPriceHist`): Stufen = mind. 2 aufeinanderfolgende gleiche Beträge (±0,5 %); einzelne Ausreisser zählen nicht.
-    /// Nil bei schwankenden Beträgen (höchstens 6 Stufen, Stufen decken ≥ 75 % der Zahlungen). Ausgelassene Monate bei Monatsverträgen
-    /// (Lücke > 49 Tage, keine Nachzahlung innert 15 Tagen) = gratis: Preis 0 ab dem fälligen Tag, ab der nächsten Zahlung wieder die Stufe.
-    public static func priceHistory(dates D: [Day], amounts A: [Double], cycle: Int) -> PriceHistory? {
-        let n = Swift.min(D.count, A.count)
-        if n < 3 { return nil }
-        let tol = 0.005
-        func eq(_ x: Double, _ y: Double) -> Bool { Swift.abs(x - y) <= Swift.max(0.01, Swift.abs(y) * tol) }
-        var runs: [(a: Double, from: Day, n: Int)] = []
-        for i in 0..<n {
-            if let r = runs.last, eq(A[i], r.a) {
-                runs[runs.count - 1].n += 1
-            } else {
-                runs.append((A[i], D[i], 1))
-            }
-        }
-        var lv: [(a: Double, last: Double, from: Day, n: Int)] = []
-        var cov = 0
-        for r in runs where r.n >= 2 {
-            cov += r.n
-            if let l = lv.last, eq(r.a, l.a) {
-                lv[lv.count - 1].n += r.n
-                lv[lv.count - 1].last = r.a
-                continue
-            }
-            lv.append((r.a, r.a, r.from, r.n))
-        }
-        if lv.isEmpty || lv.count > 6 || Double(cov) < Double(n) * 0.75 { return nil }
-        let chg = lv.dropFirst().map { PriceChange(from: $0.from, amount: BU.r2($0.a)) }
-        var free: [Day] = []
-        var ev = chg
-        func at(_ d: Day) -> Double {
-            var a = lv[0].a
-            for l in lv where l.from <= d { a = l.a }
-            return BU.r2(a)
-        }
-        if cycle == 1 {
-            for j in 1..<n {
-                let g = D[j - 1].days(to: D[j])
-                if g <= 49 { continue }
-                if j + 1 < n && D[j].days(to: D[j + 1]) < 15 { continue }
-                let miss = Int(BU.round(Double(g) / 30.44)) - 1
-                let f0 = D[j - 1]
-                if miss < 1 || miss > 3 { continue }
-                for k in 1...miss { free.append(f0.addingMonths(k)) }
-                ev.append(PriceChange(from: f0.addingMonths(1), amount: 0))
-                ev.append(PriceChange(from: D[j], amount: at(D[j])))
-            }
-        }
-        ev = BU.sorted(ev) { x, y in x.from < y.from ? -1 : (y.from < x.from ? 1 : 0) }
-        var pr: [PriceChange] = []
-        var last = BU.r2(lv[0].a)
-        for e in ev {
-            if Swift.abs(e.amount - last) < 0.005 { continue }
-            if let p = pr.last, p.from == e.from { pr.removeLast() }
-            pr.append(e)
-            last = e.amount
-        }
-        return PriceHistory(base: BU.r2(lv[0].a), prices: pr, changes: Array(chg), free: free, current: BU.r2(lv[lv.count - 1].a),
-                            levels: lv.map { $0.a })
-    }
-
-    /// Einnahmen (Web `bankIncHist`): Ausreisser (> 15 % vom Stufenwert: 13. Lohn, Bonus, Spesen) zählen nicht; neue Stufe erst, wenn
-    /// zwei Zahlungen hintereinander > 2 % vom Median der aktuellen Stufe abweichen und unter sich ähnlich sind. Stufenwert = Median.
-    public static func incomeHistory(dates D: [Day], amounts A: [Double]) -> PriceHistory? {
-        let n = Swift.min(D.count, A.count)
-        if n < 3 { return nil }
-        func med(_ L: [Double]) -> Double {
-            let a = L.sorted()
-            return a[a.count / 2]
-        }
-        var lv: [(from: Day, v: [Double])] = []
-        var hasCur = false
-        for i in 0..<n {
-            let a = A[i]
-            if !hasCur {
-                if i + 1 < n && Swift.abs(A[i + 1] - a) <= a * 0.02 {
-                    lv.append((D[i], [a]))
-                    hasCur = true
-                }
-                continue
-            }
-            let m = med(lv[lv.count - 1].v), dv = Swift.abs(a - m) / m
-            if dv <= 0.02 {
-                lv[lv.count - 1].v.append(a)
-                continue
-            }
-            if dv > 0.15 { continue }   // Ausreisser
-            if i + 1 < n {
-                let b = A[i + 1]
-                if Swift.abs(b - a) <= a * 0.02 && Swift.abs(b - m) / m > 0.02 { lv.append((D[i], [a])) }
-            }
-        }
-        if lv.isEmpty || lv.count > 12 { return nil }
-        let cov = lv.reduce(0) { $0 + $1.v.count }
-        if Double(cov) < Double(n) * 0.6 { return nil }
-        let L = lv.map { (a: BU.r2(med($0.v)), from: $0.from, last: $0.v[$0.v.count - 1]) }
-        let chg = L.dropFirst().map { PriceChange(from: $0.from, amount: $0.a) }
-        return PriceHistory(base: L[0].a, prices: Array(chg), changes: Array(chg), free: [], current: BU.r2(L[L.count - 1].last),
-                            levels: L.map { $0.a })
-    }
-
-    /// Einnahme aus dem Auszug: Anfangsbetrag und Preisstufen (Web `bkIncPrices`); `amount` = gewählter (ggf. geänderter) Betrag.
-    public static func incomePrices(_ s: BankIncomeSuggestion, amount a: Double) -> (amount: Double, prices: [PriceChange]) {
-        guard let ph = incomeHistory(dates: s.dates, amounts: s.amounts), !ph.prices.isEmpty else { return (a, []) }
-        var pr = ph.prices
-        if pr[pr.count - 1].amount > 0 { pr[pr.count - 1].amount = a }
-        return (ph.base, pr)
     }
 
     /// Vertragsbeginn = erste Zahlung, aber nur wenn sie deutlich nach dem Anfang des Auszugs liegt (> 1,5 Zahlungsrhythmen);

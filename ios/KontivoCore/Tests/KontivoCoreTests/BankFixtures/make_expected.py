@@ -64,6 +64,12 @@ EXTRA.update({
  "x_dates_en": rows(H, [f"{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][int(d[3:5]) - 1]} {int(d[:2])}, {d[6:]};LASTSCHRIFT Sunrise GmbH;-39.00;Lastschrift;CHF" for d in monthly(5, 12)]),
  "x_eom_due": rows(H, [f"{d};LASTSCHRIFT Muster Leasing AG;-410.00;Lastschrift;CHF" for d in ["31.10.2025", "28.11.2025", "31.12.2025", "30.01.2026", "27.02.2026", "31.03.2026", "30.04.2026", "29.05.2026", "30.06.2026", "31.07.2026", "31.08.2026", "30.09.2026"]]),
 })
+# Web v331–v346 (main/tests/bank/gen.py): erfundene Personen aus dem Testgenerator (3 CH, 1 DE, Seed 1) als Grenzfälle
+import importlib.util, random
+_spec = importlib.util.spec_from_file_location("kontivo_gen", os.path.join(SRC, "gen.py")); GEN = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(GEN)
+_rnd = random.Random(1)
+for _i in range(4):
+    EXTRA["gen_%d" % _i] = GEN.to_csv((GEN.person_de if _i % 4 == 3 else GEN.person_ch)(random.Random(_rnd.random())))
 for k, t in EXTRA.items(): EDGE[k] = {"txt": t}
 EDGE["x_after"] = {"txt": rows(H, BASE[:6] + [f"{d};LASTSCHRIFT Muster Fitness AG;-79.00;Lastschrift;CHF" for d in monthly(15, 12)]),
                    "contracts": {"f": {"partner": "Muster Fitness AG", "cat": "Freizeit & Sport", "amount": 79, "cur": "CHF", "cycle": 1, "due": "2026-05-15",
@@ -75,7 +81,18 @@ for fn, amt, days in (("konto_a.csv", "27.95", ["25.06", "27.07", "26.08", "25.0
                        ("konto_c.csv", "28.95", ["20.07", "28.08", "29.10"])):
     open(os.path.join(HERE, "multi", fn), "w").write("Datum;Buchungstext;Betrag\n" + "".join(f"{d}.2026;LASTSCHRIFT Muster Mobil AG;-{amt}\n" for d in days)
         + ("".join(f"{d}.2026;LASTSCHRIFT Muster Strom AG;-60.00\n" for d in days) if fn == "konto_c.csv" else ""))
-MULTI = [["muster/sparkasse.csv", "muster/n26.csv"], ["muster/format1.csv", "muster/format3.csv"],
+# Web v346 (main/tests/bank/multi.py): Steuerraten über zwei Konten = ein Vertrag; zwei Konten zahlen am selben Tag denselben Betrag
+# an denselben Anbieter = zwei Verträge; gleiche Datei zweimal = einer
+_T = "DAUERAUFTRAG Stadtverwaltung Musterstadt Mitteilung: Staats- und Gemeindesteuern Steuerperiode {y};-{a}\n"
+_H = "Datum;Buchungstext;Betrag\n"
+_mob = "".join(f"28.{m:02d}.2026;LASTSCHRIFT Muster Mobil AG;-29.90\n" for m in range(1, 10))
+for fn, txt in (("steuer_a.csv", _H + "".join(f"28.{m:02d}.2025;" + _T.format(y=2025, a="900.00") for m in range(1, 7)) + "".join(f"28.{m:02d}.2025;" + _T.format(y=2025, a="410.00") for m in (10, 11)) + "28.01.2026;" + _T.format(y=2026, a="760.00")),
+                ("steuer_b.csv", _H + "".join(f"28.{m:02d}.2025;" + _T.format(y=2025, a="410.00") for m in (7, 8, 9)) + "".join(f"27.{m:02d}.2026;" + _T.format(y=2026, a="760.00") for m in range(2, 7)) + "".join(f"27.{m:02d}.2026;" + _T.format(y=2026, a="340.00") for m in range(7, 10))),
+                ("mobil_a.csv", _H + _mob + "".join(f"{d:02d}.03.2026;KARTENZAHLUNG Laden Nord;-{d+3}.50\n" for d in range(1, 20))),
+                ("mobil_b.csv", _H + _mob + "".join(f"{d:02d}.04.2026;KARTENZAHLUNG Laden Sued;-{d+7}.20\n" for d in range(1, 20)))):
+    open(os.path.join(HERE, "multi", fn), "w").write(txt)
+MULTI = [["multi/steuer_a.csv", "multi/steuer_b.csv"], ["multi/mobil_a.csv", "multi/mobil_b.csv"], ["multi/mobil_a.csv", "multi/mobil_a.csv"],
+         ["muster/sparkasse.csv", "muster/n26.csv"], ["muster/format1.csv", "muster/format3.csv"],
          ["muster/sparkasse.csv", "muster/n26.csv", "muster/dkb.csv", "muster/format1.csv", "muster/format2.csv", "muster/format3.csv"],
          ["muster/sparkasse.csv", "samples/ch_zkb.csv"], ["multi/konto_a.csv", "multi/konto_b.csv"], ["multi/konto_a.csv", "multi/konto_c.csv"],
          ["samples/ch_postfinance.csv", "samples/ch_postfinance.csv"],

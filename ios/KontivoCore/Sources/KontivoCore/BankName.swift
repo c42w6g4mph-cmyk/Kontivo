@@ -29,13 +29,20 @@ enum BankName {
     static let rxLegal = BRX("^(.+?\\s(?:AG|GmbH|SA|Sàrl|KG|SE|Ltd|Inc|B\\.V\\.|e\\.\\s?V\\.|Genossenschaft))(?:\\s|$)", i: true)
     static let rxCoopStart = BRX("^Genossenschaft\\s+(?=\\S)", i: true)
     static let rxEllipsis = BRX("\\s*(?:\\.{2,}|…)$")
+    static let rxFxTail = BRX("\\s+(?:EUR|USD|GBP|CHF|SEK|NOK|DKK|PLN|CZK|HUF|TRY)\\s*[\\d.,]+$", i: true)
+    static let rxEllipsisEnd = BRX("(?:\\.{2,}|…)$")
+    static let rxCutWord = BRX("\\S\\s+\\S+(?:\\.{2,}|…)$")
+    static let rxCutWordTail = BRX("\\s+\\S+(?:\\.{2,}|…)$")
 
     /// Leerzeichen zusammenfassen (JS `.replace(/\s+/g," ").trim()`).
     static func squash(_ s: String) -> String { BU.trim(rxSpaces.replaceAll(s, " ")) }
 
     /// Name kürzen: bis vor Mitteilung/Referenz/IBAN/PLZ Ort, bis zur Rechtsform, höchstens 5 Wörter (Web `bankNameClean`).
     static func clean(_ raw: String) -> String {
-        var n = rxEllipsis.replaceFirst(squash(raw), "")
+        // Originalbetrag in Fremdwährung am Ende weg; von der Bank abgeschnitten («Raiffeisen Pensionskasse Genosse...»):
+        // das angeschnittene letzte Wort weglassen (Web v331 ff.)
+        var n = rxFxTail.replaceFirst(squash(raw), "")
+        if rxEllipsisEnd.test(n) { n = rxCutWord.test(n) ? rxCutWordTail.replaceFirst(n, "") : rxEllipsis.replaceFirst(n, "") }
         if let m = rxCleanCut.match(n) { n = BU.slice(n, 0, m.index) }
         if let lg = rxLegal.match(n) { n = lg.s(1) }
         n = rxCoopStart.replaceFirst(n, "")
@@ -83,16 +90,20 @@ enum BankName {
         let a = tl[0], b = tl[1]
         if rxLegalEnd.test(a) { return nil }
         if street(b) || rxPLZStart.test(b) || BKLAND.test(Partners.lnorm(b)) || !rxLetters3.test(b) || rxColon.test(a) { return nil }
+        // 2. Zeile setzt den Namen fort («Strassenverkehrsamt / des Kantons Thurgau»): keine Mitteilung (Web v331 ff.)
+        if rxContinue.test(b) { return nil }
         return (BU.slice(a, 0, 60), b)
     }
 
     /// Name einer Buchung (Kosten und Einnahmen gleich, Web v272 `bankTxName`): Empfänger/Auftraggeber, sonst aus dem Buchungstext;
     /// nur der erste Teil vor «;» / « · »
-    static func txName(_ t: BankTx) -> String {
+    static let rxContinue = BRX("^(des|der|die|den|dem|von|vom|zur|zum|für|fur|du|de|des|di|del|della|of|for|and|und)\\s", i: true)
+
+    static func txName(_ t: BankTx, home: String = "CHF") -> String {
         let nm0 = !t.name.isEmpty && !isType(t.name) ? clean(rxComma.split(t.name)[0]) : from(t.text)
         var nm = BU.trim(rxNameCut.split(nm0)[0])
         // Kürzel vor dem Komma («SC, SwissCaution SA»): der eigentliche Name kommt danach (Web v329)
-        if rxShort.test(nm), let m = BRX("(?:^|\\n)\\s*" + nm + "\\s*,\\s*([^,\\n]{4,})").match(!t.name.isEmpty ? t.name : t.text),
+        if rxShort.test(nm), BankCatalog.tpl(nm, "", home) == nil, let m = BRX("(?:^|\\n)\\s*" + nm + "\\s*,\\s*([^,\\n]{4,})").match(!t.name.isEmpty ? t.name : t.text),
            !isType(m.s(1)) {
             let c = clean(m.s(1))
             if !c.isEmpty { nm = c }

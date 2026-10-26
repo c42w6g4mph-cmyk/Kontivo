@@ -46,6 +46,10 @@ public struct BankTx: Equatable, Hashable, Sendable {
     /// Mehrere Dateien (Web v325 `t._fi`, `t._end`): Index der Datei, aus der die Buchung stammt, und Ende dieser Datei
     var fi: Int? = nil
     var end: Day? = nil
+    /// Konto der Datei (Web Review B-H5 `t._acc`): gleiche Zahlung nur bei Exporten desselben Kontos doppelt
+    var acc: Int? = nil
+    /// Laufnummer in `bankFind` (JS-Objektidentität: zwei gleiche Buchungen am selben Tag bleiben zwei)
+    var seq: Int = -1
 
     public init(date: Day, amount: Double, currency: String = "", name: String = "", text: String = "", type: String = "",
                 kind: BankKind = .unknown, cred: String = "", mref: String = "", sub: Bool = false, memo: String = "") {
@@ -197,6 +201,43 @@ public struct BankAlias: Codable, Hashable, Sendable {
     }
 }
 
+/// Gelernte Korrektur je Vertragspartner und Betrag (Web `settings.bankLearn[key] = [{a, l?, x?}]`, 25.10.2026):
+/// `x` = beim letzten Import bewusst abgewählt, `l` = geänderte Bezeichnung.
+public struct BankLearn: Codable, Hashable, Sendable {
+    /// Betrag des Vorschlags
+    public var a: Double
+    /// Bezeichnung ("" = keine)
+    public var l: String
+    /// abgewählt
+    public var x: Bool
+
+    public init(a: Double, l: String = "", x: Bool = false) {
+        self.a = a
+        self.l = l
+        self.x = x
+    }
+
+    enum CodingKeys: String, CodingKey { case a, l, x }
+
+    public init(from decoder: Decoder) throws {
+        let k = try decoder.container(keyedBy: CodingKeys.self)
+        a = (try? k.decode(Double.self, forKey: .a)) ?? 0
+        l = (try? k.decode(String.self, forKey: .l)) ?? ""
+        if let b = try? k.decode(Bool.self, forKey: .x) {
+            x = b
+        } else {
+            x = ((try? k.decode(Double.self, forKey: .x)) ?? 0) != 0
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var k = encoder.container(keyedBy: CodingKeys.self)
+        try k.encode(a, forKey: .a)
+        if !l.isEmpty { try k.encode(l, forKey: .l) }
+        if x { try k.encode(1, forKey: .x) }
+    }
+}
+
 /// Vorschlag aus wiederkehrenden Belastungen (Web `bankEval` → `s`).
 public struct BankSuggestion: Identifiable, Equatable, Hashable, Sendable {
     public var id: String
@@ -248,6 +289,8 @@ public struct BankSuggestion: Identifiable, Equatable, Hashable, Sendable {
     public var statementFrom: Day? = nil
     /// Versicherer mit mehreren Policen ohne Bezeichnung (Web v330 `s.multi`): jede Prämie einzeln, Bezeichnung nicht raten
     public var multi: Bool = false
+    /// Gelernte Korrektur zu diesem Vorschlag (Web `s.learn`, `bankLearnAssign`): abgewählt oder Bezeichnung
+    public var learn: BankLearn? = nil
 
     /// Name des Katalogeintrags, falls Treffer (Web `s.tpl[0]`)
     public var catalogName: String? { catalog?.name }
@@ -318,6 +361,8 @@ public struct BankKnown: Equatable, Sendable {
     public var loose: Bool
     /// Gekündigter Vertrag, letzte Abbuchung vor dem Kündigungstermin (Web v272 `match.arch`): als «gekündigt» zeigen
     public var archived: Bool = false
+    /// Teilzahlung eines erfassten Jahresvertrags (Web `match.part`): zweite Rate, kein eigener Vorschlag
+    public var part: Bool = false
 }
 
 /// Gekündigter Vertrag, der nach seinem Ende noch abgebucht wurde (Web v272 `after`): Hinweis statt neuer Vorschlag.

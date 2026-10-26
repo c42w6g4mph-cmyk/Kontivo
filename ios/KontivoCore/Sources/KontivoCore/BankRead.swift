@@ -348,7 +348,8 @@ enum BankReader {
     static let rxFoot = BRX("saldo|kontostand|\\btotal\\b|summe|endbetrag|anfangsbestand|schlussbestand|balance", i: true)
     static let rxSaldoHead = BRX("saldo|balance|kontostand")
     static let rxCardHint = BRX("kreditkart|credit ?card|karteninhaber|kartennummer|card ?number|kartenkonto|viseca|swisscard|cembra|cornercard|corner banca|american express|\\bamex\\b|mastercard|\\bvisa\\b|miles ?(and|&) ?more|barclaycard|advanzia|hanseatic|erscheint auf ihrer abrechnung|\\bcardid\\b|card ?id\\b", i: true)
-    static let rxAcctIban = BRX("\\b([A-Z]{2}\\d{2}(?: ?[A-Z0-9]){11,30})\\b")
+    /// JS-Wortgrenze (nur ASCII): «CH00 … 0 Währung» liefert wie im Web «…0W» (Web v346 vergleicht Konten über diesen Wert)
+    static let rxAcctIban = BRX("(?<![A-Za-z0-9_])([A-Z]{2}\\d{2}(?: ?[A-Z0-9]){11,30})(?![A-Za-z0-9_])")
     static let rxBodyCHF = BRX("\\bCHF\\b")
     static let rxBodyEUR = BRX("\\bEUR\\b|€")
     static let rxIbanCH = BRX("\\b(?:CH|LI)\\d{2}[ \\d]{4}")
@@ -852,14 +853,37 @@ enum BankReader {
         if rs.count == 1 { return rs[0] }
         // Konto (IBAN) im Schlüssel, damit zwei Konten derselben Bank sich nicht gegenseitig Buchungen wegnehmen; gleiche Buchung
         // mehrfach (2× 45.– am selben Tag): die Datei mit den meisten zählt (Web v272)
+        // Konto je Datei (Web Review B-H5): bekannte IBAN entscheidet; ohne IBAN gelten zwei Dateien nur als dasselbe Konto, wenn sich
+        // ihre Buchungen (Datum + Betrag) im gemeinsamen Zeitraum stark überschneiden (≥ 60 %). Sonst sind gleiche Zahlungen am selben Tag
+        // zwei echte Zahlungen (Sinan und Lara je 29.90 an denselben Anbieter)
+        let sig: [Set<String>] = rs.map { r in Set(r.tx.map { $0.date.iso + "|" + String($0.amount) }) }
+        func same(_ i: Int, _ j: Int) -> Bool {
+            if !rs[i].account.isEmpty && !rs[j].account.isEmpty { return rs[i].account == rs[j].account }
+            guard let fi = rs[i].from, let fj = rs[j].from, let ti = rs[i].to, let tj = rs[j].to else { return false }
+            let lo = fi > fj ? fi : fj, hi = ti < tj ? ti : tj
+            if lo > hi { return false }
+            let los = lo.iso, his = hi.iso
+            func inR(_ k: String) -> Bool {
+                let d = String(k.prefix(10))
+                return d >= los && d <= his
+            }
+            let A = sig[i].filter(inR), B = sig[j].filter(inR)
+            let sm = A.count < B.count ? A : B, big = A.count < B.count ? sig[j] : sig[i]
+            let m = sm.filter { big.contains($0) }.count
+            return !sm.isEmpty && Double(m) >= Double(sm.count) * 0.6
+        }
+        var acc = Array(rs.indices)
+        for ai in rs.indices {
+            for aj in 0..<ai where acc[ai] == ai && same(ai, aj) { acc[ai] = acc[aj] }
+        }
         var by = BOrdered<[(fi: Int, tx: [BankTx])]>()
         for (fi, r) in rs.enumerated() {
             for t0 in r.tx {
                 // Ende je Datei an jeder Buchung: eine Datei, die früher endet, macht ihre Einnahmen/Verträge nicht «veraltet» (Web v325)
                 var t = t0
                 t.end = r.to
-                let src = !r.account.isEmpty ? r.account : (!r.bank.isEmpty ? r.bank : r.format)
-                let k = src + "|" + t.date.iso + "|" + String(t.amount) + "|" + BU.slice(Partners.lnorm(t.name + " " + t.text), 0, 60)
+                t.acc = acc[fi]
+                let k = String(acc[fi]) + "|" + t.date.iso + "|" + String(t.amount) + "|" + BU.slice(Partners.lnorm(t.name + " " + t.text), 0, 60)
                 var e = by[k] ?? []
                 if let i = e.firstIndex(where: { $0.fi == fi }) { e[i].tx.append(t) } else { e.append((fi, [t])) }
                 by[k] = e

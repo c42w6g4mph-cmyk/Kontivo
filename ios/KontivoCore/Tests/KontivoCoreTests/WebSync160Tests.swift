@@ -569,28 +569,27 @@ final class WebSync160Tests: XCTestCase {
         XCTAssertEqual(Letter.mailCheckTexts(.numberMissing, data: d).no, "Ohne senden")
     }
 
-    // MARK: Katalog «Rundfunkgebühr» (v158), Kündigungsweg Brief (v145)
+    // MARK: Katalog Serafe (CH) / Beitragsservice (DE) mit Bezeichnung «Rundfunkgebühr» (Web v331 ff., vorher v158 «Rundfunkgebühr»),
+    // Kündigungsweg Brief (v145)
 
     func testCatalogRundfunk() {
-        XCTAssertNil(Catalog.find("Serafe"))
+        XCTAssertNil(Catalog.find("Rundfunkgebühr"))
         XCTAssertNil(Catalog.find("Rundfunkbeitrag"))
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.country, "CH")
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .EUR)?.country, "DE")
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.web, "serafe.ch")   // Katalog v224
-        Format.homeCurrency = .EUR
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr")?.country, "DE")
-        Format.homeCurrency = .CHF
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr")?.country, "CH")
-        // Vorschläge: gleicher Name nur einmal
-        XCTAssertEqual(Catalog.suggestions("rundfunk", currency: .CHF).map { $0.country }, ["CH"])
-        XCTAssertEqual(Catalog.suggestions("rundfunk", currency: .EUR).map { $0.country }, ["DE"])
-        XCTAssertFalse(Catalog.entries.contains { $0.name.contains("Serafe") || $0.label.contains("Serafe") })   // v224: Hinweis nennt Serafe als Stelle
+        XCTAssertEqual(Catalog.find("Serafe")?.country, "CH")
+        XCTAssertEqual(Catalog.find("Beitragsservice")?.country, "DE")
+        XCTAssertEqual(Catalog.find("Serafe")?.label, "Rundfunkgebühr")
+        XCTAssertEqual(Catalog.find("Beitragsservice")?.label, "Rundfunkgebühr")
+        XCTAssertEqual(Catalog.find("Serafe")?.web, "serafe.ch")   // Katalog v224
+        // Vorschläge über die Bezeichnung: beide Anbieter
+        XCTAssertEqual(Catalog.suggestions("rundfunk", currency: .CHF).map { $0.country }, ["CH", "DE"])
         XCTAssertEqual(Catalog.find("Swiss Life")?.cancelChannel, .letter)
         XCTAssertEqual(Catalog.find("IWB")?.mandatory, false)
         XCTAssertTrue(ContractFormRules.taxInfo.contains("Rundfunkgebühr"))
-        // Bank: Rundfunkbeitrag/Beitragsservice/Serafe → Rundfunkgebühr
-        XCTAssertEqual(BankCatalog.entry(named: "Rundfunkgebühr", currency: "EUR")?.country, "DE")
-        XCTAssertEqual(BankCatalog.entry(named: "Rundfunkgebühr", currency: "CHF")?.country, "CH")
+        // Bank: Rundfunkbeitrag/Beitragsservice → Beitragsservice, Serafe/Billag → Serafe
+        XCTAssertEqual(BankCatalog.entry(named: "Beitragsservice", currency: "EUR")?.country, "DE")
+        XCTAssertEqual(BankCatalog.entry(named: "Serafe", currency: "CHF")?.country, "CH")
+        XCTAssertEqual(BankCatalog.tpl("ARD ZDF Deutschlandradio Beitragsservice", "Rundfunk 07.2026 - 09.2026", "EUR")?.name, "Beitragsservice")
+        XCTAssertEqual(BankCatalog.tpl("SERAFE AG", "", "CHF")?.name, "Serafe")
     }
 
     func testCancelChannelMigration() throws {

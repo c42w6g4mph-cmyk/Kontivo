@@ -269,15 +269,15 @@ final class BankStatementTextTests: XCTestCase {
     func testReviewPartnerFromCatalogEntryOfSuggestionCurrency() throws {
         var data = AppData.initial()
         data.settings.homeCurrency = .CHF
-        let de = try XCTUnwrap(BankCatalog.entry(named: "Rundfunkgebühr", currency: "EUR"))
+        let de = try XCTUnwrap(BankCatalog.entry(named: "Beitragsservice", currency: "EUR"))
         XCTAssertEqual(de.country, "DE")
-        let id = try XCTUnwrap(BankImport.partnerID(named: "Rundfunkgebühr", current: nil, catalog: de, in: &data))
+        let id = try XCTUnwrap(BankImport.partnerID(named: "Beitragsservice", current: nil, catalog: de, in: &data))
         let p = try XCTUnwrap(data.partner(id))
         XCTAssertEqual(p.web, "rundfunkbeitrag.de")
         XCTAssertEqual(p.address.zip, "50656")
         XCTAssertEqual(p.address.city, "Köln")
         // gleicher Name: bestehender Vertragspartner, kein zweiter
-        XCTAssertEqual(BankImport.partnerID(named: "rundfunkgebühr", current: nil, catalog: de, in: &data), id)
+        XCTAssertEqual(BankImport.partnerID(named: "beitragsservice", current: nil, catalog: de, in: &data), id)
         XCTAssertEqual(data.partners.count, 1)
         // ohne Katalogeintrag: ohne Website und Adresse
         let other = try XCTUnwrap(BankImport.partnerID(named: "Muster AG", current: nil, catalog: nil, in: &data))

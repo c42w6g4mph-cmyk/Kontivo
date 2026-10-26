@@ -128,7 +128,7 @@ final class WebSync224Tests: XCTestCase {
         XCTAssertEqual(row("sun"), ["Sunrise|CH|Handy / Internet|Handy / Internet · 2 Monate Frist",
                                     "IKK gesund plus|DE|Krankenkasse|Krankenkasse · Pflichtvertrag",
                                     "BIG direkt gesund|DE|Krankenkasse|Krankenkasse · Pflichtvertrag"])
-        XCTAssertEqual(row("rundfunk"), ["Rundfunkgebühr|CH|Rundfunkgebühr|Rundfunkgebühr · nicht kündbar"])
+        XCTAssertEqual(row("rundfunk"), ["Serafe|CH|Rundfunkgebühr|Rundfunkgebühr · nicht kündbar", "Beitragsservice|DE|Rundfunkgebühr|Rundfunkgebühr · nicht kündbar"])
         XCTAssertEqual(row("john reed"), ["John Reed|DE|Fitnessabo|Fitnessabo · 1 Monat Frist", "John Reed|CH|Fitnessabo|Fitnessabo · 2 Wochen Frist"])
         XCTAssertEqual(row("ab"), ["SBB GA|CH|Generalabonnement|Generalabonnement · 1 Monat Frist",
                                    "Update Fitness|CH|Fitnessabo|Fitnessabo · 4 Wochen Frist",
@@ -164,7 +164,7 @@ final class WebSync224Tests: XCTestCase {
     }
 
     func testCatalogTermShort() {
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.termShort, "nicht kündbar")
+        XCTAssertEqual(Catalog.find("Serafe", currency: .CHF)?.termShort, "nicht kündbar")
         XCTAssertEqual(Catalog.find("Netflix")?.termShort, "jederzeit kündbar")
         XCTAssertEqual(Catalog.find("Swisscom")?.termShort, "60 Tage Frist")
         XCTAssertEqual(Catalog.find("CSS", currency: .CHF)?.termShort, "Pflichtvertrag")

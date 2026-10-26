@@ -4,7 +4,7 @@ import Foundation
 // 1:1 nach Web v177/v180: BKINSKIP, bankIncCat, bankFindInc, bankPayM, bankNums, BKLABEL, bankLabel, bkWho.
 
 extension BankImport {
-    static let BKINSKIP = BRX("umbuchung|uebertrag|kontouebertrag|eigene?s? konto|sparkonto|twint|paypal|revolut|wise\\b|rueckerstattung|ruckerstattung|erstattung|refund|retoure?|storno|gutschrift karte|bargeld|einzahlung|bancomat|geldautomat|\\batm\\b|leistungsabrechnung|kostenbeteiligung|cashback|\\bausgleich\\b|saldoausgleich|steuerrueck|kontoubertrag|steuerruck")
+    static let BKINSKIP = BRX("schaden|versicherungsleistung|leistungsabrechnung|umbuchung|uebertrag|kontouebertrag|eigene?s? konto|sparkonto|twint|paypal|revolut|wise\\b|rueckerstattung|ruckerstattung|erstattung|refund|retoure?|storno|gutschrift karte|bargeld|einzahlung|bancomat|geldautomat|\\batm\\b|leistungsabrechnung|kostenbeteiligung|cashback|\\bausgleich\\b|saldoausgleich|steuerrueck|kontoubertrag|steuerruck")
     static let rxIncNotPay = BRX("(zins|ruck|rueck|aufwands|spesen|kosten)verg(ue|u)tung")
     static let rxIncBonus1 = BRX("\\b13 (monatslohn|gehalt)|\\bbonus|gratifikation|weihnachtsgeld|urlaubsgeld")
     static let rxIncLohn = BRX("\\blohn|nettolohn|gehalt|salaer|\\bsalar|salair|salary|payroll|bezuege|bezuge|besoldung|dienstbezug|entgelt|verguetung|vergutung|lohnzahlung|monatslohn")
@@ -52,7 +52,7 @@ extension BankImport {
         let me: [[String]] = data.persons.map { p in BankName.tok(p.name).filter { $0.count >= 3 } }
         for t in r.tx {
             if !(t.amount > 0) || t.sub { continue }
-            let nm = BankName.txName(t)
+            let nm = BankName.txName(t, home: home)
             if nm.isEmpty { continue }
             let hay = Partners.lnorm(nm + " " + t.text + " " + t.type)
             if BKINSKIP.test(hay) { continue }
@@ -242,7 +242,12 @@ extension BankImport {
         (BRX("tierhalter|hundehaftpflicht|tierkranken"), "Tierversicherung"),
         (BRX("\\bmiete\\b|mietzins|wohnungsmiete"), "Miete"), (BRX("nebenkosten|heizkosten"), "Nebenkosten"),
         (BRX("parkplatz|einstellplatz|tiefgarage|garage"), "Parkplatz"),
-        (BRX("hypothek|darlehen|kreditrate|\\bkredit\\b"), "Kredit"), (BRX("leasing"), "Leasing"), (BRX("steuer|steuerverwaltung|finanzamt"), "Steuern"),
+        (BRX("hypothek|darlehen|kreditrate|\\bkredit\\b"), "Kredit"), (BRX("leasing"), "Leasing"), (BRX("kaution|caution"), "Mietkaution"),
+        // Steuerart aus der Mitteilung (Web v331 ff.): CH Staats-/Gemeinde-/Bundessteuer, DE Einkommen-/Kirchen-/Gewerbesteuer
+        (BRX("bundessteuer|steuer bund\\b|direkte bundes"), "Direkte Bundessteuer"),
+        (BRX("staats und gemeindesteuer|staatssteuer|gemeindesteuer|kantonssteuer"), "Staats- und Gemeindesteuern"),
+        (BRX("kirchensteuer"), "Kirchensteuer"), (BRX("gewerbesteuer"), "Gewerbesteuer"), (BRX("einkommensteuer|einkommenssteuer|est vorauszahlung"), "Einkommensteuer"),
+        (BRX("steuer|steuerverwaltung|finanzamt"), "Steuern"),
         (BRX("krankenkasse|krankenversicherung|grundversicherung"), "Krankenkasse"), (BRX("hausrat"), "Hausrat"), (BRX("haftpflicht"), "Haftpflicht"),
         (BRX("fitness|\\bgym\\b"), "Fitness"), (BRX("mitgliederbeitrag|mitgliedsbeitrag|jahresbeitrag|vereinsbeitrag"), "Mitgliedschaft"), (BRX("spende"), "Spende"),
         (BRX("kita|krippe|tagesmutter|hort"), "Kinderbetreuung"), (BRX("schulgeld|studiengebuehr|semestergebuehr"), "Ausbildung"),
@@ -263,11 +268,20 @@ extension BankImport {
             t = l
             break
         }
+        // Verein: Bezeichnung aus der Vereinsart (Web v331 ff.)
+        if t.isEmpty || t == "Mitgliedschaft" {
+            let cl = BankClub.label(s.name, s.name + " " + s.memo)
+            if !cl.isEmpty { t = cl }
+        }
         // mehrere Policen beim selben Versicherer: Katalog-Bezeichnung (Hausrat) wäre geraten → leer lassen (Web v330)
         if s.multi { return t }
-        if let c = s.catalog, !c.label.isEmpty, !(!t.isEmpty && BK_GENERIC.test(c.label)) { return c.label }
-        return t
+        let out: String
+        if let c = s.catalog, !c.label.isEmpty, !(!t.isEmpty && BK_GENERIC.test(c.label)) { out = c.label } else { out = t }
+        // nur die Art («Versicherung», «Abo», «Vertrag») ist keine Bezeichnung → «Ohne Bezeichnung» im Import (Web v331 ff.)
+        return rxKindOnly.test(out) ? "" : out
     }
+
+    static let rxKindOnly = BRX("^(versicherung|versicherungen|vertrag|abo)$", i: true)
 
     /// Name aus dem Auszug (Kontoinhaber, «Lohn Max Muster») → Personen (Web `bkWho`). Treffer über den Vornamen, sonst über
     /// den ganzen Namen. Mehrere Treffer (Gemeinschaftskonto «Max und Lena Muster») → alle Treffer (Aufrufer ordnet nur bei genau einem zu).

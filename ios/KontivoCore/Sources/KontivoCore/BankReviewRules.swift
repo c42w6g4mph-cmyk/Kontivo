@@ -54,8 +54,10 @@ extension BankImport {
     /// Plaketten unter einem Vorschlag (Web `bkChips`): Anzahl Zahlungen (bzw. «einmal am …»), Preisänderung im Auszug,
     /// Anzahl Änderungen, «Betrag schwankt», gratis Monate. `amount` = gewählter Betrag (Liste).
     public static func chips(dates: [Day], amounts: [Double], count n: Int, last: Day, lowConfidence: Bool, change: BankPriceChange?,
-                             varies: Bool, cycle: Int, currency: String, amount: Double, income: Bool) -> [BankChip] {
+                             varies: Bool, cycle: Int, currency: String, amount: Double, income: Bool, learnedOff: Bool = false) -> [BankChip] {
         var c: [BankChip] = []
+        // beim letzten Import bewusst abgewählt (Web v331 ff. `s.learn.x`)
+        if !income && learnedOff { c.append(BankChip(text: "letztes Mal nicht übernommen", kind: .plain)) }
         if lowConfidence && n == 1 {
             c.append(BankChip(text: "einmal am " + dot(last), kind: .plain))
         } else {

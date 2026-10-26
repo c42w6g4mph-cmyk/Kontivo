@@ -6,8 +6,9 @@ import Foundation
 enum BankCatalog {
     /// Katalogeinträge mit Sonderregel (Web `BKALIAS`): Treffer über Stichwort statt über die Namenswörter.
     static let BKALIAS: [String: BRX] = [
-        // Web v158: ein Eintrag «Rundfunkgebühr» (CH und DE) erkennt Rundfunkbeitrag, Beitragsservice und Serafe
-        "Rundfunkgebühr": BRX("rundfunk|beitragsservice|\\bserafe\\b"),
+        // CH Serafe und DE Beitragsservice getrennt (Web v331 ff.): Anbieter statt Sammelbegriff «Rundfunkgebühr»
+        "Serafe": BRX("\\bserafe\\b|\\bbillag\\b"),
+        "Beitragsservice": BRX("rundfunk|beitragsservice|ard zdf"),
         "SBB Halbtax": BRX("halbtax"),
         "Deutschlandticket": BRX("deutschlandticket|d ticket"),
         "Die Mobiliar": BRX("\\bmobiliar\\b"),
@@ -24,7 +25,7 @@ enum BankCatalog {
 
     /// Produkte, deren Nennung im Text den Namen des Anbieters schlägt (Web v181 `BKPROD`; Firmen-Aliase wie Zurich nicht:
     /// «8000 Zürich, Schweiz» in der Adresse)
-    static let BKPROD: Set<String> = ["Deutschlandticket", "SBB Halbtax", "Amazon Prime", "O2", "Rundfunkgebühr"]
+    static let BKPROD: Set<String> = ["Deutschlandticket", "SBB Halbtax", "Amazon Prime", "O2", "Serafe", "Beitragsservice"]
 
     /// Gleicher Name, mehrere Verträge (Web v212/v213 `BKLABTPL`): Bezeichnung → Stichwörter im Buchungstext
     static let BKLABTPL: [String: BRX] = [
@@ -177,7 +178,9 @@ enum BankCatalog {
         return best
     }
 
-    static let BKSKIP = BRX("bancomat|geldautomat|bargeld|barauszahlung|\\batm\\b|\\bcash\\b|auszahlung gaa|\\bgaa\\b|\\bga \\d{4,}|^ga\\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\\bzinsen\\b|\\babschluss\\b|kontoubertrag")
+    /// Bussen, Arzt-/Spitalrechnungen (Web v331 ff., Testgenerator): zufällig ähnliche Beträge im Halbjahres-/Jahresabstand sind keine Verträge
+    static let BKNOCON = BRX("\\bbusse\\b|bussgeld|ordnungsbusse|parkbusse|verwarnungsgeld|\\bpraxis\\b|arztpraxis|zahnarzt|\\bspital\\b|kantonsspital|\\bklinik\\b|tierarzt|physiotherap|dentalhygiene")
+    static let BKSKIP = BRX("u?e?bertrag (auf|von|an)|twint (geld )?(senden|gesendet|an|send)|geld senden|kreditkarten ?abrechnung|aufladung|top ?up\\b|bancomat|geldautomat|bargeld|barauszahlung|\\batm\\b|\\bcash\\b|auszahlung gaa|\\bgaa\\b|\\bga \\d{4,}|^ga\\b|umbuchung|uebertrag (auf|von|an) (konto|sparkonto|eigen)|kontouebertrag|eigene?s? konto|sparkonto|kreditkartenabrechnung|kartenabrechnung|twint an|\\babschluss\\b|kontoubertrag")
     /// Gastronomie und Läden: nie ein Vertrag, auch wenn ein Katalogname drinsteckt (NZZ Café, Coop Restaurant)
     static let BKSHOP = BRX("\\b(gastro|gastronomie|badi beizli|cafe|caffe|caffe|coffee|kaffee|espresso|bar|restaurant|ristorante|trattoria|osteria|bistro|pizzeria|pizza|burger|kebab|doener|doner|sushi|imbiss|take ?away|kantine|mensa|lounge|baeckerei|backerei|baeckerei|beck|confiserie|konditorei|kiosk|shop|store|boutique|markt|supermarkt|hotel|tankstelle|apotheke|drogerie|tabak|bakery|gartencenter|garten ?center|gaertnerei|gartnerei|blumen|baumarkt)\\b")
     /// Alltagseinkäufe (Detailhandel, Tankstellen, Fast Food): nie ein Vertrag, ausser ein Katalogeintrag passt (Migros Bank, Coop Mobile)
@@ -188,11 +191,11 @@ enum BankCatalog {
 
     /// Kategorie: Stichwörter → Standardkategorie (Web `BKCAT`)
     static let BKCAT: [(BRX, String)] = [
-        (BRX("steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer"), "Steuern & Gebühren"),
+        (BRX("strassenverkehrsamt|steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer"), "Steuern & Gebühren"),
         (BRX("kaution|caution|miete|mietzins|immobilien|hausverwaltung|liegenschaft|wohnbau|wohnung|nebenkosten"), "Wohnen"),
         (BRX("kita|krippe|schule|kindergarten|musikschule|hort"), "Familie & Bildung"),
         (BRX("leasing|sbb|halbtax|deutschlandticket|bahn|bvg|parking|parkplatz|garage|tankstelle"), "Mobilität"),
-        (BRX("fitness|sport|verein|club|gym|mcfit|yoga|\\be v\\b|\\b(sc|fc|tsv|sv|tus|vfb|vfl|djk|sg|turnverein|schwimmverein)\\b"), "Freizeit & Sport"),
+        (BRX("fitness|sport|verein|club|calcio|gym|mcfit|yoga|\\be v\\b|\\b(sc|fc|tsv|sv|tus|vfb|vfl|djk|sg|turnverein|schwimmverein)\\b"), "Freizeit & Sport"),
         (BRX("versicherung|praemie|police|krankenkasse|kranken"), "Versicherung"),
         (BRX("strom|energie|\\bgas\\b|erdgas|gasversorg|wasser|stadtwerke|abschlag|akonto"), "Energie & Wasser"),
         (BRX("swisscom|sunrise|salt|telekom|vodafone|mobilfunk|internet|festnetz"), "Mobilfunk & Internet"),
@@ -229,9 +232,10 @@ enum BankCatalog {
         return data.categories.contains(where: { $0.name == key }) ? key : nil
     }
 
-    /// Kategorie: Katalog, sonst Stichwörter, sonst Sonstiges (Web `bankCat`).
-    static func category(catalog: CatalogEntry?, name: String, text: String, data: AppData) -> String {
+    /// Kategorie: Katalog, sonst Verein, sonst Stichwörter, sonst Sonstiges (Web `bankCat`; `memo` = Mitteilung des Einzelpostens).
+    static func category(catalog: CatalogEntry?, name: String, text: String, memo: String = "", data: AppData) -> String {
         if let t = catalog, let c = categoryName(key: t.category, in: data) { return c }
+        if BankClub.isClub(name, name + " " + memo), let c = categoryName(key: "Freizeit & Sport", in: data) { return c }
         let s = Partners.lnorm(name + " " + text)
         for (r, k) in BKCAT where r.test(s) {
             if let c = categoryName(key: k, in: data) { return c }

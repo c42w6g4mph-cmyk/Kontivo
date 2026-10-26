@@ -377,8 +377,8 @@ final class MutationTests: XCTestCase {
         XCTAssertEqual(css?.cancelChannel, .letter) // Web v145: Einschreiben = Brief
         XCTAssertEqual(css?.mandatory, true)
         XCTAssertEqual(css?.categoryKind, .insurance)
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.cancelChannel, nil)
-        XCTAssertNil(Catalog.find("Serafe")) // Web v158: nur noch «Rundfunkgebühr»
+        XCTAssertEqual(Catalog.find("Serafe", currency: .CHF)?.cancelChannel, nil)
+        XCTAssertNil(Catalog.find("Rundfunkgebühr")) // Web v331 ff.: Serafe (CH) und Beitragsservice (DE)
         XCTAssertEqual(Catalog.find("Deutschlandticket")?.noticeUnit, .dayOfMonth)
         XCTAssertEqual(Catalog.find("Netflix")?.flag, "CH · DE")
         XCTAssertEqual(Catalog.search("", country: "DE").filter { $0.country == "CH" }.count, 0)
@@ -398,8 +398,8 @@ final class MutationTests: XCTestCase {
         // C-1: Web-Korrekturen vom 03.10. (Konten Monatsende, Rundfunkgebühr Steuern, Zeitungen Abos & Medien)
         XCTAssertEqual(Catalog.find("PostFinance")?.cancelTerm, .anytime)   // Web v224: jederzeit
         XCTAssertEqual(Catalog.find("N26")?.cancelTerm, .anytime)
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .CHF)?.category, "Steuern & Gebühren")
-        XCTAssertEqual(Catalog.find("Rundfunkgebühr", currency: .EUR)?.categoryKind, .taxes)
+        XCTAssertEqual(Catalog.find("Serafe", currency: .CHF)?.category, "Steuern & Gebühren")
+        XCTAssertEqual(Catalog.find("Beitragsservice", currency: .EUR)?.categoryKind, .taxes)
         XCTAssertEqual(Catalog.find("NZZ")?.category, "Abos & Medien")
         XCTAssertEqual(Catalog.find("Südkurier")?.category, "Abos & Medien")
         XCTAssertNil(Catalog.standardRule(for: WebPartnerHit(name: "Bäckerei", descAll: "Bäckerei"), categoryNames: names))
