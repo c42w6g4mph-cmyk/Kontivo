@@ -308,7 +308,6 @@ VIEWS = {
     "10-bearbeiten": dict(steps=v_edit),
     "10b-detail-sonderkuendigung": dict(seeds=["skr"], steps=v_detail("Krankenkasse")),
     "11-einnahme": dict(steps=v_income_new),
-    "12-einnahmen": dict(steps=v_incomes),
     "12b-einnahme-ansicht": dict(steps=v_income_detail),
     "13-brief": dict(steps=v_letter),
     "14-kuendigungsweg": dict(steps=v_cancelpick),

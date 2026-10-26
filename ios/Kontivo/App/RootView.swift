@@ -96,8 +96,6 @@ struct AppSheetView: View {
                 .modifier(KPageSheetSizing())
         case .incomeDetail(let id):
             IncomeDetailView(incomeID: id)
-        case .incomesAll:
-            IncomesAllView()
         case .variableForm(let id):
             VariableCostFormView(variableID: id)
                 .interactiveDismissDisabled(true)

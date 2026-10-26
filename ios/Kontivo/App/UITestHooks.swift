@@ -8,7 +8,7 @@ import KontivoCore
 ///   -uiToday <iso>     Stichtag (Standard 2026-10-03)
 ///   -uiOnboarding      Einführung (Erststart)
 ///   -uiTab <name>      contracts | costs | budget | deadlines | more
-///   -uiSheet <name>    detail[:Bezeichnung] | form | edit[:Bezeichnung] | income | incomes | incomeDetail | incomeEdit | letter | manage | partners | persons | sender
+///   -uiSheet <name>    detail[:Bezeichnung] | form | edit[:Bezeichnung] | income | incomeDetail | incomeEdit | letter | manage | partners | persons | sender
 ///                      | categories | quality | cancelpick | completeness | report | reportPDF | reportVarPDF
 ///                      (incomeDetail/incomeEdit: Einnahme mit Änderungen, Beispiel «Lohn» mit Verlauf)
 ///   -uiBankSample      Kontoauszug-Import mit eingebauter Beispieldatei (PostFinance-CSV) ohne Systemauswahl (Bereich import)
@@ -77,7 +77,6 @@ extension AppModel {
         case "form": present(.contractForm(.new(prefill: nil)))
         case "edit": if let c { present(.contractForm(.edit(c.id))) }
         case "income": present(.incomeForm(nil))
-        case "incomes": present(.incomesAll)
         case "incomeDetail": if let inc { present(.incomeDetail(inc.id)) }
         case "incomeEdit": if let inc { present(.incomeForm(inc.id)) }
         case "completeness": present(.completeness(only: nil))

@@ -13,7 +13,6 @@ enum AppSheet: Identifiable, Hashable {
     /// Einnahme ansehen (Web v155 `openIncDetail`): Kacheln, Verlauf, Angaben, Bearbeiten, Menü Duplizieren/Löschen
     case incomeDetail(UUID)
     /// Fenster «Alle Einnahmen»
-    case incomesAll
     /// Variable Kosten erfassen (nil) oder bearbeiten (Web v227 `openVar`)
     case variableForm(UUID?)
     /// Variable Kosten ansehen (Web v227 `openVarDetail`): Kacheln, Angaben, Bearbeiten, Menü Duplizieren/Löschen
@@ -43,7 +42,6 @@ enum AppSheet: Identifiable, Hashable {
         case .contractForm(let c): return "form-\(c.idPart)"
         case .incomeForm(let u): return "income-\(u?.uuidString ?? "neu")"
         case .incomeDetail(let u): return "incdetail-\(u)"
-        case .incomesAll: return "incomes"
         case .variableForm(let u): return "var-\(u?.uuidString ?? "neu")"
         case .variableDetail(let u): return "vardetail-\(u)"
         case .letter(let u, let t): return "letter-\(u)-\(t)"
@@ -65,7 +63,6 @@ enum AppSheet: Identifiable, Hashable {
         case .contractForm: return .contractForm
         case .incomeForm: return .incomeForm
         case .incomeDetail: return .incomeDetail
-        case .incomesAll: return .incomesAll
         case .variableForm: return .variableForm
         case .variableDetail: return .variableDetail
         case .letter: return .letter
@@ -82,7 +79,7 @@ enum AppSheet: Identifiable, Hashable {
 }
 
 enum AppSheetKind: Hashable {
-    case contractDetail, contractForm, incomeForm, incomeDetail, incomesAll, letter, cancelChannelPick, mail, document, manage, bankImport, completeness
+    case contractDetail, contractForm, incomeForm, incomeDetail, letter, cancelChannelPick, mail, document, manage, bankImport, completeness
     case fixReport, cancelledAsk
     case variableForm, variableDetail
 
