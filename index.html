@@ -1684,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v346</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v347</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8923,7 +8923,7 @@ var BKRETAIL=/\b(migros|migrolino|coop|denner|aldi|lidl|rewe|edeka|kaufland|nett
 var BKFEE=/entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt|kontogebuhr|kontogebuehr|kontoabschluss|abschluss entgelt/;
 var BKVIA=/paypal|klarna|amazon|apple com bill|google|stripe|adyen|sumup|wero|twint/;
 /* Kategorie: Katalog, sonst Stichwörter, sonst Branchenregel, sonst Sonstiges */
-var BKCAT=[[/strassenverkehrsamt|steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Steuern & Gebühren"],
+var BKCAT=[[/hundetaxe|hundeabgabe|strassenverkehrsamt|steuer|finanzamt|steueramt|serafe|rundfunk|gebuehr|kfz steuer/,"Steuern & Gebühren"],
   [/kaution|caution|miete|mietzins|immobilien|hausverwaltung|liegenschaft|wohnbau|wohnung|nebenkosten/,"Wohnen"],
   [/kita|krippe|schule|kindergarten|musikschule|hort/,"Familie & Bildung"],
   [/leasing|sbb|halbtax|deutschlandticket|bahn|bvg|parking|parkplatz|garage|tankstelle/,"Mobilität"],
@@ -8932,7 +8932,7 @@ var BKCAT=[[/strassenverkehrsamt|steuer|finanzamt|steueramt|serafe|rundfunk|gebu
   [/strom|energie|\bgas\b|erdgas|gasversorg|wasser|stadtwerke|abschlag|akonto/,"Energie & Wasser"],
   [/swisscom|sunrise|salt|telekom|vodafone|mobilfunk|internet|festnetz/,"Mobilfunk & Internet"],
   [/netflix|spotify|abo|zeitung|streaming|disney|apple com bill|\bapple\b(?! store| retail)|itunes|app store|youtube|dropbox|icloud|google one|onedrive|\bdomain|hosting|ionos|strato|hostpoint|infomaniak/,"Abos & Medien"],
-  [/entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt|darlehen|kreditrate|\bkredit\b|hypothek|bausparvertrag|sparplan|depotgebuhr|depotgebuehr/,"Finanzen"]];
+  [/\b3a\b|saule 3a|saeule 3a|vorsorgestiftung|freizugigkeit|freizuegigkeit|entgeltabschluss|entgeltabrechnung|kontofuhrung|kontofuehrung|kontopreis|kontoentgelt|darlehen|kreditrate|\bkredit\b|hypothek|bausparvertrag|sparplan|depotgebuhr|depotgebuehr/,"Finanzen"]];
 /* Zeitraum im Verwendungszweck → Rhythmus: «Rundfunk 07.2026 - 09.2026» = 3, «Jahresgebühr» = 12 */
 function bankPeriod(txt){var t=String(txt||""),m=t.match(/\b(\d{1,2})[.\/](\d{4})\s*(?:-|–|bis)\s*(\d{1,2})[.\/](\d{4})\b/);
   if(m){var n=(+m[4]-+m[2])*12+(+m[3]-+m[1])+1;if([1,2,3,6,12].indexOf(n)>=0)return n;}
@@ -9135,7 +9135,7 @@ function bankFind(r,ign){
      (Swisscom 29.90 + 32.90) dürfen nicht beide demselben erfassten Vertrag zugeordnet werden */
   /* Grundschlüssel des Vertragspartners: ohne Datei-/Betragsstufe (#…); bei Namensschlüsseln nur das erste Wort
      («Strassenverkehrsamt» und «Strassenverkehrsamt des Kantons Thurgau» in verschiedenen Jahren) */
-  function bankBase(k){var b=k.replace(/#[^|#]*/g,""),p=b.split("|"),f=p[0].split(" ")[0];
+  function bankBase(k){var b=k.replace(/#[^|#]*/g,"").replace(/~dd(?=\||$)/,""),p=b.split("|")/* ~dd = Lastschrift-Teil desselben Anbieters */,f=p[0].split(" ")[0];
     /* erstes Wort nur, wenn es markant ist («Strassenverkehrsamt» / «Strassenverkehrsamt des Kantons»), nicht bei Gemeinde, Stadt, Orten oder kurzen Vornamen (Review B-M3) */
     if(!/^(tpl|cred):/.test(p[0])&&p[0].indexOf("~")<0&&f.length>=8&&LGEN.indexOf(f)<0&&LPLACE.indexOf(f)<0&&!/^(stadt|gemeinde|kanton|steuer|verwaltung|stiftung|verein|genossenschaft|schweiz|deutsch)/.test(f))p[0]=f;return p.join("|");}/* ganzer Vertragspartner-Schlüssel ohne Betrags-/Dateizusatz; nicht nur das erste Wort (Gemeinde Kreuzlingen ≠ Gemeinde Tägerwilen, Review B-M3) */
   var EV=[],FAIL={},OKB={};Object.keys(groups).forEach(function(k){
@@ -9412,7 +9412,8 @@ function bankFindInc(r){
     var cat=bankIncCat(lnorm(nm+" "+(t.text||"")+" "+String(t.type||"").replace(/verg(ü|ue|u)tung/ig,"")));
     /* Anbieter aus dem Katalog (Krankenkasse, Telekom) zahlen meist Rückerstattungen – nur mit Lohn-/Rentenwort */
     if(bankTpl(nm,t.text,t.cur||home)&&cat==="Sonstiges")return;
-    var key=(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)))+(cat==="Bonus"?"·bonus":"")+"|"+(t.cur||home);
+    /* 13. Monatslohn und Bonus getrennt: zwei verschiedene Jahreseinnahmen, nicht eine unregelmässige Reihe (27.10.2026) */
+    var key=(t.cred?"cred:"+t.cred:(tk.slice(0,2).join(" ")||lnorm(nm)))+(cat==="Bonus"?(/\b13\b ?(monatslohn|gehalt|monatsgehalt)/.test(lnorm(nm+" "+t.text))?"·13":"·bonus"):"")+"|"+(t.cur||home);
     var g=groups[key]=groups[key]||{tx:[],names:{},cur:t.cur||home,cats:{}};
     if(t._fi!=null&&g.tx.some(function(o){return o._fi!==t._fi&&o.d===t.d&&o.a===t.a;}))return;/* gleiche Gutschrift in zwei Dateien nur einmal */
     g.tx.push(t);g.names[nm]=(g.names[nm]||0)+1;g.cats[cat]=(g.cats[cat]||0)+1;
@@ -9446,7 +9447,7 @@ function bankFindInc(r){
     var lo=Math.min.apply(null,core),hi=Math.max.apply(null,core);
     var due=bankNextDue(tx.map(function(t){return t.d;}),cyc);
     var name=bankPretty(Object.keys(g.names).sort(function(a,b){return g.names[b]-g.names[a];})[0]);
-    var s={key:k,name:name,label:cat==="Sonstiges"?"":cat,cat:cat,cur:BK_CUR.indexOf(g.cur)<0?home:g.cur,amount:typ,cycle:cyc,due:iso(due),n:n,
+    var s={key:k,name:name,label:/·13\|/.test(k)?"13. Monatslohn":cat==="Sonstiges"?"":cat,cat:cat,cur:BK_CUR.indexOf(g.cur)<0?home:g.cur,amount:typ,cycle:cyc,due:iso(due),n:n,
       first:tx[0].d,last:last.d,dates:tx.map(function(t){return t.d;}),amounts:am,lo:lo,hi:hi,varies:hi-lo>0.005,
       skipped:am.length-core.length,raw:last.name||name,text:last.text||"",once:once,conf:(cat!=="Sonstiges"&&n>=2)||n>=6?"hoch":"niedrig"};
     /* schon erfasst? gleiche Quelle oder gleiche Art mit ähnlichem Betrag */
@@ -9623,9 +9624,9 @@ function bankNums(s){var t=String(s.text||"")+" "+String(s.raw||""),o={cust:"",c
   return o;}
 /* Bezeichnung ohne Katalog aus dem Zahlungsgrund («Miete Wohnung 3.OG» → Miete) */
 /* Einzelzahlung trotzdem vorschlagen, wenn der Text klar nach Vertrag klingt (lnorm-Schreibweise: Umlaute ohne e) */
-var BKONCE=/versicherung|jahresmitgliedschaft|amazon prime|amzn prime|bahncard|\bpraemie|\bpramie|\bpolice|kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|hundesteuer|grundsteuer|rundfunk|serafe|mitgliedsbeitrag|mitgliederbeitrag|jahresbeitrag|vereinsbeitrag|jahresabo|jahresgebuehr|jahresgebuhr|abonnement|\bvignette|haftpflicht|hausrat|rechtsschutz|kautionsversicherung|kautionsservice|kautionskasse|kautionsfrei|caution|strassenverkehrsamt|verkehrsamt|bundessteuer|steuer bund\b|staatssteuer|gemeindesteuer|kantonssteuer|kirchensteuer|steuerverwaltung/;/* Mietkautionsversicherung (SwissCaution, 25.10.2026) */
+var BKONCE=/versicherung|jahresmitgliedschaft|amazon prime|amzn prime|bahncard|\bpraemie|\bpramie|\bpolice|kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|hundesteuer|grundsteuer|rundfunk|serafe|mitgliedsbeitrag|mitgliederbeitrag|jahresbeitrag|vereinsbeitrag|jahresabo|jahresgebuehr|jahresgebuhr|abonnement|\bvignette|haftpflicht|hausrat|rechtsschutz|kautionsversicherung|kautionsservice|kautionskasse|kautionsfrei|caution|hundetaxe|hundeabgabe|hundegebuehr|hundegebuhr|schulgeld|musikschule|konservatorium|semesterbeitrag|studiengebuehr|studiengebuhr|strassenverkehrsamt|verkehrsamt|bundessteuer|steuer bund\b|staatssteuer|gemeindesteuer|kantonssteuer|kirchensteuer|steuerverwaltung/;/* Mietkautionsversicherung (SwissCaution, 25.10.2026) */
 var BKONCENO=/erstattung|ruckzahlung|rueckzahlung|storno|gutschrift|schaden|selbstbehalt|franchise|arzt|apotheke|rechnung nr .* behandlung|kostenbeteiligung|leistungsabrechnung|ruckforderung|rueckforderung|pruefung|prufung|\bmfk\b|fahrzeugkontrolle|mietkaution|kautionskonto/;
-var BKLABEL=[[/hundesteuer/,"Hundesteuer"],[/grundsteuer/,"Grundsteuer"],[/bahncard/,"BahnCard"],[/amazon prime|amzn prime/,"Amazon Prime"],[/kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|strassenverkehrsamt/,"Kfz-Steuer"],
+var BKLABEL=[[/hundesteuer|hundetaxe|hundeabgabe|hundegebuehr|hundegebuhr/,"Hundesteuer"],[/saule 3a|saeule 3a|\b3a\b|vorsorgestiftung/,"Säule 3a"],[/musikschule|konservatorium/,"Musikschule"],[/grundsteuer/,"Grundsteuer"],[/bahncard/,"BahnCard"],[/amazon prime|amzn prime/,"Amazon Prime"],[/kfz steuer|kfzsteuer|kraftfahrzeugsteuer|motorfahrzeugsteuer|verkehrssteuer|strassenverkehrsamt/,"Kfz-Steuer"],
   [/kfz|autoversicherung|motorfahrzeugversicherung|fahrzeugversicherung|kasko/,"Autoversicherung"],[/rechtsschutz/,"Rechtsschutz"],
   [/wohngebaeude|wohngebaude|gebaeudeversicherung|gebaudeversicherung/,"Gebäudeversicherung"],[/unfallversicherung/,"Unfallversicherung"],
   [/zahnzusatz|zusatzversicherung/,"Zusatzversicherung"],[/berufsunfaehig|berufsunfahig|\bbu\b/,"Berufsunfähigkeit"],
