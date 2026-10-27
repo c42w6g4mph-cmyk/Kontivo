@@ -1684,7 +1684,7 @@ input[type=file]{display:none}
     <p class="note">Stand: 15. Oktober 2026</p></details></div>
   <div class="brandfoot"><img id="brandLogo" alt=""><div><b class="bfwm" aria-label="Kontivo"><svg class="bfK" viewBox="339.5 292 357.5 440" aria-hidden="true"><defs><mask id="bfKm" maskUnits="userSpaceOnUse" x="300" y="200" width="500" height="600"><rect x="300" y="200" width="500" height="600" fill="#fff"/><path d="M693 792 469 512 693 232" fill="none" stroke="#000" stroke-width="144"/></mask><clipPath id="bfKc"><rect x="300" y="292" width="500" height="440"/></clipPath></defs><polygon points="339.78,292 393.78,292 439.78,349.5 439.78,732 339.78,732" fill="currentColor" mask="url(#bfKm)"/><path d="M693 792 469 512 693 232" fill="none" stroke="currentColor" stroke-width="80" clip-path="url(#bfKc)"/></svg><svg class="wmO" viewBox="0 0 100 100" aria-hidden="true"><path d="M82.9 69A38 38 0 1 1 50 12" fill="none" stroke="currentColor" stroke-width="22"/><path class="wlB" pathLength="1" d="M50 12A38 38 0 0 1 82.9 69" fill="none" style="stroke:var(--brass)" stroke-width="22"/></svg>ntivo</b><span class="bfs">Deine Verträge, ganz entspannt</span></div></div>
   <div class="bfeat"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Ohne Bankanbindung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Keine Werbung</span><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.8 2.8 6.2-6.4"/></svg>Daten bleiben privat</span></div>
-  <div class="bver">Version 1.0 · <span id="bBuild">v345</span></div>
+  <div class="bver">Version 1.0 · <span id="bBuild">v346</span></div>
   <div class="foot">Made with ❤️ in <svg class="chflag" viewBox="0 0 32 32" role="img" aria-label="Schweiz"><rect width="32" height="32" rx="3" fill="#DA291C"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg></div>
   </section>
 </div>
@@ -8669,6 +8669,8 @@ function bankCsv(txt){
   if(cardHint&&pos>neg*3&&negs.length&&negs.filter(function(t){return /zahlung|payment|dank|thank|gutschrift|ausgleich|lastschrift|einzug|erhalten/i.test(t.name+" "+t.text);}).length>=negs.length*0.6)
     tx.forEach(function(t){t.a=-t.a;});
   else if(col.card&&!hasSaldo&&col.deb<0&&pos>neg*4)tx.forEach(function(t){t.a=-t.a;});
+  /* Kreditkarten-Auszug (Kartennummer-Spalte, Swisscard u. a.): Buchungen ohne erkannte Art sind Kartenzahlungen (27.10.2026) */
+  if(cardHint)tx.forEach(function(t){if(!t.kind)t.kind="card";});
   var hc=(col.head||[]).join("|"),cur=/\bCHF\b/i.test(hc)?"CHF":(/\bEUR\b|€/i.test(hc)?"EUR":"");
   if(!cur){var nC=(body.match(/\bCHF\b/g)||[]).length,nE=(body.match(/\bEUR\b|€/g)||[]).length;
     if(nC!==nE)cur=nC>nE?"CHF":"EUR";
@@ -8772,11 +8774,16 @@ function bankMt940(txt){
   var m25=txt.match(/(?:^|\n):25:([^\r\n]+)/);
   return {fmt:"MT940",bank:"",tx:tx,acct:m25?m25[1].replace(/\s/g,""):""};
 }
+/* Ganze Zeile in Anführungszeichen (Swisscard-Export, 27.10.2026): «"26.10.2026,""MIGROS …"",""CHF"",""30.80"",…"» – die Datei wurde einmal zu oft
+   als CSV gespeichert, jede Datenzeile ist ein einziges Feld. Erkennen: Zeile beginnt und endet mit " und enthält ,"" bzw. ;"" → äussere Anführungszeichen weg, "" → ". SwiftUI: BankParser.unwrapLines */
+function bankUnwrap(txt){var L=String(txt).split(/\r?\n/),wrap=/^"[^"].*[,;\t]""[^",;\t].*"$/,n=0,m=0;
+  L.forEach(function(l){if(l.trim()){n++;if(wrap.test(l.trim()))m++;}});if(m<2||m<(n-1)*0.5)return txt;
+  return L.map(function(l){var t=l.trim();return wrap.test(t)?t.slice(1,-1).replace(/""/g,'"'):l;}).join("\n");}
 function bankRead(buf){
   var txt=typeof buf==="string"?buf:bankDecode(buf),r=null;bkLastDiag="";
   if(/<\s*(\w+:)?Document[\s>]/.test(txt)&&/camt\.05[234]/.test(txt))r=bankCamt(txt);
   else if(/(^|\n):20:/.test(txt)&&/\n:61:/.test(txt))r=bankMt940(txt);
-  else r=bankCsv(txt);
+  else r=bankCsv(bankUnwrap(txt));
   if(!r||!r.tx.length)return null;
   r.tx.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
   r.from=r.tx[0].d;r.to=r.tx[r.tx.length-1].d;

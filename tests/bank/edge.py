@@ -100,6 +100,7 @@ E = {
  "rv_paypal_video_known": dict(s=[("Muster Video", 1, 10.49)], nomatch=True),  # PayPal-Händler ≠ erfasster «Muster Cloud»
  "rv_mandatswechsel": dict(s=[("Muster Fitness", 1, 24.9)]),
  "rv_eur_abo_chf": dict(s=[("Sunrise", 1, 39), ("Muster SaaS Dublin", 1, 9.41)]),
+ "swisscard_umhuellt": dict(s=[("Netflix", 1, 18.9)]),  # jede Datenzeile als ein Feld in Anführungszeichen (Swisscard-Export)
  "policen": dict(s=[("Sunrise", 1, 39), ("Muster Versicherung", 12, 404.1), ("Muster Versicherung", 12, 383.2), ("Muster Versicherung", 12, 372.7)]),
 }
 JS = """([txt,contracts,alias])=>{var B=window.KontivoBank();B.state.contracts=contracts||{};B.state.settings.bankAlias=alias||{};var r=B.read(txt);if(!r)return null;var f=B.find(r,[]);
