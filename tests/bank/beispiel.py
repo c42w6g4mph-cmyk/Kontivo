@@ -5,7 +5,7 @@ from playwright.sync_api import sync_playwright
 D = os.path.dirname(os.path.abspath(__file__)); URL = os.environ.get("KONTIVO_URL", "http://localhost:8765/index.html")
 FIX = [("Muster Immobilien", 1, 2150), ("Kita Sonnenschein", 1, 1260), ("Steueramt der Stadt Winterthur", 1, 900), ("CSS", 1, 845.1), ("VIAC", 1, 500),
        ("AMAG Leasing", 1, 389), ("Musikschule", 6, 640), ("Migros Zuerich Fitnesspark", 1, 89), ("Sunrise", 1, 59.9), ("Salt", 1, 29.95), ("Spotify", 1, 25.95),
-       ("Netflix", 1, 20.9), ("YouTube Premium", 1, 15.9), ("Apple", 1, 3), ("Stadtwerk Winterthur", 3, None), ("Kantonales Steueramt", 12, 1240), ("AXA", 12, 1184.5),
+       ("Netflix", 1, 20.9), ("YouTube Premium", 1, 15.9), ("Apple", 1, 3), ("Amazon Kindle", 1, None), ("Stadtwerk Winterthur", 3, None), ("Kantonales Steueramt", 12, 1240), ("AXA", 12, 1184.5),
        ("Die Mobiliar", 12, 486.3), ("Strassenverkehrsamt", 12, 412), ("Serafe", 12, 335), ("Protekta", 12, 318), ("FC Winterthur", 12, 290), ("SBB Halbtax", 12, 190),
        ("Stadtpolizei Winterthur Hundekontrolle", 12, 160), ("Amazon Prime", 12, None), ("Duolingo", 12, 89)]
 INC = [("Muster Engineering", 1, 8700), ("SVA Zuerich", 1, 215), ("Muster Engineering", 12, 8450), ("Muster Engineering", 12, 4200)]
